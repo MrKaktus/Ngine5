@@ -7,3 +7,7 @@ public/bin/openvr_api.dll
 public/bin/zlibwapi.dll
 middleware/openvr-0.9.11/.gitattributes
 bin/win32/Debug/Ngine5dbg.lib
+project/Ngine5.v12.suo
+middleware/zlib-1.2.8/contrib/vstudio/vc11/zlibvc.v12.suo
+middleware/zlib-1.2.8/contrib/vstudio/vc11/x86/
+middleware/zlib-1.2.8/contrib/masmx86/
