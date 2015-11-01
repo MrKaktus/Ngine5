@@ -22,7 +22,7 @@
 #include "core/rendering/metal/mtlRaster.h"
 #endif
 #if defined(EN_PLATFORM_WINDOWS) 
-#include "core/rendering/vulkan/vkRaster.h"
+//#include "core/rendering/vulkan/vkRaster.h"
 #endif
 
 namespace en
@@ -67,7 +67,7 @@ namespace en
 #if defined(EN_PLATFORM_WINDOWS) 
    return ptr_dynamic_cast<RasterState, RasterStateD3D12>(new RasterStateD3D12(state));
 
-   return ptr_dynamic_cast<RasterState, RasterStateVK>(new RasterStateVK(state));
+  // return ptr_dynamic_cast<RasterState, RasterStateVK>(new RasterStateVK(state));
 
 #elif defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
    return ptr_dynamic_cast<RasterState, RasterStateMTL>(new RasterStateMTL(state));

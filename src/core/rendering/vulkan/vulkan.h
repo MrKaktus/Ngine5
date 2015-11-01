@@ -17,11 +17,8 @@
 #ifndef ENG_CORE_RENDERING_VULKAN
 #define ENG_CORE_RENDERING_VULKAN
 
-//#include "../../../Projects/KHRONOS/git/Vulkan/src/include/vulkan.h"
-#include "./../../../../../../Projects/KHRONOS/git/Vulkan/src/include/vulkan.h"
-// #include "../../../Projects/KHRONOS/git/Vulkan/src/include/vk_platform.h"    // Is included by vulkan.h
+#include "Vulkan/vulkan.h"
 
-// #include "vulkan/vk_platform.h"
-// #include "vulkan/vulkan.h"
+//#include "./../../../../../../Projects/KHRONOS/git/Vulkan/src/include/vulkan.h"
 
 #endif
