@@ -1,0 +1,1106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\audio">
+      <UniqueIdentifier>{96e88567-fcdd-4850-a4ae-d4e2a6858a8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core">
+      <UniqueIdentifier>{97af16a4-b177-4226-949e-af2efb03e95f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\config">
+      <UniqueIdentifier>{12303f4a-f03e-4305-b6ea-e81117b32f55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\log">
+      <UniqueIdentifier>{7e64c01e-27cb-4612-8730-c39495e3e2ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\rendering">
+      <UniqueIdentifier>{f4b2c3cd-f163-4d0f-854c-f8a2f1193220}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\rendering\common">
+      <UniqueIdentifier>{45288d82-04af-4cba-b14c-331713ff1a6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\rendering\d3d12">
+      <UniqueIdentifier>{1b544590-a2c0-4507-84bd-573dfa9f034e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\rendering\metal">
+      <UniqueIdentifier>{6cfa3521-a71b-4a1b-b6f9-a19f73812ed7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\rendering\opengl">
+      <UniqueIdentifier>{1772501b-197d-4e19-8249-dcdcee34a960}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\rendering\vulkan">
+      <UniqueIdentifier>{68dfde65-bd24-4576-8f67-b09cff5a5625}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\storage">
+      <UniqueIdentifier>{99af91b7-1080-45b4-8a85-609e0e063b46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\threading">
+      <UniqueIdentifier>{fc0b3ecf-8d3e-433d-9317-01313f0ee66e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\types">
+      <UniqueIdentifier>{a21a44a2-ce02-4f7e-a95a-5107b3a31a88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\utilities">
+      <UniqueIdentifier>{282a15c5-c439-45b2-9c8f-d8a6306f03b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\input">
+      <UniqueIdentifier>{f2d8bcd7-3a70-449b-8085-54c44f417cde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\monetization">
+      <UniqueIdentifier>{0492cea2-3bf8-418a-83fc-e867a9347a15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\platform">
+      <UniqueIdentifier>{89145717-1407-4aeb-84eb-f900c482d32f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\platform\android">
+      <UniqueIdentifier>{24858306-c59b-4fb4-a1ad-c1f6061913f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\platform\blackberry">
+      <UniqueIdentifier>{cb3aef7e-3678-443c-92c7-019bc94aeef0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\platform\windows">
+      <UniqueIdentifier>{f63083e0-24c1-4a7b-834f-817757c7a4c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\rendering">
+      <UniqueIdentifier>{4dc990a2-0e88-4c7c-bf04-33e3a93104e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\platform\osx">
+      <UniqueIdentifier>{f15da569-7f50-46ad-a479-a3192ee76a12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\resources">
+      <UniqueIdentifier>{756af4ed-e841-48c1-9e51-44e06d4e5086}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\scene">
+      <UniqueIdentifier>{2e656a71-ccc4-4192-8dae-ca79969f8f42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\threading">
+      <UniqueIdentifier>{37fc720a-f318-4038-9289-b2fcd64d9509}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utilities">
+      <UniqueIdentifier>{88816f55-cfca-4b91-ad7a-89f117b76c0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utilities\gpcpu">
+      <UniqueIdentifier>{5534377d-f6a9-4ae8-840f-96034ba1f97d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\audio">
+      <UniqueIdentifier>{af96eb33-653a-4ef0-a2e4-3e68e43d08c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core">
+      <UniqueIdentifier>{53521990-e6eb-41a1-9b21-b82b698cbee3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\input">
+      <UniqueIdentifier>{1c119a27-acb6-4f2c-8a65-23e60914c9cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\monetization">
+      <UniqueIdentifier>{81a10e93-d358-41b6-9eeb-6693b1b9bb90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\platform">
+      <UniqueIdentifier>{f9dad671-8214-4d0b-be79-1a5a9b0918ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\rendering">
+      <UniqueIdentifier>{a84f2bb9-4c9a-446b-8c6e-353fd05d21ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\resources">
+      <UniqueIdentifier>{9ffd5dac-f06f-4200-8a71-f1f0c0e9c27d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\types">
+      <UniqueIdentifier>{ebbf0f85-d638-4460-b7e6-070f8e370650}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\config">
+      <UniqueIdentifier>{5f024161-28fb-4255-84e3-405555146d3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\log">
+      <UniqueIdentifier>{8bfc9277-dcb3-48c8-a8b9-0b6a7fdceaa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\rendering">
+      <UniqueIdentifier>{86870f42-d409-4ae3-bf93-bef72aecc837}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\threading">
+      <UniqueIdentifier>{a332772d-b7f6-4ae8-99be-827104e8d7d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\utilities">
+      <UniqueIdentifier>{1a6226f4-e899-41d9-a881-9ceae5f00d65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\platform\android">
+      <UniqueIdentifier>{15a640dc-a4ab-4741-8d9b-18a71851ef44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\platform\blackberry">
+      <UniqueIdentifier>{f89e4216-8eec-41fd-96d1-5724c24964fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\platform\windows">
+      <UniqueIdentifier>{0bda27fa-1842-4027-b21b-198e42b3f40d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\scene">
+      <UniqueIdentifier>{7c28ea73-6131-44ea-9818-5aae48656418}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\threading">
+      <UniqueIdentifier>{c0276b99-c172-4f4f-b5cd-718e346f85f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utilities">
+      <UniqueIdentifier>{6de189eb-fdc3-4cf3-a59e-7c871fde2161}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utilities\gpcpu">
+      <UniqueIdentifier>{aaedb25d-bbc6-4bbd-a9b9-ca50562005c4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\audio\audio.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\config\config.cpp">
+      <Filter>Source Files\core\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\log\log.cpp">
+      <Filter>Source Files\core\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\api.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\buffer.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\depthStencil.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\framebuffer.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\gpu.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\program.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\raster.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\rendering.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\sampler.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\screen.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\state.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\texture.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\cBlend.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\cTexture.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\inputAssembler.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Blend.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12DepthStencil.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12InputAssembler.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Raster.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Viewport.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\metal\mtlBlend.cpp">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\metal\mtlDepthStencil.cpp">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\metal\mtlInputAssembler.cpp">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\metal\mtlSampler.cpp">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\metal\mtlTexture.cpp">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\metal\mtlViewport.cpp">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\bind.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\extensions.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\gl30Framebuffer.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\gl31Framebuffer.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\gl32Framebuffer.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\gl33Sampler.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\gl40Framebuffer.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\gl43Texture.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\gl45Framebuffer.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\glState.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\glTexture.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl12.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl13.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl14.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl15.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl20.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl21.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl30.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl31.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl32.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl33.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl40.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl41.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl42.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl43.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl44.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\opengl45.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\unbind.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkBlend.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkDepthStencil.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkDevice.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkInputAssembler.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkMultisampling.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkPipeline.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkRaster.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkRenderPass.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkState.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkTexture.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkViewport.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vulkan.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\storage\storage.cpp">
+      <Filter>Source Files\core\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\double3.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\double4.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\float2.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\float3.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\float3x3.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\float3x4.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\float4.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\float4x4.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\half.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\quaternion.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\uint32v2.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\uint32v3.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\uint32v4.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\utilities\parser.cpp">
+      <Filter>Source Files\core\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\camera.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\hmd.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\input.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\joystick.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\oculus.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\vive.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\monetization\monetization.cpp">
+      <Filter>Source Files\monetization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\system.cpp">
+      <Filter>Source Files\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\android\and_events.cpp">
+      <Filter>Source Files\platform\android</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\android\and_main.cpp">
+      <Filter>Source Files\platform\android</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\blackberry\bb_main.cpp">
+      <Filter>Source Files\platform\blackberry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\windows\win_events.cpp">
+      <Filter>Source Files\platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\windows\win_main.cpp">
+      <Filter>Source Files\platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rendering\Istate.cpp">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rendering\stereo.cpp">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\bmp.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\dds.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\effect.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\exr.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\fbx.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\font.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\forsyth.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\hdr.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\material.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\model.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\mtl.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\obj.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\png.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\resources.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\tex.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\tga.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resources\wav.cpp">
+      <Filter>Source Files\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\axes.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\cam.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\drawable.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\entity.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\frustum.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\gamestate.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\Ncam.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\Noriented.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene\scene.cpp">
+      <Filter>Source Files\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\threading\maintask.cpp">
+      <Filter>Source Files\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\threading\mutex.cpp">
+      <Filter>Source Files\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\threading\sheduler.cpp">
+      <Filter>Source Files\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\threading\task.cpp">
+      <Filter>Source Files\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\threading\thread.cpp">
+      <Filter>Source Files\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\threading\tls.cpp">
+      <Filter>Source Files\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\threading\worker.cpp">
+      <Filter>Source Files\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utilities\random.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utilities\strings.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utilities\timer.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utilities\utilities.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utilities\gpcpu\gpcpu.cpp">
+      <Filter>Source Files\utilities\gpcpu</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\public\include\audio\audio.h">
+      <Filter>Header Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\basic.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\double3.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\double4.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\float2.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\float3.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\float3x3.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\float3x4.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\float4.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\float4x4.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\half.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\quaternion.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\uint32v2.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\uint32v3.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\uint32v4.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\configuration.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\Ngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\config\config.h">
+      <Filter>Header Files\core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\log\log.h">
+      <Filter>Header Files\core\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\blend.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\buffer.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\depthStencil.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\device.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\framebuffer.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\gpu.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\inputAssembler.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\multisampling.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\pipeline.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\program.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\raster.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\rendering.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\sampler.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\state.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\texture.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\viewport.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Blend.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12DepthStencil.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Device.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12InputAssembler.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Raster.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\inputAssembler.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\sampler.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\texture.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlBlend.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlDepthStencil.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlInputAssembler.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlSampler.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlTexture.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlViewport.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\extensions.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\gl30Framebuffer.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\gl31Framebuffer.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\gl32Framebuffer.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\gl33Sampler.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\gl40Framebuffer.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\gl43Texture.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\gl45Framebuffer.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\glState.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\glTexture.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl12.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl13.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl14.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl15.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl20.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl21.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl30.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl31.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl32.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl33.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl40.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl41.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl42.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl43.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl44.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\opengl45.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkBlend.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkDepthStencil.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkDevice.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkInputAssembler.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkMultisampling.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkPipeline.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkRaster.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkSampler.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkTexture.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkViewport.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vulkan.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vulkan10.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\context.h">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\log\context.h">
+      <Filter>Source Files\core\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\config\context.h">
+      <Filter>Source Files\core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio\context.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\storage\context.h">
+      <Filter>Source Files\core\storage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\storage.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\threading\atomics.h">
+      <Filter>Header Files\core\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\allocator.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\array.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\memory.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\NonCopyable.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\parser.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\Tarray.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\TarrayAdvanced.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\TintrusivePointer.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\Tproxy.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\Tsingleton.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\input\hmd.h">
+      <Filter>Header Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\input\input.h">
+      <Filter>Header Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\context.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\oculus.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\vive.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\monetization\context.h">
+      <Filter>Source Files\monetization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\monetization\monetization.h">
+      <Filter>Header Files\monetization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\android\and_events.h">
+      <Filter>Header Files\platform\android</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\android\and_init.h">
+      <Filter>Header Files\platform\android</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\android\and_main.h">
+      <Filter>Header Files\platform\android</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\blackberry\bb_init.h">
+      <Filter>Header Files\platform\blackberry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\blackberry\bb_main.h">
+      <Filter>Header Files\platform\blackberry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\windows\win_events.h">
+      <Filter>Header Files\platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\windows\win_init.h">
+      <Filter>Header Files\platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\windows\win_main.h">
+      <Filter>Header Files\platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\system.h">
+      <Filter>Header Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\context.h">
+      <Filter>Source Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\rendering\renderer.h">
+      <Filter>Header Files\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\rendering\stereo.h">
+      <Filter>Header Files\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\resources\context.h">
+      <Filter>Source Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\bmp.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\dds.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\effect.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\exr.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\fbx.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\font.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\forsyth.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\hdr.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\material.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\mtl.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\obj.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\png.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\resources.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\tga.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\wav.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\zip.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\axes.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\cam.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\drawable.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\entity.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\frustum.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\Ncam.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\Noriented.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\scene.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\scene\state.h">
+      <Filter>Header Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scene\context.h">
+      <Filter>Source Files\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\maintask.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\mutex.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\Nqueue.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\Ntls.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\scheduler.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\task.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\thread.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\worker.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\threading\context.h">
+      <Filter>Source Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\utilities\Nversion.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\utilities\random.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\utilities\strings.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\utilities\Tcontainer.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\utilities\timer.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\utilities\utilities.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\utilities\gpcpu\gpcpu.h">
+      <Filter>Header Files\utilities\gpcpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\defines.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\public\include\core\log\log.inl">
+      <Filter>Header Files\core\log</Filter>
+    </None>
+    <None Include="..\public\include\core\threading\atomics.inl">
+      <Filter>Header Files\core\threading</Filter>
+    </None>
+    <None Include="..\public\include\threading\mutex.inl">
+      <Filter>Header Files\threading</Filter>
+    </None>
+    <None Include="..\public\include\threading\threading.inl">
+      <Filter>Header Files\threading</Filter>
+    </None>
+  </ItemGroup>
+</Project>
