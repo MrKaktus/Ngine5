@@ -1,0 +1,47 @@
+
+Step by step:
+=============
+
+   It is not needed anymore:
+   1) Install Momentics IDE at:
+      C:\bbndk\
+ 
+2) Install Visual Studio plugin at default location:
+   C:\bbndk_vs\   
+   Be sure "qconfig" dir is on C:\
+   Otherwise copy it from drive where your solution is located.
+
+
+3) BlackBerry device:
+   - Connect through USB to PC
+     - Write down [DEVICE ID]
+   - Settings > Polaczenia sieciowe > WiFi:
+     - Enable
+   - Settings > Bezpieczenstwo i prywatnosc > Tryb tworzenia: 
+     - Enable and set [DEVICE PSWD] ( pin or password )
+     - Spisz [DEVELOPER IP] ( 169.254.0.1 )
+
+4) Choose and Install latest NDK from Momentics installer.
+
+
+
+- Developer mode enabled on Smartphone
+- create and deploy debug token to device using password of [DEVICE PSWD] ( device pin ) and its [DEVELOPER IP]
+
+
+
+[CSK PSWD]    krokodyl1*
+[CSJ PIN]     krokodyl
+[DEVICE PSWD] 5699
+[DEVICE ID]   0x2ABF8A51 ( Z10 )
+
+
+BlackBerry ID token ??
+
+To generate debug Token you need:
+
+Company name: Karol Gasinski
+Author name : Karol Gasinski
+BlackBerry ID Token Password : krokodyl1*
+
+

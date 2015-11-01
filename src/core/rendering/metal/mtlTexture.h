@@ -1,0 +1,50 @@
+/*
+
+ Ngine v5.0
+ 
+ Module      : Metal Texture.
+ Requirements: none
+ Description : Rendering context supports window
+               creation and management of graphics
+               resources. It allows programmer to
+               use easy abstraction layer that 
+               removes from him platform dependent
+               implementation of graphic routines.
+
+*/
+
+#ifndef ENG_CORE_RENDERING_METAL_TEXTURE
+#define ENG_CORE_RENDERING_METAL_TEXTURE
+
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+
+#include "core/rendering/common/texture.h"
+
+namespace en
+{
+   namespace gpu
+   {
+   struct SurfaceDescriptor
+      {
+      Nmutex lock;    // Locks this texture instance, to prevent it from beeing modified by other thread while it is mapped  
+      uint16 mipmap;  // MipMap level
+      uint16 layer;   // MipMap depth slice / CubeMap face / Array layer / CubeMapArray face-layer
+      void*  ptr;     // Pointer to local memory
+      
+      SurfaceDescriptor();
+      };
+
+   class TextureMTL : public TextureCommon
+      {
+      private:
+      SurfaceDescriptor desc;   // Mapped surface description
+      id <MTLTexture>   handle; // Metal sampler ID
+
+      TextureMTL(const TextureState& state);
+      virtual ~TextureMTL();
+      };
+   }
+}
+#endif
+
+#endif

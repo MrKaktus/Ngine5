@@ -1,0 +1,177 @@
+/*
+
+ Ngine v5.0
+ 
+ Module      : Utilities
+ Requirements: types
+ Description : Holds declarations of different macros
+               and helper functions that simplifies
+               overall programming process and are not
+               related with any specific module.
+   
+*/
+
+#include <math.h>
+#include "utilities/utilities.h"
+
+namespace en
+{
+   // Checks if given point is inside of rectangle
+   // x,y - position
+   // z,w - width, height
+   bool inRectangle(float4 rect, float2 position)
+   {
+   if ((position.x > rect.x) &&
+       (position.y > rect.y) &&
+       (position.x < rect.x + rect.z) &&
+       (position.y < rect.y + rect.w))
+      return true;
+   return false;
+   }
+   
+   bool powerOfTwo(uint8 in)
+   {
+   return !(in & (in-1));
+   }
+   
+   bool powerOfTwo(uint16 in)
+   {
+   return !(in & (in-1));
+   }
+   
+   bool powerOfTwo(uint32 in)
+   {
+   return !(in & (in-1));
+   }
+   
+   bool powerOfTwo(uint64 in)
+   {
+   return !(in & (in-1));
+   }
+   
+   // Returns next power of two for given numer
+   uint16 nextPowerOfTwo(uint8 in)
+   {
+   uint16 temp = in;
+   temp--;
+   temp |= temp >> 1;
+   temp |= temp >> 2;
+   temp |= temp >> 4;
+   temp++;
+   return temp;
+   }
+   
+   uint32 nextPowerOfTwo(uint16 in)
+   {
+   uint32 temp = in;
+   temp--;
+   temp |= temp >> 1;
+   temp |= temp >> 2;
+   temp |= temp >> 4;
+   temp |= temp >> 8;
+   temp++;
+   return temp;
+   }
+   
+   uint64 nextPowerOfTwo(uint32 in)
+   {
+   uint64 temp = in;
+   temp--;
+   temp |= temp >> 1;
+   temp |= temp >> 2;
+   temp |= temp >> 4;
+   temp |= temp >> 8;
+   temp |= temp >> 16;
+   temp++;
+   return temp;
+   }
+   
+   uint64 nextPowerOfTwo(uint64 in)
+   {
+   uint64 temp = in;
+   temp--;
+   temp |= temp >> 1;
+   temp |= temp >> 2;
+   temp |= temp >> 4;
+   temp |= temp >> 8;
+   temp |= temp >> 16;
+   temp |= temp >> 32;
+   temp++;
+   return temp;
+   }
+   
+   bool whichPowerOfTwo(uint32 in, uint32& power)
+   {
+   if (!in) 
+      return false;
+   if (!powerOfTwo(in))
+      return false;
+   
+   power = 0;
+   while(!(in % 2))
+      {
+      in = in >> 1;
+      ++power;
+      }
+   return true;
+   }
+   
+   bool whichPowerOfTwo(uint64 in, uint32& power)
+   {
+   if (!in) 
+      return false;
+   if (!powerOfTwo(in))
+      return false;
+   
+   power = 0;
+   while(!(in % 2))
+      {
+      in = in >> 1;
+      ++power;
+      }
+   return true;
+   }
+   
+   // Changes endiannes of variable
+   uint16 endiannes(uint16 in)
+   {
+   return (in >> 8) | (in << 8);
+   }
+   
+   uint32 endiannes(uint32 in)
+   {
+   return (in >> 24) | (in << 24) |
+          ((in & 0x00FF0000) >> 8) | ((in & 0x0000FF00) << 8);
+   }
+   
+   uint64 endiannes(uint64 in)
+   {
+   return (in >> 56) | (in << 56) |
+          ((in & 0x00FF000000000000) >> 40) | ((in & 0x000000000000FF00) << 40) |
+          ((in & 0x0000FF0000000000) >> 24) | ((in & 0x0000000000FF0000) << 24) |
+          ((in & 0x000000FF00000000) >> 8)  | ((in & 0x00000000FF000000) << 8);
+   }
+   
+   // Change of degrees to radians
+   float radians(float s)
+   {
+   return static_cast<float>((s*M_PI)/180.0);
+   }
+   
+   double radians(double s)
+   {
+   return (s*M_PI)/180.0;
+   }
+   
+   // Change radians to degrees
+   float degrees(float s)
+   {
+   return static_cast<float>((s*180.0)/M_PI);
+   }
+   
+   double degrees(double s)
+   {
+   return (s*180.0)/M_PI;
+   }
+
+}

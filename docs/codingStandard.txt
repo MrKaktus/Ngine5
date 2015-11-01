@@ -1,0 +1,77 @@
+/*
+
+ Ngine v4.0
+ 
+ Module      : None.
+ Visibility  : All versions.
+ Requirements: none
+ Description : Unifies coding standard and conventions
+               used during Ngine development. It also
+			   explains why this and not the other ways
+			   of code management were choosed.
+
+*/
+
+1) Errors checking:
+   As Ngine is designed to be high end game engine capable
+   of supporting AAA titles it need to have as small overhead
+   as possible. Therefore error checking is divided to 
+   several patterns:
+
+   asserts - When it is simple "not null", not out of range
+             check, it should be implemented as assert that
+             will check it only in Debug mode. It is assumed
+             that such situations shouldn't occur in final
+             Release build of applcation and that programmer
+             is responsible for ensuring that.
+
+   run-time checks - More advanced or critical issues can be
+                     still checked at run-time (in all build
+                     targets) with throwing specific error 
+                     messages to log. Application termination 
+                     can be implemented then.
+
+2) Indenting:
+
+namespace en
+{
+// Every piece of engine code should be inside of "en" namespace.
+// Everything on the same level of indention is aligned to the same column as brackets.
+// Default indention level is 3.
+
+if (...)
+   {
+   }
+for(...)
+   {
+   }
+switch(...)
+   {
+   case ...:
+        ...
+        return;
+   defalut:
+        ...
+   }
+function(...
+   ...
+   ...
+{
+...
+...
+}
+const struct array[] = 
+   {
+   ...
+   ... 
+   };
+enum something
+   {
+   ...
+   ...
+   };
+
+Ntimer   vs NTimer
+Nthread     NThread
+Nparser     NParser
+}

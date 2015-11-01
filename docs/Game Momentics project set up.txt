@@ -1,0 +1,9 @@
+Project Properties
+-> C/C++ General
+   -> Paths and Symbols
+      -> Includes [TAB]
+         -> Languages -> GNU C
+
+         Add..
+         ..\..\EngineSDK\trunk\Ngine4\engine\latest\include
+

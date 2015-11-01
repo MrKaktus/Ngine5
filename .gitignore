@@ -1,0 +1,9 @@
+build/
+project/Ngine5.sdf
+project/Ngine5.vcxproj.filters
+public/lib/
+public/bin/libfbxsdk.dll
+public/bin/openvr_api.dll
+public/bin/zlibwapi.dll
+middleware/openvr-0.9.11/.gitattributes
+bin/win32/Debug/Ngine5dbg.lib

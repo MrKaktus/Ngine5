@@ -1,0 +1,27 @@
+1) Perforce is not connecting: "Partner exited unexpectedly."
+   ----------------------------------------------------------
+A: Perforce needs to be run from shortcut with "Start in:"
+   pointing to Perforce repository where p4config.txt is located.
+   For e.g.: H:\Engine
+
+
+2) Perforce is not connecting: "Partner exited unexpectedly." while running P4 plugin in VS2013.
+   ---------------------------------------------------------------------------------------------
+A: You need to run your VS Solution directly from it's directory 
+   and keep copy of p4config.txt in it as well.
+
+
+3) How to integrate VS Project with Perforce?
+   ------------------------------------------
+A: File > Open Connection to Perforce Depot..
+
+
+4) Visual Studio Editor has reset !!
+   ---------------------------------
+A: TOOLS > Import and Export Settings...
+
+
+5) How to set up new Workspace on Mac?
+   -----------------------------------
+A: 
+  

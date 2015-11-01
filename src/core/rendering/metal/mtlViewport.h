@@ -1,0 +1,36 @@
+/*
+
+ Ngine v5.0
+ 
+ Module      : Metal Viewport-Stencil State.
+ Requirements: none
+ Description : Rendering context supports window
+               creation and management of graphics
+               resources. It allows programmer to
+               use easy abstraction layer that 
+               removes from him platform dependent
+               implementation of graphic routines.
+
+*/
+
+#ifndef ENG_CORE_RENDERING_METAL_VIEWPORT_STENCIL_STATE
+#define ENG_CORE_RENDERING_METAL_VIEWPORT_STENCIL_STATE
+
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+
+#include "core/rendering/viewport.h"
+
+namespace en
+{
+   namespace gpu
+   {
+   // It's tightly attached to Render Command Encoder, because there is only one Viewport.
+   class ViewportStateMTL : public ViewportState
+      {
+      MTLViewport viewport;
+      };
+   }
+}
+#endif
+
+#endif

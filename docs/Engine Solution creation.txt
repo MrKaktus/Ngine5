@@ -1,0 +1,210 @@
+﻿
+WINDOWS:
+========
+
+
+After installing P4, run cmd:
+p4 set P4CONFIG=p4config.txt
+
+Create p4config.txt file in destination directory for solution:
+P4PORT=perforce.assembla.com:1666
+P4HOST=ngine
+P4USER=mrkaktus
+P4CLIENT=Engine_GameDevMonster
+P4CHARSET=none
+
+MACOS:
+======
+
+Open Terminal
+> sudo mkdir /usr/local/bin
+Download "p4"
+Copy it to /usr/local/bin
+Make it executable:
+chmod +x p4
+
+Open Applications dir
+Download p4merge and p4v
+Move them to Applications dir
+
+Create p4config.txt file in destination directory for solution:
+P4PORT=perforce.assembla.com:1666
+P4HOST=ngine
+P4USER=mrkaktus
+P4CLIENT=Engine_GameDevMonster
+P4CHARSET=utf8
+
+In Terminal switch to solution directory, type:
+echo "export P4CONFIG P4CONFIG=p4config.txt" >> ~/.bashrc
+source ~/.bashrc
+p4 client -S //depot/main -o | p4 client -i
+
+Then create bash ".bash" script on desktop:
+#!/bin/bash
+# echo "export P4CONFIG=p4config.txt" >> ~/.bashrc
+source ~/.bashrc
+cd ~/GAMEDEV/Engine
+open /Applications/p4v.app
+
+Use script to open Perforce logon window.
+Skip wizard.
+Delete Workspace name at first run (it doesn't exist yet!)
+
+FIRST RUN:
+==========
+
+At first run, create new workspace for new PC.
+
+Set:
+- Workspace name
+- Workspace root (.../Engine)
+- Stream (//depot/main)
+
+
+
+WINOWS / VISUAL STUDIO:
+=======================
+
+ZLIB 1.2.8 on Win7 Config:
+
+In Zlib Solution, in project of zlibvc and zlibstatic remove ZLIB_WINAPI 
+In zlib DEF file shorten VERSION string to 1.2
+
+Comment out lines, so that Win8+ SDK functions won't be used.
+
+//#if defined(WINAPI_FAMILY_PARTITION) && (!(defined(IOWIN32_USING_WINRT_API)))
+//#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
+//#define IOWIN32_USING_WINRT_API 1
+//#endif
+//#endif
+
+
+
+Then configure solution like this:
+
+DEBUG:
+
+Configuration Properties
+  General
+    General
+      Output Directory               : $(SolutionDir)\..\bin\win32\$(Configuration)\
+      Intermediate Directory         : $(SolutionDir)\..\build\win32\$(Configuration)\
+      Target Name                    : $(ProjectName)dbg
+      Build Log File                 : .\..\build\win32\$(Configuration)\$(MSBuildProjectName).log
+    Project Defaults
+      Configuration type             : Static library (.lib)
+  C/C++
+    General
+      Additional Include Directories : "./../public/include/"; "./../src/"; "./middleware/include/" 
+    Code Generation
+      Runtime Library                : Multi-threaded Debug (/MTd)
+  Librarian
+    General
+      Additional Dependiences        : opengl32.lib; 
+                                       zlibstat.lib; // <- FOR STATIC LINKING
+                                       zlibwapi.lib; // <- FOR DYNAMIC LINKING  ( uses MSVCRT.DLL )
+                                       LibOVR.lib; 
+                                       libfbxsdk-md.lib; 
+                                       OpenAL32.lib
+                                       openvr_api.lib;dinput8.lib;dxguid.lib;
+                                       libpxc_d.lib;
+                                       Kinect10.lib;
+                                       ws2_32.lib;winmm.lib;
+                                       libfbxsdk-mt.lib
+      Additional Library Directories : ./../middleware/zlib-1.2.8/contrib/vstudio/vc11/x86/ZlibStatDebug; // <-- FOR STATIC LINKING
+                                       ./../middleware/zlib-1.2.8/contrib/vstudio/vc11/x86/ZlibDllDebug;  // <-- FOR DYNAMIC LINKING
+                                       .\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2013;
+                                       .\..\middleware\openvr-0.9.11\lib\win32;
+                                       C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;
+                                       C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32
+  Build Events
+    Post-Build Events 
+      Command Line                   : "./Ngine4_latest_dbg.bat"
+
+
+RELEASE:
+
+Configuration Properties
+  General
+    Project Defaults
+      Configuration type             : Static library (.lib)
+  C/C++
+    General
+      Additional Include Directories : "./../public/include/"; "./../src/"; "./middleware/include/"
+    Code Generation
+      Runtime Library                : Multi-threaded (/MT)
+  Librarian
+    General
+      Additional Dependiences        : opengl32.lib 
+      Additional Library Directories : "./middleware/lib/" 
+  Build Events
+    Post-Build Events 
+      Command Line                   : "./Ngine4_latest_rls.bat"
+
+
+Post Compile operation :
+
+- Copy Zlib DLL from:
+  Ngine5\middleware\zlib-1.2.8\contrib\vstudio\vc11\x86\ZlibDllDebug\zlibwapi.dll
+  to:
+  Ngine5\public\bin\zlibwapi.dll  
+
+
+Xcode configuration:
+====================
+
+Xcode > Preferences.. > Text Editing > Indentation:
+
+Set “Tab width” to 1
+Set “Indent width” to 1
+Disable “Line wrapping”
+Disable “Automatically indent based on syntax”
+
+
+
+MacOS Project properties:
+=========================
+
+Apple LLVM 6.0 - Language:
+  C Language Dialect                 : c11
+Apple LLVM 6.0 - Preprocessing:
+  Preprocessor Macros
+    Debug                            : __APPLE__=1 $(inherited)
+    Release                          : __APPLE__=1
+
+MACOS / XCODE:
+==============
+
+> Create New PRoject
+> OS X Framework & Library
+> C/C++ Library
+NEXT
+Product Name      : Ngine
+Organization Name : 
+Company Identifier: KarolGasinski
+Type: Static
+NEXT
+Select project/xcode dir
+CREATE
+
+Then close Xcode.
+Go to projects/macos/Ngine../
+move xcode project one folder up
+delete Ngine temp folder
+
+Then configure solution like this:
+
+Ngine 
+
+Build Locations:
+> Build Products Path                  : ../../bin/macos
+> Intermediate Build Files Path        : ../../build/macos
+> Per-configuration Build Products Path: ../../bin/macos/$(CONFIGURATION)
+  Debug                                : ../../bin/macos/Debug
+  Release                              : ../../bin/macos/Release
+> Per-configuration intermediate Build Files Path: ../../build/macos/$(CONFIGURATION)
+  Debug                                          : ../../build/macos/Debug
+  Release                                        : ../../build/macos/Release
+
+Search Paths:
+> Header Search Paths                  : ../../include/ non-recursive

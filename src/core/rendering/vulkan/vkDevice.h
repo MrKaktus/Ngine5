@@ -1,0 +1,142 @@
+/*
+
+ Ngine v5.0
+ 
+ Module      : Vulkan GPU Device.
+ Requirements: none
+ Description : Rendering context supports window
+               creation and management of graphics
+               resources. It allows programmer to
+               use easy abstraction layer that 
+               removes from him platform dependent
+               implementation of graphic routines.
+
+*/
+
+#ifndef ENG_CORE_RENDERING_VULKAN_DEVICE
+#define ENG_CORE_RENDERING_VULKAN_DEVICE
+
+#include <string>
+#include "core/rendering/device.h"
+
+#include "core/rendering/vulkan/vulkan.h"
+
+#include "core/rendering/vulkan/vkInputAssembler.h"
+#include "core/rendering/vulkan/vkBlend.h"
+#include "core/rendering/vulkan/vkRaster.h"
+#include "core/rendering/vulkan/vkMultisampling.h"
+#include "core/rendering/vulkan/vkViewport.h"
+#include "core/rendering/vulkan/vkDepthStencil.h"
+#include "core/rendering/vulkan/vkPipeline.h"
+
+using namespace std;
+
+namespace en
+{
+   namespace gpu
+   {
+/// TEMP START
+
+   class PipelineLayout : public SafeObject
+      {
+      public:
+      virtual ~PipelineLayout();                              // Polymorphic deletes require a virtual base destructor
+      };
+
+   class PipelineLayoutVK : public PipelineLayout
+      {
+      public:
+      VkPipelineLayout state;
+
+      PipelineLayoutVK();
+      };
+
+/// TEMP END
+
+
+
+
+   // Vulkan API Layer description
+   struct LayerDescriptor
+      {
+      VkLayerProperties      properties;
+      VkExtensionProperties* extension;
+      uint32                 extensionsCount;
+
+      LayerDescriptor();
+      };
+
+   class VulkanDevice : public GpuDevice
+      {
+      private:
+      VkResult                         lastResult;
+      VkDevice                         device;
+      VkPhysicalDevice                 handle;
+      VkPhysicalDeviceFeatures         features;
+      VkPhysicalDeviceProperties       properties;
+      VkPhysicalDeviceMemoryProperties memory;
+      VkQueueFamilyProperties*         queueFamily;
+      uint32                           queueFamiliesCount;
+      LayerDescriptor*                 layer;
+      uint32                           layersCount;
+      VkExtensionProperties*           globalExtension;
+      uint32                           globalExtensionsCount;
+
+      VkPipelineCache                  pipelineCache;
+
+      // Device Function Pointers
+      #include "core/rendering/vulkan/vulkan10.h"
+
+      // Helper functions
+      void bindDeviceFunctionPointers(void);
+      void unbindDeviceFunctionPointers(void);
+
+      public:
+      VulkanDevice(const VkPhysicalDevice handle);
+     ~VulkanDevice();
+
+
+
+      VkDeviceMemory allocMemory(VkMemoryRequirements requirements, VkFlags properties);
+
+
+      Ptr<Pipeline> Create(const Ptr<InputAssembler> inputAssembler,
+                           const Ptr<ViewportState>  viewportState,
+                           const Ptr<RasterState>    rasterState,
+                           const Ptr<MultisamplingState> multisamplingState,                        
+                           const Ptr<DepthStencilState> depthStencilState,
+                           const Ptr<BlendState>     blendState,
+                           const Ptr<PipelineLayout> pipelineLayout);
+      };
+
+   class VulkanAPI : public GraphicAPI
+      {
+      private:
+      VkResult                         lastResult;
+      LayerDescriptor*                 layer;
+      uint32                           layersCount;
+      VkExtensionProperties*           globalExtension;
+      uint32                           globalExtensionsCount;
+
+      VkInstance                       instance;    // Application Vulkan API Instance
+      Ptr<VulkanDevice>*               device;      // Physical Device Interfaces
+      uint32                           devicesCount;
+
+      PFN_vkGetInstanceProcAddr                          vkGetInstanceProcAddr; 
+      PFN_vkEnumerateInstanceExtensionProperties         vkEnumerateInstanceExtensionProperties;  
+      PFN_vkEnumerateInstanceLayerProperties             vkEnumerateInstanceLayerProperties; 
+      PFN_vkCreateInstance                               vkCreateInstance;
+      PFN_vkEnumeratePhysicalDevices                     vkEnumeratePhysicalDevices; 
+
+      PFN_vkGetPhysicalDeviceSurfaceSupportKHR           vkGetPhysicalDeviceSurfaceSupportKHR;
+
+      public:
+      VulkanAPI(string appName);
+     ~VulkanAPI();
+
+      void bindInterfaceFunctionPointers(void);
+      };
+   }
+}
+
+#endif

@@ -1,0 +1,225 @@
+
+
+Entity / Oriented:
+
+Default orientation:
+
+       Up (Y+)
+       . 
+      /|\
+       |
+       |
+       |
+       |
+       +--------> Side (X+)
+      /           LEFT
+     /
+    /
+  |/
+  `
+  Look (Z+)
+
+Side vector is calculated with right-handed orientation rule.
+
+Strafe Left  -> X+
+Strafe Right -> X-
+Move Up      -> Y+
+Move Down    -> Y-
+Move Front   -> Z+
+Move Back    -> Z-
+
+All rotations are clock-wise positive:
+
+       Up (Y+)
+       . 
+      /|\
+     _ |_
+    /  | \
+    |/ |    .
+       |     \
+       +------|-> Side (X+)
+      /       |
+  /____    |\/
+    /  \                     
+  |/   /
+  `
+  Look (Z+)
+               /--- CW positive should be :
+Roll left      -
+Roll right     +
+Pitch up       -
+Pitch down     +
+Turn/yaw right -
+Turn/yaw left  +
+
+
+  Rotation matrices relate to coordinate systems in the following way.
+  Mathematical convention requires that a positive rotation angle
+  generates a clockwise rotation when looking from the origin towards
+  the positive end of the rotation axis.
+
+  Applying this rule, allows for the derivation of three Cartesian
+  rotation matrices. Consider a right-handed coordinate system. For each
+  rotation axis, look from the origin towards the positive end of the
+  selected axis. This generates the following three views:
+
+
+     +----------------------------------------+
+     |                                        |
+     |   X-axis       Y-axis        Z-axis    |
+     |                                        |
+     |                                        |
+     |  ^ Y          ^ Z                Y ^   |
+     |  |            |                    |   |
+     |  |            |                    |   |
+     |  |            |                    |   |
+     |  |            |                    |   |
+     |  O----> Z     O----> X      X <----O   |
+     |                                        |
+     +----------------------------------------+
+
+
+  Since a positive rotation angle generates a clockwise rotation, it is
+  possible to generate a set of coordinate mappings for each rotation.
+  For simplicity, a rotation of +90 will be considered:
+
+  Starting with the X-axis:
+
+   ( 0, 1, 0 ) -> ( 0, 0, 1 )
+   ( 0, 0, 1 ) -> ( 0,-1, 0 )
+   ( 0,-1, 0 ) -> ( 0, 0,-1 )
+   ( 0, 0,-1 ) -> ( 0, 1, 0 )
+
+  These can be simplified to:
+
+    X' =  X
+    Y' = -Z
+    Z' =  Y
+
+  These can then be placed into a matrix:
+
+         | 1  0       0     |
+    Rx = | 0  cos A  -sin A |
+         | 0  sin A   cos A |
+
+
+  Doing the same for the Y-axis:
+
+    ( 0, 0, 1) -> ( 1,0, 0)
+    ( 1, 0, 0) -> ( 0,0,-1)
+    ( 0, 0,-1) -> (-1,0, 0)
+    (-1, 0, 0) -> ( 0,0, 1)
+
+  These can be simplified to:
+
+    X' = Z
+    Y' = Y
+    Z' = -X
+
+  These can then be placed into a matrix:
+
+         |  cos A   0   sin A  |
+    Ry = |  0       1   0      |
+         | -sin A   0   cos A  |
+
+  And finally for the Z-axis:
+
+    ( 0, 1, 0 ) -> ( -1,  0, 0 )
+    (-1, 0, 0 ) -> (  0, -1, 0 )
+    ( 0,-1, 0 ) -> (  1,  0, 0 )
+    ( 1, 0, 0 ) -> (  0,  1, 0 )
+
+  These can be simplified to:
+
+    X' = -Y
+    Y' =  X
+    Z' =  Z
+
+  Placing these into a matrix:
+
+         |  cos A   -sin A    0  |
+    Rz = |  sin A    cos A    0  |
+         |  0        0        1  |
+
+  These are the three basic rotation matrices used by OpenGL.
+
+
+So, positive rotations about GLOBAL AXES would be :
+
+// Rotation CW around Y/up axis:
+//
+//       |  cos A    0        sin A    0  |
+//  Ry = |  0        1        0        0  |
+//       | -sin A    0        cos A    0  |
+//       |  0        0        0        1  |
+//
+void Noriented::yaw(float deg)
+{
+float fcos = cos(radians(deg));
+float fsin = sin(radians(deg));
+
+float tx = (c.x *  fcos) + (c.z * fsin);
+float tz = (c.x * -fsin) + (c.z * fcos);
+c.x = tx;
+c.z = tz;
+
+tx = (a.x *  fcos) + (a.z * fsin);
+tz = (a.x * -fsin) + (a.z * fcos);
+a.x = tx;
+a.z = tz;
+
+a.normalize();
+c.normalize();
+}
+
+// Rotation CW around Z/look axis:
+//
+//       |  cos A   -sin A    0        0  |
+//  Rz = |  sin A    cos A    0        0  |
+//       |  0        0        1        0  |
+//       |  0        0        0        1  |
+//
+void Noriented::roll(float deg)
+{
+float fcos = cos(radians(deg));
+float fsin = sin(radians(deg));
+ 
+float tx = (c.x * fcos) - (c.y * fsin);
+float ty = (c.x * fsin) + (c.y * fcos);
+c.x = tx;
+c.y = ty;
+
+tx = (b.x * fcos) - (b.y * fsin);
+ty = (b.x * fsin) + (b.y * fcos);
+b.x = tx;
+b.y = ty;
+
+b.normalize();
+c.normalize();
+}
+
+// Rotation CW around X/side axis:
+//
+//       | 1        0        0        0  |
+//  Rx = | 0        cos A   -sin A    0  |
+//       | 0        sin A    cos A    0  |
+//       | 0        0        0        1  |
+//
+void Noriented::pitch(float deg)
+{
+float fcos = cos(radians(deg));
+float fsin = sin(radians(deg));
+
+float ty = (a.y * fcos) - (a.z * fsin);
+float tz = (a.y * fsin) + (a.z * fcos);
+a.y = ty;
+a.z = tz;
+ 
+ty = (b.y * fcos) - (b.z * fsin);
+tz = (b.y * fsin) + (b.z * fcos);
+b.y = ty;
+b.z = tz;
+
+a.normalize();
+b.normalize();
+}

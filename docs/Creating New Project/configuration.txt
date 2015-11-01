@@ -1,0 +1,32 @@
+// DEBUG:
+//
+// General:
+//    Output Directory:                  $(SolutionDir)\..\bin\$(Platform)\$(Configuration)\
+//    Internediate Directory:            $(SolutionDir)\..\build\$(Platform)\$(Configuration)\
+//    Build Log File:                    .\..\bin\$(Platform)\$(Configuration)\$(MSBuildProjectName).log
+// C/C++:
+//    General:
+//       Additional Include Directories: "./../include/"; "./../../../EngineSDK/Ngine4/engine/latest/include/"; "./../../../EngineSDK/Ngine4/common/include/"
+//       Debug Information Format:       Program Database (/Zi)
+//    Code generation:
+//       Runtime Library:                Multi-threaded Debug (/MTd)
+// Linker:
+//    General:
+//       Additional Library Directories: "./../../../EngineSDK/Ngine4/engine/latest/lib/"; "./../../../EngineSDK/Ngine4/common/lib/debug/"
+//    Input:
+//       Additional Dependiences:        Ngine4dbg.lib;openAL32.lib;
+
+Directories layout:
+
+
+Root:
+- EngineSDK
+- Projects
+  - Game
+    - bin
+    - build
+    - include
+    - project
+      (Visual Studio Solution and project)
+    - resources
+    - src

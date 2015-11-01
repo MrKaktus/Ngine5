@@ -1,0 +1,32 @@
+
+
+3 layers of assets:
+-------------------
+
+1) Development assets
+   ------------------
+   Assets on initial stage of creation. They are stored in easy to modify, loseless
+   file formats. For optimal work this should be:
+   PSD, FBX
+
+2) Temporary assets
+   ----------------
+   Assets that are propositions of final assets, or work as a placeholders for them
+   during game development. Game engine is capable of using them, but its performance
+   can be lower than when using release assets. Supported texture formats:
+   PNG, TGA, BMP
+   Supported model and scene formats:
+   FBX, OBJ + MTL
+   Supported audio formats:
+   WAV
+
+3) Release assets
+   --------------
+   Final version of assets, optimized specifically for HW on which game will be played.
+   Textures are recompressed to PVRTC, ETC, DXT compressions etc. Models are optimized 
+   for GPU buffers usage (also primitive restart, attribute divisor, etc.). Everything
+   is stored in binary, engine proprietary formats:
+   MATERIAL
+   MODEL
+   SCENE
+   OGG (?)

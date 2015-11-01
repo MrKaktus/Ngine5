@@ -1,0 +1,50 @@
+/*
+
+ Ngine v5.0
+ 
+ Module      : Viewport-Stencil State.
+ Requirements: none
+ Description : Rendering context supports window
+               creation and management of graphics
+               resources. It allows programmer to
+               use easy abstraction layer that 
+               removes from him platform dependent
+               implementation of graphic routines.
+
+*/
+
+
+#ifndef ENG_CORE_RENDERING_VIEWPORT_STENCIL_STATE
+#define ENG_CORE_RENDERING_VIEWPORT_STENCIL_STATE
+
+#include "core/defines.h"
+#include "core/types.h"
+#include "core/utilities/TintrusivePointer.h"
+#include "core/rendering/state.h"
+
+namespace en
+{
+   namespace gpu
+   {
+   struct ViewportStateInfo
+      {
+      float4 rect;
+      float2 depthRange;
+      };
+
+   typedef uint32v4 ScissorStateInfo;
+
+   class ViewportState : public SafeObject
+      {
+      public:
+      virtual ~ViewportState();                              // Polymorphic deletes require a virtual base destructor
+      // Could make public Viewports and Scissors here for easy modification (to not redo state)
+      };
+
+   // glViewport() does not clip, unlike the viewport in D3D
+   // Set the scissor rect to match viewport area, unless it is explicitly set smaller, to emulate D3D.
+   // In D3D12 viewports and scissors are separate dynamic states.
+   }
+}
+
+#endif

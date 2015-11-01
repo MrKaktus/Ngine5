@@ -1,0 +1,45 @@
+
+private > current build > release
+
+
+
+Current Latest Build:
+
+- bin        - current engine build libraries, DLL's, and supporting middleware DLL's used by it
+- build      - Intermediate product of current build
+- public
+  - include  - current public headers
+  - assets   - current engine assets
+  - docs     - current public documentation
+  - redists  - current redistributables of used middleware that need to be Installed on Target Platform
+  - tools    - binaries of engine tools
+
+Official Releases/ Milestones:
+
+- release
+  - core-5.0.0  - 
+    - bin       <- copy of bin            - from given GIT hash build
+    - include   <- copy of public/include - from given GIT hash
+    - docs      <- copy of public/docs    - from given GIT hash
+    - redists   <- copy of public/redists - from given GIT hash
+
+Private resources:
+
+- src         - engine source
+- project     - project
+- assets      - engine default resources
+- docs        - engine internal documentation (like this file)
+- installs    - installation packages of used middleware. There are 3 types of middleware:
+                   a) Installed in specific installation directories like Program Files on Windows (default directory)
+                      [This path needs to be identical for all PC's so that include path can be directly declared in sources]
+                   b) Unpacked to local "middleware" directory
+                   c) Build locally
+- middleware  - middleware incorporated into engine (headers, libs, custom build projects)
+  - name      <- DLL's will be copied to [bin] during build
+    - custom 
+      dirs
+
+- tools       - Engine Tools projects. They should produce single [bin] directory having executable and DLL's
+  - name
+    - public
+    - release

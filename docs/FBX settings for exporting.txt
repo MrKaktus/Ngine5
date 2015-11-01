@@ -1,0 +1,7 @@
+3ds Max Settings:
+-----------------
+
+0) All production assets are stored in FBX
+1) We're using metric system for storing models
+2) Meshes need to be triangulated ( until patches are not supported !)
+3) We save bitangents and tangents
