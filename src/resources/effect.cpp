@@ -100,7 +100,7 @@ namespace en
 "   mat4 camView;                 \n"
 "   } scene;                      \n");
 
-   Effect::Effect(ShadingLanguage version, string name) :
+   Effect::Effect(ShadingLanguage version, string name, bool includeConstants) :
       binary(nullptr),
       dirty(true)
    {
@@ -122,7 +122,8 @@ namespace en
 
       // If file exist attach to it engine header
       attach((PipelineStage)(stage), ShadingLanguageVersion[version]);
-      attach((PipelineStage)(stage), enScene);
+	  if (includeConstants)
+         attach((PipelineStage)(stage), enScene);
       Storage.read(path, shader[stage]);
       }
    }

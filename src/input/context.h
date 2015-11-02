@@ -19,8 +19,8 @@
 #include "input/input.h"
 
 // Enable/Disable input devices support
-#define OCULUS_VR                         1   // Compile with built in support for Oculus VR HMD's
-#define OPEN_VR                           0   // Compile with built in support for OpenVR, SteamVR and HTC Vive HMD
+#define OCULUS_VR                         0   // Compile with built in support for Oculus VR HMD's
+#define OPEN_VR                           1   // Compile with built in support for OpenVR, SteamVR and HTC Vive HMD
 #define INTEL_PERCEPTUAL_COMPUTING_2014   0   // Compile with built in support for Intel Depth Cameras
 #define MICROSOFT_KINECT                  0   // Compile with built in support for Microsoft Kinect
 

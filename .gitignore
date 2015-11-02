@@ -13,3 +13,4 @@ middleware/zlib-1.2.8/contrib/vstudio/vc11/x86/
 middleware/zlib-1.2.8/contrib/masmx86/
 middleware/zlib-1.2.8/contrib/vstudio/vc11/zlibvc.opensdf
 middleware/zlib-1.2.8/contrib/vstudio/vc11/zlibvc.sdf
+project/Ngine5.vcxproj.user

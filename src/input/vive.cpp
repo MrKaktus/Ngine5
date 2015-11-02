@@ -142,7 +142,6 @@ namespace en
    //   deviceType = HMDVive;
    //else
    //   deviceType = HMDUnknown;
-
    }
 
    ValveHMD::~ValveHMD()
@@ -237,7 +236,7 @@ namespace en
    distortionModel();
 
    // Create distortion rendering program
-   Effect effect(eGLSL_4_10, "openvr");
+   Effect effect(eGLSL_4_10, "enOpenVR", false);
    distortion = effect.program();
    assert( distortion.samplerLocation("inTexture", samplerLocation) );
 

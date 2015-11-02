@@ -7,7 +7,7 @@ del ".\..\public\lib\*.*" /Q /S
 REM Gather current latest build release
 REM ###################################
 
-
+mkdir ".\..\public\bin"
 mkdir ".\..\public\lib\win32\Debug"
 copy .\..\bin\win32\Debug\Ngine5dbg.lib .\..\public\lib\win32\Debug\Ngine5dbg.lib
 

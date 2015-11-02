@@ -58,7 +58,7 @@ namespace en
          bool           dirty;                       // Do we need to recompile?
    
          public:
-         Effect(ShadingLanguage version, string name);
+			 Effect(ShadingLanguage version, string name, bool includeConstants = true);
         ~Effect();
    
          void attach(PipelineStage stage, string code); // Add code to given shader stage
