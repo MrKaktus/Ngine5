@@ -16,11 +16,12 @@
 
 #include "core/defines.h"
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_WINDOWS)
 #include <windows.h>  
 #include <GL/gl.h>                  // OpenGL
 #include "opengl/include/glext.h"   // OpenGL Extensions 
 #include "opengl/include/wglext.h"  // OpenGL Windows Extensions 
+#endif
 
 #include <string>
 using namespace std;
@@ -80,7 +81,9 @@ extern string                                      ARB_texture_barrier;
 //   GL_ARB_buffer_storage
 //
 extern string                                      ARB_buffer_storage;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLNAMEDBUFFERSTORAGEEXTPROC              glNamedBufferStorageEXT;
+#endif
 //  
 //   GL_ARB_clear_texture
 //
@@ -121,8 +124,10 @@ extern string                                      ARB_ES3_compatibility;
 //   GL_ARB_clear_buffer_object                    
 //                                                 
 extern string                                      ARB_clear_buffer_object;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLCLEARNAMEDBUFFERDATAEXTPROC            glClearNamedBufferDataEXT;
 extern PFNGLCLEARNAMEDBUFFERSUBDATAEXTPROC         glClearNamedBufferSubDataEXT;
+#endif
 //                                                 
 //   GL_ARB_compute_shader                         
 //                                                 
@@ -143,8 +148,10 @@ extern string                                      ARB_fragment_layer_viewport;
 //   GL_ARB_framebuffer_no_attachments             
 //                                                 
 extern string                                      ARB_framebuffer_no_attachments;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLNAMEDFRAMEBUFFERPARAMETERIEXTPROC      glNamedFramebufferParameteriEXT;
 extern PFNGLGETNAMEDFRAMEBUFFERPARAMETERIVEXTPROC  glGetNamedFramebufferParameterivEXT;
+#endif
 //                                                 
 //   GL_ARB_internalformat_query2                  
 //                                                 
@@ -181,7 +188,9 @@ extern string                                      ARB_stencil_texturing;
 //   GL_ARB_texture_buffer_range                   
 //                                                 
 extern string                                      ARB_texture_buffer_range;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLTEXTUREBUFFERRANGEEXTPROC              glTextureBufferRangeEXT;
+#endif
 //                                                 
 //   GL_ARB_texture_query_levels                   
 //                                                 
@@ -190,8 +199,10 @@ extern string                                      ARB_texture_query_levels;
 //   GL_ARB_texture_storage_multisample            
 //                                                 
 extern string                                      ARB_texture_storage_multisample;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLTEXTURESTORAGE2DMULTISAMPLEEXTPROC     glTextureStorage2DMultisampleEXT;
 extern PFNGLTEXTURESTORAGE3DMULTISAMPLEEXTPROC     glTextureStorage3DMultisampleEXT;
+#endif
 //                                                 
 //   GL_ARB_texture_view                           
 //                                                 
@@ -200,12 +211,14 @@ extern string                                      ARB_texture_view;
 //   GL_ARB_vertex_attrib_binding                  
 //                                                 
 extern string                                      ARB_vertex_attrib_binding;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLVERTEXARRAYBINDVERTEXBUFFEREXTPROC     glVertexArrayBindVertexBufferEXT;
 extern PFNGLVERTEXARRAYVERTEXATTRIBFORMATEXTPROC   glVertexArrayVertexAttribFormatEXT;
 extern PFNGLVERTEXARRAYVERTEXATTRIBIFORMATEXTPROC  glVertexArrayVertexAttribIFormatEXT;
 extern PFNGLVERTEXARRAYVERTEXATTRIBLFORMATEXTPROC  glVertexArrayVertexAttribLFormatEXT;
 extern PFNGLVERTEXARRAYVERTEXATTRIBBINDINGEXTPROC  glVertexArrayVertexAttribBindingEXT;
 extern PFNGLVERTEXARRAYVERTEXBINDINGDIVISOREXTPROC glVertexArrayVertexBindingDivisorEXT;
+#endif
 //
 //   GL_KHR_debug
 //
@@ -258,10 +271,12 @@ extern string                                     ARB_transform_feedback_instanc
 // GL_ARB_debug_output
 //
 extern string                                     ARB_debug_output;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLDEBUGMESSAGECALLBACKARBPROC           glDebugMessageCallbackARB;
 extern PFNGLDEBUGMESSAGECONTROLARBPROC            glDebugMessageControlARB;
 extern PFNGLDEBUGMESSAGEINSERTARBPROC             glDebugMessageInsertARB;
 extern PFNGLGETDEBUGMESSAGELOGARBPROC             glGetDebugMessageLogARB;
+#endif
 //
 // GL_ARB_ES2_compatibility
 //
@@ -278,7 +293,9 @@ extern string                                     ARB_separate_shader_objects;
 // GL_ARB_vertex_attrib_64bit
 //
 extern string                                     ARB_vertex_attrib_64bit;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLVERTEXARRAYVERTEXATTRIBLOFFSETEXTPROC glVertexArrayVertexAttribLOffsetEXT;
+#endif
 //
 // GL_ARB_viewport_array
 //
@@ -287,10 +304,12 @@ extern string                                     ARB_viewport_array;
 // GL_ARB_draw_buffers_blend
 //
 extern string                                     ARB_draw_buffers_blend;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBLENDEQUATIONIARBPROC                 glBlendEquationiARB;
 extern PFNGLBLENDEQUATIONSEPARATEIARBPROC         glBlendEquationSeparateiARB;
 extern PFNGLBLENDFUNCIARBPROC                     glBlendFunciARB;
 extern PFNGLBLENDFUNCSEPARATEIARBPROC             glBlendFuncSeparateiARB;
+#endif
 //   
 // GL_ARB_draw_indirect
 //
@@ -299,6 +318,7 @@ extern string                                     ARB_draw_indirect;
 // GL_ARB_gpu_shader_fp64   
 //
 extern string                                     ARB_gpu_shader_fp64;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLPROGRAMUNIFORM1DEXTPROC               glProgramUniform1dEXT;
 extern PFNGLPROGRAMUNIFORM1DVEXTPROC              glProgramUniform1dvEXT;
 extern PFNGLPROGRAMUNIFORM2DEXTPROC               glProgramUniform2dEXT;
@@ -316,11 +336,14 @@ extern PFNGLPROGRAMUNIFORMMATRIX3X2DVEXTPROC      glProgramUniformMatrix3x2dvEXT
 extern PFNGLPROGRAMUNIFORMMATRIX3X4DVEXTPROC      glProgramUniformMatrix3x4dvEXT;
 extern PFNGLPROGRAMUNIFORMMATRIX4X2DVEXTPROC      glProgramUniformMatrix4x2dvEXT;
 extern PFNGLPROGRAMUNIFORMMATRIX4X3DVEXTPROC      glProgramUniformMatrix4x3dvEXT;
+#endif
 //
 // GL_ARB_sample_shading
 //
 extern string                                     ARB_sample_shading;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLMINSAMPLESHADINGARBPROC               glMinSampleShadingARB;
+#endif
 //   
 // GL_ARB_shader_subroutine
 //
@@ -357,10 +380,12 @@ extern string                                     ARB_draw_elements_base_vertex;
 // GL_ARB_geometry_shader4
 //
 extern string                                     ARB_geometry_shader4;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLPROGRAMPARAMETERIARBPROC              glProgramParameteriARB;
 extern PFNGLFRAMEBUFFERTEXTUREARBPROC             glFramebufferTextureARB;
 extern PFNGLFRAMEBUFFERTEXTURELAYERARBPROC        glFramebufferTextureLayerARB;
 extern PFNGLFRAMEBUFFERTEXTUREFACEARBPROC         glFramebufferTextureFaceARB;
+#endif
 //   
 // GL_ARB_provoking_vertex
 //
@@ -381,13 +406,17 @@ extern string                                     ARB_copy_buffer;
 // GL_ARB_draw_instanced
 //
 extern string                                     ARB_draw_instanced;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLDRAWARRAYSINSTANCEDARBPROC            glDrawArraysInstancedARB;
 extern PFNGLDRAWELEMENTSINSTANCEDARBPROC          glDrawElementsInstancedARB;
+#endif
 //
 // GL_ARB_texture_buffer_object
 //
 extern string                                     ARB_texture_buffer_object;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLTEXBUFFERARBPROC                      glTexBufferARB;
+#endif
 //   
 // GL_ARB_uniform_buffer_object
 //
@@ -396,19 +425,25 @@ extern string                                     ARB_uniform_buffer_object;
 // GL_NV_primitive_restart
 //
 extern string                                     NV_primitive_restart;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLPRIMITIVERESTARTNVPROC                glPrimitiveRestartNV;
 extern PFNGLPRIMITIVERESTARTINDEXNVPROC           glPrimitiveRestartIndexNV;
+#endif
 //
 // GL_ARB_color_buffer_float
 //
 extern string                                     ARB_color_buffer_float;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLCLAMPCOLORARBPROC                     glClampColorARB;
+#endif
 //
 // GL_APPLE_flush_buffer_range                    ( predecessor of GL_ARB_map_buffer_range )
 //
 extern string                                     APPLE_flush_buffer_range;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBUFFERPARAMETERIAPPLEPROC             glBufferParameteriAPPLE;
 extern PFNGLFLUSHMAPPEDBUFFERRANGEAPPLEPROC       glFlushMappedBufferRangeAPPLE;
+#endif
 //
 // GL_ARB_framebuffer_object
 //
@@ -425,34 +460,43 @@ extern string                                     ARB_vertex_array_object;
 // GL_APPLE_vertex_array_object                   ( predecessor of GL_ARB_vertex_array_object )
 //
 extern string                                     APPLE_vertex_array_object;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBINDVERTEXARRAYAPPLEPROC              glBindVertexArrayAPPLE;    
 extern PFNGLDELETEVERTEXARRAYSAPPLEPROC           glDeleteVertexArraysAPPLE; 
 extern PFNGLGENVERTEXARRAYSAPPLEPROC              glGenVertexArraysAPPLE;    
-extern PFNGLISVERTEXARRAYAPPLEPROC                glIsVertexArrayAPPLE;      
+extern PFNGLISVERTEXARRAYAPPLEPROC                glIsVertexArrayAPPLE;  
+#endif    
 //
 // GL_EXT_draw_buffers2
 //
 extern string                                     EXT_draw_buffers2;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLCOLORMASKINDEXEDEXTPROC               glColorMaskIndexedEXT;   
 extern PFNGLDISABLEINDEXEDEXTPROC                 glDisableIndexedEXT;     
 extern PFNGLENABLEINDEXEDEXTPROC                  glEnableIndexedEXT;      
 extern PFNGLGETBOOLEANINDEXEDVEXTPROC             glGetBooleanIndexedvEXT; 
 extern PFNGLGETINTEGERINDEXEDVEXTPROC             glGetIntegerIndexedvEXT; 
-extern PFNGLISENABLEDINDEXEDEXTPROC               glIsEnabledIndexedEXT;   
+extern PFNGLISENABLEDINDEXEDEXTPROC               glIsEnabledIndexedEXT;  
+#endif 
 //
 // GL_EXT_framebuffer_blit
 //
 extern string                                     EXT_framebuffer_blit;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBLITFRAMEBUFFEREXTPROC                glBlitFramebufferEXT;
+#endif
 //
 // GL_EXT_framebuffer_multisample
 //
 extern string                                     EXT_framebuffer_multisample;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT; 
+#endif
 //
 // GL_EXT_gpu_shader4
 //
 extern string                                     EXT_gpu_shader4;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBINDFRAGDATALOCATIONEXTPROC           glBindFragDataLocationEXT;
 extern PFNGLGETFRAGDATALOCATIONEXTPROC            glGetFragDataLocationEXT;
 extern PFNGLGETUNIFORMUIVEXTPROC                  glGetUniformuivEXT;
@@ -487,25 +531,31 @@ extern PFNGLVERTEXATTRIBI4UIEXTPROC               glVertexAttribI4uiEXT;
 extern PFNGLVERTEXATTRIBI4UIVEXTPROC              glVertexAttribI4uivEXT;
 extern PFNGLVERTEXATTRIBI4USVEXTPROC              glVertexAttribI4usvEXT;
 extern PFNGLVERTEXATTRIBIPOINTEREXTPROC           glVertexAttribIPointerEXT;
+#endif
 //
 // GL_EXT_texture_array
 //
 extern string                                     EXT_texture_array;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLFRAMEBUFFERTEXTURELAYEREXTPROC        glFramebufferTextureLayerEXT;
+#endif
 //
 // GL_EXT_texture_integer
 //
 extern string                                     EXT_texture_integer;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLCLEARCOLORIIEXTPROC                   glClearColorIiEXT;
 extern PFNGLCLEARCOLORIUIEXTPROC                  glClearColorIuiEXT;
 extern PFNGLGETTEXPARAMETERIIVEXTPROC             glGetTexParameterIivEXT;
 extern PFNGLGETTEXPARAMETERIUIVEXTPROC            glGetTexParameterIuivEXT;
 extern PFNGLTEXPARAMETERIIVEXTPROC                glTexParameterIivEXT;
 extern PFNGLTEXPARAMETERIUIVEXTPROC               glTexParameterIuivEXT;
+#endif
 //
 // GL_EXT_transform_feedback 
 //
 extern string                                     EXT_transform_feedback;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBEGINTRANSFORMFEEDBACKEXTPROC         glBeginTransformFeedbackEXT;
 extern PFNGLBINDBUFFERBASEEXTPROC                 glBindBufferBaseEXT;
 extern PFNGLBINDBUFFEROFFSETEXTPROC               glBindBufferOffsetEXT;
@@ -515,10 +565,12 @@ extern PFNGLGETBOOLEANINDEXEDVEXTPROC             glGetBooleanIndexedvEXT;
 extern PFNGLGETINTEGERINDEXEDVEXTPROC             glGetIntegerIndexedvEXT;
 extern PFNGLGETTRANSFORMFEEDBACKVARYINGEXTPROC    glGetTransformFeedbackVaryingEXT;
 extern PFNGLTRANSFORMFEEDBACKVARYINGSEXTPROC      glTransformFeedbackVaryingsEXT;
+#endif
 //
 // GL_NV_transform_feedback                       ( predecessor of GL_EXT_transform_feedback )
 //
 extern string                                     NV_transform_feedback;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLACTIVEVARYINGNVPROC                   glActiveVaryingNV;
 extern PFNGLBEGINTRANSFORMFEEDBACKNVPROC          glBeginTransformFeedbackNV;
 extern PFNGLBINDBUFFERBASENVPROC                  glBindBufferBaseNV;
@@ -530,21 +582,27 @@ extern PFNGLGETTRANSFORMFEEDBACKVARYINGNVPROC     glGetTransformFeedbackVaryingN
 extern PFNGLGETVARYINGLOCATIONNVPROC              glGetVaryingLocationNV;
 extern PFNGLTRANSFORMFEEDBACKATTRIBSNVPROC        glTransformFeedbackAttribsNV;
 extern PFNGLTRANSFORMFEEDBACKVARYINGSNVPROC       glTransformFeedbackVaryingsNV;
+#endif
 //                                                    
 // GL_NV_conditional_render                           
 //    
 extern string                                     NV_conditional_render;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBEGINCONDITIONALRENDERNVPROC          glBeginConditionalRenderNV;
 extern PFNGLENDCONDITIONALRENDERNVPROC            glEndConditionalRenderNV;
+#endif
 //
 // GL_ARB_draw_buffers
 //
 extern string                                     ARB_draw_buffers;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLDRAWBUFFERSARBPROC                    glDrawBuffersARB;
+#endif
 //
 // GL_ARB_shader_objects
 //
 extern string                                     ARB_shader_objects;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLATTACHOBJECTARBPROC                   glAttachObjectARB;             
 extern PFNGLCOMPILESHADERARBPROC                  glCompileShaderARB;            
 extern PFNGLCREATEPROGRAMOBJECTARBPROC            glCreateProgramObjectARB;      
@@ -583,11 +641,13 @@ extern PFNGLUNIFORMMATRIX2FVARBPROC               glUniformMatrix2fvARB;
 extern PFNGLUNIFORMMATRIX3FVARBPROC               glUniformMatrix3fvARB;         
 extern PFNGLUNIFORMMATRIX4FVARBPROC               glUniformMatrix4fvARB;         
 extern PFNGLUSEPROGRAMOBJECTARBPROC               glUseProgramObjectARB;         
-extern PFNGLVALIDATEPROGRAMARBPROC                glValidateProgramARB;          
+extern PFNGLVALIDATEPROGRAMARBPROC                glValidateProgramARB;  
+#endif        
 //
 // GL_ARB_vertex_shader
 //
 extern string                                     ARB_vertex_shader;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBINDATTRIBLOCATIONARBPROC             glBindAttribLocationARB;       
 extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC       glDisableVertexAttribArrayARB;
 extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC        glEnableVertexAttribArrayARB;
@@ -633,21 +693,27 @@ extern PFNGLVERTEXATTRIB4SVARBPROC                glVertexAttrib4svARB;
 extern PFNGLVERTEXATTRIB4UBVARBPROC               glVertexAttrib4ubvARB;         
 extern PFNGLVERTEXATTRIB4UIVARBPROC               glVertexAttrib4uivARB;         
 extern PFNGLVERTEXATTRIB4USVARBPROC               glVertexAttrib4usvARB;         
-extern PFNGLVERTEXATTRIBPOINTERARBPROC            glVertexAttribPointerARB;      
+extern PFNGLVERTEXATTRIBPOINTERARBPROC            glVertexAttribPointerARB;
+#endif     
 //
 // GL_EXT_blend_equation_separate
 //
 extern string                                     EXT_blend_equation_separate;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBLENDEQUATIONSEPARATEEXTPROC          glBlendEquationSeparateEXT;
+#endif
 //
 // GL_EXT_stencil_two_side
 //
 extern string                                     EXT_stencil_two_side;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLACTIVESTENCILFACEEXTPROC              glActiveStencilFaceEXT;
+#endif
 //                                                                     
 // GL_ARB_occlusion_query                                              
 //   
 extern string                                     ARB_occlusion_query;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBEGINQUERYARBPROC                     glBeginQueryARB;       
 extern PFNGLDELETEQUERIESARBPROC                  glDeleteQueriesARB;    
 extern PFNGLENDQUERYARBPROC                       glEndQueryARB;         
@@ -655,11 +721,13 @@ extern PFNGLGENQUERIESARBPROC                     glGenQueriesARB;
 extern PFNGLGETQUERYIVARBPROC                     glGetQueryivARB;       
 extern PFNGLGETQUERYOBJECTIVARBPROC               glGetQueryObjectivARB; 
 extern PFNGLGETQUERYOBJECTUIVARBPROC              glGetQueryObjectuivARB;
-extern PFNGLISQUERYARBPROC                        glIsQueryARB;          
+extern PFNGLISQUERYARBPROC                        glIsQueryARB; 
+#endif         
 //                                                                     
 // GL_ARB_vertex_buffer_object                                         
 //   
 extern string                                     ARB_vertex_buffer_object;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBINDBUFFERARBPROC                     glBindBufferARB;          
 extern PFNGLBUFFERDATAARBPROC                     glBufferDataARB;          
 extern PFNGLBUFFERSUBDATAARBPROC                  glBufferSubDataARB;       
@@ -670,17 +738,21 @@ extern PFNGLGETBUFFERPOINTERVARBPROC              glGetBufferPointervARB;
 extern PFNGLGETBUFFERSUBDATAARBPROC               glGetBufferSubDataARB;    
 extern PFNGLISBUFFERARBPROC                       glIsBufferARB;            
 extern PFNGLMAPBUFFERARBPROC                      glMapBufferARB;           
-extern PFNGLUNMAPBUFFERARBPROC                    glUnmapBufferARB;         
+extern PFNGLUNMAPBUFFERARBPROC                    glUnmapBufferARB;   
+#endif      
 //
 // GL_ARB_point_parameters
 //
 extern string                                     ARB_point_parameters;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLPOINTPARAMETERFARBPROC                glPointParameterfARB; 
 extern PFNGLPOINTPARAMETERFVARBPROC               glPointParameterfvARB;
+#endif
 //
 // GL_ARB_window_pos                              ( Deprecated in OpenGL 3.0 Core )
 //
 extern string                                     ARB_window_pos;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLWINDOWPOS2DARBPROC                    glWindowPos2dARB; 
 extern PFNGLWINDOWPOS2DVARBPROC                   glWindowPos2dvARB;
 extern PFNGLWINDOWPOS2FARBPROC                    glWindowPos2fARB; 
@@ -697,35 +769,45 @@ extern PFNGLWINDOWPOS3IARBPROC                    glWindowPos3iARB;
 extern PFNGLWINDOWPOS3IVARBPROC                   glWindowPos3ivARB;
 extern PFNGLWINDOWPOS3SARBPROC                    glWindowPos3sARB; 
 extern PFNGLWINDOWPOS3SVARBPROC                   glWindowPos3svARB;
+#endif
 //
 // GL_EXT_blend_color
 //
 extern string                                     EXT_blend_color;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBLENDCOLOREXTPROC                     glBlendColorEXT;
+#endif
 //
 // GL_EXT_blend_func_separate
 //
 extern string                                     EXT_blend_func_separate;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLBLENDFUNCSEPARATEEXTPROC              glBlendFuncSeparateEXT;
+#endif
 //
 // GL_EXT_fog_coord                               ( Deprecated in OpenGL 3.0 Core )
 //
 extern string                                     EXT_fog_coord;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLFOGCOORDFEXTPROC                      glFogCoordfEXT;      
 extern PFNGLFOGCOORDFVEXTPROC                     glFogCoordfvEXT;     
 extern PFNGLFOGCOORDDEXTPROC                      glFogCoorddEXT;      
 extern PFNGLFOGCOORDDVEXTPROC                     glFogCoorddvEXT;     
 extern PFNGLFOGCOORDPOINTEREXTPROC                glFogCoordPointerEXT;
+#endif
 //
 // GL_EXT_multi_draw_arrays
 //
 extern string                                     EXT_multi_draw_arrays;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLMULTIDRAWARRAYSEXTPROC                glMultiDrawArraysEXT;  
 extern PFNGLMULTIDRAWELEMENTSEXTPROC              glMultiDrawElementsEXT;
+#endif
 //
 // GL_EXT_secondary_color                         ( Deprecated in OpenGL 3.0 Core )
 //
 extern string                                     EXT_secondary_color;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLSECONDARYCOLOR3BEXTPROC               glSecondaryColor3bEXT;     
 extern PFNGLSECONDARYCOLOR3BVEXTPROC              glSecondaryColor3bvEXT;    
 extern PFNGLSECONDARYCOLOR3DEXTPROC               glSecondaryColor3dEXT;     
@@ -743,15 +825,19 @@ extern PFNGLSECONDARYCOLOR3UIVEXTPROC             glSecondaryColor3uivEXT;
 extern PFNGLSECONDARYCOLOR3USEXTPROC              glSecondaryColor3usEXT;    
 extern PFNGLSECONDARYCOLOR3USVEXTPROC             glSecondaryColor3usvEXT;   
 extern PFNGLSECONDARYCOLORPOINTEREXTPROC          glSecondaryColorPointerEXT;
+#endif
 //
 // GL_ARB_multisample
 //
 extern string                                     ARB_multisample;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLSAMPLECOVERAGEARBPROC                 glSampleCoverageARB;
+#endif
 //
 // GL_ARB_multitexture                            ( Deprecated in OpenGL 3.0 Core )
 // 
 extern string                                     ARB_multitexture;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLACTIVETEXTUREARBPROC                  glActiveTextureARB;   
 extern PFNGLCLIENTACTIVETEXTUREARBPROC            glClientActiveTextureARB;
 extern PFNGLMULTITEXCOORD1DARBPROC                glMultiTexCoord1dARB;    
@@ -785,11 +871,13 @@ extern PFNGLMULTITEXCOORD4FVARBPROC               glMultiTexCoord4fvARB;
 extern PFNGLMULTITEXCOORD4IARBPROC                glMultiTexCoord4iARB;    
 extern PFNGLMULTITEXCOORD4IVARBPROC               glMultiTexCoord4ivARB;   
 extern PFNGLMULTITEXCOORD4SARBPROC                glMultiTexCoord4sARB;    
-extern PFNGLMULTITEXCOORD4SVARBPROC               glMultiTexCoord4svARB;   
+extern PFNGLMULTITEXCOORD4SVARBPROC               glMultiTexCoord4svARB; 
+#endif  
 //
 // GL_ARB_texture_compression
 //
 extern string                                     ARB_texture_compression;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLCOMPRESSEDTEXIMAGE1DARBPROC           glCompressedTexImage1DARB;   
 extern PFNGLCOMPRESSEDTEXIMAGE2DARBPROC           glCompressedTexImage2DARB;   
 extern PFNGLCOMPRESSEDTEXIMAGE3DARBPROC           glCompressedTexImage3DARB;   
@@ -797,24 +885,31 @@ extern PFNGLCOMPRESSEDTEXSUBIMAGE1DARBPROC        glCompressedTexSubImage1DARB;
 extern PFNGLCOMPRESSEDTEXSUBIMAGE2DARBPROC        glCompressedTexSubImage2DARB;
 extern PFNGLCOMPRESSEDTEXSUBIMAGE3DARBPROC        glCompressedTexSubImage3DARB;
 extern PFNGLGETCOMPRESSEDTEXIMAGEARBPROC          glGetCompressedTexImageARB;  
+#endif
 //
 // GL_ARB_transpose_matrix                        ( Deprecated in OpenGL 3.0 Core )
 //
 extern string                                     ARB_transpose_matrix;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLLOADTRANSPOSEMATRIXFARBPROC           glLoadTransposeMatrixfARB;
 extern PFNGLLOADTRANSPOSEMATRIXDARBPROC           glLoadTransposeMatrixdARB;
 extern PFNGLMULTTRANSPOSEMATRIXFARBPROC           glMultTransposeMatrixfARB;
 extern PFNGLMULTTRANSPOSEMATRIXDARBPROC           glMultTransposeMatrixdARB;
+#endif
 //
 // GL_EXT_draw_range_elements
 //
 extern string                                     EXT_draw_range_elements;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLDRAWRANGEELEMENTSEXTPROC              glDrawRangeElementsEXT;
+#endif
 //
 // GL_EXT_texture3D
 //
 extern string                                     EXT_texture3D;
+#if defined(EN_PLATFORM_WINDOWS)
 extern PFNGLTEXIMAGE3DEXTPROC                     glTexImage3DEXT;
+#endif
 
 /******************************************************************************
 
@@ -837,6 +932,7 @@ extern string                                     EXT_texture_filter_anisotropic
 
 ******************************************************************************/
 
+#if defined(EN_PLATFORM_WINDOWS)
 //
 // WGL_ARB_create_context
 //

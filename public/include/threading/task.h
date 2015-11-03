@@ -51,8 +51,12 @@ namespace en
          // task instance is already spawned, then it's copy is      // What to do if one instance is spawned several times?
          // created and spawned as new task. If task is spawned     // Maybe check if (m_state != NULL) don't allow another spawn.
          // as subtask it shares state with other subtasks.
-         TaskState* state;  
-   
+         union
+         {
+         TaskState* state; 
+         uint64 reserved;    // WA to guarantee 64bit allocation for pointer 
+         };
+
          public:
          forceinline Task(TaskState* state); 
    

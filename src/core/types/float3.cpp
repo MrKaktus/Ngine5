@@ -31,11 +31,11 @@ namespace en
    z = (float)d3.z;
    }
    
-   float3::float3(float x=0.0f, float y=0.0f, float z=0.0f)
+   float3::float3(float x, float y, float z)
    {
-    this->x = x;
-    this->y = y;
-    this->z = z;
+   this->x = x;
+   this->y = y;
+   this->z = z;
    }
    
    void float3::operator-= (float3 b)

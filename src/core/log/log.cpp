@@ -183,7 +183,7 @@ namespace en
     
 #endif
 
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 
    Context::Context() :
 #if defined(EN_DEBUG)

@@ -38,7 +38,7 @@ namespace en
    this->w = w;
    }
    
-   double4::double4(double x=0.0, double y=0.0, double z=0.0, double w=1.0)
+   double4::double4(double x, double y, double z, double w)
    {
    this->x = x;
    this->y = y;

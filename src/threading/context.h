@@ -47,7 +47,11 @@ namespace en
           WorkerThread** thread;         // Table of pointers to worker threads
           uint32         workers;        // Threads count
    static TLS            currentState;   // Pointer to current worker state (Thread-Dependent)
+          union
+          {
  volatile TaskState*     mainState;      // State of main task
+          uint64 reserved;               // WA to guarantee 64bit storage space on 32bit architectures
+          };
    static bool           created;        // Flag indicates state of Task Pool
           bool           started;        // Flag indicates if main thread started execution
           bool           shutdown;       // Flag terminating execution

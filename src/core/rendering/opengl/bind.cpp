@@ -28,7 +28,7 @@ namespace en
 
       // - binds only pointers to functions allowed in given API and version
       // - returns error logs if cannot bind
-      // - should be called after RC is screated
+      // - should be called after RC is created
       // = (PFNPROC) wglGetProcAddress("");
       
       void unbindedOpenGLFunctionHandler(...)

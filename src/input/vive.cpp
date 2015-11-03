@@ -58,7 +58,8 @@ namespace en
       renderModels(nullptr),
       compositor(nullptr),
       currentIndex(0),
-      //mirror(nullptr),
+      chaperone(nullptr),
+      areaDimensions(0.0f, 0.0f),
       model(nullptr),
       distortion(nullptr)
    {
@@ -87,6 +88,26 @@ namespace en
 
    // Acquire HMD window position and size
 //   context->GetWindowBounds(&windowPositionX, &windowPositionY, &displayResolution.width, &displayResolution.height);
+
+   // Get chaperone sub-system handle
+   chaperone = vr::VRChaperone(); // or use (vr::IVRChaperone*)vr::VR_GetGenericInterface(vr::IVRChaperone_Version, &res);
+
+   // Get play area size in XZ plane. 
+   // Center point is players preferred starting point.
+   chaperone->GetPlayAreaSize(&areaDimensions.x, &areaDimensions.y);
+
+   // Get play area axis-aligned orientantion from starting position.
+   // Corners are in clockwise order, placed on XZ plane where player is looking forward in -Z direction.
+   vr::HmdQuad_t tempCorners;
+   if (chaperone->GetPlayAreaRect(&tempCorners))
+      for(uint32 i=0; i<4; ++i)
+         areaCorners[i] = float3(tempCorners.vCorners[i].v[0], tempCorners.vCorners[i].v[1], tempCorners.vCorners[i].v[2]);
+
+   // Other sub-systems to use in the future
+
+   //VR_INTERFACE vr::IVROverlay *VR_CALLTYPE VROverlay();
+   //VR_INTERFACE vr::IVRControlPanel *VR_CALLTYPE VRControlPanel();
+   //VR_INTERFACE vr::IVRTrackedCamera *VR_CALLTYPE VRTrackedCamera();
 
    // Print out device info
    Log << "Detected HMD system:\n";
@@ -133,7 +154,6 @@ namespace en
    eyeVector[1].x = matEyeRight.m[0][3];
    eyeVector[1].y = matEyeRight.m[1][3];
    eyeVector[1].z = matEyeRight.m[2][3];
-
 
    deviceType = HMDVive;
 

@@ -690,7 +690,7 @@ namespace en
          block = &program->blocks.list[i];
          block->program = program;
          block->name    = new char[nameLength+1];
-         memcpy(parameter->name, name, nameLength+1);
+         memcpy(block->name, name, nameLength+1);
          Profile( block->id = glGetUniformBlockIndex(program->id, name) )
          Profile( glGetActiveUniformBlockiv( program->id, block->id, GL_UNIFORM_BLOCK_DATA_SIZE, (GLint*)&block->size ) )
 
@@ -939,7 +939,7 @@ namespace en
          if (GpuContext.screen.support(OpenGL_3_0))
             Profile( glBindVertexArray(buffer->vao) )
          Profile( glBindBuffer(GL_ARRAY_BUFFER, buffer->id) )
-         uint32 offset = 0;
+         uint64 offset = 0;
          for(uint8 i=0; i<program->inputs.count; ++i)
             {
             InputDescriptor& input = program->inputs.list[i];
@@ -960,16 +960,16 @@ namespace en
                      Profile( glEnableVertexAttribArray( input.location ) );
                      if (gl::BufferColumn[columnType].qword)
                         {
-                        Profile( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, (const GLvoid*)buffer->offset[j]) );
+                        Profile( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
                         }
                      else
                      if (gl::BufferColumn[columnType].integer)
                         {
-                        Profile( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, (const GLvoid*)buffer->offset[j]) );
+                        Profile( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
                         }
                      else
                         {
-                        Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, (const GLvoid*)buffer->offset[j]) );
+                        Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
                         }
          
                      found = true;
@@ -991,16 +991,16 @@ namespace en
                Profile( glEnableVertexAttribArray( input.location ) );
                if (gl::BufferColumn[columnType].qword)
                   {
-                  Profile( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, (const GLvoid*)offset) );
+                  Profile( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
                else
                if (gl::BufferColumn[columnType].integer)
                   {
-                  Profile( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, (const GLvoid*)offset) );
+                  Profile( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
                else
                   {
-                  Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, (const GLvoid*)offset) );
+                  Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
          
                offset += size;
@@ -1396,12 +1396,12 @@ namespace en
       {  
       // Check if pipeline stage is supported in current Context
       if (!gl::PipelineStageSupported[stage])
-         return Shader(NULL);
+         return Shader(nullptr);
 
       // Try to allocate shader descriptor 
       ShaderDescriptor* shader = GpuContext.shaders.allocate();
       if (!shader) 
-         return Shader(NULL);
+         return Shader(nullptr);
 
       // Fill internal shader descriptor with data
       shader->stage = stage;
@@ -1409,7 +1409,7 @@ namespace en
       // Perform shader compilation
       const char* pointer = code.c_str();
       shader->id = glCreateShader(gl::PipelineStage[stage].type);
-      Profile( glShaderSource(shader->id, 1, (const GLchar**)&pointer, NULL) );
+      Profile( glShaderSource(shader->id, 1, (const GLchar**)&pointer, nullptr) );
       Profile( glCompileShader(shader->id) ); 
 
       //Check compilation status
@@ -1431,7 +1431,7 @@ namespace en
             if (buffer)
                {
                // Compilation log
-               Profile( glGetShaderInfoLog(shader->id, length, NULL, buffer) );
+               Profile( glGetShaderInfoLog(shader->id, length, nullptr, buffer) );
                info = string("Shader compilation log:\n");
                info.append(buffer);
                info.append("\n");
@@ -1442,7 +1442,7 @@ namespace en
      
          Profile( glDeleteShader(shader->id) );
          GpuContext.shaders.free(shader);
-         return Shader(NULL);
+         return Shader(nullptr);
          }
   
       // Return shader interface

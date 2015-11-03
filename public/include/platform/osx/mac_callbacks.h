@@ -1,6 +1,6 @@
 /*
 
- Ngine v4.0
+ Ngine v5.0
  
  Module      : MacOS specific code.
  Requirements: none
@@ -12,12 +12,19 @@
 #ifndef ENG_MACOS_CALLBACKS
 #define ENG_MACOS_CALLBACKS
 
-#include "Ngine4/core/defines.h"
-#if defined(ENG_MACOS) || defined(ENG_IPHONE)
-#include "Ngine4/rendering/rendering.h"
-#include "main.h"
+#include "core/defines.h"
+#include "core/rendering/rendering.h"
 
-#import <UIKit/UIKit.h>
+#include "main.h" // TODO: Remove integration of Project and Library!!!
+
+#if defined(EN_PLATFORM_IOS)
+#import <UIKit/UIKit.h>        // For IOS
+#endif
+#if defined(EN_PLATFORM_OSX)
+#import <AppKit/AppKit.h>      // For OS X
+#endif
+
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 #import <QuartzCore/QuartzCore.h>
 
 // This class wraps the CAEAGLLayer from CoreAnimation into a convenient UIView subclass.

@@ -19,7 +19,7 @@
 #include <fstream>
 using namespace std;
 
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
 // for native asset manager
 #include <sys/types.h>
 //#include <android/native_activity.h>
@@ -36,12 +36,12 @@ namespace en
           Context();
          ~Context();
 
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
           AAssetManager* manager;
 
           bool create(AAssetManager* assetManager);
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
           bool create(void);
 #endif
           void destroy(void);

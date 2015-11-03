@@ -24,7 +24,7 @@ namespace en
    {
 
    // Sample
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    alSample::alSample(const uint32 id) :
       id(id)
    {
@@ -42,7 +42,7 @@ namespace en
 
    // Source
 
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    bool alSource::play(void)
    {
    if (!sample)
@@ -109,7 +109,7 @@ namespace en
 
    }
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    Context::Context() :
       device(NULL),
       context(NULL)
@@ -170,7 +170,7 @@ namespace en
 
 
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    // Find default device
    device = alcOpenDevice(NULL);
    if (!device)
@@ -186,7 +186,7 @@ namespace en
    void Context::destroy(void)
    {
    Log << "Closing module: Audio." << endl;
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    if (!context)
       return;
 
@@ -277,7 +277,7 @@ namespace en
 
    // Generate buffer for data
    uint32 id = 0;
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    uint32 error;
    alGetError();
    alGenBuffers(1, &id);
@@ -318,7 +318,7 @@ namespace en
 
    Ptr<audio::Source> Interface::Source::create(void)
    {
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    return Ptr<audio::Source>((audio::Source*) new alSource()); 
 #else
    return Ptr<audio::Source>(NULL); 

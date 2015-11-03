@@ -335,11 +335,11 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       
       // Gets OpenGL version
       string tmp;
-      sint32 dot, dot2, end;
+      uint64 dot, dot2, end;
       tmp  = string((char*)glGetString(GL_VERSION));
-      dot  = tmp.find('.',0);
-      dot2 = tmp.find('.',dot+1);
-      end  = tmp.find(' ',0);
+      dot  = tmp.find('.', 0);
+      dot2 = tmp.find('.', dot+1);
+      end  = tmp.find(' ', 0);
       GpuContext.device.api.api  = EN_OpenGL;
       GpuContext.device.api.high = stringTo<uint32>(tmp.substr(0,dot));   
       if (dot2 == string::npos || dot2 > end)

@@ -13,7 +13,7 @@
  */
 
 #include "Ngine4/core/defines.h"
-#if defined(ENG_MACOS) || defined(ENG_IPHONE)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_IOS)
 #import <UIKit/UIKit.h>
 #include "Ngine4/core/types.h"
 #include "Ngine4/core/configuration.h"

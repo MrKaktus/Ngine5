@@ -33,47 +33,54 @@ namespace en
 {
    namespace storage
    {
+   enum FileAccess
+      {
+      Read      = 0,
+      Write        ,
+      ReadWrite
+      };
+
    class Nfile
          {
          private:
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
          AAsset*  handle;    // File handle
-         uint32   filesize;  // File size
+         uint32   filesize;  // File size      TODO: Migrate to 64bit
 #endif
-#ifdef EN_PLATFORM_BLACKBERRY
+#if defined(EN_PLATFORM_BLACKBERRY)
          FILE*    handle;    // File handle
          uint64   filesize;  // File size
 #endif
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
          fstream* handle;    // File stream handle
          uint64   filesize;  // File size
 #endif
 
          public:
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
          Nfile(AAsset* handle);
 #endif
-#ifdef EN_PLATFORM_BLACKBERRY 
+#if defined(EN_PLATFORM_BLACKBERRY)
          Nfile(FILE* handle);
 #endif
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
          Nfile(fstream* handle);
 #endif
         ~Nfile();
 
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
          uint32 size(void);                     // Returns file size   
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
          uint64 size(void);                     // Returns file size   
 #endif                      
          bool   read(void* buffer);             // Reads whole file to specified buffer
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
          bool   read(const uint32 offset, 
                      const uint32 size, 
                      void* buffer);             // Reads part of file
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
          bool   read(const uint64 offset, 
                      const uint32 size, 
                      void* buffer);             // Reads part of file
@@ -94,13 +101,6 @@ namespace en
                       const uint32 size, 
                       void* buffer);            // Writes to file at specified location
          };
-
-   enum FileAccess
-      {
-      Read      = 0,
-      Write        ,
-      ReadWrite
-      };
 
    struct Interface
           {

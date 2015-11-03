@@ -19,7 +19,7 @@ namespace en
    y = 0.0f;
    }
    
-   float2::float2(float x=0.0f, float y=0.0f)
+   float2::float2(float x, float y)
    {
    this->x = x;
    this->y = y;

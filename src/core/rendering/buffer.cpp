@@ -1171,30 +1171,19 @@ namespace en
       assert(GpuContext.screen.created);
       assert(buffer);
 
-      // Maps VBO
-      if (buffer->type == VertexBuffer)
+      // Maps VBO or IBO
+      uint16 type = gl::BufferType[buffer->type].type;
+      if ( buffer->type == VertexBuffer ||
+           buffer->type == IndexBuffer )
          {
-         Profile( glBindBuffer(GL_ARRAY_BUFFER, buffer->id) )
-         Profile( glBufferData(GL_ARRAY_BUFFER, buffer->elements * buffer->rowSize, buffer->block->pointer, GL_STATIC_DRAW) )
-         Profile( glBindBuffer(GL_ARRAY_BUFFER, 0) )
+         Profile( glBindBuffer(type, buffer->id) )
+         Profile( glBufferData(type, buffer->elements * buffer->rowSize, buffer->block->pointer, GL_STATIC_DRAW) )
+         Profile( glBindBuffer(type, 0) )
 
          // Free DataBlockDescriptor and its local memory
          delete [] static_cast<uint8*>(buffer->block->pointer);
          delete buffer->block;
          return true;        
-         }
-      
-      // Maps IBO
-      if (buffer->type == IndexBuffer)
-         {
-         Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->id) )
-         Profile( glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer->elements * buffer->rowSize, buffer->block->pointer, GL_STATIC_DRAW) )
-         Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) )
-
-         // Free DataBlockDescriptor and its local memory
-         delete [] static_cast<uint8*>(buffer->block->pointer);
-         delete buffer->block;
-         return true;
          }
 
       return false;

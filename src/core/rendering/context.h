@@ -42,7 +42,7 @@
 #include "GLES3/gl3platform.h"        // OpenGL ES 3.0 Platform-Dependent Macros
 #endif
 
-#ifdef EN_PLATFORM_IPHONE
+#ifdef EN_PLATFORM_IOS
 #import  <QuartzCore/QuartzCore.h>
 #import  <OpenGLES/ES2/gl.h>          // OpenGL ES 2.0
 #import  <OpenGLES/ES2/glext.h>       // OpenGL ES Extensions 
@@ -50,8 +50,23 @@
 #import  <OpenGLES/EAGLDrawable.h>
 #endif
 
+#ifdef EN_PLATFORM_OSX
+#include <OpenGL/gl.h>                // OpenGL
+#include <OpenGL/gl3.h>               // OpenGL 3.0+
+#include <OpenGL/glext.h>             // OpenGL Extensions
+#include <OpenGL/gl3ext.h>            //
+#endif
+
 #include "core/rendering/opengl/opengl.h"
 #include "core/rendering/rendering.h"
+
+// Go to:
+// https://www.khronos.org/registry/implementers_guide.html
+// for headers list per API
+//#include "glcorearb.h"                // OpenGL Core and Extensions
+
+#include "core/rendering/opengl/extensions.h" // Include for all OS'es for extension names
+
 
 #include <set>
 #include <map>
@@ -97,7 +112,7 @@ namespace en
           {    
           public:  
           BufferColumnDescriptor column[16]; // Vector describing each column of buffer
-          uint32     offset[16];             // Offset of each column in row
+          uint64     offset[16];             // Offset of each column in row
           BufferType type;                   // Buffer type (VBO, IBO, ...)
           uint32     elements;               // Rows/elements in buffer 
           uint32     columns;                // Active columns

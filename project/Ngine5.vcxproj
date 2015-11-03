@@ -207,6 +207,9 @@
     <ClInclude Include="..\public\include\platform\android\and_main.h" />
     <ClInclude Include="..\public\include\platform\blackberry\bb_init.h" />
     <ClInclude Include="..\public\include\platform\blackberry\bb_main.h" />
+    <ClInclude Include="..\public\include\platform\osx\mac_callbacks.h" />
+    <ClInclude Include="..\public\include\platform\osx\mac_init.h" />
+    <ClInclude Include="..\public\include\platform\osx\mac_main.h" />
     <ClInclude Include="..\public\include\platform\system.h" />
     <ClInclude Include="..\public\include\platform\windows\win_events.h" />
     <ClInclude Include="..\public\include\platform\windows\win_init.h" />
@@ -329,6 +332,8 @@
     <None Include="..\public\include\core\threading\atomics.inl" />
     <None Include="..\public\include\threading\mutex.inl" />
     <None Include="..\public\include\threading\threading.inl" />
+    <None Include="..\src\platform\osx\mac_callbacks.m" />
+    <None Include="..\src\platform\osx\mac_main.m" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F61E4BF3-8B99-4C06-8297-45627D38D88B}</ProjectGuid>

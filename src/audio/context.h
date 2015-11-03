@@ -13,20 +13,22 @@
 #ifndef ENG_AUDIO_CONTEXT
 #define ENG_AUDIO_CONTEXT
 
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
 // OpenSL ES 1.0.1
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Platform.h> 
 #include <SLES/OpenSLES_Android.h>
 #include <SLES/OpenSLES_AndroidConfiguration.h>
 #endif
-#ifdef EN_PLATFORM_BLACKBERRY
+
+#if defined(EN_PLATFORM_BLACKBERRY)
 //#include <sys/asound.h>
 //#include <sys/asoundlib.h>
 #include <AL/al.h>
 #include <AL/alc.h>
 #endif
-#ifdef EN_PLATFORM_WINDOWS
+
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 // OpenAL
 #include "C:/Program Files (x86)/OpenAL 1.1 SDK/include/al.h"
 #include "C:/Program Files (x86)/OpenAL 1.1 SDK/include/alc.h"
@@ -96,15 +98,15 @@ namespace en
 
    struct Context
           {
-          #ifdef EN_PLATFORM_ANDROID
+          #if defined(EN_PLATFORM_ANDROID)
           SLObjectItf engine;   // Audio engine
 
           #endif
-          #ifdef EN_PLATFORM_BLACKBERRY
+          #if defined(EN_PLATFORM_BLACKBERRY)
           //snd_mixer_t* mixer;   // Analog audio mixer
           //snd_pcm_t*   pcm;     // 
           #endif
-          #if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+          #if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
           ALCdevice*  device;   // Audio device
           ALCcontext* context;  // Audio context on device
           #endif

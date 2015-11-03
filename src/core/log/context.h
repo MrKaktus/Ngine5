@@ -92,7 +92,7 @@ namespace en
           };
 #endif
 
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    struct Context
           {
           bool        enabled;     // Is logging enabled

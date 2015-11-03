@@ -1,6 +1,6 @@
 /*
 
- Ngine v4.0
+ Ngine v5.0
  
  Module      : MacOS specific code.
  Requirements: none
@@ -15,8 +15,8 @@
 #ifndef ENG_MACOS_MAIN
 #define ENG_MACOS_MAIN
 
-#include "Ngine4/core/defines.h"
-#if defined(ENG_MACOS) || defined(ENG_IPHONE)
+#include "core/defines.h"
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 #include "main.h"
 
 // Handle of user console application main

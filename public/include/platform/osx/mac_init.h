@@ -1,6 +1,6 @@
 /*
 
- Ngine v4.0
+ Ngine v5.0
  
  Module      : MacOS specific code.
  Requirements: none
@@ -13,7 +13,7 @@
 #ifndef ENG_MACOS_INIT
 #define ENG_MACOS_INIT
 
-#if defined(ENG_MACOS) || defined(ENG_IPHONE)
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 // Changes entry point name in user code, so 
 // that Ngine could take control over it at 
 // the beginning and initialize all required

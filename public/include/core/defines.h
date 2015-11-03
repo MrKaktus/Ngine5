@@ -43,7 +43,9 @@
 #endif
 
 // Determine used compilator
-#if defined(__GNUC__)
+#if defined(__APPLE__)
+   #define EN_COMPILER_CLANG
+#elif defined(__GNUC__)
    #define EN_COMPILER_GCC
 #elif defined(__INTEL_COMPILER)
    #define EN_COMPILER_INTEL
@@ -86,7 +88,7 @@
 #if defined(EN_COMPILER_VISUAL_STUDIO) || defined(EN_COMPILER_INTEL)
    #define aligned(value) __pragma( pack(push, value) )
    #define aligndefault __pragma(pack())
-#elif defined(EN_COMPILER_GCC) || defined(EN_COMPILER_QCC)
+#elif defined(EN_COMPILER_CLANG) || defined(EN_COMPILER_GCC) || defined(EN_COMPILER_QCC)
    #define aligned(value) _Pragma("pack(push, value)")
    #define aligndefault _Pragma("pack()")
 #else

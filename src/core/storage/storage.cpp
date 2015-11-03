@@ -52,7 +52,7 @@ namespace en
       }
    }
 #endif
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    Nfile::Nfile(fstream* handle) :
        handle(handle),
        filesize(0)
@@ -82,7 +82,7 @@ namespace en
       handle = NULL;
       }   
 #endif
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    if (handle)
       {
       handle->close();
@@ -103,7 +103,7 @@ namespace en
    return filesize;
    }
 #endif
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    uint64 Nfile::size(void)
    {
    return filesize;
@@ -138,7 +138,7 @@ namespace en
    return true;
    }
 #endif
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    bool Nfile::read(void* buffer)
    {
    if (!handle)
@@ -178,7 +178,7 @@ namespace en
    return true;
    }
 #endif
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    bool Nfile::read(const uint64 offset, const uint32 size, void* buffer)
    {
    if (!handle)
@@ -259,7 +259,7 @@ namespace en
    {
    if (!handle)
       return false;
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    handle->clear();
    handle->seekg(0,ios::beg);
    handle->write((char*)buffer,size);
@@ -273,7 +273,7 @@ namespace en
    {
    if (!handle)
       return false;
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    handle->clear();
    handle->seekg(offset,ios::beg);
    handle->write((char*)buffer,size);
@@ -301,7 +301,7 @@ namespace en
    return true;
    }
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    bool Context::create(void)
    {
    return true;

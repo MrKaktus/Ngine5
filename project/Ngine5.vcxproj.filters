@@ -154,6 +154,9 @@
     <Filter Include="Header Files\utilities\gpcpu">
       <UniqueIdentifier>{aaedb25d-bbc6-4bbd-a9b9-ca50562005c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\platform\osx">
+      <UniqueIdentifier>{8b4bc4be-b8c1-40e0-abd1-ee93129b4d12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio\audio.cpp">
@@ -1088,6 +1091,15 @@
     <ClInclude Include="..\public\include\core\defines.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\include\platform\osx\mac_callbacks.h">
+      <Filter>Header Files\platform\osx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\osx\mac_init.h">
+      <Filter>Header Files\platform\osx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\platform\osx\mac_main.h">
+      <Filter>Header Files\platform\osx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">
@@ -1101,6 +1113,12 @@
     </None>
     <None Include="..\public\include\threading\threading.inl">
       <Filter>Header Files\threading</Filter>
+    </None>
+    <None Include="..\src\platform\osx\mac_callbacks.m">
+      <Filter>Source Files\platform\osx</Filter>
+    </None>
+    <None Include="..\src\platform\osx\mac_main.m">
+      <Filter>Source Files\platform\osx</Filter>
     </None>
   </ItemGroup>
 </Project>

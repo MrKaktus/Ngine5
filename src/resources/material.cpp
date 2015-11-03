@@ -68,6 +68,10 @@ namespace en
       return en::resource::Material();
       }
 
+   // TODO: Finish this !!!!
+   return en::resource::Material();
+
+
    //// Check material file version
    //string line;
    //bool eol = false;

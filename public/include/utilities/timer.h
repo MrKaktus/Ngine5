@@ -15,15 +15,6 @@
 #include "core/defines.h"
 #include "core/types.h"
 
-#ifdef EN_PLATFORM_WINDOWS
-#include <windows.h>
-#elif defined ENG_IPHONE
-#import <QuartzCore/QuartzCore.h>
-#else      // ENG_MACOS and other UNIX clone
-#include <sys/time.h>
-#endif
-
-
 namespace en
 {
    class Time
@@ -78,49 +69,5 @@ namespace en
          Time elapsed(void);  // Returns current elapsed time
          };
 }
-
-
-//
-//namespace en
-//{
-//   namespace time
-//   {
-//   // Time unit
-//   enum Interval
-//        {
-//        Seconds     = 0,
-//        Miliseconds    ,
-//        Microseconds   
-//        };
-//
-//   }
-//}
-
-#define EN_SECONDS      1
-#define EN_MILISECONDS  2
-#define EN_MICROSECONDS 3
-
-class Ntimer
-      {
-      private:
-      double t1;
-      double t2;
-
-     #ifdef EN_PLATFORM_WINDOWS              // Counters for Windows
-      LARGE_INTEGER freq;                    
-      LARGE_INTEGER t1count;                   
-      LARGE_INTEGER t2count; 
-     #else
-      timeval t1count;               // Counters for Unix and Linux                  
-      timeval t2count;                           
-     #endif
-
-      public:
-      Ntimer();
-     ~Ntimer();
-  
-      void   start(void);            // Starts to count time
-      double elapsed(uint8 type);    // Returns elapsed time from start
-      };
 
 #endif

@@ -128,7 +128,10 @@ namespace en
       vr::IVRCompositor*   compositor;    // Image compositor
       uint32               currentIndex;  // Swap used rendertarget textures in swap-chain
       Ptr<en::gpu::Texture> swap[2][2];   // Up to two sets, 2 textures each
-      
+      vr::IVRChaperone*    chaperone;
+      float2               areaDimensions;
+      float3               areaCorners[4];      
+
       // HMD and Controllers state
       vr::TrackedDevicePose_t poseRender[vr::k_unMaxTrackedDeviceCount];   // Device position and orientation for rendering (can be HMD, controllers, etc.)
       vr::VRControllerState_t controller[vr::k_unMaxTrackedDeviceCount];

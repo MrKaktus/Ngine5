@@ -284,7 +284,7 @@ namespace en
       // new ones. In such situation first new spawned task will be marked as 
       // new main task. This can be done simultaneously by few worker threads 
       // so atomic CAS is required.
-      CompareAndSwap((volatile uint32*)&SchedulerContext.mainState, (uint32)task->state, (uint32)nullptr);   // TODO: Fix for 64bit pointers !!!
+      CompareAndSwap((volatile uint64*)&SchedulerContext.mainState,  reinterpret_cast<uint64>(task->state), reinterpret_cast<uint64>(nullptr));
       return task->state;
       }
   

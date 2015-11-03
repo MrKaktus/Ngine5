@@ -16,6 +16,13 @@
 //#include "Ngine4/core/log/log.h"
 //#include "Ngine4/core/rendering/context.h"
 //
+//// WA: MacOS missing OpenGL header declarations
+//#ifdef EN_PLATFORM_OSX
+//#ifndef GL_MIRROR_CLAMP_TO_EDGE
+//#define GL_MIRROR_CLAMP_TO_EDGE  0x8743
+//#endif
+//#endif
+//
 //namespace en
 //{
 //   namespace gpu
