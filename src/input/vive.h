@@ -89,7 +89,9 @@ namespace en
       virtual float4    frustumTangents(Eye eye) const;
       virtual uint32v4  viewport(uint8 eye) const;
       virtual void      reset(void);
-      
+      virtual float2    playAreaDimensions(void);
+      virtual bool      playAreaLocation(float3* corners);
+
       virtual void      startFrame(const uint32 frameIndex = 0); // Acquires predicted head position for given frame
       virtual void      update(void);
       virtual float3    position(void) const;                    // Head position (when head tracking is supported)

@@ -473,6 +473,16 @@ namespace en
    ovr_RecenterPose(session);
    }
 
+   float2 OculusDK2::playAreaDimensions(void)
+   {
+   return float2(0.0f, 0.0f);
+   }
+
+   bool OculusDK2::playAreaLocation(float3* corners)
+   {
+   return false;
+   }
+
    float3 OculusDK2::position(Eye eye) const
    {
    // As Osulus uses OpenGL coordinate system where -Z is Look vector, we need to swap X and Z axes.

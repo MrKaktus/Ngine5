@@ -96,12 +96,14 @@ namespace en
                                                                      // Rendering settings:
       virtual HMDMode   mode(void) const = 0;                        // Mode of binding HMD's display to rendering API
       virtual sint32    display(void) const = 0;                     // Display number in extended desktop mode
-      virtual uint32v2  resolution(void) const = 0;                  // Display physical resolution in pixels
+      virtual uint32v2  resolution(void) const = 0;                  // HMD Display physical resolution in pixels
       virtual uint32v2  renderTarget(void) const = 0;                // Proposed Render Target resolution
       virtual bool      sharedRendertarget(void) const = 0;          // Is HMD using one shared render target for both eyes?
       virtual float4    frustumTangents(Eye eye) const = 0;          // Tangents defining projection frustum for each eye
       virtual uint32v4  viewport(uint8 eye) const = 0;               // Get viewport for current eye
       virtual void      reset(void) = 0;                             // Reset HMD position and orientation tracking
+      virtual float2    playAreaDimensions(void) = 0;                // Play area dimensions in X and Z axes (in meters)
+      virtual bool      playAreaLocation(float3* corners) = 0;       // 4 locations of play area corners from starting point, in CW order, with forward vector in -Z direction
       
       virtual void      startFrame(const uint32 frameIndex = 0) = 0; // Call at the beginning of game loop
       virtual void      update(void) = 0;                            // Update status of any peripherials / controllers assigned to this HMD [PRIVATE FUNCTION]

@@ -873,10 +873,10 @@ namespace en
       // Gather controller current state
       context->GetControllerState(i, &controller[i]);
 
-      if (controller[i].ulButtonPressed != 0)
-         Log << "Controller " << i << " button " << controller[i].ulButtonPressed << " pressed." << endl;
-      if (controller[i].ulButtonTouched != 0)
-         Log << "Controller " << i << " button " << controller[i].ulButtonTouched << " touched." << endl;
+      //if (controller[i].ulButtonPressed != 0)
+      //   Log << "Controller " << i << " button " << controller[i].ulButtonPressed << " pressed." << endl;
+      //if (controller[i].ulButtonTouched != 0)
+      //   Log << "Controller " << i << " button " << controller[i].ulButtonTouched << " touched." << endl;
       }
    }
 
@@ -886,7 +886,17 @@ namespace en
    context->ResetSeatedZeroPose();
    }
 
+   float2 ValveHMD::playAreaDimensions(void)
+   {
+   return areaDimensions;
+   }
 
+   bool ValveHMD::playAreaLocation(float3* corners)
+   {
+   for(uint32 i=0; i<4; ++i)
+      corners[i] = areaCorners[i];
+   return true;
+   }
 
 //   inline float SIGN(float x) {return (x >= 0.0f) ? +1.0f : -1.0f;}
 //   inline float NORM(float a, float b, float c, float d) {return sqrt(a * a + b * b + c * c + d * d);}

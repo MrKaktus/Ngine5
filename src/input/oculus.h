@@ -55,7 +55,8 @@ namespace en
          virtual float4    frustumTangents(Eye eye) const;
          virtual uint32v4  viewport(uint8 eye) const;
          virtual void      reset(void);
- 
+         virtual float2    playAreaDimensions(void);
+         virtual bool      playAreaLocation(float3* corners);
 
          //virtual Ptr<resource::Model> distortionModel(DistortionSettings* settings);
          //virtual void      distortionUVScaleOffset(DistortionSettings* settings);
