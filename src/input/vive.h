@@ -91,6 +91,7 @@ namespace en
       virtual void      reset(void);
       virtual float2    playAreaDimensions(void);
       virtual bool      playAreaLocation(float3* corners);
+      virtual bool      debugHUD(DebugHUD mode);
 
       virtual void      startFrame(const uint32 frameIndex = 0); // Acquires predicted head position for given frame
       virtual void      update(void);

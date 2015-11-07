@@ -179,7 +179,7 @@ namespace en
    for(uint32 i=0; i<(sharedRT ? 1U : 2U); ++i)
       {
       // >>>>> OpenGL Specific code section - START
-      ovr_CreateSwapTextureSetGL(session, GL_RGBA, resolutionRT.width, resolutionRT.height, &textureSet[i]);
+      ovr_CreateSwapTextureSetGL(session, GL_SRGB8_ALPHA8, resolutionRT.width, resolutionRT.height, &textureSet[i]);
       for(sint32 j=0; j<textureSet[i]->TextureCount; ++j)
          {
          assert( textureSet[i]->TextureCount == 2 );
@@ -195,7 +195,7 @@ namespace en
          // Create texture interface that can be exposed to application
          en::gpu::TextureState state;
          state.type    = Texture2D;
-         state.format  = FormatRGBA_8;
+         state.format  = FormatRGBA_8_sRGB;
          state.width   = resolutionRT.width;
          state.height  = resolutionRT.height;
          state.depth   = 1;
@@ -211,10 +211,10 @@ namespace en
    // Create mirror texture that can be read by FBO to optional window
 
    // >>>>> OpenGL Specific code section - START
-   ovr_CreateMirrorTextureGL(session, GL_RGBA, windowResolution.width, windowResolution.height, (ovrTexture**)&mirrorTexture);
+   ovr_CreateMirrorTextureGL(session, GL_SRGB8_ALPHA8, windowResolution.width, windowResolution.height, (ovrTexture**)&mirrorTexture);
    en::gpu::TextureState state;
    state.type    = Texture2D;
-   state.format  = FormatRGBA_8;
+   state.format  = FormatRGBA_8_sRGB;
    state.width   = windowResolution.width;
    state.height  = windowResolution.height;
    state.depth   = 1;
@@ -482,6 +482,45 @@ namespace en
    {
    return false;
    }
+
+   bool OculusDK2::debugHUD(DebugHUD mode)
+   {
+   switch(mode)
+      {
+      case Off:
+         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_Off);
+         break;
+      case LatencyTiming:
+         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_LatencyTiming);
+         break;
+      case RenderTiming:
+         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_RenderTiming);
+         break;
+      case PerformanceHeadroom:
+         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_PerfHeadroom);
+         break;
+      case Info:
+         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_VersionInfo);
+         break;
+
+      default:
+      break;
+      }
+   return true;
+   }
+
+
+/// Layer HUD enables the HMD user to see information about a layer
+///
+///     App can toggle layer HUD modes as such:
+///     \code{.cpp}
+///    ovrLayerHud_Off = 0, ///< Turns off the layer HUD
+///    ovrLayerHud_Info = 1, ///< Shows info about a specific layer
+///         ovrLayerHudMode LayerHudMode = ovrLayerHud_Info;
+///         ovr_SetInt(Hmd, OVR_LAYER_HUD_MODE, (int)LayerHudMode);
+///     \endcode
+///
+
 
    float3 OculusDK2::position(Eye eye) const
    {

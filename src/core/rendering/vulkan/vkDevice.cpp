@@ -296,8 +296,8 @@ namespace en
    deviceInfo.sType                     = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
    deviceInfo.pNext                     = nullptr;
 //  deviceInfo.flags                     = /* VkDeviceCreateFlags */ ;   // TODO
-   deviceInfo.requestedQueueCount       = queueFamiliesCount;
-   deviceInfo.pRequestedQueues          = queueInfo;
+   deviceInfo.queueCreateInfoCount      = queueFamiliesCount;
+   deviceInfo.pQueueCreateInfos         = queueInfo;
    deviceInfo.enabledLayerNameCount     = layersCount;
    deviceInfo.ppEnabledLayerNames       = layersCount          ? reinterpret_cast<const char*const*>(layersPtrs) : nullptr;
    deviceInfo.enabledExtensionNameCount = totalExtensionsCount;

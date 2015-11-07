@@ -74,6 +74,15 @@ namespace en
       AxisCount
       };
 
+   enum DebugHUD
+      {
+      Off                      = 0,
+      LatencyTiming               ,
+      RenderTiming                ,
+      PerformanceHeadroom         , 
+      Info
+      };
+
    // Per Eye Distortion Settings
    struct DistortionSettings
       {
@@ -104,7 +113,8 @@ namespace en
       virtual void      reset(void) = 0;                             // Reset HMD position and orientation tracking
       virtual float2    playAreaDimensions(void) = 0;                // Play area dimensions in X and Z axes (in meters)
       virtual bool      playAreaLocation(float3* corners) = 0;       // 4 locations of play area corners from starting point, in CW order, with forward vector in -Z direction
-      
+      virtual bool      debugHUD(DebugHUD mode) = 0;                 // Turns On/Off different Debug HUD's if supported by given HMD
+
       virtual void      startFrame(const uint32 frameIndex = 0) = 0; // Call at the beginning of game loop
       virtual void      update(void) = 0;                            // Update status of any peripherials / controllers assigned to this HMD [PRIVATE FUNCTION]
       virtual float3    position(void) const = 0;                    // HMD's position 

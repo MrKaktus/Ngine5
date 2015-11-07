@@ -240,7 +240,7 @@ namespace en
          // Create texture interface that can be exposed to application
          en::gpu::TextureState state;
          state.type    = Texture2D;
-         state.format  = FormatRGBA_8;
+         state.format  = FormatRGBA_8_sRGB; //FormatRGBA_8;
          state.width   = resolutionRT.width;
          state.height  = resolutionRT.height;
          state.depth   = 1;
@@ -897,6 +897,12 @@ namespace en
       corners[i] = areaCorners[i];
    return true;
    }
+
+   bool ViveHMD::debugHUD(DebugHUD mode)
+   {
+   return false;
+   }
+
 
 //   inline float SIGN(float x) {return (x >= 0.0f) ? +1.0f : -1.0f;}
 //   inline float NORM(float a, float b, float c, float d) {return sqrt(a * a + b * b + c * c + d * d);}

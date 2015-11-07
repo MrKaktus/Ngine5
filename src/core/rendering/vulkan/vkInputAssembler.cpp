@@ -23,71 +23,74 @@ namespace en
    {   
    static const VkFormat TranslateAttributeFormat[AttributeFormatsCount]
       {
-      VK_FORMAT_UNDEFINED           ,  // None                      
-      VK_FORMAT_R16_SFLOAT          ,  // Half                   
-      VK_FORMAT_R16G16_SFLOAT       ,  // Half2                  
-      VK_FORMAT_R16G16B16_SFLOAT    ,  // Half3                  
-      VK_FORMAT_R16G16B16A16_SFLOAT ,  // Half4                  
-      VK_FORMAT_R32_SFLOAT          ,  // Float                  
-      VK_FORMAT_R32G32_SFLOAT       ,  // Float2                 
-      VK_FORMAT_R32G32B32_SFLOAT    ,  // Float3                 
-      VK_FORMAT_R32G32B32A32_SFLOAT ,  // Float4                 
-      VK_FORMAT_R64_SFLOAT          ,  // Double                 
-      VK_FORMAT_R64G64_SFLOAT       ,  // Double2                
-      VK_FORMAT_R64G64B64_SFLOAT    ,  // Double3                
-      VK_FORMAT_R64G64B64A64_SFLOAT ,  // Double4                
-      VK_FORMAT_R8_SINT             ,  // Int8                   
-      VK_FORMAT_R8G8_SINT           ,  // Int8v2                 
-      VK_FORMAT_R8G8B8_SINT         ,  // Int8v3                 
-      VK_FORMAT_R8G8B8A8_SINT       ,  // Int8v4                 
-      VK_FORMAT_R16_SINT            ,  // Int16                  
-      VK_FORMAT_R16G16_SINT         ,  // Int16v2                
-      VK_FORMAT_R16G16B16_SINT      ,  // Int16v3                
-      VK_FORMAT_R16G16B16A16_SINT   ,  // Int16v4                
-      VK_FORMAT_R32_SINT            ,  // Int32                  
-      VK_FORMAT_R32G32_SINT         ,  // Int32v2                
-      VK_FORMAT_R32G32B32_SINT      ,  // Int32v3                
-      VK_FORMAT_R32G32B32A32_SINT   ,  // Int32v4                
-      VK_FORMAT_UNDEFINED           ,  // Int64          (unsupported)            
-      VK_FORMAT_UNDEFINED           ,  // Int64v2        (unsupported) 
-      VK_FORMAT_UNDEFINED           ,  // Int64v3        (unsupported) 
-      VK_FORMAT_UNDEFINED           ,  // Int64v4        (unsupported) 
-      VK_FORMAT_R8_UINT             ,  // UInt8                  
-      VK_FORMAT_R8G8_UINT           ,  // UInt8v2                
-      VK_FORMAT_R8G8B8_UINT         ,  // UInt8v3                
-      VK_FORMAT_R8G8B8A8_UINT       ,  // UInt8v4                
-      VK_FORMAT_R16_UINT            ,  // UInt16                 
-      VK_FORMAT_R16G16_UINT         ,  // UInt16v2               
-      VK_FORMAT_R16G16B16_UINT      ,  // UInt16v3               
-      VK_FORMAT_R16G16B16A16_UINT   ,  // UInt16v4               
-      VK_FORMAT_R32_UINT            ,  // UInt32                 
-      VK_FORMAT_R32G32_UINT         ,  // UInt32v2               
-      VK_FORMAT_R32G32B32_UINT      ,  // UInt32v3               
-      VK_FORMAT_R32G32B32A32_UINT   ,  // UInt32v4               
-      VK_FORMAT_UNDEFINED           ,  // UInt64         (unsupported) 
-      VK_FORMAT_UNDEFINED           ,  // UInt64v2       (unsupported) 
-      VK_FORMAT_UNDEFINED           ,  // UInt64v3       (unsupported) 
-      VK_FORMAT_UNDEFINED           ,  // UInt64v4       (unsupported)            
-      VK_FORMAT_R8_SNORM            ,  // Float8_SNorm           
-      VK_FORMAT_R8G8_SNORM          ,  // Float8v2_SNorm         
-      VK_FORMAT_R8G8B8_SNORM        ,  // Float8v3_SNorm         
-      VK_FORMAT_R8G8B8A8_SNORM      ,  // Float8v4_SNorm         
-      VK_FORMAT_R16_SNORM           ,  // Float16_SNorm          
-      VK_FORMAT_R16G16_SNORM        ,  // Float16v2_SNorm        
-      VK_FORMAT_R16G16B16_SNORM     ,  // Float16v3_SNorm        
-      VK_FORMAT_R16G16B16A16_SNORM  ,  // Float16v4_SNorm        
-      VK_FORMAT_R8_UNORM            ,  // Float8_Norm            
-      VK_FORMAT_R8G8_UNORM          ,  // Float8v2_Norm          
-      VK_FORMAT_R8G8B8_UNORM        ,  // Float8v3_Norm          
-      VK_FORMAT_R8G8B8A8_UNORM      ,  // Float8v4_Norm          
-      VK_FORMAT_R16_UNORM           ,  // Float16_Norm           
-      VK_FORMAT_R16G16_UNORM        ,  // Float16v2_Norm         
-      VK_FORMAT_R16G16B16_UNORM     ,  // Float16v3_Norm         
-      VK_FORMAT_R16G16B16A16_UNORM  ,  // Float16v4_Norm         
-      VK_FORMAT_B10G10R10A2_SNORM   ,  // Float4_10_10_10_2_SNorm
-      VK_FORMAT_B10G10R10A2_UNORM      // Float4_10_10_10_2_Norm 
+      VK_FORMAT_UNDEFINED                ,  // None                      
+      VK_FORMAT_R16_SFLOAT               ,  // Half                   
+      VK_FORMAT_R16G16_SFLOAT            ,  // Half2                  
+      VK_FORMAT_R16G16B16_SFLOAT         ,  // Half3                  
+      VK_FORMAT_R16G16B16A16_SFLOAT      ,  // Half4                  
+      VK_FORMAT_R32_SFLOAT               ,  // Float                  
+      VK_FORMAT_R32G32_SFLOAT            ,  // Float2                 
+      VK_FORMAT_R32G32B32_SFLOAT         ,  // Float3                 
+      VK_FORMAT_R32G32B32A32_SFLOAT      ,  // Float4                 
+      VK_FORMAT_R64_SFLOAT               ,  // Double                 
+      VK_FORMAT_R64G64_SFLOAT            ,  // Double2                
+      VK_FORMAT_R64G64B64_SFLOAT         ,  // Double3                
+      VK_FORMAT_R64G64B64A64_SFLOAT      ,  // Double4                
+      VK_FORMAT_R8_SINT                  ,  // Int8                   
+      VK_FORMAT_R8G8_SINT                ,  // Int8v2                 
+      VK_FORMAT_R8G8B8_SINT              ,  // Int8v3                 
+      VK_FORMAT_R8G8B8A8_SINT            ,  // Int8v4                 
+      VK_FORMAT_R16_SINT                 ,  // Int16                  
+      VK_FORMAT_R16G16_SINT              ,  // Int16v2                
+      VK_FORMAT_R16G16B16_SINT           ,  // Int16v3                
+      VK_FORMAT_R16G16B16A16_SINT        ,  // Int16v4                
+      VK_FORMAT_R32_SINT                 ,  // Int32                  
+      VK_FORMAT_R32G32_SINT              ,  // Int32v2                
+      VK_FORMAT_R32G32B32_SINT           ,  // Int32v3                
+      VK_FORMAT_R32G32B32A32_SINT        ,  // Int32v4                
+      VK_FORMAT_R64_SINT                 ,  // Int64              
+      VK_FORMAT_R64G64_SINT              ,  // Int64v2 
+      VK_FORMAT_R64G64B64_SINT           ,  // Int64v3 
+      VK_FORMAT_R64G64B64A64_SINT        ,  // Int64v4 
+      VK_FORMAT_R8_UINT                  ,  // UInt8                  
+      VK_FORMAT_R8G8_UINT                ,  // UInt8v2                
+      VK_FORMAT_R8G8B8_UINT              ,  // UInt8v3                
+      VK_FORMAT_R8G8B8A8_UINT            ,  // UInt8v4                
+      VK_FORMAT_R16_UINT                 ,  // UInt16                 
+      VK_FORMAT_R16G16_UINT              ,  // UInt16v2               
+      VK_FORMAT_R16G16B16_UINT           ,  // UInt16v3               
+      VK_FORMAT_R16G16B16A16_UINT        ,  // UInt16v4               
+      VK_FORMAT_R32_UINT                 ,  // UInt32                 
+      VK_FORMAT_R32G32_UINT              ,  // UInt32v2               
+      VK_FORMAT_R32G32B32_UINT           ,  // UInt32v3               
+      VK_FORMAT_R32G32B32A32_UINT        ,  // UInt32v4               
+      VK_FORMAT_R64_UINT                 ,  // UInt64          
+      VK_FORMAT_R64G64_UINT              ,  // UInt64v2        
+      VK_FORMAT_R64G64B64_UINT           ,  // UInt64v3        
+      VK_FORMAT_R64G64B64A64_UINT        ,  // UInt64v4                   
+      VK_FORMAT_R8_SNORM                 ,  // Float8_SNorm           
+      VK_FORMAT_R8G8_SNORM               ,  // Float8v2_SNorm         
+      VK_FORMAT_R8G8B8_SNORM             ,  // Float8v3_SNorm         
+      VK_FORMAT_R8G8B8A8_SNORM           ,  // Float8v4_SNorm         
+      VK_FORMAT_R16_SNORM                ,  // Float16_SNorm          
+      VK_FORMAT_R16G16_SNORM             ,  // Float16v2_SNorm        
+      VK_FORMAT_R16G16B16_SNORM          ,  // Float16v3_SNorm        
+      VK_FORMAT_R16G16B16A16_SNORM       ,  // Float16v4_SNorm        
+      VK_FORMAT_R8_UNORM                 ,  // Float8_Norm            
+      VK_FORMAT_R8G8_UNORM               ,  // Float8v2_Norm          
+      VK_FORMAT_R8G8B8_UNORM             ,  // Float8v3_Norm          
+      VK_FORMAT_R8G8B8A8_UNORM           ,  // Float8v4_Norm          
+      VK_FORMAT_R16_UNORM                ,  // Float16_Norm           
+      VK_FORMAT_R16G16_UNORM             ,  // Float16v2_Norm         
+      VK_FORMAT_R16G16B16_UNORM          ,  // Float16v3_Norm         
+      VK_FORMAT_R16G16B16A16_UNORM       ,  // Float16v4_Norm         
+      VK_FORMAT_A2R10G10B10_SNORM_PACK32 ,  // Float4_10_10_10_2_SNorm
+      VK_FORMAT_A2R10G10B10_UNORM_PACK32 ,  // Float4_10_10_10_2_Norm   
       };
 
+    
+    
+  
    // Vulkan is not supporting Line Loops !
    static const VkPrimitiveTopology TranslateDrawableType[DrawableTypesCount] = 
       {

@@ -57,6 +57,7 @@ namespace en
          virtual void      reset(void);
          virtual float2    playAreaDimensions(void);
          virtual bool      playAreaLocation(float3* corners);
+         virtual bool      debugHUD(DebugHUD mode);
 
          //virtual Ptr<resource::Model> distortionModel(DistortionSettings* settings);
          //virtual void      distortionUVScaleOffset(DistortionSettings* settings);
