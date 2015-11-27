@@ -91,16 +91,7 @@ namespace en
       "#version 300      \n\n"
       };
 
-   string enScene(
-"// UBO - Scene Constants         \n"
-"uniform enScene                  \n"
-"   {                             \n"
-"   mat4 camViewProjection;       \n"
-"   mat4 camProjection;           \n"
-"   mat4 camView;                 \n"
-"   } scene;                      \n");
-
-   Effect::Effect(ShadingLanguage version, string name, bool includeConstants) :
+   Effect::Effect(ShadingLanguage version, string name) :
       binary(nullptr),
       dirty(true)
    {
@@ -122,8 +113,6 @@ namespace en
 
       // If file exist attach to it engine header
       attach((PipelineStage)(stage), ShadingLanguageVersion[version]);
-	  if (includeConstants)
-         attach((PipelineStage)(stage), enScene);
       Storage.read(path, shader[stage]);
       }
    }
@@ -138,6 +127,11 @@ namespace en
    dirty = true;
    }
  
+   bool Effect::stage(PipelineStage stage)
+   {
+   return !shader[stage].empty();
+   }
+
    void Effect::clear(PipelineStage stage)
    {
    code[stage].clear();

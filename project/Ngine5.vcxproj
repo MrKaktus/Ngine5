@@ -29,7 +29,9 @@
     <ClCompile Include="..\src\core\rendering\gpu.cpp" />
     <ClCompile Include="..\src\core\rendering\metal\mtlBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\metal\mtlDepthStencil.cpp" />
+    <ClCompile Include="..\src\core\rendering\metal\mtlDevice.cpp" />
     <ClCompile Include="..\src\core\rendering\metal\mtlInputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\metal\mtlRenderPass.cpp" />
     <ClCompile Include="..\src\core\rendering\metal\mtlSampler.cpp" />
     <ClCompile Include="..\src\core\rendering\metal\mtlTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\metal\mtlViewport.cpp" />
@@ -167,6 +169,7 @@
     <ClInclude Include="..\public\include\core\rendering\program.h" />
     <ClInclude Include="..\public\include\core\rendering\raster.h" />
     <ClInclude Include="..\public\include\core\rendering\rendering.h" />
+    <ClInclude Include="..\public\include\core\rendering\renderPass.h" />
     <ClInclude Include="..\public\include\core\rendering\sampler.h" />
     <ClInclude Include="..\public\include\core\rendering\state.h" />
     <ClInclude Include="..\public\include\core\rendering\texture.h" />
@@ -274,7 +277,9 @@
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlBlend.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlDepthStencil.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlDevice.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlRenderPass.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlSampler.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlTexture.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlViewport.h" />

@@ -46,17 +46,30 @@ namespace en
    }
 
    template <typename T>
-   T* allocate(uint32 aligment, uint32 count)
+   T* allocate(uint32 alignment, uint32 count)
    {
    T* temp;
 #ifdef EN_PLATFORM_WINDOWS
-   temp = static_cast<T*>(_aligned_malloc(count * sizeof(T), aligment));
+   temp = static_cast<T*>(_aligned_malloc(count * sizeof(T), alignment));
 #else
-   sint32 ret = posix_memalign((void **)(&temp), aligment, count * sizeof(T)); 
+   sint32 ret = posix_memalign((void **)(&temp), alignment, count * sizeof(T)); 
    if (ret == ENOMEM)
       return nullptr;
    if (ret == EINVAL)
       return nullptr;
+#endif
+   return temp;
+   }
+
+   template <typename T>
+   T* reallocate(T* memory, uint32 alignment, uint32 count)
+   {
+   T* temp;
+#ifdef EN_PLATFORM_WINDOWS
+   temp = static_cast<T*>(_aligned_realloc(memory, count * sizeof(T), alignment));
+#else
+   // THERE IS NO MEM ALIGNED REALLOC ON UNIX SYSTEMS !
+   assert(0);
 #endif
    return temp;
    }

@@ -573,6 +573,12 @@
     <ClCompile Include="..\src\utilities\gpcpu\gpcpu.cpp">
       <Filter>Source Files\utilities\gpcpu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\rendering\metal\mtlDevice.cpp">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\metal\mtlRenderPass.cpp">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1099,6 +1105,15 @@
     </ClInclude>
     <ClInclude Include="..\public\include\platform\osx\mac_main.h">
       <Filter>Header Files\platform\osx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlDevice.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlRenderPass.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\renderPass.h">
+      <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

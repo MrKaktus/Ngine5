@@ -42,12 +42,18 @@ namespace en
         };
 
    // Parameters common for whole scene/frame
+   aligned(1) 
    struct SceneParameters
       {
-      float4x4 camViewProjection;
-      float4x4 camProjection;
-      float4x4 camView;
+      float4x4 camViewProjection[2];
+      float4x4 camProjection[2];
+      float4x4 camView[2];
+      sint32   instances;   // packed0
+      sint32   stereo;
+      sint32   res_0;
+      sint32   res_1;
       };
+   aligndefault
 
    class Effect
          {
@@ -58,13 +64,14 @@ namespace en
          bool           dirty;                       // Do we need to recompile?
    
          public:
-			 Effect(ShadingLanguage version, string name, bool includeConstants = true);
+			 Effect(ShadingLanguage version, string name);
         ~Effect();
    
          void attach(PipelineStage stage, string code); // Add code to given shader stage
+         bool stage(PipelineStage stage);               // Checks if given Pipeline Stage is used by this effect
          void clear(PipelineStage stage);               // Clear all additional code for given shader stage
-         void clear(void);                            // Clear all additional code
-         Program program(void);              // Return current program  
+         void clear(void);                              // Clear all additional code
+         Program program(void);                         // Return current program  
          };
 
 }

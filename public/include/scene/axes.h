@@ -30,7 +30,7 @@ namespace en
          Parameter enModelMatrix;
    
          Axes();
-         void draw(const Buffer& sceneParameters);
+         void draw(const Buffer& sceneParameters, const uint32 instances = 1U);
          };
    }
 }

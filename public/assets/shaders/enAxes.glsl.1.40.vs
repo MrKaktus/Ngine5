@@ -7,6 +7,6 @@ out vec3 Color;
 
 void main()
 {	
-gl_Position = (scene.camViewProjection * enModelMatrix) * vec4(inPosition, 1.0); 
+gl_Position = enOutVertexPosition(enCamViewProjection() * enModelMatrix * vec4(inPosition, 1.0) ); 
 Color       = inColor;
 }

@@ -905,6 +905,10 @@ PFNGLTEXIMAGE3DEXTPROC                     glTexImage3DEXT                      
 ******************************************************************************/
 
 //
+// GL_AMD_vertex_shader_viewport_index
+//
+string                                     AMD_vertex_shader_viewport_index    = "GL_AMD_vertex_shader_viewport_index";
+//
 // GL_EXT_direct_state_access
 //
 string                                     EXT_direct_state_access             = "GL_EXT_direct_state_access";
@@ -912,6 +916,18 @@ string                                     EXT_direct_state_access             =
 // GL_EXT_texture_filter_anisotropic
 //
 string                                     EXT_texture_filter_anisotropic      = "GL_EXT_texture_filter_anisotropic";
+//
+// NV_geometry_shader_passthrough
+//
+string                                     NV_geometry_shader_passthrough      = "GL_NV_geometry_shader_passthrough";
+//
+// GL_NV_viewport_array
+//
+string                                     NV_viewport_array                   = "GL_NV_viewport_array";
+//
+// GL_NV_viewport_array2
+//
+string                                     NV_viewport_array2                  = "GL_NV_viewport_array2";
 
 /******************************************************************************
 

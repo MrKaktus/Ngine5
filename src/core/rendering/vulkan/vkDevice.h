@@ -56,6 +56,8 @@ namespace en
 
 
 
+
+
    // Vulkan API Layer description
    struct LayerDescriptor
       {
@@ -68,7 +70,7 @@ namespace en
 
    class VulkanDevice : public GpuDevice
       {
-      private:
+      public:
       VkResult                         lastResult;
       VkDevice                         device;
       VkPhysicalDevice                 handle;
@@ -82,7 +84,10 @@ namespace en
       VkExtensionProperties*           globalExtension;
       uint32                           globalExtensionsCount;
 
+      VkAllocationCallbacks            defaultAllocCallbacks;
       VkPipelineCache                  pipelineCache;
+      uint64                           memoryRAM;
+      uint64                           memoryDriver;
 
       // Device Function Pointers
       #include "core/rendering/vulkan/vulkan10.h"
@@ -90,6 +95,36 @@ namespace en
       // Helper functions
       void bindDeviceFunctionPointers(void);
       void unbindDeviceFunctionPointers(void);
+
+      // CPU memory allocation for given GPU device control
+      friend void* VKAPI_PTR defaultAlloc(
+          void*                                       pUserData,
+          size_t                                      size,
+          size_t                                      alignment,
+          VkSystemAllocationScope                     allocationScope);
+      
+      friend void* VKAPI_PTR defaultRealloc(
+          void*                                       pUserData,
+          void*                                       pOriginal,
+          size_t                                      size,
+          size_t                                      alignment,
+          VkSystemAllocationScope                     allocationScope);
+      
+      friend void VKAPI_PTR defaultFree(
+          void*                                       pUserData,
+          void*                                       pMemory);
+      
+      friend void VKAPI_PTR defaultIntAlloc(
+          void*                                       pUserData,
+          size_t                                      size,
+          VkInternalAllocationType                    allocationType,
+          VkSystemAllocationScope                     allocationScope);
+      
+      friend void VKAPI_PTR defaultIntFree(
+          void*                                       pUserData,
+          size_t                                      size,
+          VkInternalAllocationType                    allocationType,
+          VkSystemAllocationScope                     allocationScope);
 
       public:
       VulkanDevice(const VkPhysicalDevice handle);

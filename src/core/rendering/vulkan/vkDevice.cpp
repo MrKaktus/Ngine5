@@ -15,6 +15,7 @@
 
 #include "core/log/log.h"
 #include "core/rendering/vulkan/vkDevice.h"
+#include "core/utilities/memory.h"
 
 namespace en
 {
@@ -162,6 +163,86 @@ namespace en
    {
    }
 
+   // CPU memory allocation for given GPU device control
+   void* VKAPI_PTR defaultAlloc(
+       void*                                       pUserData,
+       size_t                                      size,
+       size_t                                      alignment,
+       VkSystemAllocationScope                     allocationScope)
+   {
+   void* ptr = reinterpret_cast<void*>(allocate<uint8>(alignment, size));
+   if (ptr)
+      {
+      VulkanDevice* deviceVK = reinterpret_cast<VulkanDevice*>(pUserData);
+      deviceVK->memoryRAM += size;
+      }
+
+   return ptr;
+   }
+   
+   void* VKAPI_PTR defaultRealloc(
+       void*                                       pUserData,
+       void*                                       pOriginal,
+       size_t                                      size,
+       size_t                                      alignment,
+       VkSystemAllocationScope                     allocationScope)
+   {
+   #ifdef EN_PLATFORM_WINDOWS
+   return reinterpret_cast<void*>(reallocate<uint8>(reinterpret_cast<uint8*>(pOriginal), alignment, size));
+   #else
+   // THERE IS NO MEM ALIGNED REALLOC ON UNIX SYSTEMS !
+   void* ptr = reinterpret_cast<void*>(allocate<uint8>(alignment, size));
+   if (ptr)
+      {
+      // TODO: Needs to know size of original allocation !
+      //if (pOriginal)
+      //   memcpy(ptr, pOriginal, size);
+      deallocate<uint8>(reinterpret_cast<uint8*>(pOriginal));
+
+      VulkanDevice* deviceVK = reinterpret_cast<VulkanDevice*>(pUserData);
+
+      // TODO: Needs to know size of original allocation !
+      //deviceVK->memoryRAM -= oldSize;
+      //deviceVK->memoryRAM += size;
+      }
+
+   return ptr;
+   #endif
+   }
+   
+   void VKAPI_PTR defaultFree(
+       void*                                       pUserData,
+       void*                                       pMemory)
+   {
+   deallocate<uint8>(reinterpret_cast<uint8*>(pMemory));
+
+   VulkanDevice* deviceVK = reinterpret_cast<VulkanDevice*>(pUserData);
+   // TODO: Needs to know size of original allocation !
+   //deviceVK->memoryRAM -= oldSize;
+   }
+   
+   void VKAPI_PTR defaultIntAlloc(
+       void*                                       pUserData,
+       size_t                                      size,
+       VkInternalAllocationType                    allocationType,
+       VkSystemAllocationScope                     allocationScope)
+   {
+   VulkanDevice* deviceVK = reinterpret_cast<VulkanDevice*>(pUserData);
+   deviceVK->memoryDriver += size;
+   }
+   
+   void VKAPI_PTR defaultIntFree(
+       void*                                       pUserData,
+       size_t                                      size,
+       VkInternalAllocationType                    allocationType,
+       VkSystemAllocationScope                     allocationScope)
+   {
+   VulkanDevice* deviceVK = reinterpret_cast<VulkanDevice*>(pUserData);
+   deviceVK->memoryDriver -= size;
+   }
+
+
+
    VulkanDevice::VulkanDevice(const VkPhysicalDevice _handle) :
       lastResult(VK_SUCCESS),
       handle(_handle),
@@ -170,10 +251,20 @@ namespace en
       layer(nullptr),
       layersCount(0),
       globalExtension(nullptr),
-      globalExtensionsCount(0)
+      globalExtensionsCount(0),
+      memoryRAM(0),
+      memoryDriver(0)
    {
    // Unbind all function pointers first
    unbindDeviceFunctionPointers();
+
+   // Init default memory allocation callbacks
+   defaultAllocCallbacks.pUserData             = this;
+   defaultAllocCallbacks.pfnAllocation         = defaultAlloc;
+   defaultAllocCallbacks.pfnReallocation       = defaultRealloc;
+   defaultAllocCallbacks.pfnFree               = defaultFree;
+   defaultAllocCallbacks.pfnInternalAllocation = defaultIntAlloc;
+   defaultAllocCallbacks.pfnInternalFree       = defaultIntFree;
 
    // Gather Device Capabilities
    ProfileNoRet( vkGetPhysicalDeviceFeatures(handle, &features) )
@@ -304,8 +395,7 @@ namespace en
    deviceInfo.ppEnabledExtensionNames   = totalExtensionsCount ? reinterpret_cast<const char*const*>(extensionPtrs) : nullptr;
    deviceInfo.pEnabledFeatures          = nullptr;
 
-   // TODO:
-   // Profile( vkCreateDevice(handle, &deviceInfo, /* const VkAllocCallbacks* pAllocator, */ &device) )
+   Profile( vkCreateDevice(handle, &deviceInfo, &defaultAllocCallbacks, &device) )
 
    // Bind Device Functions
    bindDeviceFunctionPointers();
@@ -630,7 +720,6 @@ namespace en
 
 
 
-
    VkDeviceMemory VulkanDevice::allocMemory(VkMemoryRequirements requirements, VkFlags properties)
    {
    VkDeviceMemory handle;
@@ -651,13 +740,12 @@ namespace en
 
       // Try to allocate memory on Heap supporting this memory type
       VkMemoryAllocateInfo allocInfo;
-      allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOC_INFO;
+      allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
       allocInfo.pNext           = nullptr;
       allocInfo.allocationSize  = requirements.size;
       allocInfo.memoryTypeIndex = index;
       
-      // TODO: 
-      // Profile( vkAllocMemory(device, &allocInfo, /* const VkAllocCallbacks* pAllocator, */ &handle) )
+      Profile( vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
 	  if (lastResult == VK_SUCCESS)
          return handle;
       }
@@ -953,8 +1041,8 @@ namespace en
    instInfo.enabledExtensionNameCount = enabledExtensionsCount;
    instInfo.ppEnabledExtensionNames   = enabledExtensionsCount ? reinterpret_cast<const char*const*>(extensionPtrs) : nullptr;
 
- // TODO:
- // Profile( vkCreateInstance(&instInfo, /* const VkAllocCallbacks* pAllocator, */ &instance) )
+   // TODO: Needs to have separate aloc callbacks for API
+   //Profile( vkCreateInstance(&instInfo, &defaultAllocCallbacks, &instance) )
 
    // Enumerate available physical devices
    Profile( vkEnumeratePhysicalDevices(instance, &devicesCount, nullptr) )
@@ -965,7 +1053,7 @@ namespace en
    device = new Ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
       device[i] = new VulkanDevice(*tempHandle);
-
+ 
    // Bind Interface functions
    bindInterfaceFunctionPointers();
 
