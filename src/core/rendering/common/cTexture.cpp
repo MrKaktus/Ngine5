@@ -14,6 +14,7 @@
 */
 
 #include "core/rendering/common/texture.h"
+#include <string.h> // memcmp
 
 // TODO: Rename to texture.cpp and move one level when old interface will be completly removed
 
@@ -62,7 +63,7 @@ namespace en
    }
 
    // API independent texture compression into
-   static const TextureCompressedBlockInfo TextureCompressionInfo[TextureFormatsCount] = 
+   const TextureCompressedBlockInfo TextureCompressionInfo[TextureFormatsCount] =
       {
       {  0,  0,  0, false },   // FormatUnsupported         
       {  0,  0,  1, false },   // FormatR_8                 

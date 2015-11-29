@@ -28,7 +28,13 @@
 #include <AL/alc.h>
 #endif
 
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX)
+// OpenAL
+#import <OpenAL/al.h>
+#import <OpenAL/alc.h>
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
 // OpenAL
 #include "C:/Program Files (x86)/OpenAL 1.1 SDK/include/al.h"
 #include "C:/Program Files (x86)/OpenAL 1.1 SDK/include/alc.h"

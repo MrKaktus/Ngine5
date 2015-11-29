@@ -13,6 +13,8 @@
 
 */
 
+#if defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/d3d12/dx12InputAssembler.h"
 
 namespace en
@@ -288,3 +290,4 @@ namespace en
 
    }
 }
+#endif

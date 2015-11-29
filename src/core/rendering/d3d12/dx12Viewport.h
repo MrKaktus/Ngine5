@@ -16,6 +16,8 @@
 #ifndef ENG_CORE_RENDERING_D3D12_VIEWPORT_STENCIL_STATE
 #define ENG_CORE_RENDERING_D3D12_VIEWPORT_STENCIL_STATE
 
+#if defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/viewport.h"
 
@@ -41,5 +43,6 @@ namespace en
       };
    }
 }
+#endif
 
 #endif

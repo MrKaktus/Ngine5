@@ -571,7 +571,23 @@ namespace en
       bool BufferColumnSupported[ColumnTypesCount];
 
       #ifdef EN_OPENGL_DESKTOP
-  
+
+#if defined(EN_PLATFORM_OSX)
+// In OSX define missing enums as 0 for easier debugging.
+#ifndef GL_ATOMIC_COUNTER_BUFFER
+#define GL_ATOMIC_COUNTER_BUFFER        0
+#endif
+#ifndef GL_DISPATCH_INDIRECT_BUFFER
+#define GL_DISPATCH_INDIRECT_BUFFER     0
+#endif
+#ifndef GL_SHADER_STORAGE_BUFFER
+#define GL_SHADER_STORAGE_BUFFER        0
+#endif
+#ifndef GL_QUERY_BUFFER
+#define GL_QUERY_BUFFER                 0
+#endif
+#endif
+            
       const BufferTypeTranslation BufferType[BufferTypesCount] = 
          { 
          { OpenGL_1_5, GL_ARRAY_BUFFER                 },   // Vertex                  

@@ -1,15 +1,14 @@
 /*
 
- Ngine v4.0
+ Ngine v5.0
  
- Module      : MacOS specific code.
- Requirements: none
+ Module      : OSX specific code.
  Description : Handles Mac/iPhone callbacks from OS
                to application.
                
 */
 
-#import "Ngine4/platform/macos/mac_callbacks.h"
+#import "platform/osx/osx_callbacks.h"
 
 
 @interface EAGLView (PrivateMethods)

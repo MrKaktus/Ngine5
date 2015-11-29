@@ -15,9 +15,11 @@
 #include "core/defines.h"
 #include "core/threading/atomics.h"
 
-// Base class that implements objects management
-// using Thread-Safe intrusive pointers.
-class cachealign SafeObject
+namespace en
+{
+   // Base class that implements objects management
+   // using Thread-Safe intrusive pointers.
+   class cachealign SafeObject
       {
       public:
       volatile uint32 references;
@@ -29,11 +31,11 @@ class cachealign SafeObject
 
       };
 
-// Class that implements objects management using 
-// Thread-Safe intrusive pointers. It should be 
-// inherited as public.
-template <typename T>
-class Ptr
+   // Class that implements objects management using
+   // Thread-Safe intrusive pointers. It should be
+   // inherited as public.
+   template <typename T>
+   class Ptr
       {
       // Ptr protects pointer to proper data
       // which means that only class that inherits from
@@ -61,116 +63,115 @@ class Ptr
       uint32 references(void);
       };
 
-template <typename T>
-Ptr<T>::Ptr() :
-   pointer(nullptr)
-{
-}
-
-template <typename T>
-Ptr<T>::Ptr(T* src) :
-   pointer(src)
-{
-if (pointer)
-   AtomicIncrease(&((SafeObject*)pointer)->references);
-}
-
-template <typename T>
-Ptr<T>::Ptr(const Ptr<T>& src) :
-   pointer(src.pointer)
-{
-if (pointer)
-   AtomicIncrease(&((SafeObject*)pointer)->references);
-}
-
-template <typename T>
-Ptr<T>& Ptr<T>::operator=(const Ptr<T>& src)
-{
-if (pointer == src.pointer)
-   return *this;
-
-// Stops being interface of old value
-if (pointer)
+   template <typename T>
+   Ptr<T>::Ptr() :
+      pointer(nullptr)
    {
-   uint32 ref = AtomicDecrease(&((SafeObject*)pointer)->references);
-   if (ref == 0)
-      delete pointer;
    }
 
-// Starts to be interface of new value
-pointer = src.pointer;
-if (pointer)
-   AtomicIncrease(&((SafeObject*)pointer)->references);
+   template <typename T>
+   Ptr<T>::Ptr(T* src) :
+      pointer(src)
+   {
+   if (pointer)
+      AtomicIncrease(&((SafeObject*)pointer)->references);
+   }
+
+   template <typename T>
+   Ptr<T>::Ptr(const Ptr<T>& src) :
+      pointer(src.pointer)
+   {
+   if (pointer)
+      AtomicIncrease(&((SafeObject*)pointer)->references);
+   }
+
+   template <typename T>
+   Ptr<T>& Ptr<T>::operator=(const Ptr<T>& src)
+   {
+   if (pointer == src.pointer)
+      return *this;
+
+   // Stops being interface of old value
+   if (pointer)
+      {
+      uint32 ref = AtomicDecrease(&((SafeObject*)pointer)->references);
+      if (ref == 0)
+         delete pointer;
+      }
+
+   // Starts to be interface of new value
+   pointer = src.pointer;
+   if (pointer)
+      AtomicIncrease(&((SafeObject*)pointer)->references);
  
-return *this;
-}
-
-template <typename T>
-Ptr<T>::~Ptr()
-{
-if (pointer)
-   {
-   uint32 ref = AtomicDecrease(&((SafeObject*)pointer)->references);
-   if (ref == 0)
-      delete pointer;
+   return *this;
    }
-}
 
-template <typename T>
-Ptr<T>::operator bool() const
-{
-return pointer != 0 ? true : false;
-}
+   template <typename T>
+   Ptr<T>::~Ptr()
+   {
+   if (pointer)
+      {
+      uint32 ref = AtomicDecrease(&((SafeObject*)pointer)->references);
+      if (ref == 0)
+         delete pointer;
+      }
+   }
 
-template <typename T>
-T* Ptr<T>::operator->() const 
-{
-return pointer;
-}
+   template <typename T>
+   Ptr<T>::operator bool() const
+   {
+   return pointer != nullptr ? true : false;
+   }
 
-//template <typename T>
-//Ptr<T>::operator&() const
-//{
-//}
-//
-//template <typename T>
-//T Ptr<T>::operator*() const
-//{
-//}
+   template <typename T>
+   T* Ptr<T>::operator->() const
+   {
+   return pointer;
+   }
 
-template <typename T>
-bool Ptr<T>::operator== (Ptr<T> b) const
-{
-return this->pointer == b.pointer;
-}
+   //template <typename T>
+   //Ptr<T>::operator&() const
+   //{
+   //}
+   //
+   //template <typename T>
+   //T Ptr<T>::operator*() const
+   //{
+   //}
+
+   template <typename T>
+   bool Ptr<T>::operator== (Ptr<T> b) const
+   {
+   return this->pointer == b.pointer;
+   }
   
-template <typename T>
-uint32 Ptr<T>::references(void)
-{
-return pointer == 0 ? 0 : ((SafeObject*)pointer)->references;
+   template <typename T>
+   uint32 Ptr<T>::references(void)
+   {
+   return pointer == nullptr ? 0 : ((SafeObject*)pointer)->references;
+   }
+
+   template <typename T, typename Other>
+   Ptr<T> ptr_dynamic_cast(const Ptr<Other>& src)
+   {
+   T* ptr = dynamic_cast<T*>( *((Other**)(&src)) );
+   return Ptr<T>(ptr);
+   }
+
+   //
+   //// Dynamic cast intrusive pointer types
+   //template <typename T, typename Tsrc>
+   //T dynamic_cast_ptr(Ptr<Tsrc>)
+   //{
+   //return *(Ptr<T>*)(&Ptr<Tsrc>);
+   //}
+   //
+   //template <class Ty, class Other>
+   //Ptr<Ty> dynamic_pointer_cast(const Ptr<Other>& sp)
+   //{
+   //return
+   //}
 }
-
-
-
-template <typename T, typename Other>
-Ptr<T> ptr_dynamic_cast(const Ptr<Other>& src)
-{
-T* ptr = dynamic_cast<T*>( *((Other**)(&src)) );
-return Ptr<T>(ptr);
-}
-
-//
-//// Dynamic cast intrusive pointer types
-//template <typename T, typename Tsrc>
-//T dynamic_cast_ptr(Ptr<Tsrc>)
-//{
-//return *(Ptr<T>*)(&Ptr<Tsrc>);
-//}
-//
-//template <class Ty, class Other>
-//Ptr<Ty> dynamic_pointer_cast(const Ptr<Other>& sp)
-//{
-//return 
-//}
 
 #endif

@@ -16,6 +16,8 @@
 #ifndef ENG_CORE_RENDERING_D3D12_RASTER_STATE
 #define ENG_CORE_RENDERING_D3D12_RASTER_STATE
 
+#if defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/raster.h"
 
@@ -32,5 +34,6 @@ namespace en
       };
    }
 }
+#endif
 
 #endif

@@ -30,6 +30,17 @@ namespace en
    {
    }
 
+   Ptr<BlendState> MetalDevice::create(const BlendStateInfo& state,
+                                       const uint32 attachments,
+                                       const BlendAttachmentInfo* color)
+   {
+   // We don't support Logic Operations for now
+   // for(uint32 i=0; i<attachments; ++i)
+   //    assert( !(color[0].logicOperation && color[i].blending) );
+         
+   return ptr_dynamic_cast<BlendState, BlendStateMTL>(new BlendStateMTL(state, attachments, color));
+   }
+      
    Ptr<ColorAttachment> MetalDevice::create(const TextureFormat format = FormatUnsupported, const uint32 samples)
    {
    return ptr_dynamic_cast<ColorAttachment, ColorAttachmentMTL>(new ColorAttachmentMTL(format, samples));

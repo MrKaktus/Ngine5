@@ -1,4 +1,4 @@
-﻿
+
 WINDOWS:
 ========
 
@@ -194,17 +194,32 @@ delete Ngine temp folder
 
 Then configure solution like this:
 
-Ngine 
+
+
+Xcode Library project configuration:
+====================================
 
 Build Locations:
-> Build Products Path                  : ../../bin/macos
-> Intermediate Build Files Path        : ../../build/macos
-> Per-configuration Build Products Path: ../../bin/macos/$(CONFIGURATION)
-  Debug                                : ../../bin/macos/Debug
-  Release                              : ../../bin/macos/Release
-> Per-configuration intermediate Build Files Path: ../../build/macos/$(CONFIGURATION)
-  Debug                                          : ../../build/macos/Debug
-  Release                                        : ../../build/macos/Release
+> Build Products Path                            : ./../bin/osx
+> Intermediate Build Files Path                  : ./../build/osx
+  *** Leave it as it was ***
+> Per-configuration Build Products Path          : $(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)
+  *** Should auto populate to ***
+  Debug                                          : ./../bin/osx/Debug
+  Release                                        : ./../bin/osx/Release
+> Per-configuration intermediate Build Files Path: ./../build/osx/$(CONFIGURATION)
+  *** Should auto populate to ***
+  Debug                                          : ./../build/osx/Debug
+  Release                                        : ./../build/osx/Release
+
+Linking:
+> Path to Link Map File:                         : ./../build/osx/$(CONFIGURATION)/$(PRODUCT_NAME)-LinkMap-$(CURRENT_VARIANT)-$(CURRENT_ARCH).txt
 
 Search Paths:
-> Header Search Paths                  : ../../include/ non-recursive
+> Header Search Paths                            : ./../src/            non-recursive
+                                                   ./../public/include/ non-recursive
+> Use Header Maps                                : No
+
+Apple LLVM 7.0 - Language - Objective C:
+> Objective-C Automatic Reference Counting       : No
+

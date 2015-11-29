@@ -19,7 +19,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/blend.h"
-//#include "core/rendering/d3d12/d3d12.h"
+#include "core/rendering/metal/metal.h"
 
 namespace en
 {

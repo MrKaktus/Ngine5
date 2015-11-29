@@ -13,6 +13,8 @@
 
 */
 
+#if defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/d3d12/dx12Blend.h"
 #include "core/rendering/state.h"
 
@@ -109,3 +111,5 @@ namespace en
 
    }
 }
+
+#endif

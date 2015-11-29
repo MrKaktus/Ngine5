@@ -16,6 +16,8 @@
 #ifndef ENG_CORE_RENDERING_D3D12_INPUT_ASSEMBLER
 #define ENG_CORE_RENDERING_D3D12_INPUT_ASSEMBLER
 
+#if defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/common/inputAssembler.h"
 #include "core/rendering/state.h"
@@ -43,5 +45,6 @@ namespace en
 
    }
 }
+#endif
 
 #endif

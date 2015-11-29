@@ -38,6 +38,12 @@ namespace en
    {
    return (value >= min && value <= max);
    }
+
+   template<typename T>
+   T max(T a, T b)
+   {
+      return a > b ? a : b;
+   }
    
    // Checks if given point is inside of rectangle
    // x,y - position

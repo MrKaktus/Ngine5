@@ -129,7 +129,7 @@ namespace en
       virtual void      endFrame(bool mirror = true) = 0;            // Call at the end of frame rendering to display in HMD
                                                                      // If requested, content will be also blitted to current window
                                                                     
-      virtual ~HMD() = 0 {};                                         // Polymorphic deletes require a virtual base destructor
+      virtual ~HMD() {};                                             // Polymorphic deletes require a virtual base destructor
       };
 
    class Controller : public SafeObject
@@ -148,7 +148,7 @@ namespace en
       virtual float2   joystickPosition(void) const = 0;                            // Joystick position if present. [-1.0 .. 1.0] range in both Axes.
       virtual float    triggerPosition(void) const = 0;                             // Trigger position where 0.0 is released to 1.0 maximally pressed.
                                                                     
-      virtual ~Controller() = 0 {};                                                 // Polymorphic deletes require a virtual base destructor
+      virtual ~Controller() {};                                                     // Polymorphic deletes require a virtual base destructor
       };
    }
 }

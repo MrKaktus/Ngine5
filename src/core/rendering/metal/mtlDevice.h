@@ -41,6 +41,10 @@ namespace en
       MetalDevice();
      ~MetalDevice();
 
+      virtual Ptr<BlendState> create(const BlendStateInfo& state,
+                                     const uint32 attachments,
+                                     const BlendAttachmentInfo* color);
+         
       //Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
       //                     const Ptr<ViewportState>  viewportState,
       //                     const Ptr<RasterState>    rasterState,

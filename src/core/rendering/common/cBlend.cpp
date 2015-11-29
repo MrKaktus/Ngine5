@@ -18,9 +18,6 @@
 #if defined(EN_PLATFORM_WINDOWS) 
 #include "core/rendering/d3d12/dx12Blend.h"
 #endif
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-#include "core/rendering/metal/mtlBlend.h"
-#endif
 #if defined(EN_PLATFORM_WINDOWS) 
 #include "core/rendering/vulkan/vkBlend.h"
 #endif
@@ -52,6 +49,7 @@ namespace en
    {
    };
 
+#if defined(EN_PLATFORM_WINDOWS)
    Ptr<BlendState> Create(const BlendStateInfo& state,
                           const uint32 attachments, 
                           const BlendAttachmentInfo* color)
@@ -60,15 +58,11 @@ namespace en
 // for(uint32 i=0; i<attachments; ++i)
 //    assert( !(color[0].logicOperation && color[i].blending) );
 
-#if defined(EN_PLATFORM_WINDOWS) 
    return ptr_dynamic_cast<BlendState, BlendStateD3D12>(new BlendStateD3D12(state, attachments, color));
 
    return ptr_dynamic_cast<BlendState, BlendStateVK>(new BlendStateVK(state, attachments, color));
-
-#elif defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   return ptr_dynamic_cast<BlendState, BlendStateMTL>(new BlendStateMTL(state, attachments, color));
-#endif
    }
+#endif
 
    }
 }
