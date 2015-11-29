@@ -16,7 +16,7 @@
 */
 
 
-
+/*
 #include "core/log/log.h"
 #include "platform/system.h"
 #ifdef EN_PLATFORM_WINDOWS
@@ -29,3 +29,4 @@
 #include "utilities/strings.h"
 #include "utilities/gpcpu/gpcpu.h"
 #include "threading/scheduler.h"
+*/

@@ -13,6 +13,7 @@
 #define ENG_CORE_UTILITIES_TINTRUSIVEPOINTER
 
 #include "core/defines.h"
+#include "core/utilities/aligment.h"
 #include "core/threading/atomics.h"
 
 namespace en

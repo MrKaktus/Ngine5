@@ -15,6 +15,7 @@
 
 #include "core/defines.h"
 #include "core/types.h"
+#include "core/utilities/aligment.h"
 #include "core/threading/atomics.h"
 
 class cachealign Nmutex

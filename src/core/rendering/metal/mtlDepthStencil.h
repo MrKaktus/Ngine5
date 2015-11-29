@@ -18,8 +18,8 @@
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
-#include "core/rendering/depthStencil.h"
 #include "core/rendering/metal/metal.h"
+#include "core/rendering/depthStencil.h"
 
 namespace en
 {

@@ -18,8 +18,8 @@
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
-#include "core/rendering/common/sampler.h"
 #include "core/rendering/metal/metal.h"
+#include "core/rendering/common/sampler.h"
 
 namespace en
 {
@@ -30,7 +30,7 @@ namespace en
       public:
       id <MTLSamplerState> handle; // Metal handle
    
-      SamplerMTL::SamplerMTL(const SamplerState& state);
+      SamplerMTL(const SamplerState& state);
       virtual ~SamplerMTL();
       };
 

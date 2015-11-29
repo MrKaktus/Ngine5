@@ -18,8 +18,10 @@
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
-#include "core/rendering/common/texture.h"
 #include "core/rendering/metal/metal.h"
+#include "core/rendering/common/texture.h"
+#include "core/rendering/metal/mtlDevice.h"
+#include "threading/mutex.h"
 
 namespace en
 {
@@ -38,9 +40,13 @@ namespace en
    class TextureMTL : public TextureCommon
       {
       private:
+      MetalDevice*      gpu;    // GPU owning this texture
       SurfaceDescriptor desc;   // Mapped surface description
       id <MTLTexture>   handle; // Metal sampler ID
 
+      virtual void*    map(const uint8 mipmap, const uint16 surface);
+      virtual bool     unmap(void);
+         
       TextureMTL(const TextureState& state);
       virtual ~TextureMTL();
       };

@@ -18,6 +18,7 @@
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
+#include "core/rendering/metal/metal.h"
 #include "core/rendering/viewport.h"
 
 namespace en
@@ -28,6 +29,10 @@ namespace en
    class ViewportStateMTL : public ViewportState
       {
       MTLViewport viewport;
+
+      ViewportStateMTL(const uint32 count,
+                       const ViewportStateInfo* viewports,
+                       const ScissorStateInfo* scissors);
       };
    }
 }

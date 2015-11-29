@@ -18,8 +18,8 @@
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
-#include "core/rendering/blend.h"
 #include "core/rendering/metal/metal.h"
+#include "core/rendering/blend.h"
 
 namespace en
 {
@@ -29,7 +29,8 @@ namespace en
       {
       public:
       float4 blendColor;
-      MTLRenderPipelineColorAttachmentDescriptor blendInfo[MaxColorAttachmentsCount];
+      uint32 attachments;
+      MTLRenderPipelineColorAttachmentDescriptorArray* blendInfo;
 
       BlendStateMTL(const BlendStateInfo& state,
                     const uint32 attachments, 

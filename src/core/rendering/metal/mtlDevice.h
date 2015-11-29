@@ -19,15 +19,13 @@
 #include <string>
 #include "core/rendering/device.h"
 
-// TODO: Here platform specific bindings
-
-#include "core/rendering/metal/mtlInputAssembler.h"
-#include "core/rendering/metal/mtlBlend.h"
-//#include "core/rendering/metal/mtlRaster.h"
-//#include "core/rendering/metal/mtlMultisampling.h"
-#include "core/rendering/metal/mtlViewport.h"
-#include "core/rendering/metal/mtlDepthStencil.h"
-//#include "core/rendering/metal/mtlPipeline.h"
+#include "core/rendering/inputAssembler.h"
+#include "core/rendering/blend.h"
+#include "core/rendering/raster.h"
+#include "core/rendering/multisampling.h"
+#include "core/rendering/viewport.h"
+#include "core/rendering/depthStencil.h"
+#include "core/rendering/pipeline.h"
 
 using namespace std;
 

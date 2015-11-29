@@ -104,10 +104,10 @@ namespace en
 
    static const MTLSamplerAddressMode TranslateTextureWraping[TextureWrapingMethodsCount] = 
       {
-      MTLSamplerAddressModeClampToEdge,   // Clamp
-      MTLSamplerAddressModeRepeat,        // Repeat
+      MTLSamplerAddressModeClampToEdge ,  // Clamp
+      MTLSamplerAddressModeRepeat      ,  // Repeat
       MTLSamplerAddressModeMirrorRepeat,  // RepeatMirrored               
-      0,                                  // ClampMirrored
+      (MTLSamplerAddressMode)0         ,  // ClampMirrored
       MTLSamplerAddressModeClampToZero    // ClampToBorder    (for Metal border is always zero - "OpaqueBlack")
       };
 
@@ -116,15 +116,15 @@ namespace en
    //state = _state;
 
    MTLSamplerDescriptor* samplerInfo = [[MTLSamplerDescriptor alloc] init];
-   samplerInfo.magFilter             = TranslateTextureFiltering[state.filtering].filter;     //TranslateTextureFiltering[state.magFilter].filter; 
-   samplerInfo.minFilter             = TranslateTextureFiltering[state.filtering].filter;     //TranslateTextureFiltering[state.minFilter].filter;
-   samplerInfo.mipFilter             = TranslateTextureFiltering[state.filtering].mipmaping;  //TranslateTextureFiltering[state.minFilter].mipmaping;
-   samplerInfo.rAddressMode          = TranslateTextureWraping[state.coordU];
-   samplerInfo.sAddressMode          = TranslateTextureWraping[state.coordV];
-   samplerInfo.tAddressMode          = TranslateTextureWraping[state.coordW];
-   samplerInfo.maxAnisotropy         = min(TranslateTextureFiltering[state.filtering].anisotropy, GpuContext.support.maxAnisotropy); // GpuContext.support.maxAnisotropy = 16;
-   samplerInfo.lodMinClamp           = state.minLOD;
-   samplerInfo.lodMaxClamp           = state.maxLOD;
+   samplerInfo.magFilter             = TranslateTextureFiltering[_state.filtering].filter;     //TranslateTextureFiltering[state.magFilter].filter;
+   samplerInfo.minFilter             = TranslateTextureFiltering[_state.filtering].filter;     //TranslateTextureFiltering[state.minFilter].filter;
+   samplerInfo.mipFilter             = TranslateTextureFiltering[_state.filtering].mipmaping;  //TranslateTextureFiltering[state.minFilter].mipmaping;
+   samplerInfo.rAddressMode          = TranslateTextureWraping[_state.coordU];
+   samplerInfo.sAddressMode          = TranslateTextureWraping[_state.coordV];
+   samplerInfo.tAddressMode          = TranslateTextureWraping[_state.coordW];
+   samplerInfo.maxAnisotropy         = min(TranslateTextureFiltering[_state.filtering].anisotropy, GpuContext.support.maxAnisotropy); // GpuContext.support.maxAnisotropy = 16;
+   samplerInfo.lodMinClamp           = _state.minLOD;
+   samplerInfo.lodMaxClamp           = _state.maxLOD;
    samplerInfo.normalizedCoordinates = TRUE;
    
    handle = [GpuContext.device newSamplerStateWithDescriptor:samplerInfo];       // GpuContext.device <-- we need global here, or getDevice()

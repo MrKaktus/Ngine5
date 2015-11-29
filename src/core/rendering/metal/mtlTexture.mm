@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlTexture.h"
+#include "utilities/utilities.h"
 
 namespace en
 {
@@ -77,11 +78,11 @@ namespace en
       MTLTextureType1DArray               ,   // Texture1DArray
       MTLTextureType2D                    ,   // Texture2D
       MTLTextureType2DArray               ,   // Texture2DArray
-      0xFFFF                              ,   // Texture2DRectangle   (could emulate with 2D)
+      (MTLTextureType)0xFFFF              ,   // Texture2DRectangle   (could emulate with 2D)
       MTLTextureType2DMultisample         ,   // Texture2DMultisample
-      0xFFFF                              ,   // Texture2DMultisampleArray
+      (MTLTextureType)0xFFFF              ,   // Texture2DMultisampleArray
       MTLTextureType3D                    ,   // Texture3D
-      0xFFFF                              ,   // TextureBuffer
+      (MTLTextureType)0xFFFF              ,   // TextureBuffer
       MTLTextureTypeCube                  ,   // TextureCubeMap
       MTLTextureTypeCubeArray                 // TextureCubeMapArray
       };
@@ -113,19 +114,19 @@ namespace en
       MTLPixelFormatRG32Uint              ,   // FormatRG_32_u              
       MTLPixelFormatRG32Sint              ,   // FormatRG_32_s              
       MTLPixelFormatRG32Float             ,   // FormatRG_32_f  
-      0                                   ,   // FormatRGB_8    
-      0                                   ,   // FormatRGB_8_sRGB            
-      0                                   ,   // FormatRGB_8_sn     
-      0                                   ,   // FormatRGB_8_u              
-      0                                   ,   // FormatRGB_8_s              
-      0                                   ,   // FormatRGB_16               
-      0                                   ,   // FormatRGB_16_sn            
-      0                                   ,   // FormatRGB_16_u             
-      0                                   ,   // FormatRGB_16_s             
-      0                                   ,   // FormatRGB_16_hf            
-      0                                   ,   // FormatRGB_32_u             
-      0                                   ,   // FormatRGB_32_s             
-      0                                   ,   // FormatRGB_32_f   
+      (MTLPixelFormat)0                   ,   // FormatRGB_8
+      (MTLPixelFormat)0                   ,   // FormatRGB_8_sRGB
+      (MTLPixelFormat)0                   ,   // FormatRGB_8_sn
+      (MTLPixelFormat)0                   ,   // FormatRGB_8_u
+      (MTLPixelFormat)0                   ,   // FormatRGB_8_s
+      (MTLPixelFormat)0                   ,   // FormatRGB_16
+      (MTLPixelFormat)0                   ,   // FormatRGB_16_sn
+      (MTLPixelFormat)0                   ,   // FormatRGB_16_u
+      (MTLPixelFormat)0                   ,   // FormatRGB_16_s
+      (MTLPixelFormat)0                   ,   // FormatRGB_16_hf
+      (MTLPixelFormat)0                   ,   // FormatRGB_32_u
+      (MTLPixelFormat)0                   ,   // FormatRGB_32_s
+      (MTLPixelFormat)0                   ,   // FormatRGB_32_f
       MTLPixelFormatRGBA8Unorm            ,   // FormatRGBA_8               
       MTLPixelFormatRGBA8Unorm_sRGB       ,   // FormatRGBA_8_sRGB          
       MTLPixelFormatRGBA8Snorm            ,   // FormatRGBA_8_sn            
@@ -139,36 +140,44 @@ namespace en
       MTLPixelFormatRGBA32Uint            ,   // FormatRGBA_32_u            
       MTLPixelFormatRGBA32Sint            ,   // FormatRGBA_32_s            
       MTLPixelFormatRGBA32Float           ,   // FormatRGBA_32_f            
-      0                                   ,   // FormatD_16                 
-      0                                   ,   // FormatD_24                 
-      0                                   ,   // FormatD_32                 
+      (MTLPixelFormat)0                   ,   // FormatD_16
+      (MTLPixelFormat)0                   ,   // FormatD_24
+      (MTLPixelFormat)0                   ,   // FormatD_32
       MTLPixelFormatDepth32Float          ,   // FormatD_32_f  
       MTLPixelFormatStencil8              ,   // FormatS_8  
       MTLPixelFormatDepth24Unorm_Stencil8 ,   // FormatSD_8_24   
       MTLPixelFormatDepth32Float_Stencil8 ,   // FormatSD_8_32_f 
-      0                                   ,   // FormatRGB_5_6_5            
-      MTLPixelFormatB5G6R5Unorm           ,   // FormatBGR_5_6_5            
-      0                                   ,   // FormatBGR_8                
+      (MTLPixelFormat)0                   ,   // FormatRGB_5_6_5
+#if defined(EN_PLATFORM_IOS)
+      MTLPixelFormatB5G6R5Unorm           ,   // FormatBGR_5_6_5
+#elif defined(EN_PLATFORM_OSX)
+      (MTLPixelFormat)0                   ,   // FormatBGR_5_6_5
+#endif
+      (MTLPixelFormat)0                   ,   // FormatBGR_8
       MTLPixelFormatRG11B10Float          ,   // FormatBGR_10_11_11_f       
       MTLPixelFormatRGB9E5Float           ,   // FormatEBGR_5_9_9_9_f       
-      0                                   ,   // FormatBGR_16  
-      0                                   ,   // FormatRGBA_5_5_5_1    
-      0                                   ,   // FormatBGRA_5_5_5_1         
-      0                                   ,   // FormatARGB_1_5_5_5                
-      MTLPixelFormatA1BGR5Unorm           ,   // FormatABGR_1_5_5_5         
-      0                                   ,   // FormatABGR_8               
-      0                                   ,   // FormatARGB_8               
+      (MTLPixelFormat)0                   ,   // FormatBGR_16
+      (MTLPixelFormat)0                   ,   // FormatRGBA_5_5_5_1
+      (MTLPixelFormat)0                   ,   // FormatBGRA_5_5_5_1
+      (MTLPixelFormat)0                   ,   // FormatARGB_1_5_5_5
+#if defined(EN_PLATFORM_IOS)
+      MTLPixelFormatA1BGR5Unorm           ,   // FormatABGR_1_5_5_5
+#elif defined(EN_PLATFORM_OSX)
+      (MTLPixelFormat)0                   ,   // FormatABGR_1_5_5_5
+#endif
+      (MTLPixelFormat)0                   ,   // FormatABGR_8
+      (MTLPixelFormat)0                   ,   // FormatARGB_8
       MTLPixelFormatBGRA8Unorm            ,   // FormatBGRA_8               
       MTLPixelFormatRGB10A2Unorm          ,   // FormatRGBA_10_10_10_2      
       MTLPixelFormatRGB10A2Uint           ,   // FormatRGBA_10_10_10_2_u    
-      0                                   ,   // FormatBC1_RGB              
-      0                                   ,   // FormatBC1_RGB_sRGB         
+      (MTLPixelFormat)0                   ,   // FormatBC1_RGB
+      (MTLPixelFormat)0                   ,   // FormatBC1_RGB_sRGB
       MTLPixelFormatBC1_RGBA              ,   // FormatBC1_RGBA             
       MTLPixelFormatBC1_RGBA_sRGB         ,   // FormatBC1_RGBA_sRGB        
-      0                                   ,   // FormatBC2_RGBA_pRGB        
+      (MTLPixelFormat)0                   ,   // FormatBC2_RGBA_pRGB
       MTLPixelFormatBC2_RGBA              ,   // FormatBC2_RGBA             
       MTLPixelFormatBC2_RGBA_sRGB         ,   // FormatBC2_RGBA_sRGB        
-      0                                   ,   // FormatBC3_RGBA_pRGB        
+      (MTLPixelFormat)0                   ,   // FormatBC3_RGBA_pRGB
       MTLPixelFormatBC3_RGBA              ,   // FormatBC3_RGBA             
       MTLPixelFormatBC3_RGBA_sRGB         ,   // FormatBC3_RGBA_sRGB        
       MTLPixelFormatBC4_RUnorm            ,   // FormatBC4_R                
@@ -178,53 +187,102 @@ namespace en
       MTLPixelFormatBC6H_RGBFloat         ,   // FormatBC6H_RGB_f           
       MTLPixelFormatBC6H_RGBUfloat        ,   // FormatBC6H_RGB_uf          
       MTLPixelFormatBC7_RGBAUnorm         ,   // FormatBC7_RGBA             
-      MTLPixelFormatBC7_RGBAUnorm_sRGB    ,   // FormatBC7_RGBA_sRGB        
+      MTLPixelFormatBC7_RGBAUnorm_sRGB    ,   // FormatBC7_RGBA_sRGB
+#if defined(EN_PLATFORM_IOS)
       MTLPixelFormatEAC_R11Unorm          ,   // FormatETC2_R_11            
       MTLPixelFormatEAC_R11Snorm          ,   // FormatETC2_R_11_sn         
       MTLPixelFormatEAC_RG11Unorm         ,   // FormatETC2_RG_11           
       MTLPixelFormatEAC_RG11Snorm         ,   // FormatETC2_RG_11_sn        
       MTLPixelFormatETC2_RGB8             ,   // FormatETC2_RGB_8           
       MTLPixelFormatETC2_RGB8_sRGB        ,   // FormatETC2_RGB_8_sRGB      
-      MTLPixelFormatEAC_RGBA8             ,   // FormatETC2_RGBA_8          
-      MTLPixelFormatEAC_RGBA8_sRGB        ,   // FormatETC2_RGBA_8_sRGB     
-      MTLPixelFormatETC2_RGB8A1           ,   // FormatETC2_RGB8_A1         
-      MTLPixelFormatETC2_RGB8A1_sRGB      ,   // FormatETC2_RGB8_A1_sRGB    
-      MTLPixelFormatPVRTC_RGB_2BPP        ,   // FormatPVRTC_RGB_2          
-      MTLPixelFormatPVRTC_RGB_2BPP_sRGB   ,   // FormatPVRTC_RGB_2_sRGB     
-      MTLPixelFormatPVRTC_RGB_4BPP        ,   // FormatPVRTC_RGB_4          
-      MTLPixelFormatPVRTC_RGB_4BPP_sRGB   ,   // FormatPVRTC_RGB_4_sRGB     
-      MTLPixelFormatPVRTC_RGBA_2BPP       ,   // FormatPVRTC_RGBA_2         
-      MTLPixelFormatPVRTC_RGBA_2BPP_sRGB  ,   // FormatPVRTC_RGBA_2_sRGB    
-      MTLPixelFormatPVRTC_RGBA_4BPP       ,   // FormatPVRTC_RGBA_4         
-      MTLPixelFormatPVRTC_RGBA_4BPP_sRGB  ,   // FormatPVRTC_RGBA_4_sRGB    
-      MTLPixelFormatASTC_4x4_LDR          ,   // FormatASTC_4x4             
-      MTLPixelFormatASTC_5x4_LDR          ,   // FormatASTC_5x4             
-      MTLPixelFormatASTC_5x5_LDR          ,   // FormatASTC_5x5             
-      MTLPixelFormatASTC_6x5_LDR          ,   // FormatASTC_6x5             
-      MTLPixelFormatASTC_6x6_LDR          ,   // FormatASTC_6x6             
-      MTLPixelFormatASTC_8x5_LDR          ,   // FormatASTC_8x5             
-      MTLPixelFormatASTC_8x6_LDR          ,   // FormatASTC_8x6             
-      MTLPixelFormatASTC_8x8_LDR          ,   // FormatASTC_8x8             
-      MTLPixelFormatASTC_10x5_LDR         ,   // FormatASTC_10x5            
-      MTLPixelFormatASTC_10x6_LDR         ,   // FormatASTC_10x6            
-      MTLPixelFormatASTC_10x8_LDR         ,   // FormatASTC_10x8            
-      MTLPixelFormatASTC_10x10_LDR        ,   // FormatASTC_10x10           
-      MTLPixelFormatASTC_12x10_LDR        ,   // FormatASTC_12x10           
-      MTLPixelFormatASTC_12x12_LDR        ,   // FormatASTC_12x12           
-      MTLPixelFormatASTC_4x4_sRGB         ,   // FormatASTC_4x4_sRGB        
-      MTLPixelFormatASTC_5x4_sRGB         ,   // FormatASTC_5x4_sRGB        
-      MTLPixelFormatASTC_5x5_sRGB         ,   // FormatASTC_5x5_sRGB        
-      MTLPixelFormatASTC_6x5_sRGB         ,   // FormatASTC_6x5_sRGB        
-      MTLPixelFormatASTC_6x6_sRGB         ,   // FormatASTC_6x6_sRGB        
-      MTLPixelFormatASTC_8x5_sRGB         ,   // FormatASTC_8x5_sRGB        
-      MTLPixelFormatASTC_8x6_sRGB         ,   // FormatASTC_8x6_sRGB        
-      MTLPixelFormatASTC_8x8_sRGB         ,   // FormatASTC_8x8_sRGB        
-      MTLPixelFormatASTC_10x5_sRGB        ,   // FormatASTC_10x5_sRGB       
-      MTLPixelFormatASTC_10x6_sRGB        ,   // FormatASTC_10x6_sRGB       
-      MTLPixelFormatASTC_10x8_sRGB        ,   // FormatASTC_10x8_sRGB       
-      MTLPixelFormatASTC_10x10_sRGB       ,   // FormatASTC_10x10_sRGB      
-      MTLPixelFormatASTC_12x10_sRGB       ,   // FormatASTC_12x10_sRGB      
-      MTLPixelFormatASTC_12x12_sRGB       ,   // FormatASTC_12x12_sRGB      
+      MTLPixelFormatEAC_RGBA8             ,   // FormatETC2_RGBA_8
+      MTLPixelFormatEAC_RGBA8_sRGB        ,   // FormatETC2_RGBA_8_sRGB
+      MTLPixelFormatETC2_RGB8A1           ,   // FormatETC2_RGB8_A1
+      MTLPixelFormatETC2_RGB8A1_sRGB      ,   // FormatETC2_RGB8_A1_sRGB
+      MTLPixelFormatPVRTC_RGB_2BPP        ,   // FormatPVRTC_RGB_2
+      MTLPixelFormatPVRTC_RGB_2BPP_sRGB   ,   // FormatPVRTC_RGB_2_sRGB
+      MTLPixelFormatPVRTC_RGB_4BPP        ,   // FormatPVRTC_RGB_4
+      MTLPixelFormatPVRTC_RGB_4BPP_sRGB   ,   // FormatPVRTC_RGB_4_sRGB
+      MTLPixelFormatPVRTC_RGBA_2BPP       ,   // FormatPVRTC_RGBA_2
+      MTLPixelFormatPVRTC_RGBA_2BPP_sRGB  ,   // FormatPVRTC_RGBA_2_sRGB
+      MTLPixelFormatPVRTC_RGBA_4BPP       ,   // FormatPVRTC_RGBA_4
+      MTLPixelFormatPVRTC_RGBA_4BPP_sRGB  ,   // FormatPVRTC_RGBA_4_sRGB
+      MTLPixelFormatASTC_4x4_LDR          ,   // FormatASTC_4x4
+      MTLPixelFormatASTC_5x4_LDR          ,   // FormatASTC_5x4
+      MTLPixelFormatASTC_5x5_LDR          ,   // FormatASTC_5x5
+      MTLPixelFormatASTC_6x5_LDR          ,   // FormatASTC_6x5
+      MTLPixelFormatASTC_6x6_LDR          ,   // FormatASTC_6x6
+      MTLPixelFormatASTC_8x5_LDR          ,   // FormatASTC_8x5
+      MTLPixelFormatASTC_8x6_LDR          ,   // FormatASTC_8x6
+      MTLPixelFormatASTC_8x8_LDR          ,   // FormatASTC_8x8
+      MTLPixelFormatASTC_10x5_LDR         ,   // FormatASTC_10x5
+      MTLPixelFormatASTC_10x6_LDR         ,   // FormatASTC_10x6
+      MTLPixelFormatASTC_10x8_LDR         ,   // FormatASTC_10x8
+      MTLPixelFormatASTC_10x10_LDR        ,   // FormatASTC_10x10
+      MTLPixelFormatASTC_12x10_LDR        ,   // FormatASTC_12x10
+      MTLPixelFormatASTC_12x12_LDR        ,   // FormatASTC_12x12
+      MTLPixelFormatASTC_4x4_sRGB         ,   // FormatASTC_4x4_sRGB
+      MTLPixelFormatASTC_5x4_sRGB         ,   // FormatASTC_5x4_sRGB
+      MTLPixelFormatASTC_5x5_sRGB         ,   // FormatASTC_5x5_sRGB
+      MTLPixelFormatASTC_6x5_sRGB         ,   // FormatASTC_6x5_sRGB
+      MTLPixelFormatASTC_6x6_sRGB         ,   // FormatASTC_6x6_sRGB
+      MTLPixelFormatASTC_8x5_sRGB         ,   // FormatASTC_8x5_sRGB
+      MTLPixelFormatASTC_8x6_sRGB         ,   // FormatASTC_8x6_sRGB
+      MTLPixelFormatASTC_8x8_sRGB         ,   // FormatASTC_8x8_sRGB
+      MTLPixelFormatASTC_10x5_sRGB        ,   // FormatASTC_10x5_sRGB
+      MTLPixelFormatASTC_10x6_sRGB        ,   // FormatASTC_10x6_sRGB
+      MTLPixelFormatASTC_10x8_sRGB        ,   // FormatASTC_10x8_sRGB
+      MTLPixelFormatASTC_10x10_sRGB       ,   // FormatASTC_10x10_sRGB
+      MTLPixelFormatASTC_12x10_sRGB       ,   // FormatASTC_12x10_sRGB
+      MTLPixelFormatASTC_12x12_sRGB       ,   // FormatASTC_12x12_sRGB
+#elif defined(EN_PLATFORM_OSX)
+      (MTLPixelFormat)0                   ,   // FormatETC2_R_11
+      (MTLPixelFormat)0                   ,   // FormatETC2_R_11_sn
+      (MTLPixelFormat)0                   ,   // FormatETC2_RG_11
+      (MTLPixelFormat)0                   ,   // FormatETC2_RG_11_sn
+      (MTLPixelFormat)0                   ,   // FormatETC2_RGB_8
+      (MTLPixelFormat)0                   ,   // FormatETC2_RGB_8_sRGB
+      (MTLPixelFormat)0                   ,   // FormatETC2_RGBA_8
+      (MTLPixelFormat)0                   ,   // FormatETC2_RGBA_8_sRGB
+      (MTLPixelFormat)0                   ,   // FormatETC2_RGB8_A1
+      (MTLPixelFormat)0                   ,   // FormatETC2_RGB8_A1_sRGB
+      (MTLPixelFormat)0                   ,   // FormatPVRTC_RGB_2
+      (MTLPixelFormat)0                   ,   // FormatPVRTC_RGB_2_sRGB
+      (MTLPixelFormat)0                   ,   // FormatPVRTC_RGB_4
+      (MTLPixelFormat)0                   ,   // FormatPVRTC_RGB_4_sRGB
+      (MTLPixelFormat)0                   ,   // FormatPVRTC_RGBA_2
+      (MTLPixelFormat)0                   ,   // FormatPVRTC_RGBA_2_sRGB
+      (MTLPixelFormat)0                   ,   // FormatPVRTC_RGBA_4
+      (MTLPixelFormat)0                   ,   // FormatPVRTC_RGBA_4_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_4x4
+      (MTLPixelFormat)0                   ,   // FormatASTC_5x4
+      (MTLPixelFormat)0                   ,   // FormatASTC_5x5
+      (MTLPixelFormat)0                   ,   // FormatASTC_6x5
+      (MTLPixelFormat)0                   ,   // FormatASTC_6x6
+      (MTLPixelFormat)0                   ,   // FormatASTC_8x5
+      (MTLPixelFormat)0                   ,   // FormatASTC_8x6
+      (MTLPixelFormat)0                   ,   // FormatASTC_8x8
+      (MTLPixelFormat)0                   ,   // FormatASTC_10x5
+      (MTLPixelFormat)0                   ,   // FormatASTC_10x6
+      (MTLPixelFormat)0                   ,   // FormatASTC_10x8
+      (MTLPixelFormat)0                   ,   // FormatASTC_10x10
+      (MTLPixelFormat)0                   ,   // FormatASTC_12x10
+      (MTLPixelFormat)0                   ,   // FormatASTC_12x12
+      (MTLPixelFormat)0                   ,   // FormatASTC_4x4_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_5x4_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_5x5_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_6x5_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_6x6_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_8x5_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_8x6_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_8x8_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_10x5_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_10x6_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_10x8_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_10x10_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_12x10_sRGB
+      (MTLPixelFormat)0                   ,   // FormatASTC_12x12_sRGB
+#endif
       };
 
    SurfaceDescriptor::SurfaceDescriptor() :
@@ -253,7 +311,7 @@ namespace en
    desc.arrayLength      = state.layers;                // [1..2048]
    desc.cpuCacheMode     = MTLCPUCacheModeDefaultCache; // or MTLCPUCacheModeWriteCombined
 
-   handle = [GpuContext.device newTextureWithDescriptor:desc];
+   handle = [gpu->device newTextureWithDescriptor:desc];
    [desc release];
 
    assert( handle != nil );
