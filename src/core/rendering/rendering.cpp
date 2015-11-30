@@ -428,7 +428,8 @@ namespace en
            else
            if (error == GL_OUT_OF_MEMORY)
               info += "GL_OUT_OF_MEMORY\n";
-#ifndef EN_OPENGL_MOBILE
+#ifndef EN_MOBILE_GPU
+#ifndef EN_PLATFORM_OSX
            else
            if (error == GL_STACK_OVERFLOW)
               info += "GL_STACK_OVERFLOW\n";
@@ -438,6 +439,7 @@ namespace en
            else
            if (error == GL_TABLE_TOO_LARGE)
               info += "GL_TABLE_TOO_LARGE\n";
+#endif
 #endif
            else
               info += "Unknown error enum!\n";

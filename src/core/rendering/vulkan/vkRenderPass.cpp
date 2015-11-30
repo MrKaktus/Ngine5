@@ -13,6 +13,8 @@
 
 */
 
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+
 #include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/texture.h"
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
@@ -532,3 +534,4 @@ new VkAttachmentReference[_attachments];
 
    }
 }
+#endif

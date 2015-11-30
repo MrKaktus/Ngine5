@@ -10,7 +10,7 @@
 
 #import "platform/osx/osx_callbacks.h"
 
-
+#if defined(EN_PLATFORM_IOS)
 @interface EAGLView (PrivateMethods)
 - (void)startUpdateCallback;
 - (void)restartUpdateCallback;
@@ -341,3 +341,4 @@
 }
 
 @end
+#endif

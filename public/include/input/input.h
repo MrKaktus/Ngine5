@@ -388,7 +388,7 @@ namespace en
          virtual float       position(const en::input::JoystickAxis axis) const = 0; // Joystick state
          virtual void        update(void) = 0;            // Update joystick events
 
-         virtual ~Joystick() = 0 {};                      // Polymorphic deletes require a virtual base destructor
+         virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
          };
 
    struct CameraInfo
@@ -442,7 +442,7 @@ namespace en
          virtual CameraInfo  info(void) const = 0;        // Returns all camera properties
          virtual void        update(void) = 0;            // Update camera stream events
 
-         virtual ~Camera() = 0 {};                        // Polymorphic deletes require a virtual base destructor
+         virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
          };
 
 

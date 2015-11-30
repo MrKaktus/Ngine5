@@ -14,7 +14,12 @@
 #include "utilities/utilities.h"
 #include "resources/context.h"
 #include "resources/dds.h"
+#if defined(EN_PLATFORM_WINDOWS)
 #include "zlib-1.2.8/zlib.h"
+#endif
+#if defined(EN_PLATFORM_OSX)
+#include "zlib.h"
+#endif
 using namespace en::gpu;
 
 #include <string>
@@ -63,9 +68,10 @@ namespace en
    // DDS_HEADER_DXT10.miscFlag
    #define DDS_RESOURCE_MISC_TEXTURECUBE 0x00000004
 
-
-
-
+#if defined(EN_PLATFORM_OSX)
+   #define DWORD uint32
+   #define UINT  uint32
+#endif
 
    typedef enum D3D10_RESOURCE_DIMENSION 
       { 
@@ -713,7 +719,7 @@ namespace en
             
             offset += surfaceSize;
             }
-         mipDepth = max(1, mipDepth >> 1);
+         mipDepth = max(1U, mipDepth >> 1);
          }
       }	
 

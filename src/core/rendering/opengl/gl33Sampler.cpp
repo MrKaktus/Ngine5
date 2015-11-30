@@ -18,7 +18,7 @@
 #include "core/rendering/opengl/gl33Sampler.h"
 
 #include "core/rendering/context.h"
-#include "core/rendering/rendering.h"
+#include "core/rendering/rendering.hpp"
 
 namespace en
 {
@@ -81,7 +81,7 @@ namespace en
 
 #endif
 
-   static const TextureFilteringTranslation TranslateTextureFiltering[TextureFilteringMethodsCount] = 
+   const TextureFilteringTranslation TranslateTextureFiltering[TextureFilteringMethodsCount] =
       {// magFilter minFilter  mipFilter
       { GL_NEAREST, GL_NEAREST,                1.0f  },   // Nearest
       { GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST, 1.0f  },   // NearestMipmaped
@@ -96,7 +96,13 @@ namespace en
       };
 
 #ifdef EN_DISCRETE_GPU
-           
+
+#if defined(EN_PLATFORM_OSX)   
+#ifndef GL_MIRROR_CLAMP_TO_EDGE
+#define GL_MIRROR_CLAMP_TO_EDGE 0
+#endif
+#endif
+
    static const uint16 TranslateTextureWraping[TextureWrapingMethodsCount] = 
       {
       GL_CLAMP_TO_EDGE        ,   // Clamp                

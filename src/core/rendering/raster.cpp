@@ -15,16 +15,6 @@
 
 #include "core/rendering/raster.h"
 
-#if defined(EN_PLATFORM_WINDOWS) 
-#include "core/rendering/d3d12/dx12Raster.h"
-#endif
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-#include "core/rendering/metal/mtlRaster.h"
-#endif
-#if defined(EN_PLATFORM_WINDOWS) 
-//#include "core/rendering/vulkan/vkRaster.h"
-#endif
-
 namespace en
 {
    namespace gpu
@@ -60,18 +50,6 @@ namespace en
     //pointFadeThreshold(1.0f),
       lineWidth(1.0f)
    {
-   }
-
-   Ptr<RasterState> Create(const RasterStateInfo& state)
-   {
-#if defined(EN_PLATFORM_WINDOWS) 
-   return ptr_dynamic_cast<RasterState, RasterStateD3D12>(new RasterStateD3D12(state));
-
-  // return ptr_dynamic_cast<RasterState, RasterStateVK>(new RasterStateVK(state));
-
-#elif defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   return ptr_dynamic_cast<RasterState, RasterStateMTL>(new RasterStateMTL(state));
-#endif
    }
 
    }

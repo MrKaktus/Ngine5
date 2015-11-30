@@ -16,7 +16,7 @@ Description : Captures and holds signals from
 #include "utilities/strings.h"
 
 #include "utilities/timer.h"
-#include "core/rendering/rendering.h"
+#include "core/rendering/rendering.hpp"
 
 #ifdef EN_PLATFORM_WINDOWS
 

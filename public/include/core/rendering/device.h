@@ -17,11 +17,20 @@
 #define ENG_CORE_RENDERING_DEVICE
 
 #include "core/utilities/TintrusivePointer.h" 
+#include "utilities/Nversion.h"
 
 namespace en
 {
    namespace gpu
    {
+   extern const Nversion Vulkan_1_0;                  // Vulkan 1.0
+   
+   extern const Nversion Metal_OSX_1_0;               // Metal OSX 1.0
+   extern const Nversion Metal_OSX_Unsupported;       // For marking unsupported features
+   
+   extern const Nversion Metal_IOS_1_0;               // Metal 1.0
+   extern const Nversion Metal_IOS_Unsupported;       // For marking unsupported features
+
    // Per graphic API context, initialized depending on API choosed at runtime
    class GraphicAPI : public SafeObject
       {

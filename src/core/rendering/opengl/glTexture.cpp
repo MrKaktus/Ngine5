@@ -16,7 +16,7 @@
 #include "core/rendering/opengl/opengl.h"
 #include "core/rendering/opengl/glTexture.h"
 
-#include "core/rendering/rendering.h" // OpenGL versions defines
+#include "core/rendering/rendering.hpp" // OpenGL versions defines
 #include "core/rendering/context.h" // Profile
 
 namespace en
@@ -380,7 +380,7 @@ namespace en
 
 #ifdef EN_DISCRETE_GPU
 
-   static const uint16 TranslateTextureType[TextureTypesCount] = 
+   const uint16 TranslateTextureType[TextureTypesCount] =
       { 
       GL_TEXTURE_1D                   ,   // Texture1D                                            
       GL_TEXTURE_1D_ARRAY             ,   // Texture1DArray                                       
@@ -397,7 +397,7 @@ namespace en
 
 #elif EN_MOBILE_GPU
 
-   static const uint16 TranslateTextureType[TextureTypesCount] = 
+   const uint16 TranslateTextureType[TextureTypesCount] =
       { 
       0                               ,   // Texture1D                 
       0                               ,   // Texture1DArray            
@@ -414,7 +414,7 @@ namespace en
 
 #endif
 
-   static const TextureFormatTranslation TranslateTextureFormat[TextureFormatsCount] = 
+   const TextureFormatTranslation TranslateTextureFormat[TextureFormatsCount] =
       { // Sized Internal Format                      // Base Internal Format
       { 0,                                            0,                     0                                 },   // FormatUnsupported
       { GL_R8,                                        GL_RED,                GL_UNSIGNED_BYTE                  },   // FormatR_8                  
@@ -502,7 +502,8 @@ namespace en
       { GL_COMPRESSED_RED_RGTC1,                      GL_RED,                0                                 },   // FormatBC4_R                
       { GL_COMPRESSED_SIGNED_RED_RGTC1,               GL_RED,                0                                 },   // FormatBC4_R_sn             
       { GL_COMPRESSED_RG_RGTC2,                       GL_RG,                 0                                 },   // FormatBC5_RG               
-      { GL_COMPRESSED_SIGNED_RG_RGTC2,                GL_RG,                 0                                 },   // FormatBC5_RG_sn            
+      { GL_COMPRESSED_SIGNED_RG_RGTC2,                GL_RG,                 0                                 },   // FormatBC5_RG_sn
+#ifndef EN_PLATFORM_OSX
       { GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT,          GL_RGB,                0                                 },   // FormatBC6H_RGB_f           
       { GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT,        GL_RGB,                0                                 },   // FormatBC6H_RGB_uf          
       { GL_COMPRESSED_RGBA_BPTC_UNORM,                GL_RGBA,               0                                 },   // FormatBC7_RGBA             
@@ -552,7 +553,59 @@ namespace en
       { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR,     GL_RGBA,               0                                 },   // FormatASTC_10x8_sRGB       
       { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR,    GL_RGBA,               0                                 },   // FormatASTC_10x10_sRGB      
       { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR,    GL_RGBA,               0                                 },   // FormatASTC_12x10_sRGB      
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR,    GL_RGBA,               0                                 }    // FormatASTC_12x12_sRGB      
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR,    GL_RGBA,               0                                 }    // FormatASTC_12x12_sRGB
+#else
+      { 0,                                            GL_RGB,                0                                 },   // FormatBC6H_RGB_f
+      { 0,                                            GL_RGB,                0                                 },   // FormatBC6H_RGB_uf
+      { 0,                                            GL_RGBA,               0                                 },   // FormatBC7_RGBA
+      { 0,                                            GL_RGBA,               0                                 },   // FormatBC7_RGBA_sRGB
+      { 0,                                            GL_RED,                0                                 },   // FormatETC2_R_11
+      { 0,                                            GL_RED,                0                                 },   // FormatETC2_R_11_sn
+      { 0,                                            GL_RG,                 0                                 },   // FormatETC2_RG_11
+      { 0,                                            GL_RG,                 0                                 },   // FormatETC2_RG_11_sn
+      { 0,                                            GL_RGB,                0                                 },   // FormatETC2_RGB_8
+      { 0,                                            GL_RGB,                0                                 },   // FormatETC2_RGB_8_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatETC2_RGBA_8
+      { 0,                                            GL_RGBA,               0                                 },   // FormatETC2_RGBA_8_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatETC2_RGB8_A1
+      { 0,                                            GL_RGBA,               0                                 },   // FormatETC2_RGB8_A1_sRGB
+      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_2          
+      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_2_sRGB     
+      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_4          
+      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_4_sRGB     
+      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_2         
+      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_2_sRGB    
+      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_4         
+      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_4_sRGB    
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_4x4
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_5x4
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_5x5
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_6x5
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_6x6
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x5
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x6
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x8
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x5
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x6
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x8
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x10
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_12x10
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_12x12
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_4x4_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_5x4_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_5x5_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_6x5_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_6x6_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x5_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x6_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x8_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x5_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x6_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x8_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x10_sRGB
+      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_12x10_sRGB
+      { 0,                                            GL_RGBA,               0                                 }    // FormatASTC_12x12_sRGB
+#endif
       };
 
    SurfaceDescriptor::SurfaceDescriptor() :
@@ -616,7 +669,7 @@ namespace en
          case Texture1D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
                Profile( glCompressedTexImage1D(glType, mipmap, glInternalFormat, width, 0, size(mipmap), nullptr) );
                }
             break;
@@ -624,7 +677,7 @@ namespace en
          case Texture1DArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
                Profile( glCompressedTexImage2D(glType, mipmap, glInternalFormat, width, layers, 0, size(mipmap), nullptr) );
                }
             break;
@@ -632,8 +685,8 @@ namespace en
          case Texture2D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
-               uint16 height = max(1, this->height(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
+               uint16 height = max(1U, this->height(mipmap));
                Profile( glCompressedTexImage2D(glType, mipmap, glInternalFormat, width, height, 0, size(mipmap), nullptr) );
                }
             break;
@@ -641,8 +694,8 @@ namespace en
          case Texture2DArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
-               uint16 height = max(1, this->height(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
+               uint16 height = max(1U, this->height(mipmap));
                Profile( glCompressedTexImage3D(glType, mipmap, glInternalFormat, width, height, layers, 0, size(mipmap), nullptr) );
                }
             break;
@@ -650,9 +703,9 @@ namespace en
          case Texture3D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
-               uint16 height = max(1, this->height(mipmap));
-               uint16 depth  = max(1, this->depth(mipmap)); 
+               uint16 width  = max(1U, this->width(mipmap));
+               uint16 height = max(1U, this->height(mipmap));
+               uint16 depth  = max(1U, this->depth(mipmap));
                Profile( glTexImage3D(glType, mipmap, glInternalFormat, width, height, depth, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
@@ -660,7 +713,7 @@ namespace en
          case TextureCubeMap:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
                Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
                Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
                Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
@@ -673,7 +726,7 @@ namespace en
          case TextureCubeMapArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
                Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
                Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
                Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
@@ -701,7 +754,7 @@ namespace en
          case Texture1D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
                Profile( glTexImage1D(glType, mipmap, glInternalFormat, width, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
@@ -709,7 +762,7 @@ namespace en
          case Texture1DArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
                Profile( glTexImage2D(glType, mipmap, glInternalFormat, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
@@ -717,8 +770,8 @@ namespace en
          case Texture2D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
-               uint16 height = max(1, this->height(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
+               uint16 height = max(1U, this->height(mipmap));
                Profile( glTexImage2D(glType, mipmap, glInternalFormat, width, height, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
@@ -726,8 +779,8 @@ namespace en
          case Texture2DArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
-               uint16 height = max(1, this->height(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
+               uint16 height = max(1U, this->height(mipmap));
                Profile( glTexImage3D(glType, mipmap, glInternalFormat, width, height, layers, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
@@ -753,9 +806,9 @@ namespace en
          case Texture3D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
-               uint16 height = max(1, this->height(mipmap));
-               uint16 depth  = max(1, this->depth(mipmap)); 
+               uint16 width  = max(1U, this->width(mipmap));
+               uint16 height = max(1U, this->height(mipmap));
+               uint16 depth  = max(1U, this->depth(mipmap));
                Profile( glTexImage3D(glType, mipmap, glInternalFormat, width, height, depth, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
@@ -763,7 +816,7 @@ namespace en
          case TextureCubeMap:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
                Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
                Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
                Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
@@ -776,7 +829,7 @@ namespace en
          case TextureCubeMapArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
-               uint16 width  = max(1, this->width(mipmap));
+               uint16 width  = max(1U, this->width(mipmap));
                Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
                Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
                Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
@@ -897,8 +950,8 @@ namespace en
    uint16 srcFormat        = TranslateTextureFormat[state.format].srcFormat;
    uint16 srcType          = TranslateTextureFormat[state.format].srcType; 
    uint32 size             = this->size(desc.mipmap);
-   uint16 width            = max(1, this->width(desc.mipmap));
-   uint16 height           = max(1, this->height(desc.mipmap));
+   uint16 width            = max(1U, this->width(desc.mipmap));
+   uint16 height           = max(1U, this->height(desc.mipmap));
    uint16 depth            = desc.layer;
    uint16 layer            = desc.layer;
    uint16 mipmap           = desc.mipmap;

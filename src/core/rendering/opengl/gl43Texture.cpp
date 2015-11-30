@@ -87,7 +87,8 @@ namespace en
       case Texture2DRectangle:
          Profile( glTexStorage2D(glType, 1, glInternalFormat, width, height) );
          break;
-   
+
+#ifndef EN_PLATFORM_OSX
       // OpenGL 4.3  or  ARB_texture_storage_multisample
       case Texture2DMultisample:
          // TODO: Check samples count (depth/color/integer)???
@@ -99,7 +100,8 @@ namespace en
          // TODO: Check samples count (depth/color/integer)???
          Profile( glTexStorage3DMultisample(glType, samples, glInternalFormat, width, height, layers, GL_TRUE) );
          break;
-   
+#endif
+
       case TextureBuffer:
          // Buffer textures don't have their own storage
          break;

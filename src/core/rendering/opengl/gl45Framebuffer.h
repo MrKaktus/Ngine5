@@ -22,6 +22,8 @@ namespace en
 {
    namespace gpu
    {
+#ifndef EN_PLATFORM_OSX
+
    class FramebufferGL45 : public FramebufferGL40
       {
       public:
@@ -43,6 +45,8 @@ namespace en
          const uint8 mipmap = 0);     // Mipmap
          
       };
+
+#endif
    }
 }
 

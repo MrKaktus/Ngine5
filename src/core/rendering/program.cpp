@@ -765,12 +765,14 @@ namespace en
             glBindBufferBase( GL_UNIFORM_BUFFER, bindingId, buffer->id );
             glUniformBlockBinding(program->id, block.id, bindingId);
             }
+#if !defined(EN_PLATFORM_OSX)
          if (buffer->type == StorageBuffer)
             {
             GLuint bindingId = block.id; 
             glBindBufferBase( GL_SHADER_STORAGE_BUFFER, bindingId, buffer->id );
             glUniformBlockBinding(program->id, block.id, bindingId);
             }
+#endif
          }
 
       //// At first program draw bind sampler parameters to Texture Image Units
@@ -1149,6 +1151,7 @@ namespace en
       if ( type == GL_DOUBLE_MAT4x3 ) return 96;
      
       // OpenGL 4.2 uniform types
+#if !defined(EN_PLATFORM_OSX)
       if ( type == GL_IMAGE_1D                                ) return 4;
       if ( type == GL_IMAGE_2D                                ) return 4;
       if ( type == GL_IMAGE_3D                                ) return 4;
@@ -1180,7 +1183,8 @@ namespace en
       if ( type == GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE       ) return 4;
       if ( type == GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY ) return 4;
       if ( type == GL_UNSIGNED_INT_ATOMIC_COUNTER             ) return 4;
-     
+#endif
+
       // Unsupported parameter type
       return 0;
       }
@@ -1233,6 +1237,7 @@ namespace en
            || type == GL_INT_SAMPLER_CUBE_MAP_ARRAY
            || type == GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY
            // OpenGL 4.2 uniform types
+#if !defined(EN_PLATFORM_OSX)
            || type == GL_IMAGE_1D                                
            || type == GL_IMAGE_2D                                
            || type == GL_IMAGE_3D                                
@@ -1263,7 +1268,9 @@ namespace en
            || type == GL_UNSIGNED_INT_IMAGE_2D_ARRAY             
            || type == GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE       
            || type == GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY 
-           || type == GL_UNSIGNED_INT_ATOMIC_COUNTER )
+           || type == GL_UNSIGNED_INT_ATOMIC_COUNTER
+#endif 
+           )
          return true;
      
       // This parameter is not a sampler

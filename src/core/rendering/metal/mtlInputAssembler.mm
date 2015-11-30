@@ -181,7 +181,7 @@ namespace en
 
       // MTLVertexBufferLayoutDescriptor
       desc.layouts[buffers].stepFunction = buffers[i].stepRate == 0 ? MTLVertexStepFunctionPerVertex : MTLVertexStepFunctionPerInstance;
-      desc.layouts[buffers].stepRate     = max(1, buffers[i].stepRate);
+      desc.layouts[buffers].stepRate     = max(1U, buffers[i].stepRate);
       desc.layouts[buffers].stride       = buffers[i].elementSize; 
       }
 

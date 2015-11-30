@@ -14,7 +14,7 @@
 #include "input/context.h"
 #include "input/hmd.h"
 
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if /* defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
 #if OCULUS_VR
 
 #define OCULUS_SDK_RENDERING 1       // Enable SDK Rendering for SDK 0.6.0+ (disable for older SDK's to use Client mode distortion)

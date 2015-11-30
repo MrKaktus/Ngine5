@@ -56,7 +56,7 @@
 #endif
 
 #include "core/rendering/opengl/opengl.h"
-#include "core/rendering/rendering.h"
+#include "core/rendering/rendering.hpp"
 
 // Go to:
 // https://www.khronos.org/registry/implementers_guide.html

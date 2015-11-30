@@ -31,7 +31,7 @@ namespace en
       static const float4 borderOpaqueWhite;
       static const float4 borderTransparentBlack;
 
-      SamplerGL33::SamplerGL33(const SamplerState& state);
+      SamplerGL33(const SamplerState& state);
       virtual ~SamplerGL33();
    
 //      virtual void filtering(const TextureFiltering filtering);

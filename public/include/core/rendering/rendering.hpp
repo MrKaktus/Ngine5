@@ -53,7 +53,15 @@ namespace en
    #define EN_OpenGL_ES 2
    #define EN_GLSL      3
    #define EN_ESSL      4
-
+   #define EN_Metal     5
+   #define EN_MetalSL   6
+   #define EN_Vulkan    7
+   #define EN_SPIRV     8
+   #define EN_Direct3D  9
+   #define EN_HLSL      10
+      
+   const Nversion    Vulkan_1_0(0, EN_Vulkan, 0, 0, 0);                  // Vulkan 1.0
+      
    const Nversion    ESSL_3_00(1,EN_ESSL,3,0,0);                         // ESSL 3.00  
    const Nversion    ESSL_1_00(0,EN_ESSL,1,0,0);                         // ESSL 1.00  
    const Nversion    ESSL_Unsupported(255,EN_ESSL,255,255,15);           // For marking unsupported features

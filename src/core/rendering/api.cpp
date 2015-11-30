@@ -23,6 +23,11 @@ namespace en
    //#define EN_OpenGL_ES 2
    //#define EN_GLSL      3
    //#define EN_ESSL      4
+   //#define EN_Metal     5
+   //#define EN_MetalSL   6
+   //#define EN_Vulkan
+   //#define EN_SPIRV
+   //#define EN_Direct3D
 
    //const Nversion    ESSL_3_00(1,EN_ESSL,3,0,0);                         // ESSL 3.00  
    //const Nversion    ESSL_1_00(0,EN_ESSL,1,0,0);                         // ESSL 1.00  

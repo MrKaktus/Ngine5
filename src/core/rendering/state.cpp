@@ -316,11 +316,10 @@ namespace en
       // Default color buffer 
       if (checkBit(GpuContext.state.dirtyBits.blendEquation, 0))
          {
-#ifdef EN_OPENGL_DESKTOP
-         Profile( glBlendEquationSeparateEXT(GpuContext.state.output.color[0].blend.equationRGB, 
+#if defined(EN_DISCRETE_GPU) && !defined(EN_PLATFORM_OSX)
+         Profile( glBlendEquationSeparateEXT(GpuContext.state.output.color[0].blend.equationRGB,
                                              GpuContext.state.output.color[0].blend.equationA) )
-#endif
-#ifdef EN_OPENGL_MOBILE
+#else // defined(EN_MOBILE_GPU)
          Profile( glBlendEquationSeparate(GpuContext.state.output.color[0].blend.equationRGB, 
                                           GpuContext.state.output.color[0].blend.equationA) )
 #endif

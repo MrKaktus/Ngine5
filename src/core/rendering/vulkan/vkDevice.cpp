@@ -13,6 +13,8 @@
 
 */
 
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+
 #include "core/log/log.h"
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/utilities/memory.h"
@@ -1296,3 +1298,4 @@ namespace en
 
    }
 }
+#endif

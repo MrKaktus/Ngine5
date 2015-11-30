@@ -17,19 +17,51 @@
 #include "core/rendering/metal/mtlDevice.h"
 #include "core/utilities/memory.h"
 
+#include "core/rendering/metal/mtlBlend.h"
+#include "core/rendering/metal/mtlRenderPass.h"
+#include "core/rendering/metal/mtlTexture.h"
+
 namespace en
 {
    namespace gpu
    { 
 
-   MetalDevice::MetalDevice() 
+   MetalDevice::MetalDevice() :
+      device(nullptr)
    {
+#if defined(EN_PLATFORM_OSX)
+   api = Metal_OSX_1_0;
+#elif defined(EN_PLATFORM_IOS)
+   api = Metal_IOS_1_0;
+#endif
    }
 
    MetalDevice::~MetalDevice() 
    {
    }
 
+
+#if defined(EN_PLATFORM_WINDOWS) 
+#include "core/rendering/d3d12/dx12Raster.h"
+#endif
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+//#include "core/rendering/metal/mtlRaster.h"
+#endif
+#if defined(EN_PLATFORM_WINDOWS) 
+//#include "core/rendering/vulkan/vkRaster.h"
+#endif
+
+   Ptr<RasterState> MetalDevice::create(const RasterStateInfo& state)
+   {
+   // TODO: Finish !
+   
+//   return ptr_dynamic_cast<RasterState, RasterStateD3D12>(new RasterStateD3D12(state));
+//   return ptr_dynamic_cast<RasterState, RasterStateVK>(new RasterStateVK(state));
+
+//   return ptr_dynamic_cast<RasterState, RasterStateMTL>(new RasterStateMTL(state));
+   return Ptr<RasterState>(nullptr);
+   }
+   
    Ptr<BlendState> MetalDevice::create(const BlendStateInfo& state,
                                        const uint32 attachments,
                                        const BlendAttachmentInfo* color)

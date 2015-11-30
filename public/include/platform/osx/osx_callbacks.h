@@ -13,9 +13,9 @@
 #define ENG_MACOS_CALLBACKS
 
 #include "core/defines.h"
-#include "core/rendering/rendering.h"
+//#include "core/rendering/rendering.hpp"
 
-#include "main.h" // TODO: Remove integration of Project and Library!!!
+//#include "main.h" // TODO: Remove integration of Project and Library!!!
 
 #if defined(EN_PLATFORM_IOS)
 #import <UIKit/UIKit.h>        // For IOS
@@ -27,6 +27,10 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 #import <QuartzCore/QuartzCore.h>
 
+
+// TODO: Everything below requires cleanup !!! (10 years old code ??)
+
+#if defined(EN_PLATFORM_IOS)
 // This class wraps the CAEAGLLayer from CoreAnimation into a convenient UIView subclass.
 // The view content is basically an EAGL surface you render your OpenGL scene into.
 // (setting the view non-opaque will only work if the EAGL surface has an alpha channel).
@@ -56,6 +60,8 @@
 - (void)AppQuit;
 
 @end
+#endif
+
 #endif
 
 #endif

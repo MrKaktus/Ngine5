@@ -13,7 +13,13 @@
 
 #include "core/configuration.h"
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_IOS)
+
+#if defined(EN_PLATFORM_IOS)
 #import <UIKit/UIKit.h>
+#endif
+#if defined(EN_PLATFORM_OSX)
+#import <AppKit/AppKit.h>
+#endif
 
 #include "core/storage/context.h"
 #include "core/config/context.h"

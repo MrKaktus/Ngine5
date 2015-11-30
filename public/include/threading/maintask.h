@@ -25,7 +25,7 @@
 #include "platform/blackberry/bb_main.h"
 #endif
 #ifdef EN_PLATFORM_OSX
-#include "platform/osx/mac_main.h"
+#include "platform/osx/osx_main.h"
 #endif
 #ifdef EN_PLATFORM_WINDOWS
 #include "platform/windows/win_main.h"

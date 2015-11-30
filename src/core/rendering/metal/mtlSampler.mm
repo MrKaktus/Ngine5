@@ -19,6 +19,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlSampler.h"
+#include "utilities/Nversion.h"
 
 namespace en
 {
@@ -29,7 +30,7 @@ namespace en
 #ifdef EN_DISCRETE_GPU
 
    // Last verified for Metal 2.0 and OSX 10.11
-   static const NVersion TextureFilteringSupportedMTL[TextureFilteringMethodsCount] = 
+   static const Nversion TextureFilteringSupportedMTL[TextureFilteringMethodsCount] = 
       {
       Metal_OSX_1_0           ,   // Nearest
       Metal_OSX_1_0           ,   // NearestMipmaped
@@ -41,16 +42,16 @@ namespace en
       Metal_OSX_1_0           ,   // Anisotropic4x  
       Metal_OSX_1_0           ,   // Anisotropic8x  
       Metal_OSX_1_0               // Anisotropic16x 
-      }
+      };
 
-   static const NVersion TextureWrapingSupportedMTL[TextureWrapingMethodsCount] = 
+   static const Nversion TextureWrapingSupportedMTL[TextureWrapingMethodsCount] = 
       {
       Metal_OSX_1_0           ,   // Clamp         
       Metal_OSX_1_0           ,   // Repeat        
       Metal_OSX_1_0           ,   // RepeatMirrored
       Metal_OSX_Unsupported   ,   // ClampMirrored 
       Metal_OSX_1_0               // ClampToBorder 
-      } 
+      };
 
 #elif EN_MOBILE_GPU
 
@@ -67,7 +68,7 @@ namespace en
       Metal_IOS_1_0           ,   // Anisotropic4x  
       Metal_IOS_1_0           ,   // Anisotropic8x  
       Metal_IOS_1_0               // Anisotropic16x 
-      }
+      };
 
    static const NVersion TextureWrapingSupportedMTL[TextureWrapingMethodsCount] = 
       {
@@ -76,12 +77,12 @@ namespace en
       Metal_IOS_1_0           ,   // RepeatMirrored
       Metal_IOS_Unsupported   ,   // ClampMirrored 
       Metal_IOS_1_0               // ClampToBorder 
-      }  
+      };
 #endif
 
 #endif
 
-   struct const TextureFilteringTranslation
+   struct TextureFilteringTranslation
       {
       MTLSamplerMinMagFilter filter;     // Metal magnification/minification filtering
       MTLSamplerMipFilter    mipmaping;  // Metal mipmap filtering
@@ -111,7 +112,19 @@ namespace en
       MTLSamplerAddressModeClampToZero    // ClampToBorder    (for Metal border is always zero - "OpaqueBlack")
       };
 
-   SamplerMTL::SamplerMTL(const SamplerState& _state)
+   static const MTLCompareFunction TranslateCompareMethod[CompareMethodsCount] =
+      {
+      MTLCompareFunctionNever        ,   // Never
+      MTLCompareFunctionAlways       ,   // Always
+      MTLCompareFunctionLess         ,   // Less
+      MTLCompareFunctionLessEqual    ,   // LessOrEqual
+      MTLCompareFunctionEqual        ,   // Equal
+      MTLCompareFunctionGreater      ,   // Greater
+      MTLCompareFunctionGreaterEqual ,   // GreaterOrEqual
+      MTLCompareFunctionNotEqual         // NotEqual
+      };
+      
+   SamplerMTL::SamplerMTL(const MetalDevice* gpu, const SamplerState& _state)
    {
    //state = _state;
 
@@ -122,18 +135,18 @@ namespace en
    samplerInfo.rAddressMode          = TranslateTextureWraping[_state.coordU];
    samplerInfo.sAddressMode          = TranslateTextureWraping[_state.coordV];
    samplerInfo.tAddressMode          = TranslateTextureWraping[_state.coordW];
-   samplerInfo.maxAnisotropy         = min(TranslateTextureFiltering[_state.filtering].anisotropy, GpuContext.support.maxAnisotropy); // GpuContext.support.maxAnisotropy = 16;
+   samplerInfo.maxAnisotropy         = min(TranslateTextureFiltering[_state.filtering].anisotropy, gpu->support.maxAnisotropy);
    samplerInfo.lodMinClamp           = _state.minLOD;
    samplerInfo.lodMaxClamp           = _state.maxLOD;
+   samplerInfo.compareFunction       = TranslateCompareMethod[_state.depthCompare]; // IOS 9.0+ !
    samplerInfo.normalizedCoordinates = TRUE;
-   
-   handle = [GpuContext.device newSamplerStateWithDescriptor:samplerInfo];       // GpuContext.device <-- we need global here, or getDevice()
+
+   handle = [gpu->device newSamplerStateWithDescriptor:samplerInfo];       // or getDevice()
    [samplerInfo release];
 
    // Metal vs OpenGL/Vulkan diff:
    //
    // - mipLodBias
-   // - compareFunction
    // - borderColor / Type
    // + normalizedCoordinates, effectively always TRUE
 
@@ -146,19 +159,19 @@ namespace en
    }
 
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
-   void InitSamplers(void)
+   void InitSamplers(const CommonDevice* gpu)
    {
    // Init array of currently supported filtering types
    for(uint16 i=0; i<TextureFilteringMethodsCount; ++i)
       {
-      if (GpuContext.screen.api.release >= TextureFilteringSupportedMTL[i].release)
+      if (gpu->api.release >= TextureFilteringSupportedMTL[i].release)
          TextureFilteringSupported[i] = true;
       }
 
    // Init array of currently supported wrapping types
    for(uint16 i=0; i<TextureWrapingMethodsCount; ++i)
       {
-      if (GpuContext.screen.api.release >= TextureWrapingSupportedMTL[i].release)
+      if (gpu->api.release >= TextureWrapingSupportedMTL[i].release)
          TextureWrapingSupported[i] = true;
       }
    }

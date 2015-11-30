@@ -17,7 +17,7 @@
 #include "utilities/strings.h"
 
 #include "core/rendering/context.h"
-#include "core/rendering/rendering.h"
+#include "core/rendering/rendering.hpp"
 
 #include "core/rendering/opengl/gl43Texture.h"
 #include "resources/effect.h"

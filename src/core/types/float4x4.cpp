@@ -183,9 +183,9 @@ namespace en
            r3[7] = 1.0, r3[4] = r3[5] = r3[6] = 0.0;
    
        /* Choose myPivot, or die. */
-       if (abs(r3[0])>abs(r2[0])) SWAP_ROWS(r3, r2);
-       if (abs(r2[0])>abs(r1[0])) SWAP_ROWS(r2, r1);
-       if (abs(r1[0])>abs(r0[0])) SWAP_ROWS(r1, r0);
+       if (fabs(r3[0])>fabs(r2[0])) SWAP_ROWS(r3, r2);
+       if (fabs(r2[0])>fabs(r1[0])) SWAP_ROWS(r2, r1);
+       if (fabs(r1[0])>fabs(r0[0])) SWAP_ROWS(r1, r0);
        if (0.0 == r0[0]) {
    #ifdef _DEBUG
            return float4x4(); //  CRITCAL
@@ -207,8 +207,8 @@ namespace en
        if (s != 0.0) { r1[7] -= m1 * s; r2[7] -= m2 * s; r3[7] -= m3 * s; }
    
        /* Choose myPivot, or die. */
-       if (abs(r3[1])>abs(r2[1])) SWAP_ROWS(r3, r2);
-       if (abs(r2[1])>abs(r1[1])) SWAP_ROWS(r2, r1);
+       if (fabs(r3[1])>fabs(r2[1])) SWAP_ROWS(r3, r2);
+       if (fabs(r2[1])>fabs(r1[1])) SWAP_ROWS(r2, r1);
        if (0.0 == r1[1]) {
    #ifdef _DEBUG
            return float4x4(); //  CRITCAL
@@ -225,7 +225,7 @@ namespace en
        s = r1[7]; if (0.0 != s) { r2[7] -= m2 * s; r3[7] -= m3 * s; }
    
        /* Choose myPivot, or die. */
-       if (abs(r3[2])>abs(r2[2])) SWAP_ROWS(r3, r2);
+       if (fabs(r3[2])>fabs(r2[2])) SWAP_ROWS(r3, r2);
        if (0.0 == r2[2]) {
    #ifdef _DEBUG
            return float4x4(); //  CRITCAL

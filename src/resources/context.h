@@ -17,7 +17,7 @@
 #include "core/configuration.h"
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/rendering/rendering.h"
+#include "core/rendering/rendering.hpp"
 #include "core/utilities/TarrayAdvanced.h"
 #include "audio/audio.h"
 #include "resources/resources.h"

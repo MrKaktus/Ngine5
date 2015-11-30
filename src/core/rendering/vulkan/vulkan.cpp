@@ -15,7 +15,7 @@
 #include "core/defines.h"
 #include "core/rendering/vulkan/vulkan.h"
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_WINDOWS)
 PFN_vkCreateInstance                               vkCreateInstance                               = nullptr;
 PFN_vkDestroyInstance                              vkDestroyInstance                              = nullptr;
 PFN_vkEnumeratePhysicalDevices                     vkEnumeratePhysicalDevices                     = nullptr;

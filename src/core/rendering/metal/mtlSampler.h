@@ -20,6 +20,7 @@
 
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/sampler.h"
+#include "core/rendering/metal/mtlDevice.h"
 
 namespace en
 {
@@ -30,7 +31,7 @@ namespace en
       public:
       id <MTLSamplerState> handle; // Metal handle
    
-      SamplerMTL(const SamplerState& state);
+      SamplerMTL(const MetalDevice* gpu, const SamplerState& state);
       virtual ~SamplerMTL();
       };
 

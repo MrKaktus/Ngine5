@@ -12,7 +12,7 @@
 #define ENG_RENDERING_STEREO
 
 #include "input/input.h"
-#include "core/rendering/rendering.h"
+#include "core/rendering/rendering.hpp"
 #include "scene/cam.h"
 #include "utilities/timer.h"
 

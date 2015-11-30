@@ -29,17 +29,36 @@ namespace en
       public:
       MTLRenderPassColorAttachmentDescriptor* desc;
 
-      ColorAttachmentMTL::ColorAttachmentMTL(const TextureFormat format = FormatUnsupported, 
+      ColorAttachmentMTL(const TextureFormat format = FormatUnsupported,
                                              const uint32 samples = 1);
 
       virtual void onLoad(const LoadOperation load, 
                           const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 0.0f));
       virtual void onStore(const StoreOperation store);
       virtual bool resolve(const Ptr<Texture> texture, 
-                           const uint32 mipmap = 0,
-                           const uint32 layer = 0);
+                           const uint32 mipmap = 0u,
+                           const uint32 layer = 0u);
       };
 
+   class DepthStencilAttachmentMTL : public DepthStencilAttachment
+      {
+      public:
+      MTLRenderPassDepthAttachmentDescriptor*   descDepth;
+      MTLRenderPassStencilAttachmentDescriptor* descStencil;
+
+      DepthStencilAttachmentMTL(/* TODO */);
+
+      virtual void onLoad(const LoadOperation loadDepth,
+                          const LoadOperation loadStencil,
+                          const float clearDepth = 0.0f,
+                          const uint32 clearStencil = 0u);
+      virtual void onStore(const StoreOperation storeDepth,
+                           const StoreOperation storeStencil);
+      virtual bool resolve(const Ptr<Texture> texture, 
+                           const uint32 mipmap = 0u,
+                           const uint32 layer = 0u);
+      };
+      
    class FramebufferMTL : public Framebuffer
       {
       public:

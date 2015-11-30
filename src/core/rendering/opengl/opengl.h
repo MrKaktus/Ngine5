@@ -20,7 +20,43 @@
 #include "core/defines.h"
 #include "core/types.h"
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_ANDROID)
+#include <android/native_activity.h>
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>                // OpenGL ES 2.0
+#include <GLES2/gl2ext.h>             // OpenGL ES Extensions 
+#include "GLES3/gl3.h"                // OpenGL ES 3.0
+#include "GLES3/gl3platform.h"        // OpenGL ES 3.0 Platform-Dependent Macros
+#endif
+
+#if defined(EN_PLATFORM_BLACKBERRY)
+#include <screen/screen.h>
+#include <bps/navigator.h>
+#include <bps/screen.h>
+#include <bps/bps.h>
+#include <EGL/egl.h>
+#include <GLES/gl.h>                  // OpenGL ES 
+#include <GLES/glext.h>               // OpenGL ES Extensions 
+#include <GLES2/gl2.h>                // OpenGL ES 2.0
+#include <GLES2/gl2ext.h>             // OpenGL ES 2.0 Extensions 
+#include "GLES3/gl3.h"                // OpenGL ES 3.0
+#include "GLES3/gl3platform.h"        // OpenGL ES 3.0 Platform-Dependent Macros
+#endif
+
+#if defined(EN_PLATFORM_IOS)
+#import  <QuartzCore/QuartzCore.h>
+#import  <OpenGLES/ES2/gl.h>          // OpenGL ES 2.0
+#import  <OpenGLES/ES2/glext.h>       // OpenGL ES Extensions 
+#import  <OpenGLES/EAGL.h>
+#import  <OpenGLES/EAGLDrawable.h>
+#endif
+
+#if defined(EN_PLATFORM_OSX)
+#include <OpenGL/gl3.h>               // OpenGL 3.0+
+#include <OpenGL/gl3ext.h>            // OpenGL 3.0+ Extensions
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
 #include <windows.h>  
 #include <GL/gl.h>                    // OpenGL
 #include "opengl/include/glext.h"     // OpenGL Extensions 

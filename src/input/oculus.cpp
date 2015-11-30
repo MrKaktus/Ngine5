@@ -17,9 +17,9 @@
 #include "utilities/strings.h"
 
 #include "core/rendering/context.h"
-#include "core/rendering/rendering.h"
+#include "core/rendering/rendering.hpp"
 
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if /*defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
 
    #if OCULUS_VR
    //#pragma comment(lib, "LibOVR")
@@ -41,7 +41,7 @@ namespace en
    //# IMPLEMENTATION
    //##########################################################################
 
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if /*defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
 #if OCULUS_VR
 
    OculusDK2::OculusDK2(uint8 index) :
@@ -651,7 +651,7 @@ namespace en
 
    void Context::HMD::init(void)
    {
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if /*defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
 #if OCULUS_VR
 
    // Initialize 
@@ -697,7 +697,7 @@ namespace en
    void Context::HMD::destroy(void)
    {
    device.clear();
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if /*defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
 #if OCULUS_VR
    ovr_Shutdown(); 
 #endif

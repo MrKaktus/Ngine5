@@ -426,8 +426,8 @@ namespace en
       return 0;
 
    TextureCompressedBlockInfo block = TextureCompressionInfo[state.format];
-   uint32 mipWidth  = max(1, state.width  >> mipmap);
-   uint32 mipHeight = max(1, state.height >> mipmap);
+   uint32 mipWidth  = max(1U, static_cast<uint32>(state.width  >> mipmap));
+   uint32 mipHeight = max(1U, static_cast<uint32>(state.height >> mipmap));
 
    if (block.compressed)
       return ((mipWidth  + (block.width - 1)) / block.width) * 

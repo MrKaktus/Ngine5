@@ -896,10 +896,9 @@ namespace en
       return false;
    #endif
 #ifdef GPU_IMMEDIATE_MODE
-#ifdef EN_OPENGL_DESKTOP
+#if defined(EN_DISCRETE_GPU) && !defined(EN_PLATFORM_OSX)
    Profile( glBlendEquationSeparateEXT(gl::BlendEquation[rgba], gl::BlendEquation[rgba]) )
-#endif
-#ifdef EN_OPENGL_MOBILE
+#else // EN_OPENGL_MOBILE
    Profile( glBlendEquationSeparate(gl::BlendEquation[rgba], gl::BlendEquation[rgba]) )
 #endif
 #else
@@ -928,10 +927,9 @@ namespace en
       return false;
    #endif
 #ifdef GPU_IMMEDIATE_MODE
-#ifdef EN_OPENGL_DESKTOP
+#if defined(EN_DISCRETE_GPU) && !defined(EN_PLATFORM_OSX)
    Profile( glBlendEquationSeparateEXT(gl::BlendEquation[rgb], gl::BlendEquation[a]) )
-#endif
-#ifdef EN_OPENGL_MOBILE
+#else // EN_OPENGL_MOBILE
    Profile( glBlendEquationSeparate(gl::BlendEquation[rgb], gl::BlendEquation[a]) )
 #endif
 #else
@@ -1232,8 +1230,10 @@ namespace en
    assert( GpuContext.screen.created );
 
 #ifdef EN_OPENGL_DESKTOP
+#if !defined(EN_PLATFORM_OSX)
    if ( GpuContext.screen.support(OpenGL_4_5) )
       return ptr_dynamic_cast<Framebuffer, FramebufferGL45>(new FramebufferGL45());
+#endif
    if ( GpuContext.screen.support(OpenGL_4_0) )
       return ptr_dynamic_cast<Framebuffer, FramebufferGL40>(new FramebufferGL40());
    if ( GpuContext.screen.support(OpenGL_3_2) )

@@ -13,6 +13,8 @@
 
 */
 
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/rendering/state.h"
 
@@ -148,6 +150,7 @@ namespace en
 
    }
 }
+#endif
 
 // clipOrigin          = VK_COORDINATE_ORIGIN_LOWER_LEFT;   // optional (GL45) - Can specify Direct3D way: VK_COORDINATE_ORIGIN_UPPER_LEFT 
 // depthMode           = VK_DEPTH_MODE_ZERO_TO_ONE;         // optional (GL45) - Can specify Direct3D way: VK_DEPTH_MODE_NEGATIVE_ONE_TO_ONE

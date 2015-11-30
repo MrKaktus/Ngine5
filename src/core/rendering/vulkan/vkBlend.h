@@ -16,6 +16,8 @@
 #ifndef ENG_CORE_RENDERING_VULKAN_BLEND_STATE
 #define ENG_CORE_RENDERING_VULKAN_BLEND_STATE
 
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/vulkan/vulkan.h"
 #include "core/rendering/blend.h"
 
@@ -35,5 +37,6 @@ namespace en
       };
    }
 }
+#endif
 
 #endif

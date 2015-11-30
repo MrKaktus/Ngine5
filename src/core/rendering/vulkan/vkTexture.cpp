@@ -1,3 +1,6 @@
+
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/vulkan/vkTexture.h"
 
 namespace en
@@ -195,3 +198,4 @@ namespace en
 
    }
 }
+#endif

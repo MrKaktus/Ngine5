@@ -21,7 +21,7 @@ namespace en
    namespace gpu
    {
    // Comparison Method 
-   static const uint16 TranslateCompareMethod[CompareMethodsCount] = 
+   const uint16 TranslateCompareMethod[CompareMethodsCount] =
       {
       GL_NEVER   ,   // Never          
       GL_ALWAYS  ,   // Always         

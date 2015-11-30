@@ -100,12 +100,11 @@
 		855860821C0A4764002EB348 /* oculus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FA41C0A4559002EB348 /* oculus.cpp */; };
 		855860841C0A4764002EB348 /* vive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FA61C0A4559002EB348 /* vive.cpp */; };
 		855860871C0A4764002EB348 /* monetization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FAA1C0A4559002EB348 /* monetization.cpp */; };
-		855860881C0A4764002EB348 /* android_native_app_glue.c in Sources */ = {isa = PBXBuildFile; fileRef = 85585FAD1C0A4559002EB348 /* android_native_app_glue.c */; };
 		855860891C0A4764002EB348 /* and_events.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FAE1C0A4559002EB348 /* and_events.cpp */; };
 		8558608A1C0A4764002EB348 /* and_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FAF1C0A4559002EB348 /* and_main.cpp */; };
 		8558608B1C0A4764002EB348 /* bb_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FB11C0A4559002EB348 /* bb_main.cpp */; };
-		8558608D1C0A4764002EB348 /* osx_callbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = 85585FB41C0A4559002EB348 /* osx_callbacks.m */; };
-		8558608E1C0A4764002EB348 /* osx_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 85585FB51C0A4559002EB348 /* osx_main.m */; };
+		8558608D1C0A4764002EB348 /* osx_callbacks.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85585FB41C0A4559002EB348 /* osx_callbacks.mm */; };
+		8558608E1C0A4764002EB348 /* osx_main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85585FB51C0A4559002EB348 /* osx_main.mm */; };
 		8558608F1C0A4764002EB348 /* system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FB61C0A4559002EB348 /* system.cpp */; };
 		855860901C0A4764002EB348 /* win_events.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FB81C0A4559002EB348 /* win_events.cpp */; };
 		855860911C0A4764002EB348 /* win_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85585FB91C0A4559002EB348 /* win_main.cpp */; };
@@ -165,7 +164,7 @@
 		855861541C0A48CA002EB348 /* pipeline.h in Headers */ = {isa = PBXBuildFile; fileRef = 855860D61C0A48A6002EB348 /* pipeline.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		855861551C0A48CA002EB348 /* program.h in Headers */ = {isa = PBXBuildFile; fileRef = 855860D71C0A48A6002EB348 /* program.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		855861561C0A48CA002EB348 /* raster.h in Headers */ = {isa = PBXBuildFile; fileRef = 855860D81C0A48A6002EB348 /* raster.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		855861571C0A48CA002EB348 /* rendering.h in Headers */ = {isa = PBXBuildFile; fileRef = 855860D91C0A48A6002EB348 /* rendering.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		855861571C0A48CA002EB348 /* rendering.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 855860D91C0A48A6002EB348 /* rendering.hpp */; settings = {ATTRIBUTES = (Public, ); }; };
 		855861581C0A48CA002EB348 /* sampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 855860DA1C0A48A6002EB348 /* sampler.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		855861591C0A48CA002EB348 /* state.h in Headers */ = {isa = PBXBuildFile; fileRef = 855860DB1C0A48A6002EB348 /* state.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8558615A1C0A48CA002EB348 /* texture.h in Headers */ = {isa = PBXBuildFile; fileRef = 855860DC1C0A48A6002EB348 /* texture.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -264,6 +263,7 @@
 		8560C9161C0ABB7C00CEA8C7 /* mtlDevice.h in Headers */ = {isa = PBXBuildFile; fileRef = 8560C9111C0ABB7C00CEA8C7 /* mtlDevice.h */; };
 		8560C9171C0ABB7C00CEA8C7 /* mtlRenderPass.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8560C9121C0ABB7C00CEA8C7 /* mtlRenderPass.mm */; };
 		8560C9181C0ABB7C00CEA8C7 /* mtlRenderPass.h in Headers */ = {isa = PBXBuildFile; fileRef = 8560C9131C0ABB7C00CEA8C7 /* mtlRenderPass.h */; };
+		8560C91D1C0B5B2800CEA8C7 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8560C91C1C0B5B2800CEA8C7 /* device.cpp */; };
 		8568754D1BF411AD00D7FD2D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8568754C1BF411AD00D7FD2D /* Cocoa.framework */; };
 		8568754F1BF411C200D7FD2D /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8568754E1BF411C200D7FD2D /* Metal.framework */; };
 /* End PBXBuildFile section */
@@ -427,13 +427,12 @@
 		85585FA71C0A4559002EB348 /* vive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vive.h; sourceTree = "<group>"; };
 		85585FA91C0A4559002EB348 /* context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = context.h; sourceTree = "<group>"; };
 		85585FAA1C0A4559002EB348 /* monetization.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = monetization.cpp; sourceTree = "<group>"; };
-		85585FAD1C0A4559002EB348 /* android_native_app_glue.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = android_native_app_glue.c; sourceTree = "<group>"; };
 		85585FAE1C0A4559002EB348 /* and_events.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = and_events.cpp; sourceTree = "<group>"; };
 		85585FAF1C0A4559002EB348 /* and_main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = and_main.cpp; sourceTree = "<group>"; };
 		85585FB11C0A4559002EB348 /* bb_main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bb_main.cpp; sourceTree = "<group>"; };
 		85585FB21C0A4559002EB348 /* context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = context.h; sourceTree = "<group>"; };
-		85585FB41C0A4559002EB348 /* osx_callbacks.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = osx_callbacks.m; sourceTree = "<group>"; };
-		85585FB51C0A4559002EB348 /* osx_main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = osx_main.m; sourceTree = "<group>"; };
+		85585FB41C0A4559002EB348 /* osx_callbacks.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = osx_callbacks.mm; sourceTree = "<group>"; };
+		85585FB51C0A4559002EB348 /* osx_main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = osx_main.mm; sourceTree = "<group>"; };
 		85585FB61C0A4559002EB348 /* system.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = system.cpp; sourceTree = "<group>"; };
 		85585FB81C0A4559002EB348 /* win_events.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = win_events.cpp; sourceTree = "<group>"; };
 		85585FB91C0A4559002EB348 /* win_main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = win_main.cpp; sourceTree = "<group>"; };
@@ -496,7 +495,7 @@
 		855860D61C0A48A6002EB348 /* pipeline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pipeline.h; sourceTree = "<group>"; };
 		855860D71C0A48A6002EB348 /* program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = program.h; sourceTree = "<group>"; };
 		855860D81C0A48A6002EB348 /* raster.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = raster.h; sourceTree = "<group>"; };
-		855860D91C0A48A6002EB348 /* rendering.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rendering.h; sourceTree = "<group>"; };
+		855860D91C0A48A6002EB348 /* rendering.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = rendering.hpp; sourceTree = "<group>"; };
 		855860DA1C0A48A6002EB348 /* sampler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sampler.h; sourceTree = "<group>"; };
 		855860DB1C0A48A6002EB348 /* state.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = state.h; sourceTree = "<group>"; };
 		855860DC1C0A48A6002EB348 /* texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
@@ -596,6 +595,8 @@
 		8560C9121C0ABB7C00CEA8C7 /* mtlRenderPass.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlRenderPass.mm; sourceTree = "<group>"; };
 		8560C9131C0ABB7C00CEA8C7 /* mtlRenderPass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlRenderPass.h; sourceTree = "<group>"; };
 		8560C9191C0ACDA600CEA8C7 /* aligment.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = aligment.h; sourceTree = "<group>"; };
+		8560C91C1C0B5B2800CEA8C7 /* device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = device.cpp; sourceTree = "<group>"; };
+		8560C91E1C0B5B7400CEA8C7 /* device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = device.h; sourceTree = "<group>"; };
 		8568754A1BF410E400D7FD2D /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		8568754C1BF411AD00D7FD2D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		8568754E1BF411C200D7FD2D /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
@@ -703,12 +704,14 @@
 		85585F0D1C0A4559002EB348 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				8560C91C1C0B5B2800CEA8C7 /* device.cpp */,
+				8560C91E1C0B5B7400CEA8C7 /* device.h */,
 				85585F0E1C0A4559002EB348 /* cBlend.cpp */,
 				85585F0F1C0A4559002EB348 /* cTexture.cpp */,
+				85585F131C0A4559002EB348 /* texture.h */,
 				85585F101C0A4559002EB348 /* inputAssembler.cpp */,
 				85585F111C0A4559002EB348 /* inputAssembler.h */,
 				85585F121C0A4559002EB348 /* sampler.h */,
-				85585F131C0A4559002EB348 /* texture.h */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -928,7 +931,6 @@
 		85585FAC1C0A4559002EB348 /* android */ = {
 			isa = PBXGroup;
 			children = (
-				85585FAD1C0A4559002EB348 /* android_native_app_glue.c */,
 				85585FAE1C0A4559002EB348 /* and_events.cpp */,
 				85585FAF1C0A4559002EB348 /* and_main.cpp */,
 			);
@@ -946,8 +948,8 @@
 		85585FB31C0A4559002EB348 /* osx */ = {
 			isa = PBXGroup;
 			children = (
-				85585FB41C0A4559002EB348 /* osx_callbacks.m */,
-				85585FB51C0A4559002EB348 /* osx_main.m */,
+				85585FB41C0A4559002EB348 /* osx_callbacks.mm */,
+				85585FB51C0A4559002EB348 /* osx_main.mm */,
 			);
 			path = osx;
 			sourceTree = "<group>";
@@ -1122,7 +1124,7 @@
 				855860D61C0A48A6002EB348 /* pipeline.h */,
 				855860D71C0A48A6002EB348 /* program.h */,
 				855860D81C0A48A6002EB348 /* raster.h */,
-				855860D91C0A48A6002EB348 /* rendering.h */,
+				855860D91C0A48A6002EB348 /* rendering.hpp */,
 				855860DA1C0A48A6002EB348 /* sampler.h */,
 				855860DB1C0A48A6002EB348 /* state.h */,
 				855860DC1C0A48A6002EB348 /* texture.h */,
@@ -1388,7 +1390,7 @@
 				855861541C0A48CA002EB348 /* pipeline.h in Headers */,
 				855861551C0A48CA002EB348 /* program.h in Headers */,
 				855861561C0A48CA002EB348 /* raster.h in Headers */,
-				855861571C0A48CA002EB348 /* rendering.h in Headers */,
+				855861571C0A48CA002EB348 /* rendering.hpp in Headers */,
 				855861581C0A48CA002EB348 /* sampler.h in Headers */,
 				855861591C0A48CA002EB348 /* state.h in Headers */,
 				8558615A1C0A48CA002EB348 /* texture.h in Headers */,
@@ -1647,6 +1649,7 @@
 				8558606F1C0A4764002EB348 /* double3.cpp in Sources */,
 				855860701C0A4764002EB348 /* double4.cpp in Sources */,
 				855860711C0A4764002EB348 /* float2.cpp in Sources */,
+				8560C91D1C0B5B2800CEA8C7 /* device.cpp in Sources */,
 				855860721C0A4764002EB348 /* float3.cpp in Sources */,
 				855860731C0A4764002EB348 /* float3x3.cpp in Sources */,
 				855860741C0A4764002EB348 /* float3x4.cpp in Sources */,
@@ -1665,12 +1668,11 @@
 				855860821C0A4764002EB348 /* oculus.cpp in Sources */,
 				855860841C0A4764002EB348 /* vive.cpp in Sources */,
 				855860871C0A4764002EB348 /* monetization.cpp in Sources */,
-				855860881C0A4764002EB348 /* android_native_app_glue.c in Sources */,
 				855860891C0A4764002EB348 /* and_events.cpp in Sources */,
 				8558608A1C0A4764002EB348 /* and_main.cpp in Sources */,
 				8558608B1C0A4764002EB348 /* bb_main.cpp in Sources */,
-				8558608D1C0A4764002EB348 /* osx_callbacks.m in Sources */,
-				8558608E1C0A4764002EB348 /* osx_main.m in Sources */,
+				8558608D1C0A4764002EB348 /* osx_callbacks.mm in Sources */,
+				8558608E1C0A4764002EB348 /* osx_main.mm in Sources */,
 				8558608F1C0A4764002EB348 /* system.cpp in Sources */,
 				8560C9151C0ABB7C00CEA8C7 /* mtlDevice.mm in Sources */,
 				855860901C0A4764002EB348 /* win_events.cpp in Sources */,
