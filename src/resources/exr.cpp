@@ -120,8 +120,8 @@ namespace en
 
    struct HeaderAttribute
           {
-          char*  name;   // Attribute name as null terminated string
-          char*  type;   // Attribute type as null terminated string
+          const char*  name;   // Attribute name as null terminated string
+          const char*  type;   // Attribute type as null terminated string
           uint32 size;   // Size of data
           uint32 offset; // Offset in PartHeader structure
           };

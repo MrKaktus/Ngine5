@@ -18,5 +18,6 @@
 #define ENG_CORE_RENDERING_METAL
 
 #import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
 
 #endif

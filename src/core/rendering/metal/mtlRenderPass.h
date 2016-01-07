@@ -16,7 +16,7 @@
 #ifndef ENG_CORE_RENDERING_METAL_RENDER_PASS
 #define ENG_CORE_RENDERING_METAL_RENDER_PASS
 
-//#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/renderPass.h"
 
@@ -29,8 +29,9 @@ namespace en
       public:
       MTLRenderPassColorAttachmentDescriptor* desc;
 
-      ColorAttachmentMTL(const TextureFormat format = FormatUnsupported,
-                                             const uint32 samples = 1);
+      ColorAttachmentMTL(const Ptr<Texture> texture,
+                         const uint32 mipmap = 0u,
+                         const uint32 layer = 0u);
 
       virtual void onLoad(const LoadOperation load, 
                           const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -59,14 +60,14 @@ namespace en
                            const uint32 layer = 0u);
       };
       
-   class FramebufferMTL : public Framebuffer
-      {
-      public:
-      // Metal Framebuffer ??? 
-
-      FramebufferMTL();
-     ~FramebufferMTL();
-      };
+   //class FramebufferMTL : public Framebuffer
+   //   {
+   //   public:
+   //   // Metal Framebuffer ???
+   //
+   //   FramebufferMTL();
+   //  ~FramebufferMTL();
+   //   };
 
    class RenderPassMTL : public RenderPass
       {
@@ -78,6 +79,6 @@ namespace en
       };
    }
 }
-//#endif
+#endif
 
 #endif

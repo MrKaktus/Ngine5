@@ -601,13 +601,26 @@ namespace en
    {
    }
 
-   TextureMTL::TextureMTL(const TextureState& _state)
+   TextureMTL::TextureMTL(const id<MTLDevice> _device, const TextureState& _state) :
+      TextureMTL(_device, _state, true)
    {
-   state = _state;
-
+   }
+   
+   TextureMTL::TextureMTL(const id<MTLDevice> _device, const TextureState& _state, const bool allocateBacking) :
+      TextureCommon(_state)
+   {
    // Calculate amount of mipmaps texture will have
    state.mipmaps = TextureMipMapCount(state);
 
+   // Keep handle to parent device
+   device = _device;
+   
+   // We may not want to allocate backing memory if texture
+   // object is used as container for surface returned by
+   // environment (like HMD or Window framebuffer handle).
+   if (!allocateBacking)
+      return;
+      
    // All validation was done in interface, parameters should be correct
    MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
    desc.textureType      = TranslateTextureType[state.type];
@@ -620,7 +633,7 @@ namespace en
    desc.arrayLength      = state.layers;                // [1..2048]
    desc.cpuCacheMode     = MTLCPUCacheModeDefaultCache; // or MTLCPUCacheModeWriteCombined
 
-   handle = [gpu->device newTextureWithDescriptor:desc];
+   handle = [device newTextureWithDescriptor:desc];
    [desc release];
 
    assert( handle != nil );
@@ -693,12 +706,38 @@ namespace en
       bytesPerRow:rowSize bytesPerImage:imageSize];
 
    // Free surface buffer
-   delete [] desc.ptr;
+   delete [] reinterpret_cast<uint8*>(desc.ptr);
    desc.ptr = nullptr;
    desc.lock.unlock();
    return true;
    }
  
+   bool TextureMTL::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
+   {
+   // Check if specified mipmap and layer are correct
+   if (state.mipmaps <= mipmap)
+      return false;
+   if (state.type == Texture3D)
+      {
+      if (state.depth <= surface)
+         return false;
+      }
+   else
+   if (state.type == TextureCubeMap)
+      {
+      if (surface >= 6)
+         return false;
+      }
+   else
+      {
+      if (state.layers <= surface)
+         return false;
+      }
+
+   // TODO: Read back texture content !!!
+   return false;
+   }
+   
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    void InitTextures(const CommonDevice* gpu)
    {

@@ -19,7 +19,13 @@
 #endif
 #if defined(EN_PLATFORM_OSX)
 #import <AppKit/AppKit.h>
+#include "platform/osx/AppDelegate.h"
 #endif
+
+namespace en
+{
+extern void initHalfs(void);
+}
 
 #include "core/storage/context.h"
 #include "core/config/context.h"
@@ -50,7 +56,7 @@
 #define ConsoleMain   main
 
 // Entry point for console applications
-int ConsoleMain(int argc, char** argv)
+int ConsoleMain(int argc, const char* argv[])
 {
 // Init Math
 en::initHalfs();
@@ -81,11 +87,11 @@ uint32 result = 0;
     // TODO: There was no task pooling possible on iPhone in the past, verify if it's still true.
 
     // We need to give whole control over app to damn OS!
-    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     @try
     {
         // OLD WAY:
-        result = UIApplicationMain(argc, argv, nil, nil);
+        //result = UIApplicationMain(argc, argv, nil, nil);
         
         // NEW WAY:
         // TODO: Needs to connect AppDelegate with call to UIApplicationMain

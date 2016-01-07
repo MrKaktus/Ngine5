@@ -22,11 +22,17 @@
 #include "audio/audio.h"
 #include "resources/resources.h"
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+
+#pragma push_macro("aligned")
+#undef aligned
+
 #define FBXSDK_SHARED
 #define FBXSDK_NEW_API
 #include "fbxsdk.h"
 #endif
+
+#pragma pop_macro("aligned")
 
 #include <map>
 using namespace std;
@@ -194,7 +200,7 @@ namespace en
           map<string, Ptr<gpu::Texture> >  textures;
           map<string, Ptr<audio::Sample> > sounds;
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
           FbxManager*           fbxManager;           // FBX Memory Manager
           FbxIOSettings*        fbxFilter;            // Filters content read from FBX
           FbxGeometryConverter* fbxGeometryConverter; // Geometry Converter responsible for triangulation

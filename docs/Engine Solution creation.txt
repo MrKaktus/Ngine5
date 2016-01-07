@@ -214,11 +214,29 @@ Build Locations:
 
 Linking:
 > Path to Link Map File:                         : ./../build/osx/$(CONFIGURATION)/$(PRODUCT_NAME)-LinkMap-$(CURRENT_VARIANT)-$(CURRENT_ARCH).txt
+> Other Linking Flags:
+  Debug:
+  *** Below are settings for IOS ***
+  "ARMv7 architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/ios-armv7/debug/libfbxsdk.a"
+  "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/ios-i386/debug/libfbxsdk.a"
+  *** Below are settings for OSX ***
+  "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/clang/debug/libfbxsdk.a"
+  *** There is also OSX 'libstdcpp' version ***
+  "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/clang/libstdcpp/debug/libfbxsdk.a"
+  Release:
+  "ARMv7 architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/ios-armv7/release/libfbxsdk.a"
+  "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/ios-i386/release/libfbxsdk.a"
+  "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/clang/release/libfbxsdk.a"
 
 Search Paths:
 > Header Search Paths                            : ./../src/            non-recursive
                                                    ./../public/include/ non-recursive
+                                                   "/Applications/Autodesk/FBX SDK/2015.1/include" non-recursive
 > Use Header Maps                                : No
+
+Versioning:
+  *** Due to avgtool not autogenerating version file issue ! ***
+> Versioning System                              : None
 
 Apple LLVM 7.0 - Language - Objective C:
 > Objective-C Automatic Reference Counting       : No

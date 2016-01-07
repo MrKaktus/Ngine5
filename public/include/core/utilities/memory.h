@@ -15,6 +15,9 @@
 
 #include "core/defines.h"
 #include "core/types.h"
+#include "core/utilities/aligment.h"
+
+#include "assert.h"
 
 #ifdef EN_PLATFORM_WINDOWS
 #include <malloc.h>

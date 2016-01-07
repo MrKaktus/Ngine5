@@ -39,7 +39,7 @@ namespace en
    
    const Nversion    Metal_IOS_1_0(0,EN_Metal_IOS,1,0,0);
    const Nversion    Metal_IOS_Unsupported(255,EN_Metal_IOS,255,255,15); // For marking unsupported features
-
+ 
    CommonDevice::CommonDevice()
    {
    // Input Assembler

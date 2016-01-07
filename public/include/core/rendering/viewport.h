@@ -37,7 +37,7 @@ namespace en
    class ViewportState : public SafeObject
       {
       public:
-      virtual ~ViewportState();                              // Polymorphic deletes require a virtual base destructor
+      virtual ~ViewportState() {};                           // Polymorphic deletes require a virtual base destructor
       // Could make public Viewports and Scissors here for easy modification (to not redo state)
       };
 

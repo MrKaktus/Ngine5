@@ -1064,7 +1064,7 @@ namespace en
    else
       {
       // Free surface buffer
-      delete [] desc.ptr;
+      delete [] reinterpret_cast<uint8*>(desc.ptr);
       desc.ptr = nullptr;
       desc.lock.unlock();
       }

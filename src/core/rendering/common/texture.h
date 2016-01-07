@@ -31,6 +31,7 @@ namespace en
 
       TextureCommon();
       TextureCommon(const TextureState& state);
+
       virtual TextureType type(void) const;
       virtual TextureFormat format(void) const;
       virtual uint32   mipmaps(void) const;
@@ -45,7 +46,7 @@ namespace en
       virtual bool     unmap(void);
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
 
-      virtual ~TextureCommon();                              // Polymorphic deletes require a virtual base destructor
+      virtual ~TextureCommon() {};                           // Polymorphic deletes require a virtual base destructor
       };
 
    struct TextureCompressedBlockInfo

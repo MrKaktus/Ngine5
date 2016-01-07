@@ -388,20 +388,12 @@ namespace en
    return mipmaps;
    }
 
-   Texture::~Texture()
-   {
-   }
-
    TextureCommon::TextureCommon()
    {
    }
 
    TextureCommon::TextureCommon(const TextureState& _state) :
       state(_state)
-   {
-   }
-   
-   TextureCommon::~TextureCommon()
    {
    }
 

@@ -6,6 +6,7 @@
 
 #include "core/defines.h"
 #include "core/types.h"
+#include "core/utilities/aligment.h"
 
 namespace en
 {
@@ -63,6 +64,8 @@ namespace en
          virtual void work(void) = 0;      // Starts task execution
          forceinline TaskState* run(void); // Adds task to queue
          forceinline bool running(void);   // Returns current state of task
+         
+         virtual ~Task() {}; // Polymorphic abstract class require virtual destructor ?
          };
    }
 }

@@ -15,7 +15,7 @@
 #include "utilities/strings.h"
 #include "resources/context.h" 
   
-#include "core/rendering/rendering.h"
+//#include "core/rendering/rendering.h"
 
 namespace en
 {
@@ -58,7 +58,7 @@ namespace en
           float2 pos;
           float2 uv;
           };
-   uint32 vertices = text.size() * 2 * 3;
+   uint32 vertices = static_cast<uint32>(text.size()) * 2 * 3;
    CharacterVertex* data = new CharacterVertex[vertices];
 
    float2 offset;
@@ -190,12 +190,12 @@ namespace en
 
 
 
-   float  texWidth;
-   float  texHeight;
+   float  texWidth = 1.0f;
+   float  texHeight = 1.0f;
    string texName;
    uint32 lineHeight;
    uint32 characters;
-   uint32 id;
+   uint32 id = 0;
    
    string line, word, command, value;
    bool eol = false;
@@ -496,8 +496,8 @@ namespace en
 
    Ptr<Font> Interface::Load::font(const string& filename)
    {
-   uint32 found;
-   uint32 length = filename.length();
+   sint64 found;
+   uint64 length = filename.length();
 
    // Try to reuse already loaded models
    if (ResourcesContext.fonts.find(filename) != ResourcesContext.fonts.end())

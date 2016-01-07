@@ -348,7 +348,7 @@ namespace en
                    // triangle fan.
                    if (counter == 3)
                       {
-                      uint32 size   = mesh->indexes.size();
+                      uint64 size   = mesh->indexes.size();
                       uint32 indexA = mesh->indexes[size-3];
                       uint32 indexB = mesh->indexes[size-1];
                       mesh->indexes.push_back(indexA);
@@ -369,7 +369,7 @@ namespace en
                    // If vertex is new, add it to vertex array
                    if (!found)
                       {
-                      mesh->indexes.push_back(mesh->vertices.size());
+                      mesh->indexes.push_back(static_cast<uint32>(mesh->vertices.size()));
                       mesh->vertices.push_back(vertex);
                       }
    
@@ -430,8 +430,10 @@ namespace en
          if (srcMesh.material == materials[j].name)
             srcMaterial = materials[j];
 
-      uint32 vertexes = srcMesh.vertices.size();
-      uint32 indexes  = srcMesh.indexes.size();
+      assert( srcMesh.vertices.size() < 0xFFFFFFFF );
+      assert( srcMesh.indexes.size() < 0xFFFFFFFF );
+      uint32 vertexes = static_cast<uint32>(srcMesh.vertices.size());
+      uint32 indexes  = static_cast<uint32>(srcMesh.indexes.size());
       
       // Create geometry buffer
       en::gpu::BufferSettings settings;

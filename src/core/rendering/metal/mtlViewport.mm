@@ -38,6 +38,10 @@ namespace en
    // Save it on creation of Render Command Encoder 
    }
 
+   ViewportStateMTL::~ViewportStateMTL()
+   {
+   }
+   
    }
 }
 #endif

@@ -14,7 +14,7 @@
 #include "core/storage.h"
 #include "core/log/log.h"
 #include "core/utilities/TintrusivePointer.h"
-#include "core/rendering/rendering.h"
+//#include "core/rendering/rendering.h"
 #include "resources/context.h" 
 #include "resources/font.h" 
 #include "resources/bmp.h"  
@@ -573,8 +573,8 @@ namespace en
 
    Ptr<Model> Interface::Load::model(const string& filename, const string& name)
    {
-   uint32 found;
-   uint32 length = filename.length();
+   sint64 found;
+   uint64 length = filename.length();
 
    // Try to reuse already loaded models
    if (ResourcesContext.models.find(name) != ResourcesContext.models.end())
@@ -673,8 +673,8 @@ namespace en
 
    Ptr<audio::Sample> Interface::Load::sound(const string& filename)
    {
-   uint32 found;
-   uint32 length = filename.length();
+   sint64 found;
+   uint64 length = filename.length();
 
    found = filename.rfind(".wav");
    if ( found != string::npos &&
@@ -719,7 +719,7 @@ namespace en
 
    Ptr<en::gpu::Texture> Interface::Load::texture(const string& filename, const gpu::ColorSpace colorSpace)
    {
-   uint32 length = filename.length();
+   uint64 length = filename.length();
 
 #ifdef EN_PROFILE
    Timer timer;
@@ -741,7 +741,7 @@ namespace en
    uint32 entries = sizeof(TranslateFileExtension) / sizeof(pair<std::string, FileExtension>);
    for(uint32 i=0; i<entries; ++i)
       {
-      uint32 extensionLength = TranslateFileExtension[i].first.length();
+      uint64 extensionLength = TranslateFileExtension[i].first.length();
       if (filename.compare(length - extensionLength, extensionLength, TranslateFileExtension[i].first) == 0)
          {
          type = TranslateFileExtension[i].second;
@@ -795,7 +795,7 @@ namespace en
 
    bool Interface::Load::texture(Ptr<gpu::Texture> dst, const uint16 layer, const string& filename, const gpu::ColorSpace colorSpace)
    {
-   uint32 length = filename.length();
+   uint64 length = filename.length();
 
 #ifdef EN_PROFILE
    Timer timer;
@@ -815,7 +815,7 @@ namespace en
    uint32 entries = sizeof(TranslateFileExtension) / sizeof(pair<std::string, FileExtension>);
    for(uint32 i=0; i<entries; ++i)
       {
-      uint32 extensionLength = TranslateFileExtension[i].first.length();
+      uint64 extensionLength = TranslateFileExtension[i].first.length();
       if (filename.compare(length - extensionLength, extensionLength, TranslateFileExtension[i].first) == 0)
          {
          type = TranslateFileExtension[i].second;

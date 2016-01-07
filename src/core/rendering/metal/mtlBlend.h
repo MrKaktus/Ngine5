@@ -35,6 +35,7 @@ namespace en
       BlendStateMTL(const BlendStateInfo& state,
                     const uint32 attachments, 
                     const BlendAttachmentInfo* color);
+      virtual ~BlendStateMTL();
       };
 
    }

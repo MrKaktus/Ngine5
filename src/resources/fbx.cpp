@@ -110,7 +110,7 @@ namespace en
 
    namespace fbx
    {
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 
 /* Tab character ("\t") counter */
 int numTabs = 0; 
@@ -384,7 +384,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
    // FBX WA: Remove global path, leaving only filename
    string filename(fbxTextureFile->GetFileName());
-   sint32 nameStart = filename.rfind('\\');
+   sint64 nameStart = filename.rfind('\\');
    if (nameStart != std::string::npos)
       filename.erase(0, nameStart + 1);
 
@@ -502,10 +502,10 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
         };
 
    uint32 numMeshes       = 1;
-   sint32 numLayers       = fbxMesh->GetLayerCount();
+ //sint32 numLayers       = fbxMesh->GetLayerCount();
    sint32 numMaterials    = fbxMesh->GetElementMaterialCount();
    uint32 numTriangles    = fbxMesh->GetPolygonCount();
-   uint32 numVertices     = fbxMesh->GetControlPointsCount();
+ //uint32 numVertices     = fbxMesh->GetControlPointsCount();
    sint32 numNormals      = fbxMesh->GetElementNormalCount();
    sint32 numTangents     = fbxMesh->GetElementTangentCount();
    sint32 numBitangents   = fbxMesh->GetElementBinormalCount();
@@ -758,7 +758,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
          // Add vertice and polygon to mesh 
          if (reuseIndex < 0)
             {
-            unpackedMesh[mesh].indexes[(polygon * 3) + vertice] = unpackedMesh[mesh].vertices.size();
+            unpackedMesh[mesh].indexes[(polygon * 3) + vertice] = static_cast<uint32>(unpackedMesh[mesh].vertices.size());
             unpackedMesh[mesh].vertices.push_back(vertex);
 
             // Update mesh AABB
@@ -869,7 +869,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    uint32 offset = 0;
    for(uint32 mesh=0; mesh<numMeshes; ++mesh)
       {
-      uint32 vertexes = unpackedMesh[mesh].vertices.size();
+      uint32 vertexes = static_cast<uint32>(unpackedMesh[mesh].vertices.size());
       for(uint32 vertice=0; vertice<vertexes; ++vertice)
          {
          Vertex& vertex = unpackedMesh[mesh].vertices[vertice];
@@ -1008,11 +1008,11 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       meshes[mesh].AABB             = unpackedMesh[mesh].AABB;
       meshes[mesh].geometry.buffer  = vbo;
       meshes[mesh].geometry.begin   = vboBegin;
-      meshes[mesh].geometry.end     = vboBegin + unpackedMesh[mesh].vertices.size() - 1;
+      meshes[mesh].geometry.end     = vboBegin + static_cast<uint32>(unpackedMesh[mesh].vertices.size()) - 1u;
       meshes[mesh].elements.buffer  = ibo;
       meshes[mesh].elements.type    = Triangles;
       meshes[mesh].elements.offset  = iboBegin * indexSize;
-      meshes[mesh].elements.indexes = iboBegin + unpackedMesh[mesh].optimized.size() - 1;
+      meshes[mesh].elements.indexes = iboBegin + static_cast<uint32>(unpackedMesh[mesh].optimized.size()) - 1u;
 
       vboBegin += unpackedMesh[mesh].vertices.size();
       iboBegin += unpackedMesh[mesh].optimized.size();
@@ -1089,7 +1089,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       string filename(fileTexture->GetFileName());
 
       // FBX WA: Remove global path, leaving only filename
-      sint32 nameStart = filename.rfind('\\');
+      sint64 nameStart = filename.rfind('\\');
       if (nameStart != std::string::npos)
          filename.erase(0, nameStart + 1);
       #ifdef EN_DEBUG
@@ -1443,7 +1443,7 @@ double timeStep = 1.0 / 46186158000.0;  // FBX Time Unit - Fraction of second
    return model;
    }
 
-   #endif // EN_PLATFORM_WINDOWS
+   #endif
    }
 }
 

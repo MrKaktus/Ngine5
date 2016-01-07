@@ -145,7 +145,7 @@ assert(ptr);
 // Calculate object index in array
 if ( reinterpret_cast<uint64>(ptr) < reinterpret_cast<uint64>(buffer) )
    return false;
-uint32 index = ( reinterpret_cast<uint64>(ptr) - reinterpret_cast<uint64>(buffer) ) / sizeof(obj);
+uint32 index = static_cast<uint32>( reinterpret_cast<uint64>(ptr) - reinterpret_cast<uint64>(buffer) ) / sizeof(obj);
 if (index >= size)
    return false;
 

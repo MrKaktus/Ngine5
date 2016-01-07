@@ -20,7 +20,7 @@
 
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/texture.h"
-#include "core/rendering/metal/mtlDevice.h"
+#include "core/rendering/common/device.h"
 #include "threading/mutex.h"
 
 namespace en
@@ -39,15 +39,17 @@ namespace en
 
    class TextureMTL : public TextureCommon
       {
-      private:
-      MetalDevice*      gpu;    // GPU owning this texture
+      public:
+      id<MTLDevice>     device; // GPU owning this texture
       SurfaceDescriptor desc;   // Mapped surface description
       id <MTLTexture>   handle; // Metal sampler ID
 
       virtual void*    map(const uint8 mipmap, const uint16 surface);
       virtual bool     unmap(void);
-         
-      TextureMTL(const TextureState& state);
+      virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
+
+      TextureMTL(const id<MTLDevice> _device, const TextureState& state);
+      TextureMTL(const id<MTLDevice> _device, const TextureState& state, const bool allocateBacking);
       virtual ~TextureMTL();
       };
    }

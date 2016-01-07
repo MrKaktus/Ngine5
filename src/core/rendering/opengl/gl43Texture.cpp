@@ -44,7 +44,9 @@ namespace en
    uint16 height           = this->height();
    uint16 depth            = state.layers;      // 3D depth
    uint32 layers           = state.layers;      // Array layers, CubeMap faces, CubeMapArray face-layers
+#ifndef EN_PLATFORM_OSX
    uint32 samples          = state.samples;
+#endif
 
    // Generate texture descriptor with default state
    Profile( glGenTextures(1, (GLuint*)&id) );

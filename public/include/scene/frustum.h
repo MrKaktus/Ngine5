@@ -13,7 +13,7 @@
 #ifndef ENG_SCENE_FRUSTUM
 #define ENG_SCENE_FRUSTUM
 
-#include "core/rendering/rendering.h"
+#include "core/rendering/rendering.hpp"
 #include "scene/drawable.h"
 #include "scene/cam.h"
 

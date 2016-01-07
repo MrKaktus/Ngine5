@@ -33,6 +33,7 @@ namespace en
       ViewportStateMTL(const uint32 count,
                        const ViewportStateInfo* viewports,
                        const ScissorStateInfo* scissors);
+      virtual ~ViewportStateMTL();
       };
    }
 }

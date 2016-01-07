@@ -17,7 +17,7 @@
 #define sprintf_s sprintf
 #endif
 
-#if defined(EN_PLATFORM_MACOS)
+#if defined(EN_PLATFORM_OSX)
 #define sprintf_s snprintf
 #endif
 

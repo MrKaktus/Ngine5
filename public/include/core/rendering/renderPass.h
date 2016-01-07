@@ -40,6 +40,7 @@ namespace en
       Discard            = 0,
       Store                 ,
       ResolveMSAA           ,
+      StoreAndResolveMSAA   ,
       StoreOperationsCount
       };
 

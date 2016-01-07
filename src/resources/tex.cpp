@@ -14,7 +14,12 @@
 #include "core/log/log.h"
 #include "utilities/utilities.h"
 #include "resources/context.h"
+#if defined(EN_PLATFORM_WINDOWS)
 #include "zlib-1.2.8/zlib.h"
+#endif
+#if defined(EN_PLATFORM_OSX)
+#include "zlib.h"
+#endif
 
 #include <string>
 using namespace std;

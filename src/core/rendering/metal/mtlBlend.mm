@@ -86,6 +86,11 @@ namespace en
       }
    }
 
+   BlendStateMTL::~BlendStateMTL()
+   {
+   [blendInfo release];
+   }
+   
    }
 }
 #endif

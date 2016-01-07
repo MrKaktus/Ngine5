@@ -29,7 +29,8 @@ namespace en
    {
    enum Compression
         {
-        RLE_RGBA  = 0,
+        Unknown   = 0,
+        RLE_RGBA     ,
         RLE_XYZ
         };
 
@@ -82,7 +83,7 @@ namespace en
       }
 
 
-   Compression compression;
+   Compression compression = Unknown;
    float exposure;
 
    // Read parameters

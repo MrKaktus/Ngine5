@@ -28,45 +28,136 @@
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/pipeline.h"
 #include "core/rendering/renderPass.h"
+#include "core/rendering/metal/mtlTexture.h"
+
+#import <AppKit/AppKit.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
 
 using namespace std;
+//using namespace en::gpu;
 
 namespace en
 {
    namespace gpu
    {
+   class ScreenMTL : public Screen
+      {
+      public:
+      NSScreen* handle;     // Pointer to screen in [NSScreen screens] array
+      
+      ScreenMTL();
+     ~ScreenMTL();
+      };
+      
+   class WindowMTL : public Window
+      {
+      public:
+      Ptr<Screen>   handle;
+      NSWindow*     window;
+      CAMetalLayer* layer;
+      id <CAMetalDrawable> drawable;
+      Ptr<TextureMTL> framebuffer;
+      bool          needNewSurface;
+      
+      virtual Ptr<Screen> screen(void);
+      virtual uint32v2 position(void);
+      virtual bool movable(void);
+      virtual void move(const uint32v2 position);
+      virtual void resize(const uint32v2 size);
+      virtual void active(void);
+      virtual void transparent(const float opacity);
+      virtual void opaque(void);
+      virtual Ptr<Texture> surface(void);
+      virtual void display(void);
+      
+      WindowMTL(const id<MTLDevice> device, const WindowSettings& settings, const string title);
+      virtual ~WindowMTL();
+      };
+   
+   class CommandBufferMTL : public CommandBuffer
+      {
+      public:
+      id <MTLCommandBuffer> handle;
+      id <MTLRenderCommandEncoder> renderEncoder;
+      
+      virtual void bind(const Ptr<RasterState> raster);
+      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
+      virtual void bind(const Ptr<DepthStencilState> depthStencil);
+      virtual void bind(const Ptr<BlendState> blend);
+      
+      virtual bool startRenderPass(const Ptr<RenderPass> pass);
+      virtual bool endRenderPass(void);
+      virtual void commit(void);
+      virtual void waitUntilCompleted(void);
+   
+      CommandBufferMTL();
+      virtual ~CommandBufferMTL();
+      };
+
+    
+    
    class MetalDevice : public CommonDevice
       {
       public:
       id<MTLDevice> device;
+      id<MTLCommandQueue> queue;
       
-      MetalDevice();
+      MetalDevice(id<MTLDevice> handle);
      ~MetalDevice();
+
+
+      uint32 screens(void);           // Screens count the device can render to
+      Ptr<Screen> screen(uint32 id);  // Return N'th screen handle
+      Ptr<Window> create(const WindowSettings& settings,
+                        const string title); // Create window
+      
+      virtual Ptr<Texture> create(const TextureState state);
+      
+      virtual Ptr<CommandBuffer>   createCommandBuffer(void);
 
       virtual Ptr<RasterState>     create(const RasterStateInfo& state);
       virtual Ptr<BlendState>      create(const BlendStateInfo& state,
                                           const uint32 attachments,
                                           const BlendAttachmentInfo* color);
-      virtual Ptr<ColorAttachment> create(const TextureFormat format = FormatUnsupported,
-                                          const uint32 samples = 1);
-      virtual Ptr<RenderPass>      create(const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-                                          const Ptr<DepthStencilAttachment> depthStencil);
-
-
 
    // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
    // similarly when binding CubeMap texture, pass it's "face" through "layer".
-      virtual Ptr<ColorAttachment> create(const Ptr<Texture> texture,
-                                          const TextureFormat format,
+      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<Texture> texture,
                                           const uint32 mipmap = 0,
                                           const uint32 layer = 0,
                                           const uint32 layers = 1);
 
-      virtual Ptr<DepthStencilAttachment> create(const Ptr<Texture> texture,
-                                                 const TextureFormat format,
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<Texture> depth, const Ptr<Texture> stencil,
                                                  const uint32 mipmap = 0,
                                                  const uint32 layer = 0,
                                                  const uint32 layers = 1);
+
+
+
+      //virtual Ptr<ColorAttachment> create(const TextureFormat format = FormatUnsupported,
+      //                                    const uint32 samples = 1);
+
+
+      // Creates simple render pass with one color destination
+      virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,
+                                     const Ptr<DepthStencilAttachment> depthStencil);
+      
+      virtual Ptr<RenderPass> create(const uint32 _attachments,
+                                     const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+                                     const Ptr<DepthStencilAttachment> depthStencil);
+        
+      // Creates render pass which's output goes to window framebuffer
+      virtual Ptr<RenderPass> create(const Ptr<Texture> framebuffer,
+                                     const Ptr<DepthStencilAttachment> depthStencil);
+      
+      // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
+      virtual Ptr<RenderPass> create(const Ptr<Texture> temporaryMSAA,
+                                     const Ptr<Texture> framebuffer,
+                                     const Ptr<DepthStencilAttachment> depthStencil);
+
+
+
 
 
       //Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
@@ -81,7 +172,15 @@ namespace en
    class MetalAPI : public GraphicAPI
       {
       public:
-      MetalAPI(string appName);
+      Ptr<GpuDevice> device[2];  // Primary and Supporting GPU
+      uint32 devicesCount;
+      bool preferLowPowerGPU; // If set and two GPU's are available, low-power GPU will be choosed over discreete one
+      ScreenMTL* display = nullptr;
+      ScreenMTL* virtualDisplay = nullptr;
+      uint32 displaysCount = 0;
+  
+  
+      MetalAPI();
      ~MetalAPI();
       };
    }

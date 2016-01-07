@@ -16,8 +16,19 @@
 #ifndef ENG_CORE_RENDERING_DEVICE
 #define ENG_CORE_RENDERING_DEVICE
 
+#include <string>
 #include "core/utilities/TintrusivePointer.h" 
+
+#include "core/rendering/blend.h"
+#include "core/rendering/depthStencil.h"
+#include "core/rendering/raster.h"
+#include "core/rendering/texture.h"
+#include "core/rendering/renderPass.h"
+
 #include "utilities/Nversion.h"
+
+
+using namespace std;
 
 namespace en
 {
@@ -31,19 +42,124 @@ namespace en
    extern const Nversion Metal_IOS_1_0;               // Metal 1.0
    extern const Nversion Metal_IOS_Unsupported;       // For marking unsupported features
 
-   // Per graphic API context, initialized depending on API choosed at runtime
-   class GraphicAPI : public SafeObject
+
+
+   class Screen : public SafeObject
       {
       public:
-      virtual ~GraphicAPI();                              // Polymorphic deletes require a virtual base destructor
+      uint32v2 resolution;  // Native resolution
+      uint32v2 position;    // Upper-Left corner position on virtual desktop
+      
+      Screen();
+      virtual ~Screen() {}; // Polymorphic deletes require a virtual base destructor
+      };
+      
+   enum WindowMode
+      {
+      Windowed          = 0,   // Create Window
+      BorderlessWindow     ,   // Create borderless Window
+      Fullscreen               // Create full screen surface
+      };
+      
+   struct WindowSettings
+      {
+      Ptr<Screen> screen;    // Screen on which window will be created, if not specified, primary screen is choosed.
+      uint32v2    position;  // Position on the screen, by default Upper-Left corner.
+      uint32v2    size;      // Window size in pixels of the screen (if zeroes set, native resolution will be set)
+      WindowMode  mode;      // Mode in which we create surface (BorderlessWindow by default).
+      
+      WindowSettings();
       };
 
+   class Window : public SafeObject
+      {
+      public:
+      virtual Ptr<Screen> screen(void) = 0;   // Screen on which window's center point is currently located
+      virtual uint32v2 position(void) = 0;
+      virtual bool movable(void) = 0;
+      virtual void move(const uint32v2 position) = 0;
+      virtual void resize(const uint32v2 size) = 0;
+      virtual void active(void) = 0;
+      virtual void transparent(const float opacity) = 0;
+      virtual void opaque(void) = 0;
+      virtual Ptr<Texture> surface(void) = 0; // App should query for current surface each time it wants to reference it
+      virtual void display(void) = 0;
+      
+      virtual ~Window() {};                               // Polymorphic deletes require a virtual base destructor
+      };
+
+   class CommandBuffer : public SafeObject
+      {
+      public:
+      virtual void bind(const Ptr<RasterState> raster) = 0;
+      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor) = 0;
+      virtual void bind(const Ptr<DepthStencilState> depthStencil) = 0;
+      virtual void bind(const Ptr<BlendState> blend) = 0;
+
+      virtual bool startRenderPass(const Ptr<RenderPass> pass) = 0;
+      virtual bool endRenderPass(void) = 0;
+      virtual void commit(void) = 0;
+      virtual void waitUntilCompleted(void) = 0;
+      
+      virtual ~CommandBuffer() {};                        // Polymorphic deletes require a virtual base destructor
+      };
+      
    // Per device context that can be used to perform operations on GPU
    class GpuDevice : public SafeObject
       {
       public:
-      virtual ~GpuDevice();                              // Polymorphic deletes require a virtual base destructor
+      virtual uint32 screens(void) = 0;           // Screens the device can render to
+      virtual Ptr<Screen> screen(uint32 id) = 0;  // Return N'th screen handle
+      virtual Ptr<Window> create(const WindowSettings& settings,
+                                 const string title) = 0; // Create window
+         
+      virtual Ptr<Texture> create(const TextureState state) = 0;
+      
+      virtual Ptr<CommandBuffer> createCommandBuffer(void) = 0; // Create command buffer
+
+   // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
+   // similarly when binding CubeMap texture, pass it's "face" through "layer".
+      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<Texture> texture,
+                                          const uint32 mipmap = 0,
+                                          const uint32 layer = 0,
+                                          const uint32 layers = 1) = 0;
+
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<Texture> depth, const Ptr<Texture> stencil,
+                                                 const uint32 mipmap = 0,
+                                                 const uint32 layer = 0,
+                                                 const uint32 layers = 1) = 0;
+
+      // Creates simple render pass with one color destination
+      virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,
+                                     const Ptr<DepthStencilAttachment> depthStencil) = 0;
+      
+      virtual Ptr<RenderPass> create(const uint32 _attachments,
+                                     const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+                                     const Ptr<DepthStencilAttachment> depthStencil) = 0;
+        
+      // Creates render pass which's output goes to window framebuffer
+      virtual Ptr<RenderPass> create(const Ptr<Texture> framebuffer,
+                                     const Ptr<DepthStencilAttachment> depthStencil) = 0;
+      
+      // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
+      virtual Ptr<RenderPass> create(const Ptr<Texture> temporaryMSAA,
+                                     const Ptr<Texture> framebuffer,
+                                     const Ptr<DepthStencilAttachment> depthStencil) = 0;
+
+
+      virtual ~GpuDevice() {};                            // Polymorphic deletes require a virtual base destructor
       };
+      
+   // Per graphic API context, initialized depending on API choosed at runtime
+   class GraphicAPI : public SafeObject
+      {
+      public:
+      virtual uint32 devices(void) = 0;
+      virtual Ptr<GpuDevice> primaryDevice(void) = 0;
+      virtual ~GraphicAPI() {};                           // Polymorphic deletes require a virtual base destructor
+      };
+
+
 
    }
 }

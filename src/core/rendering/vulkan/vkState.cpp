@@ -65,16 +65,6 @@
 //      };
 //
 //
-//   class CommandBuffer : public SafeObject
-//      {
-//      public:
-//      virtual void bind(const Ptr<RasterState> raster) = 0;
-//      virtual void bind(const Ptr<ViewportScissorState> viewportScissor) = 0;
-//      virtual void bind(const Ptr<DepthStencilState> depthStencil) = 0;
-//      virtual void bind(const Ptr<BlendState> blend) = 0;
-//
-//      };
-//
 //
 //
 //   // Dynamic states creation
@@ -3287,14 +3277,6 @@
 //
 //
 //
-//   // Queue should be rarely created
-//   // Metal queue is something like "universal" or "synchronous" queue in comparison to "3d / compute /dma" queues in Vulkan
-//   id <MTLCommandQueue> queue = [[device newCommandQueue] autorelease];
-//
-//   // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers they can be recycled / reused !!! )
-//   // Multiple buffers can be created simultaneously for one queue
-//   // Buffers are execyted in order in queue
-//   id <MTLCommandBuffer> buffer;
 //
 //   // One encoder at a time in buffer (except of parallel)
 //   id <MTLRenderCommandEncoder>

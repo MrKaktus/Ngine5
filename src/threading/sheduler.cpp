@@ -3,7 +3,7 @@
 #include "platform/system.h"
 #include "threading/mutex.h"
 
-
+#include "core/log/log.h"
 
 #include "threading/context.h"
 #include "threading/scheduler.h"

@@ -1477,7 +1477,7 @@ namespace en
 
       // Perform shader compilation
       shader->id = glCreateShader(gl::PipelineStage[stage].type);
-      Profile( glShaderSource(shader->id, code.size(), (const GLchar**)pointer, NULL) );
+      Profile( glShaderSource(shader->id, static_cast<sint32>(code.size()), (const GLchar**)pointer, NULL) );
       Profile( glCompileShader(shader->id) ); 
       delete pointer;
 

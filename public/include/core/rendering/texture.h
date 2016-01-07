@@ -285,7 +285,7 @@ namespace en
       virtual bool     unmap(void) = 0;
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
 
-      virtual ~Texture();                              // Polymorphic deletes require a virtual base destructor
+      virtual ~Texture() {};                           // Polymorphic deletes require a virtual base destructor
       };
 
 

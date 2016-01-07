@@ -11,7 +11,7 @@
 
 #include "core/storage.h"
 #include "core/log/log.h"
-#include "core/rendering/rendering.h"
+//#include "core/rendering/rendering.h"
 #include "utilities/utilities.h"
 #include "resources/context.h"
 #include "resources/tga.h"    

@@ -23,22 +23,45 @@ namespace en
    {  
    static const MTLLoadAction TranslateLoadOperation[LoadOperationsCount] =
       {
-      MTLLoadActionDontCare,                    // DontLoad
+      MTLLoadActionDontCare,                    // None
       MTLLoadActionLoad,                        // Load
       MTLLoadActionClear                        // Clear
       };
    
    static const MTLStoreAction TranslateStoreOperation[StoreOperationsCount] = 
       {
-      MTLStoreActionDontCare,                   // DontStore
+      MTLStoreActionDontCare,                   // Discard
       MTLStoreActionStore,                      // Store
-      MTLStoreActionMultisampleResolve          // ResolveMSAA
+      MTLStoreActionMultisampleResolve,         // ResolveMSAA
+      0                                         // StoreAndResolveMSAA
       };
 
-   ColorAttachmentMTL::ColorAttachmentMTL(const TextureFormat format, const uint32 samples) :
+   ColorAttachmentMTL::ColorAttachmentMTL(const Ptr<Texture> texture, const uint32 mipmap, const uint32 layer) :
       desc([[[MTLRenderPassColorAttachmentDescriptor alloc] init] autorelease])
    {
-   // TODO
+   assert( texture );
+
+   Ptr<TextureMTL> target = ptr_dynamic_cast<TextureMTL, Texture>(texture);
+
+   desc.texture           = target->id;
+   desc.level             = mipmap;
+   desc.slice             = 0;
+   desc.depthPlane        = 0;
+   
+   // Metal is currently not supporting 
+   // Texture2DMultisampleArray, nor
+   // TextureCubeMapArray
+   if (resolve->state.type == Texture1DArray ||
+       resolve->state.type == Texture2DArray ||
+       resolve->state.type == TextureCubeMap)
+      desc.slice          = layer;
+   else
+   if (resolve->state.type == Texture3D)
+      desc.depthPlane     = layer;
+      
+   desc.loadAction        = MTLLoadActionClear;
+   desc.storeAction       = MTLStoreActionStore;
+   desc.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
    }
 
    ColorAttachmentMTL::~ColorAttachmentMTL()
@@ -80,7 +103,7 @@ namespace en
       desc.resolveSlice = layer;
    else
    if (resolve->state.type == Texture3D)
-      sesc.resolveDepthPlane = layer;
+      desc.resolveDepthPlane = layer;
    }
 
 
@@ -94,29 +117,80 @@ namespace en
    [desc release];
    }
 
-   Ptr<RenderPass> MetalDevice::create(const uint32 _attachments,
-                                       const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-                                       const Ptr<DepthStencilAttachment> depthstencil)
+//   Ptr<RenderPass> MetalDevice::create(const uint32 _attachments,
+//                                       const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+//                                       const Ptr<DepthStencilAttachment> depthstencil)
+//   {
+//   Ptr<RenderPass> result = nullptr;
+//   
+//
+//
+//   // Create renderpass object
+//   VkRenderPass renderpass;
+//   VkResult res = vkCreateRenderPass(device, &passInfo, &defaultAllocCallbacks, &renderpass);
+//   if (res == VK_SUCCESS)
+//      {
+//      Ptr<RenderPassVK> rpo = new RenderPassVK();
+//      rpo->id          = renderpass;
+//      rpo->gpu         = this;
+//      rpo->attachments = _attachments;
+//      result = ptr_dynamic_cast<RenderPass, RenderPassVK>(rpo);
+//      }
+//
+//   delete [] attachment;
+//
+//   return result;
+//   }
+
+
+   Ptr<ColorAttachment> MetalDevice::createColorAttachment(const Ptr<Texture> texture,
+                                          const uint32 mipmap = 0,
+                                          const uint32 layer = 0,
+                                          const uint32 layers = 1)
    {
-   Ptr<RenderPass> result = nullptr;
+   assert( texture );
+
+   // Metal is not supporting rendering to more than one layer at the same time.
+   assert( layers == 1 );
    
+   return ptr_dynamic_cast<ColorAttachment, ColorAttachmentMTL>(new ColorAttachmentMTL(texture, mipmap, layer));
+   }
+
+   Ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(const Ptr<Texture> depth, const Ptr<Texture> stencil,
+                                                 const uint32 mipmap = 0,
+                                                 const uint32 layer = 0,
+                                                 const uint32 layers = 1)
+   {
+   assert( texture );
+
+   // Metal is not supporting rendering to more than one layer at the same time.
+   assert( layers == 1 );
+   
+   return ptr_dynamic_cast<DepthStecilAttachment, DepthStecilAttachmentMTL>(new DepthStecilAttachmentMTL(depth, stencil, mipmap, layer));
+   }
 
 
-   // Create renderpass object
-   VkRenderPass renderpass;
-   VkResult res = vkCreateRenderPass(device, &passInfo, &defaultAllocCallbacks, &renderpass);
-   if (res == VK_SUCCESS)
-      {
-      Ptr<RenderPassVK> rpo = new RenderPassVK();
-      rpo->id          = renderpass;
-      rpo->gpu         = this;
-      rpo->attachments = _attachments;
-      result = ptr_dynamic_cast<RenderPass, RenderPassVK>(rpo);
-      }
 
-   delete [] attachment;
 
-   return result;
+
+   // Creates simple render pass with one color destination
+   Ptr<RenderPass> MetalDevice::create(const Ptr<ColorAttachment> color,
+                                       const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   Ptr<RenderPassMTL> pass = new RenderPassMTL();
+
+   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
+
+   // Color
+   Ptr<ColorAttachmentMTL> mtlColor = ptr_dynamic_cast<ColorAttachmentMTL, ColorAttachment>(color);
+   pass->desc.colorAttachments[0] = mtlColor->desc;
+   
+   // Depth & Stencil
+   Ptr<DepthStencilAttachmentMTL> mtlDepthStencil = ptr_dynamic_cast<DepthStencilAttachmentMTL, DepthStencilAttachment>(depthStencil);
+   pass->desc.depthAttachment   = mtlDepthStencil->depth;
+   pass->desc.stencilAttachment = mtlDepthStencil->stencil;
+
+   return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
    }
 
    Ptr<RenderPass> MetalDevice::create(const uint32 _attachments,
@@ -127,22 +201,16 @@ namespace en
 
    Ptr<RenderPassMTL> pass = new RenderPassMTL();
 
-   pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for occlusion query ??
+   pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
 
+   // Color
    for(uint32 i=0; i<_attachments; ++i)
       {
-      MTLRenderPassColorAttachmentDescriptor* colorAttachment = pass->desc.colorAttachments[i];
-      colorAttachment.texture           = drawable.currentTexture;
-      colorAttachment.level             = 0;
-      colorAttachment.slice             = 0;
-      colorAttachment.depthPlane        = 0;
-      colorAttachment.resolveTexture    = nil;
-      colorAttachment.resolveLevel      = 0;
-      colorAttachment.resolveSlice      = 0;
-      colorAttachment.resolveDepthPlane = 0;
-      colorAttachment.loadAction        = MTLLoadActionClear;
-      colorAttachment.storeAction       = MTLStoreActionDontCare;
-      colorAttachment.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
+      if (color[i] == nullptr)
+         continue;
+         
+      Ptr<ColorAttachmentMTL> mtlColor = ptr_dynamic_cast<ColorAttachmentMTL, ColorAttachment>(color[i]);
+      pass->desc.colorAttachments[i] = mtlColor->desc;
       }
 
    // Depth & Stencil
@@ -153,7 +221,77 @@ namespace en
    return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
    }
 
+   // Creates render pass which's output goes to window framebuffer
+   Ptr<RenderPass> MetalDevice::create(const Ptr<Texture> framebuffer,
+                                       const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   Ptr<RenderPassMTL> pass = new RenderPassMTL();
 
+   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
+
+   // Color
+   assert( framebuffer );
+   Ptr<TextureMTL> fbo  = ptr_dynamic_cast<TextureMTL, Texture>(framebuffer);
+
+   MTLRenderPassColorAttachmentDescriptor* colorAttachment = pass->desc.colorAttachments[0];
+   colorAttachment.texture           = fbo->handle;
+   colorAttachment.level             = 0;
+   colorAttachment.slice             = 0;
+   colorAttachment.depthPlane        = 0;
+   colorAttachment.resolveTexture    = nil;
+   colorAttachment.resolveLevel      = 0;
+   colorAttachment.resolveSlice      = 0;
+   colorAttachment.resolveDepthPlane = 0;
+   colorAttachment.loadAction        = MTLLoadActionClear;
+   colorAttachment.storeAction       = MTLStoreActionDontCare;
+   colorAttachment.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
+   
+   // Depth & Stencil
+   Ptr<DepthStencilAttachmentMTL> mtlDepthStencil = ptr_dynamic_cast<DepthStencilAttachmentMTL, DepthStencilAttachment>(depthStencil);
+   pass->desc.depthAttachment   = mtlDepthStencil->depth;
+   pass->desc.stencilAttachment = mtlDepthStencil->stencil;
+
+   return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
+   }
+
+   // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
+   Ptr<RenderPass> MetalDevice::create(const Ptr<Texture> temporaryMSAA,
+                                       const Ptr<Texture> framebuffer,
+                                       const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   assert( temporaryMSAA );
+   assert( framebuffer );
+   
+   Ptr<RenderPassMTL> pass = new RenderPassMTL();
+
+   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
+
+   // Color
+   Ptr<TextureMTL> msaa = ptr_dynamic_cast<TextureMTL, Texture>(temporaryMSAA);
+   Ptr<TextureMTL> fbo  = ptr_dynamic_cast<TextureMTL, Texture>(framebuffer);
+
+   MTLRenderPassColorAttachmentDescriptor* colorAttachment = pass->desc.colorAttachments[0];
+   colorAttachment.texture           = msaa->handle;
+   colorAttachment.level             = 0;
+   colorAttachment.slice             = 0;
+   colorAttachment.depthPlane        = 0;
+   colorAttachment.resolveTexture    = fbo->handle;
+   colorAttachment.resolveLevel      = 0;
+   colorAttachment.resolveSlice      = 0;
+   colorAttachment.resolveDepthPlane = 0;
+   colorAttachment.loadAction        = MTLLoadActionClear;
+   colorAttachment.storeAction       = MTLStoreActionDontCare;
+   colorAttachment.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
+   
+   // Depth & Stencil
+   Ptr<DepthStencilAttachmentMTL> mtlDepthStencil = ptr_dynamic_cast<DepthStencilAttachmentMTL, DepthStencilAttachment>(depthStencil);
+   pass->desc.depthAttachment   = mtlDepthStencil->depth;
+   pass->desc.stencilAttachment = mtlDepthStencil->stencil;
+
+   return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
+   }
+      
+      
 
 
 
