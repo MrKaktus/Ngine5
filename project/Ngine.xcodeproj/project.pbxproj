@@ -268,6 +268,9 @@
 		8567096C1C1143FB0018350B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8567096A1C1143FB0018350B /* AppDelegate.m */; };
 		8568754D1BF411AD00D7FD2D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8568754C1BF411AD00D7FD2D /* Cocoa.framework */; };
 		8568754F1BF411C200D7FD2D /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8568754E1BF411C200D7FD2D /* Metal.framework */; };
+		859178ED1C3EC3960051382A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178EC1C3EC3960051382A /* OpenAL.framework */; };
+		859178EF1C3EC7680051382A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178EE1C3EC7680051382A /* libz.dylib */; };
+		859178F11C3EC8490051382A /* libfbxsdk.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178F01C3EC8490051382A /* libfbxsdk.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -604,6 +607,9 @@
 		8568754A1BF410E400D7FD2D /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		8568754C1BF411AD00D7FD2D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		8568754E1BF411C200D7FD2D /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		859178EC1C3EC3960051382A /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		859178EE1C3EC7680051382A /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		859178F01C3EC8490051382A /* libfbxsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfbxsdk.a; path = "../../../../../Applications/Autodesk/FBX SDK/2015.1/lib/clang/debug/libfbxsdk.a"; sourceTree = "<group>"; };
 		85E409DA1BEB09B700DBC095 /* Ngine.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Ngine.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -612,6 +618,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				859178F11C3EC8490051382A /* libfbxsdk.a in Frameworks */,
+				859178EF1C3EC7680051382A /* libz.dylib in Frameworks */,
+				859178ED1C3EC3960051382A /* OpenAL.framework in Frameworks */,
 				85585EE71C0A32C3002EB348 /* QuartzCore.framework in Frameworks */,
 				8568754F1BF411C200D7FD2D /* Metal.framework in Frameworks */,
 				8568754D1BF411AD00D7FD2D /* Cocoa.framework in Frameworks */,
@@ -1345,6 +1354,9 @@
 		85E409D01BEB09B700DBC095 = {
 			isa = PBXGroup;
 			children = (
+				859178F01C3EC8490051382A /* libfbxsdk.a */,
+				859178EE1C3EC7680051382A /* libz.dylib */,
+				859178EC1C3EC3960051382A /* OpenAL.framework */,
 				855860C31C0A48A5002EB348 /* include */,
 				85585EFE1C0A4559002EB348 /* src */,
 				85585EE61C0A32C3002EB348 /* QuartzCore.framework */,

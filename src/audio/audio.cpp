@@ -18,6 +18,9 @@
 
 #include "assert.h"
 
+// OSX linking:
+// gcc -framework OpenAL -o audio audio.cpp
+
 namespace en
 {
    namespace audio
