@@ -14,8 +14,8 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "85E409D91BEB09B700DBC095"
-               BuildableName = "Ngine.framework"
+               BlueprintIdentifier = "859179031C3F64330051382A"
+               BuildableName = "libNgine.a"
                BlueprintName = "Ngine"
                ReferencedContainer = "container:Ngine.xcodeproj">
             </BuildableReference>
@@ -45,8 +45,8 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "85E409D91BEB09B700DBC095"
-            BuildableName = "Ngine.framework"
+            BlueprintIdentifier = "859179031C3F64330051382A"
+            BuildableName = "libNgine.a"
             BlueprintName = "Ngine"
             ReferencedContainer = "container:Ngine.xcodeproj">
          </BuildableReference>
@@ -63,8 +63,8 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "85E409D91BEB09B700DBC095"
-            BuildableName = "Ngine.framework"
+            BlueprintIdentifier = "859179031C3F64330051382A"
+            BuildableName = "libNgine.a"
             BlueprintName = "Ngine"
             ReferencedContainer = "container:Ngine.xcodeproj">
          </BuildableReference>
