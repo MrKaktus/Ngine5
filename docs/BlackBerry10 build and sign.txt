@@ -6,6 +6,11 @@ Step by step:
    1) Install Momentics IDE at:
       C:\bbndk\
  
+
+0) New BlackBerry Plugin for Visual Studio is here: 
+   https://github.com/phofman/vs-plugin
+   (!!!! looks like it is awesome !!!!)
+
 2) Install Visual Studio plugin at default location:
    C:\bbndk_vs\   
    Be sure "qconfig" dir is on C:\
