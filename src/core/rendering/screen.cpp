@@ -46,8 +46,12 @@ namespace en
       display(-1),
       width(0),  
       height(0), 
-      samples(1), 
+      samples(1),
+#ifndef EN_PLATFORM_OSX // QUICK DIRTY WA FOR NEW RENDERING API ABSTRACTION
       mode(Fullscreen)
+#else
+      mode(Window)
+#endif
    {
    }
    #endif

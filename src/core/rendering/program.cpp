@@ -557,7 +557,7 @@ namespace en
                info.append("\n");
       
                Log << info; 
-               delete buffer;
+               delete [] buffer;
                }
             }
       
@@ -1443,7 +1443,7 @@ namespace en
                info.append(buffer);
                info.append("\n");
                Log << info; 
-               delete buffer;
+               delete [] buffer;
                }
             }
      
@@ -1479,7 +1479,7 @@ namespace en
       shader->id = glCreateShader(gl::PipelineStage[stage].type);
       Profile( glShaderSource(shader->id, static_cast<sint32>(code.size()), (const GLchar**)pointer, NULL) );
       Profile( glCompileShader(shader->id) ); 
-      delete pointer;
+      delete [] pointer;
 
       //Check compilation status
       sint32 ret = 0;
@@ -1509,7 +1509,7 @@ namespace en
                info.append(buffer);
                info.append("\n");
                Log << info; 
-               delete buffer;
+               delete [] buffer;
                }
             }
      

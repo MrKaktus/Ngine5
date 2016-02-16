@@ -54,6 +54,8 @@ namespace en
       {
       public:
       Ptr<Screen>   handle;
+      uint32v2      windowPosition;
+      
       NSWindow*     window;
       CAMetalLayer* layer;
       id <CAMetalDrawable> drawable;
@@ -167,21 +169,6 @@ namespace en
       //                     const Ptr<DepthStencilState> depthStencilState,
       //                     const Ptr<BlendState>     blendState,
       //                     const Ptr<PipelineLayout> pipelineLayout);
-      };
-
-   class MetalAPI : public GraphicAPI
-      {
-      public:
-      Ptr<GpuDevice> device[2];  // Primary and Supporting GPU
-      uint32 devicesCount;
-      bool preferLowPowerGPU; // If set and two GPU's are available, low-power GPU will be choosed over discreete one
-      ScreenMTL* display = nullptr;
-      ScreenMTL* virtualDisplay = nullptr;
-      uint32 displaysCount = 0;
-  
-  
-      MetalAPI();
-     ~MetalAPI();
       };
    }
 }

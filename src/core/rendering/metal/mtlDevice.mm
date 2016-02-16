@@ -15,6 +15,7 @@
 
 #include "core/log/log.h"
 #include "core/rendering/metal/mtlDevice.h"
+#include "core/rendering/metal/mtlAPI.h"
 #include "core/utilities/memory.h"
 
 #include "core/rendering/metal/mtlBlend.h"
@@ -50,6 +51,12 @@ namespace en
    }
    
    WindowMTL::WindowMTL(const id<MTLDevice> device, const WindowSettings& settings, const string title) :
+      handle(nullptr),
+      windowPosition(settings.position),
+      window(nil),
+      layer(nil),
+      drawable(nil),
+      framebuffer(nullptr),
       needNewSurface(true)
    {
    // Determine destination screen properties
@@ -163,9 +170,51 @@ namespace en
    // TODO: Release device, layer, view, window
    }
    
+   
+   
+   Ptr<Screen> WindowMTL::screen(void)
+   {
+   return handle;
+   }
+   
+   uint32v2 WindowMTL::position(void)
+   {
+   return windowPosition;
+   }
+      
+   bool WindowMTL::movable(void)
+   {
+   return [window isMovable];
+   }
+   
+   void WindowMTL::move(const uint32v2 position)
+   {
+   // Reposition window.
+   // Position is from lower-left corner of the screen in OSX.
+   // Both position and resolution are in points, not pixels.
+   NSScreen* screen = ptr_dynamic_cast<ScreenMTL, Screen>(handle)->handle;
+   NSRect frame = [screen convertRectToBacking:[window frame]];
+   frame.origin.x = position.x;
+   frame.origin.y = handle->resolution.height - position.y;
+   [window setFrame:[screen convertRectFromBacking:frame] display:YES animate:NO];
+   windowPosition = position;
+   }
+
+   void WindowMTL::resize(const uint32v2 size)
+   {
+   // Resize window.
+   // Both position and resolution are in points, not pixels.
+   NSScreen* screen = ptr_dynamic_cast<ScreenMTL, Screen>(handle)->handle;
+   NSRect frame = [screen convertRectToBacking:[window frame]];
+   frame.size.width = size.width;
+   frame.size.height = size.height;
+   [window setFrame:[screen convertRectFromBacking:frame] display:YES animate:NO];
+   }
+   
    void WindowMTL::active(void)
    {
    // Set window as active one
+   //[window makeMainWindow];
    [window makeKeyAndOrderFront:NSApp];
    }
    
@@ -183,34 +232,6 @@ namespace en
    void WindowMTL::opaque(void)
    {
    [window setOpaque:YES];
-   }
-   
-   bool WindowMTL::movable(void)
-   {
-   return [window isMovable];
-   }
-   
-   void WindowMTL::move(const uint32v2 position)
-   {
-   // Reposition window.
-   // Position is from lower-left corner of the screen.
-   // Both position and resolution are in points, not pixels.
-   NSScreen* screen = ptr_dynamic_cast<ScreenMTL, Screen>(handle)->handle;
-   NSRect frame = [screen convertRectToBacking:[window frame]];
-   frame.origin.x = position.x;
-   frame.origin.y = handle->resolution.height - position.y;
-   [window setFrame:[screen convertRectFromBacking:frame] display:YES animate:NO];
-   }
-
-   void WindowMTL::resize(const uint32v2 size)
-   {
-   // Resize window.
-   // Both position and resolution are in points, not pixels.
-   NSScreen* screen = ptr_dynamic_cast<ScreenMTL, Screen>(handle)->handle;
-   NSRect frame = [screen convertRectToBacking:[window frame]];
-   frame.size.width = size.width;
-   frame.size.height = size.height;
-   [window setFrame:[screen convertRectFromBacking:frame] display:YES animate:NO];
    }
    
    Ptr<Texture> WindowMTL::surface(void)
@@ -397,6 +418,29 @@ namespace en
 //    [closeButton setEnabled:NO];
    
 
+   CommandBufferMTL::CommandBufferMTL() :
+      handle(nil),
+      renderEncoder(nil)
+   {
+   }
+
+   void CommandBufferMTL::bind(const Ptr<RasterState> raster)
+   {
+   
+   }
+   
+ //void CommandBufferMTL::bind(const Ptr<ViewportScissorState> viewportScissor);
+ 
+   void CommandBufferMTL::bind(const Ptr<DepthStencilState> depthStencil)
+   {
+   
+   }
+   
+   void CommandBufferMTL::bind(const Ptr<BlendState> blend)
+   {
+   
+   }
+      
    bool CommandBufferMTL::startRenderPass(const Ptr<RenderPass> pass)
    {
    if (renderEncoder != nil)
@@ -428,7 +472,13 @@ namespace en
    
    CommandBufferMTL::~CommandBufferMTL()
    {
+   // Finish encoded tasks
+   [handle commit];
+   [handle waitUntilCompleted];
+   
+   // Release buffer
    [handle release];
+   [renderEncoder release];
    }
     
     
@@ -446,7 +496,10 @@ namespace en
    return ptr_dynamic_cast<CommandBuffer, CommandBufferMTL>(buffer);
    }
     
-
+   
+   
+   
+   
    
    MetalDevice::MetalDevice(id<MTLDevice> _device) :
       device(_device)
@@ -464,6 +517,23 @@ namespace en
 
    MetalDevice::~MetalDevice() 
    {
+   }
+
+   uint32 MetalDevice::screens(void)
+   {
+   // Currently all Metal devices share all available displays
+   MetalAPI* api = (MetalAPI*)(en::Graphics);
+   return api->displaysCount;
+   }
+   
+   Ptr<Screen> MetalDevice::screen(uint32 id)
+   {
+   // Currently all Metal devices share all available displays
+   MetalAPI* api = (MetalAPI*)(en::Graphics);
+   
+   assert( api->displaysCount > id );
+   
+   return api->display[id];
    }
 
    Ptr<Window> MetalDevice::create(const WindowSettings& settings, const string title)
@@ -524,45 +594,50 @@ namespace en
    
    MetalAPI::MetalAPI(void) :
       devicesCount(0),
-      preferLowPowerGPU(false)
+      preferLowPowerGPU(false),
+      display(nullptr),
+      virtualDisplay(nullptr),
+      displaysCount(0)
    {
    NSArray*  allScreens    = [NSScreen screens];
    NSScreen* primaryScreen = (NSScreen*)[allScreens objectAtIndex: 0];
 
    // Calculate amount of available displays.
-   displaysCount = 0;
    for(NSScreen* Screen in allScreens)
       if (Screen)
          displaysCount++;
 
-   display = new ScreenMTL[displaysCount];
-   virtualDisplay = new ScreenMTL();
+   display = new Ptr<Screen>[displaysCount];
+   virtualDisplay = new Screen();
    
    // Gather information about available displays.
    uint32 displayId = 0;
-   for(NSScreen* Screen in allScreens)
-      if (Screen)
+   for(NSScreen* handle in allScreens)
+      if (handle)
          {
-         NSRect info = [Screen convertRectToBacking:[Screen frame]];
+         NSRect info = [handle convertRectToBacking:[handle frame]];
          
-         display[displayId].position.x        = static_cast<uint32>(info.origin.x);
-         display[displayId].position.y        = static_cast<uint32>(info.origin.y);
-         display[displayId].resolution.width  = static_cast<uint32>(info.size.width);
-         display[displayId].resolution.height = static_cast<uint32>(info.size.height);
-         display[displayId].handle            = Screen;
+         Ptr<ScreenMTL> screen = new ScreenMTL();
+ 
+         screen->position.x        = static_cast<uint32>(info.origin.x);
+         screen->position.y        = static_cast<uint32>(info.origin.y);
+         screen->resolution.width  = static_cast<uint32>(info.size.width);
+         screen->resolution.height = static_cast<uint32>(info.size.height);
+         screen->handle            = handle;
          
          // Bounding box containing all displays represents virtual desktop position and size in the same coordinate system.
-         if (virtualDisplay->position.x > display[displayId].position.x)
-            virtualDisplay->position.x = display[displayId].position.x;
-         if (virtualDisplay->position.y > display[displayId].position.y)
-            virtualDisplay->position.y = display[displayId].position.y;
+         if (virtualDisplay->position.x > screen->position.x)
+            virtualDisplay->position.x = screen->position.x;
+         if (virtualDisplay->position.y > screen->position.y)
+            virtualDisplay->position.y = screen->position.y;
          if ((virtualDisplay->position.x + virtualDisplay->resolution.width) <
-             (display[displayId].position.x + display[displayId].resolution.width))
-            virtualDisplay->resolution.width = (display[displayId].position.x + display[displayId].resolution.width) - virtualDisplay->position.x;
+             (screen->position.x + screen->resolution.width))
+            virtualDisplay->resolution.width = (screen->position.x + screen->resolution.width) - virtualDisplay->position.x;
          if ((virtualDisplay->position.y + virtualDisplay->resolution.height) <
-             (display[displayId].position.y + display[displayId].resolution.height))
-            virtualDisplay->resolution.height = (display[displayId].position.y + display[displayId].resolution.height) - virtualDisplay->position.y;
-            
+             (screen->position.y + screen->resolution.height))
+            virtualDisplay->resolution.height = (screen->position.y + screen->resolution.height) - virtualDisplay->position.y;
+        
+         display[displayId] = ptr_dynamic_cast<Screen, ScreenMTL>(screen);
          displayId++;
          }
 
@@ -655,40 +730,7 @@ namespace en
    
     
     
-   WindowSettings settings;
- //settings.screen   =
-   settings.position = uint32v2(100, 100);
-   settings.size     = uint32v2(1440, 900);
-   settings.mode     = Windowed;
-
-   Ptr<Window> window = device[0]->create(settings, string("Ngine 5.0"));
-    
-   Ptr<CommandBuffer> command = device[0]->createCommandBuffer();
    
-   //Ptr<ColorAttachment> attachment = device[0]->createColorAttachment(window->surface());
-
-   TextureState state(Texture2DRectangle, FormatSD_8_32_f, settings.size.width, settings.size.height);
-   Ptr<Texture> zbuffer = device[0]->create(state);
-
-   Ptr<DepthStencilAttachment> depthStencil = device[0]->createDepthStencilAttachment(zbuffer, nullptr);
-   
-   Ptr<RenderPass> pass = device[0]->create(window->surface(), depthStencil);
-
-   command->startRenderPass(pass);
-
-   // TODO: Draw here
-
-   // Finish
-   command->endRenderPass();
-   command->commit();
-   command->waitUntilCompleted();
-   command = nullptr;
-    
-   window->display();
-   window = nullptr;
-
-    //[device release];
-    
     
     
 
@@ -697,9 +739,27 @@ namespace en
 
 
    }
+   
+   uint32 MetalAPI::devices(void)
+   {
+   return devicesCount;
+   }
+   
+   Ptr<GpuDevice> MetalAPI::primaryDevice(void)
+   {
+   return device[0];
+   }
 
    MetalAPI::~MetalAPI() 
    {
+   Nmutex lock;
+   if (!lock.tryLock())
+      return;
+   
+   delete Graphics;
+   Graphics = nullptr;
+   
+   lock.unlock();
    }
 
    }

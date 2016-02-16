@@ -21,8 +21,6 @@
 
 #include "Vulkan/vulkan.h"
 
-//#include "./../../../../../../Projects/KHRONOS/git/Vulkan/src/include/vulkan.h"
-
 #endif
 
 #endif

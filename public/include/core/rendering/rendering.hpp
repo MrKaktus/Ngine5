@@ -60,7 +60,7 @@ namespace en
    #define EN_Direct3D  9
    #define EN_HLSL      10
       
-   const Nversion    Vulkan_1_0(0, EN_Vulkan, 0, 0, 0);                  // Vulkan 1.0
+   //const Nversion    Vulkan_1_0(0, EN_Vulkan, 0, 0, 0);                  // Vulkan 1.0
       
    const Nversion    ESSL_3_00(1,EN_ESSL,3,0,0);                         // ESSL 3.00  
    const Nversion    ESSL_1_00(0,EN_ESSL,1,0,0);                         // ESSL 1.00  
@@ -167,9 +167,13 @@ namespace en
 
    enum ScreenMode
         {
-        Window            = 0,   // Create Window
+        Window            = 0
+        
+#ifndef EN_PLATFORM_OSX // QUICK DIRTY WA FOR NEW RENDERING API ABSTRACTION
+        ,   // Create Window
         BorderlessWindow     ,   // Create borderless Window
         Fullscreen               // Create full screen surface
+#endif
         };
 
    // Screen settings structure

@@ -199,6 +199,9 @@ Then configure solution like this:
 Xcode Library project configuration:
 ====================================
 
+Build Settings
+——————————————
+
 Build Locations:
 > Build Products Path                            : ./../bin/osx
 > Intermediate Build Files Path                  : ./../build/osx
@@ -215,18 +218,23 @@ Build Locations:
 Linking:
 > Path to Link Map File:                         : ./../build/osx/$(CONFIGURATION)/$(PRODUCT_NAME)-LinkMap-$(CURRENT_VARIANT)-$(CURRENT_ARCH).txt
 > Other Linking Flags:
+
   Debug:
   *** Below are settings for IOS ***
   "ARMv7 architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/ios-armv7/debug/libfbxsdk.a"
   "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/ios-i386/debug/libfbxsdk.a"
   *** Below are settings for OSX ***
-  "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/clang/debug/libfbxsdk.a"
+  "Intel 64bit architecture - Any OSX SDK“       : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/clang/debug/libfbxsdk.a"
   *** There is also OSX 'libstdcpp' version ***
   "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/clang/libstdcpp/debug/libfbxsdk.a"
+
   Release:
   "ARMv7 architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/ios-armv7/release/libfbxsdk.a"
   "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/ios-i386/release/libfbxsdk.a"
   "Intel architecture"                           : -ObjC "/Applications/Autodesk/FBX SDK/2015.1/lib/clang/release/libfbxsdk.a"
+
+Packaging:
+> Public Headers Folder Path                     : /usr/local/include/${PRODUCT_NAME}
 
 Search Paths:
 > Header Search Paths                            : ./../src/            non-recursive
@@ -241,3 +249,36 @@ Versioning:
 Apple LLVM 7.0 - Language - Objective C:
 > Objective-C Automatic Reference Counting       : No
 
+
+
+Build Phases
+———————————
+
+[+] Run Script
+- Move it to the top
+./Ngine_pre_build_debug.command
+
+Compile Sources
+- Add all cpp/m/mm files
+
+Link Binary With Libraries
+[+] Cocoa.framework
+[+] QuartzCore.framework
+[+] Metal.framework
+[+] OpenGL.framework
+[+] OpenAL.framework
+[+] libz.dylib         <- or should it be .a for static lib ?
+
+Headers
+> Public
+  [+] - Add folder reference to all content of public/include
+      - Then moge it to “yellow” group “include” in project view on the left
+
+
+Xcode Game project configuration:
+=================================
+
+
+Search Paths:
+> Header Search Paths                            : ./../src/            non-recursive
+                                                   ./../public/include/ non-recursive

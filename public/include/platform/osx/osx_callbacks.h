@@ -21,12 +21,17 @@
 #import <UIKit/UIKit.h>        // For IOS
 #endif
 #if defined(EN_PLATFORM_OSX)
+#pragma push_macro("aligned")
+#undef aligned
 #import <AppKit/AppKit.h>      // For OS X
+#pragma pop_macro("aligned")
 #endif
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#pragma push_macro("aligned")
+#undef aligned
 #import <QuartzCore/QuartzCore.h>
-
+#pragma pop_macro("aligned")
 
 // TODO: Everything below requires cleanup !!! (10 years old code ??)
 

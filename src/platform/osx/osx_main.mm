@@ -30,7 +30,8 @@ extern void initHalfs(void);
 #include "core/storage/context.h"
 #include "core/config/context.h"
 #include "core/log/context.h"
-#include "core/rendering/context.h"
+//#include "core/rendering/context.h"
+#include "core/rendering/device.h"
 #include "audio/context.h"
 #include "platform/context.h"
 #include "threading/context.h"
@@ -56,26 +57,61 @@ extern void initHalfs(void);
 #define ConsoleMain   main
 
 // Entry point for console applications
-int ConsoleMain(int argc, const char* argv[])
+int ConsoleMain(int argc, const char* argv[]) 
 {
 // Init Math
 en::initHalfs();
-    
+   
 // Init modules in proper order
 en::StorageContext.create();
 en::ConfigContext.create();
 en::LogContext.create();
 en::SystemContext.create();
 en::SchedulerContext.create();
-en::GpuContext.create();
+
+// Old graphic API init
+//en::GpuContext.create();
+
+// New graphic API init
+en::gpu::GraphicAPI::create();
+
+uint32 result;
+
+NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+@try
+{
+   // Connect application to Window Server and Display Server. Init global variable NSApp.
+   // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSApplication_Class/index.html#//apple_ref/occ/cl/NSApplication
+   NSApplication* application = [NSApplication sharedApplication];
+
+   // Create custom Application Delegate and assign it to global NSApp
+   AppDelegate* appDelegate = [[AppDelegate alloc] init];
+   [application setDelegate:appDelegate];
+   [application run];
+   
+   // About app main loop:
+   // http://stackoverflow.com/questions/6732400/cocoa-integrate-nsapplication-into-an-existing-c-mainloop
+   
+   result = ApplicationMainC(argc, argv);
+}
+@catch(NSException* exception)
+{
+   en::Log << "Application crashed with exception:" << endl;
+   en::Log << exception.reason << endl;
+}
+[pool release];
+   
+
 en::AudioContext.create();
 en::InputContext.create();
     
 en::StateContext.create();
 
+
     
 // BEGIN: OSX & IOS temporary init code
-uint32 result = 0;
+
+
 
     // Set configuration variables
     // const char* appPath = getenv("HOME");
@@ -85,7 +121,7 @@ uint32 result = 0;
 #endif
     
     // TODO: There was no task pooling possible on iPhone in the past, verify if it's still true.
-
+/*
     // We need to give whole control over app to damn OS!
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     @try
@@ -94,12 +130,7 @@ uint32 result = 0;
         //result = UIApplicationMain(argc, argv, nil, nil);
         
         // NEW WAY:
-        // TODO: Needs to connect AppDelegate with call to UIApplicationMain
-        [NSApplication sharedApplication];
-        
-        AppDelegate *appDelegate = [[AppDelegate alloc] init];
-        [NSApp setDelegate:appDelegate];
-        [NSApp run];
+
         
     }
     @catch(NSException* exception)
@@ -108,6 +139,7 @@ uint32 result = 0;
         cout << "Exception: " << exception.reason << endl;
     }
     [pool release];
+ */
     
 // Main thread starts to work like other worker
 // threads, by executing application as first
@@ -124,7 +156,9 @@ en::StateContext.destroy();
     
 en::InputContext.destroy();
 en::AudioContext.destroy();
-en::GpuContext.destroy();
+
+delete en::Graphics;
+//en::GpuContext.destroy();
 en::SchedulerContext.destroy();
 en::SystemContext.destroy();
 en::LogContext.destroy();

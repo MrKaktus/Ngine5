@@ -32,7 +32,7 @@ namespace en
       None               = 0,
       Load                  ,
       Clear                 ,
-      LoadOperationsCount
+      OperationsCount
       };
    
    enum class StoreOperation : uint32
@@ -41,7 +41,7 @@ namespace en
       Store                 ,
       ResolveMSAA           ,
       StoreAndResolveMSAA   ,
-      StoreOperationsCount
+      OperationsCount
       };
 
    class ColorAttachment : public SafeObject
@@ -69,23 +69,26 @@ namespace en
    class DepthStencilAttachment : public SafeObject
       {
       public:
-      virtual void onLoad(const LoadOperation loadDepth,
-                          const LoadOperation loadStencil,
+      virtual void onLoad(const LoadOperation loadDepthStencil,
                           const float  clearDepth = 0.0f,
-                          const uint32 clearStencil = 0u);
+                          const uint32 clearStencil = 0u) = 0;
          
-      virtual void onStore(const StoreOperation storeDepth,
-                           const StoreOperation storeStencil);
-         
-      virtual bool resolve(const Ptr<Texture> texture,
-                           const uint32 mipmap = 0,
-                           const uint32 layer = 0);
+      virtual void onStore(const StoreOperation storeDepthStencil) = 0;
+      
+      virtual bool resolve(const Ptr<Texture> depth,
+                           const uint32 mipmap = 0u,
+                           const uint32 layer = 0u) = 0;
          
       // If GPU supports separate Depth and Stencil atachments,
-      // custom MSAA resolve operation can be specifid for Stencil.
-      virtual bool resolveStencil(const Ptr<Texture> texture,
-                                  const uint32 mipmap = 0,
-                                  const uint32 layer = 0);
+      // custom load and store actions; and MSAA resolve destination
+      // can be specifid for Stencil.
+      virtual void onStencilLoad(const LoadOperation loadStencil) = 0;
+
+      virtual void onStencilStore(const StoreOperation storeStencil) = 0;
+      
+      virtual bool resolveStencil(const Ptr<Texture> stencil,
+                                  const uint32 mipmap = 0u,
+                                  const uint32 layer = 0u) = 0;
          
       virtual ~DepthStencilAttachment() {};           // Polymorphic deletes require a virtual base destructor
       };

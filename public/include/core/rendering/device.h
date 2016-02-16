@@ -154,6 +154,9 @@ namespace en
    class GraphicAPI : public SafeObject
       {
       public:
+      
+      static bool create(void);                           // Creates instance of this class (API specific) and assigns it to "Graphics".
+      
       virtual uint32 devices(void) = 0;
       virtual Ptr<GpuDevice> primaryDevice(void) = 0;
       virtual ~GraphicAPI() {};                           // Polymorphic deletes require a virtual base destructor
@@ -162,6 +165,8 @@ namespace en
 
 
    }
+
+extern gpu::GraphicAPI* Graphics;
 }
 
 #endif

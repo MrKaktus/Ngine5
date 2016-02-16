@@ -608,7 +608,7 @@ namespace en
 #endif
       };
 
-   SurfaceDescriptor::SurfaceDescriptor() :
+   SurfaceDescriptorGL::SurfaceDescriptorGL() :
       mipmap(0),
       layer(0),
       ptr(nullptr),

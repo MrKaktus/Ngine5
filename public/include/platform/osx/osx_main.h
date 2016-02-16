@@ -12,6 +12,8 @@
 
 */
 
+// TODO: This should be a private engine header. Not public one!
+
 #ifndef ENG_MACOS_MAIN
 #define ENG_MACOS_MAIN
 
@@ -19,7 +21,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 // Handle of user console application main
-extern "C++" int ApplicationMainC(int argc, char* argv[]);
+extern "C++" int ApplicationMainC(int argc, const char* argv[]);
 
 #endif
 

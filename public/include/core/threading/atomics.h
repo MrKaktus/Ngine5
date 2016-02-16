@@ -18,11 +18,11 @@
 
 // Increases pointed value in Thread-Safe atomic way.
 forceinline uint32 AtomicIncrease(volatile uint32* value);
-forceinline uint32 AtomicIncrease(volatile sint32* value);
+forceinline sint32 AtomicIncrease(volatile sint32* value);
 
 // Descreases pointed value in Thread-Safe atomic way.
 forceinline uint32 AtomicDecrease(volatile uint32* value);
-forceinline uint32 AtomicDecrease(volatile sint32* value);
+forceinline sint32 AtomicDecrease(volatile sint32* value);
 
 // Swaps value of pointed memory location with new one in Thread-Safe atomic way.
 forceinline uint32 AtomicSwap(volatile uint32* dst, uint32 value);

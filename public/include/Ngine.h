@@ -27,7 +27,19 @@
 #include "core/utilities/parser.h"
 #include "core/utilities/TarrayAdvanced.h"
 #include "core/utilities/TintrusivePointer.h"
-#include "core/rendering/rendering.h"
+
+#ifdef EN_PLATFORM_OSX
+#include "platform/osx/osx_callbacks.h"
+#include "platform/osx/osx_init.h"
+#include "platform/osx/osx_main.h"
+#endif
+
+// Testing new Rendering Interface on OSX, using legacy on rest
+#ifdef EN_PLATFORM_OSX
+#include "core/rendering/device.h"
+#else
+#include "core/rendering/rendering.hpp"
+#endif
 
 #include "rendering/stereo.h"
 
@@ -45,11 +57,7 @@
 #include "platform/windows/win_init.h"
 #include "platform/windows/win_main.h"
 #include "platform/windows/win_events.h"
-#ifdef EN_PLATFORM_OSX
-#include "platform/osx/mac_callbacks.h"
-#include "platform/osx/mac_init.h"
-#include "platform/osx/mac_main.h"
-#endif
+
 #include "audio/audio.h"         // Public interface - TODO: Finish!
 
 #include "resources/resources.h" // Public interface

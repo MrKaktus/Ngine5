@@ -476,7 +476,7 @@ namespace en
          }
 
    file->write(header.dataOffset, dataSize, buffer);
-   delete buffer;
+   delete [] buffer;
    return true;
    }
 

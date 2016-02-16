@@ -13,7 +13,12 @@
  
  */
 
+#include "core/log/log.h"
 #include "core/rendering/common/device.h"
+#if defined(EN_PLATFORM_OSX)
+#include "core/rendering/metal/mtlAPI.h"
+//extern class en::gpu::MetalAPI;
+#endif
 
 namespace en
 {
@@ -98,7 +103,27 @@ namespace en
    {
    }
    
+   // This static function should be in .mm file if we include Metal headers !!!
+   bool GraphicAPI::create(void)
+   {
+   Log << "Starting module: Rendering.\n";
+
+   // Load from config file desired Rendering API and Shading Language Version
+   
+   // Graphics = new Direct3DAPI();
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+   Graphics = new MetalAPI();
+#endif
+   // Graphics = new OpenGLAPI();
+   // Graphics = new OpenGLESAPI();
+   // Graphics = new VulkanAPI();
+ 
+   return true;
    }
+   
+   }
+   
+gpu::GraphicAPI* Graphics;
 }
 
 

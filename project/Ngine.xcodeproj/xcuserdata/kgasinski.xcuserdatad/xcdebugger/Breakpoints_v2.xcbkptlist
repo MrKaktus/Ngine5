@@ -9,14 +9,12 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../src/platform/osx/osx_main.mm"
-            timestampString = "470893734.606363"
+            filePath = "../src/core/rendering/metal/mtlDevice.mm"
+            timestampString = "472898233.837142"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "84"
-            endingLineNumber = "84"
-            landmarkName = "ConsoleMain(int argc, const char* argv[])"
-            landmarkType = "7">
+            startingLineNumber = "392"
+            endingLineNumber = "392">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -25,12 +23,14 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../src/core/rendering/metal/mtlDevice.mm"
-            timestampString = "472898233.837142"
+            filePath = "../src/core/rendering/common/device.cpp"
+            timestampString = "475029931.894605"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "392"
-            endingLineNumber = "392">
+            startingLineNumber = "113"
+            endingLineNumber = "113"
+            landmarkName = "GraphicAPI::create(void)"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

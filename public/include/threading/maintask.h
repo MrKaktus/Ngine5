@@ -35,11 +35,11 @@ class MainTask : public en::threads::Task
       {
       private:
       sint32  m_argc;   // Program parameters count
-      char**  m_argv;   // Table with null terminated parameters
+      const char**  m_argv;   // Table with null terminated parameters
       uint32  m_return; // Task return status
 
       public:
-      MainTask(int argc, char* argv[]);
+      MainTask(int argc, const char* argv[]);
       virtual void work(void);
       uint32 returned(void);
       };

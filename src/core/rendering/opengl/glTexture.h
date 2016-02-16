@@ -23,7 +23,7 @@ namespace en
 {
    namespace gpu
    {
-   struct SurfaceDescriptor
+   struct SurfaceDescriptorGL
       {
       Nmutex lock;    // Locks this texture instance, to prevent it from beeing modified by other thread while it is mapped  
       uint8  mipmap;  // MipMap level
@@ -31,13 +31,13 @@ namespace en
       void*  ptr;     // Pointer to local memory (if PBO's are not supported)
       uint32 pbo;     // OpenGL PBO handle (OpenGL 2.1+)
       
-      SurfaceDescriptor();
+      SurfaceDescriptorGL();
       };
 
    class TextureGL : public TextureCommon
       {
       public:
-      SurfaceDescriptor desc;  // Mapped surface description
+      SurfaceDescriptorGL desc;  // Mapped surface description
       uint32 id;               // OpenGL handle
 
       TextureGL();

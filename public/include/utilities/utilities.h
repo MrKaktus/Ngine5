@@ -14,6 +14,7 @@
 #ifndef ENG_UTILITIES
 #define ENG_UTILITIES
 
+#include <string>                 // For C++11 strongly typed enum cast
 #include "core/defines.h"
 #include "core/types/basic.h"
 #include "core/types/float2.h"
@@ -82,6 +83,13 @@ namespace en
    double radians(double s);
    float  degrees(float s);
    double degrees(double s);
+   
+   // Casts C++11 strongly typed enum value to it's underlying type
+   template <typename E>
+   constexpr typename std::underlying_type<E>::type underlyingType(E e)
+   {
+      return static_cast<typename std::underlying_type<E>::type>(e);
+   }
 }
 
 #endif

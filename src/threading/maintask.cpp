@@ -14,7 +14,7 @@
 
 #include "threading/maintask.h"
 
-MainTask::MainTask(int argc, char* argv[]) : en::threads::Task(new en::threads::TaskState())
+MainTask::MainTask(int argc, const char* argv[]) : en::threads::Task(new en::threads::TaskState())
 {
  m_argc   = argc;
  m_argv   = argv;

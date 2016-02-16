@@ -387,7 +387,7 @@ namespace en
       MTLTextureType1DArray               ,   // Texture1DArray
       MTLTextureType2D                    ,   // Texture2D
       MTLTextureType2DArray               ,   // Texture2DArray
-      (MTLTextureType)0xFFFF              ,   // Texture2DRectangle   (could emulate with 2D)
+      MTLTextureType2D                    ,   // Texture2DRectangle   (emulate with Texture2D)
       MTLTextureType2DMultisample         ,   // Texture2DMultisample
       (MTLTextureType)0xFFFF              ,   // Texture2DMultisampleArray
       MTLTextureType3D                    ,   // Texture3D
@@ -632,7 +632,8 @@ namespace en
    desc.sampleCount      = state.samples;
    desc.arrayLength      = state.layers;                // [1..2048]
    desc.cpuCacheMode     = MTLCPUCacheModeDefaultCache; // or MTLCPUCacheModeWriteCombined
-
+   desc.storageMode      = MTLStorageModePrivate;       // We try to keep all textures in GPU memory
+   
    handle = [device newTextureWithDescriptor:desc];
    [desc release];
 

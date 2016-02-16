@@ -17,7 +17,10 @@
 #ifndef ENG_CORE_RENDERING_METAL
 #define ENG_CORE_RENDERING_METAL
 
+#pragma push_macro("aligned")
+#undef aligned
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
+#pragma pop_macro("aligned")
 
 #endif

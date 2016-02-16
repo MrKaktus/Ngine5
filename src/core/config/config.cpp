@@ -58,8 +58,7 @@ namespace en
 
    // Allocate temporary buffer for file content
    uint32 size = static_cast<uint32>(file->size());
-   uint8* buffer = NULL;
-   buffer = new uint8[size];
+   uint8* buffer = new uint8[size];
    if (!buffer)
       return false;
    
