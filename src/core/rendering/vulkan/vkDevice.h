@@ -17,9 +17,12 @@
 #define ENG_CORE_RENDERING_VULKAN_DEVICE
 
 #include <string>
-#include "core/rendering/device.h"
-
 #include "core/rendering/vulkan/vulkan.h"
+#include "core/rendering/common/device.h"
+
+#include "core/rendering/sampler.h"
+
+
 
 #include "core/rendering/vulkan/vkInputAssembler.h"
 #include "core/rendering/vulkan/vkBlend.h"
@@ -28,6 +31,50 @@
 #include "core/rendering/vulkan/vkViewport.h"
 #include "core/rendering/vulkan/vkDepthStencil.h"
 #include "core/rendering/vulkan/vkPipeline.h"
+
+
+// Vulkan calls can be performed only inside Vulkan Device class.
+// "lastResult" is Vulkan Device variable.
+#ifdef EN_DEBUG
+namespace en
+{
+   namespace gpu
+   {
+   extern bool IsError(const VkResult result);
+   extern bool IsWarning(const VkResult result);
+   }
+}
+
+   #ifdef EN_PROFILER_TRACE_GRAPHICS_API
+   #define Profile( x )                        \
+           {                                   \
+           Log << "Vulkan: " << #x << endl;    \
+           lastResult = x;                     \
+           if (en::gpu::IsError(lastResult))   \
+              assert(0);                       \
+           en::gpu::IsWarning(lastResult);     \
+           }
+   #define ProfileNoRet( x )                   \
+           {                                   \
+           Log << "Vulkan: " << #x << endl;    \
+           x;                                  \
+           }
+   #else 
+   #define Profile( x )                        \
+           {                                   \
+           lastResult = x;                     \
+           if (en::gpu::IsError(lastResult))   \
+              assert(0);                       \
+           en::gpu::IsWarning(lastResult);     \
+           }
+   #define ProfileNoRet( x )                   \
+           x;                                  
+   #endif
+#else
+   #define Profile( x ) lastResult = x; /* Nothing in Release */
+#endif
+
+
 
 using namespace std;
 
@@ -68,7 +115,7 @@ namespace en
       LayerDescriptor();
       };
 
-   class VulkanDevice : public GpuDevice
+   class VulkanDevice : public CommonDevice
       {
       public:
       VkResult                         lastResult;
@@ -90,7 +137,7 @@ namespace en
       uint64                           memoryDriver;
 
       // Device Function Pointers
-      #include "core/rendering/vulkan/vulkan10.h"
+ //  #include "core/rendering/vulkan/vulkan10.h"
 
       // Helper functions
       void bindDeviceFunctionPointers(void);
@@ -131,10 +178,12 @@ namespace en
      ~VulkanDevice();
 
 
-
+      bool getMemoryType(uint32 allowedTypes, VkFlags properties, uint32* memoryType);
       VkDeviceMemory allocMemory(VkMemoryRequirements requirements, VkFlags properties);
 
 
+      Ptr<Texture>  Create(const TextureState& state);   // This should be done out of Heap
+      Ptr<Sampler>  Create(const SamplerState& state);
       Ptr<Pipeline> Create(const Ptr<InputAssembler> inputAssembler,
                            const Ptr<ViewportState>  viewportState,
                            const Ptr<RasterState>    rasterState,

@@ -425,7 +425,7 @@ namespace en
 
    struct StreamSettings
           {
-          gpu::TextureFormat format;
+          gpu::Format format;
           uint32 width;
           uint32 height;
           uint32 hz;

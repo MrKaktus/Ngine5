@@ -177,7 +177,7 @@ namespace en
       StereoGeometry     ,   // FL2 - GPU support for multiple viewports. GS selects destination.              ( NV_viewport_array / ARB_viewport_array / OpenGL 4.1 )
       StereoGeometryFast ,   // FL3 - GPU support for multiple viewports. Pass-Through GS selects destination. ( NV_geometry_shader_passthrough )
       StereoVertex       ,   // FL4 - GPU support for multiple viewports. VS selects destination.              ( AMD_vertex_shader_viewport_index )
-      StereoFast             // FL5 - GPU support for multiple viewports. VS can select multiple destinations. ( NV_viewport_array2 )
+      StereoFast             // FL5 - GPU support for multiple viewports. VS can select multiple destinations. ( NV_viewport_array2 ) -> this one is for multiresolution rendering
       };
    
    StereoFeatureLevel stereoMode = StereoClipping; 

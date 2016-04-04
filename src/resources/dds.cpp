@@ -302,11 +302,11 @@ namespace en
          {
          if (header10->arraySize > 1)
             {
-            type = Texture1DArray;
+            type = TextureType::Texture1DArray;
             return true;
             }
 
-         type = Texture1D;
+         type = TextureType::Texture1D;
          return true;
          }
       if (header10->resourceDimension == D3D10_RESOURCE_DIMENSION_TEXTURE2D)
@@ -315,23 +315,23 @@ namespace en
             {
             if (header10->arraySize > 1)
                {
-               type = TextureCubeMapArray;
+               type = TextureType::TextureCubeMapArray;
                return true;
                }
-            type = TextureCubeMap;
+            type = TextureType::TextureCubeMap;
             return true;
             }
          if (header10->arraySize > 1)
             {
-            type = Texture2DArray;
+            type = TextureType::Texture2DArray;
             return true;
             }
-         type = Texture2D;
+         type = TextureType::Texture2D;
          return true;
          }
       if (header10->resourceDimension == D3D10_RESOURCE_DIMENSION_TEXTURE3D)
          {
-         type = Texture3D;
+         type = TextureType::Texture3D;
          return true;
          }
       }
@@ -339,20 +339,20 @@ namespace en
    // Determine texture type the old way
    if (header.dwCaps2 & DDSCAPS2_CUBEMAP)
       {
-      type = TextureCubeMap;
+      type = TextureType::TextureCubeMap;
       return true;
       }
 
    if (header.dwCaps2 & DDSCAPS2_VOLUME)
       {
-      type = Texture3D;
+      type = TextureType::Texture3D;
       return true;
       }
 
    if ( (header.dwFlags & DDSD_HEIGHT) &&
         (header.dwHeight == 1) )
       {
-      type = Texture1D;
+      type = TextureType::Texture1D;
       return true;
       }
 
@@ -360,117 +360,117 @@ namespace en
         (header.dwWidth  > 0) &&
         (header.dwHeight > 0) )
       {
-      type = Texture2D;
+      type = TextureType::Texture2D;
       return true;
       }
 
    return false;
    }
 
-   bool DetectTextureFormat(DDS_HEADER& header, DDS_HEADER_DXT10* header10, TextureFormat& format)
+   bool DetectTextureFormat(DDS_HEADER& header, DDS_HEADER_DXT10* header10, Format& format)
    {
    if (header10)
-      {                                                                   // HI - LO order all formats
+      {                                                                   // LO -> HI order in memory all formats
       if (header10->dxgiFormat == DXGI_FORMAT_UNKNOWN                   ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32A32_TYPELESS     ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32A32_FLOAT        ) { format = FormatRGBA_32_f;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32A32_UINT         ) { format = FormatRGBA_32_u;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32A32_SINT         ) { format = FormatRGBA_32_s;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32_TYPELESS        ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32_FLOAT           ) { format = FormatRGB_32_f;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32_UINT            ) { format = FormatRGB_32_u;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32_SINT            ) { format = FormatRGB_32_s;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_TYPELESS     ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_FLOAT        ) { format = FormatRGBA_16_hf;      return true; } // ???? do they expect type conversion f32 -> f16 on load ???
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_UNORM        ) { format = FormatRGBA_16;         return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_UINT         ) { format = FormatRGBA_16_u;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_SNORM        ) { format = FormatRGBA_16_sn;      return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_SINT         ) { format = FormatRGBA_16_s;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32_TYPELESS           ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32_FLOAT              ) { format = FormatRG_32_f;         return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32_UINT               ) { format = FormatRG_32_u;         return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G32_SINT               ) { format = FormatRG_32_s;         return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32G8X24_TYPELESS         ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_D32_FLOAT_S8X24_UINT      ) { format = FormatSD_8_32_f;       return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32A32_FLOAT        ) { format = Format::RGBA_32_f;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32A32_UINT         ) { format = Format::RGBA_32_u;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32A32_SINT         ) { format = Format::RGBA_32_s;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32_TYPELESS        ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32_FLOAT           ) { format = Format::RGB_32_f;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32_UINT            ) { format = Format::RGB_32_u;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32B32_SINT            ) { format = Format::RGB_32_s;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_TYPELESS     ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_FLOAT        ) { format = Format::RGBA_16_hf;        return true; } // ???? do they expect type conversion f32 -> f16 on load ???
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_UNORM        ) { format = Format::RGBA_16;           return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_UINT         ) { format = Format::RGBA_16_u;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_SNORM        ) { format = Format::RGBA_16_sn;        return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16B16A16_SINT         ) { format = Format::RGBA_16_s;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32_TYPELESS           ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32_FLOAT              ) { format = Format::RG_32_f;           return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32_UINT               ) { format = Format::RG_32_u;           return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G32_SINT               ) { format = Format::RG_32_s;           return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32G8X24_TYPELESS         ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_D32_FLOAT_S8X24_UINT      ) { format = Format::DS_32_f_8;         return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS  ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_X32_TYPELESS_G8X24_UINT   ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_R10G10B10A2_TYPELESS      ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R10G10B10A2_UNORM         ) { format = FormatRGBA_10_10_10_2; return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R10G10B10A2_UINT          ) { format = FormatRGBA_10_10_10_2_u; return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R11G11B10_FLOAT           ) { format = FormatBGR_10_11_11_f;  return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R10G10B10A2_UNORM         ) { format = Format::RGBA_10_10_10_2;   return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R10G10B10A2_UINT          ) { format = Format::RGBA_10_10_10_2_u; return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R11G11B10_FLOAT           ) { format = Format::RGB_11_11_10_uf;   return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_TYPELESS         ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_UNORM            ) { format = FormatRGBA_8;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB       ) { format = FormatRGBA_8_sRGB;     return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_UINT             ) { format = FormatRGBA_8_u;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_SNORM            ) { format = FormatRGBA_8_sn;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_SINT             ) { format = FormatRGBA_8_s;        return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_UNORM            ) { format = Format::RGBA_8;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB       ) { format = Format::RGBA_8_sRGB;       return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_UINT             ) { format = Format::RGBA_8_u;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_SNORM            ) { format = Format::RGBA_8_sn;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8B8A8_SINT             ) { format = Format::RGBA_8_s;          return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R16G16_TYPELESS           ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_FLOAT              ) { format = FormatRG_16_hf;        return true; } // ???? do they expect type conversion f32 -> f16 on load ???
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_UNORM              ) { format = FormatRG_16;           return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_UINT               ) { format = FormatRG_16_u;         return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_SNORM              ) { format = FormatRG_16_sn;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_SINT               ) { format = FormatRG_16_s;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_FLOAT              ) { format = Format::RG_16_hf;          return true; } // ???? do they expect type conversion f32 -> f16 on load ???
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_UNORM              ) { format = Format::RG_16;             return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_UINT               ) { format = Format::RG_16_u;           return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_SNORM              ) { format = Format::RG_16_sn;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16G16_SINT               ) { format = Format::RG_16_s;           return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R32_TYPELESS              ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_D32_FLOAT                 ) { format = FormatD_32_f;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32_FLOAT                 ) { format = FormatR_32_f;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32_UINT                  ) { format = FormatR_32_u;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R32_SINT                  ) { format = FormatR_32_s;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_D32_FLOAT                 ) { format = Format::D_32_f;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32_FLOAT                 ) { format = Format::R_32_f;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32_UINT                  ) { format = Format::R_32_u;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R32_SINT                  ) { format = Format::R_32_s;            return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R24G8_TYPELESS            ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_D24_UNORM_S8_UINT         ) { format = FormatSD_8_24;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_D24_UNORM_S8_UINT         ) { format = Format::DS_24_8;           return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R24_UNORM_X8_TYPELESS     ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_X24_TYPELESS_G8_UINT      ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_R8G8_TYPELESS             ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8_UNORM                ) { format = FormatRG_8;            return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8_UINT                 ) { format = FormatRG_8_u;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8_SNORM                ) { format = FormatRG_8_sn;         return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8G8_SINT                 ) { format = FormatRG_8_s;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8_UNORM                ) { format = Format::RG_8;              return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8_UINT                 ) { format = Format::RG_8_u;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8_SNORM                ) { format = Format::RG_8_sn;           return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8G8_SINT                 ) { format = Format::RG_8_s;            return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R16_TYPELESS              ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R16_FLOAT                 ) { format = FormatR_16_hf;         return true; } /// ???? do they expect type conversion f32 -> f16 on load ???
-      if (header10->dxgiFormat == DXGI_FORMAT_D16_UNORM                 ) { format = FormatD_16;            return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16_UNORM                 ) { format = FormatR_16;            return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16_UINT                  ) { format = FormatR_16_u;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16_SNORM                 ) { format = FormatR_16_sn;         return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R16_SINT                  ) { format = FormatR_16_s;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16_FLOAT                 ) { format = Format::R_16_hf;           return true; } /// ???? do they expect type conversion f32 -> f16 on load ???
+      if (header10->dxgiFormat == DXGI_FORMAT_D16_UNORM                 ) { format = Format::D_16;              return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16_UNORM                 ) { format = Format::R_16;              return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16_UINT                  ) { format = Format::R_16_u;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16_SNORM                 ) { format = Format::R_16_sn;           return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R16_SINT                  ) { format = Format::R_16_s;            return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R8_TYPELESS               ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_R8_UNORM                  ) { format = FormatR_8;             return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8_UINT                   ) { format = FormatR_8_u;           return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8_SNORM                  ) { format = FormatR_8_sn;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_R8_SINT                   ) { format = FormatR_8_s;           return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_A8_UNORM                  ) { format = FormatR_8;             return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8_UNORM                  ) { format = Format::R_8;               return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8_UINT                   ) { format = Format::R_8_u;             return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8_SNORM                  ) { format = Format::R_8_sn;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R8_SINT                   ) { format = Format::R_8_s;             return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_A8_UNORM                  ) { format = Format::R_8;               return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R1_UNORM                  ) return false;  // ????  FormatR_1; ?????
-      if (header10->dxgiFormat == DXGI_FORMAT_R9G9B9E5_SHAREDEXP        ) { format = FormatEBGR_5_9_9_9_f;  return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_R9G9B9E5_SHAREDEXP        ) { format = Format::RGBE_9_9_9_5_uf;   return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_R8G8_B8G8_UNORM           ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_G8R8_G8B8_UNORM           ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_BC1_TYPELESS              ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_BC1_UNORM                 ) { format = FormatBC1_RGB;         return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC1_UNORM_SRGB            ) { format = FormatBC1_RGB_sRGB;    return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC2_TYPELESS              ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_BC2_UNORM                 ) { format = FormatBC2_RGBA;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC2_UNORM_SRGB            ) { format = FormatBC2_RGBA_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC3_TYPELESS              ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_BC3_UNORM                 ) { format = FormatBC3_RGBA;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC3_UNORM_SRGB            ) { format = FormatBC3_RGBA_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC4_TYPELESS              ) return false; 
-      if (header10->dxgiFormat == DXGI_FORMAT_BC4_UNORM                 ) { format = FormatBC4_R;           return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC4_SNORM                 ) { format = FormatBC4_R_sn;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC5_TYPELESS              ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_BC5_UNORM                 ) { format = FormatBC5_RG;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC5_SNORM                 ) { format = FormatBC5_RG_sn;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_B5G6R5_UNORM              ) { format = FormatBGR_5_6_5;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_B5G5R5A1_UNORM            ) { format = FormatBGRA_5_5_5_1;    return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_B8G8R8A8_UNORM            ) { format = FormatBGRA_8;          return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_B8G8R8X8_UNORM            ) { format = FormatBGRA_8;          return true; } // X is just put in A channel
+      if (header10->dxgiFormat == DXGI_FORMAT_BC1_UNORM                 ) { format = Format::BC1_RGB;           return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC1_UNORM_SRGB            ) { format = Format::BC1_RGB_sRGB;      return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC2_TYPELESS              ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_BC2_UNORM                 ) { format = Format::BC2_RGBA;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC2_UNORM_SRGB            ) { format = Format::BC2_RGBA_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC3_TYPELESS              ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_BC3_UNORM                 ) { format = Format::BC3_RGBA;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC3_UNORM_SRGB            ) { format = Format::BC3_RGBA_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC4_TYPELESS              ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_BC4_UNORM                 ) { format = Format::BC4_R;             return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC4_SNORM                 ) { format = Format::BC4_R_sn;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC5_TYPELESS              ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_BC5_UNORM                 ) { format = Format::BC5_RG;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC5_SNORM                 ) { format = Format::BC5_RG_sn;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_B5G6R5_UNORM              ) { format = Format::BGR_5_6_5;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_B5G5R5A1_UNORM            ) { format = Format::BGRA_5_5_5_1;      return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_B8G8R8A8_UNORM            ) { format = Format::BGRA_8;            return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_B8G8R8X8_UNORM            ) { format = Format::BGRA_8;            return true; } // X is just put in A channel
       if (header10->dxgiFormat == DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM) return false; // like FormatRGBA_10_10_10_2 but Alpha is not present so cannot emulate
       if (header10->dxgiFormat == DXGI_FORMAT_B8G8R8A8_TYPELESS         ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB       ) return false; // FormatBGRA_sRGB; but we only have RGBA_sRGB; ???
       if (header10->dxgiFormat == DXGI_FORMAT_B8G8R8X8_TYPELESS         ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB       ) return false; // FormatBGRA_sRGB ??? 
       if (header10->dxgiFormat == DXGI_FORMAT_BC6H_TYPELESS             ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_BC6H_UF16                 ) { format = FormatBC6H_RGB_uf;     return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC6H_SF16                 ) { format = FormatBC6H_RGB_f;      return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC6H_UF16                 ) { format = Format::BC6H_RGB_uf;       return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC6H_SF16                 ) { format = Format::BC6H_RGB_f;        return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_BC7_TYPELESS              ) return false;                   
-      if (header10->dxgiFormat == DXGI_FORMAT_BC7_UNORM                 ) { format = FormatBC7_RGBA;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_BC7_UNORM_SRGB            ) { format = FormatBC7_RGBA_sRGB;   return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC7_UNORM                 ) { format = Format::BC7_RGBA;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_BC7_UNORM_SRGB            ) { format = Format::BC7_RGBA_sRGB;     return true; }
       if (header10->dxgiFormat == DXGI_FORMAT_AYUV                      ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_Y410                      ) return false;
       if (header10->dxgiFormat == DXGI_FORMAT_Y416                      ) return false;
@@ -492,69 +492,69 @@ namespace en
       if (header10->dxgiFormat == DXGI_FORMAT_V208                      ) return false; 
       if (header10->dxgiFormat == DXGI_FORMAT_V408                      ) return false; 
       if (header10->dxgiFormat == DXGI_FORMAT_ASTC_4X4_TYPELESS         ) return false; 
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_4X4_UNORM            ) { format = FormatASTC_4x4;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_4X4_UNORM_SRGB       ) { format = FormatASTC_4x4_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X4_TYPELESS         ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X4_UNORM            ) { format = FormatASTC_5x4;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X4_UNORM_SRGB       ) { format = FormatASTC_5x4_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X5_TYPELESS         ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X5_UNORM            ) { format = FormatASTC_5x5;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X5_UNORM_SRGB       ) { format = FormatASTC_5x5_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X5_TYPELESS         ) return false; 
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X5_UNORM            ) { format = FormatASTC_6x5;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X5_UNORM_SRGB       ) { format = FormatASTC_6x5_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X6_TYPELESS         ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X6_UNORM            ) { format = FormatASTC_6x6;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X6_UNORM_SRGB       ) { format = FormatASTC_6x6_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X5_TYPELESS         ) return false; 
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X5_UNORM            ) { format = FormatASTC_8x5;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X5_UNORM_SRGB       ) { format = FormatASTC_8x5_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X6_TYPELESS         ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X6_UNORM            ) { format = FormatASTC_8x6;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X6_UNORM_SRGB       ) { format = FormatASTC_8x6_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X8_TYPELESS         ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X8_UNORM            ) { format = FormatASTC_8x8;        return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X8_UNORM_SRGB       ) { format = FormatASTC_8x8_sRGB;   return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X5_TYPELESS        ) return false; 
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X5_UNORM           ) { format = FormatASTC_10x5;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X5_UNORM_SRGB      ) { format = FormatASTC_10x5_sRGB;  return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X6_TYPELESS        ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X6_UNORM           ) { format = FormatASTC_10x6;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X6_UNORM_SRGB      ) { format = FormatASTC_10x6_sRGB;  return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X8_TYPELESS        ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X8_UNORM           ) { format = FormatASTC_10x8;       return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X8_UNORM_SRGB      ) { format = FormatASTC_10x8_sRGB;  return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X10_TYPELESS       ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X10_UNORM          ) { format = FormatASTC_10x10;      return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X10_UNORM_SRGB     ) { format = FormatASTC_10x10_sRGB; return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X10_TYPELESS       ) return false; 
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X10_UNORM          ) { format = FormatASTC_12x10;      return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X10_UNORM_SRGB     ) { format = FormatASTC_12x10_sRGB; return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X12_TYPELESS       ) return false;
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X12_UNORM          ) { format = FormatASTC_12x12;      return true; }
-      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X12_UNORM_SRGB     ) { format = FormatASTC_12x12_sRGB; return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_4X4_UNORM            ) { format = Format::ASTC_4x4;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_4X4_UNORM_SRGB       ) { format = Format::ASTC_4x4_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X4_TYPELESS         ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X4_UNORM            ) { format = Format::ASTC_5x4;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X4_UNORM_SRGB       ) { format = Format::ASTC_5x4_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X5_TYPELESS         ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X5_UNORM            ) { format = Format::ASTC_5x5;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_5X5_UNORM_SRGB       ) { format = Format::ASTC_5x5_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X5_TYPELESS         ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X5_UNORM            ) { format = Format::ASTC_6x5;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X5_UNORM_SRGB       ) { format = Format::ASTC_6x5_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X6_TYPELESS         ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X6_UNORM            ) { format = Format::ASTC_6x6;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_6X6_UNORM_SRGB       ) { format = Format::ASTC_6x6_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X5_TYPELESS         ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X5_UNORM            ) { format = Format::ASTC_8x5;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X5_UNORM_SRGB       ) { format = Format::ASTC_8x5_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X6_TYPELESS         ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X6_UNORM            ) { format = Format::ASTC_8x6;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X6_UNORM_SRGB       ) { format = Format::ASTC_8x6_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X8_TYPELESS         ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X8_UNORM            ) { format = Format::ASTC_8x8;          return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_8X8_UNORM_SRGB       ) { format = Format::ASTC_8x8_sRGB;     return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X5_TYPELESS        ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X5_UNORM           ) { format = Format::ASTC_10x5;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X5_UNORM_SRGB      ) { format = Format::ASTC_10x5_sRGB;    return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X6_TYPELESS        ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X6_UNORM           ) { format = Format::ASTC_10x6;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X6_UNORM_SRGB      ) { format = Format::ASTC_10x6_sRGB;    return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X8_TYPELESS        ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X8_UNORM           ) { format = Format::ASTC_10x8;         return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X8_UNORM_SRGB      ) { format = Format::ASTC_10x8_sRGB;    return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X10_TYPELESS       ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X10_UNORM          ) { format = Format::ASTC_10x10;        return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_10X10_UNORM_SRGB     ) { format = Format::ASTC_10x10_sRGB;   return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X10_TYPELESS       ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X10_UNORM          ) { format = Format::ASTC_12x10;        return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X10_UNORM_SRGB     ) { format = Format::ASTC_12x10_sRGB;   return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X12_TYPELESS       ) return false;                         
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X12_UNORM          ) { format = Format::ASTC_12x12;        return true; }
+      if (header10->dxgiFormat == DXGI_FORMAT_ASTC_12X12_UNORM_SRGB     ) { format = Format::ASTC_12x12_sRGB;   return true; }
       }                                                                   
    else
    if (header.dwFlags & DDS_FOURCC)
       {
-      // Pre DX10 DDS file format is not supporting sRGB color spaces
-      if (header.ddspf.dwFourCC == 36)         { format = FormatRGBA_16;       return true; } // Hi to LO
-      if (header.ddspf.dwFourCC == 110)        { format = FormatRGBA_16_sn;    return true; } // Hi to LO
-      if (header.ddspf.dwFourCC == 111)        { format = FormatR_16_hf;       return true; } 
-      if (header.ddspf.dwFourCC == 112)        { format = FormatRG_16_hf;      return true; } // Hi to LO
-      if (header.ddspf.dwFourCC == 113)        { format = FormatRGBA_16_hf;    return true; } // Hi to LO
-      if (header.ddspf.dwFourCC == 114)        { format = FormatR_32_f;        return true; } 
-      if (header.ddspf.dwFourCC == 115)        { format = FormatRG_32_f;       return true; } 
-      if (header.ddspf.dwFourCC == 116)        { format = FormatRGBA_32_f;     return true; } 
-      if (header.ddspf.dwFourCC == 0x31545844) { format = FormatBC1_RGBA;      return true; } // 'DXT1' -> 0x31545844
-      if (header.ddspf.dwFourCC == 0x32545844) { format = FormatBC2_RGBA_pRGB; return true; } // 'DXT2' -> 0x32545844
-      if (header.ddspf.dwFourCC == 0x33545844) { format = FormatBC2_RGBA;      return true; } // 'DXT3' -> 0x33545844
-      if (header.ddspf.dwFourCC == 0x34545844) { format = FormatBC3_RGBA_pRGB; return true; } // 'DXT4' -> 0x34545844
-      if (header.ddspf.dwFourCC == 0x35545844) { format = FormatBC3_RGBA;      return true; } // 'DXT5' -> 0x35545844
-      if (header.ddspf.dwFourCC == 0x55344342) { format = FormatBC4_R;         return true; } // 'BC4U' -> 0x55344342
-      if (header.ddspf.dwFourCC == 0x53344342) { format = FormatBC4_R_sn;      return true; } // 'BC4S' -> 0x53344342
-      if (header.ddspf.dwFourCC == 0x32495441) { format = FormatBC5_RG;        return true; } // 'ATI2' -> 0x32495441
-      if (header.ddspf.dwFourCC == 0x53354342) { format = FormatBC5_RG_sn;     return true; } // 'BC5S' -> 0x53354342
+      // Pre DX10 DDS file format is not supporting sRGB color spaces (it's Hi -> LO)
+      if (header.ddspf.dwFourCC == 36)         { format = Format::RGBA_16;       return true; } 
+      if (header.ddspf.dwFourCC == 110)        { format = Format::RGBA_16_sn;    return true; } // Hi to LO
+      if (header.ddspf.dwFourCC == 111)        { format = Format::R_16_hf;       return true; } 
+      if (header.ddspf.dwFourCC == 112)        { format = Format::RG_16_hf;      return true; } // Hi to LO
+      if (header.ddspf.dwFourCC == 113)        { format = Format::RGBA_16_hf;    return true; } // Hi to LO
+      if (header.ddspf.dwFourCC == 114)        { format = Format::R_32_f;        return true; } 
+      if (header.ddspf.dwFourCC == 115)        { format = Format::RG_32_f;       return true; } 
+      if (header.ddspf.dwFourCC == 116)        { format = Format::RGBA_32_f;     return true; } 
+      if (header.ddspf.dwFourCC == 0x31545844) { format = Format::BC1_RGBA;      return true; } // 'DXT1' -> 0x31545844
+      if (header.ddspf.dwFourCC == 0x32545844) { format = Format::BC2_RGBA_pRGB; return true; } // 'DXT2' -> 0x32545844
+      if (header.ddspf.dwFourCC == 0x33545844) { format = Format::BC2_RGBA;      return true; } // 'DXT3' -> 0x33545844
+      if (header.ddspf.dwFourCC == 0x34545844) { format = Format::BC3_RGBA_pRGB; return true; } // 'DXT4' -> 0x34545844
+      if (header.ddspf.dwFourCC == 0x35545844) { format = Format::BC3_RGBA;      return true; } // 'DXT5' -> 0x35545844
+      if (header.ddspf.dwFourCC == 0x55344342) { format = Format::BC4_R;         return true; } // 'BC4U' -> 0x55344342
+      if (header.ddspf.dwFourCC == 0x53344342) { format = Format::BC4_R_sn;      return true; } // 'BC4S' -> 0x53344342
+      if (header.ddspf.dwFourCC == 0x32495441) { format = Format::BC5_RG;        return true; } // 'ATI2' -> 0x32495441
+      if (header.ddspf.dwFourCC == 0x53354342) { format = Format::BC5_RG_sn;     return true; } // 'BC5S' -> 0x53354342
                                                                       
       // 'RGBG'  DXGI_FORMAT_R8G8_B8G8_UNORM   D3DFMT_R8G8_B8G8
       // 'GRGB'  DXGI_FORMAT_G8R8_G8B8_UNORM   D3DFMT_G8R8_G8B8
@@ -570,12 +570,12 @@ namespace en
            (header.ddspf.dwGBitMask    == 0x0000FF00) &&
            (header.ddspf.dwBBitMask    == 0x00FF0000) &&
            (header.ddspf.dwABitMask    == 0xFF000000) )
-         { format = FormatRGBA_8;   return true; }   // Hi to LO
+         { format = Format::RGBA_8;   return true; }   
    
       if ( (header.ddspf.dwRGBBitCount == 32) &&
            (header.ddspf.dwRBitMask    == 0x0000FFFF) &&
            (header.ddspf.dwGBitMask    == 0xFFFF0000) )
-         { format = FormatRG_16_hf; return true; }   // Hi to LO
+         { format = Format::RG_16_hf; return true; }   
       }
 
    return false;
@@ -661,7 +661,7 @@ namespace en
       }
 
    // Determine texture format stored in DDS
-   TextureFormat format;
+   Format format;
    if (!DetectTextureFormat(header, (supportArrays ? &header10 : nullptr), format))
       {
       Log << "ERROR: DDS texture format unsupported!\n";
@@ -680,7 +680,7 @@ namespace en
       settings.height = static_cast<uint16>(header.dwHeight);
 
    // Calculate texture depth
-   if (settings.type == Texture3D)
+   if (settings.type == TextureType::Texture3D)
       settings.depth = static_cast<uint16>(header.dwDepth);
 
    // Calculate amount of mipmaps
@@ -690,8 +690,8 @@ namespace en
    // Calculate amount of texture layers
    if (supportArrays)
       settings.layers = header10.arraySize;
-   if ( (settings.type == TextureCubeMap) ||
-        (settings.type == TextureCubeMapArray) )
+   if ( (settings.type == TextureType::TextureCubeMap) ||
+        (settings.type == TextureType::TextureCubeMapArray) )
       settings.layers *= 6;
 
    // Create texture in GPU

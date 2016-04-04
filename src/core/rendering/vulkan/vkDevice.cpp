@@ -13,10 +13,11 @@
 
 */
 
+#include "core/rendering/vulkan/vkDevice.h"
+
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 #include "core/log/log.h"
-#include "core/rendering/vulkan/vkDevice.h"
 #include "core/utilities/memory.h"
 
 namespace en
@@ -98,39 +99,6 @@ namespace en
    return true; 
    }
       
-// Vulkan calls can be performed only inside Vulkan Device class.
-// "lastResult" is Vulkan Device variable.
-#ifdef EN_DEBUG
-   #ifdef EN_PROFILER_TRACE_GRAPHICS_API
-   #define Profile( x )                        \
-           {                                   \
-           Log << "Vulkan: " << #x << endl;    \
-           lastResult = x;                     \
-           if (en::gpu::IsError(lastResult))   \
-              assert(0);                       \
-           en::gpu::IsWarning(lastResult);     \
-           }
-   #define ProfileNoRet( x )                   \
-           {                                   \
-           Log << "Vulkan: " << #x << endl;    \
-           x;                                  \
-           }
-   #else 
-   #define Profile( x )                        \
-           {                                   \
-           lastResult = x;                     \
-           if (en::gpu::IsError(lastResult))   \
-              assert(0);                       \
-           en::gpu::IsWarning(lastResult);     \
-           }
-   #define ProfileNoRet( x )                   \
-           x;                                  
-   #endif
-#else
-   #define Profile( x ) lastResult = x; /* Nothing in Release */
-#endif
-
-
    void unbindedVulkanFunctionHandler(...)
    {
    Log << "ERROR: Called unbinded Vulkan function.\n";
@@ -277,10 +245,42 @@ namespace en
  //Profile( vkGetPhysicalDeviceFormatProperties(handle, VkFormat format, VkFormatProperties* pFormatProperties) )
  //Profile( vkGetPhysicalDeviceImageFormatProperties(handle, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties) )
 
+   // TODO: Populate "Support" section of CommonDevice
+   // Texture
+ //support.maxTextureSize1D     = properties.limits.maxImageDimension1D;
+   support.maxTextureSize       = properties.limits.maxImageDimension2D;
+   support.maxTextureRectSize   = properties.limits.maxImageDimension2D;     // TODO: There is no such thing in Vulkan
+   support.maxTextureCubeSize   = properties.limits.maxImageDimensionCube; 
+   support.maxTexture3DSize     = properties.limits.maxImageDimension3D;
+   support.maxTextureLayers     = properties.limits.maxImageArrayLayers;          
+   support.maxTextureBufferSize = properties.limits.maxImageDimension1D;     // TODO: Looks like there is no such thing in Vulkan
+   support.maxTextureLodBias    = properties.limits.maxSamplerLodBias;            
+   // Sampler
+   support.maxAnisotropy        = properties.limits.maxSamplerAnisotropy;
+
    // Gather information about Queue Families supported by this device
    ProfileNoRet( vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, nullptr) )
    queueFamily = new VkQueueFamilyProperties[queueFamiliesCount];
    ProfileNoRet( vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, queueFamily) )
+
+    //for(uint32_t family=0; family<queueCount; ++family)
+    //   {
+    //   printf("Queue Family %i:\n\n", family);
+
+    //   printf("    Queues in Family: %i\n", queueProps[family].queueCount);
+    //   printf("    Queue Min Transfer W: %i\n", queueProps[family].minImageTransferGranularity.width);
+    //   printf("    Queue Min Transfer H: %i\n", queueProps[family].minImageTransferGranularity.height);
+    //   printf("    Queue Min Transfer D: %i\n", queueProps[family].minImageTransferGranularity.depth);
+    //   if (queueProps[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+    //      printf("    Queue supports: GRAPHICS\n");
+    //   if (queueProps[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
+    //      printf("    Queue supports: COMPUTE\n");
+    //   if (queueProps[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
+    //      printf("    Queue supports: TRANSFER\n");
+    //   if (queueProps[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
+    //      printf("    Queue supports: SPARSE_BINDING\n\n\n"); 
+    //   printf("    Queues Time Stamp: %i\n", queueProps[family].timestampValidBits);  
+    //   }
 
    VkLayerProperties* layerProperties = nullptr;
 
@@ -349,17 +349,23 @@ namespace en
    // While creating device, we can choose to init as many Queue Families as we want (but each only once).
    // In each Queue Family we can specify how many Queues we want to init.
    // For now lets just init everything.
-   VkDeviceQueueCreateInfo* queueInfo = new VkDeviceQueueCreateInfo[queueFamiliesCount];
+   VkDeviceQueueCreateInfo* queueFamilyInfo = new VkDeviceQueueCreateInfo[queueFamiliesCount];
    for(uint32 i=0; i<queueFamiliesCount; ++i)
       {
-      queueInfo[i].sType              = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-      queueInfo[i].pNext              = nullptr; 
-      queueInfo[i].queueFamilyIndex   = i;
+      uint32 queues = queueFamily[i].queueCount;
 
-// TODO
-//    queueInfo[i].flags              =
-//    queueInfo[i].queuePriorityCount = queueFamily[i].queueCount;
-//    queueInfo[i].pQueuePriorities   = 
+      queueFamilyInfo[i].sType              = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+      queueFamilyInfo[i].pNext              = nullptr; 
+      queueFamilyInfo[i].flags              = 0; // Reserved
+      queueFamilyInfo[i].queueFamilyIndex   = i;
+      queueFamilyInfo[i].queueCount         = queues;
+
+      // Mark all queues from the same family to have the same priority during workload distribution
+      float* priorities = new float[queues];
+      for(uint32 priority=0; priority<queues; ++priority)
+         priorities[priority] = 1.0f;
+
+      queueFamilyInfo[i].pQueuePriorities   = priorities;
       }
 
    // Similarly to Queue Families, for now on, lets init all Layers and all Extensions available
@@ -388,12 +394,12 @@ namespace en
    VkDeviceCreateInfo deviceInfo;
    deviceInfo.sType                     = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
    deviceInfo.pNext                     = nullptr;
-//  deviceInfo.flags                     = /* VkDeviceCreateFlags */ ;   // TODO
+   deviceInfo.flags                     = 0;                     // Reserved
    deviceInfo.queueCreateInfoCount      = queueFamiliesCount;
    deviceInfo.pQueueCreateInfos         = queueInfo;
-   deviceInfo.enabledLayerNameCount     = layersCount;
+   deviceInfo.enabledLayerCount         = layersCount;
    deviceInfo.ppEnabledLayerNames       = layersCount          ? reinterpret_cast<const char*const*>(layersPtrs) : nullptr;
-   deviceInfo.enabledExtensionNameCount = totalExtensionsCount;
+   deviceInfo.enabledExtensionCount     = totalExtensionsCount;
    deviceInfo.ppEnabledExtensionNames   = totalExtensionsCount ? reinterpret_cast<const char*const*>(extensionPtrs) : nullptr;
    deviceInfo.pEnabledFeatures          = nullptr;
 

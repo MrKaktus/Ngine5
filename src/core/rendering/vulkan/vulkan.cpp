@@ -12,10 +12,11 @@
                implementation of graphic routines.
 
 */
-#include "core/defines.h"
+
 #include "core/rendering/vulkan/vulkan.h"
 
 #if defined(EN_PLATFORM_WINDOWS)
+/*
 PFN_vkCreateInstance                               vkCreateInstance                               = nullptr;
 PFN_vkDestroyInstance                              vkDestroyInstance                              = nullptr;
 PFN_vkEnumeratePhysicalDevices                     vkEnumeratePhysicalDevices                     = nullptr;
@@ -153,4 +154,5 @@ PFN_vkCmdBeginRenderPass                           vkCmdBeginRenderPass         
 PFN_vkCmdNextSubpass                               vkCmdNextSubpass                               = nullptr;
 PFN_vkCmdEndRenderPass                             vkCmdEndRenderPass                             = nullptr;
 PFN_vkCmdExecuteCommands                           vkCmdExecuteCommands                           = nullptr;
+*/
 #endif

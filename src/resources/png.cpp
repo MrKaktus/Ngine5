@@ -315,32 +315,32 @@ namespace en
    settings.width  = endiannes(header.width);
    settings.height = endiannes(header.height);
    if (header.type == 0 && header.bps == 8)
-      settings.format = gpu::FormatR_8;
+      settings.format = gpu::Format::R_8;
    else
    if (header.type == 0 && header.bps == 16)
-      settings.format = gpu::FormatR_16;
+      settings.format = gpu::Format::R_16;
    else
    if (header.type == 2 && header.bps == 8)
       {
-      settings.format = gpu::FormatRGB_8;      // Should be BGR_8 but Windows software saves PNG's in RGB_8
+      settings.format = gpu::Format::BGR_8;      // Should be RGB_8 but Windows software saves PNG's in BGR_8 (LO->HI)
       if (colorSpace == gpu::ColorSpaceSRGB)
-         settings.format = gpu::FormatRGB_8_sRGB;
+         settings.format = gpu::Format::BGR_8_sRGB;
       }
    else
    if (header.type == 2 && header.bps == 16)
-      settings.format = gpu::FormatBGR_16;
+      settings.format = gpu::Format::RGB_16;     
    else
    if (header.type == 4 && header.bps == 8)
-      settings.format = gpu::FormatRG_8;         // Should it be GR for PNG ?
+      settings.format = gpu::Format::RG_8;         
    else
    if (header.type == 4 && header.bps == 16)
-      settings.format = gpu::FormatRG_16;
+      settings.format = gpu::Format::RG_16;
    else
    if (header.type == 6 && header.bps == 8)
-      settings.format = gpu::FormatABGR_8;      // RGB / RGBA according to http://www.w3.org/TR/PNG/#4Concepts.PNGImage
+      settings.format = gpu::Format::RGBA_8;      // RGB / RGBA (LO->HI) according to http://www.w3.org/TR/PNG/#4Concepts.PNGImage
    //else
    //if (header.type == 6 && header.bps == 16)
-   //   settings.format = gpu::FormatABGR_16;
+   //   settings.format = gpu::Format::RGBA_16;
    else
       {
       Log << "ERROR: Unsupported texture format!\n";
@@ -349,21 +349,21 @@ namespace en
       }
 
    // Determine texture type
-   settings.type    = gpu::Texture2D;
+   settings.type    = gpu::TextureType::Texture2D;
    if (settings.height == 1)
-      settings.type = gpu::Texture1D;
-   if (!powerOfTwo(settings.width) ||
-       !powerOfTwo(settings.height) )
-      settings.type = gpu::Texture2DRectangle;
+      settings.type = gpu::TextureType::Texture1D;
+   //if (!powerOfTwo(settings.width) ||
+   //    !powerOfTwo(settings.height) )
+   //   settings.type = gpu::TextureType::Texture2DRectangle;
 
    // Check if image can be loaded to texture
-   if (dst->type() != gpu::Texture1DArray            &&
-       dst->type() != gpu::Texture2DArray            &&
-       dst->type() != gpu::Texture2DMultisampleArray &&
-       dst->type() != gpu::TextureCubeMap            &&
-       dst->type() != gpu::TextureCubeMapArray)
+   if (dst->type() != gpu::TextureType::Texture1DArray            &&
+       dst->type() != gpu::TextureType::Texture2DArray            &&
+       dst->type() != gpu::TextureType::Texture2DMultisampleArray &&
+       dst->type() != gpu::TextureType::TextureCubeMap            &&
+       dst->type() != gpu::TextureType::TextureCubeMapArray)
       return false;
-   if (dst->type() == gpu::TextureCubeMap &&
+   if (dst->type() == gpu::TextureType::TextureCubeMap &&
        layer > 5)
       return false;
    else
@@ -1020,32 +1020,32 @@ namespace en
    settings.width  = endiannes(header.width);
    settings.height = endiannes(header.height);
    if (header.type == 0 && header.bps == 8)
-      settings.format = gpu::FormatR_8;
+      settings.format = gpu::Format::R_8;
    else
    if (header.type == 0 && header.bps == 16)
-      settings.format = gpu::FormatR_16;
+      settings.format = gpu::Format::R_16;
    else
    if (header.type == 2 && header.bps == 8)
       {
-      settings.format = gpu::FormatRGB_8;      // Should be BGR_8 but Windows software saves PNG's in RGB_8
+      settings.format = gpu::Format::BGR_8;         // Window
       if (colorSpace == gpu::ColorSpaceSRGB)
-         settings.format = gpu::FormatRGB_8_sRGB;
+         settings.format = gpu::Format::BGR_8_sRGB; // Windows
       }
    else
    if (header.type == 2 && header.bps == 16)
-      settings.format = gpu::FormatBGR_16;
+      settings.format = gpu::Format::RGB_16;
    else
    if (header.type == 4 && header.bps == 8)
-      settings.format = gpu::FormatRG_8;      // Should it be GR for PNG ?
+      settings.format = gpu::Format::RG_8;      
    else
    if (header.type == 4 && header.bps == 16)
-      settings.format = gpu::FormatRG_16;
+      settings.format = gpu::Format::RG_16;
    else
    if (header.type == 6 && header.bps == 8)
-      settings.format = gpu::FormatABGR_8;    // RGB / RGBA according to http://www.w3.org/TR/PNG/#4Concepts.PNGImage
+      settings.format = gpu::Format::RGBA_8;    // RGB / RGBA according to http://www.w3.org/TR/PNG/#4Concepts.PNGImage
    //else
    //if (header.type == 6 && header.bps == 16)
-   //   settings.format = gpu::FormatABGR_16;
+   //   settings.format = gpu::Format::RGBA_16;
    else
       {
       Log << "ERROR: Unsupported texture format!\n";
@@ -1054,9 +1054,9 @@ namespace en
       }
 
    // Determine texture type
-   settings.type    = gpu::Texture2D;
+   settings.type    = gpu::TextureType::Texture2D;
    if (settings.height == 1)
-      settings.type = gpu::Texture1D;
+      settings.type = gpu::TextureType::Texture1D;
    //if (!powerOfTwo(settings.width) ||
    //    !powerOfTwo(settings.height) )
    //   settings.type = gpu::Texture2DRectangle;

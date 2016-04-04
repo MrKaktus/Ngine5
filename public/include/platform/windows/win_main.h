@@ -20,7 +20,7 @@
 #include "core/log/log.h"
 
 // Handle of user console application main
-extern "C" int ApplicationMainC(int argc, char* argv[]);
+extern "C" int ApplicationMainC(int argc, const char* argv[]);
 
 // Handle of user windows application main
 extern "C" int WINAPI ApplicationMainW( HINSTANCE hInstance,     // Instance

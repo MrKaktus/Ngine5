@@ -17,6 +17,8 @@
 #ifndef ENG_CORE_RENDERING_VULKAN
 #define ENG_CORE_RENDERING_VULKAN
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 #include "Vulkan/vulkan.h"

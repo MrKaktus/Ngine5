@@ -25,6 +25,7 @@ namespace en
    TextureState::TextureState() :
       type(Texture2D),
       format(FormatUnsupported),
+      usage(TextureUsage::ShaderRead),
       width(1),
       height(1),
       depth(1),
@@ -36,20 +37,23 @@ namespace en
    
    TextureState::TextureState(const TextureType _type, 
       const TextureFormat _format,
+      const TextureUsage _usage,
       const uint16 _width,
       const uint16 _height,
       const uint16 _depth,
       const uint16 _layers,
-      const uint16 _samples )
+      const uint16 _samples,
+      const uint16 _mipmaps ) :
+      type(_type),
+      format(_format),
+      usage(_usage),
+      width(_width),
+      height(_height),
+      depth(_depth),
+      layers(_layers),
+      samples(_samples),
+      mipmaps(_mipmaps)
    {
-   type    = _type;
-   format  = _format;
-   width   = _width;
-   height  = _height;
-   depth   = _depth;
-   layers  = _layers;
-   samples = _samples;
-   mipmaps = 1;
    }
 
    bool TextureState::operator !=(const TextureState& b)
@@ -362,6 +366,36 @@ namespace en
       { false, false }    // FormatASTC_12x12_sRGB     
       };
 #endif
+
+   bool TextureFormatIsDepth(const TextureFormat format)
+   {
+   if ( (format == Format::D_16  ) ||   
+        (format == Format::D_24  ) ||   
+        (format == Format::D_24_8) ||
+        (format == Format::D_32  ) ||               
+        (format == Format::D_32_f) )
+      return true;
+
+   return false;
+   }
+
+   bool TextureFormatIsStencil(const TextureFormat format)
+   {
+   if (format == Format::S_8)
+      return true;
+
+   return false;
+   }
+
+   bool TextureFormatIsDepthStencil(const TextureFormat format)
+   {
+   if ( (format == Format::DS_16_8  ) ||
+        (format == Format::DS_24_8  ) ||
+        (format == Format::DS_32_f_8) )
+      return true;
+
+   return false;
+   }
 
    // Calculate texture mipmaps count
    uint32 TextureMipMapCount(const TextureState& state)

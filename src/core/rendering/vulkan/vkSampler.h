@@ -1,6 +1,9 @@
-#include "core/rendering/sampler.h"
 
-#include "vulkan/vulkan.h"
+#include "core/rendering/vulkan/vulkan.h"
+
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+
+#include "core/rendering/sampler.h"
 
 namespace en
 {
@@ -9,3 +12,4 @@ namespace en
 
    }
 }
+#endif

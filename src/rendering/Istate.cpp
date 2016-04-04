@@ -37,15 +37,18 @@ namespace en
 
    // Calculate sampler state hash
    SamplerHash hash;
-   hash.filtering    = state.filtering;
-   hash.coordU       = state.coordU;
-   hash.coordV       = state.coordV;
-   hash.coordW       = state.coordW;
-   hash.borderColor  = state.borderColor;
-   hash.depthCompare = state.depthCompare;
-   hash.bias         = state.LODbias;
-   hash.minLOD       = state.minLOD;
-   hash.maxLOD       = state.maxLOD;
+   hash.minification  = underlyingType(state.minification);
+   hash.magnification = underlyingType(state.magnification);
+   hash.mipmap        = underlyingType(state.mipmap);
+   hash.anisotropy    = static_cast<uint32>(state.anisotropy);
+   hash.coordU        = state.coordU;
+   hash.coordV        = state.coordV;
+   hash.coordW        = state.coordW;
+   hash.borderColor   = state.borderColor;
+   hash.depthCompare  = underlyingType(state.compare);
+   hash.bias          = state.LodBias;
+   hash.minLOD        = state.minLod;
+   hash.maxLOD        = state.maxLod;
 
    // Check if sampler is not already in the cache
    for(uint32 i=0; i<GpuContext.sampler.cacheSize; ++i)
@@ -93,73 +96,73 @@ namespace en
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    // Check if texture type and format are supported
-   assert( TextureTypeSupported[state.type] );
-   assert( TextureCapabilities[state.format].supported );
+   assert( TextureTypeSupported[underlyingType(state.type)] );
+   assert( TextureCapabilities[underlyingType(state.format)].supported );
 
    // Check if given texture type supports compressed storage
-   bool compressed = TextureCompressionInfo[state.format].compressed;
+   bool compressed = TextureCompressionInfo[underlyingType(state.format)].compressed;
    if ( compressed &&
-        ( (state.type == Texture2DRectangle)        ||
-          (state.type == Texture2DMultisample)      ||
-          (state.type == Texture2DMultisampleArray) ||
-          (state.type == TextureBuffer) ) )
+        ( //(state.type == TextureType::Texture2DRectangle)        ||
+          (state.type == TextureType::Texture2DMultisample)      ||
+          (state.type == TextureType::Texture2DMultisampleArray) //||
+          /*(state.type == TextureType::TextureBuffer)*/ ) )
       return nullptr;
 
    // Check if format is color, depth or stencil renderable
-   if ( ( (state.type == Texture2DMultisample)      ||
-          (state.type == Texture2DMultisampleArray) ) &&
-        !TextureCapabilities[state.format].rendertarget )
+   if ( ( (state.type == TextureType::Texture2DMultisample)      ||
+          (state.type == TextureType::Texture2DMultisampleArray) ) &&
+        !TextureCapabilities[underlyingType(state.format)].rendertarget )
       return nullptr;
 
 
    // HW dependent validation
 
    // Check if texture dimmensions are correct 
-   if ( (state.type == Texture1D) ||
-        (state.type == Texture2DArray) )
+   if ( (state.type == TextureType::Texture1D) ||
+        (state.type == TextureType::Texture2DArray) )
       assert( state.width <= GpuContext.support.maxTextureSize );
    else
-   if ( (state.type == Texture2D)             ||
-        (state.type == Texture2DArray)        ||
-        (state.type == Texture2DMultisample ) ||
-        (state.type == Texture2DMultisampleArray ) )
+   if ( (state.type == TextureType::Texture2D)             ||
+        (state.type == TextureType::Texture2DArray)        ||
+        (state.type == TextureType::Texture2DMultisample ) ||
+        (state.type == TextureType::Texture2DMultisampleArray ) )
       {
       assert( state.width  <= GpuContext.support.maxTextureSize );
       assert( state.height <= GpuContext.support.maxTextureSize );
       }
    else
-   if (state.type == Texture2DRectangle)
-      {
-      assert( state.width  <= GpuContext.support.maxTextureRectSize );
-      assert( state.height <= GpuContext.support.maxTextureRectSize );
-      }
-   else
-   if (state.type == Texture3D)
+   //if (state.type == TextureType::Texture2DRectangle)
+   //   {
+   //   assert( state.width  <= GpuContext.support.maxTextureRectSize );
+   //   assert( state.height <= GpuContext.support.maxTextureRectSize );
+   //   }
+   //else
+   if (state.type == TextureType::Texture3D)
       {
       assert( state.width  <= GpuContext.support.maxTexture3DSize );
       assert( state.height <= GpuContext.support.maxTexture3DSize );
       assert( state.depth  <= GpuContext.support.maxTexture3DSize );
       }
    else
-   if ( (state.type == TextureCubeMap)      ||
-        (state.type == TextureCubeMapArray) )
+   if ( (state.type == TextureType::TextureCubeMap)      ||
+        (state.type == TextureType::TextureCubeMapArray) )
       {
       assert( state.width == state.height );
       assert( state.width <= GpuContext.support.maxTextureCubeSize );
       }
-   else
-   if (state.type == TextureBuffer)
-      {
-      assert( state.width <= GpuContext.support.maxTextureBufferSize );
-      }
+   //else
+   //if (state.type == TextureType::TextureBuffer)
+   //   {
+   //   assert( state.width <= GpuContext.support.maxTextureBufferSize );
+   //   }
 
    // Check if layers count is set propery
-   if ( (state.type == Texture1DArray) ||
-        (state.type == Texture2DArray) ||
-        (state.type == Texture2DMultisampleArray ) )
+   if ( (state.type == TextureType::Texture1DArray) ||
+        (state.type == TextureType::Texture2DArray) ||
+        (state.type == TextureType::Texture2DMultisampleArray ) )
       assert( state.layers <= GpuContext.support.maxTextureLayers );
    else
-   if (state.type == TextureCubeMapArray)
+   if (state.type == TextureType::TextureCubeMapArray)
       {
       assert( state.layers % 6 == 0 );
       assert( state.layers <= GpuContext.support.maxTextureLayers );
@@ -181,19 +184,19 @@ namespace en
    return texture;
    }
 
-   uint16 Interface::ITexture::bitsPerTexel(const TextureFormat format)
+   uint16 Interface::ITexture::bitsPerTexel(const Format format)
    { 
-   return TextureCompressionInfo[format].size * 8;
+   return TextureCompressionInfo[underlyingType(format)].size * 8;
    }
 
    bool Interface::Support::Texture::type(const en::gpu::TextureType type)
    {
-   return TextureTypeSupported[type];
+   return TextureTypeSupported[underlyingType(type)];
    }
 
-   bool Interface::Support::Texture::format(const en::gpu::TextureFormat format)
+   bool Interface::Support::Texture::format(const en::gpu::Format format)
    {
-   return TextureCapabilities[format].supported;
+   return TextureCapabilities[underlyingType(format)].supported;
    }
 
 

@@ -51,8 +51,8 @@ namespace en
         Less                           ,
         LessOrEqual                    ,
         Equal                          ,
-        Greater                        ,
         GreaterOrEqual                 ,
+        Greater                        ,
         NotEqual                       ,
         CompareMethodsCount
         };

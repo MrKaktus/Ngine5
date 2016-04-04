@@ -81,15 +81,6 @@ namespace en
       virtual ~DepthStencilAttachmentMTL();
       };
       
-   //class FramebufferMTL : public Framebuffer
-   //   {
-   //   public:
-   //   // Metal Framebuffer ???
-   //
-   //   FramebufferMTL();
-   //  ~FramebufferMTL();
-   //   };
-
    class RenderPassMTL : public RenderPass
       {
       public:

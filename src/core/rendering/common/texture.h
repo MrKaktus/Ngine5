@@ -33,7 +33,7 @@ namespace en
       TextureCommon(const TextureState& state);
 
       virtual TextureType type(void) const;
-      virtual TextureFormat format(void) const;
+      virtual Format format(void) const;
       virtual uint32   mipmaps(void) const;
       virtual uint32   size(const uint8 mipmap = 0) const;
       virtual uint32   width(const uint8 mipmap = 0) const;
@@ -58,7 +58,7 @@ namespace en
       uint32            : 7;   // Padding
       };
 
-   extern const TextureCompressedBlockInfo TextureCompressionInfo[TextureFormatsCount];
+   extern const TextureCompressedBlockInfo TextureCompressionInfo[underlyingType(Format::Count)];
 
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    struct TextureInfo
@@ -68,10 +68,13 @@ namespace en
       uint32              : 30; // Reserved
       };
 
-   extern bool TextureTypeSupported[TextureTypesCount];
-   extern TextureInfo TextureCapabilities[TextureFormatsCount];
+   extern bool TextureTypeSupported[underlyingType(TextureType::Count)];
+   extern TextureInfo TextureCapabilities[underlyingType(Format::Count)];
 #endif
 
+   bool   TextureFormatIsDepth(const Format format);
+   bool   TextureFormatIsStencil(const Format format);
+   bool   TextureFormatIsDepthStencil(const Format format);
    uint32 TextureMipMapCount(const TextureState& state);
    }
 }

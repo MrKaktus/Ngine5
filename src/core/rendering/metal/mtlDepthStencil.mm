@@ -31,8 +31,8 @@ namespace en
       MTLCompareFunctionLess,              // Less
       MTLCompareFunctionLessEqual,         // LessOrEqual
       MTLCompareFunctionEqual,             // Equal
-      MTLCompareFunctionGreater,           // Greater
       MTLCompareFunctionGreaterEqual,      // GreaterOrEqual
+      MTLCompareFunctionGreater,           // Greater
       MTLCompareFunctionNotEqual           // NotEqual
       };
 

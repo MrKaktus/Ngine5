@@ -25,7 +25,7 @@ namespace en
          public:
          en::gpu::Block enScene; // Constant Buffer with per Scene/Frame constants
 
-         virtual void draw(const en::gpu::Buffer& sceneParameters) = 0;
+         virtual void draw(const en::gpu::Buffer& sceneParameters, const uint32 instances = 1U) = 0;
    
          Drawable();
          };

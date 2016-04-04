@@ -59,8 +59,8 @@ namespace en
       };
 
    extern const uint16 TranslateTextureFace[6];
-   extern const uint16 TranslateTextureType[TextureTypesCount]; 
-   extern const TextureFormatTranslation TranslateTextureFormat[TextureFormatsCount];
+   extern const uint16 TranslateTextureType[underlyingType(TextureType::Count)]; 
+   extern const TextureFormatTranslation TranslateTextureFormat[underlyingType(Format::Count)];
 
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    void InitTextureSupport(void);

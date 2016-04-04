@@ -45,15 +45,18 @@ namespace en
 #endif
 
    SamplerState::SamplerState() :
-      filtering(Linear),                   // NearestMipmaped will be the fastest one if texture has mip-maps, otherwise Nearest is the fastest
+      minification(SamplerFilter::Linear),
+      magnification(SamplerFilter::Linear),
+      mipmap(SamplerMipMapMode::Linear),
+      anisotropy(1),
       coordU(Clamp),
       coordV(Clamp),
       coordW(Clamp),
       borderColor(OpaqueBlack),
-      depthCompare(LessOrEqual),   
-      LODbias(0.0f),
-      minLOD(-1000.0f),
-      maxLOD(1000.0f) 
+      depthCompare(CompareOperation::Always),   // Disabled depth test, "LessOrEqual" typical depth test
+      LodBias(0.0f),
+      minLod(-1000.0f),
+      maxLod(1000.0f) 
    {
    }
 
