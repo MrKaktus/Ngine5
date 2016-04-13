@@ -29,6 +29,8 @@ namespace en
    return false;
    }
    
+   // Returns true for 0's.
+   // See more at: http://www.exploringbinary.com/ten-ways-to-check-if-an-integer-is-a-power-of-two-in-c/
    bool powerOfTwo(uint8 in)
    {
    return !(in & (in-1));
@@ -49,7 +51,7 @@ namespace en
    return !(in & (in-1));
    }
    
-   // Returns next power of two for given numer
+   // Returns next power of two for given numer (in case of 0, returns 0)
    uint16 nextPowerOfTwo(uint8 in)
    {
    uint16 temp = in;

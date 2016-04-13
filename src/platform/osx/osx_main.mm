@@ -22,6 +22,8 @@
 #include "platform/osx/AppDelegate.h"
 #endif
 
+sint32 returnValue = 0;
+
 namespace en
 {
 extern void initHalfs(void);
@@ -43,6 +45,15 @@ extern void initHalfs(void);
 #include "platform/osx/osx_main.h"
 #include "threading/scheduler.h"
 
+namespace en
+{
+   namespace input
+   {
+#if defined(EN_PLATFORM_OSX)
+#endif
+   }
+}
+
 // Protects Ngine entry points from renaming
 // by define's declared outside in header file.
 // That defines will rename main entry points
@@ -56,30 +67,37 @@ extern void initHalfs(void);
 #undef main
 #define ConsoleMain   main
 
+
+
+
 // Entry point for console applications
 int ConsoleMain(int argc, const char* argv[]) 
 {
-// Init Math
-en::initHalfs();
-   
-// Init modules in proper order
-en::StorageContext.create();
-en::ConfigContext.create();
-en::LogContext.create();
-en::SystemContext.create();
-en::SchedulerContext.create();
-
-// Old graphic API init
-//en::GpuContext.create();
-
-// New graphic API init
-en::gpu::GraphicAPI::create();
-
-uint32 result;
-
-NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-@try
+//NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+//@try
 {
+   // Init Math
+   en::initHalfs();
+      
+   // Init modules in proper order
+   en::StorageContext.create();
+   en::ConfigContext.create();
+   en::LogContext.create();
+   en::SystemContext.create();
+   en::SchedulerContext.create();
+
+   // Old graphic API init
+   //en::GpuContext.create();
+
+   // New graphic API init
+   en::gpu::GraphicAPI::create();
+
+   en::AudioContext.create();  // TODO: Figure out why it locks
+   en::input::Interface::create();
+   en::StateContext.create();
+
+   // TODO: Store input parameters somewhere (config?)
+
    // Connect application to Window Server and Display Server. Init global variable NSApp.
    // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSApplication_Class/index.html#//apple_ref/occ/cl/NSApplication
    NSApplication* application = [NSApplication sharedApplication];
@@ -87,25 +105,40 @@ NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
    // Create custom Application Delegate and assign it to global NSApp
    AppDelegate* appDelegate = [[AppDelegate alloc] init];
    [application setDelegate:appDelegate];
-   [application run];
+   [application setActivationPolicy:NSApplicationActivationPolicyRegular];
    
-   // About app main loop:
-   // http://stackoverflow.com/questions/6732400/cocoa-integrate-nsapplication-into-an-existing-c-mainloop
+   // Example "Menu" creation:
+//   id menubar = [[NSMenu new] autorelease];
+//   id appMenuItem = [[NSMenuItem new] autorelease];
+//   [menubar addItem:appMenuItem];
+//   [application setMainMenu:menubar];
+//   id appMenu = [[NSMenu new] autorelease];
+//   id appName = [[NSProcessInfo processInfo] processName];
+//   id quitTitle = [@"Quit " stringByAppendingString:appName];
+//   id quitMenuItem = [[[NSMenuItem alloc] initWithTitle:quitTitle action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+//   [appMenu addItem:quitMenuItem];
+//   [appMenuItem setSubmenu:appMenu];
+//   [window setTitle:appName];
    
-   result = ApplicationMainC(argc, argv);
+   // Instead of passing control to NSApp Event loop, we handle it ourselves
+   //[application run];
+   [application finishLaunching];
+
+   // Main thread starts to work like other worker
+   // threads, by executing application as first
+   // task. When it will terminate from inside, it
+   // will return here. This will allow sheduler
+   // destructor to close rest of worker threads.
+   en::SchedulerContext.start(new MainTask(argc,argv));
 }
-@catch(NSException* exception)
-{
-   en::Log << "Application crashed with exception:" << endl;
-   en::Log << exception.reason << endl;
-}
-[pool release];
+//@catch(NSException* exception)
+//{
+//   en::Log << "Application crashed with exception:" << endl;
+//   en::Log << exception.reason << endl;
+//}
+//[pool release];
    
 
-en::AudioContext.create();
-en::InputContext.create();
-    
-en::StateContext.create();
 
 
     
@@ -126,12 +159,7 @@ en::StateContext.create();
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     @try
     {
-        // OLD WAY:
-        //result = UIApplicationMain(argc, argv, nil, nil);
-        
-        // NEW WAY:
-
-        
+        result = UIApplicationMain(argc, argv, nil, nil);
     }
     @catch(NSException* exception)
     {
@@ -141,30 +169,105 @@ en::StateContext.create();
     [pool release];
  */
     
-// Main thread starts to work like other worker
-// threads, by executing application as first
-// task. When it will terminate from inside, it
-// will return here. This will allow sheduler
-// destructor to close rest of worker threads.
-//en::SchedulerContext.start(new MainTask(argc,argv));
-    
+   
 // END: OSX & IOS temporary init code
 
     
 // Close modules in order
 en::StateContext.destroy();
-    
-en::InputContext.destroy();
+ 
+en::Input = nullptr;
+
+//en::InputContext.destroy();
 en::AudioContext.destroy();
 
-delete en::Graphics;
+en::Graphics = nullptr;
 //en::GpuContext.destroy();
 en::SchedulerContext.destroy();
 en::SystemContext.destroy();
 en::LogContext.destroy();
 en::ConfigContext.destroy();
 en::StorageContext.destroy();
-return result;
+return returnValue;
 }
 
 #endif
+
+
+
+// TEMP:
+
+
+//   using namespace en;
+//   
+//   // Window and View related calls need to be executed on Main Thread !
+//   
+//printf("Running on Thread 0 !!!!\n");
+//
+//   WindowSettings settings;
+//   settings.screen   = nullptr; // Primary Screen
+//   settings.position = uint32v2(300, 300);
+//   settings.size     = uint32v2(1440, 900);
+//   settings.mode     = Windowed;
+//
+//   Ptr<GpuDevice> gpu = Graphics->primaryDevice();
+//
+//   Ptr<class Window> window = gpu->create(settings, string("Ngine 5.0"));   // remove "class" when old Rendering API Abstraction is removed
+//   window->active();
+//   
+//   Ptr<CommandBuffer> command = gpu->createCommandBuffer();
+//   
+//   TextureState state(Texture2DRectangle, FormatSD_8_32_f, settings.size.width, settings.size.height);
+//   Ptr<Texture> zbuffer = gpu->create(state);
+//
+//   Ptr<ColorAttachment> attachment = gpu->createColorAttachment(window->surface());
+//   attachment->onLoad(LoadOperation::Clear, float4(1.0f, 0.5f, 0.0f, 0.0f));
+//   
+//   Ptr<DepthStencilAttachment> depthStencil = gpu->createDepthStencilAttachment(zbuffer, nullptr);
+// 
+//   Ptr<RenderPass> pass = gpu->create(attachment, depthStencil); //window->surface()
+//
+//   command->startRenderPass(pass);
+//
+//   // TODO: Draw here
+//
+//   // Finish
+//   command->endRenderPass();
+//   command->commit();
+//   command->waitUntilCompleted();
+//   
+//   pass = nullptr;
+//   depthStencil = nullptr;
+//   attachment = nullptr;
+//   zbuffer = nullptr;
+//   command = nullptr; // Destructor will commit and waitUntilCompleted
+//    
+//   window->display();
+//
+//printf("Running on Thread 0 !!!!\n");
+//
+//
+//   Ptr<Keyboard> keyboard = nullptr;
+//   if (Input->available(IO::Keyboard))
+//      keyboard = Input->keyboard();
+//   
+//   while(!keyboard->pressed(Key::Esc))
+//      {
+//      Input->update();
+//      
+//      // TODO: Here main loop
+//      }
+//
+//   window = nullptr;
+//   gpu = nullptr;
+//   
+//   
+//   
+//   // About app main loop:
+//   // http://stackoverflow.com/questions/6732400/cocoa-integrate-nsapplication-into-an-existing-c-mainloop
+//   
+//   // Really good minimalistic application compiled from gcc (no NIB, no PLIST):
+//   // http://www.cocoawithlove.com/2010/09/minimalist-cocoa-programming.html
+//
+//   // TaskPool experiment with Threads:
+//   // http://www.cocoawithlove.com/2010/09/overhead-of-spawning-threads.html

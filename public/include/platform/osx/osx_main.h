@@ -20,6 +20,10 @@
 #include "core/defines.h"
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
+#include "core/types/basic.h"
+
+extern sint32 returnValue;
+
 // Handle of user console application main
 extern "C++" int ApplicationMainC(int argc, const char* argv[]);
 

@@ -42,7 +42,7 @@ namespace en
       };
 
    ColorAttachmentMTL::ColorAttachmentMTL(const Ptr<Texture> texture, const uint32 mipmap, const uint32 layer) :
-      desc([[[MTLRenderPassColorAttachmentDescriptor alloc] init] autorelease])
+      desc([[MTLRenderPassColorAttachmentDescriptor alloc] init])
    {
    assert( texture );
 
@@ -121,8 +121,8 @@ namespace en
       const Ptr<Texture> stencil,
       const uint32 mipmap,
       const uint32 layer) :
-      descDepth([[[MTLRenderPassDepthAttachmentDescriptor alloc] init] autorelease]),
-      descStencil([[[MTLRenderPassStencilAttachmentDescriptor alloc] init] autorelease])
+      descDepth([[MTLRenderPassDepthAttachmentDescriptor alloc] init]),
+      descStencil([[MTLRenderPassStencilAttachmentDescriptor alloc] init])
    {
    assert( depth );
 
@@ -145,10 +145,17 @@ namespace en
    descDepth.storeAction       = MTLStoreActionStore;
    descDepth.clearDepth        = 1.0f;
    
+   // If Depth attachment is Depth-Stencil texture, it needs to be bound to Stencil attachment as well.
+   bool depthStencil = false;
+   if ( (targetDepth->state.format == FormatSD_8_24) ||
+        (targetDepth->state.format == FormatSD_8_32_f) )
+      depthStencil = true;
+   
    // TODO: Separate stencil texture can have different mipmap and layer ?
-   if (stencil)
+   if (stencil || depthStencil)
       {
-      Ptr<TextureMTL> targetStencil = ptr_dynamic_cast<TextureMTL, Texture>(stencil);
+      Ptr<TextureMTL> targetStencil = stencil ? ptr_dynamic_cast<TextureMTL, Texture>(stencil) :
+                                                ptr_dynamic_cast<TextureMTL, Texture>(depth);
 
       descStencil.texture           = targetStencil->handle;
       descStencil.level             = mipmap;
@@ -349,6 +356,9 @@ namespace en
    pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
    pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
 
+   // Layered Rendering
+   pass->desc.renderTargetArrayLength = 0;  // TODO: Pick attachment with smallest count of Layers
+  
    return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
    }
 
@@ -377,6 +387,9 @@ namespace en
    pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
    pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
 
+   // Layered Rendering
+   pass->desc.renderTargetArrayLength = 0;  // TODO: Pick attachment with smallest count of Layers
+   
    return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
    }
 
@@ -402,7 +415,7 @@ namespace en
    colorAttachment.resolveSlice      = 0;
    colorAttachment.resolveDepthPlane = 0;
    colorAttachment.loadAction        = MTLLoadActionClear;
-   colorAttachment.storeAction       = MTLStoreActionDontCare;
+   colorAttachment.storeAction       = MTLStoreActionStore;
    colorAttachment.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
    
    // Depth & Stencil
@@ -410,6 +423,9 @@ namespace en
    pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
    pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
 
+   // Layered Rendering
+   pass->desc.renderTargetArrayLength = 0;
+   
    return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
    }
 
@@ -439,7 +455,7 @@ namespace en
    colorAttachment.resolveSlice      = 0;
    colorAttachment.resolveDepthPlane = 0;
    colorAttachment.loadAction        = MTLLoadActionClear;
-   colorAttachment.storeAction       = MTLStoreActionDontCare;
+   colorAttachment.storeAction       = MTLStoreActionMultisampleResolve;
    colorAttachment.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
    
    // Depth & Stencil
@@ -447,6 +463,9 @@ namespace en
    pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
    pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
 
+   // Layered Rendering
+   pass->desc.renderTargetArrayLength = 0;
+   
    return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
    }
    
@@ -460,7 +479,7 @@ namespace en
 
 
    RenderPassMTL::RenderPassMTL() :
-      desc([[MTLRenderPassDescriptor alloc] autorelease])
+      desc([[MTLRenderPassDescriptor alloc] init])
    {
    }
 

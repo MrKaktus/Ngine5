@@ -34,8 +34,10 @@ namespace en
       HMDOculusE3_2015            ,
       HMDOculusES06               ,
       HMDOculusES09               ,
+      HMDOculusRift               , // CV1
       HMDOculusUnknown            ,
-      HMDVive
+      HMDVive                     ,
+      HMDVivePre                  ,
       };
 
    enum HMDVendor

@@ -44,7 +44,7 @@ namespace en
    state.DepthBias             = static_cast<sint32>(desc.depthBiasConstantFactor);
    state.DepthBiasClamp        = desc.depthBiasClamp; 
    state.SlopeScaledDepthBias  = desc.depthBiasSlopeFactor;
-   state.DepthClipEnable       = desc.enableDepthClamp ? TRUE : FALSE;
+   state.DepthClipEnable       = desc.enableDepthClamp ? FALSE : TRUE; // Enable Clamping by disabling Clipping.
    // BOOL MultisampleEnable;
    // BOOL AntialiasedLineEnable;
    // UINT ForcedSampleCount;

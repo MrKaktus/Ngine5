@@ -24,118 +24,123 @@
 #define INTEL_PERCEPTUAL_COMPUTING_2014   0   // Compile with built in support for Intel Depth Cameras
 #define MICROSOFT_KINECT                  0   // Compile with built in support for Microsoft Kinect
 
-#ifdef EN_PLATFORM_ANDROID
-#include <android/input.h>
-#include <android/sensor.h>
-#endif
-
-#ifdef EN_PLATFORM_WINDOWS
-
-   #if INTEL_PERCEPTUAL_COMPUTING_2014
-   #pragma comment(lib, "libpxc_d.lib")
-
-   #include "pxcsensemanager.h"         // Creative RealSense
-   #include "pxcprojection.h"           // For computation of UV coordinates of Depth samples on Color map
-   
-   // Additional Library Directories:   $(RSSDK_DIR)/lib/$(PlatformName)    
-   // Additional Dependiences       :   libpxc_d.lib;
-   
-   // Old SDK 2013:
-   
-   //// Additional Include Directories:   $(PCSDK_DIR)/include; $(PCSDK_DIR)/sample/common/include; 
-   //#include "pxcsession.h"              // Creative Senz3D
-   //#include "pxccapture.h"
-   //#include "util_capture.h"
-   #endif
-
-   #if MICROSOFT_KINECT
-   #pragma comment(lib, "Kinect10.lib")
-   #endif
-
-   #define DIRECTINPUT_VERSION 0x0800
-   #include <dinput.h>
-#endif
-
+//   enum Key
+//        {
+//        Key_Unknown          = 0,
+//        Key_A                   , // Letters
+//        Key_B                   ,
+//        Key_C                   ,
+//        Key_D                   ,
+//        Key_E                   ,
+//        Key_F                   ,
+//        Key_G                   ,
+//        Key_H                   ,
+//        Key_I                   ,
+//        Key_J                   ,
+//        Key_K                   ,
+//        Key_L                   ,
+//        Key_M                   ,
+//        Key_N                   ,
+//        Key_O                   ,
+//        Key_P                   ,
+//        Key_Q                   ,
+//        Key_R                   ,
+//        Key_S                   ,
+//        Key_T                   ,
+//        Key_U                   ,
+//        Key_V                   ,
+//        Key_W                   ,
+//        Key_X                   ,
+//        Key_Y                   ,
+//        Key_Z                   ,
+//        Key_1                   , // Cyphers
+//        Key_2                   ,
+//        Key_3                   ,
+//        Key_4                   ,
+//        Key_5                   ,
+//        Key_6                   ,
+//        Key_7                   ,
+//        Key_8                   ,
+//        Key_9                   ,
+//        Key_0                   ,
+//        Key_Up                  , // Arrows
+//        Key_Down                ,
+//        Key_Left                ,
+//        Key_Right               ,
+//        Key_Alt                 , // Controlers
+//        Key_LeftAlt             ,
+//        Key_RightAlt            ,
+//        Key_Ctrl                ,
+//        Key_LeftCtrl            ,
+//        Key_RightCtrl           ,
+//        Key_Shift               , 
+//        Key_LeftShift           ,
+//        Key_RightShift          ,
+//        Key_Esc                 , // Main keys
+//        Key_Tab                 ,
+//        Key_CapsLock            ,
+//        Key_Backspace           ,
+//        Key_Enter               ,
+//        Key_Space               ,
+//        Key_Tilde               ,
+//        Key_Minus               ,
+//        Key_Equal               ,
+//        Key_Baskslash           ,
+//        Key_OpenBrace           ,
+//        Key_CloseBrace          ,
+//        Key_Colon               ,
+//        Key_Quote               ,
+//        Key_Comma               ,
+//        Key_Period              ,
+//        Key_Slash               ,  
+//        Key_F1                  , // Function keys
+//        Key_F2                  ,
+//        Key_F3                  ,
+//        Key_F4                  ,
+//        Key_F5                  ,
+//        Key_F6                  ,
+//        Key_F7                  ,
+//        Key_F8                  ,
+//        Key_F9                  ,
+//        Key_F10                 ,
+//        Key_F11                 ,
+//        Key_F12                 ,   
+//        Key_Insert              , // Text control 
+//        Key_Delete              ,
+//        Key_Home                ,
+//        Key_End                 ,
+//        Key_PageUp              ,
+//        Key_PageDown            ,
+//        Key_NumLock             , // Numepad 
+//        Key_NumPad1             ,
+//        Key_NumPad2             ,
+//        Key_NumPad3             ,
+//        Key_NumPad4             ,
+//        Key_NumPad5             ,
+//        Key_NumPad6             ,
+//        Key_NumPad7             ,
+//        Key_NumPad8             ,
+//        Key_NumPad9             ,
+//        Key_NumPad0             ,
+//        Key_PrtScr              , // Additional
+//        Key_Pause               ,
+//        Key_ScrollLock          ,
+//        KeysCount
+//        };
 
 namespace en
 {
    namespace input
    {
-#ifdef EN_PLATFORM_ANDROID
-   // Add declarations of deprecated sensors
-   #ifndef ASENSOR_TYPE_ORIENTATION
-   #define ASENSOR_TYPE_ORIENTATION         3
-   #endif
-   #ifndef ASENSOR_TYPE_PRESSURE
-   #define ASENSOR_TYPE_PRESSURE            6
-   #endif
-   #ifndef ASENSOR_TYPE_TEMPERATURE
-   #define ASENSOR_TYPE_TEMPERATURE         7
-   #endif
-   #ifndef ASENSOR_TYPE_GRAVITY
-   #define ASENSOR_TYPE_GRAVITY             9 
-   #endif
-   #ifndef ASENSOR_TYPE_LINEAR_ACCELERATION
-   #define ASENSOR_TYPE_LINEAR_ACCELERATION 10
-   #endif
-   #ifndef ASENSOR_TYPE_ROTATION_VECTOR
-   #define ASENSOR_TYPE_ROTATION_VECTOR     11
-   #endif
-   #ifndef ASENSOR_TYPE_RELATIVE_HUMIDITY
-   #define ASENSOR_TYPE_RELATIVE_HUMIDITY   12
-   #endif
-   #ifndef ASENSOR_TYPE_AMBIENT_TEMPERATURE
-   #define ASENSOR_TYPE_AMBIENT_TEMPERATURE 13
-   #endif
-
-   // Identifies messages in event queue.
-   enum AndroidEventType
-        {
-        MainEvent  = 1,  // Main events
-        InputEvent    ,  // Input events
-        AppEvent         // Application events
-        };
-
-   /**
-    * Data associated with an ALooper fd that will be returned as the "outData"
-    * when that source has data ready.
-    */
-   struct android_poll_source 
-          {
-          // The identifier of this source.
-          // May be LOOPER_ID_MAIN or LOOPER_ID_INPUT.
-          int32_t id;
-          
-          // The android_app this ident is associated with.
-          struct android_app* app;
-          
-          // Function to call to perform the standard processing 
-          // of data from this source.
-          void (*process)(struct android_app* app, struct android_poll_source* source);
-          };
-#endif
-
    // Input Context
    struct Context
           {
-#ifdef EN_PLATFORM_ANDROID
-          ALooper*            looper;
-          AInputQueue*        inputQueue;
-          ASensorEventQueue*  sensorQueue;
-          ASensorManager*     sensorManager;
-          sint32              fileDescriptor;
-          android_poll_source inputData;
-          bool                allowCallback;
-#endif
-#ifdef EN_PLATFORM_WINDOWS
-          MSG msg;          // Message handle
-#endif
           struct Keyboard
                  {
                  bool available;  // Is it available in the HW
                  bool used;       // Is it used by the application
                  bool on;         // Is it turned on
-                 en::input::KeyState keys[KeysCount];  // States of keyboard keys
+                 en::input::KeyState keys[underlyingType(Key::KeysCount)];  // States of keyboard keys
                  } keyboard;
    
           struct Mouse
@@ -143,7 +148,7 @@ namespace en
                  bool available;  // Is it available in the HW
                  bool used;       // Is it used by the application
                  bool on;         // Is it turned on
-                 en::input::KeyState buttons[MouseButtonsCount]; // States of mouse buttons
+                 en::input::KeyState buttons[underlyingType(MouseButton::Count)]; // States of mouse buttons
                  uint32 x;
                  uint32 y;
                  } mouse;

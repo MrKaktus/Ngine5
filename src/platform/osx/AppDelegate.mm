@@ -11,7 +11,7 @@
 
 #include "platform/osx/AppDelegate.h"
 
-#include "input/context.h"
+#include "input/osxInput.h"
 
 // CODE CHANGES BEGIN
 
@@ -22,6 +22,8 @@
 #ifndef nullptr
 #define nullptr NULL
 #endif
+
+using namespace en::input;
 
 // The following option controls the version of unified graphics/compute language that the compiler accepts.
 //
@@ -53,11 +55,27 @@ pthread_attr_t attr;
 
 static void* mainGameThread(void* ptr)
 {
-   int ret = ApplicationMainC(0, nullptr);
+   //returnValue = ApplicationMainC(0, nullptr);
    return nullptr;
 }
 
+
+
+
+//@implementation AppView
+//- (bool)acceptsFirstResponder:
+//{
+//   YES;
+//}
+//@end
+
+
 @implementation AppDelegate
+
+//- (bool)acceptsFirstResponder:
+//{
+//   YES;
+//}
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
 {
@@ -73,14 +91,13 @@ static void* mainGameThread(void* ptr)
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
-   using namespace en::input;
-
    //  Send to main app thread info about request to quit.
    // App should register this event and return control to this thread, then on it's thread close itself and return.
    Event event;
    memset(&event, 0, sizeof(Event));
    event.type = AppClose;
-   en::InputContext.events.callback(event);
+   //Ptr<en::input::OSXInterface> ptr = en::ptr_dynamic_cast<en::input::OSXInterface, en::input::Interface>(Input);
+   //ptr->callback(event);
 
    // TODO: There should be 2 types of events.
    // Events that are stacked on producer-consumer queue. Thread 0 (this thread) pushes them, then Thread X (app main)
@@ -95,8 +112,7 @@ static void* mainGameThread(void* ptr)
 
     // Insert code here to tear down your application
     
-    self.window = nullptr;
-    
+
     // ((CAMetalLayer*)view.layer).drawableSize =
 //    metalLayer.drawableSize = CGSizeMake( screen.width, screen.height );
 
@@ -112,6 +128,17 @@ static void* mainGameThread(void* ptr)
 //    check(ScalingFactor * ViewFrame.size.width == InSizeX && ScalingFactor * ViewFrame.size.height == InSizeY);
 //
 
+}
+
+// Dock Menu quit event
+- (void)handleQuitEvent:(NSAppleEventDescriptor*)inputEvent withReplyEvent:(NSAppleEventDescriptor*)ReplyEvent
+{
+   //  Send to main app thread info about request to quit.
+   // App should register this event and return control to this thread, then on it's thread close itself and return.
+   Event event;
+   memset(&event, 0, sizeof(Event));
+   event.type = AppClose;
+   //en::InputContext.events.callback(event);
 }
 
 @end

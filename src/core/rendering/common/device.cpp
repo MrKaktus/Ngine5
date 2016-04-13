@@ -109,21 +109,30 @@ namespace en
    Log << "Starting module: Rendering.\n";
 
    // Load from config file desired Rendering API and Shading Language Version
+   // Load choosed API for Android & Windows
    
-   // Graphics = new Direct3DAPI();
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   Graphics = new MetalAPI();
+#if defined(EN_PLATFORM_ANDROID)
+   // Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLESAPI>(Ptr<OpenGLESAPI>(new OpenGLESAPI()));
+   // Graphics = ptr_dynamic_cast<GraphicAPI, VulkanAPI>  (Ptr<VulkanAPI>(new VulkanAPI()));
 #endif
-   // Graphics = new OpenGLAPI();
-   // Graphics = new OpenGLESAPI();
-   // Graphics = new VulkanAPI();
- 
-   return true;
+#if defined(EN_PLATFORM_BLACKBERRY)
+   Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLESAPI>(Ptr<OpenGLESAPI>(new OpenGLESAPI()));
+#endif
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+   Graphics = ptr_dynamic_cast<GraphicAPI, MetalAPI>(Ptr<MetalAPI>(new MetalAPI()));
+#endif
+#if defined(EN_PLATFORM_WINDOWS)
+   // Graphics = ptr_dynamic_cast<GraphicAPI, Direct3DAPI>(Ptr<Direct3DAPI>(new Direct3DAPI()));
+   // Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLAPI>(Ptr<OpenGLAPI>(new OpenGLESAPI()));
+   // Graphics = ptr_dynamic_cast<GraphicAPI, VulkanAPI>(Ptr<VulkanAPI>(new VulkanAPI()));
+#endif
+
+   return (Graphics == nullptr) ? false : true;
    }
    
    }
    
-gpu::GraphicAPI* Graphics;
+Ptr<gpu::GraphicAPI> Graphics;
 }
 
 

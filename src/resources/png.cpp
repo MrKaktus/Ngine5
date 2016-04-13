@@ -496,7 +496,7 @@ namespace en
       return false;
       }
    inflateEnd(&stream);
-   delete input;
+   delete [] input;
 
    // Decompress image directly to texture layer in gpu memory
    void* ptr = dst->map(0, layer);
@@ -602,7 +602,7 @@ namespace en
          }
       }
 
-   delete inflated;
+   delete [] inflated;
    return dst->unmap();
    }
 
@@ -1187,7 +1187,7 @@ namespace en
       return Ptr<gpu::Texture>(nullptr);
       }
    inflateEnd(&stream);
-   delete input;
+   delete [] input;
 
 #ifdef EN_PROFILE
    Log << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - PNG ZLIB inflate time" << endl;
@@ -1277,7 +1277,7 @@ namespace en
       }
       
    texture->unmap();
-   delete inflated;
+   delete [] inflated;
 
    // Update list of loaded textures
    ResourcesContext.textures.insert(pair<string, Ptr<en::gpu::Texture> >(filename, texture));
