@@ -28,8 +28,8 @@ namespace en
       GL_LESS    ,   // Less           
       GL_LEQUAL  ,   // LessOrEqual    
       GL_EQUAL   ,   // Equal          
-      GL_GREATER ,   // Greater        
       GL_GEQUAL  ,   // GreaterOrEqual 
+      GL_GREATER ,   // Greater        
       GL_NOTEQUAL    // NotEqual   
       };
    }

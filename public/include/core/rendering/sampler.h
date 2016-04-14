@@ -28,7 +28,7 @@ namespace en
    enum TextureFiltering
       {
       Nearest                   = 0,
-      NearestMipmaped              ,
+      NearestMipmaped              , // NearestMipmaped will be the fastest one if texture has mip-maps, otherwise Nearest is the fastest
       NearestMipmapedSmooth        ,
       Linear                       ,
       Bilinear                     ,
@@ -60,33 +60,79 @@ namespace en
       TextureBorderColorsCount
       };
 
+
+
+
+
+
+
+   enum class SamplerFilter : uint32
+      {
+      Nearest                   = 0, // Nearest texel
+      Linear                       , // Linear interpolation between nearest texels (or Bilinear?)
+      Count
+      };
+
+   enum class SamplerMipMapMode : uint32
+      {
+      Nearest                   = 0, // Nearest MipMap
+      Linear                       , // Linear interpolation between nearest MipMaps
+      Count
+      };
+
+   enum class SamplerAdressing : uint32
+      {
+      Repeat                    = 0,
+      RepeatMirrored               , 
+      ClampToEdge                  , // Outside of texture space, use edge texel values
+      ClampToBorder                , // Outside of texture space, use specific "border" values
+      MirrorClampToEdge            , // Mirror once, then use edge texel values
+      Count
+      };
+
+   enum class SamplerBorder : uint32
+      {
+      TransparentBlack          = 0,
+      OpaqueBlack                  ,
+      OpaqueWhite                  ,
+      Count
+      };
+
+   enum class CompareOperation : uint32
+      {
+      Never                     = 0,
+      Less                         ,
+      Equal                        ,
+      LessOrEqual                  ,
+      Greater                      ,
+      NotEqual                     ,
+      GreaterOrEqual               ,
+      Always                       ,
+      Count                        ,
+      };
+
    struct SamplerState
       {
-      TextureFiltering filtering;
-      TextureWraping   coordU;
-      TextureWraping   coordV;
-      TextureWraping   coordW;
-      TextureBorder    borderColor;
-      CompareMethod    depthCompare;     // For Shadow maps sampling ??
-      float            LODbias;          // 0.0f;
-      float            minLOD;           // 0.0f;        // Can force sampling of less detailed LOD levels (less mip levels used saves GPU memory)
-      float            maxLOD;           // mipmaps.0f;  // Can force sampling of more detailed LOD levels
+      SamplerFilter     minification;  // Filtering during aliasing
+      SamplerFilter     magnification; // Filtering during pixelation
+      SamplerMipMapMode mipmap;        // Filtering between mipmaps
+      float             anisotropy;    // Maximum anisotropy (clamped to maximum supported by the HW). Values smaller than 1.0f means anisotropy is disabled. 
+      TextureWraping    coordU;
+      TextureWraping    coordV;
+      TextureWraping    coordW;
+      TextureBorder     borderColor;
+      CompareOperation  compare;       // For Shadow maps sampling ??
+      float             LodBias;       // 0.0f;
+      float             minLod;        // 0.0f;        // Can force sampling of less detailed LOD levels (less mip levels used saves GPU memory)
+      float             maxLod;        // mipmaps.0f;  // Can force sampling of more detailed LOD levels
 
       SamplerState();
       };
 
+   // Sampler is immutable after it is created.
    class Sampler : public SafeObject
       {
       public:   
-      // Sampler is immutable after it is created.
-        
-//      virtual void filtering(const TextureFiltering filtering) = 0;
-//      virtual void wraping(const TextureWraping coordU, const TextureWraping coordV, const TextureWraping coordW = Repeat) = 0;
-//      virtual void border(const enum TextureBorder color) = 0;
-//      virtual bool bias(const float bias) = 0;
-//      virtual void minLOD(const float lod) = 0;
-//      virtual void minLOD(const float lod) = 0;
-
       virtual ~Sampler();                              // Polymorphic deletes require a virtual base destructor
       };
    }

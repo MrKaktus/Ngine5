@@ -13,9 +13,10 @@
 
 */
 
+#include "core/rendering/vulkan/vkDepthStencil.h"
+
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
-#include "core/rendering/vulkan/vkDepthStencil.h"
 #include "core/rendering/state.h"
 
 namespace en
@@ -29,8 +30,8 @@ namespace en
       VK_COMPARE_OP_LESS,                  // Less
       VK_COMPARE_OP_LESS_OR_EQUAL,         // LessOrEqual
       VK_COMPARE_OP_EQUAL,                 // Equal
-      VK_COMPARE_OP_GREATER,               // Greater
       VK_COMPARE_OP_GREATER_OR_EQUAL,      // GreaterOrEqual
+      VK_COMPARE_OP_GREATER,               // Greater
       VK_COMPARE_OP_NOT_EQUAL              // NotEqual
       };
    

@@ -4,6 +4,9 @@
 #define ENG_CORE_RENDERING_VULKAN_TEXTURE
 
 #include "core/rendering/vulkan/vulkan.h"
+
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/common/texture.h"
 #include "core/rendering/sampler.h"
 
@@ -12,12 +15,15 @@ namespace en
    namespace gpu
    {
    //extern static const VkImageType TranslateType[];
-   //extern static const VkFormat TranslateFormat[];
+
+   extern const VkFormat TranslateTextureFormat[underlyingType(Format::Count)];
 
    class TextureVK : public TextureCommon
       {
       public:
-      VkImage id;    // Vulkan texture ID
+      VkImage     handle;    // Vulkan Image ID
+      VkImageView view;      // Vulkan default Image View ID
+      VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
                      // Vulkan memory pool ID
 
       TextureVK();
@@ -34,12 +40,14 @@ namespace en
    class SamplerVK : public Sampler
       {
       public:
-      VkSampler id;    // Vulkan sampler ID
+      VkSampler handle;  // Vulkan Sampler ID
    
       SamplerVK();
      ~SamplerVK();
       };
    }
 }
+
+#endif
 
 #endif

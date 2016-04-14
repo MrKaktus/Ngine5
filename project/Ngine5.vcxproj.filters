@@ -228,24 +228,6 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Viewport.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\metal\mtlBlend.cpp">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\metal\mtlDepthStencil.cpp">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\metal\mtlInputAssembler.cpp">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\metal\mtlSampler.cpp">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\metal\mtlTexture.cpp">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\metal\mtlViewport.cpp">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\opengl\bind.cpp">
       <Filter>Source Files\core\rendering\opengl</Filter>
     </ClCompile>
@@ -573,11 +555,8 @@
     <ClCompile Include="..\src\utilities\gpcpu\gpcpu.cpp">
       <Filter>Source Files\utilities\gpcpu</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\metal\mtlDevice.cpp">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\metal\mtlRenderPass.cpp">
-      <Filter>Source Files\core\rendering\metal</Filter>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Texture.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -675,9 +654,6 @@
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\rendering\raster.h">
-      <Filter>Header Files\core\rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\core\rendering\rendering.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\rendering\sampler.h">
@@ -1115,6 +1091,12 @@
     <ClInclude Include="..\public\include\core\rendering\renderPass.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\rendering.hpp">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkRenderPass.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">
@@ -1134,6 +1116,30 @@
     </None>
     <None Include="..\src\platform\osx\mac_main.m">
       <Filter>Source Files\platform\osx</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlBlend.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlDepthStencil.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlDevice.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlInputAssembler.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlRenderPass.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlSampler.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlTexture.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlViewport.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
     </None>
   </ItemGroup>
 </Project>

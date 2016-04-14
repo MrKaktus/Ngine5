@@ -49,7 +49,7 @@ extern void initHalfs(void);
 #define WindowsMain   WinMain
 
 // Entry point for console applications
-int ConsoleMain(int argc, char **argv)
+int ConsoleMain(int argc, const char **argv)
 {
 // Hide console window in release build
 #ifndef EN_DEBUG

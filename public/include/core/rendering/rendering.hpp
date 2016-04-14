@@ -230,8 +230,8 @@ namespace en
 
                  struct Texture
                         {
-                        bool type(const en::gpu::TextureType type);       // Checks if specified texture type is supported
-                        bool format(const en::gpu::TextureFormat format); // Checks if specified texture format is supported
+                        bool type(const en::gpu::TextureType type);  // Checks if specified texture type is supported
+                        bool format(const en::gpu::Format format);   // Checks if specified texture format is supported
 
                         //static bool (*type)(const en::gpu::TextureType type);       // Checks if specified texture type is supported
                         //static bool (*format)(const en::gpu::TextureFormat format); // Checks if specified texture format is supported
@@ -259,7 +259,7 @@ namespace en
                  {
                  // Creates texture 
                  Ptr<en::gpu::Texture> create(const TextureState& textureState);
-                 uint16 bitsPerTexel(const en::gpu::TextureFormat format);
+                 uint16 bitsPerTexel(const en::gpu::Format format);
                  } texture;
 
           struct ISampler

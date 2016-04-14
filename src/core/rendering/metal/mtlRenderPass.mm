@@ -15,11 +15,9 @@
 
 #include "core/rendering/metal/mtlRenderPass.h"
 
-
-
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
-#include "utilities/utilities.h"
+#include "utilities/utilities.h" // For underlyingType()
 #include "core/rendering/metal/mtlDevice.h"
 
 namespace en
@@ -47,6 +45,9 @@ namespace en
    assert( texture );
 
    Ptr<TextureMTL> target = ptr_dynamic_cast<TextureMTL, Texture>(texture);
+
+   assert( target->state.mipmaps > mipmap );
+   assert( target->state.layers > layer );
 
    desc.texture           = target->handle;
    desc.level             = mipmap;
@@ -91,6 +92,9 @@ namespace en
 
    Ptr<TextureMTL> resolve = ptr_dynamic_cast<TextureMTL, Texture>(texture);
 
+   assert( resolve->state.mipmaps > mipmap );
+   assert( resolve->state.layers > layer );
+
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
    assert( resolve->state.type != Texture2DMultisampleArray );
@@ -128,6 +132,9 @@ namespace en
 
    Ptr<TextureMTL> targetDepth = ptr_dynamic_cast<TextureMTL, Texture>(depth);
 
+   assert( targetDepth->state.mipmaps > mipmap );
+   assert( targetDepth->state.layers > layer );
+
    descDepth.texture           = targetDepth->handle;
    descDepth.level             = mipmap;
    descDepth.slice             = 0;
@@ -156,6 +163,11 @@ namespace en
       {
       Ptr<TextureMTL> targetStencil = stencil ? ptr_dynamic_cast<TextureMTL, Texture>(stencil) :
                                                 ptr_dynamic_cast<TextureMTL, Texture>(depth);
+
+      // Separate Stencil must have the same type as Depth attachment.
+      assert( targetStencil->state.type == targetDepth->state.type );
+      assert( targetStencil->state.mipmaps > mipmap );
+      assert( targetStencil->state.layers > layer );
 
       descStencil.texture           = targetStencil->handle;
       descStencil.level             = mipmap;

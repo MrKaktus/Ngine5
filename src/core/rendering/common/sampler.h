@@ -27,13 +27,16 @@ namespace en
    aligned(1)
    struct SamplerHash
       {
-      uint32 filtering    : 4;
-      uint32 coordU       : 3;
-      uint32 coordV       : 3;
-      uint32 coordW       : 3;
-      uint32 borderColor  : 2;
-      uint32 depthCompare : 3;
-      uint32              : 14;
+      uint32 mipmap        : 2;
+      uint32 magnification : 2;
+      uint32 minification  : 2;
+      uint32 anisotropy    : 1;
+      uint32 coordU        : 3;
+      uint32 coordV        : 3;
+      uint32 coordW        : 3;
+      uint32 borderColor   : 2;
+      uint32 depthCompare  : 3;
+      uint32               : 11;
       float  bias;
       float  minLOD;
       float  maxLOD;

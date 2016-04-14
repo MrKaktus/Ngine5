@@ -13,11 +13,9 @@
 
 */
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
-
-#include "core/rendering/vulkan/vulkan.h"
-
 #include "core/rendering/vulkan/vkInputAssembler.h"
+
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 namespace en
 {

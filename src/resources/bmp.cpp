@@ -130,10 +130,10 @@ namespace en
    settings.width  = DIBHeader.width;
    settings.height = DIBHeader.height;
    if (DIBHeader.bpp == 24)
-      settings.format = gpu::FormatRGB_8;
+      settings.format = gpu::Format::BGR_8;
    else
    if (DIBHeader.bpp == 32)
-      settings.format = gpu::FormatARGB_8;
+      settings.format = gpu::Format::BGRA_8;
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
@@ -142,12 +142,12 @@ namespace en
       }
    
    // Determine texture type
-   settings.type    = gpu::Texture2D;
+   settings.type    = gpu::TextureType::Texture2D;
    if (DIBHeader.height == 1)
-      settings.type = gpu::Texture1D;
-   if (!powerOfTwo(settings.width) ||
-       !powerOfTwo(settings.height) )
-      settings.type = gpu::Texture2DRectangle;
+      settings.type = gpu::TextureType::Texture1D;
+   //if (!powerOfTwo(settings.width) ||
+   //    !powerOfTwo(settings.height) )
+   //   settings.type = gpu::TextureType::Texture2DRectangle;
    
    // Calculate size of data to load
    uint32 lineSize = (DIBHeader.width * DIBHeader.bpp) / 8;
@@ -158,10 +158,10 @@ namespace en
       dataSize = lineSize * DIBHeader.height;
 
    // Check if image can be loaded to texture
-   if (dst->type() != gpu::Texture1DArray            &&
-       dst->type() != gpu::Texture2DArray            &&
-       dst->type() != gpu::Texture2DMultisampleArray &&
-       dst->type() != gpu::TextureCubeMapArray)
+   if (dst->type() != gpu::TextureType::Texture1DArray            &&
+       dst->type() != gpu::TextureType::Texture2DArray            &&
+       dst->type() != gpu::TextureType::Texture2DMultisampleArray &&
+       dst->type() != gpu::TextureType::TextureCubeMapArray)
       return false;
    if (dst->layers() < layer)
       return false;
@@ -245,10 +245,10 @@ namespace en
    settings.width  = DIBHeader.width;
    settings.height = DIBHeader.height;
    if (DIBHeader.bpp == 24)
-      settings.format = gpu::FormatRGB_8;
+      settings.format = gpu::Format::BGR_8;
    else
    if (DIBHeader.bpp == 32)
-      settings.format = gpu::FormatARGB_8;
+      settings.format = gpu::Format::BGRA_8;
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
@@ -257,12 +257,12 @@ namespace en
       }
    
    // Determine texture type
-   settings.type    = gpu::Texture2D;
+   settings.type    = gpu::TextureType::Texture2D;
    if (DIBHeader.height == 1)
-      settings.type = gpu::Texture1D;
-   if (!powerOfTwo(settings.width) ||
-       !powerOfTwo(settings.height) )
-      settings.type = gpu::Texture2DRectangle;
+      settings.type = gpu::TextureType::Texture1D;
+   //if (!powerOfTwo(settings.width) ||
+   //    !powerOfTwo(settings.height) )
+   //   settings.type = gpu::TextureType::Texture2DRectangle;
    
    // Calculate size of data to load
    uint32 lineSize = (DIBHeader.width * DIBHeader.bpp) / 8;
@@ -355,10 +355,10 @@ namespace en
    settings.width  = DIBHeader.width;
    settings.height = DIBHeader.height;
    if (DIBHeader.bpp == 24)
-      settings.format = gpu::FormatRGB_8;
+      settings.format = gpu::Format::BGR_8;
    else
    if (DIBHeader.bpp == 32)
-      settings.format = gpu::FormatARGB_8;
+      settings.format = gpu::Format::BGRA_8;
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
@@ -367,12 +367,12 @@ namespace en
       }
    
    // Determine texture type
-   settings.type    = gpu::Texture2D;
+   settings.type    = gpu::TextureType::Texture2D;
    if (DIBHeader.height == 1)
-      settings.type = gpu::Texture1D;
-   if (!powerOfTwo(settings.width) ||
-       !powerOfTwo(settings.height) )
-      settings.type = gpu::Texture2DRectangle;
+      settings.type = gpu::TextureType::Texture1D;
+   //if (!powerOfTwo(settings.width) ||
+   //    !powerOfTwo(settings.height) )
+   //   settings.type = gpu::TextureType::Texture2DRectangle;
    
    // Texture can be decompressed
    delete file;
@@ -427,9 +427,9 @@ namespace en
    {
    using namespace en::storage;
 
-   gpu::TextureFormat format = texture->format();
-   if (format != gpu::FormatRGB_8 &&
-       format != gpu::FormatRGBA_8)  // Check if shouldn't be ABGR, how GPU returns uncompressed data ?
+   gpu::Format format = texture->format();
+   if (format != gpu::Format::RGB_8 &&
+       format != gpu::Format::RGBA_8)  // Check if shouldn't be RGBA, how GPU returns uncompressed data ?
       return false;
 
    // Open image file 
@@ -458,16 +458,17 @@ namespace en
    DIBHeader.width      = texture->width();
    DIBHeader.height     = texture->height();
    DIBHeader.planes     = 1;
-   if (format == gpu::FormatRGB_8)  DIBHeader.bpp = 24;
-   if (format == gpu::FormatRGBA_8) DIBHeader.bpp = 32;
+   if (format == gpu::Format::RGB_8)  DIBHeader.bpp = 24;
+   if (format == gpu::Format::RGBA_8) DIBHeader.bpp = 32;
    file->write(14, sizeof(DIBHeaderOS2), &DIBHeader);
  
    // Write texture data
    uint8* buffer = new uint8[texture->size()];
    texture->read(buffer);
 
-   //Swap R and B components - BMP is saved in ARGB
-   if (format == gpu::FormatRGBA_8)
+   //Swap R and B components - BMP is saved in BGR, BGRA
+   if (format == gpu::Format::RGB_8 ||
+       format == gpu::Format::RGBA_8) 
       for(uint32 i=0; i<uint32(DIBHeader.width * DIBHeader.height); ++i)
          {
          uint8 temp    = buffer[i*4];

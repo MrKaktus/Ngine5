@@ -157,7 +157,7 @@ namespace en
    TextureType type = texture->type();
    assert( type == Texture2D          ||
            type == Texture2DRectangle );
-   TextureFormat format = texture->format();
+   Format format = texture->format();
    assert( format == FormatD_16   ||
            format == FormatD_24   ||
            format == FormatD_32   ||
@@ -189,7 +189,7 @@ namespace en
    TextureType type = texture->type();
    assert( type == Texture2D          ||
            type == Texture2DRectangle );
-   TextureFormat format = texture->format();
+   Format format = texture->format();
    assert( format == FormatS_8 );
 #endif
 
@@ -218,7 +218,7 @@ namespace en
    TextureType type = texture->type();
    assert( type == Texture2D          ||
            type == Texture2DRectangle );
-   TextureFormat format = texture->format();
+   Format format = texture->format();
    assert( format == FormatSD_8_24   ||
            format == FormatSD_8_32_f );
 #endif

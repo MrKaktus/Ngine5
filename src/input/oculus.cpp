@@ -194,8 +194,8 @@ namespace en
 
          // Create texture interface that can be exposed to application
          en::gpu::TextureState state;
-         state.type    = Texture2D;
-         state.format  = FormatRGBA_8_sRGB;
+         state.type    = TextureType::Texture2D;
+         state.format  = Format::RGBA_8_sRGB;
          state.width   = resolutionRT.width;
          state.height  = resolutionRT.height;
          state.depth   = 1;
@@ -213,8 +213,8 @@ namespace en
    // >>>>> OpenGL Specific code section - START
    ovr_CreateMirrorTextureGL(session, GL_SRGB8_ALPHA8, windowResolution.width, windowResolution.height, (ovrTexture**)&mirrorTexture);
    en::gpu::TextureState state;
-   state.type    = Texture2D;
-   state.format  = FormatRGBA_8_sRGB;
+   state.type    = TextureType::Texture2D;
+   state.format  = Format::RGBA_8_sRGB;
    state.width   = windowResolution.width;
    state.height  = windowResolution.height;
    state.depth   = 1;

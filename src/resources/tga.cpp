@@ -95,16 +95,16 @@ namespace en
    gpu::TextureState textureState; 
    textureState.width  = header.width;
    textureState.height = header.height;
-   textureState.type   = gpu::Texture2D;
-   if (Gpu.support.texture.type(gpu::Texture1D))
+   textureState.type   = gpu::TextureType::Texture2D;
+   if (Gpu.support.texture.type(gpu::TextureType::Texture1D))
       if (header.height == 1)
-         textureState.type = gpu::Texture1D;
+         textureState.type = gpu::TextureType::Texture1D;
     
    if (header.bpp == 24)
-      textureState.format = gpu::FormatRGB_8;
+      textureState.format = gpu::Format::BGR_8;
    else
    if (header.bpp == 32)
-      textureState.format = gpu::FormatARGB_8;
+      textureState.format = gpu::Format::BGRA_8;
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
@@ -113,10 +113,10 @@ namespace en
       }
 
    // Check if image can be loaded to texture
-   if (dst->type() != gpu::Texture1DArray            &&
-       dst->type() != gpu::Texture2DArray            &&
-       dst->type() != gpu::Texture2DMultisampleArray &&
-       dst->type() != gpu::TextureCubeMapArray)
+   if (dst->type() != gpu::TextureType::Texture1DArray            &&
+       dst->type() != gpu::TextureType::Texture2DArray            &&
+       dst->type() != gpu::TextureType::Texture2DMultisampleArray &&
+       dst->type() != gpu::TextureType::TextureCubeMapArray)
       return false;
    if (dst->layers() < layer)
       return false;
@@ -230,16 +230,16 @@ namespace en
    gpu::TextureState textureState; 
    textureState.width  = header.width;
    textureState.height = header.height;
-   textureState.type   = gpu::Texture2D;
-   if (Gpu.support.texture.type(gpu::Texture1D))
+   textureState.type   = gpu::TextureType::Texture2D;
+   if (Gpu.support.texture.type(gpu::TextureType::Texture1D))
       if (header.height == 1)
-         textureState.type = gpu::Texture1D;
+         textureState.type = gpu::TextureType::Texture1D;
     
    if (header.bpp == 24)
-      textureState.format = gpu::FormatRGB_8;
+      textureState.format = gpu::Format::BGR_8;
    else
    if (header.bpp == 32)
-      textureState.format = gpu::FormatARGB_8;
+      textureState.format = gpu::Format::BGRA_8;
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";

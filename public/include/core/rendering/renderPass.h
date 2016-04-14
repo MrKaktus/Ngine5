@@ -80,8 +80,10 @@ namespace en
                            const uint32 layer = 0u) = 0;
          
       // If GPU supports separate Depth and Stencil atachments,
-      // custom load and store actions; and MSAA resolve destination
+      // custom load and store actions, and MSAA resolve destination
       // can be specifid for Stencil.
+
+      // DepthStencil shared attachment load and store operations can be different.
       virtual void onStencilLoad(const LoadOperation loadStencil) = 0;
 
       virtual void onStencilStore(const StoreOperation storeStencil) = 0;

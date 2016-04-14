@@ -412,11 +412,11 @@ namespace en
       // Set texture type
       if ( headers[part].type == ScanLineImage || 
            headers[part].type == TiledImage )
-         settings.type = gpu::Texture2D;
+         settings.type = gpu::TextureType::Texture2D;
       if ( headers[part].type == DeepScanLine || 
            headers[part].type == DeepTile )
          {
-         settings.type  = gpu::Texture3D;
+         settings.type  = gpu::TextureType::Texture3D;
          settings.depth = headers[part].maxSamplesPerPixel;
          }
       
@@ -428,25 +428,25 @@ namespace en
       bool correct = false;
       if (headers[part].channels == 1)
          {
-         if (headers[part].channel[0].type == 0) { settings.format = gpu::FormatR_32_u;  correct = true; }
-         if (headers[part].channel[0].type == 1) { settings.format = gpu::FormatR_16_hf; correct = true; }
-         if (headers[part].channel[0].type == 2) { settings.format = gpu::FormatR_32_f;  correct = true; }
+         if (headers[part].channel[0].type == 0) { settings.format = gpu::Format::R_32_u;  correct = true; }
+         if (headers[part].channel[0].type == 1) { settings.format = gpu::Format::R_16_hf; correct = true; }
+         if (headers[part].channel[0].type == 2) { settings.format = gpu::Format::R_32_f;  correct = true; }
          }
       if (headers[part].channels == 2)
          if (headers[part].channel[0].type == headers[part].channel[1].type)
             {
-            if (headers[part].channel[0].type == 0) { settings.format = gpu::FormatRG_32_u;  correct = true; }
-            if (headers[part].channel[0].type == 1) { settings.format = gpu::FormatRG_16_hf; correct = true; }
-            if (headers[part].channel[0].type == 2) { settings.format = gpu::FormatRG_32_f;  correct = true; }
+            if (headers[part].channel[0].type == 0) { settings.format = gpu::Format::RG_32_u;  correct = true; }
+            if (headers[part].channel[0].type == 1) { settings.format = gpu::Format::RG_16_hf; correct = true; }
+            if (headers[part].channel[0].type == 2) { settings.format = gpu::Format::RG_32_f;  correct = true; }
             correct = true;
             }
       if (headers[part].channels == 3)
          if ( (headers[part].channel[0].type == headers[part].channel[1].type) &&
               (headers[part].channel[1].type == headers[part].channel[2].type) )
             {
-            if (headers[part].channel[0].type == 0) { settings.format = gpu::FormatRGB_32_u;  correct = true; }
-            if (headers[part].channel[0].type == 1) { settings.format = gpu::FormatRGB_16_hf; correct = true; }
-            if (headers[part].channel[0].type == 2) { settings.format = gpu::FormatRGB_32_f;  correct = true; }
+            if (headers[part].channel[0].type == 0) { settings.format = gpu::Format::RGB_32_u;  correct = true; }
+            if (headers[part].channel[0].type == 1) { settings.format = gpu::Format::RGB_16_hf; correct = true; }
+            if (headers[part].channel[0].type == 2) { settings.format = gpu::Format::RGB_32_f;  correct = true; }
             correct = true;
             }
       if (headers[part].channels == 4)
@@ -454,9 +454,9 @@ namespace en
               (headers[part].channel[1].type == headers[part].channel[2].type) &&
               (headers[part].channel[2].type == headers[part].channel[3].type) )
             {
-            if (headers[part].channel[0].type == 0) { settings.format = gpu::FormatRGBA_32_u;  correct = true; }
-            if (headers[part].channel[0].type == 1) { settings.format = gpu::FormatRGBA_16_hf; correct = true; }
-            if (headers[part].channel[0].type == 2) { settings.format = gpu::FormatRGBA_32_f;  correct = true; }
+            if (headers[part].channel[0].type == 0) { settings.format = gpu::Format::RGBA_32_u;  correct = true; }
+            if (headers[part].channel[0].type == 1) { settings.format = gpu::Format::RGBA_16_hf; correct = true; }
+            if (headers[part].channel[0].type == 2) { settings.format = gpu::Format::RGBA_32_f;  correct = true; }
             correct = true;
             }
 

@@ -17,6 +17,9 @@
 #define ENG_CORE_RENDERING_VULKAN_MULTISAMPLING_STATE
 
 #include "core/rendering/vulkan/vulkan.h"
+
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+
 #include "core/rendering/multisampling.h"
 
 namespace en
@@ -34,5 +37,6 @@ namespace en
       };
    }
 }
+#endif
 
 #endif

@@ -15,6 +15,8 @@
 #define ENG_UTILITIES
 
 #include <string>                 // For C++11 strongly typed enum cast
+#include <type_traits>
+
 #include "core/defines.h"
 #include "core/types/basic.h"
 #include "core/types/float2.h"
@@ -61,7 +63,7 @@ namespace en
       return a > b ? a : b;
    }
 #endif
-
+ 
    // Checks if given point is inside of rectangle
    // x,y - position
    // z,w - width, height
@@ -95,6 +97,8 @@ namespace en
    double degrees(double s);
    
    // Casts C++11 strongly typed enum value to it's underlying type
+   // Note: Visual Studio 2013 supports 'constexpr' only with 'November CTP'.
+   //       Visual sTudio 2015 supports it by default.
    template <typename E>
    constexpr typename std::underlying_type<E>::type underlyingType(E e)
    {

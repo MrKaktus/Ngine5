@@ -29,8 +29,8 @@ namespace en
       D3D12_COMPARISON_FUNC_LESS,          // Less
       D3D12_COMPARISON_FUNC_LESS_EQUAL,    // LessOrEqual
       D3D12_COMPARISON_FUNC_EQUAL,         // Equal
-      D3D12_COMPARISON_FUNC_GREATER,       // Greater
       D3D12_COMPARISON_FUNC_GREATER_EQUAL, // GreaterOrEqual
+      D3D12_COMPARISON_FUNC_GREATER,       // Greater
       D3D12_COMPARISON_FUNC_NOT_EQUAL      // NotEqual
       };
    

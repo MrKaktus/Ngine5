@@ -332,8 +332,8 @@ namespace en
    TextureState settings;
    settings.width  = width;
    settings.height = height;
-   settings.format = FormatRGB_16_hf; // What about FormatEBGR_5_9_9_9_f ?
-   settings.type   = Texture2D;
+   settings.format = Format::RGB_16_hf; // What about FormatEBGR_5_9_9_9_f ?
+   settings.type   = TextureType::Texture2D;
 
    // Create texture in gpu
    Ptr<Texture> texture = Gpu.texture.create(settings);
