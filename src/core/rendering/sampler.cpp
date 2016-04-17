@@ -53,7 +53,7 @@ namespace en
       coordV(Clamp),
       coordW(Clamp),
       borderColor(OpaqueBlack),
-      depthCompare(CompareOperation::Always),   // Disabled depth test, "LessOrEqual" typical depth test
+      compare(CompareOperation::Always),   // Disabled depth test, "LessOrEqual" typical depth test
       LodBias(0.0f),
       minLod(-1000.0f),
       maxLod(1000.0f) 

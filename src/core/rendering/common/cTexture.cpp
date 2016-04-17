@@ -23,8 +23,8 @@ namespace en
    namespace gpu
    {
    TextureState::TextureState() :
-      type(Texture2D),
-      format(FormatUnsupported),
+      type(TextureType::Texture2D),
+      format(Format::Unsupported),
       usage(TextureUsage::ShaderRead),
       width(1),
       height(1),
@@ -36,7 +36,7 @@ namespace en
    }     
    
    TextureState::TextureState(const TextureType _type, 
-      const TextureFormat _format,
+      const Format _format,
       const TextureUsage _usage,
       const uint16 _width,
       const uint16 _height,
@@ -67,307 +67,323 @@ namespace en
    }
 
    // API independent texture compression into
-   const TextureCompressedBlockInfo TextureCompressionInfo[TextureFormatsCount] =
+   const TextureCompressedBlockInfo TextureCompressionInfo[underlyingType(Format::Count)] =
       {
-      {  0,  0,  0, false },   // FormatUnsupported         
-      {  0,  0,  1, false },   // FormatR_8                 
-      {  0,  0,  1, false },   // FormatR_8_sn              
-      {  0,  0,  1, false },   // FormatR_8_u               
-      {  0,  0,  1, false },   // FormatR_8_s               
-      {  0,  0,  2, false },   // FormatR_16                
-      {  0,  0,  2, false },   // FormatR_16_sn             
-      {  0,  0,  2, false },   // FormatR_16_u              
-      {  0,  0,  2, false },   // FormatR_16_s              
-      {  0,  0,  2, false },   // FormatR_16_hf             
-      {  0,  0,  4, false },   // FormatR_32_u              
-      {  0,  0,  4, false },   // FormatR_32_s              
-      {  0,  0,  4, false },   // FormatR_32_f              
-      {  0,  0,  2, false },   // FormatRG_8                
-      {  0,  0,  2, false },   // FormatRG_8_sn             
-      {  0,  0,  2, false },   // FormatRG_8_u              
-      {  0,  0,  2, false },   // FormatRG_8_s              
-      {  0,  0,  4, false },   // FormatRG_16               
-      {  0,  0,  4, false },   // FormatRG_16_sn            
-      {  0,  0,  4, false },   // FormatRG_16_u             
-      {  0,  0,  4, false },   // FormatRG_16_s             
-      {  0,  0,  4, false },   // FormatRG_16_hf            
-      {  0,  0,  8, false },   // FormatRG_32_u             
-      {  0,  0,  8, false },   // FormatRG_32_s             
-      {  0,  0,  8, false },   // FormatRG_32_f             
-      {  0,  0,  3, false },   // FormatRGB_8   
-      {  0,  0,  3, false },   // FormatRGB_8_sRGB              
-      {  0,  0,  3, false },   // FormatRGB_8_sn            
-      {  0,  0,  3, false },   // FormatRGB_8_u             
-      {  0,  0,  3, false },   // FormatRGB_8_s                     
-      {  0,  0,  6, false },   // FormatRGB_16              
-      {  0,  0,  6, false },   // FormatRGB_16_sn           
-      {  0,  0,  6, false },   // FormatRGB_16_u            
-      {  0,  0,  6, false },   // FormatRGB_16_s            
-      {  0,  0,  6, false },   // FormatRGB_16_hf           
-      {  0,  0, 12, false },   // FormatRGB_32_u            
-      {  0,  0, 12, false },   // FormatRGB_32_s            
-      {  0,  0, 12, false },   // FormatRGB_32_f    
-      {  0,  0,  4, false },   // FormatRGBA_8                      
-      {  0,  0,  4, false },   // FormatRGBA_8_sRGB
-      {  0,  0,  4, false },   // FormatRGBA_8_sn           
-      {  0,  0,  4, false },   // FormatRGBA_8_u            
-      {  0,  0,  4, false },   // FormatRGBA_8_s     
-      {  0,  0,  8, false },   // FormatRGBA_16             
-      {  0,  0,  8, false },   // FormatRGBA_16_sn          
-      {  0,  0,  8, false },   // FormatRGBA_16_u           
-      {  0,  0,  8, false },   // FormatRGBA_16_s           
-      {  0,  0,  8, false },   // FormatRGBA_16_hf          
-      {  0,  0, 16, false },   // FormatRGBA_32_u           
-      {  0,  0, 16, false },   // FormatRGBA_32_s           
-      {  0,  0, 16, false },   // FormatRGBA_32_f           
-      {  0,  0,  2, false },   // FormatD_16                
-      {  0,  0,  3, false },   // FormatD_24             // TODO: 3 bytes, or 4 bytes with padding?     
-      {  0,  0,  4, false },   // FormatD_32                
-      {  0,  0,  4, false },   // FormatD_32_f              
-      {  0,  0,  1, false },   // FormatS_8                 
-      {  0,  0,  4, false },   // FormatSD_8_24             
-      {  0,  0,  8, false },   // FormatSD_8_32_f        // TODO: 5 bytes, or 8 bytes with padding?           
-      {  0,  0,  2, false },   // FormatRGB_5_6_5           
-      {  0,  0,  2, false },   // FormatBGR_5_6_5           
-      {  0,  0,  3, false },   // FormatBGR_8               
-      {  0,  0,  4, false },   // FormatBGR_10_11_11_f      
-      {  0,  0,  4, false },   // FormatEBGR_5_9_9_9_f      
-      {  0,  0,  6, false },   // FormatBGR_16              
-      {  0,  0,  2, false },   // FormatRGBA_5_5_5_1        
-      {  0,  0,  2, false },   // FormatBGRA_5_5_5_1        
-      {  0,  0,  2, false },   // FormatARGB_1_5_5_5        
-      {  0,  0,  2, false },   // FormatABGR_1_5_5_5        
-      {  0,  0,  4, false },   // FormatABGR_8              
-      {  0,  0,  4, false },   // FormatARGB_8              
-      {  0,  0,  4, false },   // FormatBGRA_8              
-      {  0,  0,  4, false },   // FormatRGBA_10_10_10_2     
-      {  0,  0,  4, false },   // FormatRGBA_10_10_10_2_u   
-      {  4,  4,  8, true  },   // FormatBC1_RGB             
-      {  4,  4,  8, true  },   // FormatBC1_RGB_sRGB        
-      {  4,  4,  8, true  },   // FormatBC1_RGBA            
-      {  4,  4,  8, true  },   // FormatBC1_RGBA_sRGB       
-      {  4,  4, 16, true  },   // FormatBC2_RGBA_pRGB       
-      {  4,  4, 16, true  },   // FormatBC2_RGBA            
-      {  4,  4, 16, true  },   // FormatBC2_RGBA_sRGB       
-      {  4,  4, 16, true  },   // FormatBC3_RGBA_pRGB       
-      {  4,  4, 16, true  },   // FormatBC3_RGBA            
-      {  4,  4, 16, true  },   // FormatBC3_RGBA_sRGB       
-      {  4,  4,  8, true  },   // FormatBC4_R               
-      {  4,  4,  8, true  },   // FormatBC4_R_sn            
-      {  4,  4, 16, true  },   // FormatBC5_RG              
-      {  4,  4, 16, true  },   // FormatBC5_RG_sn           
-      {  4,  4, 16, true  },   // FormatBC6H_RGB_f          
-      {  4,  4, 16, true  },   // FormatBC6H_RGB_uf         
-      {  4,  4, 16, true  },   // FormatBC7_RGBA            
-      {  4,  4, 16, true  },   // FormatBC7_RGBA_sRGB       
-      {  4,  4,  8, true  },   // FormatETC2_R_11           
-      {  4,  4,  8, true  },   // FormatETC2_R_11_sn        
-      {  4,  4, 16, true  },   // FormatETC2_RG_11          
-      {  4,  4, 16, true  },   // FormatETC2_RG_11_sn       
-      {  4,  4,  8, true  },   // FormatETC2_RGB_8          
-      {  4,  4,  8, true  },   // FormatETC2_RGB_8_sRGB     
-      {  4,  4, 16, true  },   // FormatETC2_RGBA_8         
-      {  4,  4, 16, true  },   // FormatETC2_RGBA_8_sRGB    
-      {  4,  4,  8, true  },   // FormatETC2_RGB8_A1        
-      {  4,  4,  8, true  },   // FormatETC2_RGB8_A1_sRGB   
-      {  4,  4,  8, true  },   // FormatPVRTC_RGB_2         
-      {  4,  4,  8, true  },   // FormatPVRTC_RGB_2_sRGB    
-      {  4,  4,  8, true  },   // FormatPVRTC_RGB_4         
-      {  4,  4,  8, true  },   // FormatPVRTC_RGB_4_sRGB    
-      {  4,  4,  8, true  },   // FormatPVRTC_RGBA_2        
-      {  4,  4,  8, true  },   // FormatPVRTC_RGBA_2_sRGB   
-      {  4,  4,  8, true  },   // FormatPVRTC_RGBA_4        
-      {  4,  4,  8, true  },   // FormatPVRTC_RGBA_4_sRGB   
-      {  4,  4, 16, true  },   // FormatASTC_4x4            
-      {  5,  4, 16, true  },   // FormatASTC_5x4            
-      {  5,  5, 16, true  },   // FormatASTC_5x5            
-      {  6,  5, 16, true  },   // FormatASTC_6x5            
-      {  6,  6, 16, true  },   // FormatASTC_6x6            
-      {  8,  5, 16, true  },   // FormatASTC_8x5            
-      {  8,  6, 16, true  },   // FormatASTC_8x6            
-      {  8,  8, 16, true  },   // FormatASTC_8x8            
-      { 10,  5, 16, true  },   // FormatASTC_10x5           
-      { 10,  6, 16, true  },   // FormatASTC_10x6           
-      { 10,  8, 16, true  },   // FormatASTC_10x8           
-      { 10, 10, 16, true  },   // FormatASTC_10x10          
-      { 12, 10, 16, true  },   // FormatASTC_12x10          
-      { 12, 12, 16, true  },   // FormatASTC_12x12          
-      {  4,  4, 16, true  },   // FormatASTC_4x4_sRGB       
-      {  5,  4, 16, true  },   // FormatASTC_5x4_sRGB       
-      {  5,  5, 16, true  },   // FormatASTC_5x5_sRGB       
-      {  6,  5, 16, true  },   // FormatASTC_6x5_sRGB       
-      {  6,  6, 16, true  },   // FormatASTC_6x6_sRGB       
-      {  8,  5, 16, true  },   // FormatASTC_8x5_sRGB       
-      {  8,  6, 16, true  },   // FormatASTC_8x6_sRGB       
-      {  8,  8, 16, true  },   // FormatASTC_8x8_sRGB       
-      { 10,  5, 16, true  },   // FormatASTC_10x5_sRGB      
-      { 10,  6, 16, true  },   // FormatASTC_10x6_sRGB      
-      { 10,  8, 16, true  },   // FormatASTC_10x8_sRGB      
-      { 10, 10, 16, true  },   // FormatASTC_10x10_sRGB     
-      { 12, 10, 16, true  },   // FormatASTC_12x10_sRGB     
-      { 12, 12, 16, true  }    // FormatASTC_12x12_sRGB     
+      {  0,  0,  0, false },   // Format::Unsupported         
+      {  0,  0,  1, false },   // Format::R_8                  
+      {  0,  0,  1, false },   // Format::R_8_sRGB            
+      {  0,  0,  1, false },   // Format::R_8_sn              
+      {  0,  0,  1, false },   // Format::R_8_u               
+      {  0,  0,  1, false },   // Format::R_8_s               
+      {  0,  0,  2, false },   // Format::R_16                
+      {  0,  0,  2, false },   // Format::R_16_sn             
+      {  0,  0,  2, false },   // Format::R_16_u              
+      {  0,  0,  2, false },   // Format::R_16_s              
+      {  0,  0,  2, false },   // Format::R_16_hf             
+      {  0,  0,  4, false },   // Format::R_32_u              
+      {  0,  0,  4, false },   // Format::R_32_s              
+      {  0,  0,  4, false },   // Format::R_32_f              
+      {  0,  0,  2, false },   // Format::RG_8                
+      {  0,  0,  2, false },   // Format::RG_8_sRGB           
+      {  0,  0,  2, false },   // Format::RG_8_sn             
+      {  0,  0,  2, false },   // Format::RG_8_u              
+      {  0,  0,  2, false },   // Format::RG_8_s              
+      {  0,  0,  4, false },   // Format::RG_16               
+      {  0,  0,  4, false },   // Format::RG_16_sn            
+      {  0,  0,  4, false },   // Format::RG_16_u             
+      {  0,  0,  4, false },   // Format::RG_16_s             
+      {  0,  0,  4, false },   // Format::RG_16_hf            
+      {  0,  0,  8, false },   // Format::RG_32_u             
+      {  0,  0,  8, false },   // Format::RG_32_s             
+      {  0,  0,  8, false },   // Format::RG_32_f             
+      {  0,  0,  3, false },   // Format::RGB_8             (may be padded internally to 4 bytes)            
+      {  0,  0,  3, false },   // Format::RGB_8_sRGB        (may be padded internally to 4 bytes)    
+      {  0,  0,  3, false },   // Format::RGB_8_sn          (may be padded internally to 4 bytes)    
+      {  0,  0,  3, false },   // Format::RGB_8_u           (may be padded internally to 4 bytes)    
+      {  0,  0,  3, false },   // Format::RGB_8_s           (may be padded internally to 4 bytes)    
+      {  0,  0,  6, false },   // Format::RGB_16            (may be padded internally to 8 bytes)    
+      {  0,  0,  6, false },   // Format::RGB_16_sn         (may be padded internally to 8 bytes)    
+      {  0,  0,  6, false },   // Format::RGB_16_u          (may be padded internally to 8 bytes)    
+      {  0,  0,  6, false },   // Format::RGB_16_s          (may be padded internally to 8 bytes)    
+      {  0,  0,  6, false },   // Format::RGB_16_hf         (may be padded internally to 8 bytes)    
+      {  0,  0, 12, false },   // Format::RGB_32_u            
+      {  0,  0, 12, false },   // Format::RGB_32_s            
+      {  0,  0, 12, false },   // Format::RGB_32_f            
+      {  0,  0,  4, false },   // Format::RGBA_8              
+      {  0,  0,  4, false },   // Format::RGBA_8_sRGB         
+      {  0,  0,  4, false },   // Format::RGBA_8_sn           
+      {  0,  0,  4, false },   // Format::RGBA_8_u            
+      {  0,  0,  4, false },   // Format::RGBA_8_s            
+      {  0,  0,  8, false },   // Format::RGBA_16             
+      {  0,  0,  8, false },   // Format::RGBA_16_sn          
+      {  0,  0,  8, false },   // Format::RGBA_16_u           
+      {  0,  0,  8, false },   // Format::RGBA_16_s           
+      {  0,  0,  8, false },   // Format::RGBA_16_hf          
+      {  0,  0, 16, false },   // Format::RGBA_32_u           
+      {  0,  0, 16, false },   // Format::RGBA_32_s           
+      {  0,  0, 16, false },   // Format::RGBA_32_f           
+      {  0,  0,  2, false },   // Format::D_16                
+      {  0,  0,  3, false },   // Format::D_24              (may be padded internally to 4 bytes)        
+      {  0,  0,  4, false },   // Format::D_24_8               
+      {  0,  0,  4, false },   // Format::D_32                 
+      {  0,  0,  4, false },   // Format::D_32_f               
+      {  0,  0,  1, false },   // Format::S_8                  
+      {  0,  0,  3, false },   // Format::DS_16_8              
+      {  0,  0,  4, false },   // Format::DS_24_8              
+      {  0,  0,  8, false },   // Format::DS_32_f_8         (5 bytes plus 3 bytes padding)            
+      {  0,  0,  2, false },   // Format::RGB_5_6_5            
+      {  0,  0,  2, false },   // Format::BGR_5_6_5            
+      {  0,  0,  3, false },   // Format::BGR_8             (may be padded internally to 4 bytes)   
+      {  0,  0,  3, false },   // Format::BGR_8_sRGB        (may be padded internally to 4 bytes)   
+      {  0,  0,  3, false },   // Format::BGR_8_sn          (may be padded internally to 4 bytes)   
+      {  0,  0,  3, false },   // Format::BGR_8_u           (may be padded internally to 4 bytes)   
+      {  0,  0,  3, false },   // Format::BGR_8_s           (may be padded internally to 4 bytes) 
+      {  0,  0,  4, false },   // Format::RGB_11_11_10_uf      
+      {  0,  0,  4, false },   // Format::RGBE_9_9_9_5_uf      
+      {  0,  0,  4, false },   // Format::BGRA_8               
+      {  0,  0,  4, false },   // Format::BGRA_8_sRGB          
+      {  0,  0,  4, false },   // Format::BGRA_8_sn           
+      {  0,  0,  4, false },   // Format::BGRA_8_u            
+      {  0,  0,  4, false },   // Format::BGRA_8_s            
+      {  0,  0,  2, false },   // Format::BGRA_5_5_5_1        
+      {  0,  0,  2, false },   // Format::ARGB_1_5_5_5        
+      {  0,  0,  2, false },   // Format::ABGR_1_5_5_5         
+      {  0,  0,  4, false },   // Format::RGBA_10_10_10_2      
+      {  0,  0,  4, false },   // Format::RGBA_10_10_10_2_u   
+      {  0,  0,  4, false },   // Format::BGRA_10_10_10_2      
+      {  4,  4,  8, true  },   // Format::BC1_RGB              
+      {  4,  4,  8, true  },   // Format::BC1_RGB_sRGB         
+      {  4,  4,  8, true  },   // Format::BC1_RGBA             
+      {  4,  4,  8, true  },   // Format::BC1_RGBA_sRGB        
+      {  4,  4, 16, true  },   // Format::BC2_RGBA_pRGB        
+      {  4,  4, 16, true  },   // Format::BC2_RGBA             
+      {  4,  4, 16, true  },   // Format::BC2_RGBA_sRGB        
+      {  4,  4, 16, true  },   // Format::BC3_RGBA_pRGB        
+      {  4,  4, 16, true  },   // Format::BC3_RGBA             
+      {  4,  4, 16, true  },   // Format::BC3_RGBA_sRGB        
+      {  4,  4,  8, true  },   // Format::BC4_R                
+      {  4,  4,  8, true  },   // Format::BC4_R_sn             
+      {  4,  4, 16, true  },   // Format::BC5_RG               
+      {  4,  4, 16, true  },   // Format::BC5_RG_sn           
+      {  4,  4, 16, true  },   // Format::BC6H_RGB_f           
+      {  4,  4, 16, true  },   // Format::BC6H_RGB_uf          
+      {  4,  4, 16, true  },   // Format::BC7_RGBA             
+      {  4,  4, 16, true  },   // Format::BC7_RGBA_sRGB        
+      {  4,  4,  8, true  },   // Format::ETC2_R_11            
+      {  4,  4,  8, true  },   // Format::ETC2_R_11_sn         
+      {  4,  4, 16, true  },   // Format::ETC2_RG_11           
+      {  4,  4, 16, true  },   // Format::ETC2_RG_11_sn        
+      {  4,  4,  8, true  },   // Format::ETC2_RGB_8           
+      {  4,  4,  8, true  },   // Format::ETC2_RGB_8_sRGB      
+      {  4,  4, 16, true  },   // Format::ETC2_RGBA_8          
+      {  4,  4, 16, true  },   // Format::ETC2_RGBA_8_sRGB     
+      {  4,  4,  8, true  },   // Format::ETC2_RGB8_A1        
+      {  4,  4,  8, true  },   // Format::ETC2_RGB8_A1_sRGB   
+      {  4,  4,  8, true  },   // Format::PVRTC_RGB_2         
+      {  4,  4,  8, true  },   // Format::PVRTC_RGB_2_sRGB    
+      {  4,  4,  8, true  },   // Format::PVRTC_RGB_4         
+      {  4,  4,  8, true  },   // Format::PVRTC_RGB_4_sRGB    
+      {  4,  4,  8, true  },   // Format::PVRTC_RGBA_2        
+      {  4,  4,  8, true  },   // Format::PVRTC_RGBA_2_sRGB   
+      {  4,  4,  8, true  },   // Format::PVRTC_RGBA_4        
+      {  4,  4,  8, true  },   // Format::PVRTC_RGBA_4_sRGB   
+      {  4,  4, 16, true  },   // Format::ASTC_4x4            
+      {  5,  4, 16, true  },   // Format::ASTC_5x4            
+      {  5,  5, 16, true  },   // Format::ASTC_5x5            
+      {  6,  5, 16, true  },   // Format::ASTC_6x5            
+      {  6,  6, 16, true  },   // Format::ASTC_6x6            
+      {  8,  5, 16, true  },   // Format::ASTC_8x5            
+      {  8,  6, 16, true  },   // Format::ASTC_8x6            
+      {  8,  8, 16, true  },   // Format::ASTC_8x8            
+      { 10,  5, 16, true  },   // Format::ASTC_10x5           
+      { 10,  6, 16, true  },   // Format::ASTC_10x6           
+      { 10,  8, 16, true  },   // Format::ASTC_10x8           
+      { 10, 10, 16, true  },   // Format::ASTC_10x10          
+      { 12, 10, 16, true  },   // Format::ASTC_12x10          
+      { 12, 12, 16, true  },   // Format::ASTC_12x12          
+      {  4,  4, 16, true  },   // Format::ASTC_4x4_sRGB       
+      {  5,  4, 16, true  },   // Format::ASTC_5x4_sRGB       
+      {  5,  5, 16, true  },   // Format::ASTC_5x5_sRGB       
+      {  6,  5, 16, true  },   // Format::ASTC_6x5_sRGB       
+      {  6,  6, 16, true  },   // Format::ASTC_6x6_sRGB       
+      {  8,  5, 16, true  },   // Format::ASTC_8x5_sRGB       
+      {  8,  6, 16, true  },   // Format::ASTC_8x6_sRGB       
+      {  8,  8, 16, true  },   // Format::ASTC_8x8_sRGB       
+      { 10,  5, 16, true  },   // Format::ASTC_10x5_sRGB      
+      { 10,  6, 16, true  },   // Format::ASTC_10x6_sRGB      
+      { 10,  8, 16, true  },   // Format::ASTC_10x8_sRGB      
+      { 10, 10, 16, true  },   // Format::ASTC_10x10_sRGB     
+      { 12, 10, 16, true  },   // Format::ASTC_12x10_sRGB     
+      { 12, 12, 16, true  }    // Format::ASTC_12x12_sRGB     
       };
 
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    // API dependent texture information (filled in during API backend creation)
-   bool TextureTypeSupported[TextureTypesCount] = 
+   bool TextureTypeSupported[underlyingType(TextureType::Count)] =
       {
       false,   // Texture1D                
       false,   // Texture1DArray           
       false,   // Texture2D                
-      false,   // Texture2DArray           
-      false,   // Texture2DRectangle       
+      false,   // Texture2DArray
       false,   // Texture2DMultisample     
       false,   // Texture2DMultisampleArray
-      false,   // Texture3D                
-      false,   // TextureBuffer            
+      false,   // Texture3D
       false,   // TextureCubeMap           
       false    // TextureCubeMapArray      
       };
 
-   TextureInfo TextureCapabilities[TextureFormatsCount] = 
+   TextureInfo TextureCapabilities[underlyingType(Format::Count)] =
       {
-      { false, false },   // FormatUnsupported         
-      { false, false },   // FormatR_8                 
-      { false, false },   // FormatR_8_sn              
-      { false, false },   // FormatR_8_u               
-      { false, false },   // FormatR_8_s               
-      { false, false },   // FormatR_16                
-      { false, false },   // FormatR_16_sn             
-      { false, false },   // FormatR_16_u              
-      { false, false },   // FormatR_16_s              
-      { false, false },   // FormatR_16_hf             
-      { false, false },   // FormatR_32_u              
-      { false, false },   // FormatR_32_s              
-      { false, false },   // FormatR_32_f              
-      { false, false },   // FormatRG_8                
-      { false, false },   // FormatRG_8_sn             
-      { false, false },   // FormatRG_8_u              
-      { false, false },   // FormatRG_8_s              
-      { false, false },   // FormatRG_16               
-      { false, false },   // FormatRG_16_sn            
-      { false, false },   // FormatRG_16_u             
-      { false, false },   // FormatRG_16_s             
-      { false, false },   // FormatRG_16_hf            
-      { false, false },   // FormatRG_32_u             
-      { false, false },   // FormatRG_32_s             
-      { false, false },   // FormatRG_32_f             
-      { false, false },   // FormatRGB_8   
-      { false, false },   // FormatRGB_8_sRGB              
-      { false, false },   // FormatRGB_8_sn            
-      { false, false },   // FormatRGB_8_u             
-      { false, false },   // FormatRGB_8_s                     
-      { false, false },   // FormatRGB_16              
-      { false, false },   // FormatRGB_16_sn           
-      { false, false },   // FormatRGB_16_u            
-      { false, false },   // FormatRGB_16_s            
-      { false, false },   // FormatRGB_16_hf           
-      { false, false },   // FormatRGB_32_u            
-      { false, false },   // FormatRGB_32_s            
-      { false, false },   // FormatRGB_32_f    
-      { false, false },   // FormatRGBA_8                      
-      { false, false },   // FormatRGBA_8_sRGB
-      { false, false },   // FormatRGBA_8_sn           
-      { false, false },   // FormatRGBA_8_u            
-      { false, false },   // FormatRGBA_8_s     
-      { false, false },   // FormatRGBA_16             
-      { false, false },   // FormatRGBA_16_sn          
-      { false, false },   // FormatRGBA_16_u           
-      { false, false },   // FormatRGBA_16_s           
-      { false, false },   // FormatRGBA_16_hf          
-      { false, false },   // FormatRGBA_32_u           
-      { false, false },   // FormatRGBA_32_s           
-      { false, false },   // FormatRGBA_32_f           
-      { false, false },   // FormatD_16                
-      { false, false },   // FormatD_24                  
-      { false, false },   // FormatD_32                
-      { false, false },   // FormatD_32_f              
-      { false, false },   // FormatS_8                 
-      { false, false },   // FormatSD_8_24             
-      { false, false },   // FormatSD_8_32_f                   
-      { false, false },   // FormatRGB_5_6_5           
-      { false, false },   // FormatBGR_5_6_5           
-      { false, false },   // FormatBGR_8               
-      { false, false },   // FormatBGR_10_11_11_f      
-      { false, false },   // FormatEBGR_5_9_9_9_f      
-      { false, false },   // FormatBGR_16              
-      { false, false },   // FormatRGBA_5_5_5_1        
-      { false, false },   // FormatBGRA_5_5_5_1        
-      { false, false },   // FormatARGB_1_5_5_5        
-      { false, false },   // FormatABGR_1_5_5_5        
-      { false, false },   // FormatABGR_8              
-      { false, false },   // FormatARGB_8              
-      { false, false },   // FormatBGRA_8              
-      { false, false },   // FormatRGBA_10_10_10_2     
-      { false, false },   // FormatRGBA_10_10_10_2_u   
-      { false, false },   // FormatBC1_RGB             
-      { false, false },   // FormatBC1_RGB_sRGB        
-      { false, false },   // FormatBC1_RGBA            
-      { false, false },   // FormatBC1_RGBA_sRGB       
-      { false, false },   // FormatBC2_RGBA_pRGB       
-      { false, false },   // FormatBC2_RGBA            
-      { false, false },   // FormatBC2_RGBA_sRGB       
-      { false, false },   // FormatBC3_RGBA_pRGB       
-      { false, false },   // FormatBC3_RGBA            
-      { false, false },   // FormatBC3_RGBA_sRGB       
-      { false, false },   // FormatBC4_R               
-      { false, false },   // FormatBC4_R_sn            
-      { false, false },   // FormatBC5_RG              
-      { false, false },   // FormatBC5_RG_sn           
-      { false, false },   // FormatBC6H_RGB_f          
-      { false, false },   // FormatBC6H_RGB_uf         
-      { false, false },   // FormatBC7_RGBA            
-      { false, false },   // FormatBC7_RGBA_sRGB       
-      { false, false },   // FormatETC2_R_11           
-      { false, false },   // FormatETC2_R_11_sn        
-      { false, false },   // FormatETC2_RG_11          
-      { false, false },   // FormatETC2_RG_11_sn       
-      { false, false },   // FormatETC2_RGB_8          
-      { false, false },   // FormatETC2_RGB_8_sRGB     
-      { false, false },   // FormatETC2_RGBA_8         
-      { false, false },   // FormatETC2_RGBA_8_sRGB    
-      { false, false },   // FormatETC2_RGB8_A1        
-      { false, false },   // FormatETC2_RGB8_A1_sRGB   
-      { false, false },   // FormatPVRTC_RGB_2         
-      { false, false },   // FormatPVRTC_RGB_2_sRGB    
-      { false, false },   // FormatPVRTC_RGB_4         
-      { false, false },   // FormatPVRTC_RGB_4_sRGB    
-      { false, false },   // FormatPVRTC_RGBA_2        
-      { false, false },   // FormatPVRTC_RGBA_2_sRGB   
-      { false, false },   // FormatPVRTC_RGBA_4        
-      { false, false },   // FormatPVRTC_RGBA_4_sRGB   
-      { false, false },   // FormatASTC_4x4            
-      { false, false },   // FormatASTC_5x4            
-      { false, false },   // FormatASTC_5x5            
-      { false, false },   // FormatASTC_6x5            
-      { false, false },   // FormatASTC_6x6            
-      { false, false },   // FormatASTC_8x5            
-      { false, false },   // FormatASTC_8x6            
-      { false, false },   // FormatASTC_8x8            
-      { false, false },   // FormatASTC_10x5           
-      { false, false },   // FormatASTC_10x6           
-      { false, false },   // FormatASTC_10x8           
-      { false, false },   // FormatASTC_10x10          
-      { false, false },   // FormatASTC_12x10          
-      { false, false },   // FormatASTC_12x12          
-      { false, false },   // FormatASTC_4x4_sRGB       
-      { false, false },   // FormatASTC_5x4_sRGB       
-      { false, false },   // FormatASTC_5x5_sRGB       
-      { false, false },   // FormatASTC_6x5_sRGB       
-      { false, false },   // FormatASTC_6x6_sRGB       
-      { false, false },   // FormatASTC_8x5_sRGB       
-      { false, false },   // FormatASTC_8x6_sRGB       
-      { false, false },   // FormatASTC_8x8_sRGB       
-      { false, false },   // FormatASTC_10x5_sRGB      
-      { false, false },   // FormatASTC_10x6_sRGB      
-      { false, false },   // FormatASTC_10x8_sRGB      
-      { false, false },   // FormatASTC_10x10_sRGB     
-      { false, false },   // FormatASTC_12x10_sRGB     
-      { false, false }    // FormatASTC_12x12_sRGB     
+      { false, false },   // Format::Unsupported         
+      { false, false },   // Format::R_8                  
+      { false, false },   // Format::R_8_sRGB            
+      { false, false },   // Format::R_8_sn              
+      { false, false },   // Format::R_8_u               
+      { false, false },   // Format::R_8_s               
+      { false, false },   // Format::R_16                
+      { false, false },   // Format::R_16_sn             
+      { false, false },   // Format::R_16_u              
+      { false, false },   // Format::R_16_s              
+      { false, false },   // Format::R_16_hf             
+      { false, false },   // Format::R_32_u              
+      { false, false },   // Format::R_32_s              
+      { false, false },   // Format::R_32_f              
+      { false, false },   // Format::RG_8                
+      { false, false },   // Format::RG_8_sRGB           
+      { false, false },   // Format::RG_8_sn             
+      { false, false },   // Format::RG_8_u              
+      { false, false },   // Format::RG_8_s              
+      { false, false },   // Format::RG_16               
+      { false, false },   // Format::RG_16_sn            
+      { false, false },   // Format::RG_16_u             
+      { false, false },   // Format::RG_16_s             
+      { false, false },   // Format::RG_16_hf            
+      { false, false },   // Format::RG_32_u             
+      { false, false },   // Format::RG_32_s             
+      { false, false },   // Format::RG_32_f             
+      { false, false },   // Format::RGB_8               
+      { false, false },   // Format::RGB_8_sRGB          
+      { false, false },   // Format::RGB_8_sn            
+      { false, false },   // Format::RGB_8_u             
+      { false, false },   // Format::RGB_8_s             
+      { false, false },   // Format::RGB_16              
+      { false, false },   // Format::RGB_16_sn           
+      { false, false },   // Format::RGB_16_u            
+      { false, false },   // Format::RGB_16_s            
+      { false, false },   // Format::RGB_16_hf           
+      { false, false },   // Format::RGB_32_u            
+      { false, false },   // Format::RGB_32_s            
+      { false, false },   // Format::RGB_32_f            
+      { false, false },   // Format::RGBA_8              
+      { false, false },   // Format::RGBA_8_sRGB         
+      { false, false },   // Format::RGBA_8_sn           
+      { false, false },   // Format::RGBA_8_u            
+      { false, false },   // Format::RGBA_8_s            
+      { false, false },   // Format::RGBA_16             
+      { false, false },   // Format::RGBA_16_sn          
+      { false, false },   // Format::RGBA_16_u           
+      { false, false },   // Format::RGBA_16_s           
+      { false, false },   // Format::RGBA_16_hf          
+      { false, false },   // Format::RGBA_32_u           
+      { false, false },   // Format::RGBA_32_s           
+      { false, false },   // Format::RGBA_32_f           
+      { false, false },   // Format::D_16                
+      { false, false },   // Format::D_24                
+      { false, false },   // Format::D_24_8               
+      { false, false },   // Format::D_32                 
+      { false, false },   // Format::D_32_f               
+      { false, false },   // Format::S_8                  
+      { false, false },   // Format::DS_16_8              
+      { false, false },   // Format::DS_24_8              
+      { false, false },   // Format::DS_32_f_8            
+      { false, false },   // Format::RGB_5_6_5            
+      { false, false },   // Format::BGR_5_6_5            
+      { false, false },   // Format::BGR_8                
+      { false, false },   // Format::BGR_8_sRGB           
+      { false, false },   // Format::BGR_8_sn             
+      { false, false },   // Format::BGR_8_u              
+      { false, false },   // Format::BGR_8_s              
+      { false, false },   // Format::RGB_11_11_10_uf      
+      { false, false },   // Format::RGBE_9_9_9_5_uf      
+      { false, false },   // Format::BGRA_8               
+      { false, false },   // Format::BGRA_8_sRGB          
+      { false, false },   // Format::BGRA_8_sn           
+      { false, false },   // Format::BGRA_8_u            
+      { false, false },   // Format::BGRA_8_s            
+      { false, false },   // Format::BGRA_5_5_5_1        
+      { false, false },   // Format::ARGB_1_5_5_5        
+      { false, false },   // Format::ABGR_1_5_5_5         
+      { false, false },   // Format::RGBA_10_10_10_2      
+      { false, false },   // Format::RGBA_10_10_10_2_u   
+      { false, false },   // Format::BGRA_10_10_10_2      
+      { false, false },   // Format::BC1_RGB              
+      { false, false },   // Format::BC1_RGB_sRGB         
+      { false, false },   // Format::BC1_RGBA             
+      { false, false },   // Format::BC1_RGBA_sRGB        
+      { false, false },   // Format::BC2_RGBA_pRGB        
+      { false, false },   // Format::BC2_RGBA             
+      { false, false },   // Format::BC2_RGBA_sRGB        
+      { false, false },   // Format::BC3_RGBA_pRGB        
+      { false, false },   // Format::BC3_RGBA             
+      { false, false },   // Format::BC3_RGBA_sRGB        
+      { false, false },   // Format::BC4_R                
+      { false, false },   // Format::BC4_R_sn             
+      { false, false },   // Format::BC5_RG               
+      { false, false },   // Format::BC5_RG_sn           
+      { false, false },   // Format::BC6H_RGB_f           
+      { false, false },   // Format::BC6H_RGB_uf          
+      { false, false },   // Format::BC7_RGBA             
+      { false, false },   // Format::BC7_RGBA_sRGB        
+      { false, false },   // Format::ETC2_R_11            
+      { false, false },   // Format::ETC2_R_11_sn         
+      { false, false },   // Format::ETC2_RG_11           
+      { false, false },   // Format::ETC2_RG_11_sn        
+      { false, false },   // Format::ETC2_RGB_8           
+      { false, false },   // Format::ETC2_RGB_8_sRGB      
+      { false, false },   // Format::ETC2_RGBA_8          
+      { false, false },   // Format::ETC2_RGBA_8_sRGB     
+      { false, false },   // Format::ETC2_RGB8_A1        
+      { false, false },   // Format::ETC2_RGB8_A1_sRGB   
+      { false, false },   // Format::PVRTC_RGB_2         
+      { false, false },   // Format::PVRTC_RGB_2_sRGB    
+      { false, false },   // Format::PVRTC_RGB_4         
+      { false, false },   // Format::PVRTC_RGB_4_sRGB    
+      { false, false },   // Format::PVRTC_RGBA_2        
+      { false, false },   // Format::PVRTC_RGBA_2_sRGB   
+      { false, false },   // Format::PVRTC_RGBA_4        
+      { false, false },   // Format::PVRTC_RGBA_4_sRGB   
+      { false, false },   // Format::ASTC_4x4            
+      { false, false },   // Format::ASTC_5x4            
+      { false, false },   // Format::ASTC_5x5            
+      { false, false },   // Format::ASTC_6x5            
+      { false, false },   // Format::ASTC_6x6            
+      { false, false },   // Format::ASTC_8x5            
+      { false, false },   // Format::ASTC_8x6            
+      { false, false },   // Format::ASTC_8x8            
+      { false, false },   // Format::ASTC_10x5           
+      { false, false },   // Format::ASTC_10x6           
+      { false, false },   // Format::ASTC_10x8           
+      { false, false },   // Format::ASTC_10x10          
+      { false, false },   // Format::ASTC_12x10          
+      { false, false },   // Format::ASTC_12x12          
+      { false, false },   // Format::ASTC_4x4_sRGB       
+      { false, false },   // Format::ASTC_5x4_sRGB       
+      { false, false },   // Format::ASTC_5x5_sRGB       
+      { false, false },   // Format::ASTC_6x5_sRGB       
+      { false, false },   // Format::ASTC_6x6_sRGB       
+      { false, false },   // Format::ASTC_8x5_sRGB       
+      { false, false },   // Format::ASTC_8x6_sRGB       
+      { false, false },   // Format::ASTC_8x8_sRGB       
+      { false, false },   // Format::ASTC_10x5_sRGB      
+      { false, false },   // Format::ASTC_10x6_sRGB      
+      { false, false },   // Format::ASTC_10x8_sRGB      
+      { false, false },   // Format::ASTC_10x10_sRGB     
+      { false, false },   // Format::ASTC_12x10_sRGB     
+      { false, false }    // Format::ASTC_12x12_sRGB   
       };
 #endif
 
-   bool TextureFormatIsDepth(const TextureFormat format)
+   bool TextureFormatIsDepth(const Format format)
    {
    if ( (format == Format::D_16  ) ||   
         (format == Format::D_24  ) ||   
@@ -379,7 +395,7 @@ namespace en
    return false;
    }
 
-   bool TextureFormatIsStencil(const TextureFormat format)
+   bool TextureFormatIsStencil(const Format format)
    {
    if (format == Format::S_8)
       return true;
@@ -387,7 +403,7 @@ namespace en
    return false;
    }
 
-   bool TextureFormatIsDepthStencil(const TextureFormat format)
+   bool TextureFormatIsDepthStencil(const Format format)
    {
    if ( (format == Format::DS_16_8  ) ||
         (format == Format::DS_24_8  ) ||
@@ -400,10 +416,8 @@ namespace en
    // Calculate texture mipmaps count
    uint32 TextureMipMapCount(const TextureState& state)
    {
-   if (state.type == Texture2DRectangle        ||
-       state.type == Texture2DMultisample      ||
-       state.type == Texture2DMultisampleArray ||
-       state.type == TextureBuffer             )
+   if (state.type == TextureType::Texture2DMultisample      ||
+       state.type == TextureType::Texture2DMultisampleArray )   // also Rectangle & Buffer
       return 1;
 
    uint32 maxDimmension = state.width > state.height ? state.width : state.height;
@@ -436,7 +450,7 @@ namespace en
    return state.type;
    }
    
-   TextureFormat TextureCommon::format(void) const
+   Format TextureCommon::format(void) const
    {
    return state.format;
    }
@@ -451,7 +465,7 @@ namespace en
    if (mipmap > state.mipmaps)
       return 0;
 
-   TextureCompressedBlockInfo block = TextureCompressionInfo[state.format];
+   TextureCompressedBlockInfo block = TextureCompressionInfo[underlyingType(state.format)];
    uint32 mipWidth  = max(1U, static_cast<uint32>(state.width  >> mipmap));
    uint32 mipHeight = max(1U, static_cast<uint32>(state.height >> mipmap));
 

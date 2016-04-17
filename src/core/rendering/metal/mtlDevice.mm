@@ -167,7 +167,11 @@ namespace en
    [ [window standardWindowButton:NSWindowCloseButton] setAction:@selector(performClose:) ];
    
    // Create Framebuffer handle
-   TextureState state(Texture2DRectangle, FormatBGRA_8, settings.size.width, settings.size.height);
+   TextureState state(TextureType::Texture2D,
+                      Format::RGBA_8,
+                      TextureUsage::RenderTargetWrite,
+                      settings.size.width,
+                      settings.size.height);
    framebuffer = new TextureMTL(device, state, false);
    }
    

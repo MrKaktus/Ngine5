@@ -342,7 +342,7 @@ namespace en
    samplerInfo.minLod                  = state.minLod;
    samplerInfo.maxLod                  = state.maxLod;
    samplerInfo.borderColor             = TranslateSamplerBorder[underlyingType(state.borderColor)];
-   samplerInfo.unnormalizedCoordinates = VK_FALSE;                            // TODO: Unnormalized coordinates are not supported for now.
+   samplerInfo.unnormalizedCoordinates = VK_FALSE;  // TODO: Unnormalized coordinates are not supported for now. (both supported by Vulkan & Metal)
 
    VkSampler handle;
    VkResult res = vkCreateSampler(device, &samplerInfo, nullptr, &handle);

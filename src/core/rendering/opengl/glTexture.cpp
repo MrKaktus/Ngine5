@@ -39,34 +39,34 @@ namespace en
 
 #ifdef EN_DISCRETE_GPU
 
-   static Nversion TextureTypeSupportedGL[TextureTypesCount] = 
+   static Nversion TextureTypeSupportedGL[underlyingType(TextureType::Count)] =
       {
       OpenGL_1_1                     ,   // Texture1D                 
       OpenGL_3_0                     ,   // Texture1DArray            
       OpenGL_1_0                     ,   // Texture2D                 
       OpenGL_3_0                     ,   // Texture2DArray            
-      OpenGL_3_1                     ,   // Texture2DRectangle        
+    //OpenGL_3_1                     ,   // Texture2DRectangle
       OpenGL_3_2                     ,   // Texture2DMultisample      
       OpenGL_3_2                     ,   // Texture2DMultisampleArray 
       OpenGL_1_2                     ,   // Texture3D                 
-      OpenGL_3_1                     ,   // TextureBuffer             
+    //OpenGL_3_1                     ,   // TextureBuffer
       OpenGL_1_3                     ,   // TextureCubeMap            
       OpenGL_4_0                         // TextureCubeMapArray       
       };
 
 #elif EN_MOBILE_GPU
 
-   static Nversion TextureTypeSupportedGL[TextureTypesCount] = 
+   static Nversion TextureTypeSupportedGL[underlyingType(TextureType::Count)] =
       {
       OpenGL_ES_Unsupported          ,   // Texture1D                 
       OpenGL_ES_Unsupported          ,   // Texture1DArray            
       OpenGL_ES_1_0                  ,   // Texture2D                 
       OpenGL_ES_3_0                  ,   // Texture2DArray            
-      OpenGL_ES_Unsupported          ,   // Texture2DRectangle        
+    //OpenGL_ES_Unsupported          ,   // Texture2DRectangle
       OpenGL_ES_3_1                  ,   // Texture2DMultisample      
       OpenGL_ES_Unsupported          ,   // Texture2DMultisampleArray 
       OpenGL_ES_3_0                  ,   // Texture3D                 
-      OpenGL_ES_Unsupported          ,   // TextureBuffer             
+    //OpenGL_ES_Unsupported          ,   // TextureBuffer
       OpenGL_ES_2_0                  ,   // TextureCubeMap            
       OpenGL_ES_Unsupported              // TextureCubeMapArray       
       };
@@ -85,7 +85,7 @@ namespace en
 
    // Support of different texture capabilities in OpenGL core specification
    // (this values can be later overriden in general capabilities table by specific extensions used by engine)
-   static const TextureInfoGL TextureCapabilitiesGL[TextureFormatsCount] = 
+   static const TextureInfoGL TextureCapabilitiesGL[underlyingType(Format::Count)] =
       {
       OpenGL_Unsupported, OpenGL_Unsupported,   // FormatUnsupported         
       OpenGL_3_0,         OpenGL_3_0,           // FormatR_8                 
@@ -232,7 +232,7 @@ namespace en
 
    // Support of different texture capabilities in OpenGL core specification
    // (this values can be later overriden in general capabilities table by specific extensions used by engine)
-   static TextureInfoGL TextureCapabilitiesGL[TextureFormatsCount] = 
+   static TextureInfoGL TextureCapabilitiesGL[underlyingType(Format::Count)] =
       {
       OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatUnsupported         
       OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatR_8                 
@@ -380,41 +380,41 @@ namespace en
 
 #ifdef EN_DISCRETE_GPU
 
-   const uint16 TranslateTextureType[TextureTypesCount] =
+   const uint16 TranslateTextureType[underlyingType(TextureType::Count)] =
       { 
       GL_TEXTURE_1D                   ,   // Texture1D                                            
       GL_TEXTURE_1D_ARRAY             ,   // Texture1DArray                                       
       GL_TEXTURE_2D                   ,   // Texture2D                                            
       GL_TEXTURE_2D_ARRAY             ,   // Texture2DArray                                       
-      GL_TEXTURE_RECTANGLE            ,   // Texture2DRectangle      
+    //GL_TEXTURE_RECTANGLE            ,   // Texture2DRectangle
       GL_TEXTURE_2D_MULTISAMPLE       ,   // Texture2DMultisample                                 
       GL_TEXTURE_2D_MULTISAMPLE_ARRAY ,   // Texture2DMultisampleArray                            
       GL_TEXTURE_3D                   ,   // Texture3D                                            
-      GL_TEXTURE_BUFFER               ,   // TextureBuffer                                        
+    //GL_TEXTURE_BUFFER               ,   // TextureBuffer
       GL_TEXTURE_CUBE_MAP             ,   // TextureCubeMap                                       
       GL_TEXTURE_CUBE_MAP_ARRAY           // TextureCubeMapArray                                  
       }; 
 
 #elif EN_MOBILE_GPU
 
-   const uint16 TranslateTextureType[TextureTypesCount] =
+   const uint16 TranslateTextureType[underlyingType(TextureType::Count)] =
       { 
       0                               ,   // Texture1D                 
       0                               ,   // Texture1DArray            
       GL_TEXTURE_2D                   ,   // Texture2D                 
       GL_TEXTURE_2D_ARRAY             ,   // Texture2DArray            
-      0                               ,   // Texture2DRectangle        
+    //0                               ,   // Texture2DRectangle
       GL_TEXTURE_2D_MULTISAMPLE       ,   // Texture2DMultisample      
       0                               ,   // Texture2DMultisampleArray 
       GL_TEXTURE_3D                   ,   // Texture3D                 
-      0                               ,   // TextureBuffer             
+    //0                               ,   // TextureBuffer
       GL_TEXTURE_CUBE_MAP             ,   // TextureCubeMap            
       0                                   // TextureCubeMapArray       
       };
 
 #endif
 
-   const TextureFormatTranslation TranslateTextureFormat[TextureFormatsCount] =
+   const TextureFormatTranslation TranslateTextureFormat[underlyingType(Format::Count)] =
       { // Sized Internal Format                      // Base Internal Format
       { 0,                                            0,                     0                                 },   // FormatUnsupported
       { GL_R8,                                        GL_RED,                GL_UNSIGNED_BYTE                  },   // FormatR_8                  
@@ -629,15 +629,15 @@ namespace en
 
    // Calculate amount of layers texture will have
    if ( state.layers == 1 &&
-        ( state.type == TextureCubeMap ||
-          state.type == TextureCubeMapArray ) )
+        ( state.type == TextureType::TextureCubeMap ||
+          state.type == TextureType::TextureCubeMapArray ) )
       state.layers = 6;
 
    // Gather API specific texture state 
-   uint16 glType           = TranslateTextureType[state.type];
-   uint16 glInternalFormat = TranslateTextureFormat[state.format].dstFormat;
-   uint16 glSourceFormat   = TranslateTextureFormat[state.format].srcFormat;
-   uint16 glSourceType     = TranslateTextureFormat[state.format].srcType;
+   uint16 glType           = TranslateTextureType[underlyingType(state.type)];
+   uint16 glInternalFormat = TranslateTextureFormat[underlyingType(state.format)].dstFormat;
+   uint16 glSourceFormat   = TranslateTextureFormat[underlyingType(state.format)].srcFormat;
+   uint16 glSourceType     = TranslateTextureFormat[underlyingType(state.format)].srcType;
    uint32 mipmapsCount     = mipmaps();
    uint32 layers           = state.layers;
    uint32 samples          = state.samples;
@@ -645,10 +645,10 @@ namespace en
    // Generate texture descriptor with default state
    Profile( glGenTextures(1, (GLuint*)&id) );
    Profile( glBindTexture(glType, id) );
-   if ( (state.type != Texture2DMultisample) &&
-        (state.type != Texture2DMultisampleArray) )
+   if ( (state.type != TextureType::Texture2DMultisample) &&
+        (state.type != TextureType::Texture2DMultisampleArray) )
       {
-      if (state.type != Texture2DRectangle)
+    //if (state.type != TextureType::Texture2DRectangle)
          {
          Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
          Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
@@ -662,11 +662,11 @@ namespace en
       Profile( glGenBuffers(1, &desc.pbo) );
 
    // Reserve memory for texture completness (OpenGL legacy way)   
-   if (TextureCompressionInfo[state.format].compressed)
+   if (TextureCompressionInfo[underlyingType(state.format)].compressed)
       {
       switch(state.type)
          {
-         case Texture1D:
+         case TextureType::Texture1D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -674,7 +674,7 @@ namespace en
                }
             break;
       
-         case Texture1DArray:
+         case TextureType::Texture1DArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -682,7 +682,7 @@ namespace en
                }
             break;
       
-         case Texture2D:
+         case TextureType::Texture2D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -691,7 +691,7 @@ namespace en
                }
             break;
       
-         case Texture2DArray:
+         case TextureType::Texture2DArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -700,7 +700,7 @@ namespace en
                }
             break;
        
-         case Texture3D:
+         case TextureType::Texture3D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -710,7 +710,7 @@ namespace en
                }
             break;
       
-         case TextureCubeMap:
+         case TextureType::TextureCubeMap:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -723,7 +723,7 @@ namespace en
                }
             break;
       
-         case TextureCubeMapArray:
+         case TextureType::TextureCubeMapArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -736,10 +736,10 @@ namespace en
                }
             break;
       
-         case Texture2DRectangle:
-         case Texture2DMultisample:
-         case Texture2DMultisampleArray:
-         case TextureBuffer:
+       //case TextureType::Texture2DRectangle:
+         case TextureType::Texture2DMultisample:
+         case TextureType::Texture2DMultisampleArray:
+       //case TextureType::TextureBuffer:
             // These texture types don't support compression
          default:
             // How did we get here?
@@ -751,7 +751,7 @@ namespace en
       {
       switch(state.type)
          {
-         case Texture1D:
+         case TextureType::Texture1D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -759,7 +759,7 @@ namespace en
                }
             break;
       
-         case Texture1DArray:
+         case TextureType::Texture1DArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -767,7 +767,7 @@ namespace en
                }
             break;
       
-         case Texture2D:
+         case TextureType::Texture2D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -776,7 +776,7 @@ namespace en
                }
             break;
       
-         case Texture2DArray:
+         case TextureType::Texture2DArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -785,25 +785,25 @@ namespace en
                }
             break;
       
-         case Texture2DRectangle:
-            Profile( glTexImage2D(glType, 0, glInternalFormat, width(), height(), 0, glSourceFormat, glSourceType, nullptr) );
-            break;
+       //case TextureType::Texture2DRectangle:
+       //   Profile( glTexImage2D(glType, 0, glInternalFormat, width(), height(), 0, glSourceFormat, glSourceType, nullptr) );
+       //   break;
       
-         case Texture2DMultisample:
+         case TextureType::Texture2DMultisample:
             // TODO: Check samples count (depth/color/integer)???
             Profile( glTexImage2DMultisample(glType, samples, glInternalFormat, width(), height(), GL_TRUE) );
             break;
          
-         case Texture2DMultisampleArray:
+         case TextureType::Texture2DMultisampleArray:
             // TODO: Check samples count (depth/color/integer)???
             Profile( glTexImage3DMultisample(glType, samples, glInternalFormat, width(), height(), layers, GL_TRUE) );
             break;
       
-         case TextureBuffer:
+       //case TextureType::TextureBuffer:
             // Buffer textures don't have their own storage
             break;
       
-         case Texture3D:
+         case TextureType::Texture3D:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -813,7 +813,7 @@ namespace en
                }
             break;
       
-         case TextureCubeMap:
+         case TextureType::TextureCubeMap:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -826,7 +826,7 @@ namespace en
                }
             break;
       
-         case TextureCubeMapArray:
+         case TextureType::TextureCubeMapArray:
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
@@ -865,13 +865,13 @@ namespace en
    // Check if specified mipmap and layer are correct
    if (state.mipmaps <= mipmap)
       return nullptr;
-   if (state.type == Texture3D)
+   if (state.type == TextureType::Texture3D)
       {
       if (state.depth <= surface)
          return nullptr;
       }
    else
-   if (state.type == TextureCubeMap)
+   if (state.type == TextureType::TextureCubeMap)
       {
       if (surface >= 6)
          return nullptr;
@@ -944,11 +944,11 @@ namespace en
       }
 
    // Gather texture surface parameters
-   bool   compressed       = TextureCompressionInfo[state.format].compressed;
-   uint16 glType           = TranslateTextureType[state.type];
-   uint16 glInternalFormat = TranslateTextureFormat[state.format].dstFormat;
-   uint16 srcFormat        = TranslateTextureFormat[state.format].srcFormat;
-   uint16 srcType          = TranslateTextureFormat[state.format].srcType; 
+   bool   compressed       = TextureCompressionInfo[underlyingType(state.format)].compressed;
+   uint16 glType           = TranslateTextureType[underlyingType(state.type)];
+   uint16 glInternalFormat = TranslateTextureFormat[underlyingType(state.format)].dstFormat;
+   uint16 srcFormat        = TranslateTextureFormat[underlyingType(state.format)].srcFormat;
+   uint16 srcType          = TranslateTextureFormat[underlyingType(state.format)].srcType;
    uint32 size             = this->size(desc.mipmap);
    uint16 width            = max(1U, this->width(desc.mipmap));
    uint16 height           = max(1U, this->height(desc.mipmap));
@@ -969,40 +969,40 @@ namespace en
       {
       switch(state.type)
          {
-         case Texture1D:
+         case TextureType::Texture1D:
             Profile( glCompressedTexSubImage1D(GL_TEXTURE_1D, mipmap, 0, width, glInternalFormat, size, ptr) )
             break;
 
-         case Texture1DArray:
+         case TextureType::Texture1DArray:
             Profile( glCompressedTexSubImage2D(GL_TEXTURE_1D_ARRAY, mipmap, 0, 0, width, layer, glInternalFormat, size, ptr) )
             break;
 
-         case Texture2D:
+         case TextureType::Texture2D:
             Profile( glCompressedTexSubImage2D(GL_TEXTURE_2D, mipmap, 0, 0, width, height, glInternalFormat, size, ptr) )
             break;
 
-         case Texture2DArray:
+         case TextureType::Texture2DArray:
             Profile( glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, mipmap, 0, 0, layer, width, height, 1, glInternalFormat, size, ptr) )
             break;
 
-         case Texture3D:
+         case TextureType::Texture3D:
             Profile( glCompressedTexSubImage3D(GL_TEXTURE_3D, mipmap, 0, 0, depth, width, height, 1, glInternalFormat, size, ptr) )
             break;
 
-         case TextureCubeMap:
+         case TextureType::TextureCubeMap:
             uint16 glFace;
             glFace = TranslateTextureFace[desc.layer];
             Profile( glCompressedTexSubImage2D(glFace, mipmap, 0, 0, width, width, glInternalFormat, size, ptr) )
             break;
 
-         case TextureCubeMapArray:
+         case TextureType::TextureCubeMapArray:
             Profile( glCompressedTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mipmap, 0, 0, layer, width, height, 1, glInternalFormat, size, ptr) )
             break;
 
-         case Texture2DRectangle:        // Rectangle compressed textures are not supported
-         case Texture2DMultisample:      // Only valid as rendertarget, cannot upload it's content
-         case Texture2DMultisampleArray: // Only valid as rendertarget, cannot upload it's content
-         case TextureBuffer:             // Texture Buffer is a proxy bind point for buffers
+       //case TextureType::Texture2DRectangle:        // Rectangle compressed textures are not supported
+         case TextureType::Texture2DMultisample:      // Only valid as rendertarget, cannot upload it's content
+         case TextureType::Texture2DMultisampleArray: // Only valid as rendertarget, cannot upload it's content
+       //case TextureType::TextureBuffer:             // Texture Buffer is a proxy bind point for buffers
          default:
             // How did we get here?
             assert( 0 );
@@ -1013,40 +1013,40 @@ namespace en
       {
       switch(state.type)
          {
-         case Texture1D:
+         case TextureType::Texture1D:
             Profile( glTexSubImage1D(GL_TEXTURE_1D, mipmap, 0, width, srcFormat, srcType, ptr) )
             break;
 
-         case Texture1DArray:
+         case TextureType::Texture1DArray:
             Profile( glTexSubImage2D(GL_TEXTURE_1D_ARRAY, mipmap, 0, 0, width, layer, srcFormat, srcType, ptr) )
             break;
 
-         case Texture2D:
+         case TextureType::Texture2D:
             Profile( glTexSubImage2D(GL_TEXTURE_2D, mipmap, 0, 0, width, height, srcFormat, srcType, ptr) )
             break;
 
-         case Texture2DArray:
+         case TextureType::Texture2DArray:
             Profile( glTexSubImage3D(GL_TEXTURE_2D_ARRAY, mipmap, 0, 0, layer, width, height, 1, srcFormat, srcType, ptr) )
             break;
 
-         case Texture3D:
+         case TextureType::Texture3D:
             Profile( glTexSubImage3D(GL_TEXTURE_3D, mipmap, 0, 0, depth, width, height, 1, srcFormat, srcType, ptr) )
             break;
 
-         case TextureCubeMap:
+         case TextureType::TextureCubeMap:
             uint16 glFace;
             glFace = TranslateTextureFace[desc.layer];
             Profile( glTexSubImage2D(glFace, mipmap, 0, 0, width, width, srcFormat, srcType, ptr) )
             break;
 
-         case TextureCubeMapArray:
+         case TextureType::TextureCubeMapArray:
             Profile( glTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mipmap, 0, 0, layer, width, height, 1, srcFormat, srcType, ptr) )
             break;
 
-         case Texture2DRectangle:        // Rectangle compressed textures are not supported
-         case Texture2DMultisample:      // Only valid as rendertarget, cannot upload it's content
-         case Texture2DMultisampleArray: // Only valid as rendertarget, cannot upload it's content
-         case TextureBuffer:             // Texture Buffer is a proxy bind point for buffers
+       //case TextureType::Texture2DRectangle:        // Rectangle compressed textures are not supported
+         case TextureType::Texture2DMultisample:      // Only valid as rendertarget, cannot upload it's content
+         case TextureType::Texture2DMultisampleArray: // Only valid as rendertarget, cannot upload it's content
+       //case TextureType::TextureBuffer:             // Texture Buffer is a proxy bind point for buffers
          default:
             break;
          };
@@ -1077,13 +1077,13 @@ namespace en
    // Check if specified mipmap and layer are correct
    if (state.mipmaps <= mipmap)
       return false;
-   if (state.type == Texture3D)
+   if (state.type == TextureType::Texture3D)
       {
       if (state.depth <= surface)
          return false;
       }
    else
-   if (state.type == TextureCubeMap)
+   if (state.type == TextureType::TextureCubeMap)
       {
       if (surface >= 6)
          return false;
@@ -1095,13 +1095,13 @@ namespace en
       }
 
    // Extract information needed for reading texture from OpenGL
-   uint16 glType    = TranslateTextureType[state.type];
-   uint16 srcFormat = TranslateTextureFormat[state.format].srcFormat;
-   uint16 srcType   = TranslateTextureFormat[state.format].srcType; 
+   uint16 glType    = TranslateTextureType[underlyingType(state.type)];
+   uint16 srcFormat = TranslateTextureFormat[underlyingType(state.format)].srcFormat;
+   uint16 srcType   = TranslateTextureFormat[underlyingType(state.format)].srcType;
 
-   if (state.type == TextureCubeMap)
+   if (state.type == TextureType::TextureCubeMap)
       glType = TranslateTextureFace[surface];
-   if (state.type == TextureCubeMapArray)
+   if (state.type == TextureType::TextureCubeMapArray)
       glType = TranslateTextureFace[surface % 6];
 
    // TODO: How to specify texture array layer ???
@@ -1118,14 +1118,14 @@ namespace en
    void InitTextureSupport(void)
    {
    // Init array of currently supported texture types
-   for(uint16 i=0; i<TextureTypesCount; ++i)
+   for(uint16 i=0; i<underlyingType(TextureType::Count); ++i)
       {
       if (GpuContext.screen.api.release >= TextureTypeSupportedGL[i].release)
          TextureTypeSupported[i] = true;
       }
 
    // Init array of texture capabilities
-   for(uint16 i=0; i<TextureFormatsCount; ++i)
+   for(uint16 i=0; i<underlyingType(Format::Count); ++i)
       {
       if (GpuContext.screen.api.release >= TextureCapabilitiesGL[i].supported.release)
          TextureCapabilities[i].supported = true;
@@ -1137,11 +1137,11 @@ namespace en
    void ClearTextureSupport(void)
    {
    // Clear array of currently supported texture types
-   for(uint16 i=0; i<TextureTypesCount; ++i)
+   for(uint16 i=0; i<underlyingType(TextureType::Count); ++i)
       TextureTypeSupported[i] = false;
 
    // Clear array of texture capabilities
-   for(uint16 i=0; i<TextureFormatsCount; ++i)
+   for(uint16 i=0; i<underlyingType(Format::Count); ++i)
       {
       TextureCapabilities[i].supported = false;
       TextureCapabilities[i].rendertarget = false;

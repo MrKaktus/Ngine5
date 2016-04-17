@@ -37,18 +37,18 @@ namespace en
    assert( texture );
    assert( index < GpuContext.support.maxFramebufferColorAttachments );
    assert( mipmap < texture->mipmaps() );
-   assert( TextureCapabilities[texture->format()].rendertarget );
+   assert( TextureCapabilities[underlyingType(texture->format())].rendertarget );
 #endif
 
 #ifdef EN_DEBUG
    TextureType type = texture->type();
-   assert( type != TextureBuffer );
+ //assert( type != TextureBuffer );
 
    // Layered texture binding is supported since OpenGL 3.2
-   assert( type != Texture1DArray );
-   assert( type != Texture2DArray );
-   assert( type != Texture3D      );
-   assert( type != TextureCubeMap );
+   assert( type != TextureType::Texture1DArray );
+   assert( type != TextureType::Texture2DArray );
+   assert( type != TextureType::Texture3D      );
+   assert( type != TextureType::TextureCubeMap );
 #endif
 
    // Select framebuffer access type
@@ -57,16 +57,16 @@ namespace en
       accessType = GL_READ_FRAMEBUFFER;
 
    Profile( glBindFramebuffer(accessType, id) )
-   uint16 glType = TranslateTextureType[texture->type()];
+   uint16 glType = TranslateTextureType[underlyingType(texture->type())];
    Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
-      case Texture1D:
+      case TextureType::Texture1D:
          Profile( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
-      case Texture2D:
-      case Texture2DRectangle:
+      case TextureType::Texture2D:
+    //case TextureType::Texture2DRectangle:
          Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
@@ -93,16 +93,16 @@ namespace en
    assert( texture );
    assert( index < GpuContext.support.maxFramebufferColorAttachments );
    assert( mipmap < texture->mipmaps() );
-   assert( TextureCapabilities[texture->format()].rendertarget );
+   assert( TextureCapabilities[underlyingType(texture->format())].rendertarget );
 #endif
 
 #ifdef EN_DEBUG
    TextureType type = texture->type();
-   assert( type != TextureBuffer );
+ //assert( type != TextureBuffer );
 
    // Layered texture binding is supported since OpenGL 3.2
-   assert( type != Texture1DArray );
-   assert( type != Texture2DArray );
+   assert( type != TextureType::Texture1DArray );
+   assert( type != TextureType::Texture2DArray );
 #endif
 
    // Select framebuffer access type
@@ -111,25 +111,25 @@ namespace en
       accessType = GL_READ_FRAMEBUFFER;
 
    Profile( glBindFramebuffer(accessType, id) )
-   uint16 glType = TranslateTextureType[texture->type()];
+   uint16 glType = TranslateTextureType[underlyingType(texture->type())];
    Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
-      case Texture1D:
+      case TextureType::Texture1D:
          Profile( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
-      case Texture2D:
-      case Texture2DRectangle:
+      case TextureType::Texture2D:
+    //case Texture2DRectangle:
          Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
-      case Texture3D:
+      case TextureType::Texture3D:
          assert( layer < texture->depth() );
          Profile( glFramebufferTexture3D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap, layer) )
          break;
 
-      case TextureCubeMap:
+      case TextureType::TextureCubeMap:
          assert( layer < 6 );
          Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), TranslateTextureFace[layer], tex->id, mipmap) )
          break;

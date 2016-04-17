@@ -54,12 +54,12 @@ namespace en
    desc.slice             = 0;
    desc.depthPlane        = 0;
 
-   if (target->state.type == Texture1DArray ||
-       target->state.type == Texture2DArray ||
-       target->state.type == TextureCubeMap)
+   if (target->state.type == TextureType::Texture1DArray ||
+       target->state.type == TextureType::Texture2DArray ||
+       target->state.type == TextureType::TextureCubeMap)
       desc.slice          = layer;
    else
-   if (target->state.type == Texture3D)
+   if (target->state.type == TextureType::Texture3D)
       desc.depthPlane     = layer;
       
    desc.loadAction        = MTLLoadActionClear;
@@ -97,8 +97,8 @@ namespace en
 
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
-   assert( resolve->state.type != Texture2DMultisampleArray );
-   assert( resolve->state.type != TextureCubeMapArray );
+   assert( resolve->state.type != TextureType::Texture2DMultisampleArray );
+   assert( resolve->state.type != TextureType::TextureCubeMapArray );
   
    // HERE: If in debug layer return false
   
@@ -107,12 +107,12 @@ namespace en
    desc.resolveSlice      = 0;
    desc.resolveDepthPlane = 0; 
 
-   if (resolve->state.type == Texture1DArray ||
-       resolve->state.type == Texture2DArray ||
-       resolve->state.type == TextureCubeMap)
+   if (resolve->state.type == TextureType::Texture1DArray ||
+       resolve->state.type == TextureType::Texture2DArray ||
+       resolve->state.type == TextureType::TextureCubeMap)
       desc.resolveSlice = layer;
    else
-   if (resolve->state.type == Texture3D)
+   if (resolve->state.type == TextureType::Texture3D)
       desc.resolveDepthPlane = layer;
       
    return true;
@@ -140,12 +140,12 @@ namespace en
    descDepth.slice             = 0;
    descDepth.depthPlane        = 0;
 
-   if (targetDepth->state.type == Texture1DArray ||
-       targetDepth->state.type == Texture2DArray ||
-       targetDepth->state.type == TextureCubeMap)
+   if (targetDepth->state.type == TextureType::Texture1DArray ||
+       targetDepth->state.type == TextureType::Texture2DArray ||
+       targetDepth->state.type == TextureType::TextureCubeMap)
       descDepth.slice          = layer;
    else
-   if (targetDepth->state.type == Texture3D)
+   if (targetDepth->state.type == TextureType::Texture3D)
       descDepth.depthPlane     = layer;
       
    descDepth.loadAction        = MTLLoadActionClear;
@@ -154,8 +154,8 @@ namespace en
    
    // If Depth attachment is Depth-Stencil texture, it needs to be bound to Stencil attachment as well.
    bool depthStencil = false;
-   if ( (targetDepth->state.format == FormatSD_8_24) ||
-        (targetDepth->state.format == FormatSD_8_32_f) )
+   if ( (targetDepth->state.format == Format::DS_24_8) ||
+        (targetDepth->state.format == Format::DS_32_f_8) )
       depthStencil = true;
    
    // TODO: Separate stencil texture can have different mipmap and layer ?
@@ -175,12 +175,12 @@ namespace en
       descStencil.depthPlane        = 0;
 
       // TODO: Separate Stencil must have the same type as Depth attachment.
-      if (targetDepth->state.type == Texture1DArray ||
-          targetDepth->state.type == Texture2DArray ||
-          targetDepth->state.type == TextureCubeMap)
+      if (targetDepth->state.type == TextureType::Texture1DArray ||
+          targetDepth->state.type == TextureType::Texture2DArray ||
+          targetDepth->state.type == TextureType::TextureCubeMap)
          descStencil.slice          = layer;
       else
-      if (targetDepth->state.type == Texture3D)
+      if (targetDepth->state.type == TextureType::Texture3D)
          descStencil.depthPlane     = layer;
       
       descStencil.loadAction        = MTLLoadActionClear;
@@ -221,8 +221,8 @@ namespace en
 
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
-   assert( resolve->state.type != Texture2DMultisampleArray );
-   assert( resolve->state.type != TextureCubeMapArray );
+   assert( resolve->state.type != TextureType::Texture2DMultisampleArray );
+   assert( resolve->state.type != TextureType::TextureCubeMapArray );
   
    // HERE: If in debug layer return false
   
@@ -231,12 +231,12 @@ namespace en
    descDepth.resolveSlice      = 0;
    descDepth.resolveDepthPlane = 0;
 
-   if (resolve->state.type == Texture1DArray ||
-       resolve->state.type == Texture2DArray ||
-       resolve->state.type == TextureCubeMap)
+   if (resolve->state.type == TextureType::Texture1DArray ||
+       resolve->state.type == TextureType::Texture2DArray ||
+       resolve->state.type == TextureType::TextureCubeMap)
       descDepth.resolveSlice = layer;
    else
-   if (resolve->state.type == Texture3D)
+   if (resolve->state.type == TextureType::Texture3D)
       descDepth.resolveDepthPlane = layer;
       
    return true;
@@ -262,8 +262,8 @@ namespace en
 
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
-   assert( resolve->state.type != Texture2DMultisampleArray );
-   assert( resolve->state.type != TextureCubeMapArray );
+   assert( resolve->state.type != TextureType::Texture2DMultisampleArray );
+   assert( resolve->state.type != TextureType::TextureCubeMapArray );
   
    // HERE: If in debug layer return false
   
@@ -272,12 +272,12 @@ namespace en
    descStencil.resolveSlice      = 0;
    descStencil.resolveDepthPlane = 0;
 
-   if (resolve->state.type == Texture1DArray ||
-       resolve->state.type == Texture2DArray ||
-       resolve->state.type == TextureCubeMap)
+   if (resolve->state.type == TextureType::Texture1DArray ||
+       resolve->state.type == TextureType::Texture2DArray ||
+       resolve->state.type == TextureType::TextureCubeMap)
       descStencil.resolveSlice = layer;
    else
-   if (resolve->state.type == Texture3D)
+   if (resolve->state.type == TextureType::Texture3D)
       descStencil.resolveDepthPlane = layer;
       
    return true;
@@ -302,8 +302,8 @@ namespace en
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
    Ptr<TextureMTL> validate = ptr_dynamic_cast<TextureMTL, Texture>(texture);
-   assert( validate->state.type != Texture2DMultisampleArray );
-   assert( validate->state.type != TextureCubeMapArray );
+   assert( validate->state.type != TextureType::Texture2DMultisampleArray );
+   assert( validate->state.type != TextureType::TextureCubeMapArray );
   
    // HERE: If in debug layer return nullptr
    
@@ -324,13 +324,13 @@ namespace en
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
    Ptr<TextureMTL> validateDepth = ptr_dynamic_cast<TextureMTL, Texture>(depth);
-   assert( validateDepth->state.type != Texture2DMultisampleArray );
-   assert( validateDepth->state.type != TextureCubeMapArray );
+   assert( validateDepth->state.type != TextureType::Texture2DMultisampleArray );
+   assert( validateDepth->state.type != TextureType::TextureCubeMapArray );
    if (stencil)
       {
       Ptr<TextureMTL> validateStencil = ptr_dynamic_cast<TextureMTL, Texture>(stencil);
-      assert( validateStencil->state.type != Texture2DMultisampleArray );
-      assert( validateStencil->state.type != TextureCubeMapArray );
+      assert( validateStencil->state.type != TextureType::Texture2DMultisampleArray );
+      assert( validateStencil->state.type != TextureType::TextureCubeMapArray );
       
       // Depth and Stencil need to be of the same type
       assert( validateDepth->state.type == validateStencil->state.type );

@@ -81,19 +81,27 @@ namespace en
 
 #endif
 
-   const TextureFilteringTranslation TranslateTextureFiltering[TextureFilteringMethodsCount] =
-      {// magFilter minFilter  mipFilter
-      { GL_NEAREST, GL_NEAREST,                1.0f  },   // Nearest
-      { GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST, 1.0f  },   // NearestMipmaped
-      { GL_NEAREST, GL_NEAREST_MIPMAP_LINEAR,  1.0f  },   // NearestMipmapedSmooth
-      { GL_LINEAR,  GL_LINEAR,                 1.0f  },   // Linear 
-      { GL_LINEAR,  GL_LINEAR_MIPMAP_NEAREST,  1.0f  },   // Bilinear
-      { GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,   1.0f  },   // Trilinear     
-      { GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,   2.0f  },   // Anisotropic2x  
-      { GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,   4.0f  },   // Anisotropic4x  
-      { GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,   8.0f  },   // Anisotropic8x  
-      { GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,   16.0f }    // Anisotropic16x 
+   static const uint16 TranslateSamplerMagnification[underlyingType(SamplerFilter::Count)] =
+      {
+      GL_NEAREST,   // Nearest
+      GL_LINEAR     // Linear
       };
+
+   uint16 TranslateSamplerMinification(SamplerFilter minification, SamplerMipMapMode mipmap)
+   {
+   if ( (minification == SamplerFilter::Nearest) && (mipmap == SamplerMipMapMode::Nearest) )
+      return GL_NEAREST_MIPMAP_NEAREST;
+   if ( (minification == SamplerFilter::Linear)  && (mipmap == SamplerMipMapMode::Nearest) )
+      return GL_LINEAR_MIPMAP_NEAREST;
+   if ( (minification == SamplerFilter::Nearest) && (mipmap == SamplerMipMapMode::Linear) )
+      return GL_NEAREST_MIPMAP_LINEAR;
+   if ( (minification == SamplerFilter::Linear)  && (mipmap == SamplerMipMapMode::Linear) )
+      return GL_LINEAR_MIPMAP_LINEAR;
+      
+   // How did we get here?
+   assert(0);
+   return 0;
+   }
 
 #ifdef EN_DISCRETE_GPU
 
@@ -142,20 +150,20 @@ namespace en
       color = &borderTransparentBlack;
 
    Profile( glGenSamplers(1, &id) )
-   Profile( glSamplerParameteri(id, GL_TEXTURE_MAG_FILTER, TranslateTextureFiltering[state.filtering].magnification)  )
-   Profile( glSamplerParameteri(id, GL_TEXTURE_MIN_FILTER, TranslateTextureFiltering[state.filtering].minification)  )
+   Profile( glSamplerParameteri(id, GL_TEXTURE_MAG_FILTER, TranslateSamplerMagnification[underlyingType(state.magnification)]) )
+   Profile( glSamplerParameteri(id, GL_TEXTURE_MIN_FILTER, TranslateSamplerMinification(state.minification, state.mipmap)) )
    Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_S, TranslateTextureWraping[state.coordU]) )
    Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_T, TranslateTextureWraping[state.coordV]) )
    Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_R, TranslateTextureWraping[state.coordW]) )
    Profile( glSamplerParameterfv(id, GL_TEXTURE_BORDER_COLOR, reinterpret_cast<const GLfloat*>(color)) )
    Profile( glSamplerParameteri(id, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE) )  // GL_NONE
-   Profile( glSamplerParameteri(id, GL_TEXTURE_COMPARE_FUNC, TranslateCompareMethod[state.depthCompare]) )
-   Profile( glSamplerParameterf(id, GL_TEXTURE_LOD_BIAS, state.LODbias) )
-   Profile( glSamplerParameterf(id, GL_TEXTURE_MIN_LOD, state.minLOD) )
-   Profile( glSamplerParameterf(id, GL_TEXTURE_MAX_LOD, state.maxLOD) )
+   Profile( glSamplerParameteri(id, GL_TEXTURE_COMPARE_FUNC, TranslateCompareMethod[underlyingType(state.compare)]) )
+   Profile( glSamplerParameterf(id, GL_TEXTURE_LOD_BIAS, state.LodBias) )
+   Profile( glSamplerParameterf(id, GL_TEXTURE_MIN_LOD, state.minLod) )
+   Profile( glSamplerParameterf(id, GL_TEXTURE_MAX_LOD, state.maxLod) )
 
    if (GpuContext.support.extension(EXT_texture_filter_anisotropic))
-      Profile( glSamplerParameterf(id, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(TranslateTextureFiltering[state.filtering].anisotropy, GpuContext.support.maxAnisotropy)) )
+      Profile( glSamplerParameterf(id, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(state.anisotropy, GpuContext.support.maxAnisotropy)) )
    }
 
 //   void SamplerGL33::filtering(const TextureFiltering filtering)

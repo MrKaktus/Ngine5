@@ -82,64 +82,73 @@ namespace en
 
 #endif
 
-   struct TextureFilteringTranslation
-      {
-      MTLSamplerMinMagFilter filter;     // Metal magnification/minification filtering
-      MTLSamplerMipFilter    mipmaping;  // Metal mipmap filtering
-      float                  anisotropy; // Anisotropy ratio
-      }; 
+   // SAMPLER
 
-   static const TextureFilteringTranslation TranslateTextureFiltering[TextureFilteringMethodsCount] = 
-      { // magFilter minFilter         mipFilter
-      { MTLSamplerMinMagFilterNearest, MTLSamplerMipFilterNotMipmapped, 1.0f  },   // Nearest                                  
-      { MTLSamplerMinMagFilterNearest, MTLSamplerMipFilterNearest,      1.0f  },   // NearestMipmaped              
-      { MTLSamplerMinMagFilterNearest, MTLSamplerMipFilterLinear,       1.0f  },   // NearestMipmapedSmooth     
-      { MTLSamplerMinMagFilterLinear,  MTLSamplerMipFilterNotMipmapped, 1.0f  },   // Linear                                 
-      { MTLSamplerMinMagFilterLinear,  MTLSamplerMipFilterNearest,      1.0f  },   // Bilinear                     
-      { MTLSamplerMinMagFilterLinear,  MTLSamplerMipFilterLinear,       1.0f  },   // Trilinear                                     
-      { MTLSamplerMinMagFilterLinear,  MTLSamplerMipFilterLinear,       2.0f  },   // Anisotropic2x                
-      { MTLSamplerMinMagFilterLinear,  MTLSamplerMipFilterLinear,       4.0f  },   // Anisotropic4x                
-      { MTLSamplerMinMagFilterLinear,  MTLSamplerMipFilterLinear,       8.0f  },   // Anisotropic8x                
-      { MTLSamplerMinMagFilterLinear,  MTLSamplerMipFilterLinear,       16.0f }    // Anisotropic16x               
+
+   // Optimisation: This table is not needed. Backend type can be directly cast to Metal type.
+   static const MTLSamplerMinMagFilter TranslateSamplerFilter[underlyingType(SamplerFilter::Count)] =
+      {
+      MTLSamplerMinMagFilterNearest,   // Nearest
+      MTLSamplerMinMagFilterLinear     // Linear
       };
 
-   static const MTLSamplerAddressMode TranslateTextureWraping[TextureWrapingMethodsCount] = 
+   // Optimisation: This table is not needed. Backend type can be directly cast to Metal type by adding 1.
+   static const MTLSamplerMipFilter TranslateSamplerMipMapMode[underlyingType(SamplerMipMapMode::Count)] =
       {
-      MTLSamplerAddressModeClampToEdge ,  // Clamp
+    //MTLSamplerMipFilterNotMipmapped
+      MTLSamplerMipFilterNearest,      // Nearest
+      MTLSamplerMipFilterLinear        // Linear
+      };
+    
+   static const MTLSamplerAddressMode TranslateSamplerAdressing[underlyingType(SamplerAdressing::Count)] =
+      {
       MTLSamplerAddressModeRepeat      ,  // Repeat
-      MTLSamplerAddressModeMirrorRepeat,  // RepeatMirrored               
-      (MTLSamplerAddressMode)0         ,  // ClampMirrored
-      MTLSamplerAddressModeClampToZero    // ClampToBorder    (for Metal border is always zero - "OpaqueBlack")
+      MTLSamplerAddressModeMirrorRepeat,  // RepeatMirrored
+      MTLSamplerAddressModeClampToEdge ,  // ClampToEdge
+      MTLSamplerAddressModeClampToZero ,  // ClampToBorder     (for Metal border is always zero - "OpaqueBlack")
+      (MTLSamplerAddressMode)0            // MirrorClampToEdge (unsupported)
       };
 
-   static const MTLCompareFunction TranslateCompareMethod[CompareMethodsCount] =
+   // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
+   static const MTLCompareFunction TranslateCompareOperation[underlyingType(CompareOperation::Count)] =
       {
       MTLCompareFunctionNever        ,   // Never
-      MTLCompareFunctionAlways       ,   // Always
       MTLCompareFunctionLess         ,   // Less
-      MTLCompareFunctionLessEqual    ,   // LessOrEqual
       MTLCompareFunctionEqual        ,   // Equal
-      MTLCompareFunctionGreaterEqual ,   // GreaterOrEqual
+      MTLCompareFunctionLessEqual    ,   // LessOrEqual
       MTLCompareFunctionGreater      ,   // Greater
-      MTLCompareFunctionNotEqual         // NotEqual
+      MTLCompareFunctionNotEqual     ,   // NotEqual
+      MTLCompareFunctionGreaterEqual ,   // GreaterOrEqual
+      MTLCompareFunctionAlways       ,   // Always
       };
-      
-   SamplerMTL::SamplerMTL(const MetalDevice* gpu, const SamplerState& _state)
-   {
-   //state = _state;
 
+// TODO: Metal has no border color selection, it's always OpaqueBlack
+//
+//   static const BorderColor TranslateSamplerBorder[underlyingType(SamplerBorder::Count)] =
+//      {
+//      VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK, // TransparentBlack
+//      VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,      // OpaqueBlack
+//      VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,      // OpaqueWhite
+//      };
+//
+//   // VK_BORDER_COLOR_INT_TRANSPARENT_BLACK
+//   // VK_BORDER_COLOR_INT_OPAQUE_BLACK
+//   // VK_BORDER_COLOR_INT_OPAQUE_WHITE
+
+   SamplerMTL::SamplerMTL(const MetalDevice* gpu, const SamplerState& state)
+   {
    MTLSamplerDescriptor* samplerInfo = [[MTLSamplerDescriptor alloc] init];
-   samplerInfo.magFilter             = TranslateTextureFiltering[_state.filtering].filter;     //TranslateTextureFiltering[state.magFilter].filter;
-   samplerInfo.minFilter             = TranslateTextureFiltering[_state.filtering].filter;     //TranslateTextureFiltering[state.minFilter].filter;
-   samplerInfo.mipFilter             = TranslateTextureFiltering[_state.filtering].mipmaping;  //TranslateTextureFiltering[state.minFilter].mipmaping;
-   samplerInfo.rAddressMode          = TranslateTextureWraping[_state.coordU];
-   samplerInfo.sAddressMode          = TranslateTextureWraping[_state.coordV];
-   samplerInfo.tAddressMode          = TranslateTextureWraping[_state.coordW];
-   samplerInfo.maxAnisotropy         = min(TranslateTextureFiltering[_state.filtering].anisotropy, gpu->support.maxAnisotropy);
-   samplerInfo.lodMinClamp           = _state.minLOD;
-   samplerInfo.lodMaxClamp           = _state.maxLOD;
-   samplerInfo.compareFunction       = TranslateCompareMethod[_state.depthCompare]; // IOS 9.0+ !
-   samplerInfo.normalizedCoordinates = TRUE;
+   samplerInfo.magFilter             = static_cast<MTLSamplerMinMagFilter>(underlyingType(state.magnification)); // Optimisation: TranslateSamplerFilter[underlyingType(state.magnification)];
+   samplerInfo.minFilter             = static_cast<MTLSamplerMinMagFilter>(underlyingType(state.minification));  // Optimisation: TranslateSamplerFilter[underlyingType(state.minification)];
+   samplerInfo.mipFilter             = static_cast<MTLSamplerMipFilter>(underlyingType(state.mipmap) + 1);       // Optimisation: TranslateSamplerMipMapMode[underlyingType(state.mipmap)];
+   samplerInfo.rAddressMode          = TranslateSamplerAdressing[underlyingType(state.coordU)];
+   samplerInfo.sAddressMode          = TranslateSamplerAdressing[underlyingType(state.coordV)];
+   samplerInfo.tAddressMode          = TranslateSamplerAdressing[underlyingType(state.coordW)];
+   samplerInfo.maxAnisotropy         = min(state.anisotropy, gpu->support.maxAnisotropy);                    // [1.0f - ??]
+   samplerInfo.lodMinClamp           = state.minLod;
+   samplerInfo.lodMaxClamp           = state.maxLod;
+   samplerInfo.compareFunction       = static_cast<MTLCompareFunction>(underlyingType(state.compare));           // Optimisation: TranslateCompareOperation[underlyingType(state.compare)];  IOS 9.0+ !
+   samplerInfo.normalizedCoordinates = TRUE;     // TODO: Unnormalized coordinates are not supported for now (both supported by Vulkan & Metal)
 
    handle = [gpu->device newSamplerStateWithDescriptor:samplerInfo];       // or getDevice()
    [samplerInfo release];
@@ -148,6 +157,8 @@ namespace en
    //
    // - mipLodBias
    // - borderColor / Type
+   //
+   // Metal & Vulkan:
    // + normalizedCoordinates, effectively always TRUE
 
    assert( handle != nil );
