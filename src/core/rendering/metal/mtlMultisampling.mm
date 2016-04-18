@@ -18,8 +18,8 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlMultisampling.h"
-#include "utilities/utilities.h"
 #include "core/rendering/metal/mtlDevice.h"
+#include "utilities/utilities.h"
 
 namespace en
 {
@@ -40,7 +40,7 @@ namespace en
                             const bool enableAlphaToCoverage,
                             const bool enableAlphaToOne)
    {
-   return ptr_dynamic_cast<MultisamplingState, MultisamplingStateMTL>(Ptr<MultisamplingStateMTL>(new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne)));
+   return ptr_dynamic_cast<MultisamplingState, MultisamplingStateMTL>(new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne));
    }
    
    }

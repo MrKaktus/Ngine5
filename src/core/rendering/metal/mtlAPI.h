@@ -16,6 +16,10 @@
 #ifndef ENG_CORE_RENDERING_METAL_API
 #define ENG_CORE_RENDERING_METAL_API
 
+#include "core/defines.h"
+
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+
 #include <string>
 #include "core/rendering/common/device.h"
 
@@ -45,5 +49,6 @@ namespace en
       };
    }
 }
+#endif
 
 #endif

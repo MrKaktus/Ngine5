@@ -99,7 +99,7 @@ namespace en
         Float16v4_Norm               ,
         Float4_10_10_10_2_SNorm      ,
         Float4_10_10_10_2_Norm       ,
-        AttributeFormatsCount
+        Count
         };
 
    // TEMP:

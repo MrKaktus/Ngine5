@@ -13,6 +13,8 @@
 
 */
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlInputAssembler.h"
@@ -28,7 +30,7 @@ namespace en
    // were ommited!
 
    // Type of data in attributes
-   static const MTLVertexFormat TranslateAttributeFormat[AttributeFormatsCount] = 
+   static const MTLVertexFormat TranslateAttributeFormat[underlyingType(AttributeFormat::Count)] =
       {
       MTLVertexFormatInvalid,              // None                      
       MTLVertexFormatInvalid,              // Half             (unsupported)               
@@ -96,7 +98,7 @@ namespace en
       };
 
    // Size of each attribute in memory taking into notice required padding
-   static const uint8 TranslateAttributeSize[AttributeTypesCount] = 
+   static const uint8 TranslateAttributeSize[underlyingType(AttributeFormat::Count)] =
       {
       0,    // None                      
       0,    // Half                   
@@ -189,7 +191,7 @@ namespace en
    for(uint32 i=0; i<usedAttributes; ++i)
       {
       // MTLVertexAttributeDescriptor
-      desc.attributes[i].format      = TranslateAttributeFormat[attributes[i].format];
+      desc.attributes[i].format      = TranslateAttributeFormat[underlyingType(attributes[i].format)];
       desc.attributes[i].offset      = attributes[i].offset;
       desc.attributes[i].bufferIndex = attributes[i].buffer;
       }

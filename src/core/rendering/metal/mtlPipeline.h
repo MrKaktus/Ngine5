@@ -16,6 +16,8 @@
 #ifndef ENG_CORE_RENDERING_METAL_PIPELINE
 #define ENG_CORE_RENDERING_METAL_PIPELINE
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/metal.h"

@@ -81,7 +81,7 @@ namespace en
 
 #endif
 
-   static const uint16 TranslateSamplerMagnification[underlyingType(SamplerFilter::Count)] =
+   const uint16 TranslateSamplerMagnification[underlyingType(SamplerFilter::Count)] =
       {
       GL_NEAREST,   // Nearest
       GL_LINEAR     // Linear
@@ -237,18 +237,18 @@ namespace en
    void InitSamplers(void)
    {
    // Init array of currently supported filtering types
-   for(uint16 i=0; i<TextureFilteringMethodsCount; ++i)
-      {
-      if (GpuContext.screen.api.release >= TextureFilteringSupportedGL[i].release)
-         TextureFilteringSupported[i] = true;
-      else
-      if (GpuContext.support.extension(EXT_texture_filter_anisotropic))
-         {
-         float anisotropy = TranslateTextureFiltering[i].anisotropy;
-         if ((anisotropy > 0.0f) && (anisotropy <= GpuContext.support.maxAnisotropy))
-            TextureFilteringSupported[i] = true;
-         }
-      }
+//   for(uint16 i=0; i<TextureFilteringMethodsCount; ++i)
+//      {
+//      if (GpuContext.screen.api.release >= TextureFilteringSupportedGL[i].release)
+//         TextureFilteringSupported[i] = true;
+//      else
+//      if (GpuContext.support.extension(EXT_texture_filter_anisotropic))
+//         {
+//         float anisotropy = TranslateTextureFiltering[i].anisotropy;
+//         if ((anisotropy > 0.0f) && (anisotropy <= GpuContext.support.maxAnisotropy))
+//            TextureFilteringSupported[i] = true;
+//         }
+//      }
 
    // Init array of currently supported wrapping types
    for(uint16 i=0; i<TextureWrapingMethodsCount; ++i)

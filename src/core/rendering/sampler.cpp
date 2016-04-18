@@ -20,20 +20,6 @@ namespace en
    namespace gpu
    {
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
-   bool TextureFilteringSupported[TextureFilteringMethodsCount] = 
-      {
-      false, // Nearest
-      false, // NearestMipmaped
-      false, // NearestMipmapedSmooth
-      false, // Linear 
-      false, // Bilinear
-      false, // Trilinear    
-      false, // Anisotropic2x  
-      false, // Anisotropic4x  
-      false, // Anisotropic8x  
-      false, // Anisotropic16x 
-      };
-
    bool TextureWrapingSupported[TextureWrapingMethodsCount] = 
       {
       false, // Clamp         

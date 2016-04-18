@@ -71,7 +71,7 @@ namespace en
    class Pipeline : public SafeObject
       {
       public:
-      virtual ~Pipeline();                              // Polymorphic deletes require a virtual base destructor
+      virtual ~Pipeline() {};                            // Polymorphic deletes require a virtual base destructor
       };
 
    }

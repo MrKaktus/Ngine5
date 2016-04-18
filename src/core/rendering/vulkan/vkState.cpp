@@ -1021,17 +1021,6 @@
 //   Ptr<DepthStencilState>       Create(const DynamicDepthStencilInfo& state);
 //   Ptr<StaticDepthStencilState> Create(const StaticDepthStencilInfo& state);
 //   
-//   static const VkStencilOp TranslateStencilOperation[StencilModificationsCount] =
-//      {
-//      VK_STENCIL_OP_KEEP,                  // Keep
-//      VK_STENCIL_OP_ZERO,                  // Clear
-//      VK_STENCIL_OP_REPLACE,               // Reference
-//      VK_STENCIL_OP_INC_CLAMP,             // Increase
-//      VK_STENCIL_OP_INC_WRAP,              // IncreaseWrap
-//      VK_STENCIL_OP_DEC_CLAMP,             // Decrease
-//      VK_STENCIL_OP_DEC_WRAP,              // DecreaseWrap
-//      VK_STENCIL_OP_INVERT                 // InvertBits
-//      };
 //
 //
 //

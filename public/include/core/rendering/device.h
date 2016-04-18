@@ -158,7 +158,7 @@ namespace en
       // Creates InputAssembler description combining attributes from several buffers
       virtual Ptr<InputAssembler> create(const InputAssemblerSettings& attributes) = 0;
 
-
+      virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc) = 0;
       virtual Ptr<MultisamplingState> create(const uint32 samples,
                                              const bool enableAlphaToCoverage,
                                              const bool enableAlphaToOne) = 0;

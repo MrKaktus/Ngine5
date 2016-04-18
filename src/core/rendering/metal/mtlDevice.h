@@ -16,6 +16,10 @@
 #ifndef ENG_CORE_RENDERING_METAL_DEVICE
 #define ENG_CORE_RENDERING_METAL_DEVICE
 
+#include "core/defines.h"
+
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+
 #include <string>
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/device.h"
@@ -31,8 +35,6 @@
 #include "core/rendering/metal/mtlTexture.h"
 
 #import <AppKit/AppKit.h>
-#import <Metal/Metal.h>
-#import <QuartzCore/CAMetalLayer.h>
 
 using namespace std;
 //using namespace en::gpu;
@@ -170,6 +172,7 @@ namespace en
       virtual Ptr<InputAssembler> create(const InputAssemblerSettings& attributes);
 
 
+      virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc);
       virtual Ptr<MultisamplingState> create(const uint32 samples,
                                              const bool enableAlphaToCoverage,
                                              const bool enableAlphaToOne);
@@ -185,5 +188,6 @@ namespace en
       };
    }
 }
+#endif
 
 #endif

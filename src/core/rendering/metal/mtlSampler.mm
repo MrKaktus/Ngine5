@@ -19,6 +19,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlSampler.h"
+#include "core/rendering/metal/mtlDevice.h"
 #include "utilities/Nversion.h"
 
 namespace en
@@ -109,7 +110,7 @@ namespace en
       (MTLSamplerAddressMode)0            // MirrorClampToEdge (unsupported)
       };
 
-   // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
+   // Optimisation: This table is not needed. Backend type can be directly cast to Metal type.
    static const MTLCompareFunction TranslateCompareOperation[underlyingType(CompareOperation::Count)] =
       {
       MTLCompareFunctionNever        ,   // Never

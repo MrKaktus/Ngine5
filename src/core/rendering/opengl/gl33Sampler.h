@@ -42,14 +42,7 @@ namespace en
 //      virtual void minLOD(const float lod);
       };
 
-   struct TextureFilteringTranslation
-      {
-      uint16 magnification; // OpenGL magnification filtering
-      uint16 minification;  // OpenGL minification filtering
-      float  anisotropy;    // Anisotropy ratio
-      }; 
-
-   extern const TextureFilteringTranslation TranslateTextureFiltering[TextureFilteringMethodsCount];
+   extern const uint16 TranslateSamplerMagnification[underlyingType(SamplerFilter::Count)];
 
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    void InitSamplers(void);

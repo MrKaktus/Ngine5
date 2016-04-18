@@ -66,6 +66,7 @@ namespace en
    PipelineMTL::~PipelineMTL()
    {
    [handle release];
+   depthStencil = nullptr;
    }
  
    
@@ -160,21 +161,26 @@ namespace en
    {
    Ptr<PipelineMTL> ptr = ptr_dynamic_cast<PipelineMTL, Pipeline>(pipeline);
    
-   [renderEncoder setRenderPipelineState:ptr->handle];
-   [renderEncoder setDepthStencilState:ptr->depthStencil->state];
+   [renderEncoder setRenderPipelineState: ptr->handle];
    
    // Rasterization State
-   [renderEncoder setFrontFacingWinding:ptr->raster.frontFace];
-   [renderEncoder setCullMode:ptr->raster.culling];
-   [renderEncoder setDepthClipMode:ptr->raster.depthClamp]; // IOS 9.0+
-   [renderEncoder setDepthBias:ptr->raster.depthBiasConstantFactor
-                    slopeScale:ptr->raster.depthBiasSlopeFactor
-                         clamp:ptr->raster.depthBiasClamp];
-   [renderEncoder setTriangleFillMode:ptr->raster.fillMode];
+   [renderEncoder setFrontFacingWinding: ptr->raster.frontFace];
+   [renderEncoder setCullMode: ptr->raster.culling];
+   [renderEncoder setDepthClipMode: ptr->raster.depthClamp]; // IOS 9.0+
+   [renderEncoder setDepthBias: ptr->raster.depthBiasConstantFactor
+                    slopeScale: ptr->raster.depthBiasSlopeFactor
+                         clamp: ptr->raster.depthBiasClamp];
+   [renderEncoder setTriangleFillMode: ptr->raster.fillMode];
+
+   // Depth-Stencil State
+   [renderEncoder setDepthStencilState:ptr->depthStencil->state];
+ //if (!supportSeparateStencilReferenceValue)
+ //   [renderEncoder setStencilReferenceValue: ptr->depthStencil->reference.x ];
+ //else
+      [renderEncoder setStencilFrontReferenceValue: ptr->depthStencil->reference.x
+                                backReferenceValue: ptr->depthStencil->reference.y];
 
  //[renderEncoder setScissorRect:(MTLScissorRect)rect];
- //[renderEncoder setStencilFrontReferenceValue:backReferenceValue:];
- 
    }
 
 
