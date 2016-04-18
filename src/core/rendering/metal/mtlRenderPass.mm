@@ -39,7 +39,9 @@ namespace en
       MTLStoreActionMultisampleResolve          // StoreAndResolveMSAA
       };
 
-   ColorAttachmentMTL::ColorAttachmentMTL(const Ptr<Texture> texture, const uint32 mipmap, const uint32 layer) :
+   ColorAttachmentMTL::ColorAttachmentMTL(const Ptr<Texture> texture, 
+      const uint32 mipmap, 
+	  const uint32 layer) :
       desc([[[MTLRenderPassColorAttachmentDescriptor alloc] init] autorelease])
    {
    assert( texture );
@@ -62,7 +64,7 @@ namespace en
    if (target->state.type == Texture3D)
       desc.depthPlane     = layer;
       
-   desc.loadAction        = MTLLoadActionClear;
+   desc.loadAction        = MTLLoadActionLoad;
    desc.storeAction       = MTLStoreActionStore;
    desc.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
    }

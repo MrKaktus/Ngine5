@@ -27,102 +27,96 @@ namespace en
 {
    namespace gpu
    { 
-   static const VkAttachmentLoadOp TranslateLoadOperation[underlyingType(LoadOperation::OperationsCount)] =
+   static const VkAttachmentLoadOp TranslateLoadOperation[underlyingType(LoadOperation::Count)] =
       {
       VK_ATTACHMENT_LOAD_OP_DONT_CARE,          // None
       VK_ATTACHMENT_LOAD_OP_LOAD,               // Load
       VK_ATTACHMENT_LOAD_OP_CLEAR               // Clear
       };
    
-   static const VkAttachmentStoreOp TranslateStoreOperation[underlyingType(StoreOperation::OperationsCount)] =
+   static const VkAttachmentStoreOp TranslateStoreOperation[underlyingType(StoreOperation::Count)] =
       {
       VK_ATTACHMENT_STORE_OP_DONT_CARE,         // Discard
       VK_ATTACHMENT_STORE_OP_STORE,             // Store
-      VK_ATTACHMENT_STORE_OP_DONT_CARE,         // ResolveMSAA          (TODO: Vulkan: Should it be set to don't care if in next Subpass we will resolve it ? Or is it unsupported and we always need to store?)
-      VK_ATTACHMENT_STORE_OP_STORE              // StoreAndResolveMSAA
       };
 
-   ColorAttachmentVK::ColorAttachmentVK(const Ptr<Texture> texture,
-      const uint32 mipmap,
-      const uint32 layer) :
-      mipmap(mipmap),
-      layer(layer),
-      clearColor(0.0f, 0.0f, 0.0f, 1.0f),
-      resolveAttachment(false),
-      resolveMipmap(0),
-      resolveLayer(0)
+
+
+   #define Color          0
+   #define Resolve        1
+
+   ColorAttachmentVK::ColorAttachmentVK(const Ptr<Texture> _texture, const uint32 _mipmap, const uint32 _layer) :
+      clearColor(0.0f, 0.0f, 0.0f, 1.0f)
    {
-   assert( texture );
+   assert( _texture );
  
-   const Ptr<TextureCommon> textureCommon = ptr_dynamic_cast<TextureCommon, Texture>(texture);
+   texture[Color] = ptr_dynamic_cast<TextureVK, Texture>(_texture);
 
-   assert( textureCommon->state.mipmaps > mipmap );
-   assert( textureCommon->state.layers > layer );
+   assert( texture[Color]->state.mipmaps > _mipmap );
+   assert( texture[Color]->state.layers > _layer );
 
-   // TODO: Vulkan: Store texture reference !
-   state.flags          = 0; // VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   state.format         = TranslateTextureFormat[underlyingType(textureCommon->state.format)];  // TODO: Vulakn: Expose it from Texture and implement
-   state.samples        = static_cast<VkSampleCountFlagBits>(textureCommon->state.samples);
-   state.loadOp         = VK_ATTACHMENT_LOAD_OP_LOAD;
-   state.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-   state.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
-   state.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
-   state.initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-   state.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+   state[Color].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
+   state[Color].format         = TranslateTextureFormat[underlyingType(texture[Color]->state.format)];
+   state[Color].samples        = static_cast<VkSampleCountFlagBits>(texture[Color]->state.samples);
+   state[Color].loadOp         = VK_ATTACHMENT_LOAD_OP_LOAD;
+   state[Color].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+   state[Color].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
+   state[Color].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
+   state[Color].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+   state[Color].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+   mipmap[Color] = _mipmap;
+   layer[Color]  = _layer;
+
+   // Resolve destination
+   texture[Resolve] = nullptr;
+   mipmap[Resolve]  = 0u;
+   layer[Resolve]   = 0u;
    }
 
    ColorAttachmentVK::~ColorAttachmentVK()
    {
+   texture[Color]   = nullptr;
+   texture[Resolve] = nullptr;  
    }
 
    void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 _clearColor)
    {
-   state.loadOp         = TranslateLoadOperation[underlyingType(load)];
-   clearColor           = _clearColor;
+   state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
+   clearColor          = _clearColor;
    }
 
    void ColorAttachmentVK::onStore(const StoreOperation store)
    {
-   state.storeOp        = TranslateStoreOperation[underlyingType(store)];
-
-   // Mark if resolve is also enabled
-   if ( store == StoreOperation::ResolveMSAA ||
-        store == StoreOperation::StoreAndResolveMSAA )
-      resolveAttachment = true;
-
-   // TODO: Vulkan: When RenderPass is created, it should be validated that Resolve texture is bound, if resolve operation is set to ResolveMSAA.
+   state[Color].storeOp = TranslateStoreOperation[underlyingType(store)];
    }
 
-   bool ColorAttachmentVK::resolve(const Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   bool ColorAttachmentVK::resolve(const Ptr<Texture> _texture, const uint32 _mipmap, const uint32 _layer)
    {
-   assert( texture );
+   assert( _texture );
 
-   const Ptr<TextureCommon> textureCommon = ptr_dynamic_cast<TextureCommon, Texture>(texture);
+   texture[Resolve] = ptr_dynamic_cast<TextureVK, Texture>(_texture);
 
-   assert( textureCommon->state.mipmaps > mipmap );
-   assert( textureCommon->state.layers > layer );
+   assert( texture[Color]->state.samples > 1 );                                // Cannot resolve non-MSAA attachment
+   assert( texture[Resolve]->state.samples == 1 );                             // Cannot resolve to MSAA destination
+   assert( texture[Resolve]->state.mipmaps > _mipmap );
+   assert( texture[Resolve]->state.layers > _layer );
+   assert( texture[Resolve]->state.format == texture[Color]->state.format );   // Cannot resolve between different Pixel Formats
+   assert( texture[Resolve]->state.width  == texture[Color]->state.width );    // Cannot resolve between different resolutions
+   assert( texture[Resolve]->state.height == texture[Color]->state.height );
 
-   // If we want to resolve Color, lets set it as resolve source
-// TODO: Fix it, there can be only one Layout at a time ! Transition need to be correct !
-//   state.initialLayout        |= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-//   state.finalLayout          |= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+   state[Resolve].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
+   state[Resolve].format         = TranslateTextureFormat[underlyingType(texture[Resolve]->state.format)];
+   state[Resolve].samples        = static_cast<VkSampleCountFlagBits>(texture[Resolve]->state.samples);
+   state[Resolve].loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // We Resolve to it, so don't care
+   state[Resolve].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+   state[Resolve].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
+   state[Resolve].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
+   state[Resolve].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
+   state[Resolve].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO: Vulkan: Add special resolve for presenting surface
 
-   // TODO: Vulkan: Store texture reference !
-   resolveState.flags          = 0; // VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   resolveState.format         = TranslateTextureFormat[underlyingType(textureCommon->state.format)];  // TODO: Vulakn: Expose it from Texture and implement
-   resolveState.samples        = static_cast<VkSampleCountFlagBits>(textureCommon->state.samples);
-   resolveState.loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-   resolveState.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-   resolveState.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
-   resolveState.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
-
-// TODO: Fix it, there can be only one Layout at a time ! Transition need to be correct !
-//   resolveState.initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; // TODO: Vulkan: What's the difference between the two ?
-//   resolveState.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; // TODO: Vulkan: Add special resolve for presenting surface
-
-   resolveMipmap        = mipmap;
-   resolveLayer         = layer;   
-   resolveAttachment    = true;  
+   mipmap[Resolve]  = _mipmap;
+   layer[Resolve]   = _layer;
    }
 
 
@@ -131,59 +125,61 @@ namespace en
 
 
 
-// If the format has depth and/or stencil components, loadOp and storeOp apply only to the depth data, while
-// stencilLoadOp and stencilStoreOp define how the stencil data is handled
+   // Vulkan 1.0.9 WSI - Page 117:
+   // "Any given element of pResolveAttachments must have the same VkFormat as its corresponding color attachment"
+   //
+   //  Vulkan 1.0.9 WSI - Page 367:
+   //
+   // vkCmdResolveImage
+   //
+   // "srcSubresource and dstSubresource are VkImageSubresourceLayers structures specifying the
+   //  subresources of the images used for the source and destination image data, respectively. Resolve of depth/stencil
+   //  images is not supported."
+   //
+   // This leads to conclusion that Depth/Stencil cannot be resolved by the API at all. 
+  
+   // Metal API 
+   //
+   // https://developer.apple.com/library/ios/documentation/Miscellaneous/Conceptual/MetalProgrammingGuide/MetalFeatureSetTables/MetalFeatureSetTables.html
+   // and details in https://developer.apple.com/library/ios/documentation/Metal/Reference/MTLRenderPassDepthAttachmentDescriptor_Ref/#//apple_ref/c/tdef/MTLMultisampleDepthResolveFilter
 
 
 
-
-
-   // Type of surface in DepthStencilAttachment
-   enum AttachmentType
-      {
-      DepthStencil           = 0, // Depth or DepthStencil render target
-      Stencil                   , // Stencil render target (for separate Depth and Stencil textures)
-      ResolveDepthStencil       , // Target of resolve operation on Depth or DepthStencil texture
-      ResolveSeparateStencil      // Target of resolve operation for separate Stencil texture
-      };
-
+   #define DepthStencil   0
+   #define Stencil        1
+   #define ResolveDepth   2
+   #define ResolveStencil 3
 
    DepthStencilAttachmentVK::DepthStencilAttachmentVK(const Ptr<Texture> _depth,
       const Ptr<Texture> _stencil,
       const uint32 _mipmap,
       const uint32 _layer) : 
       clearDepth(1.0f),
-      clearStencil(0),
-      separateStencil(false),
-      resolveDepthStencil(false),
-      resolveSeparateStencil(false)
+      clearStencil(0)
    {
    assert( _depth );
 
    for(uint32 i=0; i<4; ++i)
       {
+      texture[i] = nullptr;
       mipmap[i] = 0;
       layer[i]  = 0;
       }
 
-   const Ptr<TextureCommon> depthCommon = ptr_dynamic_cast<TextureCommon, Texture>(_depth);
+   texture[DepthStencil] = ptr_dynamic_cast<TextureVK, Texture>(_depth);
 
-   assert( depthCommon->state.mipmaps > _mipmap );
-   assert( depthCommon->state.layers > _layer );
+   Format format = texture[DepthStencil]->state.format;
+   assert( TextureFormatIsDepth(format) || TextureFormatIsDepthStencil(format) );  // Needs to be Depth or DepthStencil
+   assert( texture[DepthStencil]->state.mipmaps > _mipmap );
+   assert( texture[DepthStencil]->state.layers > _layer );
 
-   // TODO: Vulkan: Store texture reference !
-   state[DepthStencil].flags          = 0; // VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   state[DepthStencil].format         = TranslateTextureFormat[underlyingType(depthCommon->state.format)];  // TODO: Vulakn: Expose it from Texture and implement
-   state[DepthStencil].samples        = static_cast<VkSampleCountFlagBits>(depthCommon->state.samples);
+   state[DepthStencil].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
+   state[DepthStencil].format         = TranslateTextureFormat[underlyingType(texture[DepthStencil]->state.format)];
+   state[DepthStencil].samples        = static_cast<VkSampleCountFlagBits>(texture[DepthStencil]->state.samples);
    state[DepthStencil].loadOp         = VK_ATTACHMENT_LOAD_OP_LOAD;
    state[DepthStencil].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-   state[DepthStencil].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-   state[DepthStencil].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-   if (TextureFormatIsDepthStencil(depthCommon->state.format))
-      {
-      state[DepthStencil].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_LOAD;
-      state[DepthStencil].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-      }
+   state[DepthStencil].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_LOAD;    // If this is Depth only format, it's ignored
+   state[DepthStencil].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;  // If this is Depth only format, it's ignored
    state[DepthStencil].initialLayout  = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
    state[DepthStencil].finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
@@ -192,20 +188,22 @@ namespace en
 
    if (_stencil)
       {
-      const Ptr<TextureCommon> stencilCommon = ptr_dynamic_cast<TextureCommon, Texture>(_stencil);
+      texture[Stencil] = ptr_dynamic_cast<TextureVK, Texture>(_stencil);
 
       // TODO: Vulkan: Validate that device supports separate Depth-Stencil attachments
       //               App should do that at the beginning, as this is device dependent run-time check
 
-      // Separate Stencil must have the same type as Depth attachment.
-      assert( stencilCommon->state.type == depthCommon->state.type );
-      assert( stencilCommon->state.mipmaps > _mipmap );
-      assert( stencilCommon->state.layers > _layer );
+      assert( TextureFormatIsStencil(texture[Stencil]->state.format) );  // Texture needs to be Separate Stencil
+      assert( texture[Stencil]->state.mipmaps > _mipmap );
+      assert( texture[Stencil]->state.layers > _layer );
+      assert( texture[Stencil]->state.type    == texture[DepthStencil]->state.type );   // Separate Stencil must have the same type as Depth attachment.
+      assert( texture[Stencil]->state.width   == texture[DepthStencil]->state.width );  // Needs to have the same resolution and samples count
+      assert( texture[Stencil]->state.height  == texture[DepthStencil]->state.height );
+      assert( texture[Stencil]->state.samples == texture[DepthStencil]->state.samples );
 
-      // TODO: Vulkan: Store texture reference !
-      state[Stencil].flags          = 0; // VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-      state[Stencil].format         = TranslateTextureFormat[underlyingType(stencilCommon->state.format)];  // TODO: Vulakn: Expose it from Texture and implement
-      state[Stencil].samples        = static_cast<VkSampleCountFlagBits>(stencilCommon->state.samples);
+      state[Stencil].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
+      state[Stencil].format         = TranslateTextureFormat[underlyingType(texture[Stencil]->state.format)];
+      state[Stencil].samples        = static_cast<VkSampleCountFlagBits>(texture[Stencil]->state.samples);
       state[Stencil].loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
       state[Stencil].storeOp        = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
       state[Stencil].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_LOAD;
@@ -215,12 +213,13 @@ namespace en
 
       mipmap[Stencil] = _mipmap;
       layer[Stencil]  = _layer;
-      separateStencil = true;
       }
    }
 
    DepthStencilAttachmentVK::~DepthStencilAttachmentVK()
    {
+   for(uint32 i=0; i<4; ++i)
+      texture[i] = nullptr;
    }
 
    void DepthStencilAttachmentVK::onLoad(const LoadOperation loadDepthStencil, const float _clearDepth, const uint32 _clearStencil)
@@ -242,120 +241,34 @@ namespace en
    // DepthStencil shared attachment load and store operations can be different.
    state[DepthStencil].storeOp        = store;
    state[DepthStencil].stencilStoreOp = store; 
-
-   // TODO: Vulkan: When using shared DepthStencil attachment, how looks resolve operation ???
-   //               It needs to be set for both I assume. How is Stencil resolved ?
-
-   //// Mark if resolve is also enabled
-   //if ( store == StoreOperation::ResolveMSAA ||
-   //     store == StoreOperation::StoreAndResolveMSAA )
-   //   resolve = true;
-
-   // TODO: Vulkan: When RenderPass is create, it should be validated that Resolve texture is bound, if resolve operation is set to ResolveMSAA.
    }
 
    bool DepthStencilAttachmentVK::resolve(const Ptr<Texture> _depth, const uint32 _mipmap, const uint32 _layer)
    {
-   assert( _depth );
-
-   const Ptr<TextureCommon> depthCommon = ptr_dynamic_cast<TextureCommon, Texture>(_depth);
-
-   assert( depthCommon->state.mipmaps > _mipmap );
-   assert( depthCommon->state.layers > _layer );
-
-   // If we want to resolve DepthStencil / Depth & Stencil, lets set it as resolve source
-// TODO: Fix it, there can be only one Layout at a time ! Transition need to be correct !
-//   state[DepthStencil].initialLayout |= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-//   state[DepthStencil].finalLayout   |= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-
-   // TODO: Vulkan: Does Vulkan allow resolve separate Depth & Stencil attachments to one DepthStencil ?
-   if (separateStencil) // We could just set it and let RenderPass decide
-      {
-// TODO: Fix it, there can be only one Layout at a time ! Transition need to be correct !
-//      state[Stencil].initialLayout   |= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-//      state[Stencil].finalLayout     |= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-      }
-
-   // TODO: Vulkan: Store texture reference !
-   state[ResolveDepthStencil].flags          = 0; // VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   state[ResolveDepthStencil].format         = TranslateTextureFormat[underlyingType(depthCommon->state.format)];  // TODO: Vulakn: Expose it from Texture and implement
-   state[ResolveDepthStencil].samples        = static_cast<VkSampleCountFlagBits>(depthCommon->state.samples);
-   state[ResolveDepthStencil].loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-   state[ResolveDepthStencil].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-   state[ResolveDepthStencil].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-   state[ResolveDepthStencil].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-// TODO: Fix it, there can be only one Layout at a time ! Transition need to be correct !
-//   state[ResolveDepthStencil].initialLayout  = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; // TODO: Vulkan: What's the difference between the two ?
-//   state[ResolveDepthStencil].finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; 
-
-   mipmap[ResolveDepthStencil] = _mipmap;
-   layer[ResolveDepthStencil]  = _layer;
-   
-//   resolve       = true;  
+   // Vulkan is not supporting Depth/Stencil resolve operations.
+   return false;
    }
 
    void DepthStencilAttachmentVK::onStencilLoad(const LoadOperation loadStencil)
    {
    VkAttachmentLoadOp load = TranslateLoadOperation[underlyingType(loadStencil)];
 
-   if (separateStencil) 
-      state[Stencil].stencilLoadOp = load;  
-   else
-      state[DepthStencil].stencilLoadOp = load;
+   state[DepthStencil].stencilLoadOp = load; // If Stencil is separate, it will be ignored.
+   state[Stencil].stencilLoadOp      = load; // If Depth and Stencil share texture, it will be ignored.
    }
 
    void DepthStencilAttachmentVK::onStencilStore(const StoreOperation storeStencil)
    {
    VkAttachmentStoreOp store = TranslateStoreOperation[underlyingType(storeStencil)];
 
-   if (separateStencil)
-      {
-      state[Stencil].stencilStoreOp = store; 
-
-      // Mark if Stencil resolve is also enabled
-      if ( store == StoreOperation::ResolveMSAA ||
-           store == StoreOperation::StoreAndResolveMSAA )
-         resolveStencilSeparate = true;  // TODO: Vulkan: When RenderPass is created, it validate that Separate Stencil Resolve texture is bound.
-      }
-   else
-      {
-      // TODO: Vulkan: When using shared DepthStencil attachment, how looks resolve operation ???
-
-      state[DepthStencil].stencilStoreOp = store;
-      }
+   state[DepthStencil].stencilStoreOp = store; // If Stencil is separate, it will be ignored.
+   state[Stencil].stencilStoreOp      = store; // If Depth and Stencil share texture, it will be ignored.
    }
 
    bool DepthStencilAttachmentVK::resolveStencil(const Ptr<Texture> _stencil, const uint32 _mipmap, const uint32 _layer)
    {
-   assert( _stencil );
-
-   // Resolving DepthStencil to separate Depth & Stencil is not supported
-   assert( separateStencil );
-
-   const Ptr<TextureCommon> stencilCommon = ptr_dynamic_cast<TextureCommon, Texture>(_stencil);
-
-   assert( stencilCommon->state.mipmaps > mipmap );
-   assert( stencilCommon->state.layers > layer );
-
-   // If we want to resolve Stencil, lets set it as resolve source
-   state[Stencil].initialLayout   |= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-   state[Stencil].finalLayout     |= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-
-   // TODO: Vulkan: Store texture reference !
-   state[ResolveSeparateStencil].flags          = 0; // VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   state[ResolveSeparateStencil].format         = TranslateTextureFormat[stencilCommon->state.format];  // TODO: Vulakn: Expose it from Texture and implement
-   state[ResolveSeparateStencil].samples        = stencilCommon->state.samples;
-   state[ResolveSeparateStencil].loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-   state[ResolveSeparateStencil].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-   state[ResolveSeparateStencil].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-   state[ResolveSeparateStencil].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-   state[ResolveSeparateStencil].initialLayout  = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; // TODO: Vulkan: What's the difference between the two ?
-   state[ResolveSeparateStencil].finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL; 
-
-   mipmap[ResolveSeparateStencil] = _mipmap;
-   layer[ResolveSeparateStencil]  = _layer; 
-  
-   resolveStencilSeparate = true;  
+   // Vulkan is not supporting Depth/Stencil resolve operations.
+   return false;
    }
 
 
@@ -392,57 +305,59 @@ namespace en
    // const uint32v2 resolution, // Common attachments resolution
    // const uint32   layers)     // Common attachments layers count
 
-   Ptr<Framebuffer> result = nullptr;
+
    
    VkImageView attachmentHandle[8];
 
-	VkAttachmentDescription attachments[2];
-	attachments[0].format = colorformat;
-	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachments[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	attachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	VkAttachmentDescription attachment[2];
+	attachment[0].format = colorformat;
+	attachment[0].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachment[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachment[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachment[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachment[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachment[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	attachments[1].format = depthFormat;
-	attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
-	attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachments[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachment[1].format = depthFormat;
+	attachment[1].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachment[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachment[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachment[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachment[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachment[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkAttachmentReference colorReference = {};
-	colorReference.attachment = 0;
-	colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+   VkAttachmentReference colorReference = {};
+   colorReference.attachment = 0;
+   colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	VkAttachmentReference depthReference = {};
-	depthReference.attachment = 1;
-	depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+   VkAttachmentReference depthReference = {};
+   depthReference.attachment = 1;
+   depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkSubpassDescription subpass = {};
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.flags = 0;
-	subpass.inputAttachmentCount = 0;
-	subpass.pInputAttachments = NULL;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorReference;
-	subpass.pResolveAttachments = NULL;
-	subpass.pDepthStencilAttachment = &depthReference;
-	subpass.preserveAttachmentCount = 0;
-	subpass.pPreserveAttachments = NULL;
+   VkSubpassDescription subPassInfo = {};
+   subPassInfo.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+   subPassInfo.flags                   = 0;
+   subPassInfo.inputAttachmentCount    = 0;
+   subPassInfo.pInputAttachments       = nullptr;
+   subPassInfo.colorAttachmentCount    = _attachments;
+   subPassInfo.pColorAttachments       = &colorReference;
+   subPassInfo.pResolveAttachments = NULL;
+   subPassInfo.pDepthStencilAttachment = &depthReference;
+   subPassInfo.preserveAttachmentCount = 0;
+   subPassInfo.pPreserveAttachments = NULL;
 
    VkRenderPassCreateInfo renderPassInfo = {};
    renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
    renderPassInfo.pNext           = nullptr;
-   renderPassInfo.attachmentCount = attachments;
-   renderPassInfo.pAttachments    = attachmentDescription;
+   renderPassInfo.flags           = 0;  // Reserved for future use
+   renderPassInfo.attachmentCount = _attachments + (depthStencil == nullptr ? 0 : 1);
+   renderPassInfo.pAttachments    = attachment;
    renderPassInfo.subpassCount    = 1;
-   renderPassInfo.pSubpasses      = &subInfo;
+   renderPassInfo.pSubpasses      = &subPassInfo;
    renderPassInfo.dependencyCount = 0;
+   renderPassInfo.pDependencies   = nullptr;
 
 
 
@@ -543,7 +458,7 @@ namespace en
    }
 
 
-   Ptr<ColorAttachment> VulkanDevice::create(const TextureFormat format = FormatUnsupported, const uint32 samples)
+   Ptr<ColorAttachment> VulkanDevice::create(const Format format, const uint32 samples)
    {
    return ptr_dynamic_cast<ColorAttachment, ColorAttachmentVK>(new ColorAttachmentVK(format, samples));
    }

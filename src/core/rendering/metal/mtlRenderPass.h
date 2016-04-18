@@ -37,7 +37,7 @@ namespace en
                          const uint32 layer = 0u);
 
       virtual void onLoad(const LoadOperation load, 
-                          const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 0.0f));
+                          const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
       virtual void onStore(const StoreOperation store);
       virtual bool resolve(const Ptr<Texture> texture, 
                            const uint32 mipmap = 0u,

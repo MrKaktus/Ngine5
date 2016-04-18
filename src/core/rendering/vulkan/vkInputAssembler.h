@@ -41,7 +41,7 @@ namespace en
                        const AttributeDesc* attributes,  
                        const BufferDesc* buffers);
 
-      virtual ~InputAssemblerVK();
+      virtual ~InputAssemblerVK() {};
       };
 
    }

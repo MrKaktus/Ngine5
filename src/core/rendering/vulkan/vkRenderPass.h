@@ -7,6 +7,7 @@
 
 #include "core/rendering/renderPass.h"
 #include "core/rendering/vulkan/vkDevice.h"
+#include "core/rendering/vulkan/vkTexture.h"
 
 namespace en
 {
@@ -15,23 +16,18 @@ namespace en
    class ColorAttachmentVK : public ColorAttachment
       {
       public:
-      VkAttachmentDescription state;
-      uint32 mipmap;
-      uint32 layer;      
+      Ptr<TextureVK> texture[2];
+      VkAttachmentDescription state[2]; // Attachment and optional Resolve
+      uint32 mipmap[2];
+      uint32 layer[2];      
       float4 clearColor;
-
-      // Info about resolve operation
-      VkAttachmentDescription resolveState;
-      bool   resolveAttachment;
-      uint32 resolveMipmap;
-      uint32 resolveLayer;      
 
       ColorAttachmentVK(const Ptr<Texture> texture,
          const uint32 mipmap = 0u,
          const uint32 layer = 0u);
 
       virtual void onLoad(const LoadOperation load,
-         const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 0.0f));
+         const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
       virtual void onStore(const StoreOperation store);
       virtual bool resolve(const Ptr<Texture> texture,
          const uint32 mipmap = 0u,
@@ -43,16 +39,12 @@ namespace en
    class DepthStencilAttachmentVK : public DepthStencilAttachment
       {
       public:
-      VkAttachmentDescription state[4];
+      Ptr<TextureVK> texture[4];
+      VkAttachmentDescription state[4]; // Shared DepthStencil or Depth, Separate Stencil, Shared DepthStencil or Depth Resolve, Separate Stencil Resolve
       uint32 mipmap[4];
       uint32 layer[4];
-
       float  clearDepth;
       uint32 clearStencil;
-
-      bool   separateStencil;
-      bool   resolveDepthStencil;
-      bool   resolveSeparateStencil;
 
       DepthStencilAttachmentVK(const Ptr<Texture> depth,
          const Ptr<Texture> stencil = nullptr,

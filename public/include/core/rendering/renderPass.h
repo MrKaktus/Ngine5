@@ -32,16 +32,15 @@ namespace en
       None               = 0,
       Load                  ,
       Clear                 ,
-      OperationsCount
+      Count
       };
    
+   // Resolving is done through binding resolve texture
    enum class StoreOperation : uint32
       {
       Discard            = 0,
       Store                 ,
-      ResolveMSAA           ,
-      StoreAndResolveMSAA   ,
-      OperationsCount
+      Count
       };
 
    class ColorAttachment : public SafeObject
@@ -51,7 +50,7 @@ namespace en
       // that should be performed when render target is rebind. 
       // We can use the same actions on immediate renderers.
       virtual void onLoad(const LoadOperation load,
-                          const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 0.0f)) = 0;
+                          const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f)) = 0;
 
       virtual void onStore(const StoreOperation store) = 0;
 
