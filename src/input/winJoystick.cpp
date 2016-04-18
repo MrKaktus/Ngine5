@@ -10,6 +10,9 @@ Description : Captures and holds signals from
 
 */
 
+#include "core/configuration.h"
+
+#if defined(EN_PLATFORM_WINDOWS)
 #include "core/log/log.h"
 #include "input/context.h"
 
@@ -17,36 +20,17 @@ namespace en
 {
    namespace input
    {
-   //# INTERFACE
-   //##########################################################################
-
-   uint8 Interface::Joystick::available(void) const
-   {
-   return InputContext.joystick.device.size();
-   }
-
-   Ptr<input::Joystick> Interface::Joystick::get(uint8 index) const
-   {
-   if (index < InputContext.joystick.device.size())
-      return InputContext.joystick.device[index];
-   return Ptr<input::Joystick>(nullptr);
-   }
-
-   //# IMPLEMENTATION
-   //##########################################################################
-
-#ifdef EN_PLATFORM_WINDOWS
    struct AxisState
-          {
-          sint32 position;
-          sint32 rotation;
-          sint32 velocity;
-          sint32 angularVelocity;
-          sint32 acceleration;
-          sint32 angularAcceleration;
-          sint32 force;
-          sint32 torque;
-          };
+      {
+      sint32 position;
+      sint32 rotation;
+      sint32 velocity;
+      sint32 angularVelocity;
+      sint32 acceleration;
+      sint32 angularAcceleration;
+      sint32 force;
+      sint32 torque;
+      };
 
    class DirectInputJoystick : public Joystick
          {
@@ -321,13 +305,10 @@ namespace en
             }
       }
    }
-#endif
 
    //# CONTEXT
    //##########################################################################
 
-
-#ifdef EN_PLATFORM_WINDOWS
    //BOOL CALLBACK enumAxesCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* context)
    //{
    //HWND hDlg = (HWND)context;
@@ -395,24 +376,20 @@ namespace en
    InputContext.joystick.device.push_back(new DirectInputJoystick(InputContext.joystick.device.size(), handle));
    return DIENUM_CONTINUE;
    }
-#endif
 
    void Context::Joystick::init(void)
    {
-#ifdef EN_PLATFORM_WINDOWS
    // Create a DirectInput device
    HRESULT hr;
    if (SUCCEEDED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&context, NULL))) 
       // Get handles to available joysticks
       hr = context->EnumDevices(DI8DEVCLASS_GAMECTRL, initJoystickCallback, NULL, DIEDFL_ATTACHEDONLY);
-#endif
    }
 
    void Context::Joystick::destroy(void)
    {
-#ifdef EN_PLATFORM_WINDOWS
-#endif
    }
 
    }
 }
+#endif

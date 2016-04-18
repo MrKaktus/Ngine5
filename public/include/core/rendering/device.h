@@ -19,11 +19,14 @@
 #include <string>
 #include "core/utilities/TintrusivePointer.h" 
 
+#include "core/rendering/inputAssembler.h"
 #include "core/rendering/blend.h"
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/raster.h"
+#include "core/rendering/pipeline.h"
 #include "core/rendering/texture.h"
 #include "core/rendering/renderPass.h"
+#include "core/rendering/multisampling.h"
 
 #include "utilities/Nversion.h"
 
@@ -97,6 +100,7 @@ namespace en
       virtual void bind(const Ptr<BlendState> blend) = 0;
 
       virtual bool startRenderPass(const Ptr<RenderPass> pass) = 0;
+      virtual void set(const Ptr<Pipeline> pipeline) = 0;
       virtual bool endRenderPass(void) = 0;
       virtual void commit(void) = 0;
       virtual void waitUntilCompleted(void) = 0;
@@ -108,9 +112,9 @@ namespace en
    class GpuDevice : public SafeObject
       {
       public:
-      virtual uint32 screens(void) = 0;           // Screens the device can render to
-      virtual Ptr<Screen> screen(uint32 id) = 0;  // Return N'th screen handle
-      virtual Ptr<Window> create(const WindowSettings& settings,
+      virtual uint32 screens(void) = 0;                 // Screens the device can render to
+      virtual Ptr<Screen> screen(uint32 id) const = 0;  // Return N'th screen handle
+      virtual Ptr<class Window> create(const WindowSettings& settings,  // TODO: remove "class" when old Rendering API Abstraction is removed
                                  const string title) = 0; // Create window
          
       virtual Ptr<Texture> create(const TextureState state) = 0;
@@ -124,7 +128,8 @@ namespace en
                                           const uint32 layer = 0,
                                           const uint32 layers = 1) = 0;
 
-      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<Texture> depth, const Ptr<Texture> stencil,
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<Texture> depth,
+                                                 const Ptr<Texture> stencil,
                                                  const uint32 mipmap = 0,
                                                  const uint32 layer = 0,
                                                  const uint32 layers = 1) = 0;
@@ -133,6 +138,7 @@ namespace en
       virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,
                                      const Ptr<DepthStencilAttachment> depthStencil) = 0;
       
+      // Creates render pass with Multiple Render Targets
       virtual Ptr<RenderPass> create(const uint32 _attachments,
                                      const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
                                      const Ptr<DepthStencilAttachment> depthStencil) = 0;
@@ -146,6 +152,16 @@ namespace en
                                      const Ptr<Texture> framebuffer,
                                      const Ptr<DepthStencilAttachment> depthStencil) = 0;
 
+      // Creates InputAssembler description based on single buffer attributes
+      virtual Ptr<InputAssembler> create(const Ptr<BufferView> buffer) = 0;
+
+      // Creates InputAssembler description combining attributes from several buffers
+      virtual Ptr<InputAssembler> create(const InputAssemblerSettings& attributes) = 0;
+
+      virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc) = 0;
+      virtual Ptr<MultisamplingState> create(const uint32 samples,
+                                             const bool enableAlphaToCoverage,
+                                             const bool enableAlphaToOne) = 0;
 
       virtual ~GpuDevice() {};                            // Polymorphic deletes require a virtual base destructor
       };
@@ -166,7 +182,7 @@ namespace en
 
    }
 
-extern gpu::GraphicAPI* Graphics;
+extern Ptr<gpu::GraphicAPI> Graphics;
 }
 
 #endif

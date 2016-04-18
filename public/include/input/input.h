@@ -16,7 +16,13 @@
 #include "core/defines.h"
 #include "core/types.h"
 
+#include "core/rendering/device.h"   // Mouse - position on current screen
+using namespace en::gpu;
+
+#include "input/keyboard.h"
 #include "input/hmd.h"
+
+
 
 //#include "scene/state.h"
 #include <vector>
@@ -26,130 +32,20 @@ namespace en
 {
    namespace input
    {
-   enum Key
+   enum class MouseButton : uint8
         {
-        Key_Unknown          = 0,
-        Key_A                   , // Letters
-        Key_B                   ,
-        Key_C                   ,
-        Key_D                   ,
-        Key_E                   ,
-        Key_F                   ,
-        Key_G                   ,
-        Key_H                   ,
-        Key_I                   ,
-        Key_J                   ,
-        Key_K                   ,
-        Key_L                   ,
-        Key_M                   ,
-        Key_N                   ,
-        Key_O                   ,
-        Key_P                   ,
-        Key_Q                   ,
-        Key_R                   ,
-        Key_S                   ,
-        Key_T                   ,
-        Key_U                   ,
-        Key_V                   ,
-        Key_W                   ,
-        Key_X                   ,
-        Key_Y                   ,
-        Key_Z                   ,
-        Key_1                   , // Cyphers
-        Key_2                   ,
-        Key_3                   ,
-        Key_4                   ,
-        Key_5                   ,
-        Key_6                   ,
-        Key_7                   ,
-        Key_8                   ,
-        Key_9                   ,
-        Key_0                   ,
-        Key_Up                  , // Arrows
-        Key_Down                ,
-        Key_Left                ,
-        Key_Right               ,
-        Key_Alt                 , // Controlers
-        Key_LeftAlt             ,
-        Key_RightAlt            ,
-        Key_Ctrl                ,
-        Key_LeftCtrl            ,
-        Key_RightCtrl           ,
-        Key_Shift               , 
-        Key_LeftShift           ,
-        Key_RightShift          ,
-        Key_Esc                 , // Main keys
-        Key_Tab                 ,
-        Key_CapsLock            ,
-        Key_Backspace           ,
-        Key_Enter               ,
-        Key_Space               ,
-        Key_Tilde               ,
-        Key_Minus               ,
-        Key_Equal               ,
-        Key_Baskslash           ,
-        Key_OpenBrace           ,
-        Key_CloseBrace          ,
-        Key_Colon               ,
-        Key_Quote               ,
-        Key_Comma               ,
-        Key_Period              ,
-        Key_Slash               ,  
-        Key_F1                  , // Function keys
-        Key_F2                  ,
-        Key_F3                  ,
-        Key_F4                  ,
-        Key_F5                  ,
-        Key_F6                  ,
-        Key_F7                  ,
-        Key_F8                  ,
-        Key_F9                  ,
-        Key_F10                 ,
-        Key_F11                 ,
-        Key_F12                 ,   
-        Key_Insert              , // Text control 
-        Key_Delete              ,
-        Key_Home                ,
-        Key_End                 ,
-        Key_PageUp              ,
-        Key_PageDown            ,
-        Key_NumLock             , // Numepad 
-        Key_NumPad1             ,
-        Key_NumPad2             ,
-        Key_NumPad3             ,
-        Key_NumPad4             ,
-        Key_NumPad5             ,
-        Key_NumPad6             ,
-        Key_NumPad7             ,
-        Key_NumPad8             ,
-        Key_NumPad9             ,
-        Key_NumPad0             ,
-        Key_PrtScr              , // Additional
-        Key_Pause               ,
-        Key_ScrollLock          ,
-        KeysCount
+        Left                 = 0,
+        Right                   ,
+        Middle                  ,
+        Count
         };
 
-   enum KeyState
+   enum class JoystickAxis : uint8
         {
-        Released             = 0,
-        Pressed
-        };
-
-   enum MouseButton
-        {
-        LeftMouseButton      = 0,
-        RightMouseButton        ,
-        MiddleMouseButton       ,
-        MouseButtonsCount    
-        };
-
-   enum JoystickAxis
-        {
-        JoystickAxisX        = 0,
-        JoystickAxisY           ,
-        JoystickAxisZ           ,
-        JoystickAxisCount
+        X                    = 0,
+        Y                       ,
+        Z                       ,
+        AxisCount
         };
 
    enum CameraType
@@ -378,18 +274,8 @@ namespace en
 
 
 
-   class Joystick : public SafeObject
-         {
-         public:
-         virtual bool        on(void) = 0;                // Turns joystick on
-         virtual bool        off(void) = 0;               // Turns joystick off
-         virtual CameraState state(void) const = 0;       // Returns joystick state (on/off/initializing...)
-         virtual bool        pressed(const uint8 button) const = 0; // Button state
-         virtual float       position(const en::input::JoystickAxis axis) const = 0; // Joystick state
-         virtual void        update(void) = 0;            // Update joystick events
+      
 
-         virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
-         };
 
    struct CameraInfo
           {
@@ -431,20 +317,95 @@ namespace en
           uint32 hz;
           };
 
+
+
+
+
+#if defined(EN_PLATFORM_OSX)  // New dynamic Interface
+
+   // Type of peripherial
+   enum class IO : uint8
+      {
+      Keyboard         = 0,
+      Mouse               ,
+      Joystick            ,
+      GamePad             ,
+      TouchPad            ,
+      HMD                 ,
+      Controller          ,
+      Camera              ,
+      Accelerometr        ,
+      Compass             ,
+      Gyroscope           ,
+      LightSensor         ,
+      ProximitySensor     ,
+      Termometr           ,
+      TypesCount
+      };
+
+   class Mouse : public SafeObject
+      {
+      public:
+      virtual Ptr<Screen> screen(void) const = 0; // Current screen on which mouse is located
+      virtual float2 position(void) const = 0;    // Mouse normalized position on current screen (coordinate origin at upper-left corner)
+      virtual uint32 position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
+      virtual bool   position(const uint32 x, const uint32 y) = 0;
+      virtual bool   position(const Ptr<Screen> screen, const uint32 x, const uint32 y) = 0;
+      virtual bool   pressed(const MouseButton button) const = 0;
+      virtual void   show(void) = 0;      // Show cursor
+      virtual void   hide(void) = 0;      // Hide cursor
+      
+      virtual ~Mouse() {};                             // Polymorphic deletes require a virtual base destructor
+      };
+      
+   class Joystick : public SafeObject
+      {
+      public:
+      virtual bool        on(void) = 0;                // Turns joystick on
+      virtual bool        off(void) = 0;               // Turns joystick off
+      virtual CameraState state(void) const = 0;       // Returns joystick state (on/off/initializing...)
+      virtual bool        pressed(const uint8 button) const = 0; // Button state
+      virtual float       position(const en::input::JoystickAxis axis) const = 0; // Joystick state
+      virtual void        update(void) = 0;            // Update joystick events
+
+      virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
+      };
+      
    class Camera : public SafeObject
-         {
-         public:
-         virtual bool        on(void) = 0;                // Turns camera on
-         virtual bool        off(void) = 0;               // Turns camera off
-         virtual CameraState state(void) const = 0;       // Returns camera state (on/off/initializing...)
-         virtual CameraType  type(void) const = 0;        // Returns camera type
-         virtual bool        support(CameraStream type) const = 0; // Returns true if camera supports given stream type
-         virtual CameraInfo  info(void) const = 0;        // Returns all camera properties
-         virtual void        update(void) = 0;            // Update camera stream events
+      {
+      public:
+      virtual bool        on(void) = 0;                // Turns camera on
+      virtual bool        off(void) = 0;               // Turns camera off
+      virtual CameraState state(void) const = 0;       // Returns camera state (on/off/initializing...)
+      virtual CameraType  type(void) const = 0;        // Returns camera type
+      virtual bool        support(CameraStream type) const = 0; // Returns true if camera supports given stream type
+      virtual CameraInfo  info(void) const = 0;        // Returns all camera properties
+      virtual void        update(void) = 0;            // Update camera stream events
 
-         virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
-         };
+      virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
+      };
+      
+   class Interface : public SafeObject
+      {
+      public:
+      static bool create(void);                      // Creates instance of this class (OS specific) and assigns it to "Input".
 
+      virtual uint8           available(IO type) const = 0;          // Count of available peripherials of given type
+      virtual Ptr<Keyboard>   keyboard(uint8 index = 0) const = 0;   // N'th Keyboard
+      virtual Ptr<Mouse>      mouse(uint8 index = 0) const = 0;      // N'th Mouse
+      virtual Ptr<Joystick>   joystick(uint8 index = 0) const = 0;   // N'th Joystick
+      virtual Ptr<HMD>        hmd(uint8 index = 0) const = 0;        // N'th Head Mounted Display (VR/AR)
+      virtual Ptr<Controller> controller(uint8 index = 0) const = 0; // N'th Motion Controller
+      virtual Ptr<Camera>     camera(uint8 index = 0) const = 0;     // N'th Camera (Color, Depth, IR, or other)
+
+      virtual void update(void) = 0;                                 // Gets actual input state, call function handling cached events
+      
+      virtual ~Interface() {};                       // Polymorphic deletes require a virtual base destructor
+      };
+
+
+
+#else
 
 
 
@@ -623,9 +584,15 @@ namespace en
 
           void update(void); // Gets actual input state, call function handling cached events
           };
+#endif
    }
 
+#if defined(EN_PLATFORM_OSX)
+extern Ptr<input::Interface> Input;   // New dynamic Interface allowing inherited implementation
+#else
 extern input::Interface Input;
+#endif
+
 }
 
 #endif

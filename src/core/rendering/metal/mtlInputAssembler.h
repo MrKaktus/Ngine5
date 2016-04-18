@@ -16,8 +16,11 @@
 #ifndef ENG_CORE_RENDERING_METAL_INPUT_ASSEMBLER
 #define ENG_CORE_RENDERING_METAL_INPUT_ASSEMBLER
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
+#include "core/rendering/metal/metal.h"
 #include "core/rendering/common/inputAssembler.h"
 #include "core/rendering/state.h"
 

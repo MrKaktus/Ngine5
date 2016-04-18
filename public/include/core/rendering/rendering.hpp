@@ -429,7 +429,7 @@ namespace en
                         void setDefaultWrite(void);
                         void copy(const uint32v4 srcRange, 
                                   const uint32v4 dstRange,
-                                  const TextureFiltering filtering); // Copies data from currently bound Read source to Write destination
+                                  const SamplerFilter filtering); // Copies data from currently bound Read source to Write destination
                         } buffer;
 
                  // Specifies color space used in shaders

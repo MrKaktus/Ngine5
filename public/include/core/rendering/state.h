@@ -46,14 +46,14 @@ namespace en
    // Comparison method             
    enum CompareMethod               
         {                           
-        Never                       = 0,    
-        Always                         ,
+        Never                       = 0,
         Less                           ,
-        LessOrEqual                    ,
         Equal                          ,
-        GreaterOrEqual                 ,
+        LessOrEqual                    ,
         Greater                        ,
         NotEqual                       ,
+        GreaterOrEqual                 ,
+        Always                         ,
         CompareMethodsCount
         };
 
@@ -64,10 +64,10 @@ namespace en
         Clear                          ,
         Reference                      ,
         Increase                       ,
-        IncreaseWrap                   ,
         Decrease                       ,
-        DecreaseWrap                   ,
         InvertBits                     ,
+        IncreaseWrap                   ,
+        DecreaseWrap                   ,
         StencilModificationsCount
         };
 

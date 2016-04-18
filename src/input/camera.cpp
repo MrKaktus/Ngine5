@@ -30,6 +30,9 @@ namespace en
 {
    namespace input
    {
+#if defined(EN_PLATFORM_OSX)  // New dynamic Interface
+
+#else
    //# INTERFACE
    //##########################################################################
 
@@ -44,6 +47,7 @@ namespace en
       return InputContext.camera.device[index];
    return Ptr<input::Camera>(nullptr);
    }
+#endif
 
    //# IMPLEMENTATION
    //##########################################################################

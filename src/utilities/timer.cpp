@@ -21,7 +21,7 @@
 #import <QuartzCore/QuartzCore.h>
 #endif
 
-#ifdef EN_PLATFORM_OSX
+#if defined(EN_PLATFORM_OSX)
 //#include <sys/time.h>
 #ifdef aligned
 #undef aligned

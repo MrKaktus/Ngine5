@@ -45,16 +45,16 @@ namespace en
    assert( texture );
    assert( index < GpuContext.support.maxFramebufferColorAttachments );
    assert( mipmap < texture->mipmaps() );
-   assert( TextureCapabilities[texture->format()].rendertarget );
+   assert( TextureCapabilities[underlyingType(texture->format())].rendertarget );
 #endif
 
 #ifdef EN_DEBUG
    // Layered texture binding is supported since OpenGL 3.2
    TextureType type = texture->type();
-   assert( type != Texture1DArray );
-   assert( type != Texture2DArray );
-   assert( type != Texture3D      );
-   assert( type != TextureCubeMap );
+   assert( type != TextureType::Texture1DArray );
+   assert( type != TextureType::Texture2DArray );
+   assert( type != TextureType::Texture3D      );
+   assert( type != TextureType::TextureCubeMap );
 #endif
 
    // Select framebuffer access type
@@ -63,15 +63,15 @@ namespace en
       accessType = GL_READ_FRAMEBUFFER;
 
    Profile( glBindFramebuffer(accessType, id) )
-   uint16 glType = TranslateTextureType[texture->type()];
+   uint16 glType = TranslateTextureType[underlyingType(texture->type())];
    Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
-      case Texture1D:
+      case TextureType::Texture1D:
          Profile( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
-      case Texture2D:
+      case TextureType::Texture2D:
          Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
@@ -98,14 +98,14 @@ namespace en
    assert( texture );
    assert( index < GpuContext.support.maxFramebufferColorAttachments );
    assert( mipmap < texture->mipmaps() );
-   assert( TextureCapabilities[texture->format()].rendertarget );
+   assert( TextureCapabilities[underlyingType(texture->format())].rendertarget );
 #endif
 
 #ifdef EN_DEBUG
    // Layered texture binding is supported since OpenGL 3.2
    TextureType type = texture->type();
-   assert( type != Texture1DArray );
-   assert( type != Texture2DArray );
+   assert( type != TextureType::Texture1DArray );
+   assert( type != TextureType::Texture2DArray );
 #endif
 
    // Select framebuffer access type
@@ -114,24 +114,24 @@ namespace en
       accessType = GL_READ_FRAMEBUFFER;
 
    Profile( glBindFramebuffer(accessType, id) )
-   uint16 glType = TranslateTextureType[texture->type()];
+   uint16 glType = TranslateTextureType[underlyingType(texture->type())];
    Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
-      case Texture1D:
+      case TextureType::Texture1D:
          Profile( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
-      case Texture2D:
+      case TextureType::Texture2D:
          Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
-      case Texture3D:
+      case TextureType::Texture3D:
          assert( layer < texture->depth() );
          Profile( glFramebufferTexture3D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap, layer) )
          break;
 
-      case TextureCubeMap:
+      case TextureType::TextureCubeMap:
          assert( layer < 6 );
          Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), TranslateTextureFace[layer], tex->id, mipmap) )
          break;
@@ -155,13 +155,12 @@ namespace en
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    assert( texture );
    TextureType type = texture->type();
-   assert( type == Texture2D          ||
-           type == Texture2DRectangle );
+   assert( type == TextureType::Texture2D ); // or 2DRectangle
    Format format = texture->format();
-   assert( format == FormatD_16   ||
-           format == FormatD_24   ||
-           format == FormatD_32   ||
-           format == FormatD_32_f );
+   assert( format == Format::D_16   ||
+           format == Format::D_24   ||
+           format == Format::D_32   ||
+           format == Format::D_32_f );
 #endif
 
    // Select framebuffer access type
@@ -169,7 +168,7 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   uint16 glType = TranslateTextureType[texture->type()];
+   uint16 glType = TranslateTextureType[underlyingType(texture->type())];
    Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    Profile( glBindFramebuffer(accessType, id) )
    Profile( glFramebufferTexture2D(accessType, GL_DEPTH_ATTACHMENT, glType, tex->id, 0) )
@@ -187,10 +186,9 @@ namespace en
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    assert( texture );
    TextureType type = texture->type();
-   assert( type == Texture2D          ||
-           type == Texture2DRectangle );
+   assert( type == TextureType::Texture2D ); // or 2DRectangle
    Format format = texture->format();
-   assert( format == FormatS_8 );
+   assert( format == Format::S_8 );
 #endif
 
    // Select framebuffer access type
@@ -198,7 +196,7 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   uint16 glType = TranslateTextureType[texture->type()];
+   uint16 glType = TranslateTextureType[underlyingType(texture->type())];
    Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    Profile( glBindFramebuffer(accessType, id) )
    Profile( glFramebufferTexture2D(accessType, GL_STENCIL_ATTACHMENT, glType, tex->id, 0) )
@@ -216,11 +214,10 @@ namespace en
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    assert( texture );
    TextureType type = texture->type();
-   assert( type == Texture2D          ||
-           type == Texture2DRectangle );
+   assert( type == TextureType::Texture2D ); // or 2DRectangle
    Format format = texture->format();
-   assert( format == FormatSD_8_24   ||
-           format == FormatSD_8_32_f );
+   assert( format == Format::DS_24_8   ||
+           format == Format::DS_32_f_8 );
 #endif
 
    // Select framebuffer access type
@@ -228,7 +225,7 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   uint16 glType = TranslateTextureType[texture->type()];
+   uint16 glType = TranslateTextureType[underlyingType(texture->type())];
    Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    Profile( glBindFramebuffer(accessType, id) )
    Profile( glFramebufferTexture2D(accessType, GL_DEPTH_STENCIL_ATTACHMENT, glType, tex->id, 0) )

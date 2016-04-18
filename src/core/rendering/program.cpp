@@ -854,7 +854,7 @@ namespace en
          if (GpuContext.textureUnit.texture[oldestId] != sampler.texture)
             {
             Ptr<TextureGL> textureGL = ptr_dynamic_cast<TextureGL, Texture>(sampler.texture);
-            uint16 glType = TranslateTextureType[textureGL->type()];
+            uint16 glType = TranslateTextureType[underlyingType(textureGL->type())];
 
             Profile( glActiveTexture(GL_TEXTURE0 + oldestId) )
             Profile( glBindTexture(glType, textureGL->id ) )

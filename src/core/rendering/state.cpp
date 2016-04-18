@@ -45,10 +45,10 @@ namespace en
          GL_ZERO     ,  // Clear
          GL_REPLACE  ,  // Reference
          GL_INCR     ,  // Increase
-         GL_INCR_WRAP,  // IncreaseWrap
          GL_DECR     ,  // Decrease
-         GL_DECR_WRAP,  // DecreaseWrap
-         GL_INVERT      // InvertBits
+         GL_INVERT   ,  // InvertBits
+         GL_INCR_WRAP,  // IncreaseWrap
+         GL_DECR_WRAP   // DecreaseWrap
          };
 
       // Color Buffer blend equations

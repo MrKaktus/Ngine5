@@ -32,13 +32,13 @@ namespace en
 
    // Calculate amount of layers texture will have
    if ( state.layers == 1 &&
-        ( state.type == TextureCubeMap ||
-          state.type == TextureCubeMapArray ) )
+        ( state.type == TextureType::TextureCubeMap ||
+          state.type == TextureType::TextureCubeMapArray ) )
       state.layers = 6;
 
    // Gather API specific texture state 
-   uint16 glType           = TranslateTextureType[state.type];
-   uint16 glInternalFormat = TranslateTextureFormat[state.format].dstFormat;
+   uint16 glType           = TranslateTextureType[underlyingType(state.type)];
+   uint16 glInternalFormat = TranslateTextureFormat[underlyingType(state.format)].dstFormat;
    uint32 mipmaps          = this->mipmaps();
    uint16 width            = this->width();
    uint16 height           = this->height();
@@ -51,10 +51,10 @@ namespace en
    // Generate texture descriptor with default state
    Profile( glGenTextures(1, (GLuint*)&id) );
    Profile( glBindTexture(glType, id) );
-   if ( (state.type != Texture2DMultisample) &&
-        (state.type != Texture2DMultisampleArray) )
+   if ( (state.type != TextureType::Texture2DMultisample) &&
+        (state.type != TextureType::Texture2DMultisampleArray) )
       {
-      if (state.type != Texture2DRectangle)
+    //if (state.type != TextureType::Texture2DRectangle)
          {
          Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
          Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
@@ -70,25 +70,25 @@ namespace en
    // Reserve memory for texture completness (OpenGL 4.2 or ARB_texture_storage) 
    switch(state.type)
       {
-      case Texture1D:
+      case TextureType::Texture1D:
          Profile( glTexStorage1D(glType, mipmaps, glInternalFormat, width) );
          break;
    
-      case Texture1DArray:
+      case TextureType::Texture1DArray:
          Profile( glTexStorage2D(glType, mipmaps, glInternalFormat, width, layers) );
          break;
    
-      case Texture2D:
+      case TextureType::Texture2D:
          Profile( glTexStorage2D(glType, mipmaps, glInternalFormat, width, height) );
          break;
    
-      case Texture2DArray:
+      case TextureType::Texture2DArray:
          Profile( glTexStorage3D(glType, mipmaps, glInternalFormat, width, height, layers) );
          break;
    
-      case Texture2DRectangle:
-         Profile( glTexStorage2D(glType, 1, glInternalFormat, width, height) );
-         break;
+    //case TextureType::Texture2DRectangle:
+    //   Profile( glTexStorage2D(glType, 1, glInternalFormat, width, height) );
+    //   break;
 
 #ifndef EN_PLATFORM_OSX
       // OpenGL 4.3  or  ARB_texture_storage_multisample
@@ -104,19 +104,19 @@ namespace en
          break;
 #endif
 
-      case TextureBuffer:
-         // Buffer textures don't have their own storage
-         break;
+    //case TextureType::TextureBuffer:
+    //   // Buffer textures don't have their own storage
+    //   break;
    
-      case Texture3D:
+      case TextureType::Texture3D:
          Profile( glTexStorage3D(glType, mipmaps, glInternalFormat, width, height, depth) );
          break;
    
-      case TextureCubeMap:
+      case TextureType::TextureCubeMap:
          Profile( glTexStorage2D(glType, mipmaps, glInternalFormat, width, width) );
          break;
    
-      case TextureCubeMapArray:
+      case TextureType::TextureCubeMapArray:
          Profile( glTexStorage3D(glType, mipmaps, glInternalFormat, width, width, layers) );
          break;
    

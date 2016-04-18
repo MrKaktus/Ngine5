@@ -16,16 +16,19 @@
 #ifndef ENG_CORE_RENDERING_METAL_SAMPLER
 #define ENG_CORE_RENDERING_METAL_SAMPLER
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/sampler.h"
-#include "core/rendering/metal/mtlDevice.h"
 
 namespace en
 {
    namespace gpu
    {
+   class MetalDevice;
+   
    class SamplerMTL : public Sampler
       {
       public:

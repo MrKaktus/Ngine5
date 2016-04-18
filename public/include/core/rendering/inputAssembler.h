@@ -34,7 +34,7 @@ namespace en
    // Therefore fixed attribute formats are not supported by engine.
 
    // Format of attribute data
-   enum AttributeFormat
+   enum class AttributeFormat : uint32
         {
         None                      = 0,   
         Half                         ,
@@ -99,7 +99,7 @@ namespace en
         Float16v4_Norm               ,
         Float4_10_10_10_2_SNorm      ,
         Float4_10_10_10_2_Norm       ,
-        AttributeFormatsCount
+        Count
         };
 
    // TEMP:
@@ -136,14 +136,9 @@ namespace en
    class InputAssembler : public SafeObject
       {
       public:
-      virtual ~InputAssembler();                 // Polymorphic deletes require a virtual base destructor
+      virtual ~InputAssembler() {};              // Polymorphic deletes require a virtual base destructor
       };
 
-   // Creates InputAssembler description based on single buffer attributes
-   Ptr<InputAssembler> Create(Ptr<BufferView> buffer); 
-
-   // Creates InputAssembler description combining attributes from several buffers
-   Ptr<InputAssembler> Create(InputAssemblerSettings& attributes); 
 
 
    //class InputAssemblerMTL : public InputAssembler

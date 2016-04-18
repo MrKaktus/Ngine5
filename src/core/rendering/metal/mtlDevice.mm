@@ -50,7 +50,7 @@ namespace en
    handle = nullptr;
    }
    
-   WindowMTL::WindowMTL(const id<MTLDevice> device, const WindowSettings& settings, const string title) :
+   WindowMTL::WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title) :
       handle(nullptr),
       windowPosition(settings.position),
       window(nil),
@@ -59,6 +59,8 @@ namespace en
       framebuffer(nullptr),
       needNewSurface(true)
    {
+   id<MTLDevice> device = gpu->device;
+   
    // Determine destination screen properties
    NSScreen* handle = nullptr;
    uint32v2 resolution;
@@ -69,16 +71,16 @@ namespace en
       }
    else
       {
-      // TODO: Primary display handle and properties
-      // handle = ptr_dynamic_cast<ScreenMTL, Screen>(GraphicsContext.primaryScreen)->screen;
-      // NSRect info = [handle convertRectToBacking:[handle frame]];
-      // resolution.width  = static_cast<uint32>(info.size.width);
-      // resolution.height = static_cast<uint32>(info.size.height);
+      // Primary display handle and properties
+      handle = ptr_dynamic_cast<ScreenMTL, Screen>(gpu->screen(0u))->handle;
+      NSRect info = [handle convertRectToBacking:[handle frame]];
+      resolution.width  = static_cast<uint32>(info.size.width);
+      resolution.height = static_cast<uint32>(info.size.height);
       }
 
-   // Frame position describes windows upper-left corner position, but from lower-left corner of the screen.
+   // Frame position describes windows lower-left corner position, from lower-left corner of the screen.
    NSRect frame = NSMakeRect(settings.position.x,
-                             resolution.height - settings.position.y,
+                             resolution.height - (settings.position.y + settings.size.height),
                              settings.size.width,
                              settings.size.height);
       
@@ -98,6 +100,10 @@ namespace en
                                                     backing:NSBackingStoreBuffered
                                                       defer:NO];
       
+   // Set engine custom delegate to handle window events
+   [window setDelegate:[NSApp delegate]];
+   [window setAcceptsMouseMovedEvents:TRUE];
+   
    // Sets window title
    [window setTitle:[NSString stringWithCString:title.c_str() encoding:[NSString defaultCStringEncoding]]];
  
@@ -161,7 +167,11 @@ namespace en
    [ [window standardWindowButton:NSWindowCloseButton] setAction:@selector(performClose:) ];
    
    // Create Framebuffer handle
-   TextureState state(Texture2DRectangle, FormatBGRA_8, settings.size.width, settings.size.height);
+   TextureState state(TextureType::Texture2D,
+                      Format::RGBA_8,
+                      TextureUsage::RenderTargetWrite,
+                      settings.size.width,
+                      settings.size.height);
    framebuffer = new TextureMTL(device, state, false);
    }
    
@@ -213,9 +223,13 @@ namespace en
    
    void WindowMTL::active(void)
    {
-   // Set window as active one
-   //[window makeMainWindow];
-   [window makeKeyAndOrderFront:NSApp];
+   // Main window - current active window
+   // Key window  - active window on top of main window like "Save as" window that needs to be responded
+   // [window makeMainWindow];
+   
+   // Move window up front on the desktop and make it most active one
+   [window makeKeyAndOrderFront:nil]; // Why messages sender is nil and not NSApp ?
+   [window setIsVisible:TRUE];
    }
    
    void WindowMTL::transparent(const float opacity)
@@ -420,7 +434,8 @@ namespace en
 
    CommandBufferMTL::CommandBufferMTL() :
       handle(nil),
-      renderEncoder(nil)
+      renderEncoder(nil),
+      commited(false)
    {
    }
 
@@ -457,12 +472,16 @@ namespace en
    if (renderEncoder == nil)
       return false;
    [renderEncoder endEncoding];
+   [renderEncoder release];
+   renderEncoder = nullptr;
    return true;
    }
    
    void CommandBufferMTL::commit(void)
    {
+   assert( !commited );
    [handle commit];
+   commited = true;
    }
     
    void CommandBufferMTL::waitUntilCompleted(void)
@@ -473,22 +492,21 @@ namespace en
    CommandBufferMTL::~CommandBufferMTL()
    {
    // Finish encoded tasks
-   [handle commit];
+   if (!commited)
+      [handle commit];
+      
    [handle waitUntilCompleted];
    
    // Release buffer
    [handle release];
-   [renderEncoder release];
    }
     
     
    Ptr<CommandBuffer> MetalDevice::createCommandBuffer()
    {
-   
-   //   // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers they can be recycled / reused !!! )
-//   // Multiple buffers can be created simultaneously for one queue
-//   // Buffers are execyted in order in queue
-//   id <MTLCommandBuffer> buffer;
+   // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers they can be recycled / reused !!! )
+   // Multiple buffers can be created simultaneously for one queue
+   // Buffers are executed in order in queue
    Ptr<CommandBufferMTL> buffer = new CommandBufferMTL();
    
    buffer->handle = [queue commandBuffer];
@@ -522,15 +540,15 @@ namespace en
    uint32 MetalDevice::screens(void)
    {
    // Currently all Metal devices share all available displays
-   MetalAPI* api = (MetalAPI*)(en::Graphics);
+   Ptr<MetalAPI> api = ptr_dynamic_cast<MetalAPI, GraphicAPI>(en::Graphics);
    return api->displaysCount;
    }
    
-   Ptr<Screen> MetalDevice::screen(uint32 id)
+   Ptr<Screen> MetalDevice::screen(uint32 id) const
    {
    // Currently all Metal devices share all available displays
-   MetalAPI* api = (MetalAPI*)(en::Graphics);
-   
+   Ptr<MetalAPI> api = ptr_dynamic_cast<MetalAPI, GraphicAPI>(en::Graphics);
+     
    assert( api->displaysCount > id );
    
    return api->display[id];
@@ -538,7 +556,7 @@ namespace en
 
    Ptr<Window> MetalDevice::create(const WindowSettings& settings, const string title)
    {
-   Ptr<WindowMTL> ptr = new WindowMTL(device, settings, title);
+   Ptr<WindowMTL> ptr = new WindowMTL(this, settings, title);
    return ptr_dynamic_cast<Window>(ptr);
    }
 
@@ -756,7 +774,16 @@ namespace en
    if (!lock.tryLock())
       return;
    
-   delete Graphics;
+   // Here destroy any API globals
+   device[0] = nullptr;
+   device[1] = nullptr;
+   
+   for(uint32 i=0; i<displaysCount; ++i)
+      display[i] = nullptr;
+   delete [] display;
+   
+   virtualDisplay = nullptr;
+   
    Graphics = nullptr;
    
    lock.unlock();

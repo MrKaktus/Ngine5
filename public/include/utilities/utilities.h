@@ -33,7 +33,13 @@ namespace en
    #define clearBit(number, bit)  (number &= ~(1 << bit))
    #define changeBit(number, bit) (number ^= 1 << bit)
    #define checkBit(number, bit)  (number & (1 << bit))
+   #define checkBits(number, bitMask)  (number & bitMask)
    #define getBit(number, bit)    (number & (1 << bit))
+   
+   // Bit query
+   #define bitChanged(previous, current, bit) (checkBit(current, bit) != checkBit(previous, bit))
+   #define bitsChanged(previous, current, bitMask) ((current & bitMask) != (previous & bitMask))
+   
    
    // Checks if given value is in range
    template<typename T>
@@ -63,13 +69,13 @@ namespace en
    // z,w - width, height
    bool inRectangle(float4 rect, float2 position);
    
-   // Checks if given number is a power of two
+   // Checks if given number is a power of two (returns true for 0)
    bool powerOfTwo(uint8  in);
    bool powerOfTwo(uint16 in);
    bool powerOfTwo(uint32 in);
    bool powerOfTwo(uint64 in);
    
-   // Returns next power of two for given numer
+   // Returns next power of two for given numer (in case of 0, returns 0)
    uint16 nextPowerOfTwo(uint8  in);
    uint32 nextPowerOfTwo(uint16 in);
    uint64 nextPowerOfTwo(uint32 in);

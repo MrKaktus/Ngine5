@@ -39,9 +39,9 @@ namespace en
       float depthBiasConstantFactor;      // Depth value added to given pixel's depth (prevents z-fighting on decals).
       float depthBiasClamp;               // More about depth bias and depth slopes:
       float depthBiasSlopeFactor;         // https://msdn.microsoft.com/en-us/library/windows/desktop/cc308048(v=vs.85).aspx
-    //float pointSize;
+    //float pointSize;                    // In Metal in SL [[point_size]] (0.125 to 255.0)
     //float pointFadeThreshold;
-      float lineWidth;
+      float lineWidth;                    // Deprecated in OpenGL, non-existent in Metal & Direct3D12
 
       RasterStateInfo();
       };

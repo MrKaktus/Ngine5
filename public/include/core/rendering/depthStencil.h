@@ -43,7 +43,7 @@ namespace en
          StencilModification whenBothPass;     // What to do if both tests passes
          uint32              reference;        // Reference value
          uint32              readMask;         // Mask that is ANDed with both the reference value and the stored stencil value before the test, also called "compare mask"
-         uint32              writeMask;        // Mask used with output stencil value
+         uint32              writeMask;        // Mask that is ANDed with output stencil value before writing to stencil attachment
          } stencil[2];
 
       DepthStencilStateInfo();
@@ -52,7 +52,7 @@ namespace en
    class DepthStencilState : public SafeObject
       {
       public:
-      virtual ~DepthStencilState();                              // Polymorphic deletes require a virtual base destructor
+      virtual ~DepthStencilState() {};                           // Polymorphic deletes require a virtual base destructor
       };
 
    }

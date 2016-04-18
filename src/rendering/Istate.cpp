@@ -1382,7 +1382,7 @@ namespace en
    return false;
    }
 
-   void Interface::Output::Buffer::copy(const uint32v4 srcRange, const uint32v4 dstRange, const TextureFiltering filtering)
+   void Interface::Output::Buffer::copy(const uint32v4 srcRange, const uint32v4 dstRange, const SamplerFilter filtering)
    {
    assert( GpuContext.screen.created );
    assert( GpuContext.device.api.better(OpenGL_3_0) );
@@ -1390,7 +1390,7 @@ namespace en
    Profile(  glBlitFramebuffer(srcRange.x, srcRange.y, srcRange.z, srcRange.w,
                                dstRange.x, dstRange.y, dstRange.z, dstRange.w,
                                GL_COLOR_BUFFER_BIT, 
-                               TranslateTextureFiltering[filtering].magnification) );
+                               TranslateSamplerMagnification[underlyingType(filtering)]) );
    }
 
    void Interface::Output::mode(const ColorSpace mode)

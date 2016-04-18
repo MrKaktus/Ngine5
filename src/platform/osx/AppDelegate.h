@@ -10,10 +10,16 @@
 
 #import <Cocoa/Cocoa.h>
 
+
+//@interface AppView : NSView
+//
+//@end
+
+
 // Class "AppDelegate", based on NSObject that conforms to NSApplicationDelegate protocol.
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
-@property (strong) IBOutlet NSWindow *window;   // (weak) in ARC
+//@property (strong) IBOutlet NSWindow *window;   // (weak) in ARC
 
 @end
 

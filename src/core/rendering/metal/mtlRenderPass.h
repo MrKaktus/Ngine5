@@ -85,7 +85,7 @@ namespace en
       {
       public:
       MTLRenderPassDescriptor* desc;
-
+      
       RenderPassMTL();
      ~RenderPassMTL();
       };

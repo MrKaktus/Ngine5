@@ -21,29 +21,31 @@
 namespace en
 {
    namespace gpu
-   { 
+   {
+   // Optimisation: This table is not needed. Backend type can be directly cast to D3D12 type by adding 1.
    static const D3D12_COMPARISON_FUNC TranslateCompareFunction[CompareMethodsCount] = 
       {
       D3D12_COMPARISON_FUNC_NEVER,         // Never              
-      D3D12_COMPARISON_FUNC_ALWAYS,        // Always
       D3D12_COMPARISON_FUNC_LESS,          // Less
-      D3D12_COMPARISON_FUNC_LESS_EQUAL,    // LessOrEqual
       D3D12_COMPARISON_FUNC_EQUAL,         // Equal
-      D3D12_COMPARISON_FUNC_GREATER_EQUAL, // GreaterOrEqual
+      D3D12_COMPARISON_FUNC_LESS_EQUAL,    // LessOrEqual
       D3D12_COMPARISON_FUNC_GREATER,       // Greater
-      D3D12_COMPARISON_FUNC_NOT_EQUAL      // NotEqual
+      D3D12_COMPARISON_FUNC_NOT_EQUAL,     // NotEqual
+      D3D12_COMPARISON_FUNC_GREATER_EQUAL, // GreaterOrEqual
+      D3D12_COMPARISON_FUNC_ALWAYS,        // Always
       };
    
+   // Optimisation: This table is not needed. Backend type can be directly cast to D3D12 type by adding 1.
    static const  D3D12_STENCIL_OP TranslateStencilOperation[StencilModificationsCount] =
       {
       D3D12_STENCIL_OP_KEEP,               // Keep
       D3D12_STENCIL_OP_ZERO,               // Clear
       D3D12_STENCIL_OP_REPLACE,            // Reference
       D3D12_STENCIL_OP_INCR_SAT,           // Increase
-      D3D12_STENCIL_OP_INCR,               // IncreaseWrap
       D3D12_STENCIL_OP_DECR_SAT,           // Decrease
-      D3D12_STENCIL_OP_DECR,               // DecreaseWrap
-      D3D12_STENCIL_OP_INVERT              // InvertBits
+      D3D12_STENCIL_OP_INVERT,             // InvertBits
+      D3D12_STENCIL_OP_INCR,               // IncreaseWrap
+      D3D12_STENCIL_OP_DECR                // DecreaseWrap
       };
 
    DepthStencilStateD3D12::DepthStencilStateD3D12(const DepthStencilStateInfo& desc)
@@ -58,10 +60,10 @@ namespace en
       {
       D3D12_DEPTH_STENCILOP_DESC& stencil = (i == 0) ? state.FrontFace : state.BackFace;
 
-      stencil.StencilFailOp      = TranslateStencilOperation[desc.stencil[i].whenStencilFails];
-      stencil.StencilDepthFailOp = TranslateStencilOperation[desc.stencil[i].whenDepthFails]; 
-      stencil.StencilPassOp      = TranslateStencilOperation[desc.stencil[i].whenBothPass];
-      stencil.StencilFunc        = TranslateCompareFunction[desc.stencil[i].function];
+      stencil.StencilFailOp      = static_cast<D3D12_STENCIL_OP>(underlyingType(desc.stencil[i].whenStencilFails) + 1);  // Optimisation: TranslateStencilOperation[desc.stencil[i].whenStencilFails];
+      stencil.StencilDepthFailOp = static_cast<D3D12_STENCIL_OP>(underlyingType(desc.stencil[i].whenDepthFails) + 1);    // Optimisation: TranslateStencilOperation[desc.stencil[i].whenDepthFails];
+      stencil.StencilPassOp      = static_cast<D3D12_STENCIL_OP>(underlyingType(desc.stencil[i].whenBothPass) + 1);      // Optimisation: TranslateStencilOperation[desc.stencil[i].whenBothPass];
+      stencil.StencilFunc        = static_cast<D3D12_COMPARISON_FUNC>(underlyingType(desc.stencil[i].function) + 1);     // Optimisation: TranslateCompareFunction[desc.stencil[i].function];
       }
 
    reference = static_cast<UINT>(desc.stencil[0].reference);

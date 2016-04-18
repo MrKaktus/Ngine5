@@ -168,7 +168,11 @@ namespace en
    if (StateContext.states.empty()) 
       return false;
 
+#if defined(EN_PLATFORM_OSX)
+   Input->update();
+#else
    Input.update();
+#endif
 
    for(sint8 i=(StateContext.states.size() - 1); i>=0; --i)
       if (!StateContext.states[i]->update(dt))

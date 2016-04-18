@@ -22,29 +22,31 @@
 namespace en
 {
    namespace gpu
-   { 
+   {
+   // Optimization: This table is not needed. Backend type can be directly cast to Vulkan type.
    static const VkCompareOp TranslateCompareFunction[CompareMethodsCount] = 
       {
-      VK_COMPARE_OP_NEVER,                 // Never              
-      VK_COMPARE_OP_ALWAYS,                // Always
+      VK_COMPARE_OP_NEVER,                 // Never
       VK_COMPARE_OP_LESS,                  // Less
-      VK_COMPARE_OP_LESS_OR_EQUAL,         // LessOrEqual
       VK_COMPARE_OP_EQUAL,                 // Equal
-      VK_COMPARE_OP_GREATER_OR_EQUAL,      // GreaterOrEqual
+      VK_COMPARE_OP_LESS_OR_EQUAL,         // LessOrEqual
       VK_COMPARE_OP_GREATER,               // Greater
-      VK_COMPARE_OP_NOT_EQUAL              // NotEqual
+      VK_COMPARE_OP_NOT_EQUAL,             // NotEqual
+      VK_COMPARE_OP_GREATER_OR_EQUAL,      // GreaterOrEqual
+      VK_COMPARE_OP_ALWAYS,                // Always
       };
    
+   // Optimization: This table is not needed. Backend type can be directly cast to Vulkan type.
    static const VkStencilOp TranslateStencilOperation[StencilModificationsCount] =
       {
       VK_STENCIL_OP_KEEP,                  // Keep
       VK_STENCIL_OP_ZERO,                  // Clear
       VK_STENCIL_OP_REPLACE,               // Reference
       VK_STENCIL_OP_INCREMENT_AND_CLAMP,   // Increase
-      VK_STENCIL_OP_INCREMENT_AND_WRAP,    // IncreaseWrap
       VK_STENCIL_OP_DECREMENT_AND_CLAMP,   // Decrease
-      VK_STENCIL_OP_DECREMENT_AND_WRAP,    // DecreaseWrap
       VK_STENCIL_OP_INVERT                 // InvertBits
+      VK_STENCIL_OP_INCREMENT_AND_WRAP,    // IncreaseWrap
+      VK_STENCIL_OP_DECREMENT_AND_WRAP,    // DecreaseWrap
       };
 
    DepthStencilStateVK::DepthStencilStateVK(const DepthStencilStateInfo& desc)
@@ -62,9 +64,9 @@ namespace en
       {
       VkStencilOpState& stencil = (i == 0) ? state.front : state.back;
 
-      stencil.failOp           = TranslateStencilOperation[desc.stencil[i].whenStencilFails];
-      stencil.depthFailOp      = TranslateStencilOperation[desc.stencil[i].whenDepthFails]; 
-      stencil.passOp           = TranslateStencilOperation[desc.stencil[i].whenBothPass];
+      stencil.failOp           = static_cast<VkStencilOp>(underlyingType(desc.stencil[i].whenStencilFails));  // Optimisation: TranslateStencilOperation[desc.stencil[i].whenStencilFails];
+      stencil.depthFailOp      = static_cast<VkStencilOp>(underlyingType(desc.stencil[i].whenDepthFails));    // Optimisation: TranslateStencilOperation[desc.stencil[i].whenDepthFails];
+      stencil.passOp           = static_cast<VkStencilOp>(underlyingType(desc.stencil[i].whenBothPass));      // Optimisation: TranslateStencilOperation[desc.stencil[i].whenBothPass];
       stencil.compareOp        = TranslateCompareFunction[desc.stencil[i].function];
       stencil.compareMask      = desc.stencil[i].readMask;
       stencil.writeMask        = desc.stencil[i].writeMask;

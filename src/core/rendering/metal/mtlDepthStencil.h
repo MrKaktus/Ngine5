@@ -16,6 +16,8 @@
 #ifndef ENG_CORE_RENDERING_METAL_DEPTH_STENCIL_STATE
 #define ENG_CORE_RENDERING_METAL_DEPTH_STENCIL_STATE
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/metal.h"
@@ -25,14 +27,16 @@ namespace en
 {
    namespace gpu
    {
+   class MetalDevice;
+   
    class DepthStencilStateMTL : public DepthStencilState
       {
       public:
       id<MTLDepthStencilState> state;
       uint32v2 reference;
 
-      DepthStencilStateMTL();
-     ~DepthStencilStateMTL();
+      DepthStencilStateMTL(const MetalDevice* gpu, const DepthStencilStateInfo& desc);
+      virtual ~DepthStencilStateMTL();
       };
 
    }

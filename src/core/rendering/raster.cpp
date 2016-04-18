@@ -23,7 +23,7 @@ namespace en
    //
    // FillMode                  Solid
    // CullMode                  Back
-   // FrontCounterClockwise     FALSE
+   // FrontCounterClockwise     FALSE   (D3D is ClockWise by default)
    // DepthBias                 0
    // SlopeScaledDepthBias      0.0f
    // DepthBiasClamp            0.0f
@@ -33,11 +33,22 @@ namespace en
    // ForcedSampleCount         0
    // ConservativeRaster        D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
 
+   // Metal Defaults:
+   //
+   // MTLTriangleFillMode       MTLTriangleFillModeFill
+   // MTLCullMode               MTLCullModeNone         (Culling is Disabled)
+   // MTLWinding                MTLWindingClockWise     (ClockWise by default)
+   // depthBiasConstantFactor   0.0f
+   // depthBiasSlopeFactor      0.0f
+   // depthBiasClamp            0.0f
+   // MTLDepthClipMode          MTLDepthClipModeClip
+
+
 
    RasterStateInfo::RasterStateInfo() :
       enableCulling(false),
       enableDepthBias(false),
-      enableDepthClamp(true),
+      enableDepthClamp(false), // Depth Clip by default
       enableConservativeRasterization(false),
       disableRasterizer(false),
       fillMode(Solid),

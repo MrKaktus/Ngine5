@@ -13,76 +13,81 @@
 
 */
 
-//#include "core/defines.h"
+#include "core/defines.h"
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlDepthStencil.h"
+#include "core/rendering/metal/mtlDevice.h"
 #include "core/rendering/state.h"
 
 namespace en
 {
    namespace gpu
-   { 
+   {
+   // Optimization: This table is not needed. Backend type can be directly cast to Metal type.
    static const MTLCompareFunction TranslateCompareFunction[CompareMethodsCount] = 
       {
       MTLCompareFunctionNever,             // Never              
-      MTLCompareFunctionAlways,            // Always
       MTLCompareFunctionLess,              // Less
-      MTLCompareFunctionLessEqual,         // LessOrEqual
       MTLCompareFunctionEqual,             // Equal
-      MTLCompareFunctionGreaterEqual,      // GreaterOrEqual
+      MTLCompareFunctionLessEqual,         // LessOrEqual
       MTLCompareFunctionGreater,           // Greater
-      MTLCompareFunctionNotEqual           // NotEqual
+      MTLCompareFunctionNotEqual,          // NotEqual
+      MTLCompareFunctionGreaterEqual,      // GreaterOrEqual
+      MTLCompareFunctionAlways             // Always
       };
 
+   // Optimization: This table is not needed. Backend type can be directly cast to Metal type.
    static const MTLStencilOperation TranslateStencilOperation[StencilModificationsCount] =
       {
       MTLStencilOperationKeep,             // Keep
       MTLStencilOperationZero,             // Clear
       MTLStencilOperationReplace,          // Reference
       MTLStencilOperationIncrementClamp,   // Increase
-      MTLStencilOperationIncrementWrap,    // IncreaseWrap
       MTLStencilOperationDecrementClamp,   // Decrease
-      MTLStencilOperationDecrementWrap,    // DecreaseWrap
-      MTLStencilOperationInvert            // InvertBits
+      MTLStencilOperationInvert,           // InvertBits
+      MTLStencilOperationIncrementWrap,    // IncreaseWrap
+      MTLStencilOperationDecrementWrap     // DecreaseWrap
       };
 
-   DepthStencilStateMTL::DepthStencilStateMTL(const DepthStencilStateInfo& desc) :
-      state(nullptr)
+   DepthStencilStateMTL::DepthStencilStateMTL(const MetalDevice* gpu,
+                                              const DepthStencilStateInfo& desc) :
+      state(nullptr),
+      reference(0, 0)
    {
    MTLDepthStencilDescriptor* descriptor = [[MTLDepthStencilDescriptor alloc] init];
 
-   descriptor->depthWriteEnabled    = desc.enableDepthWrite;
-   descriptor->depthCompareFunction = TranslateCompareFunction[desc.depthFunction];
+   descriptor.depthWriteEnabled    = desc.enableDepthWrite;
+   descriptor.depthCompareFunction = TranslateCompareFunction[desc.depthFunction];
    if (desc.enableStencilTest)
       {
       // TODO: Future optimization could check if state isn't pass-through Always/3xKeep and disable it.
-      descriptor->frontFaceStencil     = [[MTLStencilDescriptor alloc] init];
-      descriptor->backFaceStencil      = [[MTLStencilDescriptor alloc] init];
+      descriptor.frontFaceStencil     = [[MTLStencilDescriptor alloc] init];
+      descriptor.backFaceStencil      = [[MTLStencilDescriptor alloc] init];
       for(uint8 i=0; i<2; ++i)
          {
-         MTLStencilDescriptor* stencil = (i == 0) ? state.frontFaceStencil : state.backFaceStencil;
+         MTLStencilDescriptor* stencil = (i == 0) ? descriptor.frontFaceStencil : descriptor.backFaceStencil;
       
-         stencil->stencilFailureOperation   = TranslateStencilOperation[desc.stencil[i].whenStencilFails];
-         stencil->depthFailureOperation     = TranslateStencilOperation[desc.stencil[i].whenDepthFails]; 
-         stencil->depthStencilPassOperation = TranslateStencilOperation[desc.stencil[i].whenBothPass];
-         stencil->stencilCompareFunction    = TranslateCompareFunction[desc.stencil[i].function];
-         stencil->readMask                  = 0xFFFFFFFF;
-         stencil->writeMask                 = 0xFFFFFFFF;
+         stencil.stencilFailureOperation   = static_cast<MTLStencilOperation>(underlyingType(desc.stencil[i].whenStencilFails));  // Optimisation: TranslateStencilOperation[desc.stencil[i].whenStencilFails];
+         stencil.depthFailureOperation     = static_cast<MTLStencilOperation>(underlyingType(desc.stencil[i].whenDepthFails));    // Optimisation: TranslateStencilOperation[desc.stencil[i].whenDepthFails];
+         stencil.depthStencilPassOperation = static_cast<MTLStencilOperation>(underlyingType(desc.stencil[i].whenBothPass));      // Optimisation: TranslateStencilOperation[desc.stencil[i].whenBothPass];
+         stencil.stencilCompareFunction    = static_cast<MTLCompareFunction>(underlyingType(desc.stencil[i].function));           // Optimisation: TranslateCompareFunction[desc.stencil[i].function];
+         stencil.readMask                  = 0xFFFFFFFF;
+         stencil.writeMask                 = 0xFFFFFFFF;
          }
       }
 
    // Create State Object
-   state = [device newDepthStencilStateWithDescriptor:desc];
+   state = [gpu->device newDepthStencilStateWithDescriptor:descriptor];
    reference.x = desc.stencil[0].reference;
    reference.y = desc.stencil[1].reference;
 
    // Release temporary resources
-   if (descriptor->frontFaceStencil != nullptr)
-      [descriptor->frontFaceStencil release];
-   if (descriptor->backFaceStencil != nullptr)
-      [descriptor->backFaceStencil release];
+   if (descriptor.frontFaceStencil != nullptr)
+      [descriptor.frontFaceStencil release];
+   if (descriptor.backFaceStencil != nullptr)
+      [descriptor.backFaceStencil release];
    [descriptor release];
    }
 
@@ -91,13 +96,11 @@ namespace en
    state = nil;
    }
 
-   //  // Set dynamic Depth-Stencil State and Stencil Test Reference Values
-   //  [renderCommandEncoder setDepthStencilState:depthStencilState]; 
-   //  if (!supportSeparateStencilReferenceValue)
-   //     [renderCommandEncoder setStencilReferenceValue: reference.x ]; 
-   //  else  
-   //     [renderCommandEncoder setStencilFrontReferenceValue:reference.x backReferenceValue:reference.y];
-
+   Ptr<DepthStencilState> MetalDevice::create(const DepthStencilStateInfo& desc)
+   {
+   return ptr_dynamic_cast<DepthStencilState, DepthStencilStateMTL>(new DepthStencilStateMTL(this, desc));
+   }
+   
    }
 }
 

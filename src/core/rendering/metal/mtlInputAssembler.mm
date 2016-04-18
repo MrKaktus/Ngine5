@@ -13,6 +13,8 @@
 
 */
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlInputAssembler.h"
@@ -28,7 +30,7 @@ namespace en
    // were ommited!
 
    // Type of data in attributes
-   static const MTLVertexFormat TranslateAttributeFormat[AttributeFormatsCount] = 
+   static const MTLVertexFormat TranslateAttributeFormat[underlyingType(AttributeFormat::Count)] =
       {
       MTLVertexFormatInvalid,              // None                      
       MTLVertexFormatInvalid,              // Half             (unsupported)               
@@ -96,7 +98,7 @@ namespace en
       };
 
    // Size of each attribute in memory taking into notice required padding
-   static const uint8 TranslateAttributeSize[AttributeTypesCount] = 
+   static const uint8 TranslateAttributeSize[underlyingType(AttributeFormat::Count)] =
       {
       0,    // None                      
       0,    // Half                   
@@ -163,13 +165,14 @@ namespace en
       4     // Float4_10_10_10_2_Norm 
       };
 
+
    InputAssemblerMTL::InputAssemblerMTL(const DrawableType primitiveType,
                                         const uint32 controlPoints, 
                                         const uint32 usedAttributes, 
                                         const uint32 usedBuffers, 
                                         const AttributeDesc* attributes,  
                                         const BufferDesc* buffers) :
-      desc([[MTLVertexDescriptor alloc] autorelease]),
+      desc([[MTLVertexDescriptor alloc] init]),
       primitive(primitiveType)
    {
    for(uint32 i=0; i<usedBuffers; ++i)
@@ -180,15 +183,15 @@ namespace en
       // to set "default" const values for missing buffers.
 
       // MTLVertexBufferLayoutDescriptor
-      desc.layouts[buffers].stepFunction = buffers[i].stepRate == 0 ? MTLVertexStepFunctionPerVertex : MTLVertexStepFunctionPerInstance;
-      desc.layouts[buffers].stepRate     = max(1U, buffers[i].stepRate);
-      desc.layouts[buffers].stride       = buffers[i].elementSize; 
+      desc.layouts[i].stepFunction = buffers[i].stepRate == 0 ? MTLVertexStepFunctionPerVertex : MTLVertexStepFunctionPerInstance;
+      desc.layouts[i].stepRate     = max(1U, buffers[i].stepRate);
+      desc.layouts[i].stride       = buffers[i].elementSize;
       }
 
    for(uint32 i=0; i<usedAttributes; ++i)
       {
       // MTLVertexAttributeDescriptor
-      desc.attributes[i].format      = TranslateAttributeFormat[attributes[i].format];
+      desc.attributes[i].format      = TranslateAttributeFormat[underlyingType(attributes[i].format)];
       desc.attributes[i].offset      = attributes[i].offset;
       desc.attributes[i].bufferIndex = attributes[i].buffer;
       }
@@ -198,6 +201,44 @@ namespace en
    {
    [desc release];
    }
+
+
+
+   Ptr<InputAssembler> MetalDevice::create(Ptr<BufferView> buffer)
+   {
+   AttributeDesc* attributes = new AttributeDesc[buffer->attributes];
+   
+   BufferDesc buffers;
+   buffers.elementSize = buffer->elementSize;
+   buffers.stepRate = 0;
+
+   Ptr<InputAssemblerMTL> input = nullptr;
+   
+   input = new InputAssemblerMTL(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
+   
+   delete [] attributes;
+   
+   return ptr_dynamic_cast<InputAssember, InputAssemblerMTL>(input);
+   }
+
+   Ptr<InputAssembler> MetalDevice::create(InputAssemblerSettings& attributes)
+   {
+   Ptr<InputAssemblerMTL> input = nullptr;
+   
+   input = new InputAssemblerMTL(primitiveType, controlPoints,
+ 
+                                        const uint32 usedAttributes, 
+                                        const uint32 usedBuffers, 
+                                        const AttributeDesc* attributes,  
+                                        const BufferDesc* buffers
+   
+   return ptr_dynamic_cast<InputAssember, InputAssemblerMTL>(input);
+   }
+
+
+
+
+
 
    //  Ptr<InputAssembler> Create(AttributeInfo& attribute[MaxInputAssemblerAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
    //                             Ptr<Buffer>    buffer[MaxInputAssemblerAttributesCount])      // Array of buffer handles that will be used

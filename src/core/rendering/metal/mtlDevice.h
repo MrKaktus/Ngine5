@@ -16,6 +16,10 @@
 #ifndef ENG_CORE_RENDERING_METAL_DEVICE
 #define ENG_CORE_RENDERING_METAL_DEVICE
 
+#include "core/defines.h"
+
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+
 #include <string>
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/device.h"
@@ -31,8 +35,6 @@
 #include "core/rendering/metal/mtlTexture.h"
 
 #import <AppKit/AppKit.h>
-#import <Metal/Metal.h>
-#import <QuartzCore/CAMetalLayer.h>
 
 using namespace std;
 //using namespace en::gpu;
@@ -49,7 +51,9 @@ namespace en
       ScreenMTL();
      ~ScreenMTL();
       };
-      
+     
+   class MetalDevice;
+   
    class WindowMTL : public Window
       {
       public:
@@ -73,7 +77,7 @@ namespace en
       virtual Ptr<Texture> surface(void);
       virtual void display(void);
       
-      WindowMTL(const id<MTLDevice> device, const WindowSettings& settings, const string title);
+      WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title); //id<MTLDevice> device
       virtual ~WindowMTL();
       };
    
@@ -82,6 +86,7 @@ namespace en
       public:
       id <MTLCommandBuffer> handle;
       id <MTLRenderCommandEncoder> renderEncoder;
+      bool commited;
       
       virtual void bind(const Ptr<RasterState> raster);
       //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
@@ -89,6 +94,7 @@ namespace en
       virtual void bind(const Ptr<BlendState> blend);
       
       virtual bool startRenderPass(const Ptr<RenderPass> pass);
+      virtual void set(const Ptr<Pipeline> pipeline);
       virtual bool endRenderPass(void);
       virtual void commit(void);
       virtual void waitUntilCompleted(void);
@@ -110,7 +116,7 @@ namespace en
 
 
       uint32 screens(void);           // Screens count the device can render to
-      Ptr<Screen> screen(uint32 id);  // Return N'th screen handle
+      Ptr<Screen> screen(uint32 id) const;  // Return N'th screen handle
       Ptr<Window> create(const WindowSettings& settings,
                         const string title); // Create window
       
@@ -159,18 +165,29 @@ namespace en
                                      const Ptr<DepthStencilAttachment> depthStencil);
 
 
+      // Creates InputAssembler description based on single buffer attributes
+      virtual Ptr<InputAssembler> create(const Ptr<BufferView> buffer);
+
+      // Creates InputAssembler description combining attributes from several buffers
+      virtual Ptr<InputAssembler> create(const InputAssemblerSettings& attributes);
 
 
+      virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc);
+      virtual Ptr<MultisamplingState> create(const uint32 samples,
+                                             const bool enableAlphaToCoverage,
+                                             const bool enableAlphaToOne);
 
-      //Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
-      //                     const Ptr<ViewportState>  viewportState,
-      //                     const Ptr<RasterState>    rasterState,
-      //                     const Ptr<MultisamplingState> multisamplingState,                        
-      //                     const Ptr<DepthStencilState> depthStencilState,
-      //                     const Ptr<BlendState>     blendState,
-      //                     const Ptr<PipelineLayout> pipelineLayout);
+      virtual Ptr<Pipeline> create(const Ptr<RenderPass> renderPass,
+                                   const Ptr<InputAssembler> inputAssembler,
+                                   const Ptr<ViewportState>  viewportState,
+                                   const Ptr<RasterState>    rasterState,
+                                   const Ptr<MultisamplingState> multisamplingState,
+                                   const Ptr<DepthStencilState> depthStencilState,
+                                   const Ptr<BlendState>     blendState//,
+                                   /*const Ptr<PipelineLayout> pipelineLayout*/);
       };
    }
 }
+#endif
 
 #endif

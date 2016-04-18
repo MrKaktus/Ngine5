@@ -60,6 +60,8 @@ namespace en
       T* operator->() const;            // Pointer operator, allows safe accessing of object. 
       bool operator== (Ptr<T> b) const; // Comparison operator
 
+      const T& operator*() const;       // Indirection operator return const reference of object
+      
       // Returns count of references to this object.
       uint32 references(void);
       };
@@ -135,11 +137,14 @@ namespace en
    //Ptr<T>::operator&() const
    //{
    //}
-   //
-   //template <typename T>
-   //T Ptr<T>::operator*() const
-   //{
-   //}
+
+   // const version, returns a const reference instead of just a reference
+   // to enforce the idea of the logical constness of this object
+   template <typename T>
+   const T& Ptr<T>::operator*() const
+   {
+   return *pointer;
+   }
 
    template <typename T>
    bool Ptr<T>::operator== (Ptr<T> b) const
