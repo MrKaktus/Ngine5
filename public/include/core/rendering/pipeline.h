@@ -68,7 +68,7 @@ namespace en
    //
 
    // Handle for Pipeline State Object binding specification
-   class Pipeline : public SafeObject
+   class Pipeline : public SafeObject<Pipeline>
       {
       public:
       virtual ~Pipeline() {};                            // Polymorphic deletes require a virtual base destructor

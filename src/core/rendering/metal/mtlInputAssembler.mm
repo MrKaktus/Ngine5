@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlInputAssembler.h"
+#include "core/rendering/metal/mtlDevice.h"
 
 namespace en
 {
@@ -29,142 +30,239 @@ namespace en
    // Epic and Crytek didn't requested them when API was designed so they
    // were ommited!
 
+
+   // Metal OSX Vertex Attribute Formats:
+   // https://developer.apple.com/library/mac/documentation/Metal/Reference/MTLVertexAttributeDescriptor_Ref/#//apple_ref/c/tdef/MTLVertexFormat
+   // (last verified for Metal on OSX 10.11)
+   //
+   // Metal IOS Vertex Attribute Formats:
+   // https://developer.apple.com/library/ios/documentation/Metal/Reference/MTLVertexAttributeDescriptor_Ref/#//apple_ref/c/tdef/MTLVertexFormat
+   // (last verified for Metal on IOS 9.0)
+   //
+   // All available formats are available since IOS 8.0 or OSX 10.11 unless later version of introduction is explicitly stated.
+   //
    // Type of data in attributes
-   static const MTLVertexFormat TranslateAttributeFormat[underlyingType(AttributeFormat::Count)] =
+   static const MTLVertexFormat TranslateAttributeFormat[underlyingType(Attribute::Count)] =
       {
-      MTLVertexFormatInvalid,              // None                      
-      MTLVertexFormatInvalid,              // Half             (unsupported)               
-      MTLVertexFormatHalf2,                // Half2                  
-      MTLVertexFormatHalf3,                // Half3                  
-      MTLVertexFormatHalf4,                // Half4                  
-      MTLVertexFormatFloat,                // Float                  
-      MTLVertexFormatFloat2,               // Float2                 
-      MTLVertexFormatFloat3,               // Float3                 
-      MTLVertexFormatFloat4,               // Float4                 
-      MTLVertexFormatInvalid,              // Double           (unsupported)             
-      MTLVertexFormatInvalid,              // Double2          (unsupported) 
-      MTLVertexFormatInvalid,              // Double3          (unsupported) 
-      MTLVertexFormatInvalid,              // Double4          (unsupported) 
-      MTLVertexFormatInvalid,              // Int8             (unsupported) 
-      MTLVertexFormatChar2,                // Int8v2                 
-      MTLVertexFormatChar3,                // Int8v3                 
-      MTLVertexFormatChar4,                // Int8v4                 
-      MTLVertexFormatInvalid,              // Int16            (unsupported)            
-      MTLVertexFormatShort2,               // Int16v2                
-      MTLVertexFormatShort3,               // Int16v3                
-      MTLVertexFormatShort4,               // Int16v4                
-      MTLVertexFormatInt,                  // Int32                  
-      MTLVertexFormatInt2,                 // Int32v2                
-      MTLVertexFormatInt3,                 // Int32v3                
-      MTLVertexFormatInt4,                 // Int32v4                
-      MTLVertexFormatInvalid,              // Int64            (unsupported)                
-      MTLVertexFormatInvalid,              // Int64v2          (unsupported)               
-      MTLVertexFormatInvalid,              // Int64v3          (unsupported)              
-      MTLVertexFormatInvalid,              // Int64v4          (unsupported)              
-      MTLVertexFormatInvalid,              // UInt8            (unsupported)             
-      MTLVertexFormatUChar2,               // UInt8v2                
-      MTLVertexFormatUChar3,               // UInt8v3                
-      MTLVertexFormatUChar4,               // UInt8v4                
-      MTLVertexFormatInvalid,              // UInt16           (unsupported)          
-      MTLVertexFormatUShort2,              // UInt16v2               
-      MTLVertexFormatUShort3,              // UInt16v3               
-      MTLVertexFormatUShort4,              // UInt16v4               
-      MTLVertexFormatUInt,                 // UInt32                 
-      MTLVertexFormatUInt2,                // UInt32v2               
-      MTLVertexFormatUInt3,                // UInt32v3               
-      MTLVertexFormatUInt4,                // UInt32v4               
-      MTLVertexFormatInvalid,              // UInt64           (unsupported) 
-      MTLVertexFormatInvalid,              // UInt64v2         (unsupported) 
-      MTLVertexFormatInvalid,              // UInt64v3         (unsupported) 
-      MTLVertexFormatInvalid,              // UInt64v4         (unsupported)           
-      MTLVertexFormatInvalid,              // Float8_SNorm     (unsupported)          
-      MTLVertexFormatChar2Normalized,      // Float8v2_SNorm         
-      MTLVertexFormatChar3Normalized,      // Float8v3_SNorm         
-      MTLVertexFormatChar4Normalized,      // Float8v4_SNorm         
-      MTLVertexFormatInvalid,              // Float16_SNorm    (unsupported)         
-      MTLVertexFormatShort2Normalized,     // Float16v2_SNorm        
-      MTLVertexFormatShort3Normalized,     // Float16v3_SNorm        
-      MTLVertexFormatShort4Normalized,     // Float16v4_SNorm        
-      MTLVertexFormatInvalid,              // Float8_Norm      (unsupported)           
-      MTLVertexFormatUChar2Normalized,     // Float8v2_Norm          
-      MTLVertexFormatUChar3Normalized,     // Float8v3_Norm          
-      MTLVertexFormatUChar4Normalized,     // Float8v4_Norm          
-      MTLVertexFormatInvalid,              // Float16_Norm     (unsupported)       
-      MTLVertexFormatUShort2Normalized,    // Float16v2_Norm         
-      MTLVertexFormatUShort3Normalized,    // Float16v3_Norm         
-      MTLVertexFormatUShort4Normalized,    // Float16v4_Norm         
-      MTLVertexFormatInt1010102Normalized, // Float4_10_10_10_2_SNorm
-      MTLVertexFormatUInt1010102Normalized // Float4_10_10_10_2_Norm 
+      MTLVertexFormatInvalid               ,  // None                 
+      MTLVertexFormatInvalid               ,  // u8_norm                (unsupported)
+      MTLVertexFormatInvalid               ,  // s8_norm                (unsupported)
+      MTLVertexFormatInvalid               ,  // u8                     (unsupported)
+      MTLVertexFormatInvalid               ,  // s8                     (unsupported)
+      MTLVertexFormatInvalid               ,  // u16_norm               (unsupported)
+      MTLVertexFormatInvalid               ,  // s16_norm               (unsupported)
+      MTLVertexFormatInvalid               ,  // u16                    (unsupported)
+      MTLVertexFormatInvalid               ,  // s16                    (unsupported)
+      MTLVertexFormatInvalid               ,  // f16                    (unsupported)
+      MTLVertexFormatUInt                  ,  // u32                    
+      MTLVertexFormatInt                   ,  // s32                    
+      MTLVertexFormatFloat                 ,  // f32                    
+      MTLVertexFormatInvalid               ,  // u64                    (unsupported)
+      MTLVertexFormatInvalid               ,  // s64                    (unsupported)
+      MTLVertexFormatInvalid               ,  // f64                    (unsupported)
+      MTLVertexFormatUChar2Normalized      ,  // v2u8_norm              
+      MTLVertexFormatChar2Normalized       ,  // v2s8_norm              
+      MTLVertexFormatUChar2                ,  // v2u8                   
+      MTLVertexFormatChar2                 ,  // v2s8                   
+      MTLVertexFormatUShort2Normalized     ,  // v2u16_norm             
+      MTLVertexFormatShort2Normalized      ,  // v2s16_norm             
+      MTLVertexFormatUShort2               ,  // v2u16                  
+      MTLVertexFormatShort2                ,  // v2s16                  
+      MTLVertexFormatHalf2                 ,  // v2f16                  
+      MTLVertexFormatUInt2                 ,  // v2u32                  
+      MTLVertexFormatInt2                  ,  // v2s32                  
+      MTLVertexFormatFloat2                ,  // v2f32                  
+      MTLVertexFormatInvalid               ,  // v2u64                  (unsupported)
+      MTLVertexFormatInvalid               ,  // v2s64                  (unsupported)
+      MTLVertexFormatInvalid               ,  // v2f64                  (unsupported)
+      MTLVertexFormatUChar3Normalized      ,  // v3u8_norm              
+      MTLVertexFormatInvalid               ,  // v3u8_srgb              (unsupported)
+      MTLVertexFormatChar3Normalized       ,  // v3s8_norm              
+      MTLVertexFormatUChar3                ,  // v3u8                   
+      MTLVertexFormatChar3                 ,  // v3s8                   
+      MTLVertexFormatUShort3Normalized     ,  // v3u16_norm             
+      MTLVertexFormatShort3Normalized      ,  // v3s16_norm             
+      MTLVertexFormatUShort3               ,  // v3u16                  
+      MTLVertexFormatShort3                ,  // v3s16                  
+      MTLVertexFormatHalf3                 ,  // v3f16                  
+      MTLVertexFormatUInt3                 ,  // v3u32                  
+      MTLVertexFormatInt3                  ,  // v3s32                  
+      MTLVertexFormatFloat3                ,  // v3f32                  
+      MTLVertexFormatInvalid               ,  // v3u64                  (unsupported)
+      MTLVertexFormatInvalid               ,  // v3s64                  (unsupported)
+      MTLVertexFormatInvalid               ,  // v3f64                  (unsupported)
+      MTLVertexFormatUChar4Normalized      ,  // v4u8_norm              
+      MTLVertexFormatChar4Normalized       ,  // v4s8_norm              
+      MTLVertexFormatUChar4                ,  // v4u8                   
+      MTLVertexFormatChar4                 ,  // v4s8                   
+      MTLVertexFormatUShort4Normalized     ,  // v4u16_norm             
+      MTLVertexFormatShort4Normalized      ,  // v4s16_norm             
+      MTLVertexFormatUShort4               ,  // v4u16                  
+      MTLVertexFormatShort4                ,  // v4s16                  
+      MTLVertexFormatHalf4                 ,  // v4f16                  
+      MTLVertexFormatUInt4                 ,  // v4u32                  
+      MTLVertexFormatInt4                  ,  // v4s32                  
+      MTLVertexFormatFloat4                ,  // v4f32                  
+      MTLVertexFormatInvalid               ,  // v4u64                  (unsupported)
+      MTLVertexFormatInvalid               ,  // v4s64                  (unsupported)
+      MTLVertexFormatInvalid               ,  // v4f64                  (unsupported)
+      MTLVertexFormatInvalid               ,  // v3f11_11_10            (unsupported)
+      MTLVertexFormatUInt1010102Normalized ,  // v4u10_10_10_2_norm     
+      MTLVertexFormatInt1010102Normalized  ,  // v4s10_10_10_2_norm     
+      MTLVertexFormatInvalid               ,  // v4u10_10_10_2          (unsupported)
+      MTLVertexFormatInvalid               ,  // v4s10_10_10_2          (unsupported)
+      MTLVertexFormatInvalid               ,  // v4u10_10_10_2_norm_rev (unsupported)
+      MTLVertexFormatInvalid               ,  // v4s10_10_10_2_norm_rev (unsupported)
+      MTLVertexFormatInvalid               ,  // v4u10_10_10_2_rev      (unsupported)
+      MTLVertexFormatInvalid               ,  // v4s10_10_10_2_rev      (unsupported)
       };
 
    // Size of each attribute in memory taking into notice required padding
-   static const uint8 TranslateAttributeSize[underlyingType(AttributeFormat::Count)] =
+   const uint8 TranslateAttributeSize[underlyingType(Attribute::Count)] =
       {
-      0,    // None                      
-      0,    // Half                   
-      4,    // Half2                  
-      8,    // Half3               (6 bytes + 2 bytes of padding)
-      8,    // Half4                  
-      4,    // Float                  
-      8,    // Float2                 
-      12,   // Float3                 
-      16,   // Float4                 
-      0,    // Double                 
-      0,    // Double2                
-      0,    // Double3                
-      0,    // Double4                
-      0,    // Int8                   
-      4,    // Int8v2              (2 bytes + 2 bytes of padding)
-      4,    // Int8v3              (3 bytes + 1 byte  of padding)
-      4,    // Int8v4                 
-      0,    // Int16                  
-      4,    // Int16v2                
-      8,    // Int16v3             (6 bytes + 2 bytes of padding)
-      8,    // Int16v4                
-      4,    // Int32                  
-      8,    // Int32v2                
-      12,   // Int32v3                
-      16,   // Int32v4                
-      0,    // Int64                  
-      0,    // Int64v2                
-      0,    // Int64v3                
-      0,    // Int64v4                
-      0,    // UInt8                  
-      4,    // UInt8v2             (2 bytes + 2 bytes of padding)        
-      4,    // UInt8v3             (3 bytes + 1 byte  of padding)
-      4,    // UInt8v4                
-      0,    // UInt16                 
-      4,    // UInt16v2               
-      8,    // UInt16v3            (6 bytes + 2 bytes of padding)
-      8,    // UInt16v4               
-      4,    // UInt32                 
-      8,    // UInt32v2               
-      12,   // UInt32v3               
-      16,   // UInt32v4               
-      0,    // UInt64                 
-      0,    // UInt64v2               
-      0,    // UInt64v3               
-      0,    // UInt64v4               
-      0,    // Float8_SNorm           
-      4,    // Float8v2_SNorm      (2 bytes + 2 bytes of padding)
-      4,    // Float8v3_SNorm      (3 bytes + 1 byte  of padding)
-      4,    // Float8v4_SNorm         
-      0,    // Float16_SNorm          
-      4,    // Float16v2_SNorm        
-      8,    // Float16v3_SNorm     (6 bytes + 2 bytes of padding)
-      8,    // Float16v4_SNorm        
-      0,    // Float8_Norm            
-      4,    // Float8v2_Norm       (2 bytes + 2 bytes of padding)
-      4,    // Float8v3_Norm       (3 bytes + 1 byte  of padding)
-      4,    // Float8v4_Norm          
-      0,    // Float16_Norm           
-      4,    // Float16v2_Norm         
-      8,    // Float16v3_Norm      (6 bytes + 2 bytes of padding)
-      8,    // Float16v4_Norm         
-      4,    // Float4_10_10_10_2_SNorm
-      4     // Float4_10_10_10_2_Norm 
+      0,    // None           
+      0,    // u8_norm                (unsupported)
+      0,    // s8_norm                (unsupported)
+      0,    // u8                     (unsupported)
+      0,    // s8                     (unsupported)
+      0,    // u16_norm               (unsupported)
+      0,    // s16_norm               (unsupported)
+      0,    // u16                    (unsupported)
+      0,    // s16                    (unsupported)
+      0,    // f16                    (unsupported)
+      4,    // u32                   
+      4,    // s32                   
+      4,    // f32                   
+      0,    // u64                    (unsupported)
+      0,    // s64                    (unsupported)
+      0,    // f64                    (unsupported)
+      2,    // v2u8_norm             
+      2,    // v2s8_norm             
+      2,    // v2u8                  
+      2,    // v2s8                  
+      4,    // v2u16_norm            
+      4,    // v2s16_norm            
+      4,    // v2u16                 
+      4,    // v2s16                 
+      4,    // v2f16                 
+      8,    // v2u32                 
+      8,    // v2s32                 
+      8,    // v2f32                 
+      0,    // v2u64                  (unsupported)
+      0,    // v2s64                  (unsupported)
+      0,    // v2f64                  (unsupported)
+      3,    // v3u8_norm             
+      0,    // v3u8_srgb              (unsupported)
+      3,    // v3s8_norm             
+      3,    // v3u8                  
+      3,    // v3s8                  
+      6,    // v3u16_norm            
+      6,    // v3s16_norm            
+      6,    // v3u16                 
+      6,    // v3s16                 
+      6,    // v3f16                 
+      6,    // v3u32                 
+      6,    // v3s32                 
+      6,    // v3f32                 
+      0,    // v3u64                  (unsupported)
+      0,    // v3s64                  (unsupported)
+      0,    // v3f64                  (unsupported)
+      4,    // v4u8_norm             
+      4,    // v4s8_norm             
+      4,    // v4u8                  
+      4,    // v4s8                  
+      8,    // v4u16_norm            
+      8,    // v4s16_norm            
+      8,    // v4u16                 
+      8,    // v4s16                 
+      8,    // v4f16                 
+      16,   // v4u32                 
+      16,   // v4s32                 
+      16,   // v4f32                 
+      0,    // v4u64                  (unsupported)
+      0,    // v4s64                  (unsupported)
+      0,    // v4f64                  (unsupported)
+      0,    // v3f11_11_10            (unsupported)
+      4,    // v4u10_10_10_2_norm    
+      4,    // v4s10_10_10_2_norm    
+      0,    // v4u10_10_10_2          (unsupported)
+      0,    // v4s10_10_10_2          (unsupported)
+      0,    // v4u10_10_10_2_norm_rev (unsupported)
+      0,    // v4s10_10_10_2_norm_rev (unsupported)
+      0,    // v4u10_10_10_2_rev      (unsupported)
+      0,    // v4s10_10_10_2_rev      (unsupported)
       };
+      
+      // OLD:
+      //{
+      //0,    // None                      
+      //0,    // Half                   
+      //4,    // Half2                  
+      //8,    // Half3               (6 bytes + 2 bytes of padding)
+      //8,    // Half4                  
+      //4,    // Float                  
+      //8,    // Float2                 
+      //12,   // Float3                 
+      //16,   // Float4                 
+      //0,    // Double                 
+      //0,    // Double2                
+      //0,    // Double3                
+      //0,    // Double4                
+      //0,    // Int8                   
+      //4,    // Int8v2              (2 bytes + 2 bytes of padding)
+      //4,    // Int8v3              (3 bytes + 1 byte  of padding)
+      //4,    // Int8v4                 
+      //0,    // Int16                  
+      //4,    // Int16v2                
+      //8,    // Int16v3             (6 bytes + 2 bytes of padding)
+      //8,    // Int16v4                
+      //4,    // Int32                  
+      //8,    // Int32v2                
+      //12,   // Int32v3                
+      //16,   // Int32v4                
+      //0,    // Int64                  
+      //0,    // Int64v2                
+      //0,    // Int64v3                
+      //0,    // Int64v4                
+      //0,    // UInt8                  
+      //4,    // UInt8v2             (2 bytes + 2 bytes of padding)        
+      //4,    // UInt8v3             (3 bytes + 1 byte  of padding)
+      //4,    // UInt8v4                
+      //0,    // UInt16                 
+      //4,    // UInt16v2               
+      //8,    // UInt16v3            (6 bytes + 2 bytes of padding)
+      //8,    // UInt16v4               
+      //4,    // UInt32                 
+      //8,    // UInt32v2               
+      //12,   // UInt32v3               
+      //16,   // UInt32v4               
+      //0,    // UInt64                 
+      //0,    // UInt64v2               
+      //0,    // UInt64v3               
+      //0,    // UInt64v4               
+      //0,    // Float8_SNorm           
+      //4,    // Float8v2_SNorm      (2 bytes + 2 bytes of padding)
+      //4,    // Float8v3_SNorm      (3 bytes + 1 byte  of padding)
+      //4,    // Float8v4_SNorm         
+      //0,    // Float16_SNorm          
+      //4,    // Float16v2_SNorm        
+      //8,    // Float16v3_SNorm     (6 bytes + 2 bytes of padding)
+      //8,    // Float16v4_SNorm        
+      //0,    // Float8_Norm            
+      //4,    // Float8v2_Norm       (2 bytes + 2 bytes of padding)
+      //4,    // Float8v3_Norm       (3 bytes + 1 byte  of padding)
+      //4,    // Float8v4_Norm          
+      //0,    // Float16_Norm           
+      //4,    // Float16v2_Norm         
+      //8,    // Float16v3_Norm      (6 bytes + 2 bytes of padding)
+      //8,    // Float16v4_Norm         
+      //4,    // Float4_10_10_10_2_SNorm
+      //4     // Float4_10_10_10_2_Norm 
+      //};
 
+   uint32 stepRate;  // Rate at which consecutive elements are sourced
+   uint32 elementSize; // Size of single element (row size)
+   
 
    InputAssemblerMTL::InputAssemblerMTL(const DrawableType primitiveType,
                                         const uint32 controlPoints, 
@@ -183,7 +281,7 @@ namespace en
       // to set "default" const values for missing buffers.
 
       // MTLVertexBufferLayoutDescriptor
-      desc.layouts[i].stepFunction = buffers[i].stepRate == 0 ? MTLVertexStepFunctionPerVertex : MTLVertexStepFunctionPerInstance;
+      desc.layouts[i].stepFunction = buffers[i].stepRate == 0U ? MTLVertexStepFunctionPerVertex : MTLVertexStepFunctionPerInstance;
       desc.layouts[i].stepRate     = max(1U, buffers[i].stepRate);
       desc.layouts[i].stride       = buffers[i].elementSize;
       }
@@ -202,38 +300,49 @@ namespace en
    [desc release];
    }
 
-
-
-   Ptr<InputAssembler> MetalDevice::create(Ptr<BufferView> buffer)
+   Ptr<InputAssembler> MetalDevice::create(const DrawableType primitiveType,
+                                           const uint32 controlPoints,
+                                           const uint32 usedAttributes,
+                                           const uint32 usedBuffers,
+                                           const AttributeDesc* attributes,
+                                           const BufferDesc* buffers)
    {
-   AttributeDesc* attributes = new AttributeDesc[buffer->attributes];
-   
-   BufferDesc buffers;
-   buffers.elementSize = buffer->elementSize;
-   buffers.stepRate = 0;
+   Ptr<InputAssemblerMTL> input = Ptr<InputAssemblerMTL>(new InputAssemblerMTL(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
-   Ptr<InputAssemblerMTL> input = nullptr;
-   
-   input = new InputAssemblerMTL(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
-   
-   delete [] attributes;
-   
-   return ptr_dynamic_cast<InputAssember, InputAssemblerMTL>(input);
+   return ptr_dynamic_cast<InputAssembler, InputAssemblerMTL>(input);
    }
 
-   Ptr<InputAssembler> MetalDevice::create(InputAssemblerSettings& attributes)
-   {
-   Ptr<InputAssemblerMTL> input = nullptr;
-   
-   input = new InputAssemblerMTL(primitiveType, controlPoints,
- 
-                                        const uint32 usedAttributes, 
-                                        const uint32 usedBuffers, 
-                                        const AttributeDesc* attributes,  
-                                        const BufferDesc* buffers
-   
-   return ptr_dynamic_cast<InputAssember, InputAssemblerMTL>(input);
-   }
+
+//   Ptr<InputAssembler> MetalDevice::create(Ptr<BufferView> buffer)
+//   {
+//   AttributeDesc* attributes = new AttributeDesc[buffer->attributes];
+//   
+//   BufferDesc buffers;
+//   buffers.elementSize = buffer->elementSize;
+//   buffers.stepRate = 0;
+//
+//   Ptr<InputAssemblerMTL> input = nullptr;
+//   
+//   input = new InputAssemblerMTL(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
+//   
+//   delete [] attributes;
+//   
+//   return ptr_dynamic_cast<InputAssember, InputAssemblerMTL>(input);
+//   }
+//
+//   Ptr<InputAssembler> MetalDevice::create(InputAssemblerSettings& attributes)
+//   {
+//   Ptr<InputAssemblerMTL> input = nullptr;
+//   
+//   input = new InputAssemblerMTL(primitiveType, controlPoints,
+// 
+//                                        const uint32 usedAttributes, 
+//                                        const uint32 usedBuffers, 
+//                                        const AttributeDesc* attributes,  
+//                                        const BufferDesc* buffers
+//   
+//   return ptr_dynamic_cast<InputAssember, InputAssemblerMTL>(input);
+//   }
 
 
 

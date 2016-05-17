@@ -15,7 +15,7 @@
 #include "utilities/strings.h"
 #include "resources/context.h" 
   
-//#include "core/rendering/rendering.h"
+#include "core/rendering/device.h"
 
 namespace en
 {
@@ -123,8 +123,8 @@ namespace en
       }
 
    // Create buffer in GPU (CCW Triangles)
-   BufferSettings settings(BufferSettings(VertexBuffer, vertices, ColumnInfo(Float2, "inPosition"), ColumnInfo(Float2, "inTexCoord0")));
-   Buffer vertex = Gpu.buffer.create(settings, data);
+   Formatting formatting(Attribute::v2f32, Attribute::v2f32); // inPosition, inTexCoord0
+   Ptr<Buffer> vertex = en::Graphics->primaryDevice()->create(vertices, formatting, 0, data);
    delete [] data;
 
    // Create mesh with text geometry

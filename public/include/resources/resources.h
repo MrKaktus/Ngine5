@@ -165,7 +165,7 @@ namespace en
       };
 
    // Material interface
-   class IMaterial : public SafeObject
+   class IMaterial : public SafeObject<IMaterial>
       {
       string name;
       MaterialType type;
@@ -298,14 +298,14 @@ namespace en
 
       struct Geometry
              {
-             en::gpu::Buffer buffer;    // VBO with vertices/control points
-             uint32          begin;     // First vertice in VBO describing this mesh
-             uint32          end;       // Last vertice in VBO describing this mesh (for ranged drawing)
+             Ptr<gpu::Buffer> buffer;   // VBO with vertices/control points
+             uint32           begin;    // First vertice in VBO describing this mesh
+             uint32           end;      // Last vertice in VBO describing this mesh (for ranged drawing)
              } geometry;
       
       struct Elements
              {
-             gpu::Buffer       buffer;  // IBO with vertices/control points assembly order
+             Ptr<gpu::Buffer>  buffer;  // IBO with vertices/control points assembly order
              gpu::DrawableType type;    // Type of geometry primitives
              uint32            cps;     // Control Points count (for Patch primitives)
              uint32            offset;  // Offset to starting index in buffer
@@ -317,7 +317,7 @@ namespace en
      ~Mesh();      
       };
 
-   class Model : public SafeObject
+   class Model : public SafeObject<Model>
       {
       public:
       string       name; // Name
@@ -327,12 +327,12 @@ namespace en
                          // of one mesh that uses different materials.
       
       Model();
-      Model(gpu::Buffer buffer, gpu::DrawableType type); // Create model from custom buffer
+      Model(Ptr<gpu::Buffer> buffer, gpu::DrawableType type); // Create model from custom buffer
      ~Model();
       };
 
 
-   class Font : public SafeObject
+   class Font : public SafeObject<Font>
       {
       public:
       virtual Ptr<en::gpu::Texture> texture(void) const = 0;            // Returns texture used by font

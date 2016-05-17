@@ -188,7 +188,7 @@ namespace en
                  // Ptr<gpu::Texture> enNormalMap;
                  // Ptr<gpu::Texture> enDisplacementMap;
                  // Ptr<gpu::Texture> enVectorsMap;
-                 gpu::Buffer  enAxes;             // Default axes buffer
+                 Ptr<gpu::Buffer>  enAxes;             // Default axes buffer
 
                  Defaults();
                 ~Defaults();

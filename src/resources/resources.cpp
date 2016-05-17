@@ -14,7 +14,7 @@
 #include "core/storage.h"
 #include "core/log/log.h"
 #include "core/utilities/TintrusivePointer.h"
-//#include "core/rendering/rendering.h"
+#include "core/rendering/device.h"
 #include "resources/context.h" 
 #include "resources/font.h" 
 #include "resources/bmp.h"  
@@ -166,7 +166,8 @@ namespace en
    //defaults.enVectorsMap      = png::load(string("./resources/engine/textures/enDefaultVectorMap.png")); 
 
    // Create default mesh for corrdinate system axes
-   defaults.enAxes            = Gpu.buffer.create(BufferSettings(VertexBuffer, 14, ColumnInfo(Float3,"inPosition"), ColumnInfo(Float3,"inColor")), &axes);
+   Formatting formatting(Attribute::v3f32, Attribute::v3f32); // inPosition, inColor
+   defaults.enAxes = en::Graphics->primaryDevice()->create(14, formatting, 0, &axes);
 
 #ifdef EN_PLATFORM_WINDOWS
    fbxManager = FbxManager::Create();
@@ -409,10 +410,10 @@ namespace en
 
    Mesh::Mesh() 
    {
-   geometry.buffer      = en::gpu::Buffer(nullptr);
+   geometry.buffer      = nullptr;
    geometry.begin       = 0;
    geometry.end         = 0;
-   elements.buffer      = en::gpu::Buffer(nullptr);
+   elements.buffer      = nullptr;
    elements.type        = en::gpu::Triangles;
    elements.cps         = 3;
    elements.offset      = 0;
@@ -427,7 +428,7 @@ namespace en
    {
    }
 
-   Model::Model(gpu::Buffer buffer, gpu::DrawableType type) :
+   Model::Model(Ptr<gpu::Buffer> buffer, gpu::DrawableType type) :
       name("custom")
    {
    Mesh temp;

@@ -49,7 +49,7 @@ namespace en
       DepthStencilStateInfo();
       };
 
-   class DepthStencilState : public SafeObject
+   class DepthStencilState : public SafeObject<DepthStencilState>
       {
       public:
       virtual ~DepthStencilState() {};                           // Polymorphic deletes require a virtual base destructor

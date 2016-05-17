@@ -34,7 +34,7 @@ namespace en
 
    struct BufferDescription
           {
-          ColumnType columns[16]; // Buffer size will be calculated 
+          Formatting formatting;  // Buffer size will be calculated
           union {                 // Buffer can store geometry vertices or 
                 uint32 vertices;  // "elements" of some other type. This is
                 uint32 elements;  // why two naming conventions are allowed.

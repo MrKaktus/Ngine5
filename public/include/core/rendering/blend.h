@@ -62,7 +62,7 @@ namespace en
       BlendAttachmentInfo();
       };
 
-   class BlendState : public SafeObject
+   class BlendState : public SafeObject<BlendState>
       {
       public:
       virtual ~BlendState() {};                           // Polymorphic deletes require a virtual base destructor

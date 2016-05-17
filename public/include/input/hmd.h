@@ -94,7 +94,7 @@ namespace en
       float2   UVScaleOffset[2]; // Out: UV Scale and Offset vectors for distortion shader
       };
 
-   class HMD : public SafeObject
+   class HMD : public SafeObject<HMD>
       {
       public:
       virtual bool      on(uint32v2 windowResolution, 
@@ -134,7 +134,7 @@ namespace en
       virtual ~HMD() {};                                             // Polymorphic deletes require a virtual base destructor
       };
 
-   class Controller : public SafeObject
+   class Controller : public SafeObject<Controller>
       {
       public:
       virtual float3   position(void) const = 0;                                    // Controller position

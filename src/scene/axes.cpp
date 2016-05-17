@@ -11,7 +11,8 @@
 */
 
 #include "scene/axes.h"
-#include "core/rendering/context.h"
+#include "core/rendering/context.h" // TODO: Remove after finished refactor
+#include "core/rendering/device.h"
 #include "resources/context.h"
 #include "resources/effect.h"
 
@@ -283,7 +284,7 @@ namespace en
    enScene       = program.block("enScene");
    }
    
-   void Axes::draw(const Buffer& sceneParameters, const uint32 instances)
+   void Axes::draw(const Ptr<Buffer> sceneParameters, const uint32 instances)
    {
    enModelMatrix.set(*pWorldMatrix);
    enScene.set(sceneParameters);

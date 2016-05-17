@@ -88,7 +88,7 @@ namespace en
    // GPU Buffer Column Descriptor
    struct cachealign BufferColumnDescriptor
           {
-          ColumnType type;                   // Column type
+          Attribute type;                   // Column type
           char*      name;                   // Local copy of name string
 
           BufferColumnDescriptor();
@@ -222,7 +222,7 @@ namespace en
           {
           public:
           ProgramDescriptor* program;   // Pointer to parent program
-          Buffer        buffer;         // Buffer attached to uniform block
+          Ptr<Buffer>        buffer;         // Buffer attached to uniform block
           char*         name;           // Name of parameter
           uint32        size;           // Size in bytes
           BufferType    type;           // Type of buffers supported by block (UBO or SSBO)
@@ -439,7 +439,7 @@ void InitDisplaysInfo(void);
              };
 
       // Support tables
-      extern bool BufferColumnSupported[ColumnTypesCount];
+      //extern bool BufferColumnSupported[ColumnTypesCount];
       //extern bool TextureTypeSupported[TextureTypesCount];
       //extern bool TextureFormatSupported[TextureFormatsCount];
       extern bool PipelineStageSupported[PipelineStagesCount];
@@ -447,8 +447,8 @@ void InitDisplaysInfo(void);
       extern bool BlendDestinationFunctionSupported[BlendFunctionsCount];
 
       // Translation tables
-      extern const BufferTypeTranslation       BufferType[BufferTypesCount];
-      extern const BufferColumnTranslation     BufferColumn[ColumnTypesCount];
+      //extern const BufferTypeTranslation       BufferType[BufferTypesCount];
+      extern const BufferColumnTranslation     TranslateAttribute[underlyingType(Attribute::Count)];
       //extern const TextureTypeTranslation      TextureType[TextureTypesCount];
       //extern const TextureFormatTranslation    TextureFormat[TextureFormatsCount];
       //extern const TextureFilteringTranslation TextureFiltering[TextureFilteringMethodsCount];
@@ -517,8 +517,8 @@ void InitDisplaysInfo(void);
       {
       void BuffersInit(void);
       void BuffersClear(void);
-      bool SupportColumnType(const ColumnType type);
-      Buffer BufferCreate(const BufferSettings& bufferSettings, void* data);
+      //bool SupportColumnType(const ColumnType type);
+      //Ptr<Buffer> BufferCreate(const BufferSettings& bufferSettings, void* data);
       extern void*  BufferMap(BufferDescriptor* buffer);
       bool   BufferUnmap(BufferDescriptor* buffer);
       bool   BufferDestroy(BufferDescriptor* const buffer);
@@ -541,7 +541,7 @@ void InitDisplaysInfo(void);
       void ProgramsInit(void);
       void ProgramsClear(void);
       Program ProgramCreate(const vector<Shader>& shaders);
-      bool    ProgramDraw(ProgramDescriptor* program, const BufferDescriptor* buffer, const BufferDescriptor* indexBuffer, const DrawableType type, const uint32 patchSize, const uint32 inst);
+      bool    ProgramDraw(ProgramDescriptor* program, const Ptr<Buffer> buffer, const Ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize, const uint32 inst);
       uint32  ProgramParameterSize(uint16 type);
       bool    ProgramParameterIsSampler(uint16 type);
       bool    ProgramParameterUpdate(ParameterDescriptor* parameter);

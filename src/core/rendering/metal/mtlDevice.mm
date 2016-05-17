@@ -101,7 +101,7 @@ namespace en
                                                       defer:NO];
       
    // Set engine custom delegate to handle window events
-   [window setDelegate:[NSApp delegate]];
+// TODO:   [window setDelegate:[NSApp delegate]];
    [window setAcceptsMouseMovedEvents:TRUE];
    
    // Sets window title

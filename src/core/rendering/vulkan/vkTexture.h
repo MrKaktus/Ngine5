@@ -36,7 +36,16 @@ namespace en
 
       virtual ~TextureVK();
       };
-
+      
+   class TextureViewVK : public TextureView
+      {
+      public:
+      VkImageView view;      // Vulkan Image View ID
+      
+      TextureViewVK();
+      virtual ~TextureViewVK();
+      };
+   
    class SamplerVK : public Sampler
       {
       public:

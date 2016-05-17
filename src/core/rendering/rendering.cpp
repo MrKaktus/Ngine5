@@ -110,7 +110,7 @@ namespace en
    void Context::linkToInterface(void)
    {
    // TODO: Here rebind dynamic interface to best available implementation
-   Interface::Support::Input::type     = gl20::SupportColumnType;
+   //Interface::Support::Input::type     = gl20::SupportColumnType;
    //Interface::Support::Texture::type   = gl20::SupportTextureType;
    //Interface::Support::Texture::format = gl20::SupportTextureFormat;
 
@@ -471,6 +471,6 @@ gpu::Interface Gpu;
 }
 
 void   (*en::gpu::Interface::display)(void)                                                 = NULL; 
-bool   (*en::gpu::Interface::Support::Input::type)(const en::gpu::ColumnType type)          = NULL; // Checks if specified input type is supported
+//bool   (*en::gpu::Interface::Support::Input::type)(const en::gpu::ColumnType type)          = NULL; // Checks if specified input type is supported
 //bool   (*en::gpu::Interface::Support::Texture::type)(const en::gpu::TextureType type)       = NULL; // Checks if specified texture type is supported
 //bool   (*en::gpu::Interface::Support::Texture::format)(const en::gpu::TextureFormat format) = NULL; // Checks if specified texture format is supported

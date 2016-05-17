@@ -130,7 +130,7 @@ namespace en
       };
 
    // Sampler is immutable after it is created.
-   class Sampler : public SafeObject
+   class Sampler : public SafeObject<Sampler>
       {
       public:   
       virtual ~Sampler();                              // Polymorphic deletes require a virtual base destructor

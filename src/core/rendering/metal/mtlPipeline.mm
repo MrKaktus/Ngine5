@@ -177,7 +177,7 @@ namespace en
  //if (!supportSeparateStencilReferenceValue)
  //   [renderEncoder setStencilReferenceValue: ptr->depthStencil->reference.x ];
  //else
-      [renderEncoder setStencilFrontReferenceValue: ptr->depthStencil->reference.x
+      [renderEncoder setStencilFrontReferenceValue: ptr->depthStencil->reference.x    // IOS 9.0+
                                 backReferenceValue: ptr->depthStencil->reference.y];
 
  //[renderEncoder setScissorRect:(MTLScissorRect)rect];

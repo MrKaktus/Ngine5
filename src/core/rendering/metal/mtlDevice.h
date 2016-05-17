@@ -23,6 +23,7 @@
 #include <string>
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/device.h"
+#include "core/rendering/common/inputAssembler.h"
 
 #include "core/rendering/inputAssembler.h"
 #include "core/rendering/blend.h"
@@ -120,9 +121,29 @@ namespace en
       Ptr<Window> create(const WindowSettings& settings,
                         const string title); // Create window
       
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+    
+                                    
       virtual Ptr<Texture> create(const TextureState state);
       
       virtual Ptr<CommandBuffer>   createCommandBuffer(void);
+
+
+
+      
+      // Creates InputAssembler description based on single input buffer. 
+      // Buffer needs to have specified internal formatting.
+      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
+                                          const uint32 controlPoints,
+                                          const Ptr<Buffer> buffer);
+         
+      // Specialized function for creation of any type of InputAssember description.
+      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
+                                          const uint32 controlPoints,
+                                          const uint32 usedAttributes,
+                                          const uint32 usedBuffers,
+                                          const AttributeDesc* attributes,
+                                          const BufferDesc* buffers);
 
       virtual Ptr<RasterState>     create(const RasterStateInfo& state);
       virtual Ptr<BlendState>      create(const BlendStateInfo& state,
@@ -163,14 +184,6 @@ namespace en
       virtual Ptr<RenderPass> create(const Ptr<Texture> temporaryMSAA,
                                      const Ptr<Texture> framebuffer,
                                      const Ptr<DepthStencilAttachment> depthStencil);
-
-
-      // Creates InputAssembler description based on single buffer attributes
-      virtual Ptr<InputAssembler> create(const Ptr<BufferView> buffer);
-
-      // Creates InputAssembler description combining attributes from several buffers
-      virtual Ptr<InputAssembler> create(const InputAssemblerSettings& attributes);
-
 
       virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc);
       virtual Ptr<MultisamplingState> create(const uint32 samples,

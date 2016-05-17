@@ -25,12 +25,12 @@ namespace en
    class Axes : public Drawable
          {
          public:
-         Buffer    buffer;
+         Ptr<Buffer> buffer;
          Program   program;
          Parameter enModelMatrix;
    
          Axes();
-         void draw(const Buffer& sceneParameters, const uint32 instances = 1U);
+         void draw(const Ptr<Buffer> sceneParameters, const uint32 instances = 1U);
          };
    }
 }

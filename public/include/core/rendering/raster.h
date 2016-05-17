@@ -46,7 +46,7 @@ namespace en
       RasterStateInfo();
       };
 
-   class RasterState : public SafeObject
+   class RasterState : public SafeObject<RasterState>
       {
       public:
       virtual ~RasterState() {};                           // Polymorphic deletes require a virtual base destructor

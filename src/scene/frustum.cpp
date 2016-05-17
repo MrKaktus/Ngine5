@@ -30,7 +30,7 @@ namespace en
    enScene = program.block("enScene");
    }
    
-   void Frustum::draw(const Buffer& sceneParameters)
+   void Frustum::draw(const Ptr<Buffer> sceneParameters)
    {
    enModelMatrix.set(*pWorldMatrix);
    enScene.set(sceneParameters);

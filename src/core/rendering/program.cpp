@@ -16,8 +16,10 @@
 #include "core/log/log.h"
 #include "core/rendering/context.h"
 
+#include "core/rendering/opengl/glBuffer.h"
 #include "core/rendering/opengl/glTexture.h"
 #include "core/rendering/opengl/gl33Sampler.h"
+#include "core/rendering/device.h"
 
 namespace en
 {
@@ -178,16 +180,16 @@ namespace en
    return gl20::ProgramDraw(pointer, nullptr, nullptr, type, patchSize, inst);
    }
 
-   bool Program::draw(const Buffer& buffer, const DrawableType type, const uint32 patchSize, const uint32 inst)
+   bool Program::draw(const Ptr<Buffer> buffer, const DrawableType type, const uint32 patchSize, const uint32 inst)
    {
    assert(pointer);
-   return gl20::ProgramDraw(pointer, *(BufferDescriptor**)&buffer, nullptr, type, patchSize, inst);
+   return gl20::ProgramDraw(pointer, buffer, nullptr, type, patchSize, inst);
    }
 
-   bool Program::draw(const Buffer& buffer, const Buffer& indexBuffer, const DrawableType type, const uint32 patchSize, const uint32 inst)
+   bool Program::draw(const Ptr<Buffer> buffer, const Ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize, const uint32 inst)
    {
    assert(pointer);
-   return gl20::ProgramDraw(pointer, *(BufferDescriptor**)&buffer, *(BufferDescriptor**)&indexBuffer, type, patchSize, inst);
+   return gl20::ProgramDraw(pointer, buffer, indexBuffer, type, patchSize, inst);
    }
 
    Parameter::Parameter(class ParameterDescriptor* src) :
@@ -316,21 +318,21 @@ namespace en
    return pointer->size; 
    }
 
-   bool Block::set(const Buffer& buffer)
-   {
-   if (!pointer)    
-      return false;
-   if (!buffer)     
-      return false;
-  
-   // Check if buffer type matches block type in shader
-   BufferDescriptor* buf = *((BufferDescriptor**)(&buffer));
-   if (buf->type != pointer->type)
-      return false;
-
-   pointer->buffer = buffer;
-   return true;
-   }
+//   bool Block::set(const Buffer& buffer)
+//   {
+//   if (!pointer)    
+//      return false;
+//   if (!buffer)     
+//      return false;
+//  
+//   // Check if buffer type matches block type in shader
+//   BufferDescriptor* buf = *((BufferDescriptor**)(&buffer));
+//   if (buf->type != pointer->type)
+//      return false;
+//
+//   pointer->buffer = buffer;
+//   return true;
+//   }
 
    Shader Interface::Shader::create(const PipelineStage stage, const string& code)
    {
@@ -386,7 +388,7 @@ namespace en
       buffer(nullptr),
       name(nullptr),
       size(0),
-      type(UniformBuffer),
+      type(BufferType::Uniform),
       id(0)
    {
    }
@@ -707,8 +709,8 @@ namespace en
 
       // Draws geometry from input buffer using selected program
       bool ProgramDraw(ProgramDescriptor* program, 
-         const BufferDescriptor* buffer, 
-         const BufferDescriptor* indexBuffer, 
+         const Ptr<Buffer> buffer,
+         const Ptr<Buffer> indexBuffer,
          const DrawableType type, 
          const uint32 patchSize, 
          const uint32 inst )
@@ -753,23 +755,23 @@ namespace en
          {
          BlockDescriptor&  block  = program->blocks.list[i];
          assert(block.buffer);
-         BufferDescriptor* buffer = *((BufferDescriptor**)(&block.buffer));
+         Ptr<BufferGL> buffer = ptr_dynamic_cast<BufferGL, Buffer>(block.buffer);
 
          // In future we should minimise amount of UBO/SSBO bindings
          // by reusing their previously bound locations from range
          // [0 . . GL_MAX_UNIFORM_BUFFER_BINDINGS] and
          // [0 . . GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS]
-         if (buffer->type == UniformBuffer)
+         if (buffer->type() == BufferType::Uniform)
             {
             GLuint bindingId = block.id; 
-            glBindBufferBase( GL_UNIFORM_BUFFER, bindingId, buffer->id );
+            glBindBufferBase( GL_UNIFORM_BUFFER, bindingId, buffer->handle );
             glUniformBlockBinding(program->id, block.id, bindingId);
             }
 #if !defined(EN_PLATFORM_OSX)
-         if (buffer->type == StorageBuffer)
+         if (buffer->type() == BufferType::Storage)
             {
             GLuint bindingId = block.id; 
-            glBindBufferBase( GL_SHADER_STORAGE_BUFFER, bindingId, buffer->id );
+            glBindBufferBase( GL_SHADER_STORAGE_BUFFER, bindingId, buffer->handle );
             glUniformBlockBinding(program->id, block.id, bindingId);
             }
 #endif
@@ -934,75 +936,78 @@ namespace en
          Profile( glBindVertexArray(GpuContext.emptyVAO) )
       else
          {
+         Ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
+
          // For each active program input, search proper buffer
          // column by name or by location. If column cannot be
          // found, try to use default value specified for
          // input parameter name or return error (TODO).
          if (GpuContext.screen.support(OpenGL_3_0))
-            Profile( glBindVertexArray(buffer->vao) )
-         Profile( glBindBuffer(GL_ARRAY_BUFFER, buffer->id) )
+            Profile( glBindVertexArray(glBuffer->vao) )
+         Profile( glBindBuffer(GL_ARRAY_BUFFER, glBuffer->handle) )
          uint64 offset = 0;
          for(uint8 i=0; i<program->inputs.count; ++i)
             {
             InputDescriptor& input = program->inputs.list[i];
          
-            // Find buffer column that match by name input parameter
-            if (buffer->named)
+//            // Find buffer column that match by name input parameter
+//            if (buffer->named)
+//               {
+//               bool found = false;
+//               for(uint8 j=0; j<buffer->columns; ++j)
+//                  if (strcmp(buffer->column[j].name, input.name) == 0)
+//                     {
+//                     Attribute format = buffer->column[j].type;
+//                     uint16 type       = gl::TranslateAttribute[underlyingType(format)].type;
+//                     //uint8  size       = gl::BufferColumn[columnType].size;
+//                     uint16 channels   = gl::TranslateAttribute[underlyingType(format)].channels;
+//                     bool   normalized = gl::TranslateAttribute[underlyingType(format)].normalized;
+//                     
+//                     Profile( glEnableVertexAttribArray( input.location ) );
+//                     if (gl::TranslateAttribute[underlyingType(format)].qword)
+//                        {
+//                        Profile( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
+//                        }
+//                     else
+//                     if (gl::TranslateAttribute[underlyingType(format)].integer)
+//                        {
+//                        Profile( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
+//                        }
+//                     else
+//                        {
+//                        Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
+//                        }
+//         
+//                     found = true;
+//                     break;
+//                     }
+//         
+//            //    if (!found)
+//            //       log << "Error! Can't find column matching programs input attribute named: " << input.name << endl; 
+//               }
+//            // Match columns by locations
+//            else
                {
-               bool found = false;
-               for(uint8 j=0; j<buffer->columns; ++j)
-                  if (strcmp(buffer->column[j].name, input.name) == 0)
-                     {
-                     ColumnType columnType = buffer->column[j].type;
-                     uint16 type       = gl::BufferColumn[columnType].type;
-                     //uint8  size       = gl::BufferColumn[columnType].size;
-                     uint16 channels   = gl::BufferColumn[columnType].channels;
-                     bool   normalized = gl::BufferColumn[columnType].normalized;
-                     
-                     Profile( glEnableVertexAttribArray( input.location ) );
-                     if (gl::BufferColumn[columnType].qword)
-                        {
-                        Profile( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
-                        }
-                     else
-                     if (gl::BufferColumn[columnType].integer)
-                        {
-                        Profile( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
-                        }
-                     else
-                        {
-                        Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
-                        }
-         
-                     found = true;
-                     break;
-                     }
-         
-            //    if (!found)
-            //       log << "Error! Can't find column matching programs input attribute named: " << input.name << endl; 
-               }
-            // Match columns by locations
-            else
-               {
-               ColumnType columnType = buffer->column[input.location].type;
-               uint16 type       = gl::BufferColumn[columnType].type;
-               uint16 size       = gl::BufferColumn[columnType].size;
-               uint16 channels   = gl::BufferColumn[columnType].channels;
-               bool   normalized = gl::BufferColumn[columnType].normalized;
+               Attribute format = glBuffer->formatting.column[input.location];
+               uint32 elementSize = glBuffer->formatting.elementSize();
+               uint16 type       = gl::TranslateAttribute[underlyingType(format)].type;
+               uint16 size       = gl::TranslateAttribute[underlyingType(format)].size;
+               uint16 channels   = gl::TranslateAttribute[underlyingType(format)].channels;
+               bool   normalized = gl::TranslateAttribute[underlyingType(format)].normalized;
                
                Profile( glEnableVertexAttribArray( input.location ) );
-               if (gl::BufferColumn[columnType].qword)
+               if (gl::TranslateAttribute[underlyingType(format)].qword)
                   {
-                  Profile( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(offset) ) );
+                  Profile( glVertexAttribLPointer(input.location, channels, type, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
                else
-               if (gl::BufferColumn[columnType].integer)
+               if (gl::TranslateAttribute[underlyingType(format)].integer)
                   {
-                  Profile( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(offset) ) );
+                  Profile( glVertexAttribIPointer(input.location, channels, type, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
                else
                   {
-                  Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, reinterpret_cast<const GLvoid*>(offset) ) );
+                  Profile( glVertexAttribPointer(input.location, channels, type, normalized, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
          
                offset += size;
@@ -1022,16 +1027,20 @@ namespace en
           inst > 1)
          {
          // Draw Instanced
-         if (indexBuffer != NULL &&
-             indexBuffer->type == IndexBuffer)
+         if (indexBuffer &&
+             indexBuffer->type() == BufferType::Index)
             {
-            Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->id) )
-            Profile( glDrawElementsInstanced(gl::Drawable[type].type, indexBuffer->elements, gl::BufferColumn[indexBuffer->column[0].type].type, NULL, inst) )
+            Ptr<BufferGL> glIndex = ptr_dynamic_cast<BufferGL, Buffer>(indexBuffer);
+            Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndex->handle) )
+            Profile( glDrawElementsInstanced(gl::Drawable[type].type, glIndex->elements, gl::TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr, inst) )
             }
          else
-         if (buffer != nullptr &&
-             buffer->type == VertexBuffer)
-            Profile( glDrawArraysInstanced(gl::Drawable[type].type, 0, buffer->elements, inst) )
+         if (buffer &&
+             buffer->type() == BufferType::Vertex)
+            {
+            Ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
+            Profile( glDrawArraysInstanced(gl::Drawable[type].type, 0, glBuffer->elements, inst) )
+            }
          else
             Profile( glDrawArrays(gl::Drawable[type].type, 0, inst) )
          }
@@ -1039,16 +1048,21 @@ namespace en
          {
          // Draw specified data. There is no instancing
          // support in OpenGL 2.0 so draw it only once.
-         if (indexBuffer != NULL &&
-             indexBuffer->type == IndexBuffer)
+         if (indexBuffer &&
+             indexBuffer->type() == BufferType::Index)
             {
-            Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->id) )
-            Profile( glDrawElements(gl::Drawable[type].type, indexBuffer->elements, gl::BufferColumn[indexBuffer->column[0].type].type, NULL) )
+            Ptr<BufferGL> glIndex = ptr_dynamic_cast<BufferGL, Buffer>(indexBuffer);
+            Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndex->handle) )
+            Profile( glDrawElements(gl::Drawable[type].type, glIndex->elements, gl::TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr) )
             }
          else
-         if (buffer != nullptr &&
-             buffer->type == VertexBuffer)
-            Profile( glDrawArrays(gl::Drawable[type].type, 0, buffer->elements) )
+         if (buffer &&
+             buffer->type() == BufferType::Vertex)
+            {
+            Ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
+            
+            Profile( glDrawArrays(gl::Drawable[type].type, 0, glBuffer->elements) )
+            }
          else
             Profile( glDrawArrays(gl::Drawable[type].type, 0, inst) )
          }

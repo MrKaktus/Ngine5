@@ -129,7 +129,7 @@ namespace en
    vFov       = _vFov;
    }
 
-   Buffer FrustumSettings::wireframe(void) const
+   Ptr<Buffer> FrustumSettings::wireframe(void) const
    {
    assert(Gpu.screen.created());
 
@@ -157,7 +157,7 @@ namespace en
    points[15] = float3( nearEdges.w, -nearEdges.y, nearPlane); // Lower-right connector
 
    // Create geometry buffer for given frustum
-   Buffer buffer = Gpu.buffer.create(BufferSettings(VertexBuffer, 16, ColumnInfo(Float3, "inPosition")), points);
+   Ptr<Buffer> buffer = Graphics->primaryDevice()->create(16, Formatting(Attribute::v3f32), 0, points); // inPosition
    delete [] points;
    
    return buffer;

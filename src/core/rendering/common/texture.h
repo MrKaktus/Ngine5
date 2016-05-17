@@ -24,16 +24,19 @@ namespace en
 {
    namespace gpu
    {
+   class TextureViewCommon;
+   
    class TextureCommon : public Texture
       {
       public:
-      TextureState state;
-
+      TextureState      state;
+      Weak<TextureViewCommon> textureView;
+      
       TextureCommon();
       TextureCommon(const TextureState& state);
 
       virtual TextureType type(void) const;
-      virtual Format format(void) const;
+      virtual Format   format(void) const;
       virtual uint32   mipmaps(void) const;
       virtual uint32   size(const uint8 mipmap = 0) const;
       virtual uint32   width(const uint8 mipmap = 0) const;
@@ -45,9 +48,25 @@ namespace en
       virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0);  // Surface is: CubeMap face, 3D depth slice, Array layer or CubeMapArray face-layer
       virtual bool     unmap(void);
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
-
+      virtual Ptr<TextureView> view(void) const;
+      
       virtual ~TextureCommon() {};                           // Polymorphic deletes require a virtual base destructor
       };
+
+   class TextureViewCommon : public TextureView
+      {
+      public:
+      Ptr<Texture> texture; // Parent texture
+      
+      TextureViewCommon();
+      
+      virtual Ptr<Texture> parent(void) const;
+      virtual uint32v2 parentMipmaps(void) const;    // Sub-set of parent texture mipmaps, creating this view
+      virtual uint32v2 parentLayers(void) const;     // Sub-set of parent texture layers, creating this view
+      
+      virtual ~TextureViewCommon() {};               // Polymorphic deletes require a virtual base destructor
+      };
+
 
    struct TextureCompressedBlockInfo
       {

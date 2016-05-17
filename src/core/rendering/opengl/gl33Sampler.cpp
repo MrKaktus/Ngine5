@@ -18,7 +18,8 @@
 #include "core/rendering/opengl/gl33Sampler.h"
 
 #include "core/rendering/context.h"
-#include "core/rendering/rendering.hpp"
+//#include "core/rendering/rendering.hpp"
+#include "core/rendering/device.h"
 
 namespace en
 {

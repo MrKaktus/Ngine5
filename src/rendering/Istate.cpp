@@ -18,6 +18,7 @@
 #include "utilities/utilities.h"
 #include "utilities/gpcpu/gpcpu.h" // for clamp(...)
 
+#include "core/rendering/device.h"
 
 #include "core/rendering/opengl/glState.h" 
 #include "core/rendering/opengl/gl33Sampler.h" 
@@ -201,13 +202,6 @@ namespace en
 
 
 
-
-
-
-   bool Interface::Support::Buffer::type(const en::gpu::BufferType type)
-   {
-   return (GpuContext.screen.api.release >= gl::BufferType[type].opengl.release);
-   }
 
    void Interface::Culling::on(void)
    {

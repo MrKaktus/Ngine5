@@ -86,7 +86,7 @@ namespace en
    {
 /// TEMP START
 
-   class PipelineLayout : public SafeObject
+   class PipelineLayout : public SafeObject<PipelineLayout>
       {
       public:
       virtual ~PipelineLayout();                              // Polymorphic deletes require a virtual base destructor
@@ -182,6 +182,12 @@ namespace en
 
       bool getMemoryType(uint32 allowedTypes, VkFlags properties, uint32* memoryType);
       VkDeviceMemory allocMemory(VkMemoryRequirements requirements, VkFlags properties);
+
+
+      virtual Ptr<Buffer> create(const uint32 elements, const Formatting& formatting, const uint32 step = 0);
+      virtual Ptr<Buffer> create(const uint32 elements, const Attribute format);
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size);
+      
 
 
       Ptr<Texture>  Create(const TextureState& state);   // This should be done out of Heap

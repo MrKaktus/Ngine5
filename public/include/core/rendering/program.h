@@ -26,6 +26,8 @@
 #include "core/rendering/sampler.h"
 #include "core/rendering/texture.h"
 
+using namespace std;
+
 namespace en
 {
    namespace gpu
@@ -69,7 +71,7 @@ namespace en
 
          const char* name(void);
          uint32      size(void);
-         bool set(const Buffer& buffer);
+         bool set(const Ptr<Buffer> buffer);
          };
 
    // Shader
@@ -102,8 +104,8 @@ namespace en
          //Sampler   sampler(const string& name);
 
          bool      draw(const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
-         bool      draw(const Buffer& buffer, const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
-         bool      draw(const Buffer& buffer, const Buffer& indexBuffer, const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
+         bool      draw(const Ptr<Buffer> buffer, const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
+         bool      draw(const Ptr<Buffer> buffer, const Ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
          };
    }
 }

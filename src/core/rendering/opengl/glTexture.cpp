@@ -15,6 +15,7 @@
 
 #include "core/rendering/opengl/opengl.h"
 #include "core/rendering/opengl/glTexture.h"
+#include "core/rendering/device.h"
 
 #include "core/rendering/rendering.hpp" // OpenGL versions defines
 #include "core/rendering/context.h" // Profile

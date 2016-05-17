@@ -15,6 +15,7 @@
 
 #include "core/log/log.h"
 #include "core/rendering/context.h"
+#include "core/rendering/device.h"
 
 namespace en
 {

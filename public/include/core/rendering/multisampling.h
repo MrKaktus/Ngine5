@@ -26,7 +26,7 @@ namespace en
 {
    namespace gpu
    {
-   class MultisamplingState : public SafeObject
+   class MultisamplingState : public SafeObject<MultisamplingState>
       {
       public:
       virtual ~MultisamplingState() {};                           // Polymorphic deletes require a virtual base destructor

@@ -343,7 +343,7 @@ namespace en
       TypesCount
       };
 
-   class Mouse : public SafeObject
+   class Mouse : public SafeObject<Mouse>
       {
       public:
       virtual Ptr<Screen> screen(void) const = 0; // Current screen on which mouse is located
@@ -358,7 +358,7 @@ namespace en
       virtual ~Mouse() {};                             // Polymorphic deletes require a virtual base destructor
       };
       
-   class Joystick : public SafeObject
+   class Joystick : public SafeObject<Joystick>
       {
       public:
       virtual bool        on(void) = 0;                // Turns joystick on
@@ -371,7 +371,7 @@ namespace en
       virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
       };
       
-   class Camera : public SafeObject
+   class Camera : public SafeObject<Camera>
       {
       public:
       virtual bool        on(void) = 0;                // Turns camera on
@@ -385,7 +385,7 @@ namespace en
       virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
       };
       
-   class Interface : public SafeObject
+   class Interface : public SafeObject<Interface>
       {
       public:
       static bool create(void);                      // Creates instance of this class (OS specific) and assigns it to "Input".
