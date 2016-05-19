@@ -85,44 +85,44 @@ namespace en
    {
 
 
-   // GPU Buffer Column Descriptor
-   struct cachealign BufferColumnDescriptor
-          {
-          Attribute type;                   // Column type
-          char*      name;                   // Local copy of name string
+//   // GPU Buffer Column Descriptor
+//   struct cachealign BufferColumnDescriptor
+//          {
+//          Attribute type;                   // Column type
+//          char*      name;                   // Local copy of name string
+//
+//          BufferColumnDescriptor();
+//         ~BufferColumnDescriptor();
+//          };
 
-          BufferColumnDescriptor();
-         ~BufferColumnDescriptor();
-          };
+//   // GPU Data Block Descriptor
+//   struct cachealign DataBlockDescriptor
+//          {
+//          uint32 size;                       // Size of mapped block in bytes
+//          void*  pointer;                    // Pointer to local memory
+//                                             
+//          DataBlockDescriptor();                 // Constructor
+//         ~DataBlockDescriptor();
+//          };
 
-   // GPU Data Block Descriptor
-   struct cachealign DataBlockDescriptor
-          {
-          uint32 size;                       // Size of mapped block in bytes
-          void*  pointer;                    // Pointer to local memory
-                                             
-          DataBlockDescriptor();                 // Constructor
-         ~DataBlockDescriptor();
-          };
-
-   // GPU Buffer Descriptor
-   class cachealign BufferDescriptor : public ProxyObject
-          {    
-          public:  
-          BufferColumnDescriptor column[16]; // Vector describing each column of buffer
-          uint64     offset[16];             // Offset of each column in row
-          BufferType type;                   // Buffer type (VBO, IBO, ...)
-          uint32     elements;               // Rows/elements in buffer 
-          uint32     columns;                // Active columns
-          uint32     rowSize;                // Size in bytes of one row/element
-          uint32     size;                   // Whole buffer size
-          DataBlockDescriptor* block;            // Pointer to descriptor of mapped block
-          uint32     id;                     // OpenGL handle
-          uint32     vao;                    // OpenGL VAO handle
-          bool       named;                  // Indicates that buffer uses names to match columns
-
-          BufferDescriptor();
-          };
+//   // GPU Buffer Descriptor
+//   class cachealign BufferDescriptor : public ProxyObject
+//          {    
+//          public:  
+//          BufferColumnDescriptor column[16]; // Vector describing each column of buffer
+//          uint64     offset[16];             // Offset of each column in row
+//          BufferType type;                   // Buffer type (VBO, IBO, ...)
+//          uint32     elements;               // Rows/elements in buffer 
+//          uint32     columns;                // Active columns
+//          uint32     rowSize;                // Size in bytes of one row/element
+//          uint32     size;                   // Whole buffer size
+//          DataBlockDescriptor* block;            // Pointer to descriptor of mapped block
+//          uint32     id;                     // OpenGL handle
+//          uint32     vao;                    // OpenGL VAO handle
+//          bool       named;                  // Indicates that buffer uses names to match columns
+//
+//          BufferDescriptor();
+//          };
 
    //// GPU Surface Descriptor
    //struct cachealign SurfaceDescriptor
@@ -448,7 +448,7 @@ void InitDisplaysInfo(void);
 
       // Translation tables
       //extern const BufferTypeTranslation       BufferType[BufferTypesCount];
-      extern const BufferColumnTranslation     TranslateAttribute[underlyingType(Attribute::Count)];
+      //extern const BufferColumnTranslation     TranslateAttribute[underlyingType(Attribute::Count)];
       //extern const TextureTypeTranslation      TextureType[TextureTypesCount];
       //extern const TextureFormatTranslation    TextureFormat[TextureFormatsCount];
       //extern const TextureFilteringTranslation TextureFiltering[TextureFilteringMethodsCount];
@@ -519,9 +519,9 @@ void InitDisplaysInfo(void);
       void BuffersClear(void);
       //bool SupportColumnType(const ColumnType type);
       //Ptr<Buffer> BufferCreate(const BufferSettings& bufferSettings, void* data);
-      extern void*  BufferMap(BufferDescriptor* buffer);
-      bool   BufferUnmap(BufferDescriptor* buffer);
-      bool   BufferDestroy(BufferDescriptor* const buffer);
+      //extern void*  BufferMap(BufferDescriptor* buffer);
+      //bool   BufferUnmap(BufferDescriptor* buffer);
+      //bool   BufferDestroy(BufferDescriptor* const buffer);
 
       //void TexturesInit(void);
       //void TexturesClear(void);
@@ -886,7 +886,7 @@ void InitDisplaysInfo(void);
                  } state;
 
           // GPU Resuorces management
-          TarrayAdvanced<BufferDescriptor,  EN_MAX_ARRAY_SIZE> buffers;
+          //TarrayAdvanced<BufferDescriptor,  EN_MAX_ARRAY_SIZE> buffers;
           //TarrayAdvanced<TextureDescriptor, EN_MAX_ARRAY_SIZE> textures;
           TarrayAdvanced<ShaderDescriptor,  EN_MAX_ARRAY_SIZE> shaders;
           TarrayAdvanced<ProgramDescriptor, EN_MAX_ARRAY_SIZE> programs;

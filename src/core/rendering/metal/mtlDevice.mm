@@ -536,6 +536,51 @@ namespace en
    MetalDevice::~MetalDevice() 
    {
    }
+   
+   void MetalDevice::init(void)
+   {
+   // Gather information about supported API capabilites
+   
+   // Attribute formats 
+   support.attribute.set();
+   support.attribute.reset(underlyingType(Attribute::u8_norm));               
+   support.attribute.reset(underlyingType(Attribute::s8_norm));
+   support.attribute.reset(underlyingType(Attribute::u8));
+   support.attribute.reset(underlyingType(Attribute::s8));
+   support.attribute.reset(underlyingType(Attribute::u16_norm));
+   support.attribute.reset(underlyingType(Attribute::s16_norm));
+   support.attribute.reset(underlyingType(Attribute::u16));
+   support.attribute.reset(underlyingType(Attribute::s16));
+   support.attribute.reset(underlyingType(Attribute::f16));
+   support.attribute.reset(underlyingType(Attribute::u64));
+   support.attribute.reset(underlyingType(Attribute::s64));                
+   support.attribute.reset(underlyingType(Attribute::f64));
+   support.attribute.reset(underlyingType(Attribute::v2u64));
+   support.attribute.reset(underlyingType(Attribute::v2s64));
+   support.attribute.reset(underlyingType(Attribute::v2f64));
+   support.attribute.reset(underlyingType(Attribute::v3u8_srgb));
+   support.attribute.reset(underlyingType(Attribute::v3u64));
+   support.attribute.reset(underlyingType(Attribute::v3s64));
+   support.attribute.reset(underlyingType(Attribute::v3f64));
+   support.attribute.reset(underlyingType(Attribute::v4u64));
+   support.attribute.reset(underlyingType(Attribute::v4s64));
+   support.attribute.reset(underlyingType(Attribute::v4f64));
+   support.attribute.reset(underlyingType(Attribute::v3f11_11_10));
+   support.attribute.reset(underlyingType(Attribute::v4u10_10_10_2));
+   support.attribute.reset(underlyingType(Attribute::v4s10_10_10_2));
+   support.attribute.reset(underlyingType(Attribute::v4u10_10_10_2_norm_rev));
+   support.attribute.reset(underlyingType(Attribute::v4s10_10_10_2_norm_rev));
+   support.attribute.reset(underlyingType(Attribute::v4u10_10_10_2_rev));
+   support.attribute.reset(underlyingType(Attribute::v4s10_10_10_2_rev));
+   
+   //for(uint16 i=0; i<underlyingType(Attribute::Count); ++i)
+   //   if (api.release >= AttributeVersion[i].release)
+
+   //if ([device supportsFeatureSet:MTLFeatureSet_tvOS_GPUFamily2_v1])
+   //   {
+   //   }
+      
+   }
 
    uint32 MetalDevice::screens(void)
    {

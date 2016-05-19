@@ -35,7 +35,7 @@ namespace en
    Context::Context() :
       emptyVAO(0)
    {
-   buffers.create(4096);
+   //buffers.create(4096);
    //textures.create(4096);
    shaders.create(4096);
    programs.create(4096);
@@ -100,7 +100,7 @@ namespace en
    state.defaults();
 
    // Clear all settings
-   gl20::BuffersClear();
+   //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    ClearTextureSupport();
 #endif

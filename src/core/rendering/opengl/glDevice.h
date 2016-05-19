@@ -71,11 +71,14 @@ namespace en
    class OpenGLDevice : public CommonDevice
       {
       public:
-
+      uint32 lastResult;
+      
       OpenGLDevice();
      ~OpenGLDevice();
 
       virtual void init(void);
+      bool IsError(const char* function);
+      
       virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
       };
    }

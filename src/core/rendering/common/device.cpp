@@ -26,7 +26,7 @@ namespace en
    {
    const Nversion    Vulkan_1_0(0, EN_Vulkan, 0, 0, 0);                  // Vulkan 1.0
 
-   const Nversion    Metal_OSX_1_0(0,EN_Metal_OSX,1,0,0);
+   const Nversion    Metal_OSX_1_0(0,EN_Metal_OSX,1,0,0);                // Metal on OSX 10.11
    const Nversion    Metal_OSX_Unsupported(255,EN_Metal_OSX,255,255,15); // For marking unsupported features
    
    const Nversion    Metal_IOS_1_0(0,EN_Metal_IOS,1,0,0);
@@ -151,6 +151,25 @@ namespace en
    CommonDevice::~CommonDevice()
    {
    }
+   
+   void CommonDevice::init(void)
+   {
+   // Should be implemented by API
+   assert(0);
+   }
+   
+   Ptr<InputAssembler> CommonDevice::create(const DrawableType primitiveType,
+                                            const uint32 controlPoints,
+                                            const uint32 usedAttributes,
+                                            const uint32 usedBuffers,
+                                            const AttributeDesc* attributes,
+                                            const BufferDesc* buffers)
+   {
+   // Should be implemented by API
+   assert(0);
+   return Ptr<InputAssembler>(nullptr);
+   }
+   
    
    // This static function should be in .mm file if we include Metal headers !!!
    bool GraphicAPI::create(void)

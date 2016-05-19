@@ -46,7 +46,7 @@ namespace en
       uint32 y;
 
       public:
-      virtual Ptr<Screen> screen(void) const = 0;
+      virtual Ptr<Screen> screen(void) const;
       virtual float2 position(void) const;
       virtual uint32 position(const Axis axis) const;
       virtual bool   position(const uint32 x, const uint32 y) = 0;

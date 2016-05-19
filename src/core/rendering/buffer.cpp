@@ -330,62 +330,62 @@ namespace en
 //      return Buffer(buffer);
 //      }
       
-
-      #ifdef EN_OPENGL_MOBILE
-
-      // Maps VBO or IBO buffer to memory
-      void* BufferMap(BufferDescriptor* buffer)
-      {
-      // Screen needs to be created
-      assert(GpuContext.screen.created);
-      assert(buffer);
-
-      // Allocate DataBlockDescriptor and its local memory 
-      buffer->block = new DataBlockDescriptor;
-      buffer->block->size = buffer->rowSize * buffer->elements;
-      buffer->block->pointer = new uint8[buffer->block->size];
-
-      return buffer->block->pointer;
-      }
-
-      bool BufferUnmap(BufferDescriptor* buffer)
-      {
-      // Screen needs to be created
-      assert(GpuContext.screen.created);
-      assert(buffer);
-
-      // Maps VBO or IBO
-      uint16 type = gl::BufferType[buffer->type].type;
-      if ( buffer->type == VertexBuffer ||
-           buffer->type == IndexBuffer )
-         {
-         Profile( glBindBuffer(type, buffer->id) )
-         Profile( glBufferData(type, buffer->elements * buffer->rowSize, buffer->block->pointer, GL_STATIC_DRAW) )
-         Profile( glBindBuffer(type, 0) )
-
-         // Free DataBlockDescriptor and its local memory
-         delete [] static_cast<uint8*>(buffer->block->pointer);
-         delete buffer->block;
-         return true;        
-         }
-
-      return false;
-      }
-      #endif
-
-      bool BufferDestroy(BufferDescriptor* const buffer)
-      {         
-      // Frees corresponding buffer in driver
-      Profile( glDeleteBuffers(1, &buffer->id) )
-
-      if (buffer->type == BufferType::Vertex)
-         if (GpuContext.screen.support(OpenGL_3_0))            
-            Profile( glDeleteVertexArrays(1, &buffer->vao) )
-
-      // Fill program with null pointer
-      GpuContext.buffers.free(buffer);
-      return true; 
-      }
+//
+//      #ifdef EN_OPENGL_MOBILE
+//
+//      // Maps VBO or IBO buffer to memory
+//      void* BufferMap(BufferDescriptor* buffer)
+//      {
+//      // Screen needs to be created
+//      assert(GpuContext.screen.created);
+//      assert(buffer);
+//
+//      // Allocate DataBlockDescriptor and its local memory 
+//      buffer->block = new DataBlockDescriptor;
+//      buffer->block->size = buffer->rowSize * buffer->elements;
+//      buffer->block->pointer = new uint8[buffer->block->size];
+//
+//      return buffer->block->pointer;
+//      }
+//
+//      bool BufferUnmap(BufferDescriptor* buffer)
+//      {
+//      // Screen needs to be created
+//      assert(GpuContext.screen.created);
+//      assert(buffer);
+//
+//      // Maps VBO or IBO
+//      uint16 type = gl::BufferType[buffer->type].type;
+//      if ( buffer->type == VertexBuffer ||
+//           buffer->type == IndexBuffer )
+//         {
+//         Profile( glBindBuffer(type, buffer->id) )
+//         Profile( glBufferData(type, buffer->elements * buffer->rowSize, buffer->block->pointer, GL_STATIC_DRAW) )
+//         Profile( glBindBuffer(type, 0) )
+//
+//         // Free DataBlockDescriptor and its local memory
+//         delete [] static_cast<uint8*>(buffer->block->pointer);
+//         delete buffer->block;
+//         return true;        
+//         }
+//
+//      return false;
+//      }
+//      #endif
+//
+//      bool BufferDestroy(BufferDescriptor* const buffer)
+//      {         
+//      // Frees corresponding buffer in driver
+//      Profile( glDeleteBuffers(1, &buffer->id) )
+//
+//      if (buffer->type == BufferType::Vertex)
+//         if (GpuContext.screen.support(OpenGL_3_0))            
+//            Profile( glDeleteVertexArrays(1, &buffer->vao) )
+//
+//      // Fill program with null pointer
+//      GpuContext.buffers.free(buffer);
+//      return true; 
+//      }
 
       }
 
@@ -398,4 +398,4 @@ namespace en
    }
 }
 
-template<> bool (*ProxyInterface<en::gpu::BufferDescriptor>::destroy)(en::gpu::BufferDescriptor* const) = en::gpu::gl20::BufferDestroy;
+//template<> bool (*ProxyInterface<en::gpu::BufferDescriptor>::destroy)(en::gpu::BufferDescriptor* const) = en::gpu::gl20::BufferDestroy;

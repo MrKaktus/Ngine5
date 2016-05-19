@@ -217,7 +217,7 @@ namespace en
                                           const uint32 usedAttributes,
                                           const uint32 usedBuffers,
                                           const AttributeDesc* attributes,
-                                          const BufferDesc* buffers);
+                                          const BufferDesc* buffers) = 0;
 
 
       // When binding 3D texture, pass it's plane "depth" through "layer" parameter,

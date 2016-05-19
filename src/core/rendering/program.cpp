@@ -16,8 +16,11 @@
 #include "core/log/log.h"
 #include "core/rendering/context.h"
 
+
+
 #include "core/rendering/opengl/glBuffer.h"
 #include "core/rendering/opengl/glTexture.h"
+#include "core/rendering/opengl/glInputAssembler.h"
 #include "core/rendering/opengl/gl33Sampler.h"
 #include "core/rendering/device.h"
 
@@ -990,18 +993,18 @@ namespace en
                {
                Attribute format = glBuffer->formatting.column[input.location];
                uint32 elementSize = glBuffer->formatting.elementSize();
-               uint16 type       = gl::TranslateAttribute[underlyingType(format)].type;
-               uint16 size       = gl::TranslateAttribute[underlyingType(format)].size;
-               uint16 channels   = gl::TranslateAttribute[underlyingType(format)].channels;
-               bool   normalized = gl::TranslateAttribute[underlyingType(format)].normalized;
+               uint16 type       = TranslateAttribute[underlyingType(format)].type;
+               uint16 size       = TranslateAttribute[underlyingType(format)].size;
+               uint16 channels   = TranslateAttribute[underlyingType(format)].channels;
+               bool   normalized = TranslateAttribute[underlyingType(format)].normalized;
                
                Profile( glEnableVertexAttribArray( input.location ) );
-               if (gl::TranslateAttribute[underlyingType(format)].qword)
+               if (TranslateAttribute[underlyingType(format)].qword)
                   {
                   Profile( glVertexAttribLPointer(input.location, channels, type, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
                else
-               if (gl::TranslateAttribute[underlyingType(format)].integer)
+               if (TranslateAttribute[underlyingType(format)].integer)
                   {
                   Profile( glVertexAttribIPointer(input.location, channels, type, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
@@ -1032,7 +1035,7 @@ namespace en
             {
             Ptr<BufferGL> glIndex = ptr_dynamic_cast<BufferGL, Buffer>(indexBuffer);
             Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndex->handle) )
-            Profile( glDrawElementsInstanced(gl::Drawable[type].type, glIndex->elements, gl::TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr, inst) )
+            Profile( glDrawElementsInstanced(gl::Drawable[type].type, glIndex->elements, TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr, inst) )
             }
          else
          if (buffer &&
@@ -1053,7 +1056,7 @@ namespace en
             {
             Ptr<BufferGL> glIndex = ptr_dynamic_cast<BufferGL, Buffer>(indexBuffer);
             Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndex->handle) )
-            Profile( glDrawElements(gl::Drawable[type].type, glIndex->elements, gl::TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr) )
+            Profile( glDrawElements(gl::Drawable[type].type, glIndex->elements, TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr) )
             }
          else
          if (buffer &&

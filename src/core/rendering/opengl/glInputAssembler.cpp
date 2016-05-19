@@ -23,18 +23,7 @@
 namespace en
 {
    namespace gpu
-   {
-   // Buffer Column
-   struct cachealign AttributeTranslation
-      {
-      uint16   size;       // Attribute size in bytes
-      uint16   channels;   // Channels count
-      bool     normalized; // Should data be normalized
-      bool     integer;    // Should data be kept in integer format (no conversion to float)
-      bool     qword;      // Is data 64bit per channel
-      uint32   type;       // OpenGL input type
-      };
-      
+   {      
 #ifdef EN_OPENGL_DESKTOP
    
    // OpenGL Vertex Attribute Formats:     

@@ -115,6 +115,11 @@ namespace en
       MetalDevice(id<MTLDevice> handle);
      ~MetalDevice();
 
+      // Internal
+      
+      void init(void);
+      
+      // Interface
 
       uint32 screens(void);           // Screens count the device can render to
       Ptr<Screen> screen(uint32 id) const;  // Return N'th screen handle
@@ -128,16 +133,6 @@ namespace en
       
       virtual Ptr<CommandBuffer>   createCommandBuffer(void);
 
-
-
-      
-      // Creates InputAssembler description based on single input buffer. 
-      // Buffer needs to have specified internal formatting.
-      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
-                                          const uint32 controlPoints,
-                                          const Ptr<Buffer> buffer);
-         
-      // Specialized function for creation of any type of InputAssember description.
       virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
                                           const uint32 controlPoints,
                                           const uint32 usedAttributes,

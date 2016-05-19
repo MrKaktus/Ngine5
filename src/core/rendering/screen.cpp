@@ -381,7 +381,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       GpuContext.device.destroy();
     
       // Clear all settings
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -483,7 +483,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
 #endif
 
       // Clear all settings
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -557,7 +557,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       GpuContext.screen.defaults();
       GpuContext.state.defaults();
 
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -797,7 +797,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       GpuContext.screen.defaults();
       GpuContext.state.defaults();
 
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -1456,7 +1456,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       GpuContext.screen.defaults();
       GpuContext.state.defaults();
       
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
