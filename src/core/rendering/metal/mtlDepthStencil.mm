@@ -63,8 +63,6 @@ namespace en
    if (desc.enableStencilTest)
       {
       // TODO: Future optimization could check if state isn't pass-through Always/3xKeep and disable it.
-      descriptor.frontFaceStencil     = [[MTLStencilDescriptor alloc] init];
-      descriptor.backFaceStencil      = [[MTLStencilDescriptor alloc] init];
       for(uint8 i=0; i<2; ++i)
          {
          MTLStencilDescriptor* stencil = (i == 0) ? descriptor.frontFaceStencil : descriptor.backFaceStencil;
@@ -83,11 +81,6 @@ namespace en
    reference.x = desc.stencil[0].reference;
    reference.y = desc.stencil[1].reference;
 
-   // Release temporary resources
-   if (descriptor.frontFaceStencil != nullptr)
-      [descriptor.frontFaceStencil release];
-   if (descriptor.backFaceStencil != nullptr)
-      [descriptor.backFaceStencil release];
    [descriptor release];
    }
 

@@ -391,26 +391,6 @@
 //   return result;
 //   }
 //
-//   // Cannot implement in Metal API, tightly attached to Render Command Encoder, because there is only one Viewport !!!
-//   #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-//   Ptr<ViewportScissorState> Create(const uint32 count, 
-//                                    const ViewportInfo* viewports,
-//                                    const ScissorInfo* scissors)
-//   {
-//   Ptr<ViewportScissorState> result = nullptr;
-//
-//   MTLViewport viewport;
-//   viewport.originX = static_cast<double>(viewports[0].rect.x);
-//   viewport.originY = static_cast<double>(viewports[0].rect.y);
-//   viewport.width   = static_cast<double>(viewports[0].rect.z);
-//   viewport.height  = static_cast<double>(viewports[0].rect.w);
-//   viewport.znear   = static_cast<double>(viewports[0].depthRange.x);
-//   viewport.zfar    = static_cast<double>(viewports[0].depthRange.y);
-//
-//   // Save it on creation of Render Command Encoder 
-//   }
-//   #endif
-//
 //
 //
 //

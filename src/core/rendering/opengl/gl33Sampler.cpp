@@ -21,6 +21,8 @@
 //#include "core/rendering/rendering.hpp"
 #include "core/rendering/device.h"
 
+#if !defined(EN_PLATFORM_OSX)
+
 namespace en
 {
    namespace gpu
@@ -262,3 +264,5 @@ namespace en
 
    }
 }
+
+#endif

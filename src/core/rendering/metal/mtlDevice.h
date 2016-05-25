@@ -131,6 +131,8 @@ namespace en
                                     
       virtual Ptr<Texture> create(const TextureState state);
       
+      virtual Ptr<Shader>  create(const string& source, const string& entrypoint);
+      
       virtual Ptr<CommandBuffer>   createCommandBuffer(void);
 
       virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
@@ -140,10 +142,7 @@ namespace en
                                           const AttributeDesc* attributes,
                                           const BufferDesc* buffers);
 
-      virtual Ptr<RasterState>     create(const RasterStateInfo& state);
-      virtual Ptr<BlendState>      create(const BlendStateInfo& state,
-                                          const uint32 attachments,
-                                          const BlendAttachmentInfo* color);
+
 
    // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
    // similarly when binding CubeMap texture, pass it's "face" through "layer".
@@ -185,13 +184,25 @@ namespace en
                                              const bool enableAlphaToCoverage,
                                              const bool enableAlphaToOne);
 
+      virtual Ptr<RasterState>     create(const RasterStateInfo& state);
+      
+      virtual Ptr<BlendState>      create(const BlendStateInfo& state,
+                                          const uint32 attachments,
+                                          const BlendAttachmentInfo* color);
+      
+      virtual Ptr<ViewportState>      create(const uint32 count,
+                                             const ViewportStateInfo* viewports,
+                                             const ScissorStateInfo* scissors);
+         
       virtual Ptr<Pipeline> create(const Ptr<RenderPass> renderPass,
                                    const Ptr<InputAssembler> inputAssembler,
                                    const Ptr<ViewportState>  viewportState,
                                    const Ptr<RasterState>    rasterState,
                                    const Ptr<MultisamplingState> multisamplingState,
                                    const Ptr<DepthStencilState> depthStencilState,
-                                   const Ptr<BlendState>     blendState//,
+                                   const Ptr<BlendState>     blendState,
+                                   const Ptr<Shader>         vertex,
+                                   const Ptr<Shader>         fragment
                                    /*const Ptr<PipelineLayout> pipelineLayout*/);
       };
    }

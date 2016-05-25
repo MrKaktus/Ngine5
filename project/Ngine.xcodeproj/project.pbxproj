@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8508B68A1CF00A7E00454423 /* mtlShader.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8508B6891CF00A7E00454423 /* mtlShader.mm */; };
+		8508B68C1CF00B7800454423 /* mtlShader.h in Headers */ = {isa = PBXBuildFile; fileRef = 8508B68B1CF00B7800454423 /* mtlShader.h */; };
+		8508B68E1CF133E300454423 /* osxStorage.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8508B68D1CF133E300454423 /* osxStorage.mm */; };
 		851A8E931CC5399100272F88 /* mtlBuffer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 851A8E921CC5399100272F88 /* mtlBuffer.mm */; };
 		851A8E951CC539D800272F88 /* mtlBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 851A8E941CC539D800272F88 /* mtlBuffer.h */; };
 		851A8EB91CC5A4AD00272F88 /* vkBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 851A8EB81CC5A4AD00272F88 /* vkBuffer.cpp */; };
@@ -187,6 +190,7 @@
 		85917C921C408C9F0051382A /* threading in Headers */ = {isa = PBXBuildFile; fileRef = 85917C861C408C9F0051382A /* threading */; settings = {ATTRIBUTES = (Public, ); }; };
 		85917C931C408C9F0051382A /* threading.h in Headers */ = {isa = PBXBuildFile; fileRef = 85917C871C408C9F0051382A /* threading.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		85917C941C408C9F0051382A /* utilities in Headers */ = {isa = PBXBuildFile; fileRef = 85917C881C408C9F0051382A /* utilities */; settings = {ATTRIBUTES = (Public, ); }; };
+		8598FD861CF1523600F97D1D /* osxStrings.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8598FD851CF1523600F97D1D /* osxStrings.mm */; };
 		859A39BF1CA6537B00CC4173 /* osxInput.h in Headers */ = {isa = PBXBuildFile; fileRef = 859A39BE1CA6537B00CC4173 /* osxInput.h */; };
 		859A39C11CA78E1900CC4173 /* common.h in Headers */ = {isa = PBXBuildFile; fileRef = 859A39C01CA78E1900CC4173 /* common.h */; };
 		859A39C31CA7AA5B00CC4173 /* andInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859A39C21CA7AA5B00CC4173 /* andInput.cpp */; };
@@ -201,6 +205,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8508B6891CF00A7E00454423 /* mtlShader.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlShader.mm; sourceTree = "<group>"; };
+		8508B68B1CF00B7800454423 /* mtlShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlShader.h; sourceTree = "<group>"; };
+		8508B68D1CF133E300454423 /* osxStorage.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxStorage.mm; sourceTree = "<group>"; };
 		851A8E921CC5399100272F88 /* mtlBuffer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlBuffer.mm; sourceTree = "<group>"; };
 		851A8E941CC539D800272F88 /* mtlBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlBuffer.h; sourceTree = "<group>"; };
 		851A8EB81CC5A4AD00272F88 /* vkBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vkBuffer.cpp; sourceTree = "<group>"; };
@@ -459,6 +466,7 @@
 		85917C861C408C9F0051382A /* threading */ = {isa = PBXFileReference; lastKnownFileType = folder; path = threading; sourceTree = "<group>"; };
 		85917C871C408C9F0051382A /* threading.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = threading.h; sourceTree = "<group>"; };
 		85917C881C408C9F0051382A /* utilities */ = {isa = PBXFileReference; lastKnownFileType = folder; path = utilities; sourceTree = "<group>"; };
+		8598FD851CF1523600F97D1D /* osxStrings.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxStrings.mm; sourceTree = "<group>"; };
 		859A39BE1CA6537B00CC4173 /* osxInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = osxInput.h; sourceTree = "<group>"; };
 		859A39C01CA78E1900CC4173 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 		859A39C21CA7AA5B00CC4173 /* andInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = andInput.cpp; sourceTree = "<group>"; };
@@ -634,6 +642,8 @@
 				856E9C9E1CBCB4D800875662 /* mtlRaster.mm */,
 				859179D21C3F66120051382A /* mtlRenderPass.h */,
 				859179CF1C3F66120051382A /* mtlRenderPass.mm */,
+				8508B68B1CF00B7800454423 /* mtlShader.h */,
+				8508B6891CF00A7E00454423 /* mtlShader.mm */,
 				859179C41C3F66120051382A /* mtlSampler.h */,
 				859179CE1C3F66120051382A /* mtlSampler.mm */,
 				859179C71C3F66120051382A /* mtlTexture.h */,
@@ -751,6 +761,7 @@
 			children = (
 				85917A2F1C3F66120051382A /* context.h */,
 				85917A301C3F66120051382A /* storage.cpp */,
+				8508B68D1CF133E300454423 /* osxStorage.mm */,
 			);
 			path = storage;
 			sourceTree = "<group>";
@@ -942,6 +953,7 @@
 				85917A8D1C3F66120051382A /* strings.cpp */,
 				85917A8E1C3F66120051382A /* timer.cpp */,
 				85917A8F1C3F66120051382A /* utilities.cpp */,
+				8598FD851CF1523600F97D1D /* osxStrings.mm */,
 			);
 			path = utilities;
 			sourceTree = "<group>";
@@ -1027,6 +1039,7 @@
 				85846D7C1CE7814D00E06629 /* glDevice.h in Headers */,
 				85846D841CE8DA5100E06629 /* glInputAssembler.h in Headers */,
 				85917C8C1C408C9F0051382A /* monetization in Headers */,
+				8508B68C1CF00B7800454423 /* mtlShader.h in Headers */,
 				856E9C971CB8C97200875662 /* mtlBlend.h in Headers */,
 				85917C8D1C408C9F0051382A /* Ngine.h in Headers */,
 				859A39C11CA78E1900CC4173 /* common.h in Headers */,
@@ -1141,8 +1154,10 @@
 				85846D781CE779CF00E06629 /* buffer.cpp in Sources */,
 				85917AA11C3F66F50051382A /* mtlInputAssembler.mm in Sources */,
 				85917AA21C3F66F50051382A /* mtlDepthStencil.mm in Sources */,
+				8508B68E1CF133E300454423 /* osxStorage.mm in Sources */,
 				85917AA31C3F66F50051382A /* mtlDevice.mm in Sources */,
 				85CDB0941C62D023001A1FA1 /* AppDelegate.mm in Sources */,
+				8508B68A1CF00A7E00454423 /* mtlShader.mm in Sources */,
 				85917AA41C3F66F50051382A /* mtlSampler.mm in Sources */,
 				85917AA51C3F66F50051382A /* mtlRenderPass.mm in Sources */,
 				85917AA61C3F66F50051382A /* mtlBlend.mm in Sources */,
@@ -1162,6 +1177,7 @@
 				85917AB31C3F66F50051382A /* opengl13.cpp in Sources */,
 				85917AB41C3F66F50051382A /* opengl14.cpp in Sources */,
 				85917AB51C3F66F50051382A /* opengl15.cpp in Sources */,
+				8598FD861CF1523600F97D1D /* osxStrings.mm in Sources */,
 				85917AB61C3F66F50051382A /* opengl20.cpp in Sources */,
 				85917AB71C3F66F50051382A /* opengl21.cpp in Sources */,
 				85917AB81C3F66F50051382A /* opengl30.cpp in Sources */,

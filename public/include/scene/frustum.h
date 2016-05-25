@@ -27,8 +27,8 @@ namespace en
          {
          public:
          Ptr<Buffer> buffer;
-         Program   program;
-         Parameter enModelMatrix;
+         //Program   program;
+         //Parameter enModelMatrix;
    
          Frustum(const FrustumSettings settings);
          void draw(const Ptr<Buffer> sceneParameters);

@@ -18,6 +18,8 @@
 #include <vector>
 using namespace std;
 
+#if !defined(EN_PLATFORM_OSX)
+
 using namespace en::gpu;
 
 namespace en
@@ -75,4 +77,6 @@ namespace en
          };
 
 }
+#endif
+
 #endif

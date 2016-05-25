@@ -19,6 +19,9 @@
 #include "core/defines.h"
 #include "core/types.h"
 
+#if !defined(EN_PLATFORM_OSX)
+
+
 #include "core/utilities/Tproxy.h"
 
 #include "core/rendering/state.h"
@@ -109,5 +112,6 @@ namespace en
          };
    }
 }
+#endif
 
 #endif

@@ -31,20 +31,6 @@ namespace en
 #ifdef EN_DISCRETE_GPU
 
    // Last verified for Metal 2.0 and OSX 10.11
-   static const Nversion TextureFilteringSupportedMTL[TextureFilteringMethodsCount] = 
-      {
-      Metal_OSX_1_0           ,   // Nearest
-      Metal_OSX_1_0           ,   // NearestMipmaped
-      Metal_OSX_1_0           ,   // NearestMipmapedSmooth
-      Metal_OSX_1_0           ,   // Linear 
-      Metal_OSX_1_0           ,   // Bilinear
-      Metal_OSX_1_0           ,   // Trilinear    
-      Metal_OSX_1_0           ,   // Anisotropic2x  
-      Metal_OSX_1_0           ,   // Anisotropic4x  
-      Metal_OSX_1_0           ,   // Anisotropic8x  
-      Metal_OSX_1_0               // Anisotropic16x 
-      };
-
    static const Nversion TextureWrapingSupportedMTL[TextureWrapingMethodsCount] = 
       {
       Metal_OSX_1_0           ,   // Clamp         
@@ -57,20 +43,6 @@ namespace en
 #elif EN_MOBILE_GPU
 
    // Last verified for Metal 2.0 and iOS 9.0
-   static const NVersion TextureFilteringSupportedMTL[TextureFilteringMethodsCount] = 
-      {
-      Metal_IOS_1_0           ,   // Nearest
-      Metal_IOS_1_0           ,   // NearestMipmaped
-      Metal_IOS_1_0           ,   // NearestMipmapedSmooth
-      Metal_IOS_1_0           ,   // Linear 
-      Metal_IOS_1_0           ,   // Bilinear
-      Metal_IOS_1_0           ,   // Trilinear    
-      Metal_IOS_1_0           ,   // Anisotropic2x  
-      Metal_IOS_1_0           ,   // Anisotropic4x  
-      Metal_IOS_1_0           ,   // Anisotropic8x  
-      Metal_IOS_1_0               // Anisotropic16x 
-      };
-
    static const NVersion TextureWrapingSupportedMTL[TextureWrapingMethodsCount] = 
       {
       Metal_IOS_1_0           ,   // Clamp         
@@ -173,13 +145,6 @@ namespace en
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    void InitSamplers(const CommonDevice* gpu)
    {
-   // Init array of currently supported filtering types
-   for(uint16 i=0; i<TextureFilteringMethodsCount; ++i)
-      {
-      if (gpu->api.release >= TextureFilteringSupportedMTL[i].release)
-         TextureFilteringSupported[i] = true;
-      }
-
    // Init array of currently supported wrapping types
    for(uint16 i=0; i<TextureWrapingMethodsCount; ++i)
       {

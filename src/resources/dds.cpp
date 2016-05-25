@@ -14,6 +14,9 @@
 #include "utilities/utilities.h"
 #include "resources/context.h"
 #include "resources/dds.h"
+
+#include "core/rendering/device.h"
+
 #if defined(EN_PLATFORM_WINDOWS)
 #include "zlib-1.2.8/zlib.h"
 #endif
@@ -585,7 +588,7 @@ namespace en
    {
    using namespace en::storage;
    using namespace en::gpu;
-   assert( Gpu.screen.created() );
+   //assert( Gpu.screen.created() );
 
    uint64 offset = 0;
 
@@ -695,7 +698,7 @@ namespace en
       settings.layers *= 6;
 
    // Create texture in GPU
-   Ptr<gpu::Texture> texture = Gpu.texture.create(settings);
+   Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";

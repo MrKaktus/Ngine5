@@ -169,7 +169,9 @@ namespace en
 
           struct Defaults
                  {
-                 gpu::Program program;            // Default program for materials
+//                 Ptr<gpu::Pipeline> pipeline;            // Default program for materials
+//                 Ptr<gpu::Shader>   vertex;
+//                 Ptr<gpu
                  Ptr<gpu::Texture> enAlbedoMap;
                  Ptr<gpu::Texture> enMetallicMap;
                  Ptr<gpu::Texture> enCavityMap;

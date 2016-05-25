@@ -25,6 +25,8 @@
 #include "core/rendering/opengl/gl43Texture.h"
 #include "core/rendering/opengl/gl45Framebuffer.h"
 
+#if !defined(EN_PLATFORM_OSX)
+
 namespace en
 {
    namespace gpu
@@ -1403,3 +1405,5 @@ namespace en
 
    }
 }
+
+#endif

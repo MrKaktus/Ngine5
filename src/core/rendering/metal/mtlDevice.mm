@@ -21,6 +21,17 @@
 #include "core/rendering/metal/mtlBlend.h"
 #include "core/rendering/metal/mtlRenderPass.h"
 #include "core/rendering/metal/mtlTexture.h"
+#include "core/rendering/metal/mtlRaster.h"
+#include "core/rendering/metal/mtlViewport.h"
+#include "core/rendering/metal/mtlShader.h"
+
+#include "utilities/osxStrings.h"
+
+#if defined(EN_PLATFORM_IOS)
+// For checking IOS version
+#import <Foundation/Foundation.h>
+#include <Availability.h>
+#endif
 
 namespace en
 {
@@ -83,7 +94,7 @@ namespace en
                              resolution.height - (settings.position.y + settings.size.height),
                              settings.size.width,
                              settings.size.height);
-      
+   
    // Determine window type
    NSUInteger style = 0;
    if (settings.mode == Windowed)
@@ -141,7 +152,7 @@ namespace en
    layer = [CAMetalLayer new];
     
    CGFloat bgColor[] = { 0.0, 0.0, 0.0, 1.0 };
- //layer.drawableSize            = CGSizeMake(0, 0, settings.size.width, settings.size.height);
+   layer.drawableSize            = CGSizeMake(settings.size.width, settings.size.height);
    layer.edgeAntialiasingMask    = 0;
    layer.masksToBounds           = YES;
    layer.backgroundColor         = CGColorCreate( CGColorSpaceCreateDeviceRGB(), bgColor );
@@ -495,7 +506,7 @@ namespace en
    if (!commited)
       [handle commit];
       
-   [handle waitUntilCompleted];
+   // Don't wait for completion
    
    // Release buffer
    [handle release];
@@ -528,6 +539,8 @@ namespace en
    api = Metal_IOS_1_0;
 #endif
 
+   init();
+
    // Create commands queue
    // Metal queue is something like "universal" or "synchronous" queue in comparison to "3d / compute / dma" queues in Vulkan
    queue = [[device newCommandQueue] autorelease];
@@ -539,6 +552,16 @@ namespace en
    
    void MetalDevice::init(void)
    {
+   // Metal Feature Set Tables:
+   //
+   // https://developer.apple.com/library/ios/documentation/Miscellaneous/Conceptual/MetalProgrammingGuide/MetalFeatureSetTables/MetalFeatureSetTables.html
+   //
+   
+   // iPhone 5S      - A7 - PowerVR G6430
+   // iPhone 6S Plus - A9 - PowerVR GT7600
+   // iPad Mini 4    - A8 - PowerVR GX6450
+   // iPad Air 2    - A8X - PowerVR GXA6850
+   
    // Gather information about supported API capabilites
    
    // Attribute formats 
@@ -573,13 +596,202 @@ namespace en
    support.attribute.reset(underlyingType(Attribute::v4u10_10_10_2_rev));
    support.attribute.reset(underlyingType(Attribute::v4s10_10_10_2_rev));
    
+   // Texture formats
+   support.sampling.set();
+
+   // TODO: Distinguish in below tables Sampling from Rendering
+
+#if defined(EN_PLATFORM_OSX)
+   // Partially suported
+   if (![device isDepth24Stencil8PixelFormatSupported])
+      support.sampling.reset(underlyingType(Format::DS_24_8));
+
+   // Unsupported
+   support.sampling.reset(underlyingType(Format::R_8_sRGB));
+   support.sampling.reset(underlyingType(Format::RG_8_sRGB));
+   support.sampling.reset(underlyingType(Format::RGB_8));
+   support.sampling.reset(underlyingType(Format::RGB_8_sRGB));
+   support.sampling.reset(underlyingType(Format::RGB_8_sn));
+   support.sampling.reset(underlyingType(Format::RGB_8_u));
+   support.sampling.reset(underlyingType(Format::RGB_8_s));
+   support.sampling.reset(underlyingType(Format::RGB_16));
+   support.sampling.reset(underlyingType(Format::RGB_16_sn));
+   support.sampling.reset(underlyingType(Format::RGB_16_u));
+   support.sampling.reset(underlyingType(Format::RGB_16_s));
+   support.sampling.reset(underlyingType(Format::RGB_16_hf));
+   support.sampling.reset(underlyingType(Format::RGB_32_u));
+   support.sampling.reset(underlyingType(Format::RGB_32_s));
+   support.sampling.reset(underlyingType(Format::RGB_32_f));
+   support.sampling.reset(underlyingType(Format::D_16));
+   support.sampling.reset(underlyingType(Format::D_24));
+   support.sampling.reset(underlyingType(Format::D_24_8));
+   support.sampling.reset(underlyingType(Format::D_32));
+   support.sampling.reset(underlyingType(Format::DS_16_8));
+   support.sampling.reset(underlyingType(Format::RGB_5_6_5));
+   support.sampling.reset(underlyingType(Format::BGR_5_6_5));
+   support.sampling.reset(underlyingType(Format::BGR_8));
+   support.sampling.reset(underlyingType(Format::BGR_8_sRGB));
+   support.sampling.reset(underlyingType(Format::BGR_8_sn));
+   support.sampling.reset(underlyingType(Format::BGR_8_u));
+   support.sampling.reset(underlyingType(Format::BGR_8_s));
+   support.sampling.reset(underlyingType(Format::BGRA_8_sn));
+   support.sampling.reset(underlyingType(Format::BGRA_8_u));
+   support.sampling.reset(underlyingType(Format::BGRA_8_s));
+   support.sampling.reset(underlyingType(Format::BGRA_5_5_5_1));
+   support.sampling.reset(underlyingType(Format::ARGB_1_5_5_5));
+   support.sampling.reset(underlyingType(Format::ABGR_1_5_5_5));
+   support.sampling.reset(underlyingType(Format::BGRA_10_10_10_2));
+   support.sampling.reset(underlyingType(Format::BC1_RGB));
+   support.sampling.reset(underlyingType(Format::BC1_RGB_sRGB));
+   support.sampling.reset(underlyingType(Format::BC2_RGBA_pRGB));
+   support.sampling.reset(underlyingType(Format::BC3_RGBA_pRGB));
+   support.sampling.reset(underlyingType(Format::ETC2_R_11));
+   support.sampling.reset(underlyingType(Format::ETC2_R_11_sn));
+   support.sampling.reset(underlyingType(Format::ETC2_RG_11));
+   support.sampling.reset(underlyingType(Format::ETC2_RG_11_sn));
+   support.sampling.reset(underlyingType(Format::ETC2_RGB_8));
+   support.sampling.reset(underlyingType(Format::ETC2_RGB_8_sRGB));
+   support.sampling.reset(underlyingType(Format::ETC2_RGBA_8));
+   support.sampling.reset(underlyingType(Format::ETC2_RGBA_8_sRGB));
+   support.sampling.reset(underlyingType(Format::ETC2_RGB8_A1));
+   support.sampling.reset(underlyingType(Format::ETC2_RGB8_A1_sRGB));
+   support.sampling.reset(underlyingType(Format::PVRTC_RGB_2));
+   support.sampling.reset(underlyingType(Format::PVRTC_RGB_2_sRGB));
+   support.sampling.reset(underlyingType(Format::PVRTC_RGB_4));
+   support.sampling.reset(underlyingType(Format::PVRTC_RGB_4_sRGB));
+   support.sampling.reset(underlyingType(Format::PVRTC_RGBA_2));
+   support.sampling.reset(underlyingType(Format::PVRTC_RGBA_2_sRGB));
+   support.sampling.reset(underlyingType(Format::PVRTC_RGBA_4));
+   support.sampling.reset(underlyingType(Format::PVRTC_RGBA_4_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_4x4));
+   support.sampling.reset(underlyingType(Format::ASTC_5x4));
+   support.sampling.reset(underlyingType(Format::ASTC_5x5));
+   support.sampling.reset(underlyingType(Format::ASTC_6x5));
+   support.sampling.reset(underlyingType(Format::ASTC_6x6));
+   support.sampling.reset(underlyingType(Format::ASTC_8x5));
+   support.sampling.reset(underlyingType(Format::ASTC_8x6));
+   support.sampling.reset(underlyingType(Format::ASTC_8x8));
+   support.sampling.reset(underlyingType(Format::ASTC_10x5));
+   support.sampling.reset(underlyingType(Format::ASTC_10x6));
+   support.sampling.reset(underlyingType(Format::ASTC_10x8));
+   support.sampling.reset(underlyingType(Format::ASTC_10x10));
+   support.sampling.reset(underlyingType(Format::ASTC_12x10));
+   support.sampling.reset(underlyingType(Format::ASTC_12x12));
+   support.sampling.reset(underlyingType(Format::ASTC_4x4_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_5x4_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_5x5_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_6x5_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_6x6_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_8x5_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_8x6_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_8x8_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_10x5_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_10x6_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_10x8_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_10x10_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_12x10_sRGB));
+   support.sampling.reset(underlyingType(Format::ASTC_12x12_sRGB));
+#endif
+#if defined(EN_PLATFORM_IOS)
+
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
+   // Supported since IOS 9.0
+   if (SYSTEM_VERSION_LESS_THAN(@"9.0"))
+      support.sampling.reset(underlyingType(Format::DS_32_f_8));
+
+   // Unsupported
+   support.sampling.reset(underlyingType(Format::RGB_8));
+   support.sampling.reset(underlyingType(Format::RGB_8_sRGB));
+   support.sampling.reset(underlyingType(Format::RGB_8_sn));
+   support.sampling.reset(underlyingType(Format::RGB_8_u));
+   support.sampling.reset(underlyingType(Format::RGB_8_s));
+   support.sampling.reset(underlyingType(Format::RGB_16));
+   support.sampling.reset(underlyingType(Format::RGB_16_sn));
+   support.sampling.reset(underlyingType(Format::RGB_16_u));
+   support.sampling.reset(underlyingType(Format::RGB_16_s));
+   support.sampling.reset(underlyingType(Format::RGB_16_hf));
+   support.sampling.reset(underlyingType(Format::RGB_32_u));
+   support.sampling.reset(underlyingType(Format::RGB_32_s));
+   support.sampling.reset(underlyingType(Format::RGB_32_f));
+   support.sampling.reset(underlyingType(Format::D_16));
+   support.sampling.reset(underlyingType(Format::D_24));
+   support.sampling.reset(underlyingType(Format::D_24_8));
+   support.sampling.reset(underlyingType(Format::D_32));
+   support.sampling.reset(underlyingType(Format::DS_16_8));
+   support.sampling.reset(underlyingType(Format::DS_24_8));
+   support.sampling.reset(underlyingType(Format::RGB_5_6_5));
+   support.sampling.reset(underlyingType(Format::BGR_8));
+   support.sampling.reset(underlyingType(Format::BGR_8_sRGB));
+   support.sampling.reset(underlyingType(Format::BGR_8_sn));
+   support.sampling.reset(underlyingType(Format::BGR_8_u));
+   support.sampling.reset(underlyingType(Format::BGR_8_s));
+   support.sampling.reset(underlyingType(Format::BGRA_8_sn));
+   support.sampling.reset(underlyingType(Format::BGRA_8_u));
+   support.sampling.reset(underlyingType(Format::BGRA_8_s));
+   support.sampling.reset(underlyingType(Format::ARGB_1_5_5_5));
+   support.sampling.reset(underlyingType(Format::BGRA_10_10_10_2));
+   support.sampling.reset(underlyingType(Format::BC1_RGB));
+   support.sampling.reset(underlyingType(Format::BC1_RGB_sRGB));
+   support.sampling.reset(underlyingType(Format::BC1_RGBA));
+   support.sampling.reset(underlyingType(Format::BC1_RGBA_sRGB));
+   support.sampling.reset(underlyingType(Format::BC2_RGBA_pRGB));
+   support.sampling.reset(underlyingType(Format::BC2_RGBA));
+   support.sampling.reset(underlyingType(Format::BC2_RGBA_sRGB));
+   support.sampling.reset(underlyingType(Format::BC3_RGBA_pRGB));
+   support.sampling.reset(underlyingType(Format::BC3_RGBA));
+   support.sampling.reset(underlyingType(Format::BC3_RGBA_sRGB));
+   support.sampling.reset(underlyingType(Format::BC4_R));
+   support.sampling.reset(underlyingType(Format::BC4_R_sn));
+   support.sampling.reset(underlyingType(Format::BC5_RG));
+   support.sampling.reset(underlyingType(Format::BC5_RG_sn));
+   support.sampling.reset(underlyingType(Format::BC6H_RGB_f));
+   support.sampling.reset(underlyingType(Format::BC6H_RGB_uf));
+   support.sampling.reset(underlyingType(Format::BC7_RGBA));
+   support.sampling.reset(underlyingType(Format::BC7_RGBA_sRGB));
+#endif
+     
+   // Textures support - Render Targets
+   
+   // TODO: Finish
+     
+   // Input Assembler
+   support.maxInputAssemblerAttributesCount = 31;
+
+   // Texture
+//   support.maxTextureSize;                    // Maximum 2D/1D texture image dimension
+//   support.maxTextureRectSize;                // Maximum size of rectangle texture dimmension
+//   support.maxTextureCubeSize;                // Maximum cube map texture image dimension
+//   support.maxTexture3DSize;                  // Maximum 3D texture image dimension
+//   support.maxTextureLayers;                  // Maximum number of layers for texture arrays
+//   support.maxTextureBufferSize;              // No. of addressable texels for buffer textures
+//   support.maxTextureLodBias;                 // Maximum absolute texture level of detail bias
+//
+//   // Sampler
+//   support.maxAnisotropy;                     // Maximum anisotropic filtering factor
+      
+   // Rasterizer
+#if defined(EN_PLATFORM_IOS)
+   if ([device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily1_v1])
+      support.maxColorAttachments = 4;
+   else
+      support.maxColorAttachments = 8;
+#endif
+#if defined(EN_PLATFORM_OSX)
+      support.maxColorAttachments = 8;
+#endif
+   
+   
    //for(uint16 i=0; i<underlyingType(Attribute::Count); ++i)
    //   if (api.release >= AttributeVersion[i].release)
 
    //if ([device supportsFeatureSet:MTLFeatureSet_tvOS_GPUFamily2_v1])
    //   {
-   //   }
-      
+   //   } 
    }
 
    uint32 MetalDevice::screens(void)
@@ -605,54 +817,11 @@ namespace en
    return ptr_dynamic_cast<Window>(ptr);
    }
 
-   Ptr<Texture> MetalDevice::create(const TextureState state)
-   {
-   Ptr<Texture> texture = nullptr;
-   
-   texture = ptr_dynamic_cast<Texture, TextureMTL>(new TextureMTL(device, state));
-   
-   return texture;
-   }
+
       
 
 
 
-#if defined(EN_PLATFORM_WINDOWS) 
-#include "core/rendering/d3d12/dx12Raster.h"
-#endif
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-//#include "core/rendering/metal/mtlRaster.h"
-#endif
-#if defined(EN_PLATFORM_WINDOWS) 
-//#include "core/rendering/vulkan/vkRaster.h"
-#endif
-
-   Ptr<RasterState> MetalDevice::create(const RasterStateInfo& state)
-   {
-   // TODO: Finish !
-   
-//   return ptr_dynamic_cast<RasterState, RasterStateD3D12>(new RasterStateD3D12(state));
-//   return ptr_dynamic_cast<RasterState, RasterStateVK>(new RasterStateVK(state));
-
-//   return ptr_dynamic_cast<RasterState, RasterStateMTL>(new RasterStateMTL(state));
-   return Ptr<RasterState>(nullptr);
-   }
-   
-   Ptr<BlendState> MetalDevice::create(const BlendStateInfo& state,
-                                       const uint32 attachments,
-                                       const BlendAttachmentInfo* color)
-   {
-   // We don't support Logic Operations for now
-   // for(uint32 i=0; i<attachments; ++i)
-   //    assert( !(color[0].logicOperation && color[i].blending) );
-         
-   return ptr_dynamic_cast<BlendState, BlendStateMTL>(new BlendStateMTL(state, attachments, color));
-   }
-      
-
-
-
-   
    
    
    MetalAPI::MetalAPI(void) :

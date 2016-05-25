@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Metal Viewport-Stencil State.
+ Module      : Metal Shader.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,31 +13,29 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_METAL_VIEWPORT_STENCIL_STATE
-#define ENG_CORE_RENDERING_METAL_VIEWPORT_STENCIL_STATE
+#ifndef ENG_CORE_RENDERING_METAL_SHADER
+#define ENG_CORE_RENDERING_METAL_SHADER
 
 #include "core/defines.h"
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/metal.h"
-#include "core/rendering/viewport.h"
+#include "core/rendering/shader.h"
 
 namespace en
 {
    namespace gpu
    {
-   class ViewportStateMTL : public ViewportState
+   class ShaderMTL : public Shader
       {
       public:
-      MTLViewport viewport;
-      MTLScissorRect scissor;
-
-      ViewportStateMTL();
-      ViewportStateMTL(const uint32 count,
-                       const ViewportStateInfo* viewports,
-                       const ScissorStateInfo* scissors);
-      virtual ~ViewportStateMTL();
+      // TODO: In future separate library objects for reuse and batching of functions
+      id <MTLLibrary> library;
+      id <MTLFunction> function;
+      
+      ShaderMTL(id <MTLLibrary> library, id <MTLFunction> function);
+      virtual ~ShaderMTL();
       };
    }
 }

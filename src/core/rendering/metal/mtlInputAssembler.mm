@@ -117,7 +117,7 @@ namespace en
       MTLVertexFormatInvalid               ,  // v4s10_10_10_2_rev      (unsupported)
       };
 
-   // Size of each attribute in memory taking into notice required padding
+   // Size of each attribute in memory taking into notice required padding (4bytes on Metal)
    const uint8 TranslateAttributeSize[underlyingType(Attribute::Count)] =
       {
       0,    // None           
@@ -136,10 +136,10 @@ namespace en
       0,    // u64                    (unsupported)
       0,    // s64                    (unsupported)
       0,    // f64                    (unsupported)
-      2,    // v2u8_norm             
-      2,    // v2s8_norm             
-      2,    // v2u8                  
-      2,    // v2s8                  
+      4,    // v2u8_norm              (2 bytes, 2 bytes padding)
+      4,    // v2s8_norm              (2 bytes, 2 bytes padding)
+      4,    // v2u8                   (2 bytes, 2 bytes padding)
+      4,    // v2s8                   (2 bytes, 2 bytes padding)
       4,    // v2u16_norm            
       4,    // v2s16_norm            
       4,    // v2u16                 
@@ -151,19 +151,19 @@ namespace en
       0,    // v2u64                  (unsupported)
       0,    // v2s64                  (unsupported)
       0,    // v2f64                  (unsupported)
-      3,    // v3u8_norm             
+      4,    // v3u8_norm              (3 bytes, 1 byte padding)
       0,    // v3u8_srgb              (unsupported)
-      3,    // v3s8_norm             
-      3,    // v3u8                  
-      3,    // v3s8                  
-      6,    // v3u16_norm            
-      6,    // v3s16_norm            
-      6,    // v3u16                 
-      6,    // v3s16                 
-      6,    // v3f16                 
-      6,    // v3u32                 
-      6,    // v3s32                 
-      6,    // v3f32                 
+      4,    // v3s8_norm              (3 bytes, 1 byte padding)
+      4,    // v3u8                   (3 bytes, 1 byte padding)
+      4,    // v3s8                   (3 bytes, 1 byte padding)
+      8,    // v3u16_norm             (6 bytes, 2 bytes padding)
+      8,    // v3s16_norm             (6 bytes, 2 bytes padding)
+      8,    // v3u16                  (6 bytes, 2 bytes padding)
+      8,    // v3s16                  (6 bytes, 2 bytes padding)
+      8,    // v3f16                  (6 bytes, 2 bytes padding)
+      12,   // v3u32
+      12,   // v3s32
+      12,   // v3f32                  
       0,    // v3u64                  (unsupported)
       0,    // v3s64                  (unsupported)
       0,    // v3f64                  (unsupported)

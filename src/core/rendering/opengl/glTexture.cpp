@@ -15,9 +15,11 @@
 
 #include "core/rendering/opengl/opengl.h"
 #include "core/rendering/opengl/glTexture.h"
-#include "core/rendering/device.h"
+#include "core/rendering/opengl/glDevice.h"
 
-#include "core/rendering/rendering.hpp" // OpenGL versions defines
+#if !defined(EN_PLATFORM_OSX)
+
+//#include "core/rendering/rendering.hpp" // OpenGL versions defines
 #include "core/rendering/context.h" // Profile
 
 namespace en
@@ -65,11 +67,11 @@ namespace en
       OpenGL_ES_3_0                  ,   // Texture2DArray            
     //OpenGL_ES_Unsupported          ,   // Texture2DRectangle
       OpenGL_ES_3_1                  ,   // Texture2DMultisample      
-      OpenGL_ES_Unsupported          ,   // Texture2DMultisampleArray 
+      OpenGL_ES_3_2                  ,   // Texture2DMultisampleArray
       OpenGL_ES_3_0                  ,   // Texture3D                 
-    //OpenGL_ES_Unsupported          ,   // TextureBuffer
+    //OpenGL_ES_3_2                  ,   // TextureBuffer
       OpenGL_ES_2_0                  ,   // TextureCubeMap            
-      OpenGL_ES_Unsupported              // TextureCubeMapArray       
+      OpenGL_ES_3_2                      // TextureCubeMapArray
       };
 
 #endif
@@ -1152,3 +1154,5 @@ namespace en
 
    }
 }
+
+#endif

@@ -94,8 +94,9 @@ namespace en
    CommonDevice::CommonDevice()
    {
    support.attribute.reset();
-   support.format.reset();
-   
+   support.sampling.reset();
+   support.rendering.reset();
+      
    // Input Assembler
    support.maxInputAssemblerAttributesCount = 0;
 
@@ -110,6 +111,11 @@ namespace en
 
    // Sampler
    support.maxAnisotropy                    = 0.0f;
+   
+   // Rasterizer
+   support.maxColorAttachments              = 0;
+   
+   
 
 //   maxRenderTargets               = 0;
 //   maxClipDistances               = 0;

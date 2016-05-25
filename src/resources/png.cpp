@@ -13,6 +13,9 @@
 #include "utilities/utilities.h"
 #include "resources/context.h"
 #include "resources/png.h"
+
+#include "core/rendering/device.h"
+
 #if defined(EN_PLATFORM_WINDOWS)
 #include "zlib-1.2.8/zlib.h"
 #endif
@@ -377,7 +380,7 @@ namespace en
       return false;
 
    // Alloc buffers for IDAT chunks data and decompressed stream
-   uint32 size     = (settings.width * settings.height * Gpu.texture.bitsPerTexel(settings.format)) / 8;
+   uint32 size     = (settings.width * settings.height * Graphics->primaryDevice()->texelSize(settings.format));
    uint8* input    = new uint8[size + settings.height];
    uint8* inflated = new uint8[size + settings.height];
    uint32 seek     = 0;
@@ -503,7 +506,7 @@ namespace en
 
    // Revert filters line by line
    uint8* buffer     = static_cast<uint8*>(ptr);
-   uint32 texelSize  = Gpu.texture.bitsPerTexel(settings.format) / 8;
+   uint32 texelSize  = Graphics->primaryDevice()->texelSize(settings.format);
    uint32 lineSize   = settings.width * texelSize;
    uint32 inOffset   = 0;
    uint32 outOffset  = 0;
@@ -1062,7 +1065,7 @@ namespace en
    //   settings.type = gpu::Texture2DRectangle;
 
    // Alloc buffers for IDAT chunks data and decompressed stream
-   uint32 size     = (settings.width * settings.height * Gpu.texture.bitsPerTexel(settings.format)) / 8;
+   uint32 size     = (settings.width * settings.height * Graphics->primaryDevice()->texelSize(settings.format));
    uint8* input    = new uint8[size + settings.height];
    uint8* inflated = new uint8[size + settings.height];
    uint32 seek     = 0;
@@ -1195,7 +1198,7 @@ namespace en
 
 
    // Create texture in gpu
-   Ptr<gpu::Texture> texture = Gpu.texture.create(settings);
+   Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
@@ -1209,7 +1212,7 @@ namespace en
    DecodeState decoder;
    decoder.startLine        = 0;
    decoder.lines            = settings.height;
-   decoder.texelSize        = Gpu.texture.bitsPerTexel(settings.format) / 8;
+   decoder.texelSize        = Graphics->primaryDevice()->texelSize(settings.format);
    decoder.width            = settings.width;
    decoder.height           = settings.height;
    decoder.input            = inflated;

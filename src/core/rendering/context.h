@@ -16,6 +16,8 @@
 #ifndef ENG_CORE_RENDERING_CONTEXT
 #define ENG_CORE_RENDERING_CONTEXT
 
+#if !defined(EN_PLATFORM_OSX)
+
 #include "core/defines.h"
 #include "core/types.h"
 
@@ -54,6 +56,10 @@
 #include <OpenGL/gl3.h>               // OpenGL 3.0+
 #include <OpenGL/gl3ext.h>            // OpenGL 3.0+ Extensions
 #endif
+
+
+#if !defined(EN_PLATFORM_OSX)
+
 
 #include "core/rendering/opengl/opengl.h"
 #include "core/rendering/rendering.hpp"
@@ -909,5 +915,9 @@ void InitDisplaysInfo(void);
 
 extern gpu::Context GpuContext;
 }
+
+#endif
+
+#endif
 
 #endif

@@ -41,8 +41,9 @@ namespace en
          {
          // Formats
          bitset<underlyingType(Attribute::Count)> attribute; // Input Assembler Attribute Formats
-         bitset<underlyingType(Format::Count)> format;       // Texel Formats
-         
+         bitset<underlyingType(Format::Count)> sampling;     // Texel Formats - Sampling support
+         bitset<underlyingType(Format::Count)> rendering;    // Texel Formats - Rendering support
+            
          // Input Assembler
          uint8       maxInputAssemblerAttributesCount;  // Maximum number of input attributes
 
@@ -57,7 +58,12 @@ namespace en
 
          // Sampler
          float       maxAnisotropy;                     // Maximum anisotropic filtering factor
-            
+         
+         // Rasterizer
+         uint32      maxColorAttachments;               // Maximum number of color renderable textures
+         
+         
+         
 
 //         uint32      maxFramebufferColorAttachments; // Number of Framebuffer Color attachments
 //         uint32      maxRenderTargets;               // Maximum supported Render Targets count            
@@ -113,6 +119,8 @@ namespace en
                                          const uint32 usedBuffers,
                                          const AttributeDesc* attributes,
                                          const BufferDesc* buffers);
+         
+      virtual uint32 texelSize(const Format format);
       };
    }
 }

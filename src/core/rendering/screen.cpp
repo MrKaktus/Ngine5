@@ -35,6 +35,8 @@
 
 //#include "core/rendering/api.cpp"
 
+#if !defined(EN_PLATFORM_OSX)
+
 namespace en
 {
    namespace gpu
@@ -2090,3 +2092,5 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       }
    }
 }
+
+#endif

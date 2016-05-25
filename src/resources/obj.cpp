@@ -615,7 +615,7 @@ namespace en
       if (en::obj::optimizeIndexOrder)
          {
          srcMesh.optimized.resize(indexes, 0);
-         Forsyth::optimize(srcMesh.indexes, srcMesh.optimized, vertexes);
+         //Forsyth::optimize(srcMesh.indexes, srcMesh.optimized, vertexes);
          srcIndex = &srcMesh.optimized[0];
          }
    

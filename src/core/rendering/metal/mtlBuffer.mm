@@ -28,23 +28,27 @@ namespace en
       handle(nil),
       BufferCommon(type)
    {
-   MTLResourceOptions options = MTLCPUCacheModeDefaultCache; // MTLCPUCacheModeWriteCombined
+   MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift); // MTLCPUCacheModeWriteCombined
    
    // TODO: In future specify based on passed Usage type.
 #if defined(EN_PLATFORM_IOS)
-   options |= MTLStorageModeShared;
+   options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
 #else
-   options |= MTLStorageModePrivate;
+   options |= (MTLStorageModePrivate << MTLResourceStorageModeShift);
 #endif
 
+#if defined(EN_PLATFORM_IOS)
    if (data)
       {
+      // TODO: On OSX Private buffer needs to be populated through use of Staging Buffer and BlitEncoder.
+      
       // Creates a MTLBuffer object by copying data from an existing storage allocation into a new allocation.
       handle = [device newBufferWithBytes:data
                                    length:(NSUInteger)size
                                   options:options];
       }
    else
+#endif
       {
       handle = [device newBufferWithLength:(NSUInteger)size
                                    options:options];

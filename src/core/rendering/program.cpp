@@ -24,6 +24,8 @@
 #include "core/rendering/opengl/gl33Sampler.h"
 #include "core/rendering/device.h"
 
+#if !defined(EN_PLATFORM_OSX)
+
 namespace en
 {
    namespace gpu
@@ -1569,4 +1571,4 @@ template<> bool (*ProxyInterface<en::gpu::ParameterDescriptor>::destroy)(en::gpu
 template<> bool (*ProxyInterface<en::gpu::BlockDescriptor>::destroy)(en::gpu::BlockDescriptor* const)         = en::gpu::gl20::BlockDestroy;
 
 
- 
+#endif

@@ -131,7 +131,7 @@ namespace en
 
    Ptr<Buffer> FrustumSettings::wireframe(void) const
    {
-   assert(Gpu.screen.created());
+   //assert(Gpu.screen.created());
 
    // Calculate distance of frustum edges for near and far planes
    float4 nearEdges = tangents * nearPlane;

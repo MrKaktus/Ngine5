@@ -61,11 +61,11 @@ namespace en
    column[13] = col13;
    column[14] = col14;
    column[15] = col15;
-      
-   // TODO: In the future, if more Input Attributes will be allowed,
-   //       set all extra ones to None. App will still be able to set
-   //       them manually after construction.
-   assert( MaxInputAssemblerAttributesCount <= 16 );
+   
+   // This shouldn't be neccessary, all attributes should default to None 
+   if (MaxInputAssemblerAttributesCount > 16)
+      for(uint32 i=16; i<MaxInputAssemblerAttributesCount; ++i)
+         column[i] = Attribute::None;
    }
 
    uint32 Formatting::elementSize(void) const
@@ -102,12 +102,15 @@ namespace en
    uint32 usedBuffers = 1;
 
    // Create temporary buffers
+   uint32 offsetInElement = 0;
    AttributeDesc* attributes = new AttributeDesc[usedAttributes];
    for(uint32 i=0; i<usedAttributes; ++i)
       {
-      attributes[i].format = common->formatting.column[usedAttributes];
+      Attribute attribute = common->formatting.column[i];
+      attributes[i].format = attribute;
       attributes[i].buffer = 0;
-      attributes[i].offset = 0;
+      attributes[i].offset = offsetInElement;
+      offsetInElement += TranslateAttributeSize[underlyingType(attribute)];
       }
 
    BufferDesc* buffers = new BufferDesc[usedBuffers];

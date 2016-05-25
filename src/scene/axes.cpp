@@ -162,10 +162,11 @@ namespace en
 
    Axes::Axes() :
       buffer(en::ResourcesContext.defaults.enAxes),
-      program(nullptr),
-      enModelMatrix(nullptr),
+      //program(nullptr),
+      //enModelMatrix(nullptr),
       Drawable()
    {
+#if !defined(EN_PLATFORM_OSX)
    Effect effect(eGLSL_1_40, "enAxes");
 
 
@@ -282,13 +283,14 @@ namespace en
    program       = effect.program();
    enModelMatrix = program.parameter("enModelMatrix");
    enScene       = program.block("enScene");
+#endif
    }
    
    void Axes::draw(const Ptr<Buffer> sceneParameters, const uint32 instances)
    {
-   enModelMatrix.set(*pWorldMatrix);
-   enScene.set(sceneParameters);
-   program.draw(buffer, LineStripes, 3, instances);
+   //enModelMatrix.set(*pWorldMatrix);
+   //enScene.set(sceneParameters);
+   //program.draw(buffer, LineStripes, 3, instances);
    }
 
    }

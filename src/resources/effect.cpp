@@ -13,6 +13,8 @@
 #include "resources/context.h"
 #include "resources/effect.h"
 
+#if !defined(EN_PLATFORM_OSX)
+
 namespace en
 {
    //enum ShadingLanguageVersion
@@ -173,3 +175,5 @@ namespace en
    }
 
 }
+
+#endif

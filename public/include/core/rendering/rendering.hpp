@@ -23,6 +23,8 @@ using namespace std;
 #include "core/defines.h"
 #include "core/types.h"
 
+#if !defined(EN_PLATFORM_OSX)
+
 #include "utilities/Nversion.h"
 
 #include "core/rendering/state.h"
@@ -208,7 +210,7 @@ namespace en
           struct Program
                  {
                  // Creates program
-                 en::gpu::Program create(const vector<en::gpu::Shader>& shaders);       
+                 en::gpu::Program create(const vector<en::gpu::Shader>& shaders);
                  } program;
           
           // Culling
@@ -375,5 +377,6 @@ namespace en
 
 extern gpu::Interface Gpu;
 }
+#endif
 
 #endif

@@ -13,6 +13,7 @@
 
 */
 
+#include "core/rendering/common/device.h"
 #include "core/rendering/common/texture.h"
 #include <string.h> // memcmp
 
@@ -544,6 +545,12 @@ namespace en
    Ptr<TextureView> TextureCommon::view() const
    {
    return ptr_dynamic_cast<TextureView, TextureViewCommon>(Ptr<TextureViewCommon>(textureView));
+   }
+
+
+   uint32 CommonDevice::texelSize(const Format format)
+   {
+   return TextureCompressionInfo[underlyingType(format)].size;
    }
 
    }

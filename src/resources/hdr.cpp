@@ -19,6 +19,8 @@
 
 #include "core/types/half.h"
 
+#include "core/rendering/device.h"
+
 #include <cstddef>
 #include <string>
 using namespace std;
@@ -336,7 +338,7 @@ namespace en
    settings.type   = TextureType::Texture2D;
 
    // Create texture in gpu
-   Ptr<Texture> texture = Gpu.texture.create(settings);
+   Ptr<Texture> texture = Graphics->primaryDevice()->create(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";

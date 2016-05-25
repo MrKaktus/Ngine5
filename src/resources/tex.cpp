@@ -14,6 +14,9 @@
 #include "core/log/log.h"
 #include "utilities/utilities.h"
 #include "resources/context.h"
+
+#include "core/rendering/device.h"
+
 #if defined(EN_PLATFORM_WINDOWS)
 #include "zlib-1.2.8/zlib.h"
 #endif
@@ -114,7 +117,7 @@ namespace en
       return nullptr;
       }
    assert( header.textures );
-   assert( Gpu.screen.created() );
+   //assert( Gpu.screen.created() );
 
    // Alllocate textures array
    TextureHeader_v1* textures = new TextureHeader_v1[header.textures];
@@ -137,7 +140,7 @@ namespace en
                             textures[i].depth,
                             textures[i].layers,
                             textures[i].samples);
-      out[i] = Gpu.texture.create(settings);
+      out[i] = Graphics->primaryDevice()->create(settings);
 
       // TODO: Add proper support for error reporting
       assert( out[i] );

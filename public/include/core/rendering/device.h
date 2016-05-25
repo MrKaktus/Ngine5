@@ -27,6 +27,8 @@
 #include "core/rendering/texture.h"
 #include "core/rendering/renderPass.h"
 #include "core/rendering/multisampling.h"
+#include "core/rendering/viewport.h"
+#include "core/rendering/shader.h"
 
 #include "utilities/Nversion.h"
 
@@ -198,10 +200,11 @@ namespace en
                                  const uint32 size,
                                  const void* data = nullptr) = 0;
       
-      
-      
-      
       virtual Ptr<Texture> create(const TextureState state) = 0;
+      
+      virtual Ptr<Shader>  create(const string& source, const string& entrypoint) = 0;
+      
+      
       
       virtual Ptr<CommandBuffer> createCommandBuffer(void) = 0; // Create command buffer
 
@@ -218,6 +221,9 @@ namespace en
                                           const uint32 usedBuffers,
                                           const AttributeDesc* attributes,
                                           const BufferDesc* buffers) = 0;
+
+
+
 
 
       // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
@@ -251,10 +257,46 @@ namespace en
                                      const Ptr<Texture> framebuffer,
                                      const Ptr<DepthStencilAttachment> depthStencil) = 0;
 
+
+
+
+
       virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc) = 0;
       virtual Ptr<MultisamplingState> create(const uint32 samples,
                                              const bool enableAlphaToCoverage,
                                              const bool enableAlphaToOne) = 0;
+         
+      virtual Ptr<RasterState>        create(const RasterStateInfo& state) = 0;
+
+      virtual Ptr<BlendState>         create(const BlendStateInfo& state,
+                                             const uint32 attachments,
+                                             const BlendAttachmentInfo* color) = 0;
+      
+      virtual Ptr<ViewportState>      create(const uint32 count,
+                                             const ViewportStateInfo* viewports,
+                                             const ScissorStateInfo* scissors) = 0;
+
+      virtual Ptr<Pipeline> create(const Ptr<RenderPass> renderPass,
+                                   const Ptr<InputAssembler> inputAssembler,
+                                   const Ptr<ViewportState>  viewportState,
+                                   const Ptr<RasterState>    rasterState,
+                                   const Ptr<MultisamplingState> multisamplingState,
+                                   const Ptr<DepthStencilState> depthStencilState,
+                                   const Ptr<BlendState>     blendState,
+                                   const Ptr<Shader>         vertex,
+                                   const Ptr<Shader>         fragment
+                                   /*const Ptr<PipelineLayout> pipelineLayout*/) = 0;
+
+
+
+
+
+      // Capabilities query
+      //-------------------
+      
+      // Size of texel in bytes, based on the given format. For compressed formats, it's texel block size.
+      virtual uint32 texelSize(const Format format) = 0;
+
 
       virtual ~GpuDevice() {};                            // Polymorphic deletes require a virtual base destructor
       };

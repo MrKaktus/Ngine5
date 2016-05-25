@@ -27,6 +27,8 @@
 
 //#include "core/rendering/api.cpp"
 
+#if !defined(EN_PLATFORM_OSX)
+
 namespace en
 {
    namespace gpu
@@ -474,3 +476,6 @@ void   (*en::gpu::Interface::display)(void)                                     
 //bool   (*en::gpu::Interface::Support::Input::type)(const en::gpu::ColumnType type)          = NULL; // Checks if specified input type is supported
 //bool   (*en::gpu::Interface::Support::Texture::type)(const en::gpu::TextureType type)       = NULL; // Checks if specified texture type is supported
 //bool   (*en::gpu::Interface::Support::Texture::format)(const en::gpu::TextureFormat format) = NULL; // Checks if specified texture format is supported
+
+
+#endif

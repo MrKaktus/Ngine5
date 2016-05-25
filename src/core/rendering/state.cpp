@@ -17,6 +17,8 @@
 #include "core/rendering/context.h"
 #include "core/rendering/device.h"
 
+#if !defined(EN_PLATFORM_OSX)
+
 namespace en
 {
    namespace gpu
@@ -564,3 +566,5 @@ namespace en
       }
    }
 }
+
+#endif

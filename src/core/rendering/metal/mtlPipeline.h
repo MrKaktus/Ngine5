@@ -25,6 +25,7 @@
 
 #include "core/rendering/metal/mtlDepthStencil.h"
 #include "core/rendering/metal/mtlRaster.h"
+#include "core/rendering/metal/mtlViewport.h"
 
 namespace en
 {
@@ -37,7 +38,8 @@ namespace en
 
       // Metal Dynamic State (Static in Vulkan)
       Ptr<DepthStencilStateMTL> depthStencil;
-      RasterStateMTL raster;
+      RasterStateMTL   raster;
+      ViewportStateMTL viewport;
       
       PipelineMTL(const id<MTLDevice> device, MTLRenderPipelineDescriptor* desc, NSError** result);
       virtual ~PipelineMTL();

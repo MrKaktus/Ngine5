@@ -18,28 +18,57 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlViewport.h"
+#include "core/rendering/metal/mtlDevice.h"
 #include "core/rendering/state.h"
 
 namespace en
 {
    namespace gpu
-   { 
+   {
+   ViewportStateMTL::ViewportStateMTL()
+   {
+   viewport.originX = 0.0f;
+   viewport.originY = 0.0f;
+   viewport.width   = 0.0f;
+   viewport.height  = 0.0f;
+   viewport.znear   = 0.0f;
+   viewport.zfar    = 0.0f;
+   scissor.x        = 0;
+   scissor.y        = 0;
+   scissor.width    = 0;
+   scissor.height   = 0;
+   }
+   
    ViewportStateMTL::ViewportStateMTL(const uint32 count, 
                                       const ViewportStateInfo* viewports,
                                       const ScissorStateInfo* scissors)
    {
+   assert( count );
+   assert( viewports );
+   assert( scissors );
+   
    viewport.originX = static_cast<double>(viewports[0].rect.x);
    viewport.originY = static_cast<double>(viewports[0].rect.y);
    viewport.width   = static_cast<double>(viewports[0].rect.z);
    viewport.height  = static_cast<double>(viewports[0].rect.w);
    viewport.znear   = static_cast<double>(viewports[0].depthRange.x);
    viewport.zfar    = static_cast<double>(viewports[0].depthRange.y);
-
-   // Save it on creation of Render Command Encoder 
+   scissor.x        = static_cast<NSUInteger>(scissors[0].x);
+   scissor.y        = static_cast<NSUInteger>(scissors[0].y);
+   scissor.width    = static_cast<NSUInteger>(scissors[0].width);
+   scissor.height   = static_cast<NSUInteger>(scissors[0].height);
    }
 
    ViewportStateMTL::~ViewportStateMTL()
    {
+   }
+   
+      
+   Ptr<ViewportState> MetalDevice::create(const uint32 count,
+                                          const ViewportStateInfo* viewports,
+                                          const ScissorStateInfo* scissors)
+   {
+   return ptr_dynamic_cast<ViewportState, ViewportStateMTL>(new ViewportStateMTL(count, viewports, scissors));
    }
    
    }

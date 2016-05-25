@@ -13,8 +13,10 @@
 
 #include <math.h>
 
-#include "core/rendering/context.h"
+#include "core/rendering/device.h"
 #include "resources/forsyth.h"
+
+#if !defined(EN_PLATFORM_OSX)
 
 namespace en
 {
@@ -104,7 +106,7 @@ namespace en
       return -1.0f;
    
    float score = 0.0f;
-   if (position < GpuContext.support.postTransformVertexCacheSize)
+   if (position < Graphics->primaryDevice()->support.postTransformVertexCacheSize)
       score += precomputedCacheScore[position];
    
    if (faces < 64)
@@ -311,3 +313,5 @@ namespace en
 
    }
 }
+
+#endif

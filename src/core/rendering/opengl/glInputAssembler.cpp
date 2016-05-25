@@ -32,7 +32,7 @@ namespace en
    //
    // GL_BGRA can be replaced by 4 is formatting can be deduced from type.
    const AttributeTranslation TranslateAttribute[underlyingType(Attribute::Count)] =
-      { // Size Col Normalize Int 64bit Format
+      { // Size Col Norm Int    64bit  Format
       { 0,  0, 0,        0,     0,     0                               }, // None
       { 1,  1, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // u8_norm
       { 1,  1, GL_TRUE,  false, false, GL_BYTE                         }, // s8_norm
@@ -224,78 +224,78 @@ namespace en
    // (last verified for OpenGL ES 3.0)
    //
    const AttributeTranslation TranslateAttribute[underlyingType(Attribute::Count)] =
-      {
-      { OpenGL_ES_Unsupported, 0,  0, 0,        0,     0,     0                               }, // None
-      { OpenGL_ES_2_0,         1,  1, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // u8_norm
-      { OpenGL_ES_2_0,         1,  1, GL_TRUE,  false, false, GL_BYTE                         }, // s8_norm
-      { OpenGL_ES_3_0,         1,  1, GL_FALSE, true,  false, GL_UNSIGNED_BYTE                }, // u8
-      { OpenGL_ES_3_0,         1,  1, GL_FALSE, true,  false, GL_BYTE                         }, // s8
-      { OpenGL_ES_2_0,         2,  1, GL_TRUE,  false, false, GL_UNSIGNED_SHORT               }, // u16_norm
-      { OpenGL_ES_2_0,         2,  1, GL_TRUE,  false, false, GL_SHORT                        }, // s16_norm
-      { OpenGL_ES_3_0,         2,  1, GL_FALSE, true,  false, GL_UNSIGNED_SHORT               }, // u16
-      { OpenGL_ES_3_0,         2,  1, GL_FALSE, true,  false, GL_SHORT                        }, // s16
-      { OpenGL_ES_3_0,         2,  1, GL_FALSE, false, false, GL_HALF_FLOAT                   }, // f16
-      { OpenGL_ES_3_0,         4,  1, GL_FALSE, true,  false, GL_UNSIGNED_INT                 }, // u32
-      { OpenGL_ES_3_0,         4,  1, GL_FALSE, true,  false, GL_INT                          }, // s32
-      { OpenGL_ES_2_0,         4,  1, GL_FALSE, false, false, GL_FLOAT                        }, // f32
-      { OpenGL_ES_Unsupported, 8,  1, GL_FALSE, true,  true,  0                               }, // u64
-      { OpenGL_ES_Unsupported, 8,  1, GL_FALSE, true,  true,  0                               }, // s64
-      { OpenGL_ES_Unsupported, 8,  1, GL_FALSE, false, true,  /*GL_DOUBLE*/                   }, // f64
-      { OpenGL_ES_2_0,         2,  2, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // v2u8_norm
-      { OpenGL_ES_1_1,         2,  2, GL_TRUE,  false, false, GL_BYTE                         }, // v2s8_norm
-      { OpenGL_ES_3_0,         2,  2, GL_FALSE, true,  false, GL_UNSIGNED_BYTE                }, // v2u8
-      { OpenGL_ES_3_0,         2,  2, GL_FALSE, true,  false, GL_BYTE                         }, // v2s8
-      { OpenGL_ES_2_0,         4,  2, GL_TRUE,  false, false, GL_UNSIGNED_SHORT               }, // v2u16_norm
-      { OpenGL_ES_1_1,         4,  2, GL_TRUE,  false, false, GL_SHORT                        }, // v2s16_norm
-      { OpenGL_ES_3_0,         4,  2, GL_FALSE, true,  false, GL_UNSIGNED_SHORT               }, // v2u16
-      { OpenGL_ES_3_0,         4,  2, GL_FALSE, true,  false, GL_SHORT                        }, // v2s16
-      { OpenGL_ES_3_0,         4,  2, GL_FALSE, false, false, GL_HALF_FLOAT                   }, // v2f16
-      { OpenGL_ES_3_0,         8,  2, GL_FALSE, true,  false, GL_UNSIGNED_INT                 }, // v2u32
-      { OpenGL_ES_3_0,         8,  2, GL_FALSE, true,  false, GL_INT                          }, // v2s32
-      { OpenGL_ES_1_0,         8,  2, GL_FALSE, false, false, GL_FLOAT                        }, // v2f32
-      { OpenGL_ES_Unsupported, 16, 2, GL_FALSE, true,  true,  0                               }, // v2u64
-      { OpenGL_ES_Unsupported, 16, 2, GL_FALSE, true,  true,  0                               }, // v2s64
-      { OpenGL_ES_Unsupported, 16, 2, GL_FALSE, false, true,  /*GL_DOUBLE*/                   }, // v2f64
-      { OpenGL_ES_2_0,         3,  3, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // v3u8_norm
-      { OpenGL_ES_Unsupported, 3,  3, GL_TRUE,  false, false, 0                               }, // v3u8_srgb
-      { OpenGL_ES_1_1,         3,  3, GL_TRUE,  false, false, GL_BYTE                         }, // v3s8_norm
-      { OpenGL_ES_3_0,         3,  3, GL_FALSE, true,  false, GL_UNSIGNED_BYTE                }, // v3u8
-      { OpenGL_ES_3_0,         3,  3, GL_FALSE, true,  false, GL_BYTE                         }, // v3s8
-      { OpenGL_ES_2_0,         6,  3, GL_TRUE,  false, false, GL_UNSIGNED_SHORT               }, // v3u16_norm
-      { OpenGL_ES_1_1,         6,  3, GL_TRUE,  false, false, GL_SHORT                        }, // v3s16_norm
-      { OpenGL_ES_3_0,         6,  3, GL_FALSE, true,  false, GL_UNSIGNED_SHORT               }, // v3u16
-      { OpenGL_ES_3_0,         6,  3, GL_FALSE, true,  false, GL_SHORT                        }, // v3s16
-      { OpenGL_ES_3_0,         6,  3, GL_FALSE, false, false, GL_HALF_FLOAT                   }, // v3f16
-      { OpenGL_ES_3_0,         12, 3, GL_FALSE, true,  false, GL_UNSIGNED_INT                 }, // v3u32
-      { OpenGL_ES_3_0,         12, 3, GL_FALSE, true,  false, GL_INT                          }, // v3s32
-      { OpenGL_ES_1_0,         12, 3, GL_FALSE, false, false, GL_FLOAT                        }, // v3f32
-      { OpenGL_ES_Unsupported, 24, 3, GL_FALSE, true,  true,  0                               }, // v3u64
-      { OpenGL_ES_Unsupported, 24, 3, GL_FALSE, true,  true,  0                               }, // v3s64
-      { OpenGL_ES_Unsupported, 24, 3, GL_FALSE, false, true,  /*GL_DOUBLE*/                   }, // v3f64
-      { OpenGL_ES_2_0,         4,  4, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // v4u8_norm
-      { OpenGL_ES_1_1,         4,  4, GL_TRUE,  false, false, GL_BYTE                         }, // v4s8_norm
-      { OpenGL_ES_3_0,         4,  4, GL_FALSE, true,  false, GL_UNSIGNED_BYTE                }, // v4u8
-      { OpenGL_ES_3_0,         4,  4, GL_FALSE, true,  false, GL_BYTE                         }, // v4s8
-      { OpenGL_ES_2_0,         8,  4, GL_TRUE,  false, false, GL_UNSIGNED_SHORT               }, // v4u16_norm
-      { OpenGL_ES_1_1,         8,  4, GL_TRUE,  false, false, GL_SHORT                        }, // v4s16_norm
-      { OpenGL_ES_3_0,         8,  4, GL_FALSE, true,  false, GL_UNSIGNED_SHORT               }, // v4u16
-      { OpenGL_ES_3_0,         8,  4, GL_FALSE, true,  false, GL_SHORT                        }, // v4s16
-      { OpenGL_ES_3_0,         8,  4, GL_FALSE, false, false, GL_HALF_FLOAT                   }, // v4f16
-      { OpenGL_ES_3_0,         16, 4, GL_FALSE, true,  false, GL_UNSIGNED_INT                 }, // v4u32
-      { OpenGL_ES_3_0,         16, 4, GL_FALSE, true,  false, GL_INT                          }, // v4s32
-      { OpenGL_ES_1_0,         16, 4, GL_FALSE, false, false, GL_FLOAT                        }, // v4f32
-      { OpenGL_ES_Unsupported, 32, 4, GL_FALSE, true,  true,  0                               }, // v4u64
-      { OpenGL_ES_Unsupported, 32, 4, GL_FALSE, true,  true,  0                               }, // v4s64
-      { OpenGL_ES_Unsupported, 32, 4, GL_FALSE, false, true,  /*GL_DOUBLE*/                   }, // v4f64
-      { OpenGL_ES_Unsupported, 4,  3, GL_TRUE,  false, false, /*GL_UNSIGNED_INT_10F_11F_11F_REV*/ }, // v3f11_11_10
-      { OpenGL_ES_Unsupported, 4,  4, GL_TRUE,  false, false, 0                               }, // v4u10_10_10_2_norm
-      { OpenGL_ES_Unsupported, 4,  4, GL_TRUE,  false, false, 0                               }, // v4s10_10_10_2_norm
-      { OpenGL_ES_Unsupported, 4,  4, GL_FALSE, true,  false, 0                               }, // v4u10_10_10_2
-      { OpenGL_ES_Unsupported, 4,  4, GL_FALSE, true,  false, 0                               }, // v4s10_10_10_2
-      { OpenGL_ES_3_0,         4,  4, GL_TRUE,  false, false, GL_UNSIGNED_INT_2_10_10_10_REV  }, // v4u10_10_10_2_norm_rev  - Comaptiblity with D3D format ZYXW (see ARB_vertex_array_bgra)
-      { OpenGL_ES_3_0,         4,  4, GL_TRUE,  false, false, GL_INT_2_10_10_10_REV           }, // v4s10_10_10_2_norm_rev  - Comaptiblity with D3D format ZYXW 
-      { OpenGL_ES_Unsupported, 4,  4, GL_FALSE, true,  false, 0                               }, // v4u10_10_10_2_rev
-      { OpenGL_ES_Unsupported, 4,  4, GL_FALSE, true,  false, 0                               }  // v4s10_10_10_2_rev
+      { // Size Col Norm Int    64bit  Format
+      { 0,  0, 0,        0,     0,     0                               }, // None
+      { 1,  1, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // u8_norm
+      { 1,  1, GL_TRUE,  false, false, GL_BYTE                         }, // s8_norm
+      { 1,  1, GL_FALSE, true,  false, GL_UNSIGNED_BYTE                }, // u8
+      { 1,  1, GL_FALSE, true,  false, GL_BYTE                         }, // s8
+      { 2,  1, GL_TRUE,  false, false, GL_UNSIGNED_SHORT               }, // u16_norm
+      { 2,  1, GL_TRUE,  false, false, GL_SHORT                        }, // s16_norm
+      { 2,  1, GL_FALSE, true,  false, GL_UNSIGNED_SHORT               }, // u16
+      { 2,  1, GL_FALSE, true,  false, GL_SHORT                        }, // s16
+      { 2,  1, GL_FALSE, false, false, GL_HALF_FLOAT                   }, // f16
+      { 4,  1, GL_FALSE, true,  false, GL_UNSIGNED_INT                 }, // u32
+      { 4,  1, GL_FALSE, true,  false, GL_INT                          }, // s32
+      { 4,  1, GL_FALSE, false, false, GL_FLOAT                        }, // f32
+      { 8,  1, GL_FALSE, true,  true,  0                               }, // u64
+      { 8,  1, GL_FALSE, true,  true,  0                               }, // s64
+      { 8,  1, GL_FALSE, false, true,  /*GL_DOUBLE*/                   }, // f64
+      { 2,  2, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // v2u8_norm
+      { 2,  2, GL_TRUE,  false, false, GL_BYTE                         }, // v2s8_norm
+      { 2,  2, GL_FALSE, true,  false, GL_UNSIGNED_BYTE                }, // v2u8
+      { 2,  2, GL_FALSE, true,  false, GL_BYTE                         }, // v2s8
+      { 4,  2, GL_TRUE,  false, false, GL_UNSIGNED_SHORT               }, // v2u16_norm
+      { 4,  2, GL_TRUE,  false, false, GL_SHORT                        }, // v2s16_norm
+      { 4,  2, GL_FALSE, true,  false, GL_UNSIGNED_SHORT               }, // v2u16
+      { 4,  2, GL_FALSE, true,  false, GL_SHORT                        }, // v2s16
+      { 4,  2, GL_FALSE, false, false, GL_HALF_FLOAT                   }, // v2f16
+      { 8,  2, GL_FALSE, true,  false, GL_UNSIGNED_INT                 }, // v2u32
+      { 8,  2, GL_FALSE, true,  false, GL_INT                          }, // v2s32
+      { 8,  2, GL_FALSE, false, false, GL_FLOAT                        }, // v2f32
+      { 16, 2, GL_FALSE, true,  true,  0                               }, // v2u64
+      { 16, 2, GL_FALSE, true,  true,  0                               }, // v2s64
+      { 16, 2, GL_FALSE, false, true,  /*GL_DOUBLE*/                   }, // v2f64
+      { 3,  3, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // v3u8_norm
+      { 3,  3, GL_TRUE,  false, false, 0                               }, // v3u8_srgb
+      { 3,  3, GL_TRUE,  false, false, GL_BYTE                         }, // v3s8_norm
+      { 3,  3, GL_FALSE, true,  false, GL_UNSIGNED_BYTE                }, // v3u8
+      { 3,  3, GL_FALSE, true,  false, GL_BYTE                         }, // v3s8
+      { 6,  3, GL_TRUE,  false, false, GL_UNSIGNED_SHORT               }, // v3u16_norm
+      { 6,  3, GL_TRUE,  false, false, GL_SHORT                        }, // v3s16_norm
+      { 6,  3, GL_FALSE, true,  false, GL_UNSIGNED_SHORT               }, // v3u16
+      { 6,  3, GL_FALSE, true,  false, GL_SHORT                        }, // v3s16
+      { 6,  3, GL_FALSE, false, false, GL_HALF_FLOAT                   }, // v3f16
+      { 12, 3, GL_FALSE, true,  false, GL_UNSIGNED_INT                 }, // v3u32
+      { 12, 3, GL_FALSE, true,  false, GL_INT                          }, // v3s32
+      { 12, 3, GL_FALSE, false, false, GL_FLOAT                        }, // v3f32
+      { 24, 3, GL_FALSE, true,  true,  0                               }, // v3u64
+      { 24, 3, GL_FALSE, true,  true,  0                               }, // v3s64
+      { 24, 3, GL_FALSE, false, true,  /*GL_DOUBLE*/                   }, // v3f64
+      { 4,  4, GL_TRUE,  false, false, GL_UNSIGNED_BYTE                }, // v4u8_norm
+      { 4,  4, GL_TRUE,  false, false, GL_BYTE                         }, // v4s8_norm
+      { 4,  4, GL_FALSE, true,  false, GL_UNSIGNED_BYTE                }, // v4u8
+      { 4,  4, GL_FALSE, true,  false, GL_BYTE                         }, // v4s8
+      { 8,  4, GL_TRUE,  false, false, GL_UNSIGNED_SHORT               }, // v4u16_norm
+      { 8,  4, GL_TRUE,  false, false, GL_SHORT                        }, // v4s16_norm
+      { 8,  4, GL_FALSE, true,  false, GL_UNSIGNED_SHORT               }, // v4u16
+      { 8,  4, GL_FALSE, true,  false, GL_SHORT                        }, // v4s16
+      { 8,  4, GL_FALSE, false, false, GL_HALF_FLOAT                   }, // v4f16
+      { 16, 4, GL_FALSE, true,  false, GL_UNSIGNED_INT                 }, // v4u32
+      { 16, 4, GL_FALSE, true,  false, GL_INT                          }, // v4s32
+      { 16, 4, GL_FALSE, false, false, GL_FLOAT                        }, // v4f32
+      { 32, 4, GL_FALSE, true,  true,  0                               }, // v4u64
+      { 32, 4, GL_FALSE, true,  true,  0                               }, // v4s64
+      { 32, 4, GL_FALSE, false, true,  /*GL_DOUBLE*/                   }, // v4f64
+      { 4,  3, GL_TRUE,  false, false, /*GL_UNSIGNED_INT_10F_11F_11F_REV*/ }, // v3f11_11_10
+      { 4,  4, GL_TRUE,  false, false, 0                               }, // v4u10_10_10_2_norm
+      { 4,  4, GL_TRUE,  false, false, 0                               }, // v4s10_10_10_2_norm
+      { 4,  4, GL_FALSE, true,  false, 0                               }, // v4u10_10_10_2
+      { 4,  4, GL_FALSE, true,  false, 0                               }, // v4s10_10_10_2
+      { 4,  4, GL_TRUE,  false, false, GL_UNSIGNED_INT_2_10_10_10_REV  }, // v4u10_10_10_2_norm_rev  - Comaptiblity with D3D format ZYXW (see ARB_vertex_array_bgra)
+      { 4,  4, GL_TRUE,  false, false, GL_INT_2_10_10_10_REV           }, // v4s10_10_10_2_norm_rev  - Comaptiblity with D3D format ZYXW 
+      { 4,  4, GL_FALSE, true,  false, 0                               }, // v4u10_10_10_2_rev
+      { 4,  4, GL_FALSE, true,  false, 0                               }  // v4s10_10_10_2_rev
       };   
 
 // Vertex Fetch fixed point formats deliberately not supported:

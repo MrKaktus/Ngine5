@@ -14,6 +14,9 @@
 #include "utilities/utilities.h"
 #include "resources/context.h"
 #include "resources/exr.h"
+
+#include "core/rendering/device.h"
+
 #if defined(EN_PLATFORM_WINDOWS)
 #include "zlib-1.2.8/zlib.h"
 #endif
@@ -487,7 +490,7 @@ namespace en
          }
    
       // Create texture in gpu
-      Ptr<gpu::Texture> texture = Gpu.texture.create(settings);
+      Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(settings);
       if (!texture)
          {
          Log << "ERROR: Cannot create texture in GPU!\n";

@@ -20,21 +20,21 @@ namespace en
 
    Frustum::Frustum(const FrustumSettings settings) :
       buffer(settings.wireframe()),
-      program(nullptr),
-      enModelMatrix(nullptr),
+      //program(nullptr),
+      //enModelMatrix(nullptr),
       Drawable()
    {
-   Effect effect(eGLSL_1_10, "red"); 
-   program = effect.program();
-   enModelMatrix = program.parameter("enModelMatrix");  
-   enScene = program.block("enScene");
+   //Effect effect(eGLSL_1_10, "red");
+   //program = effect.program();
+   //enModelMatrix = program.parameter("enModelMatrix");
+   //enScene = program.block("enScene");
    }
    
    void Frustum::draw(const Ptr<Buffer> sceneParameters)
    {
-   enModelMatrix.set(*pWorldMatrix);
-   enScene.set(sceneParameters);
-   program.draw(buffer, LineStripes);
+   //enModelMatrix.set(*pWorldMatrix);
+   //enScene.set(sceneParameters);
+   //program.draw(buffer, LineStripes);
    }
 
    }
