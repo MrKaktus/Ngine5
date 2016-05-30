@@ -16,6 +16,8 @@
 #ifndef ENG_CORE_RENDERING_D3D12_BLEND_STATE
 #define ENG_CORE_RENDERING_D3D12_BLEND_STATE
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/d3d12/dx12.h"

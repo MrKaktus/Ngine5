@@ -287,11 +287,16 @@ namespace en
 
 
 
+   RenderPassVK::RenderPassVK() :
+      gpu(nullptr),
+      attachments(0)
+   {
+   }
 
-
-
-
-
+   RenderPassVK::~RenderPassVK()
+   {
+   vkDestroyRenderPass(gpu->device, id, &gpu->defaultAllocCallbacks); 
+   }
 
    Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,
                                         const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
@@ -436,16 +441,7 @@ namespace en
 
 
 
-   RenderPassVK::RenderPassVK() :
-      gpu(nullptr),
-      attachments(0)
-   {
-   }
 
-   RenderPassVK::~RenderPassVK()
-   {
-   vkDestroyRenderPass(gpu->device, id, &gpu->defaultAllocCallbacks); 
-   }
 
    FramebufferVK::FramebufferVK() :
       gpu(nullptr)

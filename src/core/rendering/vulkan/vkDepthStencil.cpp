@@ -67,7 +67,7 @@ namespace en
       stencil.failOp           = static_cast<VkStencilOp>(underlyingType(desc.stencil[i].whenStencilFails));  // Optimisation: TranslateStencilOperation[desc.stencil[i].whenStencilFails];
       stencil.depthFailOp      = static_cast<VkStencilOp>(underlyingType(desc.stencil[i].whenDepthFails));    // Optimisation: TranslateStencilOperation[desc.stencil[i].whenDepthFails];
       stencil.passOp           = static_cast<VkStencilOp>(underlyingType(desc.stencil[i].whenBothPass));      // Optimisation: TranslateStencilOperation[desc.stencil[i].whenBothPass];
-      stencil.compareOp        = TranslateCompareFunction[desc.stencil[i].function];
+      stencil.compareOp        = static_cast<VkCompareOp>(underlyingType(desc.stencil[i].function));          // Optimisation: TranslateCompareFunction[desc.stencil[i].function];
       stencil.compareMask      = desc.stencil[i].readMask;
       stencil.writeMask        = desc.stencil[i].writeMask;
       stencil.reference        = desc.stencil[i].reference;

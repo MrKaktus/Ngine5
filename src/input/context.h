@@ -18,11 +18,6 @@
 #include "core/types.h"
 #include "input/input.h"
 
-// Enable/Disable input devices support
-#define OCULUS_VR                         1   // Compile with built in support for Oculus VR HMD's
-#define OPEN_VR                           0   // Compile with built in support for OpenVR, SteamVR and HTC Vive HMD
-#define INTEL_PERCEPTUAL_COMPUTING_2014   0   // Compile with built in support for Intel Depth Cameras
-#define MICROSOFT_KINECT                  0   // Compile with built in support for Microsoft Kinect
 
 //   enum Key
 //        {
@@ -127,169 +122,169 @@
 //        Key_ScrollLock          ,
 //        KeysCount
 //        };
-
-namespace en
-{
-   namespace input
-   {
-   // Input Context
-   struct Context
-          {
-          struct Keyboard
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-                 en::input::KeyState keys[underlyingType(Key::KeysCount)];  // States of keyboard keys
-                 } keyboard;
-   
-          struct Mouse
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-                 en::input::KeyState buttons[underlyingType(MouseButton::Count)]; // States of mouse buttons
-                 uint32 x;
-                 uint32 y;
-                 } mouse;
-
-          struct Joystick
-                 {
-                 void init(void);
-                 void destroy(void);
-
-#ifdef EN_PLATFORM_WINDOWS
-                 LPDIRECTINPUT8 context;   // DirectInput device context
-#endif
-                 vector< Ptr<input::Joystick> > device;
-                 } joystick;
-
-          struct Touchscreen
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-
-                 sint32  generatorId; // Generates unique id's of objects
-                 pair<Gesture,sint32> gesture[10]; // Up to 10 simultaneous gestures can be performed
-                 pair<Gesture,sint32> history[64]; // Up to 64 finished gestures
-                 uint8   gestures;    // Number currently performed gestures
-                 uint8   head;        // Head of the round robin history queue
-                 uint8   tail;        // Tail of the round robin history queue
-
-#ifdef EN_PLATFORM_ANDROID
-                 static void update(struct android_app* app, struct android_poll_source* source);
-#endif
-                 } touchscreen;
-
-          struct Accelerometer
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-#ifdef EN_PLATFORM_ANDROID
-                 const ASensor* sensor; // Sensor
-#endif
-                 float3 delta;          // Delata of last two acceleration vectors
-                 float3 vector;         // Acceleration vector
-                 float  noise;          // Sensor noise range
-                 } accelerometer;
-
-          struct Compass
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-#ifdef EN_PLATFORM_ANDROID
-                 const ASensor* sensor; // Sensor
-#endif
-                 } compass;
-
-          struct Gyroscope
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-#ifdef EN_PLATFORM_ANDROID
-                 const ASensor* sensor; // Sensor
-#endif 
-                 float  noise;
-                 float  azimuth; // yaw
-                 float  pitch;
-                 float  roll;
-                 } gyroscope;
-
-          struct Light
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-#ifdef EN_PLATFORM_ANDROID
-                 const ASensor* sensor; // Sensor
-#endif
-                 float lux;       // Ambient light intensity
-                 } light;
-
-          struct Proximity
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-#ifdef EN_PLATFORM_ANDROID
-                 const ASensor* sensor; // Sensor
-#endif
-                 float distance;  // Distance in cm (or binary near/far)
-                 } proximity;
-
-          struct Temperature
-                 {
-                 bool available;  // Is it available in the HW
-                 bool used;       // Is it used by the application
-                 bool on;         // Is it turned on
-#ifdef EN_PLATFORM_ANDROID
-                 const ASensor* sensor; // Sensor
-#endif
-                 float celcius;   // Temperature in celcius degrees
-                 } temperature;
-
-          struct Camera
-                 {
-                 void init(void);
-                 void destroy(void);
-#ifdef EN_PLATFORM_WINDOWS
-#if INTEL_PERCEPTUAL_COMPUTING_2014
-                 PXCSession* session;                 // Perceptual Computing Session
-#endif
-#endif
-                 vector< Ptr<input::Camera> > device;
-                 } camera;
-
-          struct HMD
-                 {
-                 void init(void);
-                 void destroy(void);
-
-                 vector< Ptr<input::HMD> > device;
-                 } hmd;
-
-          struct Events
-                 {
-                 en::input::EventHandlingFuncPtr callback;
-                 } events;
-
-          Context();
-
-          bool create(void);
-          void destroy(void);
-          };
-
-#ifdef EN_PLATFORM_WINDOWS
-   extern const Key winKeyToEnum[256];
-#endif
-   }
-
-extern input::Context InputContext;
-}
+//
+//namespace en
+//{
+//   namespace input
+//   {
+//   // Input Context
+//   struct Context
+//          {
+//          struct Keyboard
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//                 en::input::KeyState keys[underlyingType(Key::KeysCount)];  // States of keyboard keys
+//                 } keyboard;
+//   
+//          struct Mouse
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//                 en::input::KeyState buttons[underlyingType(MouseButton::Count)]; // States of mouse buttons
+//                 uint32 x;
+//                 uint32 y;
+//                 } mouse;
+//
+//          struct Joystick
+//                 {
+//                 void init(void);
+//                 void destroy(void);
+//
+//#ifdef EN_PLATFORM_WINDOWS
+//                 LPDIRECTINPUT8 context;   // DirectInput device context
+//#endif
+//                 vector< Ptr<input::Joystick> > device;
+//                 } joystick;
+//
+//          struct Touchscreen
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//
+//                 sint32  generatorId; // Generates unique id's of objects
+//                 pair<Gesture,sint32> gesture[10]; // Up to 10 simultaneous gestures can be performed
+//                 pair<Gesture,sint32> history[64]; // Up to 64 finished gestures
+//                 uint8   gestures;    // Number currently performed gestures
+//                 uint8   head;        // Head of the round robin history queue
+//                 uint8   tail;        // Tail of the round robin history queue
+//
+//#ifdef EN_PLATFORM_ANDROID
+//                 static void update(struct android_app* app, struct android_poll_source* source);
+//#endif
+//                 } touchscreen;
+//
+//          struct Accelerometer
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//#ifdef EN_PLATFORM_ANDROID
+//                 const ASensor* sensor; // Sensor
+//#endif
+//                 float3 delta;          // Delata of last two acceleration vectors
+//                 float3 vector;         // Acceleration vector
+//                 float  noise;          // Sensor noise range
+//                 } accelerometer;
+//
+//          struct Compass
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//#ifdef EN_PLATFORM_ANDROID
+//                 const ASensor* sensor; // Sensor
+//#endif
+//                 } compass;
+//
+//          struct Gyroscope
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//#ifdef EN_PLATFORM_ANDROID
+//                 const ASensor* sensor; // Sensor
+//#endif 
+//                 float  noise;
+//                 float  azimuth; // yaw
+//                 float  pitch;
+//                 float  roll;
+//                 } gyroscope;
+//
+//          struct Light
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//#ifdef EN_PLATFORM_ANDROID
+//                 const ASensor* sensor; // Sensor
+//#endif
+//                 float lux;       // Ambient light intensity
+//                 } light;
+//
+//          struct Proximity
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//#ifdef EN_PLATFORM_ANDROID
+//                 const ASensor* sensor; // Sensor
+//#endif
+//                 float distance;  // Distance in cm (or binary near/far)
+//                 } proximity;
+//
+//          struct Temperature
+//                 {
+//                 bool available;  // Is it available in the HW
+//                 bool used;       // Is it used by the application
+//                 bool on;         // Is it turned on
+//#ifdef EN_PLATFORM_ANDROID
+//                 const ASensor* sensor; // Sensor
+//#endif
+//                 float celcius;   // Temperature in celcius degrees
+//                 } temperature;
+//
+//          struct Camera
+//                 {
+//                 void init(void);
+//                 void destroy(void);
+//#ifdef EN_PLATFORM_WINDOWS
+//#if INTEL_PERCEPTUAL_COMPUTING_2014
+//                 PXCSession* session;                 // Perceptual Computing Session
+//#endif
+//#endif
+//                 vector< Ptr<input::Camera> > device;
+//                 } camera;
+//
+//          struct HMD
+//                 {
+//                 void init(void);
+//                 void destroy(void);
+//
+//                 vector< Ptr<input::HMD> > device;
+//                 } hmd;
+//
+//          struct Events
+//                 {
+//                 en::input::EventHandlingFuncPtr callback;
+//                 } events;
+//
+//          Context();
+//
+//          bool create(void);
+//          void destroy(void);
+//          };
+//
+//#ifdef EN_PLATFORM_WINDOWS
+//   extern const Key winKeyToEnum[256];
+//#endif
+//   }
+//
+//extern input::Context InputContext;
+//}
 
 #endif
 

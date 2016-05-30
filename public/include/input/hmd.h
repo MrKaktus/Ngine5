@@ -80,8 +80,8 @@ namespace en
       {
       Off                      = 0,
       LatencyTiming               ,
-      RenderTiming                ,
-      PerformanceHeadroom         , 
+      ApplicationRenderTiming     ,
+      CompositorRenderTiming      , 
       Info
       };
 

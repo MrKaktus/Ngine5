@@ -13,6 +13,8 @@
 
 */
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/d3d12/dx12Blend.h"
@@ -46,6 +48,7 @@ namespace en
       D3D12_BLEND_INV_SRC1_ALPHA,               // OneMinusSecondSourceAlpha
       };
 
+   // Optimisation: This table is not needed. Backend type can be directly cast to D3D12 type by adding 1.
    static const D3D12_BLEND_OP TranslateBlendFunc[BlendEquationsCount] =
       {
       D3D12_BLEND_OP_ADD,                       // Add
@@ -56,6 +59,7 @@ namespace en
       };
 
    // Logical Operation is alternative to blending (currently not supported)
+   // Optimisation: This table is not needed. Backend type can be directly cast to D3D12 type.
    static const D3D12_LOGIC_OP TranslateLogicOperation[LogicOperationsCount] = 
       {
       D3D12_LOGIC_OP_CLEAR,                     // Clear
@@ -91,21 +95,22 @@ namespace en
       desc.RenderTarget[i].LogicOpEnable         = false;                                  // color[i].logicOperation;
       desc.RenderTarget[i].SrcBlend              = TranslateBlend[color[i].srcRGB];
       desc.RenderTarget[i].DestBlend             = TranslateBlend[color[i].dstRGB];
-      desc.RenderTarget[i].BlendOp               = TranslateBlendFunc[color[i].rgbFunc];
+      desc.RenderTarget[i].BlendOp               = static_cast<D3D12_BLEND_OP>(underlyingType(color[i].rgbFunc) + 1);   // Optimisation: TranslateBlendFunc[color[i].rgbFunc];
       desc.RenderTarget[i].SrcBlendAlpha         = TranslateBlend[color[i].srcAlpha];
       desc.RenderTarget[i].DestBlendAlpha        = TranslateBlend[color[i].dstAlpha];
-      desc.RenderTarget[i].BlendOpAlpha          = TranslateBlendFunc[color[i].alphaFunc];
+      desc.RenderTarget[i].BlendOpAlpha          = static_cast<D3D12_BLEND_OP>(underlyingType(color[i].alphaFunc) + 1); // Optimisation: TranslateBlendFunc[color[i].alphaFunc];
       desc.RenderTarget[i].LogicOp               = TranslateLogicOperation[NoOperation];   // TranslateLogicOperation[color[i].logic];
       // Translate Color Write Mask
-      desc.RenderTarget[i].RenderTargetWriteMask = 0;
-      if (color[i].writeMask & ColorMaskRed)
-         desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_RED;
-      if (color[i].writeMask & ColorMaskGreen)
-         desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_GREEN;
-      if (color[i].writeMask & ColorMaskBlue)
-         desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_BLUE;
-      if (color[i].writeMask & ColorMaskAlpha)
-         desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
+      desc.RenderTarget[i].RenderTargetWriteMask = static_cast<UINT8>(underlyingType(color[i].writeMask));
+      // Optimisation:
+      //if (color[i].writeMask & ColorMaskRed)
+      //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_RED;
+      //if (color[i].writeMask & ColorMaskGreen)
+      //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_GREEN;
+      //if (color[i].writeMask & ColorMaskBlue)
+      //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_BLUE;
+      //if (color[i].writeMask & ColorMaskAlpha)
+      //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
       }
    }
 

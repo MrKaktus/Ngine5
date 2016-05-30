@@ -405,9 +405,6 @@
     <ClCompile Include="..\src\input\input.cpp">
       <Filter>Source Files\input</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\input\joystick.cpp">
-      <Filter>Source Files\input</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\input\oculus.cpp">
       <Filter>Source Files\input</Filter>
     </ClCompile>
@@ -557,6 +554,18 @@
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Texture.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\andInput.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\bbInput.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\winInput.cpp">
+      <Filter>Source Files\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\winJoystick.cpp">
+      <Filter>Source Files\input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1097,6 +1106,42 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkRenderPass.h">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\metal.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlAPI.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlMultisampling.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlPipeline.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlRaster.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\andInput.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\bbInput.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\common.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\osxInput.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\winInput.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\input\keyboard.h">
+      <Filter>Header Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\input\winJoystick.h">
+      <Filter>Source Files\input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">
@@ -1110,12 +1155,6 @@
     </None>
     <None Include="..\public\include\threading\threading.inl">
       <Filter>Header Files\threading</Filter>
-    </None>
-    <None Include="..\src\platform\osx\mac_callbacks.m">
-      <Filter>Source Files\platform\osx</Filter>
-    </None>
-    <None Include="..\src\platform\osx\mac_main.m">
-      <Filter>Source Files\platform\osx</Filter>
     </None>
     <None Include="..\src\core\rendering\metal\mtlBlend.mm">
       <Filter>Source Files\core\rendering\metal</Filter>
@@ -1140,6 +1179,24 @@
     </None>
     <None Include="..\src\core\rendering\metal\mtlViewport.mm">
       <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlMultisampling.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlPipeline.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlRaster.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\input\osxInput.mm">
+      <Filter>Source Files\input</Filter>
+    </None>
+    <None Include="..\src\platform\osx\osx_callbacks.mm">
+      <Filter>Source Files\platform\osx</Filter>
+    </None>
+    <None Include="..\src\platform\osx\osx_main.mm">
+      <Filter>Source Files\platform\osx</Filter>
     </None>
   </ItemGroup>
 </Project>

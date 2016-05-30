@@ -13,6 +13,8 @@
 
 */
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/d3d12/dx12Raster.h"

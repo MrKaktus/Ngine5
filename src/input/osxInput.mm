@@ -510,6 +510,10 @@ namespace en
    // count[underlyingType(IO::TouchPad)]++;
    }
    
+   OSXInterface::~OSXInterface()
+   {
+   }
+
    void OSXInterface::update()
    {
    // Drain system events
@@ -789,10 +793,6 @@ namespace en
 
    } while(event != nil);
    
-   }
-
-   OSXInterface::~OSXInterface()
-   {
    }
 
    void waitForEvent()

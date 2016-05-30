@@ -10,73 +10,24 @@ Description : Captures and holds signals from
 
 */
 
-#include "core/configuration.h"
+#include "core/defines.h"
 
 #if defined(EN_PLATFORM_WINDOWS)
 #include "core/log/log.h"
-#include "input/context.h"
+#include "input/winJoystick.h"
+#include "input/winInput.h"
 
 namespace en
 {
    namespace input
    {
-   struct AxisState
-      {
-      sint32 position;
-      sint32 rotation;
-      sint32 velocity;
-      sint32 angularVelocity;
-      sint32 acceleration;
-      sint32 angularAcceleration;
-      sint32 force;
-      sint32 torque;
-      };
-
-   class DirectInputJoystick : public Joystick
-         {
-         public:
-         virtual bool        on(void);                // Turns joystick on
-         virtual bool        off(void);               // Turns joystick off
-         virtual CameraState state(void) const;       // Returns joystick state (on/off/initializing...)
-         virtual bool        pressed(const uint8 button) const; // Button state
-         virtual float       position(const en::input::JoystickAxis axis) const; // Joystick state
-         virtual void        update(void);            // Update camera stream events
-
-         DirectInputJoystick(uint32 _id, LPDIRECTINPUTDEVICE8 _handle);
-         virtual ~DirectInputJoystick();              // Polymorphic deletes require a virtual base destructor
-
-         private:
-         uint32               id;                     // Joystick id on the devices list
-         CameraState          currentState;           // Is it turned on
-         LPDIRECTINPUTDEVICE8 handle;                 // Joystick handle
-         //DIDEVCAPS            capabilities;           // Joysticks capabilities
-
-         KeyState             buttons[128];           // Buttons state
-         AxisState            x;                      // X Axis state
-         AxisState            y;                      // Y Axis state
-         AxisState            z;                      // Z Axis state
-         AxisState            slider[2];              // Sliders state
-         uint32               pov[4];                 // POV directions
-         };
-
-
-                 //uint8 count;      // Count of available joysticks
-                 //bool used[16];    // Is each joystick used by the application
-                 //bool on[16];      // Is each joystick turned on
-
-                 //struct State
-                 //       {
- 
-                 //       } state[16];
-
-
-   DirectInputJoystick::DirectInputJoystick(uint32 _id, LPDIRECTINPUTDEVICE8 _handle) :
+   WinJoystick::WinJoystick(uint32 _id, LPDIRECTINPUTDEVICE8 _handle) :
       id(_id),
       currentState(Initializing),
       handle(_handle)
    {
    for(uint32 i=0; i<128; ++i)
-      buttons[i] = Released;
+      buttons[i] = KeyState::Released;
    memset(&x, 0, sizeof(Axis));
    memset(&y, 0, sizeof(Axis));
    memset(&z, 0, sizeof(Axis));
@@ -90,45 +41,44 @@ namespace en
    z.position = 32768;
    }
 
-   DirectInputJoystick::~DirectInputJoystick() 
+   WinJoystick::~WinJoystick() 
    {
    }
 
-   bool DirectInputJoystick::on(void)
-   {
-   return true;
-   }
-
-   bool DirectInputJoystick::off(void)
+   bool WinJoystick::on(void)
    {
    return true;
    }
 
-   CameraState DirectInputJoystick::state(void) const
+   bool WinJoystick::off(void)
+   {
+   return true;
+   }
+
+   CameraState WinJoystick::state(void) const
    {
    return currentState;
    }
 
-   bool DirectInputJoystick::pressed(const uint8 button) const
+   bool WinJoystick::pressed(const uint8 button) const
    {
-   return buttons[button] & 1;
+   assert( button < 128 );
+   return buttons[button] == KeyState::Pressed ? true : false;
    }
 
-   float DirectInputJoystick::position(const en::input::JoystickAxis axis) const
+   float WinJoystick::position(const en::input::JoystickAxis axis) const
    {
-   if (axis == JoystickAxisX)
+   if (axis == JoystickAxis::X)
       return float(x.position - 32768) / 32768.0f;
-   if (axis == JoystickAxisY)
+   if (axis == JoystickAxis::Y)
       return float(y.position - 32768) / 32768.0f;
-   if (axis == JoystickAxisZ)
+   if (axis == JoystickAxis::Z)
       return float(z.position - 32768) / 32768.0f;
    return 0.0f;
    }
 
-   void DirectInputJoystick::update(void)
+   void WinJoystick::update(void)
    {
-
-
    //// Joystick events
    //for(uint8 i=0; i<InputContext.joystick.count; ++i)
    //   {
@@ -232,6 +182,8 @@ namespace en
    if (hr == DI_BUFFEROVERFLOW)
       Log << "WARNING! Joystick event buffer too small!\n";
 
+   Ptr<WinInterface> input = ptr_dynamic_cast<WinInterface, Interface>(en::Input);
+
    for(sint32 e=0; e<elements; ++e)
       {
       DIDEVICEOBJECTDATA* state = &buffer[e];
@@ -245,9 +197,9 @@ namespace en
          JoystickMoveEvent event;
          event.type     = JoystickMoved;
          event.id       = id;
-         event.axis     = JoystickAxisX;
+         event.axis     = JoystickAxis::X;
          event.position = static_cast<float>(x.position - 32768) / 32768.0f;
-         InputContext.events.callback( reinterpret_cast<Event&>(event) ); 
+         input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
          }
       else
       if (static_cast<uint32>(state->dwOfs) == DIJOFS_Y)
@@ -259,9 +211,9 @@ namespace en
          JoystickMoveEvent event;
          event.type     = JoystickMoved;
          event.id       = id;
-         event.axis     = JoystickAxisY;
+         event.axis     = JoystickAxis::Y;
          event.position = static_cast<float>(y.position - 32768) / 32768.0f;
-         InputContext.events.callback( reinterpret_cast<Event&>(event) ); 
+         input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
          }
       else
       if (static_cast<uint32>(state->dwOfs) == DIJOFS_Z)
@@ -273,9 +225,9 @@ namespace en
          JoystickMoveEvent event;
          event.type     = JoystickMoved;
          event.id       = id;
-         event.axis     = JoystickAxisZ;
+         event.axis     = JoystickAxis::Z;
          event.position = static_cast<float>(z.position - 32768) / 32768.0f;
-         InputContext.events.callback( reinterpret_cast<Event&>(event) ); 
+         input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
          }
       else
       if (static_cast<uint32>(state->dwOfs) == DIJOFS_RX)
@@ -294,100 +246,16 @@ namespace en
          if (static_cast<uint32>(state->dwOfs) == DIJOFS_BUTTON(j))
             {
             // Save state for later
-            buttons[j] = state->dwData & 0x80 ? Pressed : Released;
+            buttons[j] = state->dwData & 0x80 ? KeyState::Pressed : KeyState::Released;
 
             // Call event handling function 
             JoystickButtonEvent event;
             event.type   = state->dwData & 0x80 ? JoystickButtonPressed : JoystickButtonReleased;
             event.id     = id;
             event.button = j;
-            InputContext.events.callback( reinterpret_cast<Event&>(event) ); 
+            input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
             }
       }
-   }
-
-   //# CONTEXT
-   //##########################################################################
-
-   //BOOL CALLBACK enumAxesCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* context)
-   //{
-   //HWND hDlg = (HWND)context;
-
-   //// Use default settings
-
-   ////DIPROPRANGE propRange; 
-   ////propRange.diph.dwSize       = sizeof(DIPROPRANGE); 
-   ////propRange.diph.dwHeaderSize = sizeof(DIPROPHEADER); 
-   ////propRange.diph.dwHow        = DIPH_BYID; 
-   ////propRange.diph.dwObj        = instance->dwType;
-   ////propRange.lMin              = -1000; 
-   ////propRange.lMax              = +1000; 
-   //// 
-   ////// Set the range for the axis
-   ////if (FAILED(InputContext.joystick.handle[0]->SetProperty(DIPROP_RANGE, &propRange.diph))) 
-   ////   return DIENUM_STOP;
-
-   //return DIENUM_CONTINUE;
-   //}
-
-   BOOL CALLBACK initJoystickCallback(const DIDEVICEINSTANCE* instance, VOID* _context)
-   {
-   LPDIRECTINPUTDEVICE8 handle;
-   HRESULT hr;
-
-   // Try to obtain interface to enumerated joystick. 
-   // If it fails, it is possible that user unplugged it during enumeration.
-   if (FAILED(hr = InputContext.joystick.context->CreateDevice(instance->guidInstance, &handle, nullptr))) 
-      return DIENUM_CONTINUE;
-
-   // Specify extended DIJOYSTATE2 structure, as data format, that will be
-   // used for receiving data from IDirectInputDevice::GetDeviceState().
-   if (FAILED(hr = handle->SetDataFormat(&c_dfDIJoystick2)))
-      return DIENUM_CONTINUE;
-
-   //// Acquire joystick exclusively so that it won't be shared with any other
-   //// applications or operating system in any way.
-   //if (FAILED(hr = handle->SetCooperativeLevel(NULL, DISCL_EXCLUSIVE | DISCL_FOREGROUND))) 
-   //   return DIENUM_CONTINUE;
-
-   // Buffer up to 64 state changes of device. This will be used to spawn events
-   // to be handled by game.
-   DIPROPDWORD  property; 
-   property.diph.dwSize       = sizeof(DIPROPDWORD); 
-   property.diph.dwHeaderSize = sizeof(DIPROPHEADER); 
-   property.diph.dwObj        = 0; 
-   property.diph.dwHow        = DIPH_DEVICE; 
-   property.dwData            = 64; 
-   if (FAILED(hr = handle->SetProperty(DIPROP_BUFFERSIZE, &property.diph)))
-      return DIENUM_CONTINUE;
-
-   //// Determine how many axis the joystick has (so we don't error out setting
-   //// properties for unavailable axis)
-   //joystick.capabilities[i].dwSize = sizeof(DIDEVCAPS);
-   //if (FAILED(hr = handle->GetCapabilities(&joystick.capabilities[i])))
-   //   return DIENUM_CONTINUE;
-
-   //// Enumerate the axes of the joyctick and set the range of each axis. Note:
-   //// we could just use the defaults, but we're just trying to show an example
-   //// of enumerating device objects (axes, buttons, etc.).
-   //if (FAILED(hr = handle->EnumObjects(enumAxesCallback, NULL, DIDFT_AXIS)))
-   //   return DIENUM_CONTINUE;
-
-   InputContext.joystick.device.push_back(new DirectInputJoystick(InputContext.joystick.device.size(), handle));
-   return DIENUM_CONTINUE;
-   }
-
-   void Context::Joystick::init(void)
-   {
-   // Create a DirectInput device
-   HRESULT hr;
-   if (SUCCEEDED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&context, NULL))) 
-      // Get handles to available joysticks
-      hr = context->EnumDevices(DI8DEVCLASS_GAMECTRL, initJoystickCallback, NULL, DIEDFL_ATTACHEDONLY);
-   }
-
-   void Context::Joystick::destroy(void)
-   {
    }
 
    }

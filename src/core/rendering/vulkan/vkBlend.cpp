@@ -22,7 +22,8 @@
 namespace en
 {
    namespace gpu
-   { 
+   {
+   // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
    static const VkBlendFactor TranslateBlend[BlendFunctionsCount] =
       {
       VK_BLEND_FACTOR_ZERO,                     // Zero
@@ -46,6 +47,7 @@ namespace en
       VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,     // OneMinusSecondSourceAlpha
       };
 
+   // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
    static const VkBlendOp TranslateBlendFunc[BlendEquationsCount] =
       {
       VK_BLEND_OP_ADD,                          // Add
@@ -95,22 +97,23 @@ namespace en
       {
       //assert( !(color[0].logicOperation && color[i].blending) );
       blendInfo[i].blendEnable         = color[i].blending;
-      blendInfo[i].srcColorBlendFactor = TranslateBlend[color[i].srcRGB];
-      blendInfo[i].dstColorBlendFactor = TranslateBlend[color[i].dstRGB];
-      blendInfo[i].colorBlendOp        = TranslateBlendFunc[color[i].rgbFunc];
-      blendInfo[i].srcAlphaBlendFactor = TranslateBlend[color[i].srcAlpha];
-      blendInfo[i].dstAlphaBlendFactor = TranslateBlend[color[i].dstAlpha];
-      blendInfo[i].alphaBlendOp        = TranslateBlendFunc[color[i].alphaFunc];
+      blendInfo[i].srcColorBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].srcRGB));   // Optimisation: TranslateBlend[color[i].srcRGB];
+      blendInfo[i].dstColorBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].dstRGB));   // Optimisation: TranslateBlend[color[i].dstRGB];
+      blendInfo[i].colorBlendOp        = static_cast<VkBlendOp>(underlyingType(color[i].rgbFunc));      // Optimisation: TranslateBlendFunc[color[i].rgbFunc];
+      blendInfo[i].srcAlphaBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].srcAlpha)); // Optimisation: TranslateBlend[color[i].srcAlpha];
+      blendInfo[i].dstAlphaBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].dstAlpha)); // Optimisation: TranslateBlend[color[i].dstAlpha];
+      blendInfo[i].alphaBlendOp        = static_cast<VkBlendOp>(underlyingType(color[i].alphaFunc));    // Optimisation: TranslateBlendFunc[color[i].alphaFunc];
       // Translate Color Write Mask
-      blendInfo[i].colorWriteMask      = 0;
-      if (color[i].writeMask & ColorMaskRed)           // https://cvs.khronos.org/bugzilla/show_bug.cgi?id=13632
-         blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_R_BIT;
-      if (color[i].writeMask & ColorMaskGreen)
-         blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_G_BIT;
-      if (color[i].writeMask & ColorMaskBlue)
-         blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_B_BIT;
-      if (color[i].writeMask & ColorMaskAlpha)
-         blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_A_BIT;
+      blendInfo[i].colorWriteMask      = color[i].writeMask;
+      // Optimisation:
+      //if (color[i].writeMask & ColorMaskRed)           
+      //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_R_BIT;
+      //if (color[i].writeMask & ColorMaskGreen)
+      //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_G_BIT;
+      //if (color[i].writeMask & ColorMaskBlue)
+      //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_B_BIT;
+      //if (color[i].writeMask & ColorMaskAlpha)
+      //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_A_BIT;
       }
    }
 

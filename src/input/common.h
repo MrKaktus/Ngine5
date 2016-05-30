@@ -17,6 +17,12 @@ using namespace en::gpu;
 #include <vector>
 using namespace std;
 
+// Enable/Disable input devices support
+#define OCULUS_VR                         1   // Compile with built in support for Oculus VR HMD's
+#define OPEN_VR                           0   // Compile with built in support for OpenVR, SteamVR and HTC Vive HMD
+#define INTEL_PERCEPTUAL_COMPUTING_2014   0   // Compile with built in support for Intel Depth Cameras
+#define MICROSOFT_KINECT                  0   // Compile with built in support for Microsoft Kinect
+
 namespace en
 {
    namespace input
@@ -32,7 +38,7 @@ namespace en
       
       public:
       bool pressed(const Key key) const;
-      
+
       CommonKeyboard();
       ~CommonKeyboard();                 // Polymorphic deletes require a virtual base destructor
       };
@@ -54,7 +60,7 @@ namespace en
       virtual bool   pressed(const MouseButton button) const;
       virtual void   show(void) = 0;
       virtual void   hide(void) = 0;
-      
+
       CommonMouse();
       ~CommonMouse();                 // Polymorphic deletes require a virtual base destructor
       };
@@ -63,7 +69,7 @@ namespace en
       {
       public:
       // General
-      uint32 count[underlyingType(IO::TypesCount)];
+      uint32 count[underlyingType(IO::Count)];
       vector< Ptr<Keyboard> > keyboards;
       vector< Ptr<Mouse> > mouses;
       vector< Ptr<Joystick> > joysticks;

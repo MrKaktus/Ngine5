@@ -15,6 +15,8 @@
 
 #if defined(EN_PLATFORM_WINDOWS)
 
+
+
 #if INTEL_PERCEPTUAL_COMPUTING_2014
 #pragma comment(lib, "libpxc_d.lib")
 
@@ -42,11 +44,27 @@
 namespace en
 {
    namespace input
-   {      
+   {    
+   extern const Key TranslateKey[256];
+  
+   class WinMouse : public CommonMouse
+      {
+      public:
+      Ptr<Screen> WinMouse::screen(void) const;
+      bool   position(const uint32 x, const uint32 y);
+      bool   position(const Ptr<Screen> screen, const uint32 x, const uint32 y);
+      void   show(void);
+      void   hide(void);
+
+      WinMouse();
+      virtual ~WinMouse();                           // Polymorphic deletes require a virtual base destructor
+      };
+
    class WinInterface : public CommonInterface
       {
       public:
-      MSG msg;          // Message handle
+      MSG msg;                    // Message handle
+      LPDIRECTINPUT8 directInput; // DirectInput device context
 
       void update(void);                             // Gets actual input state, call function handling cached events
       

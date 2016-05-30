@@ -165,15 +165,11 @@ namespace en
    //extern const Nversion    OpenGL_1_0;            // OpenGL 1.0    - 20.06.1992
    //extern const Nversion    OpenGL_Unsupported;    // For marking unsupported features
 
-   enum ScreenMode
+   enum class ScreenMode : uint32
         {
-        Window            = 0
-        
-#ifndef EN_PLATFORM_OSX // QUICK DIRTY WA FOR NEW RENDERING API ABSTRACTION
-        ,   // Create Window
+        Window            = 0,   // Create Window
         BorderlessWindow     ,   // Create borderless Window
         Fullscreen               // Create full screen surface
-#endif
         };
 
    // Screen settings structure

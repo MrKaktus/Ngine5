@@ -91,12 +91,15 @@
     <ClCompile Include="..\src\core\types\uint32v3.cpp" />
     <ClCompile Include="..\src\core\types\uint32v4.cpp" />
     <ClCompile Include="..\src\core\utilities\parser.cpp" />
+    <ClCompile Include="..\src\input\andInput.cpp" />
+    <ClCompile Include="..\src\input\bbInput.cpp" />
     <ClCompile Include="..\src\input\camera.cpp" />
     <ClCompile Include="..\src\input\hmd.cpp" />
     <ClCompile Include="..\src\input\input.cpp" />
-    <ClCompile Include="..\src\input\joystick.cpp" />
     <ClCompile Include="..\src\input\oculus.cpp" />
     <ClCompile Include="..\src\input\vive.cpp" />
+    <ClCompile Include="..\src\input\winInput.cpp" />
+    <ClCompile Include="..\src\input\winJoystick.cpp" />
     <ClCompile Include="..\src\monetization\monetization.cpp" />
     <ClCompile Include="..\src\platform\android\and_events.cpp" />
     <ClCompile Include="..\src\platform\android\and_main.cpp" />
@@ -196,6 +199,7 @@
     <ClInclude Include="..\public\include\core\utilities\Tsingleton.h" />
     <ClInclude Include="..\public\include\input\hmd.h" />
     <ClInclude Include="..\public\include\input\input.h" />
+    <ClInclude Include="..\public\include\input\keyboard.h" />
     <ClInclude Include="..\public\include\monetization\monetization.h" />
     <ClInclude Include="..\public\include\Ngine.h" />
     <ClInclude Include="..\public\include\platform\android\and_events.h" />
@@ -268,10 +272,15 @@
     <ClInclude Include="..\src\core\rendering\d3d12\dx12InputAssembler.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Raster.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h" />
+    <ClInclude Include="..\src\core\rendering\metal\metal.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlAPI.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlBlend.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlDepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlDevice.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlMultisampling.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlPipeline.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlRaster.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlRenderPass.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlSampler.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlTexture.h" />
@@ -317,9 +326,15 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan10.h" />
     <ClInclude Include="..\src\core\storage\context.h" />
+    <ClInclude Include="..\src\input\andInput.h" />
+    <ClInclude Include="..\src\input\bbInput.h" />
+    <ClInclude Include="..\src\input\common.h" />
     <ClInclude Include="..\src\input\context.h" />
     <ClInclude Include="..\src\input\oculus.h" />
+    <ClInclude Include="..\src\input\osxInput.h" />
     <ClInclude Include="..\src\input\vive.h" />
+    <ClInclude Include="..\src\input\winInput.h" />
+    <ClInclude Include="..\src\input\winJoystick.h" />
     <ClInclude Include="..\src\monetization\context.h" />
     <ClInclude Include="..\src\platform\context.h" />
     <ClInclude Include="..\src\resources\context.h" />
@@ -335,12 +350,16 @@
     <None Include="..\src\core\rendering\metal\mtlDepthStencil.mm" />
     <None Include="..\src\core\rendering\metal\mtlDevice.mm" />
     <None Include="..\src\core\rendering\metal\mtlInputAssembler.mm" />
+    <None Include="..\src\core\rendering\metal\mtlMultisampling.mm" />
+    <None Include="..\src\core\rendering\metal\mtlPipeline.mm" />
+    <None Include="..\src\core\rendering\metal\mtlRaster.mm" />
     <None Include="..\src\core\rendering\metal\mtlRenderPass.mm" />
     <None Include="..\src\core\rendering\metal\mtlSampler.mm" />
     <None Include="..\src\core\rendering\metal\mtlTexture.mm" />
     <None Include="..\src\core\rendering\metal\mtlViewport.mm" />
-    <None Include="..\src\platform\osx\mac_callbacks.m" />
-    <None Include="..\src\platform\osx\mac_main.m" />
+    <None Include="..\src\input\osxInput.mm" />
+    <None Include="..\src\platform\osx\osx_callbacks.mm" />
+    <None Include="..\src\platform\osx\osx_main.mm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F61E4BF3-8B99-4C06-8297-45627D38D88B}</ProjectGuid>

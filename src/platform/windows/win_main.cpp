@@ -27,7 +27,7 @@ extern void initHalfs(void);
 #include "audio/context.h"
 #include "platform/context.h"
 #include "threading/context.h"
-#include "input/context.h"
+//#include "input/context.h"
 #include "scene/context.h"
 
 #ifdef EN_PLATFORM_WINDOWS
@@ -68,7 +68,8 @@ en::SystemContext.create();
 en::SchedulerContext.create();
 en::GpuContext.create();
 en::AudioContext.create();
-en::InputContext.create();
+//en::InputContext.create();
+en::input::Interface::create();
 
 en::StateContext.create();
 
@@ -82,7 +83,8 @@ en::SchedulerContext.start(new MainTask(argc,argv));
 // Close modules in order
 en::StateContext.destroy();
 
-en::InputContext.destroy();
+en::Input = nullptr;
+//en::InputContext.destroy();
 en::AudioContext.destroy();
 en::GpuContext.destroy();
 en::SchedulerContext.destroy();

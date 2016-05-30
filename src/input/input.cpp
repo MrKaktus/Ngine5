@@ -35,6 +35,7 @@ namespace en
 {
    namespace input
    {
+#if 0
    Context::Context(void)
    {
    // Clear state
@@ -94,13 +95,12 @@ namespace en
    camera.destroy();
    hmd.destroy();
    }
+#endif
 
 
 
 
-
-
-#if defined(EN_PLATFORM_OSX)  // New dynamic Interface
+#if 1  // New dynamic Interface
 
 
 
@@ -301,37 +301,6 @@ namespace en
 
 
 
-
-   float2 Interface::Mouse::position(void)
-   {
-   float mx = float(InputContext.mouse.x) / float(GpuContext.screen.width);
-   float my = float(InputContext.mouse.y) / float(GpuContext.screen.height);
-
-   return float2(mx, my);
-   }
-
-   uint32 Interface::Mouse::position(en::input::Axis axis)
-   {
-   if (axis == AxisX)
-      return InputContext.mouse.x;
-   if (axis == AxisY)
-      return InputContext.mouse.y;
-   return 0;
-   }
-
-   bool Interface::Mouse::position(const uint32 x, const uint32 y)
-   {
-#ifdef EN_PLATFORM_WINDOWS
-   return SetCursorPos(x,y);
-#endif
-   return false;
-   }
-
-   bool Interface::Mouse::pressed(const en::input::MouseButton button)
-   {
-   return InputContext.mouse.buttons[button] == Pressed ? true : false;
-   }
-
    //bool Interface::Mouse::inArea(const float4 area, const en::input::MouseButton button)
    //{
    // NRenderingContext& enGpu = NRenderingContext::getInstance();
@@ -352,19 +321,7 @@ namespace en
    // return false;
    //}
 
-   void Interface::Mouse::show(void)
-   {
-#ifdef EN_PLATFORM_WINDOWS
-   ShowCursor(true);
-#endif
-   }
 
-   void Interface::Mouse::hide(void)
-   {
-#ifdef EN_PLATFORM_WINDOWS
-   ShowCursor(false);
-#endif
-   }
 
    //uint8 Interface::Joystick::count(void)
    //{
@@ -933,7 +890,7 @@ namespace en
 
    }
 
-#ifdef EN_PLATFORM_OSX
+#if 1
 
 Ptr<input::Interface> Input;
 

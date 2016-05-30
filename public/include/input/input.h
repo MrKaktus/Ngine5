@@ -168,7 +168,7 @@ namespace en
           {
           uint8        id;
           JoystickAxis axis;
-          float        position;
+          float        position;   // Position normalised to [-1.0 .. 1.0] range
           };
       
    struct ControllerEvent : public Event
@@ -321,7 +321,7 @@ namespace en
 
 
 
-#if defined(EN_PLATFORM_OSX)  // New dynamic Interface
+// New dynamic Interface
 
    // Type of peripherial
    enum class IO : uint8
@@ -340,7 +340,7 @@ namespace en
       LightSensor         ,
       ProximitySensor     ,
       Termometr           ,
-      TypesCount
+      Count
       };
 
    class Mouse : public SafeObject
@@ -365,8 +365,7 @@ namespace en
       virtual bool        off(void) = 0;               // Turns joystick off
       virtual CameraState state(void) const = 0;       // Returns joystick state (on/off/initializing...)
       virtual bool        pressed(const uint8 button) const = 0; // Button state
-      virtual float       position(const en::input::JoystickAxis axis) const = 0; // Joystick state
-      virtual void        update(void) = 0;            // Update joystick events
+      virtual float       position(const JoystickAxis axis) const = 0; // Joystick state
 
       virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
       };
@@ -405,9 +404,9 @@ namespace en
 
 
 
-#else
 
 
+#if 0
 
    struct Interface
           {
@@ -587,9 +586,10 @@ namespace en
 #endif
    }
 
-#if defined(EN_PLATFORM_OSX)
+
 extern Ptr<input::Interface> Input;   // New dynamic Interface allowing inherited implementation
-#else
+
+#if 0
 extern input::Interface Input;
 #endif
 

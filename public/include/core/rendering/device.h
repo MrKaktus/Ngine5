@@ -184,5 +184,4 @@ namespace en
 
 extern Ptr<gpu::GraphicAPI> Graphics;
 }
-
 #endif

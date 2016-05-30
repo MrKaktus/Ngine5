@@ -10,29 +10,17 @@
 
 */
 
-#include "core/log/log.h"
-#include "input/context.h"
-#include "scene/cam.h"
+#include "input/oculus.h"
 
+#if defined(EN_PLATFORM_WINDOWS)
+#if OCULUS_VR
+
+#include "core/log/log.h"
+#include "scene/cam.h"
 #include "utilities/strings.h"
 
-#include "core/rendering/context.h"
-#include "core/rendering/rendering.hpp"
-
-#if /*defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
-
-   #if OCULUS_VR
-   //#pragma comment(lib, "LibOVR")
-
-   #include "OculusSDK/LibOVR/Include/Extras/OVR_Math.h" // Oculus 
-   #include "input/oculus.h"
-   #if OCULUS_SDK_RENDERING
-   #include "core/rendering/context.h"
-   #include "core/rendering/opengl/gl43Texture.h"
-   #endif
-   #endif
-
-#endif
+//#pragma comment(lib, "LibOVR")
+#include "OculusSDK/LibOVR/Include/Extras/OVR_Math.h" // Oculus 
 
 namespace en
 {
@@ -40,9 +28,6 @@ namespace en
    {
    //# IMPLEMENTATION
    //##########################################################################
-
-#if /*defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
-#if OCULUS_VR
 
    OculusDK2::OculusDK2(uint8 index) :
       enabled(false),
@@ -136,7 +121,7 @@ namespace en
 
    OculusDK2::~OculusDK2()
    {
-   ovr_ConfigureTracking(session, 0, 0);
+   //ovr_ConfigureTracking(session, 0, 0);
    ovr_Destroy(session);
    }
 
@@ -172,21 +157,35 @@ namespace en
       view[1].x = view[0].width + 1;
 
    // Configure SDK rendering
-   //#if OCULUS_SDK_RENDERING
-   assert( GpuContext.screen.created );
+   //assert( GpuContext.screen.created );
 
    // Create double buffered textures for each used rendertarget
    for(uint32 i=0; i<(sharedRT ? 1U : 2U); ++i)
       {
-      // >>>>> OpenGL Specific code section - START
-      ovr_CreateSwapTextureSetGL(session, GL_SRGB8_ALPHA8, resolutionRT.width, resolutionRT.height, &textureSet[i]);
-      for(sint32 j=0; j<textureSet[i]->TextureCount; ++j)
-         {
-         assert( textureSet[i]->TextureCount == 2 );
+      ovrTextureSwapChainDesc desc;
+      desc.Type        = ovrTexture_2D;
+      desc.Format      = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+      desc.ArraySize   = 1;                   // Not supported on PC at this time.
+      desc.Width       = resolutionRT.width;
+      desc.Height      = resolutionRT.height;
+      desc.MipLevels   = 1;
+      desc.SampleCount = 1;                   // Current only supported on depth textures
+      desc.StaticImage = ovrFalse;   
+      desc.MiscFlags   = ovrTextureMisc_None; // (ovrTextureFlags) ovrTextureMisc_ProtectedContent 
+      desc.BindFlags   = ovrTextureBind_None; // (ovrTextureBindFlags) Not used for GL.
 
-         ovrGLTexture* tex = (ovrGLTexture*)&textureSet[i]->Textures[j];
+      // >>>>> OpenGL Specific code section - START
+      ovrResult result = ovr_CreateTextureSwapChainGL(session, &desc, &swapChain[i]);
+      ovr_GetTextureSwapChainLength(session, swapChain[i], (int*)&swapChainLength[i]);
+
+      for(sint32 j=0; j<swapChainLength[i]; ++j)
+         {
+         assert( swapChainLength[i] <= 2 );
+         uint32 handle;
+         ovr_GetTextureSwapChainBufferGL(session, swapChain[i], j, &handle);
+
          // This modifies OpenGL state of currently bound Texture to texture unit X !!!
-         glBindTexture(GL_TEXTURE_2D, tex->OGL.TexId);
+         glBindTexture(GL_TEXTURE_2D, handle);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -203,15 +202,12 @@ namespace en
          state.samples = 1;
          state.mipmaps = 1;
 
-         swap[i][j] = ptr_dynamic_cast<en::gpu::Texture, en::gpu::TextureGL>(Ptr<en::gpu::TextureGL>(new en::gpu::TextureGL(state, tex->OGL.TexId)));
+         swap[i][j] = ptr_dynamic_cast<Texture, TextureGL>(Ptr<TextureGL>(new TextureGL(state, handle)));
          }
       // >>>>> OpenGL Specific code section - END 
       }
 
    // Create mirror texture that can be read by FBO to optional window
-
-   // >>>>> OpenGL Specific code section - START
-   ovr_CreateMirrorTextureGL(session, GL_SRGB8_ALPHA8, windowResolution.width, windowResolution.height, (ovrTexture**)&mirrorTexture);
    en::gpu::TextureState state;
    state.type    = TextureType::Texture2D;
    state.format  = Format::RGBA_8_sRGB;
@@ -222,9 +218,20 @@ namespace en
    state.samples = 1;
    state.mipmaps = 1;
 
-   mirror = ptr_dynamic_cast<en::gpu::Texture, en::gpu::TextureGL>(Ptr<en::gpu::TextureGL>(new en::gpu::TextureGL(state, mirrorTexture->OGL.TexId)));
+   ovrMirrorTextureDesc desc;
+   desc.Format      = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+   desc.Width       = windowResolution.width;
+   desc.Height      = windowResolution.height;
+   desc.MiscFlags   = ovrTextureMisc_None; // (ovrTextureFlags) ovrTextureMisc_ProtectedContent 
+ 
+   // >>>>> OpenGL Specific code section - START
+   ovrResult result = ovr_CreateMirrorTextureGL(session, &desc, &mirrorTexture);
+
+   uint32 handle;
+   result = ovr_GetMirrorTextureBufferGL(session, mirrorTexture, &handle);
+
+   mirror = ptr_dynamic_cast<Texture, TextureGL>(Ptr<TextureGL>(new TextureGL(state, handle)));
    // >>>>> OpenGL Specific code section - END
-   //#endif
 
    // Create Framebuffer to use with mirroring
    fbo = Gpu.output.buffer.create();
@@ -233,30 +240,20 @@ namespace en
    // All Caps are enabled by default from 0.8
    //ovr_SetEnabledCaps(session, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction );
 
-   //// Attach to window in direct rendering mode
-   //#if !OCULUS_SDK_RENDERING
-   //if (displayMode == Direct)
-   //   {
-   //   assert( GpuContext.screen.created );
-   //   #ifdef EN_PLATFORM_WINDOWS
-   //   if (!ovrHmd_AttachToWindow(hmd, GpuContext.device.hWnd, NULL, NULL))
-   //      Log << "ERROR: Cannot attach Oculus to window for Direct Rendering!\n";
-   //   #endif
-   //   }
-   //#endif
+   ovr_SetTrackingOriginType(session, ovrTrackingOrigin_EyeLevel);      // ovrTrackingOrigin_FloorLevel - For standing experiences
 
    // Turn on the Oculus
-   ovrResult res = ovr_ConfigureTracking(session, ovrTrackingCap_Orientation      | 
-                                                  ovrTrackingCap_MagYawCorrection | 
-                                                  ovrTrackingCap_Position, 
-                                                  ovrTrackingCap_Orientation);
-   if (res != ovrSuccess)
-      return false;
+   //ovrResult res = ovr_ConfigureTracking(session, ovrTrackingCap_Orientation      | 
+   //                                               ovrTrackingCap_MagYawCorrection | 
+   //                                               ovrTrackingCap_Position, 
+   //                                               ovrTrackingCap_Orientation);
+   //if (res != ovrSuccess)
+   //   return false;
 
    EyeRenderDesc[0] = ovr_GetRenderDesc(session, ovrEye_Left,  info.DefaultEyeFov[0]);
    EyeRenderDesc[1] = ovr_GetRenderDesc(session, ovrEye_Right, info.DefaultEyeFov[1]);
 
-   ovr_RecenterPose(session);
+   ovr_RecenterTrackingOrigin(session);
 
    enabled = true;
    return true;
@@ -267,21 +264,23 @@ namespace en
    if (!enabled)
       return true;
 
+   // Remove Oculus Swap-Chain
+   for(uint32 i=0; i<(sharedRT ? 1U : 2U); ++i)
+      {
+      ovr_DestroyTextureSwapChain(session, swapChain[i]);
+      for(sint32 j=0; j<swapChainLength[i]; ++j)
+         swap[i][j] = nullptr;
+      }
+   mirror = nullptr;
+
    // Turn off display
    if (displayMode == Direct)
       {
       // TODO: Turn off display here
       }
 
-   // Remove Oculus texture interfaces
-   swap[0][0] = nullptr;
-   swap[0][1] = nullptr;
-   swap[1][0] = nullptr;
-   swap[1][1] = nullptr;
-   mirror     = nullptr;
-
    // Disable Oculus 
-   ovr_ConfigureTracking(session, 0, 0);
+   //ovr_ConfigureTracking(session, 0, 0);
    enabled = false;
    return true;
    }
@@ -434,24 +433,40 @@ namespace en
    //}
 
 
-   void OculusDK2::startFrame(uint32 frameIndex)
+   void OculusDK2::startFrame(uint32 _frameIndex)
    {
-   ovrVector3f hmdToEyeViewOffset[2] = { EyeRenderDesc[0].HmdToEyeViewOffset,
-                                         EyeRenderDesc[1].HmdToEyeViewOffset };
+   frameIndex = _frameIndex;
+
+   // Those values may change at runtime
+   EyeRenderDesc[0] = ovr_GetRenderDesc(session, ovrEye_Left,  info.DefaultEyeFov[0]);
+   EyeRenderDesc[1] = ovr_GetRenderDesc(session, ovrEye_Right, info.DefaultEyeFov[1]);
+
+   ovrVector3f hmdToEyeOffset[2] = { EyeRenderDesc[0].HmdToEyeOffset,
+                                     EyeRenderDesc[1].HmdToEyeOffset };
+
+   ovr_GetEyePoses(session, frameIndex, ovrTrue, hmdToEyeOffset, &eyePose[0], &sensorSampleTime);      
 
    // Swap used rendertarget textures in swap-chain
    for(uint32 i=0; i<(sharedRT ? 1U : 2U); ++i)
-      textureSet[i]->CurrentIndex = (textureSet[i]->CurrentIndex + 1) % textureSet[i]->TextureCount;
-      
-   //#if OCULUS_SDK_RENDERING
-   //ovrFrameTiming   ftiming  = ovrH_GetFrameTiming(hmd, 0);
-   ovrTrackingState hmdState = ovr_GetTrackingState(session, 0, ovrTrue); //ftiming.DisplayMidpointSeconds
-   ovr_CalcEyePoses(hmdState.HeadPose.ThePose, hmdToEyeViewOffset, &eyePose[0]);
-   //#else
-   //startTime = ovrHmd_BeginFrameTiming(hmd, frameIndex);
-   //
-   //ovrHmd_GetEyePoses(hmd, 0, hmdToEyeViewOffset, &eyePose[0], NULL); // &hmdState - Samples are tracking head properly without obtaining this info, how??
-   //#endif
+      ovr_GetTextureSwapChainCurrentIndex(session, swapChain[i], &currentIndex[i]);
+
+   //ovr_GetTextureSwapChainBufferGL(session, swapChain, curIndex, &curTexId);  // Not needed, we've already packaged those textures
+
+
+
+   //// Swap used rendertarget textures in swap-chain
+   //for(uint32 i=0; i<(sharedRT ? 1U : 2U); ++i)
+   //   textureSet[i]->CurrentIndex = (textureSet[i]->CurrentIndex + 1) % textureSet[i]->TextureCount;
+
+   ////#if OCULUS_SDK_RENDERING
+   ////ovrFrameTiming   ftiming  = ovrH_GetFrameTiming(hmd, 0);
+   //ovrTrackingState hmdState = ovr_GetTrackingState(session, 0, ovrTrue); //ftiming.DisplayMidpointSeconds
+   //ovr_CalcEyePoses(hmdState.HeadPose.ThePose, hmdToEyeViewOffset, &eyePose[0]);
+   ////#else
+   ////startTime = ovrHmd_BeginFrameTiming(hmd, frameIndex);
+   ////
+   ////ovrHmd_GetEyePoses(hmd, 0, hmdToEyeViewOffset, &eyePose[0], NULL); // &hmdState - Samples are tracking head properly without obtaining this info, how??
+   ////#endif
    }
 
    void OculusDK2::update(void)
@@ -470,7 +485,7 @@ namespace en
 
    void OculusDK2::reset(void)
    {
-   ovr_RecenterPose(session);
+   ovr_RecenterTrackingOrigin(session);
    }
 
    float2 OculusDK2::playAreaDimensions(void)
@@ -493,11 +508,11 @@ namespace en
       case LatencyTiming:
          ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_LatencyTiming);
          break;
-      case RenderTiming:
-         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_RenderTiming);
+      case ApplicationRenderTiming:
+         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_AppRenderTiming);
          break;
-      case PerformanceHeadroom:
-         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_PerfHeadroom);
+      case CompositorRenderTiming:
+         ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_CompRenderTiming);
          break;
       case Info:
          ovr_SetInt(session, OVR_PERF_HUD_MODE, (int)ovrPerfHud_VersionInfo);
@@ -543,7 +558,7 @@ namespace en
 
    float3 OculusDK2::vector(Eye eye) const
    {
-   return float3( &EyeRenderDesc[eye].HmdToEyeViewOffset.x );
+   return float3( &EyeRenderDesc[eye].HmdToEyeOffset.x );
    }
 
    Ptr<Texture> OculusDK2::color(Eye eye) const
@@ -551,7 +566,7 @@ namespace en
    assert( enabled );
    
    uint32 index = sharedRT ? 0 : static_cast<uint32>(eye);
-   return swap[index][ textureSet[index]->CurrentIndex ];
+   return swap[index][currentIndex];
    }
           
    //Ptr<Texture> OculusDK2::framebuffer(void) const
@@ -599,6 +614,13 @@ namespace en
    //return float4x4();
    //}
 
+   void OculusDK2::endRendering(Eye eye)
+   {
+   // Commit changes to textures in Swap-Chain
+   uint32 index = sharedRT ? 0 : static_cast<uint32>(eye);
+   ovr_CommitTextureSwapChain(session, swapChain[index]);
+   }
+
    void OculusDK2::endFrame(bool mirrorToScreen)
    {
    // Do distortion rendering, Present and flush/sync
@@ -606,8 +628,8 @@ namespace en
    // Set up positional data.
    ovrViewScaleDesc viewScaleDesc;
    viewScaleDesc.HmdSpaceToWorldScaleInMeters = 1.0f;
-   viewScaleDesc.HmdToEyeViewOffset[0] = EyeRenderDesc[0].HmdToEyeViewOffset;
-   viewScaleDesc.HmdToEyeViewOffset[1] = EyeRenderDesc[1].HmdToEyeViewOffset;
+   viewScaleDesc.HmdToEyeOffset[0] = EyeRenderDesc[0].HmdToEyeOffset;
+   viewScaleDesc.HmdToEyeOffset[1] = EyeRenderDesc[1].HmdToEyeOffset;
    
    ovrLayerEyeFov ld;
    ld.Header.Type  = ovrLayerType_EyeFov;
@@ -615,15 +637,22 @@ namespace en
    
    for(uint32 eye=0; eye<2; ++eye)
       {
-      ld.ColorTexture[eye] = sharedRT ? textureSet[0] : textureSet[eye];
+      ld.ColorTexture[eye] = sharedRT ? swapChain[0] : swapChain[eye];
       ld.Viewport[eye]     = OVR::Recti(view[eye].x, view[eye].y, view[eye].width, view[eye].height);
       ld.Fov[eye]          = info.DefaultEyeFov[eye];
       ld.RenderPose[eye]   = eyePose[eye];
+      ld.SensorSampleTime  = sensorSampleTime;
       }
    
    ovrLayerHeader* layers = &ld.Header;
-   ovrResult result = ovr_SubmitFrame(session, 0, &viewScaleDesc, &layers, 1);
+   ovrResult result = ovr_SubmitFrame(session, frameIndex, &viewScaleDesc, &layers, 1);
    //isVisible = result == ovrSuccess;
+
+   ovrSessionStatus sessionStatus;
+   ovr_GetSessionStatus(session, &sessionStatus);
+ //if (sessionStatus.ShouldQuit)
+   if (sessionStatus.ShouldRecenter)
+      ovr_RecenterTrackingOrigin(session);
 
    // Blit HMD content to window (flip the texture upside-down during blit)
    if ( mirrorToScreen &&
@@ -643,17 +672,12 @@ namespace en
    //{
    //return hmd;
    //}
-#endif              
-#endif
 
    //# CONTEXT
    //##########################################################################
 
    void Context::HMD::init(void)
    {
-#if /*defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
-#if OCULUS_VR
-
    // Initialize 
    //ovrInitParams params;
    //params.RequestedMinorVersion;
@@ -690,19 +714,15 @@ namespace en
    uint32 devices = 1; //ovrHmd_Detect();
    for(uint32 i=0; i<devices; ++i)
       device.push_back(Ptr<input::HMD>(new OculusDK2(i)));
-#endif
-#endif
    }
 
    void Context::HMD::destroy(void)
    {
    device.clear();
-#if /*defined(EN_PLATFORM_OSX) ||*/ defined(EN_PLATFORM_WINDOWS)
-#if OCULUS_VR
    ovr_Shutdown(); 
-#endif
-#endif
    }
 
    }
 }
+#endif
+#endif
