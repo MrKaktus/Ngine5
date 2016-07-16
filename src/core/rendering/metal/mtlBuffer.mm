@@ -24,35 +24,43 @@ namespace en
 {
    namespace gpu
    {
-   BufferMTL::BufferMTL(const id<MTLDevice> device, const BufferType type, const uint32 size, const void* data) :
+  
+   BufferMTL::BufferMTL(const id<MTLDevice> device, const BufferType type, const uint32 size) :
       handle(nil),
-      BufferCommon(type)
+      BufferCommon(type, size)
    {
    MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift); // MTLCPUCacheModeWriteCombined
    
-   // TODO: In future specify based on passed Usage type.
+   // Based on buffer type, it's located in CPU RAM or GPU VRAM on NUMA architectures.
 #if defined(EN_PLATFORM_IOS)
    options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
 #else
-   options |= (MTLStorageModePrivate << MTLResourceStorageModeShift);
+   if (type == BufferType::Transfer)
+      options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
+   else
+      options |= (MTLStorageModePrivate << MTLResourceStorageModeShift);
 #endif
 
-#if defined(EN_PLATFORM_IOS)
-   if (data)
-      {
-      // TODO: On OSX Private buffer needs to be populated through use of Staging Buffer and BlitEncoder.
-      
-      // Creates a MTLBuffer object by copying data from an existing storage allocation into a new allocation.
-      handle = [device newBufferWithBytes:data
-                                   length:(NSUInteger)size
-                                  options:options];
-      }
-   else
+   handle = [device newBufferWithLength:(NSUInteger)size
+                                options:options];
+   }
+
+   BufferMTL::BufferMTL(const id<MTLDevice> device, const BufferType type, const uint32 size, const void* data) :
+      handle(nil),
+      BufferCommon(type, size)
+   {
+   assert( data );
+#if defined(EN_PLATFORM_OSX)
+   assert( type == BufferType::Transfer );
 #endif
-      {
-      handle = [device newBufferWithLength:(NSUInteger)size
-                                   options:options];
-      }
+
+   MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift); // MTLCPUCacheModeWriteCombined
+   options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
+
+   // Creates a MTLBuffer object by copying data from an existing storage allocation into a new allocation.
+   handle = [device newBufferWithBytes:data
+                                length:(NSUInteger)size
+                               options:options];
 
    // Currently unsupported:
    //
@@ -64,25 +72,21 @@ namespace en
    //                                   options:options
    //                               deallocator:nil];
    }
-   
+
    BufferMTL::~BufferMTL()
    {
    handle = nil;
    }
 
-   void* BufferMTL::map(const DataAccess access)
+   void* BufferMTL::content(void) const
    {
-   // TODO: !!
-   assert(0);
-   return nullptr;
-   }
+   assert( apiType == BufferType::Transfer );
    
-   bool BufferMTL::unmap(void)
-   {
-   // TODO: !!
-   assert(0);
-   return false;
+   return [handle contents];
    }
+
+
+
 
 
 
@@ -93,15 +97,21 @@ namespace en
    BufferViewMTL::~BufferViewMTL()
    {
    }
+
+   Ptr<Buffer> MetalDevice::create(const BufferType type, const uint32 size)
+   {
+   assert( size );
    
+   return ptr_dynamic_cast<Buffer, BufferMTL>(Ptr<BufferMTL>(new BufferMTL(device, type, size)));
+   }
+   
+   // TODO: ifdef Mobile / or Transient
    Ptr<Buffer> MetalDevice::create(const BufferType type, const uint32 size, const void* data)
    {
    assert( size );
    
    return ptr_dynamic_cast<Buffer, BufferMTL>(Ptr<BufferMTL>(new BufferMTL(device, type, size, data)));
    }
-   
-
    
    }
 }

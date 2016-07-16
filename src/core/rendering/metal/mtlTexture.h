@@ -29,25 +29,18 @@ namespace en
 {
    namespace gpu
    {
-   struct SurfaceDescriptor
-      {
-      Nmutex lock;    // Locks this texture instance, to prevent it from beeing modified by other thread while it is mapped  
-      uint16 mipmap;  // MipMap level
-      uint16 layer;   // MipMap depth slice / CubeMap face / Array layer / CubeMapArray face-layer
-      void*  ptr;     // Pointer to local memory
-      
-      SurfaceDescriptor();
-      };
+
 
    class TextureMTL : public TextureCommon
       {
       public:
-      id<MTLDevice>     device; // GPU owning this texture
-      SurfaceDescriptor desc;   // Mapped surface description
-      id <MTLTexture>   handle; // Metal sampler ID
+      id<MTLDevice>  device;  // GPU owning this texture
+      id<MTLTexture> handle;  // Metal texture ID
+      id<MTLBuffer>  staging; // Staging buffer to which texture surface data can be written
+      Nmutex         lock;    // Locks this texture instance, to prevent it from beeing modified by other thread while it is mapped
+      uint16         mipmap;  // Mapped mipmap
+      uint16         layer;   // Mapped depth slice / cube face / array layer / cube array face-layer
 
-      virtual void*    map(const uint8 mipmap, const uint16 surface);
-      virtual bool     unmap(void);
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
 
       TextureMTL(const id<MTLDevice> _device, const TextureState& state);

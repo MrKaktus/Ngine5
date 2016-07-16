@@ -155,7 +155,7 @@ namespace en
    ////////////////////////////////////////////////////////////////////////////////
 
    CommonMouse::CommonMouse() :
-      display(nullptr),
+      _display(nullptr),
       x(0u),
       y(0u),
       Mouse()
@@ -168,16 +168,16 @@ namespace en
    {
    }
  
-   Ptr<Screen> CommonMouse::screen(void) const
+   Ptr<Display> CommonMouse::display(void) const
    {
-   return display;
+   return ptr_dynamic_cast<Display, CommonDisplay>(_display);
    }
    
    float2 CommonMouse::position(void) const
    {
-   assert( display );
-   return float2( static_cast<float>(x) / static_cast<float>(display->resolution.x),
-                  static_cast<float>(y) / static_cast<float>(display->resolution.y) );
+   assert( _display );
+   return float2( static_cast<float>(x) / static_cast<float>(_display->resolution.x),
+                  static_cast<float>(y) / static_cast<float>(_display->resolution.y) );
    }
    
    uint32 CommonMouse::position(const Axis axis) const

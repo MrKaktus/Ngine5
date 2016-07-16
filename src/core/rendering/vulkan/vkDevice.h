@@ -107,6 +107,11 @@ namespace en
 
 
 
+
+
+
+
+
    // Vulkan API Layer description
    struct LayerDescriptor
       {
@@ -117,10 +122,53 @@ namespace en
       LayerDescriptor();
       };
 
+
+
+   class winDisplay : public Display
+      {
+      public:
+      uint32v2  observedResolution; // Display resolution when app started
+      uint32v2* modeResolution;     // Resolutions of display modes supported by this display
+      uint32    modesCount;         // Count of display modes supported by this display (from the list of modes supported by the driver)
+      uint32    index;              // Index of this display on Windows displays list
+      bool      resolutionChanged;  // Flag if app changed display resolution (allows restoration of original resolution on exit)
+      
+      winDisplay();
+     ~winDisplay();
+      };
+     
+   class MetalDevice;
+   
+   class WindowVK : public winWindow
+      {
+      public:
+      VkSwapchainKHR swapChain;
+      
+      virtual bool movable(void);
+      virtual void move(const uint32v2 position);
+      virtual void resize(const uint32v2 size);
+      virtual void active(void);
+      virtual void transparent(const float opacity);
+      virtual void opaque(void);
+      virtual Ptr<Texture> surface(void);
+      virtual void display(void);
+      
+      WindowVK(const MetalDevice* gpu, const WindowSettings& settings, const string title); //id<MTLDevice> device
+      virtual ~WindowVK();
+      };
+
+
+
+
+
+
+   // TODO: Move it to Thread Pool Scheduler
+   #define MaxSupportedWorkerThreads 64
+   
    class VulkanDevice : public CommonDevice
       {
       public:
-      VkResult                         lastResult;
+      VkResult                         lastResult;   // Per thread ?
       VkDevice                         device;
       VkPhysicalDevice                 handle;
       VkPhysicalDeviceFeatures         features;
@@ -128,6 +176,10 @@ namespace en
       VkPhysicalDeviceMemoryProperties memory;
       VkQueueFamilyProperties*         queueFamily;
       uint32                           queueFamiliesCount;
+      uint32*                          queueFamilyIndices;
+      uint32                           queuesCount[underlyingType(QueueType::Count)];
+      uint32                           queueTypeToFamily[underlyingType(QueueType::Count)];
+      volatile VkCommandPool           commandPool[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];
       LayerDescriptor*                 layer;
       uint32                           layersCount;
       VkExtensionProperties*           globalExtension;
@@ -203,7 +255,13 @@ namespace en
 
    class VulkanAPI : public GraphicAPI
       {
-      private:
+      public:
+#if defined(EN_PLATFORM_WINDOWS)
+      HMODULE                          library;    // Vulkan dynamic library handle.
+#endif
+#if defined(EN_PLATFORM_LINUX)
+      void*                            library;
+#endif
       VkResult                         lastResult;
       LayerDescriptor*                 layer;
       uint32                           layersCount;
@@ -213,6 +271,16 @@ namespace en
       VkInstance                       instance;    // Application Vulkan API Instance
       Ptr<VulkanDevice>*               device;      // Physical Device Interfaces
       uint32                           devicesCount;
+
+      // API Independent, OS Dependent - Windowing System
+      Ptr<Screen>*                     display;
+      Ptr<Screen>                      virtualDisplay;
+      uint32                           displaysCount;
+      uint32                           displayPrimary;
+  
+
+
+
 
       PFN_vkGetInstanceProcAddr                          vkGetInstanceProcAddr; 
       PFN_vkEnumerateInstanceExtensionProperties         vkEnumerateInstanceExtensionProperties;  

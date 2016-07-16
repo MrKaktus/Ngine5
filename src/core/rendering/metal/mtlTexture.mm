@@ -399,19 +399,16 @@ namespace en
       };
 #endif
 
-   SurfaceDescriptor::SurfaceDescriptor() :
-      mipmap(0),
-      layer(0),
-      ptr(nullptr)
-   {
-   }
-
    TextureMTL::TextureMTL(const id<MTLDevice> _device, const TextureState& _state) :
       TextureMTL(_device, _state, true)
    {
    }
    
    TextureMTL::TextureMTL(const id<MTLDevice> _device, const TextureState& _state, const bool allocateBacking) :
+      staging(nil),
+      lock(),
+      mipmap(0),
+      layer(0),
       TextureCommon(_state)
    {
    // Calculate amount of mipmaps texture will have
@@ -457,74 +454,6 @@ namespace en
    TextureMTL::~TextureMTL()
    {
    [handle release];
-   }
-
-   void* TextureMTL::map(const uint8 mipmap, const uint16 surface)
-   {
-   // Check if specified mipmap and layer are correct
-   if (state.mipmaps <= mipmap)
-      return nullptr;
-   if (state.type == TextureType::Texture3D)
-      {
-      if (state.depth <= surface)
-         return nullptr;
-      }
-   else
-   if (state.type == TextureType::TextureCubeMap)
-      {
-      if (surface >= 6)
-         return nullptr;
-      }
-   else
-      {
-      if (state.layers <= surface)
-         return nullptr;
-      }
-
-   // Once texture is created we know it's type is valid on
-   // current architecture and supported by used API, so we 
-   // don't need to validate it here.
-
-   // Lock this texture instance for surface upload.
-   if (!desc.lock.tryLock())
-      return nullptr;
-
-   // In Metal texture is uploaded synchronously, by passing
-   // client memory pointer to the API. Therefore API storage
-   // needs to be emulated using local memory.
-   desc.ptr = new uint8[size(mipmap)];
-   if (desc.ptr == nullptr)
-      {
-      desc.lock.unlock();
-      return nullptr;
-      }
-
-   // Save mapped surface properties
-   desc.mipmap = mipmap;
-   desc.layer  = surface; 
- 
-   return desc.ptr;
-   }
-
-   bool TextureMTL::unmap(void)
-   {
-   // Check if this texture is locked for upload.
-   if (!desc.lock.isLocked())
-      return false;
-
-   // Update given layer mipmap
-   NSUInteger rowSize   = size(desc.mipmap) / max(1U, height(desc.mipmap));
-   NSUInteger imageSize = size(desc.mipmap);
-
-   [handle replaceRegion:MTLRegionMake2D(0, 0, max(1U, width(desc.mipmap)), max(1U, height(desc.mipmap)))
-      mipmapLevel:desc.mipmap slice:desc.layer withBytes:desc.ptr
-      bytesPerRow:rowSize bytesPerImage:imageSize];
-
-   // Free surface buffer
-   delete [] reinterpret_cast<uint8*>(desc.ptr);
-   desc.ptr = nullptr;
-   desc.lock.unlock();
-   return true;
    }
  
    bool TextureMTL::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const

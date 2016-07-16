@@ -18,6 +18,8 @@
 #include "core/rendering/metal/mtlAPI.h"
 #include "core/utilities/memory.h"
 
+#include "core/rendering/metal/mtlBuffer.h"
+
 #include "core/rendering/metal/mtlBlend.h"
 #include "core/rendering/metal/mtlRenderPass.h"
 #include "core/rendering/metal/mtlTexture.h"
@@ -33,62 +35,53 @@
 #include <Availability.h>
 #endif
 
+//#include "platform/osx/AppDelegate.h"    // For registering Window Delegate
+
 namespace en
 {
    namespace gpu
-   {
-   Screen::Screen() :
-      SafeObject()
-   {
-   }
-   
-   WindowSettings::WindowSettings() :
-      screen(nullptr),
-      position(0, 0),
-      size(0, 0),
-      mode(BorderlessWindow)
-   {
-   }
-      
-   ScreenMTL::ScreenMTL() :
+   {      
+   DisplayMTL::DisplayMTL() :
       handle(nullptr),
-      Screen()
+      CommonDisplay()
    {
    }
    
-   ScreenMTL::~ScreenMTL()
+   DisplayMTL::~DisplayMTL()
    {
    handle = nullptr;
    }
    
    WindowMTL::WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title) :
-      handle(nullptr),
-      windowPosition(settings.position),
       window(nil),
       layer(nil),
       drawable(nil),
       framebuffer(nullptr),
-      needNewSurface(true)
+      needNewSurface(true),
+      CommonWindow()
    {
+   _position = settings.position;
+
    id<MTLDevice> device = gpu->device;
    
    // Determine destination screen properties
    NSScreen* handle = nullptr;
    uint32v2 resolution;
-   if (settings.screen)
+   if (settings.display)
       {
-      handle     = ptr_dynamic_cast<ScreenMTL, Screen>(settings.screen)->handle;
-      resolution = settings.screen->resolution;
+      Ptr<DisplayMTL> ptr = ptr_dynamic_cast<DisplayMTL, Display>(settings.display);
+      handle     = ptr->handle;
+      resolution = ptr->resolution;
       }
    else
       {
       // Primary display handle and properties
-      handle = ptr_dynamic_cast<ScreenMTL, Screen>(gpu->screen(0u))->handle;
+      handle = ptr_dynamic_cast<DisplayMTL, Display>(gpu->display(0u))->handle;
       NSRect info = [handle convertRectToBacking:[handle frame]];
       resolution.width  = static_cast<uint32>(info.size.width);
       resolution.height = static_cast<uint32>(info.size.height);
       }
-
+      
    // Frame position describes windows lower-left corner position, from lower-left corner of the screen.
    NSRect frame = NSMakeRect(settings.position.x,
                              resolution.height - (settings.position.y + settings.size.height),
@@ -103,16 +96,28 @@ namespace en
    if (settings.mode == BorderlessWindow)
       style = NSBorderlessWindowMask;
    else
-      style = NSFullScreenWindowMask;
+      {
+      style = NSTitledWindowMask | NSFullScreenWindowMask;
+      frame.origin.x = 0;
+      frame.origin.y = 0;
+      }
 
    // Create window
    window = [[NSWindow alloc] initWithContentRect:[handle convertRectFromBacking:frame]
                                                   styleMask:style
                                                     backing:NSBackingStoreBuffered
                                                       defer:NO];
-      
+
+   if (settings.mode == Fullscreen)
+      {
+      // This is primary Fullscreen window
+      NSWindowCollectionBehavior behavior = [window collectionBehavior];
+      behavior |= NSWindowCollectionBehaviorFullScreenPrimary;
+      [window setCollectionBehavior:behavior];
+      }
+
    // Set engine custom delegate to handle window events
-// TODO:   [window setDelegate:[NSApp delegate]];
+   [window setDelegate:(id<NSWindowDelegate>)[NSApp delegate]]; //
    [window setAcceptsMouseMovedEvents:TRUE];
    
    // Sets window title
@@ -127,16 +132,6 @@ namespace en
    else
       [window setMovable:NO];
 
-   // Switch to fullscreen mode
-   if (settings.mode == Fullscreen)
-      [window toggleFullScreen:nil];
-
-   // Set window to be visible
-   //[window deminiaturize:NULL];
-   //[window zoom:NULL];
-   //[window update];
-   
-   
    // Window <- View <- Metal Layer <- Metal Device
    
    // Attach View to Window
@@ -147,7 +142,7 @@ namespace en
    if (settings.mode == Windowed)
       [view setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
    [view setWantsLayer:YES];
-
+   
    // Create Metal Layer
    layer = [CAMetalLayer new];
     
@@ -165,9 +160,9 @@ namespace en
    layer.drawsAsynchronously     = YES;
     
    // Attach Device to Layer
-   [layer setDevice: device ];                                                 // <<-- pass device here
-   [layer setPixelFormat: MTLPixelFormatBGRA8Unorm ];
-   [layer setFramebufferOnly: NO ];
+   [layer setDevice:device ];                                                 // <<-- pass device here
+   [layer setPixelFormat:MTLPixelFormatBGRA8Unorm ];     // <--- TODO: What about HDR? 30bpp? Wide Gamut? sRGB?
+   [layer setFramebufferOnly:NO ];
    [layer removeAllAnimations ];
 
    // Attach Layer to View
@@ -176,10 +171,26 @@ namespace en
    // Replace default highest level View with Metal handling one in Window ( Window <- View )
    [window setContentView: view ];
    [ [window standardWindowButton:NSWindowCloseButton] setAction:@selector(performClose:) ];
+      
+   // Switch to fullscreen mode
+   if (settings.mode == Fullscreen)
+      {
+      //active();
+      [window setIsVisible:TRUE];
+      assert( [window canBecomeMainWindow] );
+      [window makeMainWindow];
+      [window toggleFullScreen:nil];
+      }
+      
+   // Set window to be visible
+   //[window deminiaturize:NULL];
+   //[window zoom:NULL];
+   //[window update];
+   
    
    // Create Framebuffer handle
    TextureState state(TextureType::Texture2D,
-                      Format::RGBA_8,
+                      Format::BGRA_8,
                       TextureUsage::RenderTargetWrite,
                       settings.size.width,
                       settings.size.height);
@@ -191,18 +202,7 @@ namespace en
    // TODO: Release device, layer, view, window
    }
    
-   
-   
-   Ptr<Screen> WindowMTL::screen(void)
-   {
-   return handle;
-   }
-   
-   uint32v2 WindowMTL::position(void)
-   {
-   return windowPosition;
-   }
-      
+
    bool WindowMTL::movable(void)
    {
    return [window isMovable];
@@ -213,19 +213,23 @@ namespace en
    // Reposition window.
    // Position is from lower-left corner of the screen in OSX.
    // Both position and resolution are in points, not pixels.
-   NSScreen* screen = ptr_dynamic_cast<ScreenMTL, Screen>(handle)->handle;
+   Ptr<DisplayMTL> metalDisplay = ptr_dynamic_cast<DisplayMTL, Display>(_display);
+   
+   NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
    frame.origin.x = position.x;
-   frame.origin.y = handle->resolution.height - position.y;
+   frame.origin.y = metalDisplay->resolution.height - position.y;
    [window setFrame:[screen convertRectFromBacking:frame] display:YES animate:NO];
-   windowPosition = position;
+   _position = position;
    }
 
    void WindowMTL::resize(const uint32v2 size)
    {
    // Resize window.
    // Both position and resolution are in points, not pixels.
-   NSScreen* screen = ptr_dynamic_cast<ScreenMTL, Screen>(handle)->handle;
+   Ptr<DisplayMTL> metalDisplay = ptr_dynamic_cast<DisplayMTL, Display>(_display);
+   
+   NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
    frame.size.width = size.width;
    frame.size.height = size.height;
@@ -271,7 +275,7 @@ namespace en
    return ptr_dynamic_cast<Texture, TextureMTL>(framebuffer);
    }
    
-   void WindowMTL::display(void)
+   void WindowMTL::present(void)
    {
    [drawable present];
    needNewSurface = true;
@@ -304,94 +308,6 @@ namespace en
 //
 // https://github.com/b005t3r/MacOSFullScreenANE/blob/master/MacOS-x86/MacOSFullScreen.h
 //
-//#include "MacOSFullScreen.h"
-
-//#define EXPORT __attribute__((visibility("default")))
-//
-//#ifndef MacOSFullScreen_H_
-//#define MacOSFullScreen_H_
-////#include "FlashRuntimeExtensions.h" // should be included via the framework, but it's not picking up
-//EXPORT
-//void MacOSFullScreenInitializer(void** extData, FREContextInitializer* ctxInitializer, FREContextFinalizer* ctxFinalizer);
-//
-//EXPORT
-//void MacOSFullScreenFinalizer(void* extData);
-//
-//#endif /* HelloANE_H_ */
-//
-//#include <stdlib.h>
-//
-////typedef char bool;
-//
-//   FREObject MacOSFullScreen_enableFullScreen(FREContext ctx, void* funcData, uint32_t argc, FREObject argv[])
-//   {
-//   NSApplicationPresentationOptions presentationOptions = [NSApplication sharedApplication].presentationOptions;
-//   presentationOptions |= NSApplicationPresentationFullScreen;
-//   [NSApplication sharedApplication].presentationOptions = presentationOptions;
-//    
-//   NSWindow *mainWindow = [NSApplication sharedApplication].mainWindow;
-//    
-//   if (mainWindow != nil)
-//      {
-//      NSWindowCollectionBehavior behavior = [mainWindow collectionBehavior];
-//      behavior |= NSWindowCollectionBehaviorFullScreenPrimary;
-//      [mainWindow setCollectionBehavior:behavior];
-//      }
-//    
-//   //TODO: Return a boolean instead depending on if we found the main window
-//   return NULL;
-//   }
-//
-//   FREObject MacOSFullScreen_toggleFullScreen(FREContext ctx, void* funcData, uint32_t argc, FREObject argv[])
-//   {
-//   NSWindow *mainWindow = [NSApplication sharedApplication].mainWindow;
-//    
-//   if (mainWindow != nil)
-//      {
-//      [mainWindow toggleFullScreen:nil];
-//      }
-//    
-//   //TODO: Return a boolean instead depending on if we found the main window
-//   return NULL;
-//   }
-//
-//   void reg(FRENamedFunction *store, int slot, const char *name, FREFunction fn)
-//   {
-//   store[slot].name = (const uint8_t*)name;
-//   store[slot].functionData = NULL;
-//   store[slot].function = fn;
-//   }
-//
-//   void contextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctions, const FRENamedFunction** functions)
-//   {
-//   *numFunctions = 2;
-//   FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * (*numFunctions));
-//   *functions = func;
-//    
-//   reg(func, 0, "enableFullScreen", MacOSFullScreen_enableFullScreen);
-//   reg(func, 1, "toggleFullScreen", MacOSFullScreen_toggleFullScreen);
-//   }
-//
-//   void contextFinalizer(FREContext ctx)
-//   {
-//   return;
-//   }
-//
-//   void MacOSFullScreenInitializer(void** extData, FREContextInitializer* ctxInitializer, FREContextFinalizer* ctxFinalizer)
-//   {
-//   *ctxInitializer = &contextInitializer;
-//   *ctxFinalizer = &contextFinalizer;
-//   *extData = NULL;
-//   }
-//
-//   void MacOSFullScreenFinalizer(void* extData)
-//   {
-//   FREContext nullCTX;
-//   nullCTX = 0;
-//
-//   contextFinalizer(nullCTX);
-//   return;
-//   }
 // END OF LUKASZ LAZARECKI CODE
 
 
@@ -443,87 +359,9 @@ namespace en
 //    [closeButton setEnabled:NO];
    
 
-   CommandBufferMTL::CommandBufferMTL() :
-      handle(nil),
-      renderEncoder(nil),
-      commited(false)
-   {
-   }
+    
+    
 
-   void CommandBufferMTL::bind(const Ptr<RasterState> raster)
-   {
-   
-   }
-   
- //void CommandBufferMTL::bind(const Ptr<ViewportScissorState> viewportScissor);
- 
-   void CommandBufferMTL::bind(const Ptr<DepthStencilState> depthStencil)
-   {
-   
-   }
-   
-   void CommandBufferMTL::bind(const Ptr<BlendState> blend)
-   {
-   
-   }
-      
-   bool CommandBufferMTL::startRenderPass(const Ptr<RenderPass> pass)
-   {
-   if (renderEncoder != nil)
-      return false;
-    
-   const Ptr<RenderPassMTL> temp = ptr_dynamic_cast<RenderPassMTL, RenderPass>(pass);
-   
-   renderEncoder = [handle renderCommandEncoderWithDescriptor:temp->desc];
-   return true;
-   }
-   
-   bool CommandBufferMTL::endRenderPass(void)
-   {
-   if (renderEncoder == nil)
-      return false;
-   [renderEncoder endEncoding];
-   [renderEncoder release];
-   renderEncoder = nullptr;
-   return true;
-   }
-   
-   void CommandBufferMTL::commit(void)
-   {
-   assert( !commited );
-   [handle commit];
-   commited = true;
-   }
-    
-   void CommandBufferMTL::waitUntilCompleted(void)
-   {
-   [handle waitUntilCompleted];
-   }
-   
-   CommandBufferMTL::~CommandBufferMTL()
-   {
-   // Finish encoded tasks
-   if (!commited)
-      [handle commit];
-      
-   // Don't wait for completion
-   
-   // Release buffer
-   [handle release];
-   }
-    
-    
-   Ptr<CommandBuffer> MetalDevice::createCommandBuffer()
-   {
-   // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers they can be recycled / reused !!! )
-   // Multiple buffers can be created simultaneously for one queue
-   // Buffers are executed in order in queue
-   Ptr<CommandBufferMTL> buffer = new CommandBufferMTL();
-   
-   buffer->handle = [queue commandBuffer];
-   
-   return ptr_dynamic_cast<CommandBuffer, CommandBufferMTL>(buffer);
-   }
     
    
    
@@ -794,21 +632,21 @@ namespace en
    //   } 
    }
 
-   uint32 MetalDevice::screens(void)
+   uint32 MetalDevice::displays(void)
    {
    // Currently all Metal devices share all available displays
    Ptr<MetalAPI> api = ptr_dynamic_cast<MetalAPI, GraphicAPI>(en::Graphics);
    return api->displaysCount;
    }
    
-   Ptr<Screen> MetalDevice::screen(uint32 id) const
+   Ptr<Display> MetalDevice::display(uint32 index) const
    {
    // Currently all Metal devices share all available displays
    Ptr<MetalAPI> api = ptr_dynamic_cast<MetalAPI, GraphicAPI>(en::Graphics);
      
-   assert( api->displaysCount > id );
+   assert( api->displaysCount > index );
    
-   return api->display[id];
+   return ptr_dynamic_cast<Display, CommonDisplay>(api->display[index]);
    }
 
    Ptr<Window> MetalDevice::create(const WindowSettings& settings, const string title)
@@ -817,8 +655,17 @@ namespace en
    return ptr_dynamic_cast<Window>(ptr);
    }
 
+   uint32 MetalDevice::queues(const QueueType type) const
+   {
+   if (type == QueueType::Universal)
+      return 1u;
+   return 0u;
+   }
 
-      
+   
+
+   
+
 
 
 
@@ -839,8 +686,8 @@ namespace en
       if (Screen)
          displaysCount++;
 
-   display = new Ptr<Screen>[displaysCount];
-   virtualDisplay = new Screen();
+   display = new Ptr<CommonDisplay>[displaysCount];
+   virtualDisplay = new CommonDisplay();
    
    // Gather information about available displays.
    uint32 displayId = 0;
@@ -849,27 +696,45 @@ namespace en
          {
          NSRect info = [handle convertRectToBacking:[handle frame]];
          
-         Ptr<ScreenMTL> screen = new ScreenMTL();
+         Ptr<DisplayMTL> currentDisplay = new DisplayMTL();
  
-         screen->position.x        = static_cast<uint32>(info.origin.x);
-         screen->position.y        = static_cast<uint32>(info.origin.y);
-         screen->resolution.width  = static_cast<uint32>(info.size.width);
-         screen->resolution.height = static_cast<uint32>(info.size.height);
-         screen->handle            = handle;
+         currentDisplay->_position.x       = static_cast<uint32>(info.origin.x);
+         currentDisplay->_position.y       = static_cast<uint32>(info.origin.y);
+         currentDisplay->resolution.width  = static_cast<uint32>(info.size.width);
+         currentDisplay->resolution.height = static_cast<uint32>(info.size.height);
+         currentDisplay->handle            = handle;
          
-         // Bounding box containing all displays represents virtual desktop position and size in the same coordinate system.
-         if (virtualDisplay->position.x > screen->position.x)
-            virtualDisplay->position.x = screen->position.x;
-         if (virtualDisplay->position.y > screen->position.y)
-            virtualDisplay->position.y = screen->position.y;
-         if ((virtualDisplay->position.x + virtualDisplay->resolution.width) <
-             (screen->position.x + screen->resolution.width))
-            virtualDisplay->resolution.width = (screen->position.x + screen->resolution.width) - virtualDisplay->position.x;
-         if ((virtualDisplay->position.y + virtualDisplay->resolution.height) <
-             (screen->position.y + screen->resolution.height))
-            virtualDisplay->resolution.height = (screen->position.y + screen->resolution.height) - virtualDisplay->position.y;
-        
-         display[displayId] = ptr_dynamic_cast<Screen, ScreenMTL>(screen);
+         // Calculate upper-left corner position, and size of virtual display.
+         // It's assumed that X axis increases right, and Y axis increases down.
+         // Virtual Display is a bounding box for all available displays.
+         if (displayId == 0)
+            {
+            virtualDisplay->_position   = currentDisplay->_position;
+            virtualDisplay->resolution = currentDisplay->resolution;
+            }
+         else
+            {
+            if (currentDisplay->_position.x < virtualDisplay->_position.x)
+               {
+               virtualDisplay->resolution.width += (virtualDisplay->_position.x - currentDisplay->_position.x);
+               virtualDisplay->_position.x = currentDisplay->_position.x;
+               }
+            if (currentDisplay->_position.y < virtualDisplay->_position.y)
+               {
+               virtualDisplay->resolution.height += (virtualDisplay->_position.y - currentDisplay->_position.y);
+               virtualDisplay->_position.y = currentDisplay->_position.y;
+               }
+            uint32 virtualRightBorder = virtualDisplay->_position.x + virtualDisplay->resolution.width;
+            uint32 currentRightBorder = currentDisplay->_position.x + currentDisplay->resolution.width;
+            if (virtualRightBorder < currentRightBorder)
+               virtualDisplay->resolution.width = currentRightBorder - virtualDisplay->_position.x;
+            uint32 virtualBottomBorder = virtualDisplay->_position.y + virtualDisplay->resolution.height;
+            uint32 currentBottomBorder = currentDisplay->_position.y + currentDisplay->resolution.height;
+            if (virtualBottomBorder < currentBottomBorder)
+               virtualDisplay->resolution.height = currentBottomBorder - virtualDisplay->_position.y;
+            }
+            
+         display[displayId] = ptr_dynamic_cast<CommonDisplay, DisplayMTL>(currentDisplay);
          displayId++;
          }
 
@@ -977,6 +842,11 @@ namespace en
    return devicesCount;
    }
    
+   Ptr<Display> MetalAPI::primaryDisplay(void)
+   {
+   return ptr_dynamic_cast<Display, CommonDisplay>(display[0]);
+   }
+      
    Ptr<GpuDevice> MetalAPI::primaryDevice(void)
    {
    return device[0];

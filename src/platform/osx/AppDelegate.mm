@@ -141,7 +141,111 @@ static void* mainGameThread(void* ptr)
    //en::InputContext.events.callback(event);
 }
 
+//@end
+//@implementation AppWindowDelegate
+
+- (NSSize)window:(NSWindow *)window willUseFullScreenContentSize:(NSSize)proposedSize
+{
+   NSLog(@"\n\nwindow:willUseFullScreenContentSize:");
+return proposedSize;
+}
+
+- (NSApplicationPresentationOptions)window:(NSWindow *)window
+      willUseFullScreenPresentationOptions:(NSApplicationPresentationOptions)proposedOptions
+{
+   NSLog(@"\n\nwindow:willUseFullScreenPresentationOptions:");
+
+   // Allow application to enter Fullscreen mode
+   NSApplicationPresentationOptions presentationOptions; // = [application currentSystemPresentationOptions];
+   presentationOptions  = NSApplicationPresentationHideDock;
+   presentationOptions |= NSApplicationPresentationHideMenuBar;
+   presentationOptions |= NSApplicationPresentationFullScreen;
+   return presentationOptions; //[application setPresentationOptions:presentationOptions]; // NSFullScreenWindowMask
+}
+
+- (void)windowWillEnterFullScreen:(NSNotification *)notification
+{
+   NSLog(@"\n\nwindowWillEnterFullScreen:");
+   NSWindow* window = (NSWindow*)[notification object];
+}
+
+- (void)windowDidEnterFullScreen:(NSNotification *)notification
+{
+   NSLog(@"\n\nwindowDidEnterFullScreen:");
+}
+
+- (void)windowWillExitFullScreen:(NSNotification *)notification
+{
+   NSLog(@"\n\nwindowWillExitFullScreen:");
+}
+
+- (void)windowDidExitFullScreen:(NSNotification *)notification
+{
+   NSLog(@"\n\nwindowDidExitFullScreen:");
+}
+
 @end
+
+
+//   // Allow application to enter Fullscreen mode
+//   NSApplicationPresentationOptions presentationOptions; // = [application currentSystemPresentationOptions];
+//   presentationOptions  = NSApplicationPresentationHideDock;
+//   presentationOptions |= NSApplicationPresentationHideMenuBar;
+//   presentationOptions |= NSApplicationPresentationFullScreen;
+//   [application setPresentationOptions:presentationOptions]; // NSFullScreenWindowMask
+//
+// Swift example:
+//
+//class ViewController: NSViewController {
+//    override func viewWillAppear() {
+//        let presentationOptions: NSApplicationPresentationOptions = [
+//                .HideDock                  ,   // Dock is entirely unavailable. Spotlight menu is disabled.
+//                .DisableProcessSwitching   ,   // Cmd+Tab UI is disabled. All Exposé functionality is also disabled.
+//                .DisableForceQuit          ,   // Cmd+Opt+Esc panel is disabled.
+//                .DisableSessionTermination ,   // PowerKey panel and Restart/Shut Down/Log Out are disabled.
+//                .DisableHideApplication    ,   // Application "Hide" menu item is disabled.
+//                .FullScreen
+//        ]
+//
+//        if let screen = NSScreen.mainScreen() {
+//            view.enterFullScreenMode(screen,
+//                withOptions: [NSFullScreenModeApplicationPresentationOptions:
+//                    NSNumber(unsignedLong: presentationOptions.rawValue)])
+//        }
+//    }
+//}
+//
+// Another Swift example:
+//
+////----------------------------------------------
+//    override func viewDidAppear() {
+//        let presOptions: NSApplicationPresentationOptions =
+//        //----------------------------------------------
+//        // These are all the options for the NSApplicationPresentationOptions
+//        // BEWARE!!!
+//        // Some of the Options may conflict with each other
+//        //----------------------------------------------
+//
+//        //  .Default                   |
+//        //  .AutoHideDock              |   // Dock appears when moused to
+//        //  .AutoHideMenuBar           |   // Menu Bar appears when moused to
+//        //  .DisableForceQuit          |   // Cmd+Opt+Esc panel is disabled
+//        //  .DisableMenuBarTransparency|   // Menu Bar's transparent appearance is disabled
+//        //  .FullScreen                |   // Application is in fullscreen mode
+//            .HideDock                  |   // Dock is entirely unavailable. Spotlight menu is disabled.
+//            .HideMenuBar               |   // Menu Bar is Disabled
+//            .DisableAppleMenu          |   // All Apple menu items are disabled.
+//            .DisableProcessSwitching   |   // Cmd+Tab UI is disabled. All Exposé functionality is also disabled.
+//            .DisableSessionTermination |   // PowerKey panel and Restart/Shut Down/Log Out are disabled.
+//            .DisableHideApplication    |   // Application "Hide" menu item is disabled.
+//            .AutoHideToolbar
+//
+//        let optionsDictionary = [NSFullScreenModeApplicationPresentationOptions :
+//            NSNumber(unsignedLong: presOptions.rawValue)]
+//    
+//        self.view.enterFullScreenMode(NSScreen.mainScreen()!, withOptions:optionsDictionary)
+//        self.view.wantsLayer = true
+//    }
 
 
 

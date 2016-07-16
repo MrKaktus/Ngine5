@@ -27,6 +27,60 @@ namespace en
 {
    namespace gpu
    {
+   class CommonDisplay : public Display
+      {
+      public:
+      uint32v2 _position;      // Upper-Left corner position on virtual desktop
+      uint32v2 resolution;     // Native resolution
+     
+      virtual uint32v2 position(void);   // Position on Virtual Desktop
+      };
+      
+   class CommonWindow : public Window
+      {
+      public:
+      Ptr<Display>  _display;
+      uint32v2      _position;
+      uint32v2      _size;
+      uint32v2      _resolution;
+      
+      CommonWindow();
+      
+      virtual Ptr<Display> display(void) const;   // Display on which window's center point is currently located
+      virtual uint32v2 position(void) const;
+      virtual uint32v2 size(void) const;
+      virtual uint32v2 resolution(void) const;
+      
+      virtual void transparent(const float opacity); // TODO: Do we really want that here? (Transp. should be enabled on window creation time, and queried later)
+      virtual void opaque(void);
+      virtual Ptr<Texture> surface(void); // App should query for current surface each time it wants to reference it
+      virtual void present(void);
+      
+      virtual ~CommonWindow();
+
+      };
+
+   // TODO: This should be moved to platform specific section
+#if defined(EN_PLATFORM_WINDOWS)
+   class winWindow : public CommonWindow
+      {
+      public:
+      HWND hWnd;        // Window handle
+
+      winWindow();
+
+      virtual bool movable(void);
+      virtual void move(const uint32v2 position);
+      virtual void resize(const uint32v2 size);
+      virtual void active(void);
+
+      virtual ~winWindow();
+      };
+#endif
+      
+      
+      
+      
    class CommonDevice : public GpuDevice
       {
       public:
@@ -107,7 +161,8 @@ namespace en
       virtual void init(void);
       virtual Ptr<Buffer> create(const uint32 elements, const Formatting& formatting, const uint32 step = 0, const void* data = nullptr);
       virtual Ptr<Buffer> create(const uint32 elements, const Attribute format, const void* data = nullptr);
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size);
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data);
 
       virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
                                          const uint32 controlPoints,

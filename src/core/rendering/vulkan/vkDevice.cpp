@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : GPU Device.
+ Module      : Vulkan GPU Device.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -127,6 +127,539 @@ namespace en
       };                                                                 \
    }
 
+
+
+
+#if defined(EN_PLATFORM_WINDOWS)
+   winDisplay::winDisplay()
+      observedResolution(),
+      modes(0),
+      index(0),
+      resolutionChanged(false),
+      CommonDisplay()
+   {
+   }
+
+   winDisplay::~winDisplay()
+   {
+   // Restore original resolution
+   if (resolutionChanged)
+      {
+      // TODO: Check if that's not happening by default when window is destroyed
+      }
+   }
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
+   winWindow::winWindow(const Ptr<winDisplay> selectedDisplay,
+                        const uint32v2 selectedResolution,
+                        const WindowSettings& settings,
+                        const string title) :
+      CommonWindow()
+   {
+   HINSTANCE AppInstance; // Application handle
+   WNDCLASS  Window;      // Window class
+   DWORD     Style;       // Window style
+   DWORD     ExStyle;     // Window extended style
+   RECT      WindowRect;  // Window rectangle
+      
+   // Get this application instance
+   AppInstance          = (HINSTANCE)GetWindowLongPtr(GetConsoleWindow(), GWLP_HINSTANCE);  // GWL_HINSTANCE is deprecated in x64 environment
+     
+   // Window settings
+   Window.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Have its own Device Context and also cannot be resized. Oculus uses CLASSDC which is not thread safe!    
+   Window.lpfnWndProc   = (WNDPROC) WinEvents;                // Procedure that handles OS evets for this window
+   Window.cbClsExtra    = 0;                                  // No extra window data
+   Window.cbWndExtra    = 0;                                  //
+   Window.hInstance     = AppInstance;                        // Handle to instance of program that this window belongs to
+   Window.hIcon         = LoadIcon(NULL, IDI_WINLOGO);        // Load default icon
+   Window.hCursor       = LoadCursor(NULL, IDC_ARROW);        // Load arrow pointer
+   Window.hbrBackground = NULL;                               // No background (Direct3D/OpenGL/Vulkan will handle this)
+   Window.lpszMenuName  = NULL;                               // No menu
+   Window.lpszClassName = L"WindowClass";                     // Class name
+   
+   // Window size      
+   WindowRect.left      = (long)0;      
+   WindowRect.right     = (long)selectedResolution.width;
+   WindowRect.top       = (long)0;    
+   WindowRect.bottom    = (long)selectedResolution.height;
+     
+   // Registering Window Class
+   if (!RegisterClass(&Window))	
+      {					
+      Log << "Error! Cannot register window class." << endl;
+      assert( 0 );
+      }
+      
+   // Preparing for displays native fullscreen mode
+   if (settings.mode == Fullscreen)
+      {
+      // Display Device settings
+      DEVMODE DispDevice;
+      memset(&DispDevice, 0, sizeof(DispDevice));       // Clearing structure
+      DispDevice.dmSize       = sizeof(DispDevice);     // Size of this structure
+      DispDevice.dmBitsPerPel = 32;                     // bpp
+      DispDevice.dmPelsWidth  = selectedResolution.width;
+      DispDevice.dmPelsHeight = selectedResolution.height;
+      DispDevice.dmFields     = DM_BITSPERPEL |
+                                DM_PELSWIDTH  | 
+                                DM_PELSHEIGHT;          // Sets which fields were filled
+
+      // Specifies which display to use
+      DISPLAY_DEVICE Device;
+      memset(&Device, 0, sizeof(Device));
+      Device.cb = sizeof(Device);
+      assert( EnumDisplayDevices(nullptr, selectedDisplay->index, &Device, EDD_GET_DEVICE_INTERFACE_NAME) );
+      memcpy(&DispDevice.dmDeviceName, &Device.DeviceName, sizeof(DispDevice.dmDeviceName));
+
+      // Changing Display settings
+      if (ChangeDisplaySettingsEx(Device.DeviceName, &DispDevice, nullptr, CDS_FULLSCREEN, nullptr) != DISP_CHANGE_SUCCESSFUL)
+         {					
+         Log << "Error! Cannot change display settings for fullscreen." << endl;
+         assert( 0 );
+         }
+ 
+      // Setting additional data
+      Style   = WS_POPUP;                               // Window style
+      ExStyle = WS_EX_APPWINDOW | WS_EX_TOPMOST;        // Window extended style
+      ShowCursor(FALSE);                                // Hide mouse 
+      }
+   else
+      {
+      // Preparing for desktop window (adding size of borders and bar)
+      if (settings.mode == Windowed)
+         {
+         Style   = WS_CLIPSIBLINGS |                       // \_Prevents from overdrawing
+                   WS_CLIPCHILDREN |                       // / by other windows
+                   WS_POPUP        | 
+                   WS_OVERLAPPEDWINDOW;                    // Window style
+         ExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;     // Window extended style  
+      
+         AdjustWindowRectEx(&WindowRect, Style, FALSE, ExStyle);  // Calculates true size of window with bars and borders
+         }
+      else // Borderless window
+         {
+         Style   = WS_POPUP;                               // Window style                // | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+         ExStyle = 0;                                      // Window extended style  
+         }
+      }
+
+   // Creating Window in modern way
+   wstring windowTitle = wstring(title.begin(),title.end());
+   hWnd = CreateWindowEx(
+      ExStyle,                             // Extended style 
+      L"WindowClass",                      // Window class name
+      (LPCWSTR)windowTitle.c_str(),        // Title of window            
+      Style,                               // Additional styles
+      settings.position.x, settings.position.y, // Position on desktop    <-- TODO: Shouldn't be display.pos + settings.pos? Is this on Desktop or on Window ?
+      WindowRect.right  - WindowRect.left, // True window widht
+      WindowRect.bottom - WindowRect.top,  // True window height
+      nullptr, //GetDesktopWindow(),       // Desktop is parent window
+      nullptr,                             // No menu
+      AppInstance,                         // Handle to this instance of program
+      nullptr );                           // Won't pass anything
+   
+   // Check if window was created
+   if (hWnd == nullptr)
+      {
+      Log << "Error! Cannot create window.\n";
+      return false;
+      }
+   
+   _display  = ptr_dynamic_cast<CommonDisplay, winDisplay>(selectedDisplay);
+   _position = settings.position;
+   _size     = selectedResolution;
+ //_resolution will be set by child class implementing given Graphics API Swap-Chain
+   }
+#endif
+
+   bool winWindow::movable(void)
+   {
+   return false;
+   }
+   
+   void winWindow::move(const uint32v2 position)
+   {
+   }
+   
+   void winWindow::resize(const uint32v2 size)
+   {
+   }
+   
+   void winWindow::active(void)
+   {
+   }
+
+
+   // Create Window
+   //---------------
+   
+
+//   HDC       hDC;         // Application Device Context
+//
+//   // Acquiring Device Context
+//   hDC = GetDC(hWnd);
+//   if (hDC == nullptr)
+//      {
+//      Log << "Error! Cannot create device context.\n";
+//      return false;
+//      }
+
+
+
+
+
+
+   WindowVK::WindowVK(const VulkanDevice* gpu,
+                      const Ptr<CommonDisplay> selectedDisplay,
+                      const uint32v2 selectedResolution,
+                      const WindowSettings& settings,
+                      const string title) :
+#if defined(EN_PLATFORM_WINDOWS)
+      winWindow(ptr_dynamic_cast<winDisplay, CommonDisplay>(selectedDisplay), selectedResolution, settings, title)
+#endif
+   {
+   // Window > Surface > Swap-Chain > Device - connection
+
+   // Be sure device is idle before creating Swap-Chain
+   vkDeviceWaitIdle(gpu->device);
+
+   // Create Swap-Chain surface attached to Window
+   //----------------------------------------------
+
+   VkSurfaceKHR             swapChainSurface;
+   VkSurfaceCapabilitiesKHR swapChainCapabilities;
+      
+   VkWin32SurfaceCreateInfoKHR createInfo;
+   createInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+   createInfo.pNext     = nullptr;
+   createInfo.flags     = 0;           // VkWin32SurfaceCreateFlagsKHR - Reserved.
+   createInfo.hinstance = AppInstance; // HINSTANCE
+   createInfo.hwnd      = hWnd;        // HWND
+
+   Profile( vkCreateWin32SurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicsAPI>(en::Graphics)->instance,
+                                    &createInfo, nullptr, &swapChainSurface) )
+
+   // Query capabilities of Swap-Chain surface for this device
+   Profile( vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, swapChainSurface, &swapChainCapabilities) )
+   if (lastResult != VK_SUCCESS)
+      {
+      string info;
+      info += "ERROR: Vulkan error:\n";
+      info += "       Cannot query Swap-Chain surface capabilities.\n";
+      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
+      Log << info.c_str();
+      assert( 0 );
+      }
+
+   // Calculate amount of backing images in Swap-Chain
+   //--------------------------------------------------
+   
+   // Typical Swap-Chain consist of 3 surfaces, one is presented on display, next is
+   // queued to be presented, and the third one is used by application for rendering.
+   uint32 swapChainImages = max(3, swapChainCapabilities.minImageCount);
+   if (swapChainCapabilities.maxImageCount)
+      swapChainImages = min(swapChainImages, swapChainCapabilities.maxImageCount);
+   
+   // TODO: In future check what's the most optimal count and what should be used for VR.
+
+   // Determine PixelFormat and Color Space
+   //---------------------------------------
+   
+   VkFormat        swapChainFormat     = TranslateTextureFormat[underlyingType(settings.format)];
+   VkColorSpaceKHR swapChainColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+      
+   // Query count of available Pixel Formats supported by this device, and matching destination Window
+   uint32 formats = 0;
+   Profile( vkGetPhysicalDeviceSurfaceFormatsKHR(handle, swapChainSurface, &formats, nullptr) )
+   if ( (lastResult != VK_SUCCESS) ||
+        (formats == 0) )
+      {
+      string info;
+      info += "ERROR: Vulkan error:\n";
+      info += "       Cannot query Swap-Chain surface Pixel Formats count.\n";
+      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
+      Log << info.c_str();
+      assert( 0 );
+      }
+
+   // Query types of all available device Pixel Formats for that surface
+   VkSurfaceFormatKHR* deviceFormats = new VkSurfaceFormatKHR[formats];
+   Profile( vkGetPhysicalDeviceSurfaceFormatsKHR(handle, swapChainSurface, &formats, &deviceFormats[0]) )
+   if (lastResult != VK_SUCCESS)
+      {
+      delete [] deviceFormats;
+      
+      string info;
+      info += "ERROR: Vulkan error:\n";
+      info += "       Cannot query list of Swap-Chain surface supported Pixel Formats.\n";
+      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
+      Log << info.c_str();
+      assert( 0 );
+      }
+   
+   // If device specifies only one format VK_FORMAT_UNDEFINED it means
+   // there is no preffered Pixel Formats for this window. In such case
+   // we can use Pixel Format and Color Space requested by the app.
+   // Otherwise we need to check if requested properties are on the
+   // list of available ones, and fail if that's not true.
+   bool requestedFormatSupported = true;
+   if ( (formats > 1) ||
+        (deviceFormats[0].format != VK_FORMAT_UNDEFINED) )
+      {
+      requestedFormatSupported = false;
+      
+      for(uint32 i=0; i<formats; ++i)
+         if ( (deviceFormats[i].format     == swapChainFormat) &&
+              (deviceFormats[i].colorSpace == swapChainColorSpace) )
+            {
+            requestedFormatSupported = true;
+            break;
+            }
+      }
+
+   delete [] deviceFormats;
+   
+   if (!requestedFormatSupported)
+      {
+      string info;
+      info += "ERROR: Requested Pixel Format is not supported by this device.\n";
+      Log << info.c_str();
+      return;
+      }
+
+   // Verify requested Swap-Chain resolution
+   //----------------------------------------
+
+   // Final determined resolution of backing surface (may be smaller than window resolution)
+   uint32v2 swapChainResolution = selectedResolution;
+
+   // In windowed mode Swap-Chain resolution can differ from Window size (be smaller)
+   if ( (settings.mode != Fullscreen) &&
+        (settings.resolution.width  > 0) &&
+        (settings.resolution.width  < selectedResolution.width) &&
+        (settings.resolution.height > 0) &&
+        (settings.resolution.height < selectedResolution.height) )
+      {
+      // If Windowing System allows scaling of Swap-Chain surfaces to window size
+      if ( (swapChainCapabilities.currentExtent.width  == 0xFFFFFFFF) &&
+           (swapChainCapabilities.currentExtent.height == 0xFFFFFFFF) )
+         {
+         // If requested resolution is fitting in allowed range, it's accepted.
+         if ( (settings.resolution.width  >= swapChainCapabilities.minImageExtent.width)  ||
+              (settings.resolution.width  <= swapChainCapabilities.maxImageExtent.width)  ||
+              (settings.resolution.height >= swapChainCapabilities.minImageExtent.height) ||
+              (settings.resolution.height <= swapChainCapabilities.maxImageExtent.height) )
+            swapChainResolution = settings.resolution;
+         }
+         
+      // Report warning if couldn't set requested Swap-Chain resolution
+      if (swapChainResolution == selectedResolution)
+         Log << "Warning: Requested Swap-Chain resolution is unsupported. Using window resolution instead.\n";
+      }
+
+   // Verify supported usage
+   //------------------------
+   
+   // Swap-Chain images need to support usage as Color Attachment.
+   VkImageUsageFlags swapChainUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+   if (!bitsCheck(swapChainCapabilities.supportedUsageFlags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+      {
+      Log << "ERROR: Swap-Chain is not supporting mandatory color attachment usage!\n";
+      assert( 0 );
+      }
+      
+   // TODO: Consider requesting additional usages:
+   // VK_IMAGE_USAGE_TRANSFER_SRC_BIT - For screenshots of final frame
+   // VK_IMAGE_USAGE_TRANSFER_DST_BIT - For quick blit of splash screens
+
+   // Determine behaviour when device orientation is changed
+   //--------------------------------------------------------
+
+   // By default we don't want any transformation to take place
+   VkSurfaceTransformFlagBitsKHR swapChainTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+   if (!bitsCheck(swapChainCapabilities.supportedTransforms, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR))
+      {
+      // If we need to apply a transform, use current one in the system
+      swapChainTransform = swapChainCapabilities.currentTransform;
+      }
+
+   // Determine Presenting Mode
+   //---------------------------
+
+   uint32 modes = 0; // Presentation Modes
+   VkPresentModeKHR* presentationMode = nullptr;
+   
+   // Query device Presentation Modes count
+   Profile( vkGetPhysicalDeviceSurfacePresentModesKHR(handle, swapChainSurface, &modes, nullptr) )
+   if ( (lastResult != VK_SUCCESS) ||
+        (modes == 0) )
+      {
+      string info;
+      info += "ERROR: Vulkan error:\n";
+      info += "       Cannot query device Presentation Modes count.\n";
+      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
+      Log << info.c_str();
+      assert( 0 );
+      }
+
+   // Query device Presentation Modes details
+   presentationMode = new VkPresentModeKHR[modes];
+   Profile( vkGetPhysicalDeviceSurfacePresentModesKHR(handle, swapChainSurface, &modes, &presentationMode[0]) )
+   if (lastResult != VK_SUCCESS)
+      {
+      delete [] presentationMode;
+      
+      string info;
+      info += "ERROR: Vulkan error:\n";
+      info += "       Cannot query list of device Presentation Modes.\n";
+      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
+      Log << info.c_str();
+      assert( 0 );
+      }
+
+   // Select presentation mode. Prefer immediate dispatch to display with VSync.
+   // If that's not possible, we will deal with internal queue of Swap-Chain images.
+   bool selectedMode = false;
+   VkPresentModeKHR swapChainPresentationMode = VK_PRESENT_MODE_MAILBOX_KHR;
+   for(uint32 i=0; i<modes; ++i)
+      if (presentationMode[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+         {
+         selectedMode = true;
+         break;
+         }
+
+   if (!selectedMode)
+      {
+      for(uint32 i=0; i<modes; ++i)
+         if (presentationMode[i] == VK_PRESENT_MODE_FIFO_KHR)
+            {
+            swapChainPresentationMode = VK_PRESENT_MODE_FIFO_KHR;
+            selectedMode = true;
+            break;
+            }
+
+      if (!selectedMode)
+         {
+         Log << "ERROR: Cannot specify Swap-Chain presentation method!\n";
+         assert( 0 );
+         }
+      }
+      
+   delete [] presentationMode;
+
+   // TODO: This should be synchronized with calculation of amount of backing images count ??
+   //
+   // TODO: Consider also:
+   //       VK_PRESENT_MODE_IMMEDIATE_KHR    - No VSync
+   //       VK_PRESENT_MODE_FIFO_RELAXED_KHR - Prevent Stuttering if frame was late ( for VR ? )
+
+
+
+
+
+
+
+   // Screen
+   // - resolution
+   // - color space
+   
+   // Window
+   // - resolution
+   
+   // GraphicsDevice
+   // - Color Space
+   // - Render Target resolution (so it can be smaller than Window, or Fullscreen Window)
+
+
+
+
+   // Create Swap-Chain connecting Window to Device
+   //-----------------------------------------------
+   
+   VkSwapchainCreateInfoKHR createInfo;
+   createInfo.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+   createInfo.pNext                 = nullptr;
+   createInfo.flags                 = 0; // Reserved - VkSwapchainCreateFlagsKHR
+   createInfo.surface               = swapChainSurface;
+   createInfo.minImageCount         = swapChainImages;
+   createInfo.imageFormat           = swapChainFormat;
+   createInfo.imageColorSpace       = swapChainColorSpace;
+   createInfo.imageExtent           = swapChainResolution;
+   createInfo.imageArrayLayers      = 1;                    // TODO: This may change for VR support
+   createInfo.imageUsage            = swapChainUsage;
+   createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE; // Only single Queue Family can access Swap-Chain buffers
+   createInfo.queueFamilyIndexCount = 0;
+   createInfo.pQueueFamilyIndices   = nullptr;
+   createInfo.preTransform          = swapChainTransform;
+   createInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // Doesn't support transparent windows
+   createInfo.presentMode           = swapChainPresentationMode;
+   createInfo.clipped               = VK_TRUE;
+   createInfo.oldSwapchain          = VK_NULL_HANDLE;
+ 
+   Profile( vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) )
+
+   _resolution = swapChainResolution;
+   }
+   
+   
+   
+   Ptr<Window> VulkanDevice::create(const WindowSettings& settings, const string title)
+   {
+   // Select destination display
+   Ptr<CommonDisplay> display;
+   if (settings.display)
+      display = ptr_dynamic_cast<CommonDisplay, Display>(settings.display);
+   else
+      display = ptr_dynamic_cast<CommonDisplay, Display>(Graphics->primaryDisplay());
+      
+   // Checking if app wants to use default resolution
+   bool useNativeResolution = false;
+   if (settings.size.width  == 0 ||
+       settings.size.height == 0)
+      useNativeResolution = true;
+
+   // Select resolution to use (to which display should switch in Fullscreen mode)
+   uint32v2 selectedResolution = settings.size;
+   if (useNativeResolution)
+      selectedResolution = display->resolution;
+
+   // Verify apps custom size in Fullscreen mode is supported, and that app is not using
+   // size and resolution at once in this mode.
+   if (settings.mode == Fullscreen)
+      {
+      if (!useNativeResolution)
+         {
+         // Verify that requested resolution is supported by display
+         bool validResolution = false;
+         for(uint32 i=0; i<display->modesCount; ++i)
+            if (selectedResolution == display->modeResolution[i])
+               validResolution = true;
+
+         if (!validResolution)
+            {
+            Log << "Error! Requested window size for Fullscreen mode is not supported by selected display." << endl;
+            return Ptr<Window>(nullptr);
+            }
+         }
+         
+      // Cannot use Display HW Scaler to emulate smaller resolution and Swap-Chain upsampling at the same time.
+      if (settings.resolution.x != 0 ||
+          settings.resolution.y != 0)
+         {
+         Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead." << endl;
+         return Ptr<Window>(nullptr);
+         }
+      }
+
+   Ptr<WindowVK> ptr = new WindowVK(this, display, selectedResolution, settings, title);
+   return ptr_dynamic_cast<Window>(ptr);
+   }
+   
+   
+
+
+
    LayerDescriptor::LayerDescriptor() :
       extension(nullptr),
       extensionsCount(0)
@@ -218,6 +751,7 @@ namespace en
       handle(_handle),
       queueFamily(nullptr),
       queueFamiliesCount(0),
+      queueFamilyIndices(nullptr),
       layer(nullptr),
       layersCount(0),
       globalExtension(nullptr),
@@ -258,29 +792,121 @@ namespace en
    // Sampler
    support.maxAnisotropy        = properties.limits.maxSamplerAnisotropy;
 
+
+   // Queue Families, Queues
+   //------------------------
+
    // Gather information about Queue Families supported by this device
    ProfileNoRet( vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, nullptr) )
    queueFamily = new VkQueueFamilyProperties[queueFamiliesCount];
    ProfileNoRet( vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, queueFamily) )
 
+   // Generate list of all Queue Family indices.
+   // This list will be passed during resource creation time for resources that need to be populated first.
+   // This way we can use separate Transfer Queues for faster data transfer, and driver knows to use
+   // proper synchronization mechanisms to prevent hazards and race conditions.
+   queueFamilyIndices = new uint32[queueFamiliesCount];
+   for (uint32 ii=0; i<queueFamiliesCount; ++i)
+       queueFamilyIndices[i] = i;
+
+   // Map Queue Families and their Queue Count to QueueType and Index.
+   memset(&queuesCount[0], 0, sizeof(queuesCount));
+   memset(&queueTypeToFamily[0], 0, sizeof(queueTypeToFamily));
+   for(uint32_t family=0; family<queueCount; ++family)
+      {
+      uint32 flags = queueFamily[family].queueFlags;
+      
+      // For now, we assume that there will be always only one Queue Family matching one Queue Type.
+      // If that's not true in the future, then below, each range of Queues in given Family, will need
+      // to be mapped to range of Queues in given Type. If such situation will occur, assertions below
+      // will fire at runtime.
+      if (flags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
+         {
+         assert( queuesCount[underlyingType(QueueType::Universal)] == 0 );
+         queuesCount[underlyingType(QueueType::Universal)] = queueFamily[family].queueCount;
+         queueTypeToFamily[underlyingType(QueueType::Universal)] = family;
+         }
+      else
+      if (flags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
+         {
+         assert( queuesCount[underlyingType(QueueType::Universal)] == 0 );
+         queuesCount[underlyingType(QueueType::Universal)] = queueFamily[family].queueCount;
+         queueTypeToFamily[underlyingType(QueueType::Universal)] = family;
+         }
+      else
+      if (flags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
+         {
+         assert( queuesCount[underlyingType(QueueType::Compute)] == 0 );
+         queuesCount[underlyingType(QueueType::Compute)] = queueFamily[family].queueCount;
+         queueTypeToFamily[underlyingType(QueueType::Compute)] = family;
+         }
+      else
+      if (flags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
+         {
+         assert( queuesCount[underlyingType(QueueType::Compute)] == 0 );
+         queuesCount[underlyingType(QueueType::Compute)] = queueFamily[family].queueCount;
+         queueTypeToFamily[underlyingType(QueueType::Compute)] = family;
+         }
+      else
+      if (flags & (VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
+         {
+         assert( queuesCount[underlyingType(QueueType::SparseTransfer)] == 0 );
+         queuesCount[underlyingType(QueueType::SparseTransfer)] = queueFamily[family].queueCount;
+         queueTypeToFamily[underlyingType(QueueType::SparseTransfer)] = family;
+         }
+      else
+      if (flags & (VK_QUEUE_TRANSFER_BIT))
+         {
+         assert( queuesCount[underlyingType(QueueType::Transfer)] == 0 );
+         queuesCount[underlyingType(QueueType::Transfer)] = queueFamily[family].queueCount;
+         queueTypeToFamily[underlyingType(QueueType::Transfer)] = family;
+         }
+      else
+         {
+         // It's another combination of Queue Family flags that we don't support.
+         // This shouldn't happen but if it will we will report it without asserting.
+         
+         Log << "Unsupported type of Queue Family" << endl;
+         Log << "    Queues in Family: %i" << queueFamily[family].queueCount << endl;
+         Log << "    Queue Min Transfer Width : %i" << queueFamily[family].minImageTransferGranularity.width << endl;
+         Log << "    Queue Min Transfer Height: %i" << queueFamily[family].minImageTransferGranularity.height << endl;
+         Log << "    Queue Min Transfer Depth : %i" << queueFamily[family].minImageTransferGranularity.depth << endl;
+         if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            Log << "    Queue supports: GRAPHICS" << endl;
+         if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
+            Log << "    Queue supports: COMPUTE" << endl;
+         if (queueFamily[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
+            Log << "    Queue supports: TRANSFER" << endl;
+         if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
+            Log << "    Queue supports: SPARSE_BINDING" << endl;
+         Log << "    Queues Time Stamp: %i" << queueFamily[family].timestampValidBits << endl;
+         }
+      }
+   
+   // Debug Print of Queue Families
+   
     //for(uint32_t family=0; family<queueCount; ++family)
     //   {
     //   printf("Queue Family %i:\n\n", family);
 
-    //   printf("    Queues in Family: %i\n", queueProps[family].queueCount);
-    //   printf("    Queue Min Transfer W: %i\n", queueProps[family].minImageTransferGranularity.width);
-    //   printf("    Queue Min Transfer H: %i\n", queueProps[family].minImageTransferGranularity.height);
-    //   printf("    Queue Min Transfer D: %i\n", queueProps[family].minImageTransferGranularity.depth);
-    //   if (queueProps[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+    //   printf("    Queues in Family: %i\n", queueFamily[family].queueCount);
+    //   printf("    Queue Min Transfer W: %i\n", queueFamily[family].minImageTransferGranularity.width);
+    //   printf("    Queue Min Transfer H: %i\n", queueFamily[family].minImageTransferGranularity.height);
+    //   printf("    Queue Min Transfer D: %i\n", queueFamily[family].minImageTransferGranularity.depth);
+    //   if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
     //      printf("    Queue supports: GRAPHICS\n");
-    //   if (queueProps[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
+    //   if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
     //      printf("    Queue supports: COMPUTE\n");
-    //   if (queueProps[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
+    //   if (queueFamily[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
     //      printf("    Queue supports: TRANSFER\n");
-    //   if (queueProps[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
+    //   if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
     //      printf("    Queue supports: SPARSE_BINDING\n\n\n"); 
-    //   printf("    Queues Time Stamp: %i\n", queueProps[family].timestampValidBits);  
+    //   printf("    Queues Time Stamp: %i\n", queueFamily[family].timestampValidBits);
     //   }
+
+
+   // Layouts
+   //---------
 
    VkLayerProperties* layerProperties = nullptr;
 
@@ -347,7 +973,7 @@ namespace en
       }
 
    // While creating device, we can choose to init as many Queue Families as we want (but each only once).
-   // In each Queue Family we can specify how many Queues we want to init.
+   // In each Queue Family we can specify how many Queues we want to create and init.
    // For now lets just init everything.
    VkDeviceQueueCreateInfo* queueFamilyInfo = new VkDeviceQueueCreateInfo[queueFamiliesCount];
    for(uint32 i=0; i<queueFamiliesCount; ++i)
@@ -408,6 +1034,51 @@ namespace en
    // Bind Device Functions
    bindDeviceFunctionPointers();
 
+
+   // Command Pools
+   //---------------
+  
+   // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
+   uint32 thread = Scheduler.core();
+   
+   // Memory pool used to allocate CommandBuffers.
+   // Once device is created, on each Worker Thread, we create Command Pool for each Queue Family
+   // that was associated to each of our Queue Types. Then each time Command Buffer creation will
+   // be requested for Queue from given Queue Type, apropriate Command Pool for matching Queue
+   // Family will be used (taking into notice parent thread).
+   for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
+      if (queuesCount[i] > 0)
+         {
+         uint32 family = queueTypeToFamily[i];
+
+         // It's abstract object as it has no size.
+         // It's not tied to Queueu, but to Queue Family, so it can be shared by all Queues in this family.
+         // It's single threaded, and so should be Command Buffers allocated from it
+         // (so each Thread gets it's own Pool per each Family, and have it's own Command Buffers).
+         VkCommandPoolCreateInfo poolInfo;
+         poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+         poolInfo.pNext            = nullptr;
+         poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT; // To reuse CB's use VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+         poolInfo.queueFamilyIndex = queueFamilyId;
+         
+         Profile( vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool[thread][i]) )
+         }
+
+   // <<<< Per Thread Section
+
+
+   // TODO: Do we want to support reset of Command Pools? Should it go to API?
+   //
+   // // Resets Command Pool, frees all resources encoded on all CB's created from this pool. CB's are rest to initial state.
+   // uint32 thread = 0;
+   // uint32 type = 0;
+   // Profile( vkResetCommandPool(VkDevice device, commandPool[thread][type], VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT) )
+
+
+
+
+
+
    // Create Pipeline Cache
 
    // TODO: VkPipelineCache  pipelineCache;
@@ -420,11 +1091,27 @@ namespace en
 
    VulkanDevice::~VulkanDevice()
    {
+   // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
+   uint32 thread = Scheduler.core();
+
+   // Release all Command Pools used by this thread for Commands submission
+   for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
+      if (queuesCount[i] > 0)
+         Profile( vkDestroyCommandPool(device, commandPool[thread][i], nullptr) )
+
+   // <<<< Per Thread Section
+
    delete [] queueFamily;
+   delete [] queueFamilyIndices;
    for(uint32 i=0; i<layersCount; ++i)
       delete [] layer[i].extension;
    delete [] layer;
    delete [] globalExtension;
+   }
+   
+   uint32 VulkanDevice::queues(const QueueType type) const
+   {
+   return queuesCount[underlyingType(type)];  //Need translation table from (Type, N) -> (Family, Index)
    }
 
    void VulkanDevice::bindDeviceFunctionPointers(void)
@@ -901,13 +1588,168 @@ namespace en
 
 
    VulkanAPI::VulkanAPI(string appName) :
+#if defined(EN_PLATFORM_WINDOWS)
+      library(LoadLibrary("vulkan-1.dll")),
+#endif
+#if defined(EN_PLATFORM_LINUX)
+      library(dlopen("libvulkan.so", RTLD_NOW)),
+#endif
       lastResult(VK_SUCCESS),
       layer(nullptr),
       layersCount(0),
       globalExtension(nullptr),
       globalExtensionsCount(0),
-      devicesCount(0)
+      devicesCount(0),
+      display(nullptr),
+      virtualDisplay(nullptr),
+      displaysCount(0),
+      GraphicAPI() // or SafeObject()
    {
+   // API INDEPENDENT - WINDOWS DEPENDENT SECTION - BEGIN
+   //-----------------------------------------------------
+
+   // Display Device settings
+   DISPLAY_DEVICE Device;
+   memset(&Device, 0, sizeof(Device));
+   Device.cb = sizeof(Device);
+
+   // Calculate amount of available displays
+   while(EnumDisplayDevices(nullptr, displaysCount, &Device, EDD_GET_DEVICE_INTERFACE_NAME))
+      if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
+         displaysCount++;
+
+   display = new Ptr<Screen>[displaysCount];
+   virtualDisplay = new Screen();
+  
+   // Clear structure for next display (to ensure there is no old data)
+   memset(&Device, 0, sizeof(Device));
+   Device.cb = sizeof(Device);
+      
+   // Gather information about available displays
+   uint32 displayId = 0;
+   uint32 activeId = 0;
+   while(EnumDisplayDevices(nullptr, displayId, &Device, EDD_GET_DEVICE_INTERFACE_NAME))
+      {
+      // Only displays that are part of Virtual Desktop are used by engine
+      // (so HMD displays won't be queried until they work in legacy mode as part of desktop)
+      if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) 
+         {
+         uint32v2 desktopPosition;     // Display position on Virtual Desktop
+         uint32v2 currentResolution;   // Displays current resolution
+         uint32v2 nativeResolution;    // Displays native resolution (assumed largest possible)
+         
+         DEVMODE DispMode;
+         memset(&DispMode, 0, sizeof(DispMode));
+         DispMode.dmSize = sizeof(DispMode);
+
+         // Query displays current resolution before game started
+         assert( EnumDisplaySettingsEx(Device.DeviceName, ENUM_CURRENT_SETTINGS, &DispMode, 0u) )
+ 
+         // Verify that proper values were returned by query
+         assert( checkBits(DispMode.dmFields, DM_POSITION & DM_PELSWIDTH & DM_PELSHEIGHT) )
+
+         desktopPosition.x   = DispMode.dmPosition.x;
+         desktopPosition.y   = DispMode.dmPosition.y;
+         currentResolution.x = DispMode.dmPelsWidth;
+         currentResolution.y = DispMode.dmPelsHeight;
+            
+         // Calculate amount of available display modes (count only modes supported by display and no rotation ones)
+         uint32 modesCount = 0;
+         while(EnumDisplaySettingsEx(Device.DeviceName, ENUM_REGISTRY_SETTINGS, &DispMode, 0u))
+            modesCount++;
+
+         Ptr<winDisplay> currentDisplay = new winDisplay();
+         
+         currentDisplay->modeResolution = new uint32v2[modesCount];
+     
+         // Gather information about all supported display modes
+         uint32 modeId = 0;
+         while(EnumDisplaySettingsEx(Device.DeviceName, modeId, &DispMode, 0u))
+            {
+            // Verify that proper values were returned by query
+            assert( checkBits(DispMode.dmFields, DM_PELSWIDTH & DM_PELSHEIGHT) );
+            
+            currentDisplay->modeResolution[modeId].x = DispMode.dmPelsWidth;
+            currentDisplay->modeResolution[modeId].y = DispMode.dmPelsHeight;
+
+            // Find largest supported resolution and assume it's display native
+            if ( (DispMode.dmPelsWidth  > nativeResolution.x) ||
+                 (DispMode.dmPelsHeight > nativeResolution.y) )
+               {
+               nativeResolution.x = DispMode.dmPelsWidth;
+               nativeResolution.y = DispMode.dmPelsHeight;
+               }
+               
+            modeId++;
+            }
+        
+         currentDisplay->position           = desktopPosition;
+         currentDisplay->resolution         = nativeResolution;
+         currentDisplay->observedResolution = currentResolution;
+         currentDisplay->modesCount         = modesCount;
+         currentDisplay->index              = displayId;
+       
+         // Select Primary Display
+         if (Device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
+            {
+            displayPrimary = activeId;
+            }
+       
+         // Calculate upper-left corner position, and size of virtual display.
+         // It's assumed that X axis increases right, and Y axis increases down.
+         // Virtual Display is a bounding box for all available displays.
+         if (activeId == 0)
+            {
+            virtualDisplay->position   = currentDisplay->position;
+            virtualDisplay->resolution = currentDisplay->resolution;
+            }
+         else
+            {
+            if (currentDisplay->position.x < virtualDisplay->position.x)
+               {
+               virtualDisplay->resolution.width += (virtualDisplay->position.x - currentDisplay->position.x);
+               virtualDisplay->position.x = currentDisplay->position.x;
+               }
+            if (currentDisplay->position.y < virtualDisplay->position.y)
+               {
+               virtualDisplay->resolution.height += (virtualDisplay->position.y - currentDisplay->position.y);
+               virtualDisplay->position.y = currentDisplay->position.y;
+               }
+            uint32 virtualRightBorder = virtualDisplay->position.x + virtualDisplay->resolution.width;
+            uint32 currentRightBorder = currentDisplay->position.x + currentDisplay->resolution.width;
+            if (virtualRightBorder < currentRightBorder)
+               virtualDisplay->resolution.width = currentRightBorder - virtualDisplay->position.x;
+            uint32 virtualBottomBorder = virtualDisplay->position.y + virtualDisplay->resolution.height;
+            uint32 currentBottomBorder = currentDisplay->position.y + currentDisplay->resolution.height;
+            if (virtualBottomBorder < currentBottomBorder)
+               virtualDisplay->resolution.height = currentBottomBorder - virtualDisplay->position.y;
+            }
+       
+         // Add active display to the list
+         display[activeId] = ptr_dynamic_cast<Screen, winDisplay>(currentDisplay);
+         activeId++;
+         }
+         
+      // Clear structure for next display (to ensure there is no old data)
+      memset(&Device, 0, sizeof(Device));
+      Device.cb = sizeof(Device);
+      displayId++;
+      }
+   
+   // API INDEPENDENT - WINDOWS DEPENDENT SECTION - END
+   //-----------------------------------------------------
+
+   // Load Vulkan dynamic library
+   if (library == nullptr)
+      {
+      string info;
+      info += "ERROR: Vulkan error: ";
+      info += "       Cannot find Vulkan dynamic library.\n";
+      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
+      Log << info.c_str();
+      assert( 0 );
+      }
+
    // TODO: Get pointer to fuction needed to acquire other function pointers
    // vkGetInstanceProcAddr = 
    bindInstanceFunction( EnumerateInstanceExtensionProperties );
@@ -995,7 +1837,7 @@ namespace en
       if (strcmp("VK_EXT_KHR_swapchain", globalExtension[i].extensionName) == 0 )
          extensionPtrs[enabledExtensionsCount++] = &globalExtension[i].extensionName[0];
 
-   // We need at least SwapChain waorking to display anything
+   // We need at least SwapChain working to display anything
    if (!enabledExtensionsCount)
       {
       string info;
@@ -1034,9 +1876,9 @@ namespace en
    appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
    appInfo.pNext              = nullptr;
    appInfo.pApplicationName   = appName.c_str();
-   appInfo.applicationVersion = 1;
+   appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
    appInfo.pEngineName        = "Ngine";
-   appInfo.engineVersion      = 5;
+   appInfo.engineVersion      = VK_MAKE_VERSION(5, 0, 0);
    appInfo.apiVersion         = VK_API_VERSION;
    
    VkInstanceCreateInfo instInfo;

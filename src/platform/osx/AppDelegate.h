@@ -16,10 +16,15 @@
 //@end
 
 
-// Class "AppDelegate", based on NSObject that conforms to NSApplicationDelegate protocol.
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+// Class "AppDelegate", based on NSObject that conforms to both NSApplicationDelegate and NSWindowDelegate protocol.
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 
 //@property (strong) IBOutlet NSWindow *window;   // (weak) in ARC
 
 @end
 
+//// Class "AppWindowDelegate", based on NSObject that conforms to NSWindowDelegate protocol.
+//@interface AppWindowDelegate : NSObject <NSWindowDelegate>
+//
+//
+//@end

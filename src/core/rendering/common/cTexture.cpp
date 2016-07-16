@@ -524,18 +524,6 @@ namespace en
    return state.samples;
    }
 
-   void* TextureCommon::map(const uint8 mipmap, const uint16 surface)
-   {
-   assert( 0 );
-   return nullptr;
-   }
-
-   bool TextureCommon::unmap(void)
-   {
-   assert( 0 );
-   return false;
-   }
-
    bool TextureCommon::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
    {
    assert( 0 );

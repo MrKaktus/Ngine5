@@ -100,10 +100,11 @@ namespace en
       };
    #endif
       
-   BufferCommon::BufferCommon(const BufferType type) :
+   BufferCommon::BufferCommon(const BufferType type, uint32 length) :
       formatting(),
       elements(0),
       step(0),
+      size(length),
       apiType(type)
    {
    }
@@ -112,22 +113,33 @@ namespace en
    {
    }
    
+   uint32 BufferCommon::length(void) const
+   {
+   return size;
+   }
+   
    BufferType BufferCommon::type(void) const
    {
    return apiType;
    }
    
-   void* BufferCommon::map(const DataAccess access)
+   void* BufferCommon::content(void) const
    {
    // Should be implemented by given API
    assert(0);
    }
-   
-   bool BufferCommon::unmap(void)
-   {
-   // Should be implemented by given API
-   assert(0);
-   }
+      
+//   void* BufferCommon::map(const DataAccess access)
+//   {
+//   // Should be implemented by given API
+//   assert(0);
+//   }
+//   
+//   bool BufferCommon::unmap(void)
+//   {
+//   // Should be implemented by given API
+//   assert(0);
+//   }
    
    Ptr<Buffer> CommonDevice::create(const uint32 elements, const Formatting& formatting, const uint32 step, const void* data)
    {
@@ -169,7 +181,14 @@ namespace en
       
    return buffer;
    }
-   
+
+   // Should be implemented by API class
+   Ptr<Buffer> CommonDevice::create(const BufferType type, const uint32 size)
+   {
+   assert(0);
+   return Ptr<Buffer>(nullptr);
+   }
+      
    // Should be implemented by API class
    Ptr<Buffer> CommonDevice::create(const BufferType type, const uint32 size, const void* data)
    {

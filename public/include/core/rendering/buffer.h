@@ -34,6 +34,7 @@ namespace en
       Uniform                , // Uniform  - Read Only, 16KB to 64KB buffer for data
       Storage                , // Storage  - Read-Write, Atomic, minimum 1MB buffer for data
       Indirect               , // Indirect - Used as source for Draw and Dispatch Indirect commands
+      Transfer               , // Transfer - Buffer used to transfer data between CPU RAM and Buffers and Textures in VRAM.
       Count
       };
  
@@ -194,9 +195,11 @@ namespace en
    class Buffer : public SafeObject<Buffer>
       {
       public:
+      virtual uint32 length(void) const = 0;
       virtual BufferType type(void) const = 0;
-      virtual void* map(const DataAccess access = ReadWrite) = 0;
-      virtual bool unmap(void) = 0;
+      
+      // Returns pointer to buffers memory. This function can be only called on Transfer buffers.
+      virtual void* content(void) const = 0;
       
 //      virtual Ptr<BufferView> view(void) = 0;  // Default buffer view, if it was created with formatting
 //      virtual Ptr<BufferView> view(const uint32 elements, 

@@ -497,9 +497,6 @@ namespace en
          continue;
          }
       
-      // Decompress texture directly to gpu memory
-      uint8* dst = reinterpret_cast<uint8*>(texture->map());
-
       // Single part files can have missing chunkCount field.
       // In such situation chunks count needs to be computed.
       sint32 chunks = headers[part].chunkCount;
@@ -547,6 +544,11 @@ namespace en
          file->read(offset, 8, &offsets[i]); 
          offset += 8;
          }
+
+      // Decompress texture
+      
+      // For now on it will require 2 copies File > Transfer > Texture (in future , mmap file directly to Transfer)
+      uint8* dst = new uint8[texture->size()];
 
       // Read data
       for(uint32 i=0; i<chunks; ++i)
@@ -600,6 +602,7 @@ namespace en
                {
                Log << "Error: Cannot initialize Zlib decompressor!\n";
                delete [] input;
+               delete [] output;
                return Ptr<gpu::Texture>(nullptr);
                }
             sint32 ret = 0;
@@ -609,12 +612,13 @@ namespace en
                CheckError(ret);
                Log << "Error: Cannot decompress using ZLIB!\n";
                delete [] input;
+               delete [] output;
                return Ptr<gpu::Texture>(nullptr);
                }
             inflateEnd(&stream);
             delete [] input;
             
-            // Reorder uncompressed data to final texture
+            // Reorder uncompressed data to final buffer
             uint32 srcLineSize = headers[part].dataWindow.width * headers[part].channels * channelSize;
             for(uint32 y=0; y<blockLines; ++y)
                for(uint32 x=0; x<headers[part].dataWindow.width; ++x)
@@ -637,7 +641,20 @@ namespace en
          }
 
       delete [] offsets;
-      texture->unmap();
+      
+      // Copy loaded texture to temporary staging buffer
+      Ptr<gpu::Buffer> transfer = Graphics->primaryDevice()->create(gpu::BufferType::Transfer,
+                                                                    texture->size(),
+                                                                    reinterpret_cast<void*>(dst));
+      delete [] dst;
+
+      // Copy data from staging buffer to final texture
+      Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer();
+      command->populate(transfer, texture, 0, 0);
+      command->commit();
+      command->waitUntilCompleted();
+      command = nullptr;
+  
       return texture;   // TODO: Rework for multipart files!
       }
 
