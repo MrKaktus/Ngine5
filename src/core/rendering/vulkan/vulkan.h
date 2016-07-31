@@ -21,6 +21,9 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_LINUX) || defined(EN_PLATFORM_WINDOWS)
 
+
+// Specify which Windowing System Interface we will use
+// (depending on OS for which this source code is compiled)
 #if defined(EN_PLATFORM_ANDROID)
 #define VK_USE_PLATFORM_ANDROID_KHR
 #endif
@@ -40,6 +43,10 @@
 #if defined(EN_PLATFORM_WINDOWS)
 #define VK_USE_PLATFORM_WIN32_KHR
 #endif
+
+// Specify that we declare function pointers on our own
+// to load them from Dynamically Linked Library.
+#define VK_NO_PROTOTYPES
 
 #include "Vulkan/vulkan.h"
 

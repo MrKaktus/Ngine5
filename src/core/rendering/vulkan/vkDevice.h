@@ -35,8 +35,6 @@
 #include "core/rendering/vulkan/vkPipeline.h"
 
 
-// Vulkan calls can be performed only inside Vulkan Device class.
-// "lastResult" is Vulkan Device variable.
 #ifdef EN_DEBUG
 namespace en
 {
@@ -46,34 +44,60 @@ namespace en
    extern bool IsWarning(const VkResult result);
    }
 }
+#endif
 
+// gpu     - pointer to class storing pointer to called function.
+//           Should be VulkanDevice*, or VulkanGPU*.
+// command - Vulkan API function call to execute.
+//
+// Result of function call is stored per GPU, per Thread.
+//
+#ifdef EN_DEBUG
    #ifdef EN_PROFILER_TRACE_GRAPHICS_API
-   #define Profile( x )                        \
-           {                                   \
-           Log << "Vulkan: " << #x << endl;    \
-           lastResult = x;                     \
-           if (en::gpu::IsError(lastResult))   \
-              assert(0);                       \
-           en::gpu::IsWarning(lastResult);     \
+
+   #define Profile( gpu, command )                                                 \
+           {                                                                       \
+           uint32 thread = Scheduler.core();                                       \
+           Log << "[" << setw(2) << thread << "] ";                                \
+           Log << "Vulkan GPU " << setbase(16) << gpu << ": " << #command << endl; \
+           gpu->lastResult[thread] = gpu->command;                                 \
+           if (en::gpu::IsError(gpu->lastResult[thread]))                          \
+              assert( 0 );                                                         \
+           en::gpu::IsWarning(gpu->lastResult[thread]);                            \
            }
-   #define ProfileNoRet( x )                   \
-           {                                   \
-           Log << "Vulkan: " << #x << endl;    \
-           x;                                  \
+
+   #define ProfileNoRet( gpu, command )                                            \
+           {                                                                       \
+           uint32 thread = Scheduler.core();                                       \
+           Log << "[" << setw(2) << thread << "] ";                                \
+           Log << "Vulkan GPU " << setbase(16) << gpu << ": " << #command << endl; \
+           gpu->command;                                                           \
            }
+
    #else 
-   #define Profile( x )                        \
-           {                                   \
-           lastResult = x;                     \
-           if (en::gpu::IsError(lastResult))   \
-              assert(0);                       \
-           en::gpu::IsWarning(lastResult);     \
+
+   #define Profile( gpu, command )                                   \
+           {                                                         \
+           uint32 thread = Scheduler.core();                         \
+           gpu->lastResult[thread] = gpu->command;                   \
+           if (en::gpu::IsError(gpu->lastResult[thread]))            \
+              assert( 0 );                                           \
+           en::gpu::IsWarning(gpu->lastResult[thread]);              \
            }
-   #define ProfileNoRet( x )                   \
-           x;                                  
+
+   #define ProfileNoRet( gpu, command )                              \
+           gpu->command;
+
    #endif
-#else
-   #define Profile( x ) lastResult = x; /* Nothing in Release */
+   
+#else // Release
+
+   #define Profile( gpu, command )                                   \
+           lastResult[Scheduler.core()] = gpu->command;
+
+   #define ProfileNoRet( gpu, command )                              \
+           gpu->command;
+
 #endif
 
 
@@ -112,19 +136,11 @@ namespace en
 
 
 
-   // Vulkan API Layer description
-   struct LayerDescriptor
-      {
-      VkLayerProperties      properties;
-      VkExtensionProperties* extension;
-      uint32                 extensionsCount;
-
-      LayerDescriptor();
-      };
 
 
 
-   class winDisplay : public Display
+
+   class winDisplay : public CommonDisplay
       {
       public:
       uint32v2  observedResolution; // Display resolution when app started
@@ -137,12 +153,32 @@ namespace en
      ~winDisplay();
       };
      
-   class MetalDevice;
-   
+   // TODO: This should be moved to platform specific section
+#if defined(EN_PLATFORM_WINDOWS)
+   class winWindow : public CommonWindow
+      {
+      public:
+      HINSTANCE AppInstance; // Application handle (helper handle)
+      HWND hWnd;             // Window handle
+
+      winWindow();
+
+      virtual bool movable(void);
+      virtual void move(const uint32v2 position);
+      virtual void resize(const uint32v2 size);
+      virtual void active(void);
+
+      virtual ~winWindow();
+      };
+#endif
+
    class WindowVK : public winWindow
       {
       public:
+      VkSurfaceKHR   swapChainSurface; 
       VkSwapchainKHR swapChain;
+     
+      WindowVK(const VulkanDevice* gpu, const WindowSettings& settings, const string title);
       
       virtual bool movable(void);
       virtual void move(const uint32v2 position);
@@ -153,7 +189,6 @@ namespace en
       virtual Ptr<Texture> surface(void);
       virtual void display(void);
       
-      WindowVK(const MetalDevice* gpu, const WindowSettings& settings, const string title); //id<MTLDevice> device
       virtual ~WindowVK();
       };
 
@@ -168,7 +203,8 @@ namespace en
    class VulkanDevice : public CommonDevice
       {
       public:
-      VkResult                         lastResult;   // Per thread ?
+      VkResult                         lastResult[MaxSupportedWorkerThreads];
+      VulkanAPI*                       api;          // Vulkan API (for Vulkan Instance calls)
       VkDevice                         device;
       VkPhysicalDevice                 handle;
       VkPhysicalDeviceFeatures         features;
@@ -180,8 +216,6 @@ namespace en
       uint32                           queuesCount[underlyingType(QueueType::Count)];
       uint32                           queueTypeToFamily[underlyingType(QueueType::Count)];
       volatile VkCommandPool           commandPool[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];
-      LayerDescriptor*                 layer;
-      uint32                           layersCount;
       VkExtensionProperties*           globalExtension;
       uint32                           globalExtensionsCount;
 
@@ -194,8 +228,8 @@ namespace en
  //  #include "core/rendering/vulkan/vulkan10.h"
 
       // Helper functions
-      void bindDeviceFunctionPointers(void);
-      void unbindDeviceFunctionPointers(void);
+      void loadDeviceFunctionPointers(void);
+      void clearDeviceFunctionPointers(void);
 
       // CPU memory allocation for given GPU device control
       friend void* VKAPI_PTR defaultAlloc(
@@ -228,7 +262,7 @@ namespace en
           VkSystemAllocationScope                     allocationScope);
 
       public:
-      VulkanDevice(const VkPhysicalDevice handle);
+      VulkanDevice(const VulkanAPI* api, const VkPhysicalDevice handle);
      ~VulkanDevice();
 
 
@@ -253,6 +287,25 @@ namespace en
                            const Ptr<PipelineLayout> pipelineLayout);
       };
 
+
+
+
+
+
+
+
+
+   // Vulkan API Layer description
+   struct LayerDescriptor
+      {
+      VkLayerProperties      properties;
+      VkExtensionProperties* extension;
+      uint32                 extensionsCount;
+
+      LayerDescriptor();
+      };
+      
+   // Vulkan API Interface
    class VulkanAPI : public GraphicAPI
       {
       public:
@@ -262,7 +315,7 @@ namespace en
 #if defined(EN_PLATFORM_LINUX)
       void*                            library;
 #endif
-      VkResult                         lastResult;
+      VkResult                         lastResult[MaxSupportedWorkerThreads];
       LayerDescriptor*                 layer;
       uint32                           layersCount;
       VkExtensionProperties*           globalExtension;
@@ -273,28 +326,39 @@ namespace en
       uint32                           devicesCount;
 
       // API Independent, OS Dependent - Windowing System
-      Ptr<Screen>*                     display;
-      Ptr<Screen>                      virtualDisplay;
+      Ptr<CommonDisplay>*              display;
+      Ptr<CommonDisplay>               virtualDisplay;
       uint32                           displaysCount;
       uint32                           displayPrimary;
   
-
-
-
-
-      PFN_vkGetInstanceProcAddr                          vkGetInstanceProcAddr; 
-      PFN_vkEnumerateInstanceExtensionProperties         vkEnumerateInstanceExtensionProperties;  
-      PFN_vkEnumerateInstanceLayerProperties             vkEnumerateInstanceLayerProperties; 
-      PFN_vkCreateInstance                               vkCreateInstance;
-      PFN_vkEnumeratePhysicalDevices                     vkEnumeratePhysicalDevices; 
-
-      PFN_vkGetPhysicalDeviceSurfaceSupportKHR           vkGetPhysicalDeviceSurfaceSupportKHR;
+      // OS Function Pointer
+      DeclareFunction( vkGetInstanceProcAddr )
+   
+      // Vulkan Function Pointers
+      DeclareFunction( vkEnumerateInstanceExtensionProperties )
+      DeclareFunction( vkEnumerateInstanceLayerProperties )
+      DeclareFunction( vkCreateInstance )
+   
+      // Vulkan Instance Function Pointers
+      DeclareFunction( vkEnumeratePhysicalDevices )
+      DeclareFunction( vkGetPhysicalDeviceFeatures )
+      DeclareFunction( vkGetPhysicalDeviceProperties )
+      DeclareFunction( vkGetPhysicalDeviceMemoryProperties )
+      DeclareFunction( vkGetPhysicalDeviceFormatProperties )
+      DeclareFunction( vkGetPhysicalDeviceImageFormatProperties )
+      DeclareFunction( vkGetPhysicalDeviceQueueFamilyProperties )
+      DeclareFunction( vkEnumerateDeviceExtensionProperties )
+      DeclareFunction( vkCreateDevice )
+      DeclareFunction( vkGetDeviceProcAddr )
+      DeclareFunction( vkDestroyInstance )
+      DeclareFunction( vkGetPhysicalDeviceSurfaceSupportKHR )
 
       public:
       VulkanAPI(string appName);
      ~VulkanAPI();
 
-      void bindInterfaceFunctionPointers(void);
+      void loadInterfaceFunctionPointers(void);
+      void clearInterfaceFunctionPointers(void);
       };
    }
 }

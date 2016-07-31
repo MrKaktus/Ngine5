@@ -112,6 +112,7 @@ namespace en
    }
    
    CommonWindow::CommonWindow() :
+      _fullscreen(false),
       Window()
    {
    }

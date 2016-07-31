@@ -25,7 +25,8 @@ namespace en
    namespace gpu
    {
 
-   CommandBufferVK::CommandBufferVK(VKQueue _queue, VkCommandBuffer _handle, VkFence _fence) :
+   CommandBufferVK::CommandBufferVK(const VulkanDevice* _gpu, VKQueue _queue, VkCommandBuffer _handle, VkFence _fence) :
+      gpu(_gpu),
       queue(_queue),
       handle(_handle),
       fence(_fence),
@@ -80,7 +81,7 @@ namespace en
    info.flags            = 0;       // (VkCommandBufferUsageFlags)
    info.pInheritanceInfo = nullptr; // (VkCommandBufferInheritanceInfo*) We don't support secondary Command Buffers for now
 
-   Profile( vkBeginCommandBuffer(handle, &info) )
+   Profile( gpu, vkBeginCommandBuffer(handle, &info) )
 
    // TODO: Do other render pass start operations
    
@@ -96,7 +97,7 @@ namespace en
    
    // In Metal API we end encoding on Encoder object.
    // In Vulkan API we end encoding through direct call.
-   Profile( vkEndCommandBuffer(handle) )
+   Profile( gpu, vkEndCommandBuffer(handle) )
    
    // TODO: Do other render pass end operations
    
@@ -139,25 +140,25 @@ namespace en
       // Index Buffer remains bound to Command Buffer after this call,
       // but because there is no other way to do indexed draw than to
       // go through this API, it's safe to leave it bounded.
-      ProfileNoRet( vkCmdBindIndexBuffer(handle,
-                                         index->handle,
-                                         (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indeges groups in one GPU Buffer
-                                         indexType) )
+      ProfileNoRet( gpu, vkCmdBindIndexBuffer(handle,
+                                              index->handle,
+                                              (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indeges groups in one GPU Buffer
+                                              indexType) )
 
-      ProfileNoRet( vkCmdDrawIndexed(handle,
-                                     elements,
-                                     max(1U, instances),
-                                     0,               // Index of first index to start (we've calculated final offset above)
-                                     firstVertex,     // VertexID of first processed vertex
-                                     firstInstance) ) // InstanceID of first processed instance
+      ProfileNoRet( gpu, vkCmdDrawIndexed(handle,
+                                          elements,
+                                          max(1U, instances),
+                                          0,               // Index of first index to start (we've calculated final offset above)
+                                          firstVertex,     // VertexID of first processed vertex
+                                          firstInstance) ) // InstanceID of first processed instance
       }
    else
       {
-      ProfileNoRet( vkCmdDraw(handle,
-                              elements,
-                              max(1U, instances),
-                              firstElement,       // Index of first vertex to draw (offset in buffer, VertexID == 0)
-                              firstInstance) )
+      ProfileNoRet( gpu, vkCmdDraw(handle,
+                                   elements,
+                                   max(1U, instances),
+                                   firstElement,       // Index of first vertex to draw (offset in buffer, VertexID == 0)
+                                   firstInstance) )
       }
    }
 
@@ -188,30 +189,30 @@ namespace en
       // Index Buffer remains bound to Command Buffer after this call,
       // but because there is no other way to do indexed draw than to
       // go through this API, it's safe to leave it bounded.
-      ProfileNoRet( vkCmdBindIndexBuffer(handle,
-                                         index->handle,
-                                         (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indeges groups in one GPU Buffer
-                                         indexType) )
+      ProfileNoRet( gpu, vkCmdBindIndexBuffer(handle,
+                                              index->handle,
+                                              (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indeges groups in one GPU Buffer
+                                              indexType) )
 
       // IndirectIndexedDrawArgument can be directly cast to VkDrawIndexedIndirectCommand.
 
       // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-      ProfileNoRet( vkCmdDrawIndexedIndirect(handle
-                                             indirect->handle,
-                                             (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
-                                             (indirect->size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
-                                             sizeof(VkDrawIndexedIndirectCommand)) )
+      ProfileNoRet( gpu, vkCmdDrawIndexedIndirect(handle
+                                                  indirect->handle,
+                                                  (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
+                                                  (indirect->size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
+                                                  sizeof(VkDrawIndexedIndirectCommand)) )
       }
    else
       {
       // IndirectDrawArgument can be directly cast to VkDrawIndirectCommand.
       
       // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-      ProfileNoRet( vkCmdDrawIndirect(handle,
-                                      indirect->handle,
-                                      (firstEntry * sizeof(VkDrawIndirectCommand)),
-                                      (indirect->size / sizeof(VkDrawIndirectCommand)) - firstEntry,
-                                      sizeof(VkDrawIndirectCommand)) )
+      ProfileNoRet( gpu, vkCmdDrawIndirect(handle,
+                                           indirect->handle,
+                                           (firstEntry * sizeof(VkDrawIndirectCommand)),
+                                           (indirect->size / sizeof(VkDrawIndirectCommand)) - firstEntry,
+                                           sizeof(VkDrawIndirectCommand)) )
       }
    }
    
@@ -240,12 +241,12 @@ namespace en
    info.pNext = nullptr;
    info.flags = 0u;       // VkSemaphoreCreateFlags - reserved.
 
-   Profile( vkCreateSemaphore(device, &info, nullptr, &handle) )
+   Profile( gpu, vkCreateSemaphore(device, &info, nullptr, &handle) )
    }
 
    SemaphoreVK::~SemaphoreVK()
    {
-   vkDestroySemaphore(device, handle, nullptr);
+   Profile( gpu, vkDestroySemaphore(device, handle, nullptr) )
    }
    
 
@@ -337,7 +338,7 @@ namespace en
    // Submit single batch of work to the queue.
    // Each batch can consisnt of multiple command buffers.
    // Internal fence will be signaled when this work is done.
-   Profile( vkQueueSubmit(queue, 1, &submitInfo, fence) )
+   Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) )
 
    // TODO: Is ending command buffer equivalent to commiting it for execution ?
    
@@ -351,7 +352,7 @@ namespace en
    // Wait maximum 1 second, then assume GPU hang.
    uint64 gpuWatchDog = 1000000000;
    
-   Profile( vkWaitForFences(device /* !! */, 1, &fence, VK_TRUE, gpuWatchDog) )
+   Profile( gpu, vkWaitForFences(device /* !! */, 1, &fence, VK_TRUE, gpuWatchDog) )
    if (lastResult == VK_TIMEOUT)
       {
       Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << endl;
@@ -395,7 +396,7 @@ namespace en
    
    // Release fence
    // TODO: Can this be done if CB is still during execution ?
-   vkDestroyFence(device /* !! */, fence, nullptr);
+   Profile( gpu, vkDestroyFence(device /* !! */, fence, nullptr) )
    }
 
    Ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
@@ -419,7 +420,7 @@ namespace en
    commandInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Secondary CB's need VK_COMMAND_BUFFER_LEVEL_SECONDARY
    commandInfo.commandBufferCount = 1; // Can create multiple CB's at once
    
-   Profile( vkAllocateCommandBuffers(device, &commandInfo, &handle) )
+   Profile( gpu, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
 
    // Create Fence that will be signaled when the Command Buffer execution is finished.
    VkFence fence;
@@ -429,13 +430,13 @@ namespace en
    fenceInfo.pNext = nullptr;
    fenceInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT if want to create it signaled from start
    
-   Profile( vkCreateFence(device, &fenceInfo, nullptr, &fence) )
+   Profile( gpu, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
 
    // Acquire queue handle (queues are created at device creation time)
    VkQueue queue;
-   Profile( vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
+   Profile( gpu, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
-   return ptr_dynamic_cast<CommandBuffer, CommandBufferVK>(Ptr<CommandBufferVK>(new CommandBufferVK(queue, handle, fence)));
+   return ptr_dynamic_cast<CommandBuffer, CommandBufferVK>(Ptr<CommandBufferVK>(new CommandBufferVK(this, queue, handle, fence)));
    }
 
    }

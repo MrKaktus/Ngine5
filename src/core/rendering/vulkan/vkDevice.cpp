@@ -23,7 +23,70 @@
 namespace en
 {
    namespace gpu
-   { 
+   {
+   void unbindedVulkanFunctionHandler(...)
+   {
+   Log << "ERROR: Called unbinded Vulkan function.\n";
+   assert( 0 );
+   }
+
+   // MACROS: Safe Vulkan function binding with fallback
+   //         Both Macros should be used only inside VulkanAPI and VulkanDevice class methods.
+
+   
+   
+#if defined(EN_PLATFORM_LINUX)
+   #define LoadProcAddress dlsym
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
+   #define LoadProcAddress GetProcAddress
+#endif
+
+   #define DeclareFunction(function)                                             \
+   PFN_##function function;
+
+   #define LoadFunction(function)                                                \
+   {                                                                             \
+   function = (PFN_##function)LoadProcAddress(library, #function));              \
+   if (function == nullptr)                                                      \
+      {                                                                          \
+      function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
+      Log << "Error: Cannot bind function " << #function << endl;                \
+      }                                                                          \
+   }
+
+   #define LoadGlobalFunction(function)                                          \
+   {                                                                             \
+   function = (PFN_##function) vkGetInstanceProcAddr(nullptr, #function);        \
+   if (function == nullptr)                                                      \
+      {                                                                          \
+      function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
+      Log << "Error: Cannot bind global function " << #function << endl;         \
+      }                                                                          \
+   }
+   
+   #define LoadInstanceFunction(function)                                        \
+   {                                                                             \
+   function = (PFN_##function) vkGetInstanceProcAddr(instance, #function);       \
+   if (function == nullptr)                                                      \
+      {                                                                          \
+      function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
+      Log << "Error: Cannot bind instance function " << #function << endl;       \
+      }                                                                          \
+   }
+
+   #define LoadDeviceFunction(function)                                          \
+   {                                                                             \
+   function = (PFN_##function) vkGetDeviceProcAddr(device, #function);           \
+   if (function == nullptr)                                                      \
+      {                                                                          \
+      function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
+      Log << "Error: Cannot bind device function " << #function << endl;         \
+      }                                                                          \
+   }
+   
+   
    // Checks Vulkan error state
    bool IsError(const VkResult result)
    {
@@ -99,33 +162,7 @@ namespace en
    return true; 
    }
       
-   void unbindedVulkanFunctionHandler(...)
-   {
-   Log << "ERROR: Called unbinded Vulkan function.\n";
-   assert(0);
-   }
 
-   // MACROS: Safe Vulkan function binding with fallback
-   //         Both Macros should be used only inside VulkanAPI and VulkanDevice class methods.
-   #define bindInstanceFunction(name)                                    \
-   {                                                                     \
-   vk##name = (PFN_vk##name) vkGetInstanceProcAddr(instance, "vk"#name); \
-   if (!vk##name)                                                        \
-      {                                                                  \
-      vk##name = (PFN_vk##name) &unbindedVulkanFunctionHandler;          \
-      Log << "Error: Cannot bind function vk" << #name << endl;          \
-      };                                                                 \
-   }
-
-   #define bindDeviceFunction(name)                                      \
-   {                                                                     \
-   vk##name = (PFN_vk##name) vkGetDeviceProcAddr(device, "vk"#name);     \
-   if (!vk##name)                                                        \
-      {                                                                  \
-      vk##name = (PFN_vk##name) &unbindedVulkanFunctionHandler;          \
-      Log << "Error: Cannot bind function vk" << #name << endl;          \
-      };                                                                 \
-   }
 
 
 
@@ -155,9 +192,10 @@ namespace en
                         const uint32v2 selectedResolution,
                         const WindowSettings& settings,
                         const string title) :
+      AppInstance(nullptr),
+      hWnd(nullptr),
       CommonWindow()
    {
-   HINSTANCE AppInstance; // Application handle
    WNDCLASS  Window;      // Window class
    DWORD     Style;       // Window style
    DWORD     ExStyle;     // Window extended style
@@ -222,7 +260,8 @@ namespace en
       // Setting additional data
       Style   = WS_POPUP;                               // Window style
       ExStyle = WS_EX_APPWINDOW | WS_EX_TOPMOST;        // Window extended style
-      ShowCursor(FALSE);                                // Hide mouse 
+      ShowCursor(FALSE);                                // Hide mouse
+      _fullscreen = true;
       }
    else
       {
@@ -271,7 +310,22 @@ namespace en
    _size     = selectedResolution;
  //_resolution will be set by child class implementing given Graphics API Swap-Chain
    }
-#endif
+
+   winWindow::~winWindow()
+   {
+   // Reset to old display settings
+   if (_fullscreen)
+      {
+      ChangeDisplaySettings(nullptr, 0);
+      ShowCursor(TRUE);
+      }
+
+   // Delete window
+   DestroyWindow(hWnd);
+
+   // Unregister window class
+   UnregisterClass(L"WindowClass", AppInstance);
+   }
 
    bool winWindow::movable(void)
    {
@@ -289,26 +343,7 @@ namespace en
    void winWindow::active(void)
    {
    }
-
-
-   // Create Window
-   //---------------
-   
-
-//   HDC       hDC;         // Application Device Context
-//
-//   // Acquiring Device Context
-//   hDC = GetDC(hWnd);
-//   if (hDC == nullptr)
-//      {
-//      Log << "Error! Cannot create device context.\n";
-//      return false;
-//      }
-
-
-
-
-
+#endif
 
    WindowVK::WindowVK(const VulkanDevice* gpu,
                       const Ptr<CommonDisplay> selectedDisplay,
@@ -316,20 +351,21 @@ namespace en
                       const WindowSettings& settings,
                       const string title) :
 #if defined(EN_PLATFORM_WINDOWS)
+      // Create native OS window or assert.
       winWindow(ptr_dynamic_cast<winDisplay, CommonDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
    {
    // Window > Surface > Swap-Chain > Device - connection
 
    // Be sure device is idle before creating Swap-Chain
-   vkDeviceWaitIdle(gpu->device);
+   Profile( gpu, vkDeviceWaitIdle(gpu->device) )
 
    // Create Swap-Chain surface attached to Window
    //----------------------------------------------
 
-   VkSurfaceKHR             swapChainSurface;
    VkSurfaceCapabilitiesKHR swapChainCapabilities;
-      
+     
+#if defined(EN_PLATFORM_WINDOWS)
    VkWin32SurfaceCreateInfoKHR createInfo;
    createInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
    createInfo.pNext     = nullptr;
@@ -337,11 +373,15 @@ namespace en
    createInfo.hinstance = AppInstance; // HINSTANCE
    createInfo.hwnd      = hWnd;        // HWND
 
-   Profile( vkCreateWin32SurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicsAPI>(en::Graphics)->instance,
-                                    &createInfo, nullptr, &swapChainSurface) )
+   Profile( gpu, vkCreateWin32SurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicsAPI>(en::Graphics)->instance,
+                                         &createInfo, nullptr, &swapChainSurface) )
+#else
+   // TODO: Implement OS Specific part for other platforms.
+   assert( 0 );
+#endif
 
    // Query capabilities of Swap-Chain surface for this device
-   Profile( vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, swapChainSurface, &swapChainCapabilities) )
+   Profile( gpu, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, swapChainSurface, &swapChainCapabilities) )
    if (lastResult != VK_SUCCESS)
       {
       string info;
@@ -371,7 +411,7 @@ namespace en
       
    // Query count of available Pixel Formats supported by this device, and matching destination Window
    uint32 formats = 0;
-   Profile( vkGetPhysicalDeviceSurfaceFormatsKHR(handle, swapChainSurface, &formats, nullptr) )
+   Profile( gpu, vkGetPhysicalDeviceSurfaceFormatsKHR(handle, swapChainSurface, &formats, nullptr) )
    if ( (lastResult != VK_SUCCESS) ||
         (formats == 0) )
       {
@@ -385,7 +425,7 @@ namespace en
 
    // Query types of all available device Pixel Formats for that surface
    VkSurfaceFormatKHR* deviceFormats = new VkSurfaceFormatKHR[formats];
-   Profile( vkGetPhysicalDeviceSurfaceFormatsKHR(handle, swapChainSurface, &formats, &deviceFormats[0]) )
+   Profile( gpu, vkGetPhysicalDeviceSurfaceFormatsKHR(handle, swapChainSurface, &formats, &deviceFormats[0]) )
    if (lastResult != VK_SUCCESS)
       {
       delete [] deviceFormats;
@@ -554,26 +594,6 @@ namespace en
    //       VK_PRESENT_MODE_IMMEDIATE_KHR    - No VSync
    //       VK_PRESENT_MODE_FIFO_RELAXED_KHR - Prevent Stuttering if frame was late ( for VR ? )
 
-
-
-
-
-
-
-   // Screen
-   // - resolution
-   // - color space
-   
-   // Window
-   // - resolution
-   
-   // GraphicsDevice
-   // - Color Space
-   // - Render Target resolution (so it can be smaller than Window, or Fullscreen Window)
-
-
-
-
    // Create Swap-Chain connecting Window to Device
    //-----------------------------------------------
    
@@ -602,7 +622,14 @@ namespace en
    _resolution = swapChainResolution;
    }
    
+   WindowVK::~WindowVK()
+   {
+   // Be sure device is idle before destroying the Window
+   Profile( gpu, vkDeviceWaitIdle(gpu->device) )
    
+   Profile( gpu, vkDestroySurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicsAPI>(en::Graphics)->instance,
+                                     surface, nullptr) )
+   }
    
    Ptr<Window> VulkanDevice::create(const WindowSettings& settings, const string title)
    {
@@ -655,6 +682,15 @@ namespace en
    Ptr<WindowVK> ptr = new WindowVK(this, display, selectedResolution, settings, title);
    return ptr_dynamic_cast<Window>(ptr);
    }
+   
+   
+   
+   
+   
+   
+   
+   
+   
    
    
 
@@ -746,8 +782,8 @@ namespace en
 
 
 
-   VulkanDevice::VulkanDevice(const VkPhysicalDevice _handle) :
-      lastResult(VK_SUCCESS),
+   VulkanDevice::VulkanDevice(const VulkanAPI* _api, const VkPhysicalDevice _handle) :
+      api(_api),
       handle(_handle),
       queueFamily(nullptr),
       queueFamiliesCount(0),
@@ -759,8 +795,11 @@ namespace en
       memoryRAM(0),
       memoryDriver(0)
    {
-   // Unbind all function pointers first
-   unbindDeviceFunctionPointers();
+   for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
+      lastResult[i] = VK_SUCCESS;
+      
+   // Clear Device function pointers
+   clearDeviceFunctionPointers();
 
    // Init default memory allocation callbacks
    defaultAllocCallbacks.pUserData             = this;
@@ -771,13 +810,13 @@ namespace en
    defaultAllocCallbacks.pfnInternalFree       = defaultIntFree;
 
    // Gather Device Capabilities
-   ProfileNoRet( vkGetPhysicalDeviceFeatures(handle, &features) )
-   ProfileNoRet( vkGetPhysicalDeviceProperties(handle, &properties) )
-   ProfileNoRet( vkGetPhysicalDeviceMemoryProperties(handle, &memory) )
+   ProfileNoRet( api, vkGetPhysicalDeviceFeatures(handle, &features) )
+   ProfileNoRet( api, vkGetPhysicalDeviceProperties(handle, &properties) )
+   ProfileNoRet( api, vkGetPhysicalDeviceMemoryProperties(handle, &memory) )
 
  // TODO: Gather even more information
- //Profile( vkGetPhysicalDeviceFormatProperties(handle, VkFormat format, VkFormatProperties* pFormatProperties) )
- //Profile( vkGetPhysicalDeviceImageFormatProperties(handle, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties) )
+ //ProfileNoRet( api, vkGetPhysicalDeviceFormatProperties(handle, VkFormat format, VkFormatProperties* pFormatProperties) )
+ //ProfileNoRet( api, vkGetPhysicalDeviceImageFormatProperties(handle, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties) )
 
    // TODO: Populate "Support" section of CommonDevice
    // Texture
@@ -797,22 +836,22 @@ namespace en
    //------------------------
 
    // Gather information about Queue Families supported by this device
-   ProfileNoRet( vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, nullptr) )
+   ProfileNoRet( api, vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, nullptr) )
    queueFamily = new VkQueueFamilyProperties[queueFamiliesCount];
-   ProfileNoRet( vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, queueFamily) )
+   ProfileNoRet( api, vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, queueFamily) )
 
    // Generate list of all Queue Family indices.
    // This list will be passed during resource creation time for resources that need to be populated first.
    // This way we can use separate Transfer Queues for faster data transfer, and driver knows to use
    // proper synchronization mechanisms to prevent hazards and race conditions.
    queueFamilyIndices = new uint32[queueFamiliesCount];
-   for (uint32 ii=0; i<queueFamiliesCount; ++i)
+   for (uint32 i=0; i<queueFamiliesCount; ++i)
        queueFamilyIndices[i] = i;
 
    // Map Queue Families and their Queue Count to QueueType and Index.
    memset(&queuesCount[0], 0, sizeof(queuesCount));
    memset(&queueTypeToFamily[0], 0, sizeof(queueTypeToFamily));
-   for(uint32_t family=0; family<queueCount; ++family)
+   for(uint32_t family=0; family<queueFamiliesCount; ++family)
       {
       uint32 flags = queueFamily[family].queueFlags;
       
@@ -867,10 +906,10 @@ namespace en
          // This shouldn't happen but if it will we will report it without asserting.
          
          Log << "Unsupported type of Queue Family" << endl;
-         Log << "    Queues in Family: %i" << queueFamily[family].queueCount << endl;
-         Log << "    Queue Min Transfer Width : %i" << queueFamily[family].minImageTransferGranularity.width << endl;
-         Log << "    Queue Min Transfer Height: %i" << queueFamily[family].minImageTransferGranularity.height << endl;
-         Log << "    Queue Min Transfer Depth : %i" << queueFamily[family].minImageTransferGranularity.depth << endl;
+         Log << "    Queues in Family: " << queueFamily[family].queueCount << endl;
+         Log << "    Queue Min Transfer Width : " << queueFamily[family].minImageTransferGranularity.width << endl;
+         Log << "    Queue Min Transfer Height: " << queueFamily[family].minImageTransferGranularity.height << endl;
+         Log << "    Queue Min Transfer Depth : " << queueFamily[family].minImageTransferGranularity.depth << endl;
          if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             Log << "    Queue supports: GRAPHICS" << endl;
          if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
@@ -879,97 +918,44 @@ namespace en
             Log << "    Queue supports: TRANSFER" << endl;
          if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
             Log << "    Queue supports: SPARSE_BINDING" << endl;
-         Log << "    Queues Time Stamp: %i" << queueFamily[family].timestampValidBits << endl;
+         Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << endl << endl;
          }
       }
    
-   // Debug Print of Queue Families
-   
-    //for(uint32_t family=0; family<queueCount; ++family)
-    //   {
-    //   printf("Queue Family %i:\n\n", family);
-
-    //   printf("    Queues in Family: %i\n", queueFamily[family].queueCount);
-    //   printf("    Queue Min Transfer W: %i\n", queueFamily[family].minImageTransferGranularity.width);
-    //   printf("    Queue Min Transfer H: %i\n", queueFamily[family].minImageTransferGranularity.height);
-    //   printf("    Queue Min Transfer D: %i\n", queueFamily[family].minImageTransferGranularity.depth);
-    //   if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-    //      printf("    Queue supports: GRAPHICS\n");
-    //   if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
-    //      printf("    Queue supports: COMPUTE\n");
-    //   if (queueFamily[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
-    //      printf("    Queue supports: TRANSFER\n");
-    //   if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
-    //      printf("    Queue supports: SPARSE_BINDING\n\n\n"); 
-    //   printf("    Queues Time Stamp: %i\n", queueFamily[family].timestampValidBits);
-    //   }
-
-
-   // Layouts
-   //---------
-
-   VkLayerProperties* layerProperties = nullptr;
-
-   // Acquire list of Vulkan Layers supported by this Device 
-   lastResult = VK_INCOMPLETE;
-   while(lastResult == VK_INCOMPLETE)
+#if defined(EN_DEBUG)
+   // Debug log Queue Families
+   for(uint32_t family=0; family<queueFamiliesCount; ++family)
       {
-      Profile( vkEnumerateDeviceLayerProperties(handle, &layersCount, nullptr) )
-      if (IsWarning(lastResult))
-         assert(0);
+      Log << "Queue Family %i:" << family << endl;
 
-      if (layersCount == 0)
-         break;
-
-      // Allocate array of Layer Properties descriptors
-      if (layerProperties)
-         delete [] layerProperties;
-      layerProperties = new VkLayerProperties[layersCount];
-      Profile( vkEnumerateDeviceLayerProperties(handle, &layersCount, layerProperties) )
+      Log << "    Queues: " << queueFamily[family].queueCount) << endl;
+      Log << "    Queue Min Transfer W: " << queueFamily[family].minImageTransferGranularity.width) << endl;
+      Log << "    Queue Min Transfer H: " << queueFamily[family].minImageTransferGranularity.height) << endl;
+      Log << "    Queue Min Transfer D: " << queueFamily[family].minImageTransferGranularity.depth) << endl;
+      if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+         Log << "    Family supports: GRAPHICS\n";
+      if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
+         Log << "    Family supports: COMPUTE\n";
+      if (queueFamily[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
+         Log << "    Family supports: TRANSFER\n";
+      if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
+         Log << "    Family supports: SPARSE_BINDING\n";
+      Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits) << endl << endl;
       }
+#endif
 
-   // Acquire information about each Layer and supported extensions
-   layer = new LayerDescriptor[layersCount];
-   for(uint32 i=0; i<layersCount; ++i)
+   // Device Extensions
+   //-------------------
+
+   // Acquire list of Device extensions
+   Profile( api, vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, nullptr) )
+   if (IsWarning(api->lastResult[Scheduler.core()]))
+      assert( 0 );
+
+   if (globalExtensionsCount > 0)
       {
-      layer[i].properties = layerProperties[i];
-
-      // Acquire list of all extensions supported by this layer
-      lastResult = VK_INCOMPLETE;
-      while(lastResult == VK_INCOMPLETE)
-         {
-         Profile( vkEnumerateDeviceExtensionProperties(handle, layer[i].properties.layerName, &layer[i].extensionsCount, nullptr) )
-         if (IsWarning(lastResult))
-            assert(0);
-      
-         if (layer[i].extensionsCount == 0)
-            break;
-      
-         // Allocate array of Layer Extension descriptors
-         if (layer[i].extension)
-            delete [] layer[i].extension;
-         layer[i].extension = new VkExtensionProperties[layer[i].extensionsCount];
-         Profile( vkEnumerateDeviceExtensionProperties(handle, layer[i].properties.layerName, &layer[i].extensionsCount, layer[i].extension) )
-         }
-      }
-
-   delete [] layerProperties;
-
-   // Acquire list of all global extensions not being part of any layer
-   lastResult = VK_INCOMPLETE;
-   while(lastResult == VK_INCOMPLETE)
-      {
-      Profile( vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, nullptr) )
-      if (IsWarning(lastResult))
-         assert(0);
-   
-      if (globalExtensionsCount == 0)
-         break;
-
-      if (globalExtension)
-         delete [] globalExtension;
       globalExtension = new VkExtensionProperties[globalExtensionsCount];
-      Profile( vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, globalExtension) )
+      Profile( api, vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, globalExtension) )
       }
 
    // While creating device, we can choose to init as many Queue Families as we want (but each only once).
@@ -994,27 +980,17 @@ namespace en
       queueFamilyInfo[i].pQueuePriorities   = priorities;
       }
 
-   // Similarly to Queue Families, for now on, lets init all Layers and all Extensions available
-
-   // Create array of pointers to all layer names
-   char** layersPtrs = new char*[layersCount];
-   uint32 index = 0;
-   for(uint32 i=0; i<layersCount; ++i)  
-      layersPtrs[index] = &layer[i].properties.layerName[0];
-
-   // Calculate total amount of extensions supported by all Layers
-   uint32 totalExtensionsCount = globalExtensionsCount;
-   for(uint32 i=0; i<layersCount; ++i)
-      totalExtensionsCount += layer[i].extensionsCount;  
-
-   // Create array of pointers to this extension names
-   char** extensionPtrs = new char*[totalExtensionsCount];
-   index = 0;
-   for(uint32 i=0; i<globalExtensionsCount; ++i, ++index)
-      extensionPtrs[index] = &globalExtension[i].extensionName[0];
-   for(uint32 i=0; i<layersCount; ++i)
-      for(uint32 j=0; j<layer[i].extensionsCount; ++j, ++index)   
-         extensionPtrs[index] = &layer[i].extension[j].extensionName[0];
+   // Enable all available device extensions
+   char** extensionPtrs = nullptr;
+   if (globalExtensionsCount > 0)
+      {
+      extensionPtrs = new char*[globalExtensionsCount];
+      for(uint32 i=0; i<globalExtensionsCount; ++i)
+         extensionPtrs[index] = &globalExtension[i].extensionName[0];
+      }
+      
+   // Create Vulkan Device
+   //----------------------
 
    // Create Device Interface
    VkDeviceCreateInfo deviceInfo;
@@ -1023,17 +999,22 @@ namespace en
    deviceInfo.flags                     = 0;                     // Reserved
    deviceInfo.queueCreateInfoCount      = queueFamiliesCount;
    deviceInfo.pQueueCreateInfos         = queueInfo;
-   deviceInfo.enabledLayerCount         = layersCount;
-   deviceInfo.ppEnabledLayerNames       = layersCount          ? reinterpret_cast<const char*const*>(layersPtrs) : nullptr;
-   deviceInfo.enabledExtensionCount     = totalExtensionsCount;
-   deviceInfo.ppEnabledExtensionNames   = totalExtensionsCount ? reinterpret_cast<const char*const*>(extensionPtrs) : nullptr;
+   deviceInfo.enabledLayerCount         = 0;                     // Deprecated, ignored.
+   deviceInfo.ppEnabledLayerNames       = nullptr;               // Deprecated, ignored.
+   deviceInfo.enabledExtensionCount     = globalExtensionsCount;
+   deviceInfo.ppEnabledExtensionNames   = reinterpret_cast<const char*const*>(extensionPtrs);
    deviceInfo.pEnabledFeatures          = nullptr;
 
-   Profile( vkCreateDevice(handle, &deviceInfo, &defaultAllocCallbacks, &device) )
+   // TODO: In the future provide our own allocation callbacks to track
+   //       and analyze drivers system memory usage (&defaultAllocCallbacks).
+
+   Profile( api, vkCreateDevice(handle, &deviceInfo, nullptr, &device) )
 
    // Bind Device Functions
-   bindDeviceFunctionPointers();
+   loadDeviceFunctionPointers();
 
+   // Free temporary resources
+   delete [] extensionPtrs;
 
    // Command Pools
    //---------------
@@ -1061,7 +1042,7 @@ namespace en
          poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT; // To reuse CB's use VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
          poolInfo.queueFamilyIndex = queueFamilyId;
          
-         Profile( vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool[thread][i]) )
+         Profile( this, vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool[thread][i]) )
          }
 
    // <<<< Per Thread Section
@@ -1084,22 +1065,27 @@ namespace en
    // TODO: VkPipelineCache  pipelineCache;
 
 
-   // Free temporary resources
-   delete [] extensionPtrs;
-   delete [] layersPtrs;
+
+
    }
 
    VulkanDevice::~VulkanDevice()
    {
+   Profile( this, vkDeviceWaitIdle(device) )
+   
+
    // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
    uint32 thread = Scheduler.core();
 
    // Release all Command Pools used by this thread for Commands submission
    for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
       if (queuesCount[i] > 0)
-         Profile( vkDestroyCommandPool(device, commandPool[thread][i], nullptr) )
+         Profile( this, vkDestroyCommandPool(device, commandPool[thread][i], nullptr) )
 
    // <<<< Per Thread Section
+
+   if (device != VK_NULL_HANDLE)
+      Profile( this, vkDestroyDevice(device, nullptr) )  // Instance or Device function ?
 
    delete [] queueFamily;
    delete [] queueFamilyIndices;
@@ -1114,7 +1100,7 @@ namespace en
    return queuesCount[underlyingType(type)];  //Need translation table from (Type, N) -> (Family, Index)
    }
 
-   void VulkanDevice::bindDeviceFunctionPointers(void)
+   void VulkanDevice::loadDeviceFunctionPointers(void)
    {
    // TODO: Order it by extensions etc.
 
@@ -1128,148 +1114,147 @@ namespace en
 
    // Vulkan 1.0
    //
-   bindDeviceFunction( DestroyInstance );
-   bindDeviceFunction( GetPhysicalDeviceFeatures );
-   bindDeviceFunction( GetPhysicalDeviceFormatProperties );
-   bindDeviceFunction( GetPhysicalDeviceImageFormatProperties );
-   bindDeviceFunction( GetPhysicalDeviceProperties );
-   bindDeviceFunction( GetPhysicalDeviceQueueFamilyProperties );
-   bindDeviceFunction( GetPhysicalDeviceMemoryProperties );
-   bindDeviceFunction( GetDeviceProcAddr );
-   bindDeviceFunction( CreateDevice );
-   bindDeviceFunction( DestroyDevice );
-   bindDeviceFunction( EnumerateDeviceExtensionProperties );
-   bindDeviceFunction( EnumerateDeviceLayerProperties );
-   bindDeviceFunction( GetDeviceQueue );
-   bindDeviceFunction( QueueSubmit );
-   bindDeviceFunction( QueueWaitIdle );
-   bindDeviceFunction( DeviceWaitIdle );
-   bindDeviceFunction( AllocateMemory );
-   bindDeviceFunction( FreeMemory );
-   bindDeviceFunction( MapMemory );
-   bindDeviceFunction( UnmapMemory );
-   bindDeviceFunction( FlushMappedMemoryRanges );
-   bindDeviceFunction( InvalidateMappedMemoryRanges );
-   bindDeviceFunction( GetDeviceMemoryCommitment );
-   bindDeviceFunction( BindBufferMemory );
-   bindDeviceFunction( BindImageMemory );
-   bindDeviceFunction( GetBufferMemoryRequirements );
-   bindDeviceFunction( GetImageMemoryRequirements );
-   bindDeviceFunction( GetImageSparseMemoryRequirements );
-   bindDeviceFunction( GetPhysicalDeviceSparseImageFormatProperties );
-   bindDeviceFunction( QueueBindSparse );
-   bindDeviceFunction( CreateFence );
-   bindDeviceFunction( DestroyFence );
-   bindDeviceFunction( ResetFences );
-   bindDeviceFunction( GetFenceStatus );
-   bindDeviceFunction( WaitForFences );
-   bindDeviceFunction( CreateSemaphore );
-   bindDeviceFunction( DestroySemaphore );
-   bindDeviceFunction( CreateEvent );
-   bindDeviceFunction( DestroyEvent );
-   bindDeviceFunction( GetEventStatus );
-   bindDeviceFunction( SetEvent );
-   bindDeviceFunction( ResetEvent );
-   bindDeviceFunction( CreateQueryPool );
-   bindDeviceFunction( DestroyQueryPool );
-   bindDeviceFunction( GetQueryPoolResults );
-   bindDeviceFunction( CreateBuffer );
-   bindDeviceFunction( DestroyBuffer );
-   bindDeviceFunction( CreateBufferView );
-   bindDeviceFunction( DestroyBufferView );
-   bindDeviceFunction( CreateImage );
-   bindDeviceFunction( DestroyImage );
-   bindDeviceFunction( GetImageSubresourceLayout );
-   bindDeviceFunction( CreateImageView );
-   bindDeviceFunction( DestroyImageView );
-   bindDeviceFunction( CreateShaderModule );
-   bindDeviceFunction( DestroyShaderModule );
+   LoadDeviceFunction( vkDestroyInstance )
+   LoadDeviceFunction( vkGetPhysicalDeviceFeatures )
+   LoadDeviceFunction( vkGetPhysicalDeviceFormatProperties )
+   LoadDeviceFunction( vkGetPhysicalDeviceImageFormatProperties )
+   LoadDeviceFunction( vkGetPhysicalDeviceProperties )
+   LoadDeviceFunction( vkGetPhysicalDeviceQueueFamilyProperties )
+   LoadDeviceFunction( vkGetPhysicalDeviceMemoryProperties )
+   LoadDeviceFunction( vkGetDeviceProcAddr )
+   LoadDeviceFunction( vkCreateDevice )
+   LoadDeviceFunction( vkDestroyDevice )
+   LoadDeviceFunction( vkEnumerateDeviceExtensionProperties )
+   LoadDeviceFunction( vkEnumerateDeviceLayerProperties )
+   LoadDeviceFunction( vkGetDeviceQueue )
+   LoadDeviceFunction( vkQueueSubmit )
+   LoadDeviceFunction( vkQueueWaitIdle )
+   LoadDeviceFunction( vkDeviceWaitIdle )
+   LoadDeviceFunction( vkAllocateMemory )
+   LoadDeviceFunction( vkFreeMemory )
+   LoadDeviceFunction( vkMapMemory )
+   LoadDeviceFunction( vkUnmapMemory )
+   LoadDeviceFunction( vkFlushMappedMemoryRanges )
+   LoadDeviceFunction( vkInvalidateMappedMemoryRanges )
+   LoadDeviceFunction( vkGetDeviceMemoryCommitment )
+   LoadDeviceFunction( vkBindBufferMemory )
+   LoadDeviceFunction( vkBindImageMemory )
+   LoadDeviceFunction( vkGetBufferMemoryRequirements )
+   LoadDeviceFunction( vkGetImageMemoryRequirements )
+   LoadDeviceFunction( vkGetImageSparseMemoryRequirements )
+   LoadDeviceFunction( vkGetPhysicalDeviceSparseImageFormatProperties )
+   LoadDeviceFunction( vkQueueBindSparse )
+   LoadDeviceFunction( vkCreateFence )
+   LoadDeviceFunction( vkDestroyFence )
+   LoadDeviceFunction( vkResetFences )
+   LoadDeviceFunction( vkGetFenceStatus )
+   LoadDeviceFunction( vkWaitForFences )
+   LoadDeviceFunction( vkCreateSemaphore )
+   LoadDeviceFunction( vkDestroySemaphore )
+   LoadDeviceFunction( vkCreateEvent )
+   LoadDeviceFunction( vkDestroyEvent )
+   LoadDeviceFunction( vkGetEventStatus )
+   LoadDeviceFunction( vkSetEvent )
+   LoadDeviceFunction( vkResetEvent )
+   LoadDeviceFunction( vkCreateQueryPool )
+   LoadDeviceFunction( vkDestroyQueryPool )
+   LoadDeviceFunction( vkGetQueryPoolResults )
+   LoadDeviceFunction( vkCreateBuffer )
+   LoadDeviceFunction( vkDestroyBuffer )
+   LoadDeviceFunction( vkCreateBufferView )
+   LoadDeviceFunction( vkDestroyBufferView )
+   LoadDeviceFunction( vkCreateImage )
+   LoadDeviceFunction( vkDestroyImage )
+   LoadDeviceFunction( vkGetImageSubresourceLayout )
+   LoadDeviceFunction( vkCreateImageView )
+   LoadDeviceFunction( vkDestroyImageView )
+   LoadDeviceFunction( vkCreateShaderModule )
+   LoadDeviceFunction( vkDestroyShaderModule )
+   LoadDeviceFunction( vkCreatePipelineCache )
+   LoadDeviceFunction( vkDestroyPipelineCache )
+   LoadDeviceFunction( vkGetPipelineCacheData )
+   LoadDeviceFunction( vkMergePipelineCaches )
+   LoadDeviceFunction( vkCreateGraphicsPipelines )
+   LoadDeviceFunction( vkCreateComputePipelines )
+   LoadDeviceFunction( vkDestroyPipeline )
+   LoadDeviceFunction( vkCreatePipelineLayout )
+   LoadDeviceFunction( vkDestroyPipelineLayout )
+   LoadDeviceFunction( vkCreateSampler )
+   LoadDeviceFunction( vkDestroySampler )
+   LoadDeviceFunction( vkCreateDescriptorSetLayout )
+   LoadDeviceFunction( vkDestroyDescriptorSetLayout )
+   LoadDeviceFunction( vkCreateDescriptorPool )
+   LoadDeviceFunction( vkDestroyDescriptorPool )
+   LoadDeviceFunction( vkResetDescriptorPool )
+   LoadDeviceFunction( vkAllocateDescriptorSets )
+   LoadDeviceFunction( vkFreeDescriptorSets )
+   LoadDeviceFunction( vkUpdateDescriptorSets )
+   LoadDeviceFunction( vkCreateFramebuffer )
+   LoadDeviceFunction( vkDestroyFramebuffer )
+   LoadDeviceFunction( vkCreateRenderPass )
+   LoadDeviceFunction( vkDestroyRenderPass )
+   LoadDeviceFunction( vkGetRenderAreaGranularity )
+   LoadDeviceFunction( vkCreateCommandPool )
+   LoadDeviceFunction( vkDestroyCommandPool )
+   LoadDeviceFunction( vkResetCommandPool )
+   LoadDeviceFunction( vkAllocateCommandBuffers )
+   LoadDeviceFunction( vkFreeCommandBuffers )
+   LoadDeviceFunction( vkBeginCommandBuffer )
+   LoadDeviceFunction( vkEndCommandBuffer )
+   LoadDeviceFunction( vkResetCommandBuffer )
+   LoadDeviceFunction( vkCmdBindPipeline )
+   LoadDeviceFunction( vkCmdSetViewport )
+   LoadDeviceFunction( vkCmdSetScissor )
+   LoadDeviceFunction( vkCmdSetLineWidth )
+   LoadDeviceFunction( vkCmdSetDepthBias )
+   LoadDeviceFunction( vkCmdSetBlendConstants )
+   LoadDeviceFunction( vkCmdSetDepthBounds )
+   LoadDeviceFunction( vkCmdSetStencilCompareMask )
+   LoadDeviceFunction( vkCmdSetStencilWriteMask )
+   LoadDeviceFunction( vkCmdSetStencilReference )
+   LoadDeviceFunction( vkCmdBindDescriptorSets )
+   LoadDeviceFunction( vkCmdBindIndexBuffer )
+   LoadDeviceFunction( vkCmdBindVertexBuffers )
+   LoadDeviceFunction( vkCmdDraw )
+   LoadDeviceFunction( vkCmdDrawIndexed )
+   LoadDeviceFunction( vkCmdDrawIndirect )
+   LoadDeviceFunction( vkCmdDrawIndexedIndirect )
+   LoadDeviceFunction( vkCmdDispatch )
+   LoadDeviceFunction( vkCmdDispatchIndirect )
+   LoadDeviceFunction( vkCmdCopyBuffer )
+   LoadDeviceFunction( vkCmdCopyImage )
+   LoadDeviceFunction( vkCmdBlitImage )
+   LoadDeviceFunction( vkCmdCopyBufferToImage )
+   LoadDeviceFunction( vkCmdCopyImageToBuffer )
+   LoadDeviceFunction( vkCmdUpdateBuffer )
+   LoadDeviceFunction( vkCmdFillBuffer )
+   LoadDeviceFunction( vkCmdClearColorImage )
+   LoadDeviceFunction( vkCmdClearDepthStencilImage )
+   LoadDeviceFunction( vkCmdClearAttachments )
+   LoadDeviceFunction( vkCmdResolveImage )
+   LoadDeviceFunction( vkCmdSetEvent )
+   LoadDeviceFunction( vkCmdResetEvent )
+   LoadDeviceFunction( vkCmdWaitEvents )
+   LoadDeviceFunction( vkCmdPipelineBarrier )
+   LoadDeviceFunction( vkCmdBeginQuery )
+   LoadDeviceFunction( vkCmdEndQuery )
+   LoadDeviceFunction( vkCmdResetQueryPool )
+   LoadDeviceFunction( vkCmdWriteTimestamp )
+   LoadDeviceFunction( vkCmdCopyQueryPoolResults )
+   LoadDeviceFunction( vkCmdPushConstants )
+   LoadDeviceFunction( vkCmdBeginRenderPass )
+   LoadDeviceFunction( vkCmdNextSubpass )
+   LoadDeviceFunction( vkCmdEndRenderPass )
+   LoadDeviceFunction( vkCmdExecuteCommands )
 
-   bindDeviceFunction( CreatePipelineCache );
-   bindDeviceFunction( DestroyPipelineCache );
-   bindDeviceFunction( GetPipelineCacheData );
-   bindDeviceFunction( MergePipelineCaches );
-   bindDeviceFunction( CreateGraphicsPipelines );
-   bindDeviceFunction( CreateComputePipelines );
-   bindDeviceFunction( DestroyPipeline );
-   bindDeviceFunction( CreatePipelineLayout );
-   bindDeviceFunction( DestroyPipelineLayout );
-   bindDeviceFunction( CreateSampler );
-   bindDeviceFunction( DestroySampler );
-   bindDeviceFunction( CreateDescriptorSetLayout );
-   bindDeviceFunction( DestroyDescriptorSetLayout );
-   bindDeviceFunction( CreateDescriptorPool );
-   bindDeviceFunction( DestroyDescriptorPool );
-   bindDeviceFunction( ResetDescriptorPool );
-   bindDeviceFunction( AllocateDescriptorSets );
-   bindDeviceFunction( FreeDescriptorSets );
-   bindDeviceFunction( UpdateDescriptorSets );
-   bindDeviceFunction( CreateFramebuffer );
-   bindDeviceFunction( DestroyFramebuffer );
-   bindDeviceFunction( CreateRenderPass );
-   bindDeviceFunction( DestroyRenderPass );
-   bindDeviceFunction( GetRenderAreaGranularity );
-   bindDeviceFunction( CreateCommandPool );
-   bindDeviceFunction( DestroyCommandPool );
-   bindDeviceFunction( ResetCommandPool );
-   bindDeviceFunction( AllocateCommandBuffers );
-   bindDeviceFunction( FreeCommandBuffers );
-   bindDeviceFunction( BeginCommandBuffer );
-   bindDeviceFunction( EndCommandBuffer );
-   bindDeviceFunction( ResetCommandBuffer );
-   bindDeviceFunction( CmdBindPipeline );
-   bindDeviceFunction( CmdSetViewport );
-   bindDeviceFunction( CmdSetScissor );
-   bindDeviceFunction( CmdSetLineWidth );
-   bindDeviceFunction( CmdSetDepthBias );
-   bindDeviceFunction( CmdSetBlendConstants );
-   bindDeviceFunction( CmdSetDepthBounds );
-   bindDeviceFunction( CmdSetStencilCompareMask );
-   bindDeviceFunction( CmdSetStencilWriteMask );
-   bindDeviceFunction( CmdSetStencilReference );
-   bindDeviceFunction( CmdBindDescriptorSets );
-   bindDeviceFunction( CmdBindIndexBuffer );
-   bindDeviceFunction( CmdBindVertexBuffers );
-   bindDeviceFunction( CmdDraw );
-   bindDeviceFunction( CmdDrawIndexed );
-   bindDeviceFunction( CmdDrawIndirect );
-   bindDeviceFunction( CmdDrawIndexedIndirect );
-   bindDeviceFunction( CmdDispatch );
-   bindDeviceFunction( CmdDispatchIndirect );
-   bindDeviceFunction( CmdCopyBuffer );
-   bindDeviceFunction( CmdCopyImage );
-   bindDeviceFunction( CmdBlitImage );
-   bindDeviceFunction( CmdCopyBufferToImage );
-   bindDeviceFunction( CmdCopyImageToBuffer );
-   bindDeviceFunction( CmdUpdateBuffer );
-   bindDeviceFunction( CmdFillBuffer );
-   bindDeviceFunction( CmdClearColorImage );
-   bindDeviceFunction( CmdClearDepthStencilImage );
-   bindDeviceFunction( CmdClearAttachments );
-   bindDeviceFunction( CmdResolveImage );
-   bindDeviceFunction( CmdSetEvent );
-   bindDeviceFunction( CmdResetEvent );
-   bindDeviceFunction( CmdWaitEvents );
-   bindDeviceFunction( CmdPipelineBarrier );
-   bindDeviceFunction( CmdBeginQuery );
-   bindDeviceFunction( CmdEndQuery );
-   bindDeviceFunction( CmdResetQueryPool );
-   bindDeviceFunction( CmdWriteTimestamp );
-   bindDeviceFunction( CmdCopyQueryPoolResults );
-   bindDeviceFunction( CmdPushConstants );
-   bindDeviceFunction( CmdBeginRenderPass );
-   bindDeviceFunction( CmdNextSubpass );
-   bindDeviceFunction( CmdEndRenderPass );
-   bindDeviceFunction( CmdExecuteCommands );
-
-   bindDeviceFunction( CreateSwapchainKHR );
-   bindDeviceFunction( DestroySwapchainKHR );
-   bindDeviceFunction( GetSwapchainImagesKHR );
-   bindDeviceFunction( AcquireNextImageKHR );
-   bindDeviceFunction( QueuePresentKHR );
+   LoadDeviceFunction( vkCreateSwapchainKHR )
+   LoadDeviceFunction( vkDestroySwapchainKHR )
+   LoadDeviceFunction( vkGetSwapchainImagesKHR )
+   LoadDeviceFunction( vkAcquireNextImageKHR )
+   LoadDeviceFunction( vkQueuePresentKHR )
    }
 
-   void VulkanDevice::unbindDeviceFunctionPointers(void)
+   void VulkanDevice::clearDeviceFunctionPointers(void)
    {
    // Vulkan 1.0
    //
@@ -1440,8 +1425,9 @@ namespace en
       allocInfo.allocationSize  = requirements.size;
       allocInfo.memoryTypeIndex = index;
       
-      Profile( vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
-	  if (lastResult == VK_SUCCESS)
+      // Profile will block here !!! FIXME !!!
+      Profile( this, vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
+      if (lastResult[Scheduler.core()] == VK_SUCCESS)
          return handle;
       }
 
@@ -1587,6 +1573,11 @@ namespace en
 
 
 
+
+
+
+
+
    VulkanAPI::VulkanAPI(string appName) :
 #if defined(EN_PLATFORM_WINDOWS)
       library(LoadLibrary("vulkan-1.dll")),
@@ -1594,7 +1585,6 @@ namespace en
 #if defined(EN_PLATFORM_LINUX)
       library(dlopen("libvulkan.so", RTLD_NOW)),
 #endif
-      lastResult(VK_SUCCESS),
       layer(nullptr),
       layersCount(0),
       globalExtension(nullptr),
@@ -1605,9 +1595,13 @@ namespace en
       displaysCount(0),
       GraphicAPI() // or SafeObject()
    {
-   // API INDEPENDENT - WINDOWS DEPENDENT SECTION - BEGIN
-   //-----------------------------------------------------
+   for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
+      lastResult[i] = VK_SUCCESS;
+      
+   // Windows OS - Windowing System Query (API Independent)
+   //-------------------------------------------------------
 
+#if defined(EN_PLATFORM_WINDOWS)
    // Display Device settings
    DISPLAY_DEVICE Device;
    memset(&Device, 0, sizeof(Device));
@@ -1618,8 +1612,8 @@ namespace en
       if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
          displaysCount++;
 
-   display = new Ptr<Screen>[displaysCount];
-   virtualDisplay = new Screen();
+   display = new Ptr<winDisplay>[displaysCount];
+   virtualDisplay = new winDisplay();
   
    // Clear structure for next display (to ensure there is no old data)
    memset(&Device, 0, sizeof(Device));
@@ -1726,7 +1720,7 @@ namespace en
             }
        
          // Add active display to the list
-         display[activeId] = ptr_dynamic_cast<Screen, winDisplay>(currentDisplay);
+         display[activeId] = ptr_dynamic_cast<CommonDisplay, winDisplay>(currentDisplay);
          activeId++;
          }
          
@@ -1735,11 +1729,9 @@ namespace en
       Device.cb = sizeof(Device);
       displayId++;
       }
-   
-   // API INDEPENDENT - WINDOWS DEPENDENT SECTION - END
-   //-----------------------------------------------------
+#endif
 
-   // Load Vulkan dynamic library
+   // Verify load of Vulkan dynamic library
    if (library == nullptr)
       {
       string info;
@@ -1750,105 +1742,119 @@ namespace en
       assert( 0 );
       }
 
-   // TODO: Get pointer to fuction needed to acquire other function pointers
-   // vkGetInstanceProcAddr = 
-   bindInstanceFunction( EnumerateInstanceExtensionProperties );
-   bindInstanceFunction( EnumerateInstanceLayerProperties );
-   bindInstanceFunction( CreateInstance );
-   bindInstanceFunction( EnumeratePhysicalDevices );
+   // Load using OS, main function pointer used to acquire other Vulkan function pointers
+   LoadFunction( vkGetInstanceProcAddr )
 
-   VkLayerProperties* layerProperties = nullptr;
+   // Load Global Vulkan function pointers (GPU device independent)
+   LoadGlobalFunction( vkEnumerateInstanceExtensionProperties )
+   LoadGlobalFunction( vkEnumerateInstanceLayerProperties )
+   LoadGlobalFunction( vkCreateInstance )
+  
+   // Gather available Vulkan Extensions
+   //------------------------------------
+
+   // Acquire list of Vulkan extensions 
+   Profile( this, vkEnumerateInstanceExtensionProperties(nullptr, &globalExtensionsCount, nullptr) )
+   if (IsWarning(lastResult[0]))
+      assert( 0 );
+
+   if (globalExtensionsCount > 0)
+      {
+      globalExtension = new VkExtensionProperties[globalExtensionsCount];
+      Profile( this, vkEnumerateInstanceExtensionProperties(nullptr, &globalExtensionsCount, globalExtension) )
+      }
+      
+   // Gather available Vulkan Instance Layers & Layers Extensions
+   //-------------------------------------------------------------
+
+   Profile( this, vkEnumerateInstanceLayerProperties(&layersCount, nullptr) )
+   if (IsWarning(lastResult[0]))
+      assert( 0 );
 
    // Acquire list of supported Vulkan Layers
-   lastResult = VK_INCOMPLETE;
-   while(lastResult == VK_INCOMPLETE)
+   if (layersCount > 0)
       {
-      Profile( vkEnumerateInstanceLayerProperties(&layersCount, nullptr) )
-      if (IsWarning(lastResult))
-         assert(0);
+      VkLayerProperties* layerProperties = new VkLayerProperties[layersCount];
+      Profile( this, vkEnumerateInstanceLayerProperties(&layersCount, layerProperties) )
+      
+      layer = new LayerDescriptor[layersCount];
 
-      if (layersCount == 0)
-         break;
-
-      // Allocate array of Layer Properties descriptors
-      if (layerProperties)
-         delete [] layerProperties;
-      layerProperties = new VkLayerProperties[layersCount];
-      Profile( vkEnumerateInstanceLayerProperties(&layersCount, layerProperties) )
-      }
-   layer = new LayerDescriptor[layersCount];
-
-   // Acquire information about each Layer and supported extensions
-   for(uint32 i=0; i<layersCount; ++i)
-      {
-      layer[i].properties = layerProperties[i];
-
-      // Acquire list of all extensions supported by this layer
-      lastResult = VK_INCOMPLETE;
-      while(lastResult == VK_INCOMPLETE)
+      // Acquire information about each Layer and supported extensions
+      for(uint32 i=0; i<layersCount; ++i)
          {
-         Profile( vkEnumerateInstanceExtensionProperties(layer[i].properties.layerName, &layer[i].extensionsCount, nullptr) )
-         if (IsWarning(lastResult))
-            assert(0);
-      
-         if (layer[i].extensionsCount == 0)
-            break;
-      
-         // Allocate array of Layer Extension descriptors
-         if (layer[i].extension)
-            delete [] layer[i].extension;
-         layer[i].extension = new VkExtensionProperties[layer[i].extensionsCount];
-         Profile( vkEnumerateInstanceExtensionProperties(layer[i].properties.layerName, &layer[i].extensionsCount, layer[i].extension) )
+         layer[i].properties = layerProperties[i];
+
+         Profile( this, vkEnumerateInstanceExtensionProperties(layer[i].properties.layerName, &layer[i].extensionsCount, nullptr) )
+         if (IsWarning(lastResult[0]))
+            assert( 0 );
+
+         if (layer[i].extensionsCount > 0)
+            {
+            layer[i].extension = new VkExtensionProperties[layer[i].extensionsCount];
+            Profile( this, vkEnumerateInstanceExtensionProperties(layer[i].properties.layerName, &layer[i].extensionsCount, layer[i].extension) )
+            }
+         }
+
+      delete [] layerProperties;
+      }
+
+   // Specify Vulkan Extensions to initialize
+   //-----------------------------------------
+
+   uint32 enabledExtensionsCount = 0;
+   char** extensionPtrs = nullptr;
+   extensionPtrs = new char*[globalExtensionsCount];
+   
+   // Adding Windowing System Interface extensions to the list
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
+#if defined(EN_PLATFORM_ANDROID)
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
+#endif
+#if defined(EN_PLATFORM_LINUX)
+   // TODO: Pick one on Linux (as usual it's complete mess)
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_MIR_SURFACE_EXTENSION_NAME;
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
+#endif
+#if defined(EN_PLATFORM_WINDOWS)
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+#endif
+
+   // TODO: Add here loading list of needed extensions from some config file.
+   //       (generated automatically by the engine/editor based on features
+   //        used by the app).
+
+   // Verify selected extensions are available
+   for(uint32 i=0; i<enabledExtensionsCount; ++i)
+      {
+      bool found = false;
+      for(uint32 j=0; j<globalExtensionsCount; ++j)
+         if (strcmp(extensionPtrs[i], globalExtension[j].extensionName) == 0 )
+            found = true;
+         
+      if (!found)
+         {
+         Log << "ERROR: Requested Vulkan extension %s is not supported on this system!" << extensionPtrs[i] << endl;
+         assert( 0 );
          }
       }
+     
+   // Specify Vulkan Layers and their Extensions to initialize
+   //----------------------------------------------------------
 
-   delete [] layerProperties;
-
-   // Acquire list of all global extensions not being part of any layer
-   lastResult = VK_INCOMPLETE;
-   while(lastResult == VK_INCOMPLETE)
-      {
-      Profile( vkEnumerateInstanceExtensionProperties(nullptr, &globalExtensionsCount, nullptr) )
-      if (IsWarning(lastResult))
-         assert(0);
+   uint32 enabledLayersCount = 0;
+   char** layersPtrs = nullptr;
    
-      if (globalExtensionsCount == 0)
-         break;
-
-      if (globalExtension)
-         delete [] globalExtension;
-      globalExtension = new VkExtensionProperties[globalExtensionsCount];
-      Profile( vkEnumerateInstanceExtensionProperties(nullptr, &globalExtensionsCount, globalExtension) )
-      }
-
-   // Choose Layers and extensions that will be enabled for Vulkan interface.
-   // For now on lets enable all Layers and only needed extensions.
-
-   // Create array of pointers to all layer names
-   uint32 enabledLayersCount = layersCount;
-   char** layersPtrs = new char*[layersCount];
+#if defined(EN_DEBUG)
+   // In debug mode enable additional layers for debugging,
+   // profiling and other purposes (currently all available).
+   enabledLayersCount = layersCount;
+   layersPtrs = new char*[layersCount];
    for(uint32 i=0; i<layersCount; ++i)  
       layersPtrs[i] = &layer[i].properties.layerName[0];
 
-   // Enable WSI SwapChain extension
-   uint32 enabledExtensionsCount = 0;
-   char** extensionPtrs = new char*[globalExtensionsCount];
-   for(uint32 i=0; i<globalExtensionsCount; ++i)
-      if (strcmp("VK_EXT_KHR_swapchain", globalExtension[i].extensionName) == 0 )
-         extensionPtrs[enabledExtensionsCount++] = &globalExtension[i].extensionName[0];
-
-   // We need at least SwapChain working to display anything
-   if (!enabledExtensionsCount)
-      {
-      string info;
-      info += "ERROR: Vulkan error: ";
-      info += "       Cannot find a compatible Vulkan installable client driver (ICD).\n";
-      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
-      Log << info.c_str();
-      assert(0);
-      }
-
-   // This code would enable all Layers and all Extensions (lots of stuff)
+   // Debug: Use below to activate all available layers and their extensions:
    //
    //  // Create array of pointers to all layer names
    //  uint32 enabledLayersCount = layersCount;
@@ -1870,8 +1876,11 @@ namespace en
    //  for(uint32 i=0; i<layersCount; ++i)
    //     for(uint32 j=0; j<layer[i].extensionsCount; ++j, ++index)   
    //        extensionPtrs[index] = &layer[i].extension[j].extName[0];
+#endif
 
-   // Create Application API Instance
+   // Create Application Vulkan API Instance
+   //----------------------------------------
+
    VkApplicationInfo appInfo;
    appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
    appInfo.pNext              = nullptr;
@@ -1884,55 +1893,115 @@ namespace en
    VkInstanceCreateInfo instInfo;
    instInfo.sType                     = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
    instInfo.pNext                     = nullptr;
-   instInfo.flags                     = 0;                     // TODO: VkInstanceCreateFlags
+   instInfo.flags                     = 0;        // VkInstanceCreateFlags - Reserved.
    instInfo.pApplicationInfo          = &appInfo;
    instInfo.enabledLayerNameCount     = enabledLayersCount;
-   instInfo.ppEnabledLayerNames       = enabledLayersCount     ? reinterpret_cast<const char*const*>(layersPtrs) : nullptr;
+   instInfo.ppEnabledLayerNames       = reinterpret_cast<const char*const*>(layersPtrs);
    instInfo.enabledExtensionNameCount = enabledExtensionsCount;
-   instInfo.ppEnabledExtensionNames   = enabledExtensionsCount ? reinterpret_cast<const char*const*>(extensionPtrs) : nullptr;
+   instInfo.ppEnabledExtensionNames   = reinterpret_cast<const char*const*>(extensionPtrs);
 
-   // TODO: Needs to have separate aloc callbacks for API
-   //Profile( vkCreateInstance(&instInfo, &defaultAllocCallbacks, &instance) )
+   // TODO: In the future provide our own allocation callbacks to track
+   //       and analyze drivers system memory usage (&defaultAllocCallbacks).
+
+   Profile( this, vkCreateInstance(&instInfo, nullptr, &instance) )
+
+   // Bind Interface functions
+   loadInterfaceFunctionPointers();
+   
+   delete [] extensionPtrs;
+   delete [] layersPtrs;
+
+   // Create Vulkan Devices
+   //-----------------------
 
    // Enumerate available physical devices
-   Profile( vkEnumeratePhysicalDevices(instance, &devicesCount, nullptr) )
-   VkPhysicalDevice* tempHandle = new VkPhysicalDevice[devicesCount];
-   Profile( vkEnumeratePhysicalDevices(instance, &devicesCount, tempHandle) )
+   Profile( this, vkEnumeratePhysicalDevices(instance, &devicesCount, nullptr) )
+   VkPhysicalDevice* deviceHandle = new VkPhysicalDevice[devicesCount];
+   Profile( this, vkEnumeratePhysicalDevices(instance, &devicesCount, deviceHandle) )
 
    // Create interfaces for all available physical devices
    device = new Ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
-      device[i] = new VulkanDevice(*tempHandle);
+      device[i] = new VulkanDevice(deviceHandle[i]);
  
-   // Bind Interface functions
-   bindInterfaceFunctionPointers();
-
-   delete [] tempHandle;
+   delete [] deviceHandle;
    }
 
    VulkanAPI::~VulkanAPI()
    {
-   vkGetInstanceProcAddr                          = nullptr;
-   vkEnumerateInstanceExtensionProperties         = nullptr;
-   vkEnumerateInstanceLayerProperties             = nullptr;
-   vkCreateInstance                               = nullptr;
-   vkEnumeratePhysicalDevices                     = nullptr;
-
-   vkGetPhysicalDeviceSurfaceSupportKHR           = nullptr;
-
+   // Release Layers and Extensions information
    for(uint32 i=0; i<layersCount; ++i)
       delete [] layer[i].extension;
    delete [] layer;
    delete [] globalExtension;
+   
+   // Release Vulkan instance
+   if (instance != VK_NULL_HANDLE)
+      Profile( this, vkDestroyInstance(instance, nullptr) )
+ 
+   // Clear Vulkan function pointers
+   clearInterfaceFunctionPointers();
+   
+   // Release Dynamically Linked Vulkan Library
+   if (library)
+      {
+#if defined(EN_PLATFORM_WINDOWS)
+      FreeLibrary(library);
+#endif
+#if defined(EN_PLATFORM_LINUX)
+      dlclose(library);
+#endif
+      }
+      
+   // Windows OS - Windowing System (API Independent)
+   delete virtualDisplay;
+   delete [] display;
    }
 
-
-
-   void VulkanAPI::bindInterfaceFunctionPointers(void)
+   void VulkanAPI::loadInterfaceFunctionPointers(void)
    {
-   bindInstanceFunction( GetPhysicalDeviceSurfaceSupportKHR );
+   LoadInstanceFunction( vkEnumeratePhysicalDevices )
+   LoadInstanceFunction( vkGetPhysicalDeviceFeatures )
+   LoadInstanceFunction( vkGetPhysicalDeviceProperties )
+   LoadInstanceFunction( vkGetPhysicalDeviceMemoryProperties )
+   LoadInstanceFunction( vkGetPhysicalDeviceFormatProperties )
+   LoadInstanceFunction( vkGetPhysicalDeviceImageFormatProperties )
+   LoadInstanceFunction( vkGetPhysicalDeviceQueueFamilyProperties )
+   LoadInstanceFunction( vkEnumerateDeviceExtensionProperties )
+   LoadInstanceFunction( vkCreateDevice )
+   LoadInstanceFunction( vkGetDeviceProcAddr )
+   LoadInstanceFunction( vkDestroyInstance )
+   
+   LoadInstanceFunction( vkGetPhysicalDeviceSurfaceSupportKHR )
    }
 
+   void VulkanAPI::clearInterfaceFunctionPointers(void)
+   {
+   // OS Function Pointer
+   vkGetInstanceProcAddr                          = nullptr;
+   
+   // Vulkan Function Pointers
+   vkEnumerateInstanceExtensionProperties         = nullptr;
+   vkEnumerateInstanceLayerProperties             = nullptr;
+   vkCreateInstance                               = nullptr;
+   
+   // Vulkan Instance Function Pointers
+   vkEnumeratePhysicalDevices                     = nullptr;
+   vkGetPhysicalDeviceFeatures                    = nullptr;
+   vkGetPhysicalDeviceProperties                  = nullptr;
+   vkGetPhysicalDeviceMemoryProperties            = nullptr;
+   vkGetPhysicalDeviceFormatProperties            = nullptr;
+   vkGetPhysicalDeviceImageFormatProperties       = nullptr;
+   vkGetPhysicalDeviceQueueFamilyProperties       = nullptr;
+   vkEnumerateDeviceExtensionProperties           = nullptr;
+   vkCreateDevice                                 = nullptr;
+   vkGetDeviceProcAddr                            = nullptr;
+   vkDestroyInstance                              = nullptr;
+   vkGetPhysicalDeviceSurfaceSupportKHR           = nullptr;
+   }
+   
+   
+   
 
 
 // TODO: Window creation and bind !
@@ -1980,74 +2049,10 @@ namespace en
 //   VulkanAPI context = new VulkanAPI();
 //
 //   // Create Window
-//    WNDCLASSEX  win_class;
-//
-//    // Initialize the window class structure:
-//    win_class.cbSize = sizeof(WNDCLASSEX);
-//    win_class.style = CS_HREDRAW | CS_VREDRAW;
-//    win_class.lpfnWndProc = WndProc;
-//    win_class.cbClsExtra = 0;
-//    win_class.cbWndExtra = 0;
-//    win_class.hInstance = demo->connection; // hInstance
-//    win_class.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-//    win_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-//    win_class.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-//    win_class.lpszMenuName = NULL;
-//    win_class.lpszClassName = demo->name;
-//    win_class.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
-//    // Register window class:
-//    if (!RegisterClassEx(&win_class)) {
-//        // It didn't work, so try to give a useful error:
-//        printf("Unexpected error trying to start the application!\n");
-//        fflush(stdout);
-//        exit(1);
-//    }
-//    // Create window with the registered class:
-//    RECT wr = { 0, 0, demo->width, demo->height };
-//    AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
-//    demo->window = CreateWindowEx(0,
-//                                  demo->name,           // class name
-//                                  demo->name,           // app name
-//                                  WS_OVERLAPPEDWINDOW | // window style
-//                                  WS_VISIBLE |
-//                                  WS_SYSMENU,
-//                                  100,100,              // x/y coords
-//                                  wr.right-wr.left,     // width
-//                                  wr.bottom-wr.top,     // height
-//                                  NULL,                 // handle to parent
-//                                  NULL,                 // handle to menu
-//                                  demo->connection,     // hInstance
-//                                  NULL);                // no extra parameters
-//    if (!demo->window) {
-//        // It didn't work, so try to give a useful error:
-//        printf("Cannot create a window in which to draw!\n");
-//        fflush(stdout);
-//        exit(1);
-//    }
-//
-//
-//   // Attach Vulkan to Window (WSI)
-//    VkResult err;
-//    uint32_t i;
-//
-//
-//
+
 //   // Construct the WSI surface description:
 //   VkSurfaceDescriptionWindowKHR surfaceInfo;
-//   surfaceInfo.sType           = VK_STRUCTURE_TYPE_SURFACE_DESCRIPTION_WINDOW_KHR;
-//   surfaceInfo.pNext           = nullptr;
-//#ifdef _WIN32
-//   surfaceInfo.platform        = VK_PLATFORM_WIN32_KHR;
-//   surfaceInfo.pPlatformHandle = demo->connection;
-//   surfaceInfo.pPlatformWindow = demo->window;
-//#else  // _WIN32
-//   platformHandle.connection = connection;
-//   platformHandle.root       = screen->root;
-//
-//   surfaceInfo.platform        = VK_PLATFORM_XCB_KHR;
-//   surfaceInfo.pPlatformHandle = &platformHandle;
-//   surfaceInfo.pPlatformWindow = &window;
-//#endif // _WIN32
+
 //
 //    // Iterate over each queue to learn whether it supports presenting to WSI:
 //    VkBool32* supportsPresent = (VkBool32 *)malloc(demo->queue_count * sizeof(VkBool32));

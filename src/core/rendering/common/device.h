@@ -43,6 +43,7 @@ namespace en
       uint32v2      _position;
       uint32v2      _size;
       uint32v2      _resolution;
+      bool          _fullscreen;
       
       CommonWindow();
       
@@ -60,27 +61,6 @@ namespace en
 
       };
 
-   // TODO: This should be moved to platform specific section
-#if defined(EN_PLATFORM_WINDOWS)
-   class winWindow : public CommonWindow
-      {
-      public:
-      HWND hWnd;        // Window handle
-
-      winWindow();
-
-      virtual bool movable(void);
-      virtual void move(const uint32v2 position);
-      virtual void resize(const uint32v2 size);
-      virtual void active(void);
-
-      virtual ~winWindow();
-      };
-#endif
-      
-      
-      
-      
    class CommonDevice : public GpuDevice
       {
       public:

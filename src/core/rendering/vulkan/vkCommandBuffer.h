@@ -29,6 +29,7 @@ namespace en
    class CommandBufferVK : public CommandBuffer
       {
       public:
+      VulkanDevice*   gpu;       // Vulkan Device (for Device function calls)
       VKQueue         queue;
       VkCommandBuffer handle;
       VkFence         fence;     // Completion notification
@@ -66,7 +67,11 @@ namespace en
       virtual void commit(void);
       virtual void waitUntilCompleted(void);
    
-      CommandBufferVK();
+      CommandBufferVK(const VulkanDevice*   gpu
+                      const VKQueue         queue,
+                      const VkCommandBuffer handle,
+                      const VkFence         fence);
+                      
       virtual ~CommandBufferVK();
       };
    }
