@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Sampler.
+ Module      : Common Input Assembler.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -22,18 +22,7 @@ namespace en
 {
    namespace gpu
    {
-   struct AttributeDesc
-      {
-      AttributeFormat format; // Format in which input data are represented
-      uint32 buffer;          // Index of bound buffer that will be used as source for this attribute.
-      uint32 offset;          // Offset in bytes to first element of given attribute in source buffer. This offset needs to be aligned on some architectures.
-      };
-
-   struct BufferDesc
-      {
-      uint32 elementSize;     // Size of one element in buffer (all attributes with their padding)
-      uint32 stepRate;        // Attribute update rate, 0 (default) means after each Vertex, (1+) means after how many Instances it should be updated
-      };
+   extern const uint8 TranslateAttributeSize[underlyingType(Attribute::Count)];
    }
 }
 

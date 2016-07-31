@@ -15,6 +15,8 @@
 #include "resources/context.h"
 #include "resources/bmp.h"
 
+#include "core/rendering/device.h"
+
 #include <string>
 using namespace std;
 
@@ -273,7 +275,7 @@ namespace en
       dataSize = lineSize * DIBHeader.height;
 
    // Create texture in gpu
-   Ptr<gpu::Texture> texture = Gpu.texture.create(settings);
+   Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";

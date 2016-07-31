@@ -11,7 +11,8 @@
 */
 
 #include "scene/axes.h"
-#include "core/rendering/context.h"
+//#include "core/rendering/context.h" // TODO: Remove after finished refactor
+#include "core/rendering/common/device.h"
 #include "resources/context.h"
 #include "resources/effect.h"
 
@@ -161,10 +162,11 @@ namespace en
 
    Axes::Axes() :
       buffer(en::ResourcesContext.defaults.enAxes),
-      program(nullptr),
-      enModelMatrix(nullptr),
+      //program(nullptr),
+      //enModelMatrix(nullptr),
       Drawable()
    {
+#if 0 //!defined(EN_PLATFORM_OSX)
    Effect effect(eGLSL_1_40, "enAxes");
 
 
@@ -182,25 +184,29 @@ namespace en
    
    StereoFeatureLevel stereoMode = StereoClipping; 
 
-   // Determine supported Stereoscopic Rendering mode
-   if (GpuContext.support.extension(NV_viewport_array2))
-      stereoMode = StereoFast;
-   else
-   if ( GpuContext.support.extension(NV_viewport_array) ||
-        GpuContext.support.extension(ARB_viewport_array) ||
-        GpuContext.screen.support(OpenGL_4_1) )
+   Ptr<CommonDevice> gpu = ptr_dynamic_cast<CommonDevice, GpuDevice>(Graphics->primaryDevice());
+
+   // Determine supported Stereoscopic Rendering mode (when using OpenGL backend)
+   if (gpu->api.better(OpenGL_1_0))
       {
-      if (GpuContext.support.extension(AMD_vertex_shader_viewport_index))
-         stereoMode = StereoVertex;
+      if (gpu->support.extension(NV_viewport_array2))
+         stereoMode = StereoFast;
       else
+      if ( gpu->support.extension(NV_viewport_array) ||
+           gpu->support.extension(ARB_viewport_array) ||
+           gpu->api.better(OpenGL_4_1) )
          {
-         if (GpuContext.support.extension(NV_geometry_shader_passthrough))
-            stereoMode = StereoGeometryFast;
+         if (gpu->support.extension(AMD_vertex_shader_viewport_index))
+            stereoMode = StereoVertex;
          else
-            stereoMode = StereoGeometry;
+            {
+            if (gpu->support.extension(NV_geometry_shader_passthrough))
+               stereoMode = StereoGeometryFast;
+            else
+               stereoMode = StereoGeometry;
+            }
          }
       }
-
    // MATERIAL SHADER COMPILATION
 
    // During shader compilation . . .
@@ -278,16 +284,17 @@ namespace en
          break;
       }
  
-   program       = effect.program();
+   pipeline      = effect.pipeline();
    enModelMatrix = program.parameter("enModelMatrix");
    enScene       = program.block("enScene");
+#endif
    }
    
-   void Axes::draw(const Buffer& sceneParameters, const uint32 instances)
+   void Axes::draw(const Ptr<Buffer> sceneParameters, const uint32 instances)
    {
-   enModelMatrix.set(*pWorldMatrix);
-   enScene.set(sceneParameters);
-   program.draw(buffer, LineStripes, 3, instances);
+   //enModelMatrix.set(*pWorldMatrix);
+   //enScene.set(sceneParameters);
+   //program.draw(buffer, LineStripes, 3, instances);
    }
 
    }

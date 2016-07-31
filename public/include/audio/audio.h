@@ -21,13 +21,13 @@ namespace en
 {
    namespace audio
    {
-   class Sample : public SafeObject
+   class Sample : public SafeObject<Sample>
          {
          public:
          virtual ~Sample();                              // Polymorphic deletes require a virtual base destructor
          };
 
-   class Source : public SafeObject
+   class Source : public SafeObject<Source>
          {
          public:
          virtual bool play(void) = 0;                    // Start playing the sound

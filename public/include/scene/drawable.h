@@ -14,8 +14,8 @@
 #define ENG_SCENE_DRAWABLE
 
 #include "scene/entity.h"
-#include "core/rendering/program.h"
-
+//#include "core/rendering/program.h"
+#include "core/rendering/device.h"
 namespace en
 {
    namespace scene
@@ -23,7 +23,7 @@ namespace en
    class Drawable : public Entity
          {
          public:
-         en::gpu::Block enScene; // Constant Buffer with per Scene/Frame constants
+         //en::gpu::Block enScene; // Constant Buffer with per Scene/Frame constants
 
          virtual void draw(const en::gpu::Buffer& sceneParameters, const uint32 instances = 1U) = 0;
    

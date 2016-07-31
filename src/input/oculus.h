@@ -44,7 +44,6 @@ namespace en
    class OculusDK2 : public HMD
       {
       public:
-      private:
       bool             enabled;           // Is it turned on
       bool             sharedRT;          // True if using shared RT, otherwise using two separate RT's per eye (for saving VRAM)
       HMDType          deviceType;        // Type of HMD 
@@ -116,7 +115,10 @@ namespace en
       
       OculusDK2(uint8 index);
       virtual ~OculusDK2();
-      };   
+      };  
+
+   void InitOculusSDK(void); 
+   void CloseOculusSDK(void); 
    }
 }
 #endif

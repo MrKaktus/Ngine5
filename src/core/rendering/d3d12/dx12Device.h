@@ -33,7 +33,16 @@ namespace en
 {
    namespace gpu
    {
+   class Direct3D12Device : public CommonDevice
+      {
+      public:
 
+      Direct3D12Device();
+     ~Direct3D12Device();
+
+      virtual void init(void);
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+      };
    }
 }
 

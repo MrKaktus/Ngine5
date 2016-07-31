@@ -459,7 +459,9 @@ namespace en
           bool operator !=(const TextureState& b);
           };
 
-   class Texture : public SafeObject
+   class TextureView;
+   
+   class Texture : public SafeObject<Texture>
       {
       public:
       virtual TextureType type(void) const = 0;
@@ -475,11 +477,20 @@ namespace en
       virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0) = 0;  // Surface is: CubeMap face, 3D depth, Array layer or CubeMapArray face-layer
       virtual bool     unmap(void) = 0;
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
+      virtual Ptr<TextureView> view(void) const = 0;   // Default view representing this texture
 
       virtual ~Texture() {};                           // Polymorphic deletes require a virtual base destructor
       };
 
-
+   class TextureView : public SafeObject<TextureView>
+      {
+      public:
+      virtual Ptr<Texture> parent(void) const = 0;
+      virtual uint32v2 parentMipmaps(void) const = 0;    // Sub-set of parent texture mipmaps, creating this view
+      virtual uint32v2 parentLayers(void) const = 0;     // Sub-set of parent texture layers, creating this view
+      
+      virtual ~TextureView() {};                       // Polymorphic deletes require a virtual base destructor
+      };
 
 
 

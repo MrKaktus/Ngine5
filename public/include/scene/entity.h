@@ -77,7 +77,7 @@ namespace en
    {
    class Scene;
 
-   class Entity : public SafeObject, private NonCopyable
+   class Entity : public SafeObject<Entity>, private NonCopyable
 /* 8  */ {
          protected:
          // When attached to scene, these parameters are stored in arrays for data locality.

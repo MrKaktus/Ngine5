@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlRaster.h"
+#include "core/rendering/metal/mtlDevice.h"
 
 namespace en
 {
@@ -64,6 +65,11 @@ namespace en
    
    RasterStateMTL::~RasterStateMTL()
    {
+   }
+   
+   Ptr<RasterState> MetalDevice::create(const RasterStateInfo& state)
+   {
+   return ptr_dynamic_cast<RasterState, RasterStateMTL>(new RasterStateMTL(state));
    }
    
    }

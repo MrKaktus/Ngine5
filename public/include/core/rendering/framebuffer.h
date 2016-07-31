@@ -26,7 +26,7 @@ namespace en
 {
    namespace gpu
    {
-   class Framebuffer : public SafeObject
+   class Framebuffer : public SafeObject<Framebuffer>
          {
          friend struct Interface;
 

@@ -10,6 +10,14 @@
 #include "input/winInput.h"
 #include "input/winJoystick.h"
 
+#if OCULUS_VR
+#include "input/oculus.h"
+#endif
+
+#if OPEN_VR
+#include "input/vive.h"
+#endif
+
 namespace en
 {
    namespace input
@@ -370,10 +378,31 @@ namespace en
       // Register joysticks
       hr = directInput->EnumDevices(DI8DEVCLASS_GAMECTRL, initJoystick, NULL, DIEDFL_ATTACHEDONLY);
       }
+
+#if OCULUS_VR
+   // Register Oculus HMD
+   InitOculusSDK();
+#endif
+
+#if OPEN_VR 
+   // Register OpenVR HMD
+   InitOpenVR();
+#endif
    }
    
    WinInterface::~WinInterface()
    {
+   // Unregister all HMD's
+   for(uint32 i=0; i<hmds.size(); ++i)
+      hmds[i] = nullptr;
+
+#if OCULUS_VR
+   CloseOculusSDK();
+#endif
+
+#if OPEN_VR 
+   CloseOpenVR();
+#endif
    }
 
    void WinInterface::update()
@@ -411,7 +440,6 @@ namespace en
    bool WinMouse::position(const uint32 x, const uint32 y)
    {
    return SetCursorPos(x,y);
-   return true;
    }
 
    bool WinMouse::position(const Ptr<Screen> screen, const uint32 x, const uint32 y)

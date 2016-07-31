@@ -16,11 +16,17 @@
 #if OCULUS_VR
 
 #include "core/log/log.h"
+#include "core/rendering/opengl/opengl.h"   // For OpenGL integration
+#include "core/rendering/opengl/glTexture.h"   // For OpenGL integration
+
 #include "scene/cam.h"
 #include "utilities/strings.h"
 
+
 //#pragma comment(lib, "LibOVR")
 #include "OculusSDK/LibOVR/Include/Extras/OVR_Math.h" // Oculus 
+
+
 
 namespace en
 {
@@ -234,8 +240,9 @@ namespace en
    // >>>>> OpenGL Specific code section - END
 
    // Create Framebuffer to use with mirroring
-   fbo = Gpu.output.buffer.create();
-   fbo->color(Read, 0, mirror);
+// TODO: REWORK FOR NEW RENDERING INTERFACE
+//   fbo = Gpu.output.buffer.create();
+//   fbo->color(Read, 0, mirror);
 
    // All Caps are enabled by default from 0.8
    //ovr_SetEnabledCaps(session, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction );
@@ -565,7 +572,7 @@ namespace en
    {
    assert( enabled );
    
-   uint32 index = sharedRT ? 0 : static_cast<uint32>(eye);
+   uint32 index = sharedRT ? 0 : min(1, static_cast<uint32>(eye));
    return swap[index][currentIndex];
    }
           
@@ -659,11 +666,12 @@ namespace en
         mirror->width() != 0 &&
         mirror->height() != 0 )
       {
-      Gpu.scissor.rect(0, 0, mirror->width(), mirror->height());
-      Gpu.output.buffer.setRead(fbo);
-      Gpu.output.buffer.setDefaultWrite();
-      Gpu.output.buffer.copy(uint32v4(0, mirror->height(), mirror->width(), 0), uint32v4(0, 0, mirror->width(), mirror->height()), Nearest);
-      Gpu.output.buffer.setDefaultRead();
+// TODO: REWORK TO NEW RENDERING INTERFACE
+//      Gpu.scissor.rect(0, 0, mirror->width(), mirror->height());
+//      Gpu.output.buffer.setRead(fbo);
+//      Gpu.output.buffer.setDefaultWrite();
+//      Gpu.output.buffer.copy(uint32v4(0, mirror->height(), mirror->width(), 0), uint32v4(0, 0, mirror->width(), mirror->height()), Nearest);
+//      Gpu.output.buffer.setDefaultRead();
       }
 
    }   
@@ -676,7 +684,7 @@ namespace en
    //# CONTEXT
    //##########################################################################
 
-   void Context::HMD::init(void)
+   void InitOculusSDK(void)
    {
    // Initialize 
    //ovrInitParams params;
@@ -710,15 +718,13 @@ namespace en
       return;
       }
 
-   // Get all detected Oculus Head Mounted Displays
-   uint32 devices = 1; //ovrHmd_Detect();
-   for(uint32 i=0; i<devices; ++i)
-      device.push_back(Ptr<input::HMD>(new OculusDK2(i)));
+   // Register Oculus HMD
+   Ptr<CommonInterface> input = ptr_dynamic_cast<CommonInterface, Interface>(en::Input);
+   input->hmds.push_back(Ptr<HMD>(new OculusDK2(0)));
    }
 
-   void Context::HMD::destroy(void)
+   void CloseOculusSDK(void)
    {
-   device.clear();
    ovr_Shutdown(); 
    }
 

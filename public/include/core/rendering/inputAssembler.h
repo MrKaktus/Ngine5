@@ -19,139 +19,51 @@
 #include "core/defines.h"
 #include "core/types.h"
 #include "core/utilities/TintrusivePointer.h"
-//#include "core/rendering/buffer.h"
+#include "core/rendering/buffer.h"
 
 namespace en
 {
    namespace gpu
    {
-   #define MaxInputAssemblerAttributesCount 16
-
-   // Attributes representing data in fixed point shemes like 16.16, 8.0, 16.0 
-   // were introduced in OpenGL ES for low end devices without HW acceleration. 
-   // Currently all mobile devices has HW acceleration for OpenGL ES which means 
-   // that floating point values will be better choose in almost all cases. 
-   // Therefore fixed attribute formats are not supported by engine.
-
-   // Format of attribute data
-   enum class AttributeFormat : uint32
-        {
-        None                      = 0,   
-        Half                         ,
-        Half2                        ,
-        Half3                        ,
-        Half4                        ,
-        Float                        ,
-        Float2                       ,
-        Float3                       ,
-        Float4                       ,
-        Double                       ,
-        Double2                      ,
-        Double3                      ,
-        Double4                      ,
-        Int8                         ,
-        Int8v2                       ,
-        Int8v3                       ,
-        Int8v4                       ,
-        Int16                        ,
-        Int16v2                      ,
-        Int16v3                      ,
-        Int16v4                      ,
-        Int32                        ,
-        Int32v2                      ,
-        Int32v3                      ,
-        Int32v4                      ,
-        Int64                        ,
-        Int64v2                      ,
-        Int64v3                      ,
-        Int64v4                      ,
-        UInt8                        ,
-        UInt8v2                      ,
-        UInt8v3                      ,
-        UInt8v4                      ,
-        UInt16                       ,
-        UInt16v2                     ,
-        UInt16v3                     ,
-        UInt16v4                     ,
-        UInt32                       ,
-        UInt32v2                     ,
-        UInt32v3                     ,
-        UInt32v4                     ,
-        UInt64                       ,
-        UInt64v2                     ,
-        UInt64v3                     ,
-        UInt64v4                     ,
-        Float8_SNorm                 ,
-        Float8v2_SNorm               ,
-        Float8v3_SNorm               ,
-        Float8v4_SNorm               ,
-        Float16_SNorm                ,
-        Float16v2_SNorm              ,
-        Float16v3_SNorm              ,
-        Float16v4_SNorm              ,
-        Float8_Norm                  ,
-        Float8v2_Norm                ,
-        Float8v3_Norm                ,
-        Float8v4_Norm                ,
-        Float16_Norm                 ,
-        Float16v2_Norm               ,
-        Float16v3_Norm               ,
-        Float16v4_Norm               ,
-        Float4_10_10_10_2_SNorm      ,
-        Float4_10_10_10_2_Norm       ,
-        Count
-        };
-
-   // TEMP:
-   class BufferView;
-
-   struct InputAssemblerSettings
+   struct AttributeDesc
       {
-      AttributeFormat format[MaxInputAssemblerAttributesCount]; // Format of each Vertex Attribute
-      Ptr<BufferView> buffer[MaxInputAssemblerAttributesCount]; // Source buffer of each Vertex Attribute 
-                                                                // (if several attributes share the same buffer, 
-                                                                //  their order in buffer needs to match order in this array)
-      InputAssemblerSettings();
-      };
+      Attribute format;   // Format in which input data are represented
+      uint32    buffer;   // Index of bound buffer that will be used as source for this attribute.
+      uint32    offset;   // Offset in bytes to first element of given attribute in source buffer.
+      };                  // This offset needs to be aligned on some architectures.
+      
+   struct BufferDesc
+      {
+      uint32 elementSize; // Size of one element in buffer (all attributes with their padding)
+      uint32 stepRate;    // Attribute update rate, 0 (default) means after each Vertex,
+      };                  // (1+) means after how many Instances it should be updated
 
-   //struct BufferSettings
-   //   {
-   //   // General buffer settings
-   //   BufferType type;        // Buffer type
-   //   union {                 // Vertex buffer can store geometry vertices
-   //         uint32 vertices;  // or like Index buffer "elements" of some 
-   //         uint32 elements;  // other type, while other buffers just need
-   //         uint32 size;      // their size specified.
-   //         };
-
-   //   // Input Assembler compatible buffer settings
-   //   AttributeFormat attribute[MaxInputAssemblerAttributesCount]; // Describes each element in the buffer
-   //   uint32 step;            // Update rate, by default set to 0 - per vertex update, 
-   //                           // otherwise describes after how many instances it should 
-   //                           // proceed to next data
-   //   };
-
-
-   // Handle for Input assembler binding specification
-   class InputAssembler : public SafeObject
+   // Handle for Input Assembler binding specification
+   class InputAssembler : public SafeObject<InputAssembler>
       {
       public:
       virtual ~InputAssembler() {};              // Polymorphic deletes require a virtual base destructor
       };
-
-
-
-   //class InputAssemblerMTL : public InputAssembler
+   
+   
+   
+   
+   
+   
+   
+   //struct InputAssemblerSettings
    //   {
-   //   private:
-   //   MTLVertexDescriptor* desc;
-   //
-   //   public:
-   //   InputAssemblerMTL();
-   //  ~InputAssemblerMTL();
+   //   Attribute       format[MaxInputAssemblerAttributesCount]; // Format of each Input Attribute
+   //   Ptr<BufferView> buffer[MaxInputAssemblerAttributesCount]; // Source buffer of each Vertex Attribute 
+   //                                                             // (if several attributes share the same buffer, 
+   //                                                             //  their order in buffer needs to match order in this array)
+   //   InputAssemblerSettings();
    //   };
 
+      // Creates InputAssembler description from combining attributes from several input buffers.
+      // Each input buffer needs to have specified internal formatting.
+      // virtual Ptr<InputAssembler> GpuDevice::create(const InputAssemblerSettings& attributes) = 0;
+   
    }
 }
-
 #endif

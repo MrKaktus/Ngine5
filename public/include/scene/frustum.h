@@ -26,12 +26,12 @@ namespace en
    class Frustum : public Drawable
          {
          public:
-         Buffer    buffer;
-         Program   program;
-         Parameter enModelMatrix;
+         Ptr<Buffer> buffer;
+         //Program   program;
+         //Parameter enModelMatrix;
    
          Frustum(const FrustumSettings settings);
-         void draw(const Buffer& sceneParameters);
+         void draw(const Ptr<Buffer> sceneParameters);
          };
    }
 }

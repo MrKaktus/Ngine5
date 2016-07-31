@@ -343,14 +343,17 @@ namespace en
       Count
       };
 
-   class Mouse : public SafeObject
+   class Mouse : public SafeObject<Mouse>
       {
       public:
       virtual Ptr<Screen> screen(void) const = 0; // Current screen on which mouse is located
       virtual float2 position(void) const = 0;    // Mouse normalized position on current screen (coordinate origin at upper-left corner)
       virtual uint32 position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
-      virtual bool   position(const uint32 x, const uint32 y) = 0;
-      virtual bool   position(const Ptr<Screen> screen, const uint32 x, const uint32 y) = 0;
+      virtual bool   position(const uint32 x, 
+                              const uint32 y) = 0;
+      virtual bool   position(const Ptr<Screen> screen, 
+                              const uint32 x, 
+                              const uint32 y) = 0;
       virtual bool   pressed(const MouseButton button) const = 0;
       virtual void   show(void) = 0;      // Show cursor
       virtual void   hide(void) = 0;      // Hide cursor
@@ -358,7 +361,7 @@ namespace en
       virtual ~Mouse() {};                             // Polymorphic deletes require a virtual base destructor
       };
       
-   class Joystick : public SafeObject
+   class Joystick : public SafeObject<Joystick>
       {
       public:
       virtual bool        on(void) = 0;                // Turns joystick on
@@ -366,11 +369,12 @@ namespace en
       virtual CameraState state(void) const = 0;       // Returns joystick state (on/off/initializing...)
       virtual bool        pressed(const uint8 button) const = 0; // Button state
       virtual float       position(const JoystickAxis axis) const = 0; // Joystick state
+      virtual void        update(void) = 0;            // Update joystick events
 
       virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
       };
       
-   class Camera : public SafeObject
+   class Camera : public SafeObject<Camera>
       {
       public:
       virtual bool        on(void) = 0;                // Turns camera on
@@ -384,7 +388,7 @@ namespace en
       virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
       };
       
-   class Interface : public SafeObject
+   class Interface : public SafeObject<Interface>
       {
       public:
       static bool create(void);                      // Creates instance of this class (OS specific) and assigns it to "Input".

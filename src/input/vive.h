@@ -150,7 +150,10 @@ namespace en
       Ptr<en::resource::Model> model;     // Distortion lenses model
       en::gpu::Program      distortion;   // Distortion rendering program
       uint32            samplerLocation;  // Sampler location
-      };   
+      };  
+
+   InitOpenVR(); 
+   CloseOpenVR();  
    }
 }
 #endif

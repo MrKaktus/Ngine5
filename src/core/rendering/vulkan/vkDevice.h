@@ -86,7 +86,7 @@ namespace en
    {
 /// TEMP START
 
-   class PipelineLayout : public SafeObject
+   class PipelineLayout : public SafeObject<PipelineLayout>
       {
       public:
       virtual ~PipelineLayout();                              // Polymorphic deletes require a virtual base destructor
@@ -138,6 +138,18 @@ namespace en
       uint64                           memoryRAM;
       uint64                           memoryDriver;
 
+      // Memory Management
+      //-------------------
+
+      // Engine declares ideal order and count of types it wants to use for each memory usage (it can exclude some types for some usages deliberately).
+      // Then those initial lists are validated at runtime with available memory types reported by device.
+      
+      uint32 memoryTypePerUsageCount[4];                 // Count of found and used memory types in hierarchy for each usage.
+      uint32 memoryTypePerUsage[4][VK_MAX_MEMORY_TYPES]; // Memory types ordered from best suitable to least suitable ones for given memory usage (Type index in memory array).
+
+      void initMemoryManager();
+
+
       // Device Function Pointers
  //  #include "core/rendering/vulkan/vulkan10.h"
 
@@ -184,6 +196,15 @@ namespace en
       VkDeviceMemory allocMemory(VkMemoryRequirements requirements, VkFlags properties);
 
 
+      virtual Ptr<Heap>   create(const MemoryUsage usage, 
+                                 const uint32 size);
+
+      virtual Ptr<Buffer> create(const uint32 elements, const Formatting& formatting, const uint32 step = 0);
+      virtual Ptr<Buffer> create(const uint32 elements, const Attribute format);
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size);
+      
+
+
       Ptr<Texture>  Create(const TextureState& state);   // This should be done out of Heap
       Ptr<Sampler>  Create(const SamplerState& state);
       Ptr<Pipeline> Create(const Ptr<InputAssembler> inputAssembler,
@@ -193,6 +214,33 @@ namespace en
                            const Ptr<DepthStencilState> depthStencilState,
                            const Ptr<BlendState>     blendState,
                            const Ptr<PipelineLayout> pipelineLayout);
+
+
+      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
+                                          const uint32 controlPoints,
+                                          const uint32 usedAttributes,
+                                          const uint32 usedBuffers,
+                                          const AttributeDesc* attributes,
+                                          const BufferDesc* buffers);
+
+      // Creates simple render pass with one color destination
+      virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,
+                                     const Ptr<DepthStencilAttachment> depthStencil);
+      
+      virtual Ptr<RenderPass> create(const uint32 _attachments,
+                                     const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+                                     const Ptr<DepthStencilAttachment> depthStencil);
+        
+      // Creates render pass which's output goes to window framebuffer
+      virtual Ptr<RenderPass> create(const Ptr<Texture> framebuffer,
+                                     const Ptr<DepthStencilAttachment> depthStencil);
+      
+      // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
+      virtual Ptr<RenderPass> create(const Ptr<Texture> temporaryMSAA,
+                                     const Ptr<Texture> framebuffer,
+                                     const Ptr<DepthStencilAttachment> depthStencil);
+
+
       };
 
    class VulkanAPI : public GraphicAPI

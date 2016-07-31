@@ -22,7 +22,7 @@ namespace en
 {
    namespace monetization
    {
-   class Banner : public SafeObject
+   class Banner : public SafeObject<Banner>
          {
          public:
          virtual ~Banner();              // Polymorphic deletes require a virtual base destructor

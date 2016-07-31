@@ -17,7 +17,7 @@ namespace en
    namespace scene
    {
    Drawable::Drawable() :
-      enScene(nullptr),
+      //enScene(nullptr),
       Entity()
    {
    }

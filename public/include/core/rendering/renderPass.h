@@ -43,7 +43,7 @@ namespace en
       Count
       };
 
-   class ColorAttachment : public SafeObject
+   class ColorAttachment : public SafeObject<ColorAttachment>
       {
       public:
       // On tiled renderers we can specify additional actions
@@ -65,7 +65,7 @@ namespace en
       virtual ~ColorAttachment() {};                  // Polymorphic deletes require a virtual base destructor
       };
 
-   class DepthStencilAttachment : public SafeObject
+   class DepthStencilAttachment : public SafeObject<DepthStencilAttachment>
       {
       public:
       virtual void onLoad(const LoadOperation loadDepthStencil,
@@ -94,7 +94,7 @@ namespace en
       virtual ~DepthStencilAttachment() {};           // Polymorphic deletes require a virtual base destructor
       };
 
-   class RenderPass : public SafeObject
+   class RenderPass : public SafeObject<RenderPass>
       {
       public:
       virtual ~RenderPass() {};   // Polymorphic deletes require a virtual base destructor

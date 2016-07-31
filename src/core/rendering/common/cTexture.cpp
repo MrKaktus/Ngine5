@@ -13,6 +13,7 @@
 
 */
 
+#include "core/rendering/common/device.h"
 #include "core/rendering/common/texture.h"
 #include <string.h> // memcmp
 
@@ -497,8 +498,20 @@ namespace en
    
    uint32v3 TextureCommon::resolution(const uint8 mipmap) const
    {
-   // If mipmap exceeds total mipmaps count, result will be 0
-   return uint32v3( state.width >> mipmap, state.height >> mipmap, state.depth >> mipmap );
+   uint32 width  = state.width >> mipmap;
+   uint32 height = state.height >> mipmap;
+   uint32 depth  = state.depth >> mipmap;
+   
+   // If mipmap exceeds total mipmaps count, result will be all 0's
+   // otherwise other dimensions are properly clamped to 1's.
+   if ((width > 0) || (height > 0) || (depth > 0))
+      {
+      if (width  == 0) width  = 1;
+      if (height == 0) height = 1;
+      if (depth  == 0) depth  = 1;
+      }
+
+   return uint32v3(width, height, depth);
    }
    
    uint16 TextureCommon::layers(void) const
@@ -527,6 +540,17 @@ namespace en
    {
    assert( 0 );
    return false;
+   }
+   
+   Ptr<TextureView> TextureCommon::view() const
+   {
+   return ptr_dynamic_cast<TextureView, TextureViewCommon>(Ptr<TextureViewCommon>(textureView));
+   }
+
+
+   uint32 CommonDevice::texelSize(const Format format)
+   {
+   return TextureCompressionInfo[underlyingType(format)].size;
    }
 
    }

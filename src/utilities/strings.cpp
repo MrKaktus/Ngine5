@@ -95,7 +95,7 @@ namespace en
    return string(buffer, out);
    }
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_WINDOWS)
    string stringFromWchar(const wchar_t* text, uint32 size)
    {
    size_t i;

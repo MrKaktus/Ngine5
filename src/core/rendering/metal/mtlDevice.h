@@ -23,6 +23,7 @@
 #include <string>
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/device.h"
+#include "core/rendering/common/inputAssembler.h"
 
 #include "core/rendering/inputAssembler.h"
 #include "core/rendering/blend.h"
@@ -114,20 +115,34 @@ namespace en
       MetalDevice(id<MTLDevice> handle);
      ~MetalDevice();
 
+      // Internal
+      
+      void init(void);
+      
+      // Interface
 
       uint32 screens(void);           // Screens count the device can render to
       Ptr<Screen> screen(uint32 id) const;  // Return N'th screen handle
       Ptr<Window> create(const WindowSettings& settings,
                         const string title); // Create window
       
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+    
+                                    
       virtual Ptr<Texture> create(const TextureState state);
+      
+      virtual Ptr<Shader>  create(const string& source, const string& entrypoint);
       
       virtual Ptr<CommandBuffer>   createCommandBuffer(void);
 
-      virtual Ptr<RasterState>     create(const RasterStateInfo& state);
-      virtual Ptr<BlendState>      create(const BlendStateInfo& state,
-                                          const uint32 attachments,
-                                          const BlendAttachmentInfo* color);
+      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
+                                          const uint32 controlPoints,
+                                          const uint32 usedAttributes,
+                                          const uint32 usedBuffers,
+                                          const AttributeDesc* attributes,
+                                          const BufferDesc* buffers);
+
+
 
    // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
    // similarly when binding CubeMap texture, pass it's "face" through "layer".
@@ -164,26 +179,30 @@ namespace en
                                      const Ptr<Texture> framebuffer,
                                      const Ptr<DepthStencilAttachment> depthStencil);
 
-
-      // Creates InputAssembler description based on single buffer attributes
-      virtual Ptr<InputAssembler> create(const Ptr<BufferView> buffer);
-
-      // Creates InputAssembler description combining attributes from several buffers
-      virtual Ptr<InputAssembler> create(const InputAssemblerSettings& attributes);
-
-
       virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc);
       virtual Ptr<MultisamplingState> create(const uint32 samples,
                                              const bool enableAlphaToCoverage,
                                              const bool enableAlphaToOne);
 
+      virtual Ptr<RasterState>     create(const RasterStateInfo& state);
+      
+      virtual Ptr<BlendState>      create(const BlendStateInfo& state,
+                                          const uint32 attachments,
+                                          const BlendAttachmentInfo* color);
+      
+      virtual Ptr<ViewportState>      create(const uint32 count,
+                                             const ViewportStateInfo* viewports,
+                                             const ScissorStateInfo* scissors);
+         
       virtual Ptr<Pipeline> create(const Ptr<RenderPass> renderPass,
                                    const Ptr<InputAssembler> inputAssembler,
                                    const Ptr<ViewportState>  viewportState,
                                    const Ptr<RasterState>    rasterState,
                                    const Ptr<MultisamplingState> multisamplingState,
                                    const Ptr<DepthStencilState> depthStencilState,
-                                   const Ptr<BlendState>     blendState//,
+                                   const Ptr<BlendState>     blendState,
+                                   const Ptr<Shader>         vertex,
+                                   const Ptr<Shader>         fragment
                                    /*const Ptr<PipelineLayout> pipelineLayout*/);
       };
    }

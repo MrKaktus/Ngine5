@@ -58,6 +58,7 @@ forceinline Nversion::Nversion(uint32 _release, uint32 _api, uint32 _high, uint3
 {
 }
 
+// Returns true if better or equal
 forceinline bool Nversion::better(const Nversion version) const
 {
  if (api != version.api)

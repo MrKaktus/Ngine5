@@ -15,8 +15,11 @@
 
 #include "core/rendering/opengl/opengl.h"
 #include "core/rendering/opengl/glTexture.h"
+#include "core/rendering/opengl/glDevice.h"
 
-#include "core/rendering/rendering.hpp" // OpenGL versions defines
+#if !defined(EN_PLATFORM_OSX)
+
+//#include "core/rendering/rendering.hpp" // OpenGL versions defines
 #include "core/rendering/context.h" // Profile
 
 namespace en
@@ -64,11 +67,11 @@ namespace en
       OpenGL_ES_3_0                  ,   // Texture2DArray            
     //OpenGL_ES_Unsupported          ,   // Texture2DRectangle
       OpenGL_ES_3_1                  ,   // Texture2DMultisample      
-      OpenGL_ES_Unsupported          ,   // Texture2DMultisampleArray 
+      OpenGL_ES_3_2                  ,   // Texture2DMultisampleArray
       OpenGL_ES_3_0                  ,   // Texture3D                 
-    //OpenGL_ES_Unsupported          ,   // TextureBuffer
+    //OpenGL_ES_3_2                  ,   // TextureBuffer
       OpenGL_ES_2_0                  ,   // TextureCubeMap            
-      OpenGL_ES_Unsupported              // TextureCubeMapArray       
+      OpenGL_ES_3_2                      // TextureCubeMapArray
       };
 
 #endif
@@ -81,149 +84,172 @@ namespace en
      
 #ifdef EN_DISCRETE_GPU
 
+   static const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)] =
+      { // Sized Internal Format     
+  
+      MTLPixelFormatBGRA8Unorm            ,   //          
+      MTLPixelFormatBGRA8Unorm_sRGB       ,   //           
+      MTLPixelFormatInvalid               ,   //      (unsupported)     
+      MTLPixelFormatInvalid               ,   //      (unsupported)     
+      MTLPixelFormatInvalid               ,   //      (unsupported)     
+      MTLPixelFormatInvalid               ,   //      (unsupported)     
+      MTLPixelFormatInvalid               ,   //      (unsupported)     
+      MTLPixelFormatInvalid               ,   //      (unsupported)       
+
+      };
+
    // Last verified for OpenGL 4.5
 
    // Support of different texture capabilities in OpenGL core specification
    // (this values can be later overriden in general capabilities table by specific extensions used by engine)
    static const TextureInfoGL TextureCapabilitiesGL[underlyingType(Format::Count)] =
       {
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatUnsupported         
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_8                 
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatR_8_sn              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_8_u               
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_8_s               
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_16                
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatR_16_sn             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_16_u              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_16_s              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_16_hf             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_32_u              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_32_s              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_32_f              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_8                
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRG_8_sn             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_8_u              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_8_s              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_16               
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRG_16_sn            
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_16_u             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_16_s             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_16_hf            
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_32_u             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_32_s             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_32_f             
-      OpenGL_1_0,         OpenGL_Unsupported,   // FormatRGB_8   
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_8_sRGB              
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRGB_8_sn            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_8_u             
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_8_s                     
-      OpenGL_1_0,         OpenGL_Unsupported,   // FormatRGB_16              
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRGB_16_sn           
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_16_u            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_16_s            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_16_hf           
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_32_u            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_32_s            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_32_f    
-      OpenGL_1_0,         OpenGL_3_0,           // FormatRGBA_8                      
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_8_sRGB
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRGBA_8_sn           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_8_u            
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_8_s     
-      OpenGL_1_0,         OpenGL_3_0,           // FormatRGBA_16             
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRGBA_16_sn          
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_16_u           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_16_s           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_16_hf          
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_32_u           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_32_s           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_32_f           
-      OpenGL_1_4,         OpenGL_3_0,           // FormatD_16                
-      OpenGL_1_4,         OpenGL_3_0,           // FormatD_24                  
-      OpenGL_1_4,         OpenGL_3_0, /* ? */   // FormatD_32                
-      OpenGL_3_0,         OpenGL_3_0,           // FormatD_32_f              
-      OpenGL_4_4,         OpenGL_4_3,           // FormatS_8                 
-      OpenGL_3_0,         OpenGL_3_0,           // FormatSD_8_24             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatSD_8_32_f                   
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatRGB_5_6_5           
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGR_5_6_5           
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGR_8               
-      OpenGL_3_0,         OpenGL_3_0,           // FormatBGR_10_11_11_f      
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatEBGR_5_9_9_9_f      
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGR_16              
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatRGBA_5_5_5_1        
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGRA_5_5_5_1        
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatARGB_1_5_5_5        
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatABGR_1_5_5_5        
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatABGR_8              
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatARGB_8              
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGRA_8              
-      OpenGL_1_2,         OpenGL_3_0,           // FormatRGBA_10_10_10_2     
-      OpenGL_3_3,         OpenGL_3_3,           // FormatRGBA_10_10_10_2_u   
-      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // FormatBC1_RGB             
-      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // FormatBC1_RGB_sRGB        
-      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // FormatBC1_RGBA            
-      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // FormatBC1_RGBA_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatBC2_RGBA_pRGB       
-      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // FormatBC2_RGBA            
-      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // FormatBC2_RGBA_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatBC3_RGBA_pRGB       
-      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // FormatBC3_RGBA            
-      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // FormatBC3_RGBA_sRGB       
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC4_R               
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC4_R_sn            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC5_RG              
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC5_RG_sn           
-      OpenGL_4_2,         OpenGL_Unsupported,   // FormatBC6H_RGB_f          
-      OpenGL_4_2,         OpenGL_Unsupported,   // FormatBC6H_RGB_uf         
-      OpenGL_4_2,         OpenGL_Unsupported,   // FormatBC7_RGBA            
-      OpenGL_4_2,         OpenGL_Unsupported,   // FormatBC7_RGBA_sRGB       
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_R_11           
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_R_11_sn        
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RG_11          
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RG_11_sn       
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGB_8          
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGB_8_sRGB     
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGBA_8         
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGBA_8_sRGB    
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGB8_A1        
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGB8_A1_sRGB   
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGB_2         
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGB_2_sRGB    
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGB_4         
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGB_4_sRGB    
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGBA_2        
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGBA_2_sRGB   
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGBA_4        
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGBA_4_sRGB   
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_4x4            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_5x4            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_5x5            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_6x5            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_6x6            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x5            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x6            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x8            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x5           
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x6           
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x8           
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x10          
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_12x10          
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_12x12          
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_4x4_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_5x4_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_5x5_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_6x5_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_6x6_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x5_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x6_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x8_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x5_sRGB      
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x6_sRGB      
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x8_sRGB      
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x10_sRGB     
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_12x10_sRGB     
-      OpenGL_Unsupported, OpenGL_Unsupported    // FormatASTC_12x12_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::Unsupported       
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_8        
+                                                // Format::R_8_sRGB   
+      OpenGL_3_1,         OpenGL_Unsupported,   // Format::R_8_sn            
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_8_u             
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_8_s             
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_16              
+      OpenGL_3_1,         OpenGL_Unsupported,   // Format::R_16_sn           
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_16_u            
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_16_s            
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_16_hf           
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_32_u            
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_32_s            
+      OpenGL_3_0,         OpenGL_3_0,           // Format::R_32_f            
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_8     
+                                                // Format::RG_8_sRGB
+      OpenGL_3_1,         OpenGL_Unsupported,   // Format::RG_8_sn           
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_8_u            
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_8_s            
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_16             
+      OpenGL_3_1,         OpenGL_Unsupported,   // Format::RG_16_sn          
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_16_u           
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_16_s           
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_16_hf          
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_32_u           
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_32_s           
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RG_32_f           
+      OpenGL_1_0,         OpenGL_Unsupported,   // Format::RGB_8      
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_8_sRGB              
+      OpenGL_3_1,         OpenGL_Unsupported,   // Format::RGB_8_sn            
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_8_u             
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_8_s                     
+      OpenGL_1_0,         OpenGL_Unsupported,   // Format::RGB_16              
+      OpenGL_3_1,         OpenGL_Unsupported,   // Format::RGB_16_sn           
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_16_u            
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_16_s            
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_16_hf           
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_32_u            
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_32_s            
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGB_32_f    
+      OpenGL_1_0,         OpenGL_3_0,           // Format::RGBA_8                    
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_8_sRGB 
+      OpenGL_3_1,         OpenGL_Unsupported,   // Format::RGBA_8_sn         
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_8_u          
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_8_s    
+      OpenGL_1_0,         OpenGL_3_0,           // Format::RGBA_16           
+      OpenGL_3_1,         OpenGL_Unsupported,   // Format::RGBA_16_sn        
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_16_u         
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_16_s         
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_16_hf        
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_32_u         
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_32_s         
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGBA_32_f         
+      OpenGL_1_4,         OpenGL_3_0,           // Format::D_16                       
+      OpenGL_1_4,         OpenGL_3_0,           // Format::D_24             
+                                                // Format::D_24_8           
+      OpenGL_1_4,         OpenGL_3_0, /* ? */   // Format::D_32                       
+      OpenGL_3_0,         OpenGL_3_0,           // Format::D_32_f                     
+      OpenGL_4_4,         OpenGL_4_3,           // Format::S_8              
+                                                // Format::DS_16_8          
+      OpenGL_3_0,         OpenGL_3_0,           // Format::DS_24_8                    
+      OpenGL_3_0,         OpenGL_3_0,           // Format::DS_32_f_8                          
+      OpenGL_1_2,         OpenGL_Unsupported,   // Format::RGB_5_6_5          
+      OpenGL_1_2,         OpenGL_Unsupported,   // Format::BGR_5_6_5          
+      OpenGL_1_2,         OpenGL_Unsupported,   // Format::BGR_8           
+                                                // Format::BGR_8_sRGB      
+                                                // Format::BGR_8_sn        
+                                                // Format::BGR_8_u         
+                                                // Format::BGR_8_s         
+      OpenGL_3_0,         OpenGL_3_0,           // Format::RGB_11_11_10_uf    
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::RGBE_9_9_9_5_uf         
+      OpenGL_1_2,         OpenGL_Unsupported,   // Format::BGRA_8        
+                                                // Format::BGRA_8_sRGB   
+                                                // Format::BGRA_8_sn     
+                                                // Format::BGRA_8_u      
+                                                // Format::BGRA_8_s      
+      OpenGL_1_2,         OpenGL_Unsupported,   // Format::BGRA_5_5_5_1  
+      OpenGL_1_2,         OpenGL_Unsupported,   // Format::ARGB_1_5_5_5  
+      OpenGL_1_2,         OpenGL_Unsupported,   // Format::ABGR_1_5_5_5  
+      OpenGL_1_2,         OpenGL_3_0,           // Format::RGBA_10_10_10_2   
+      OpenGL_3_3,         OpenGL_3_3,           // Format::RGBA_10_10_10_2_u 
+                                                // Format::BGRA_10_10_10_2  
+      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // Format::BC1_RGB           
+      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // Format::BC1_RGB_sRGB      
+      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // Format::BC1_RGBA          
+      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // Format::BC1_RGBA_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::BC2_RGBA_pRGB     
+      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // Format::BC2_RGBA          
+      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // Format::BC2_RGBA_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::BC3_RGBA_pRGB     
+      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // Format::BC3_RGBA          
+      OpenGL_3_0, /*EXT*/ OpenGL_Unsupported,   // Format::BC3_RGBA_sRGB     
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::BC4_R             
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::BC4_R_sn          
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::BC5_RG            
+      OpenGL_3_0,         OpenGL_Unsupported,   // Format::BC5_RG_sn         
+      OpenGL_4_2,         OpenGL_Unsupported,   // Format::BC6H_RGB_f        
+      OpenGL_4_2,         OpenGL_Unsupported,   // Format::BC6H_RGB_uf       
+      OpenGL_4_2,         OpenGL_Unsupported,   // Format::BC7_RGBA          
+      OpenGL_4_2,         OpenGL_Unsupported,   // Format::BC7_RGBA_sRGB     
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_R_11         
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_R_11_sn      
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_RG_11        
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_RG_11_sn     
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_RGB_8        
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_RGB_8_sRGB   
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_RGBA_8       
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_RGBA_8_sRGB  
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_RGB8_A1      
+      OpenGL_4_3,         OpenGL_Unsupported,   // Format::ETC2_RGB8_A1_sRGB 
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::PVRTC_RGB_2       
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::PVRTC_RGB_2_sRGB  
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::PVRTC_RGB_4       
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::PVRTC_RGB_4_sRGB  
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::PVRTC_RGBA_2      
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::PVRTC_RGBA_2_sRGB 
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::PVRTC_RGBA_4      
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::PVRTC_RGBA_4_sRGB 
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_4x4          
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_5x4          
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_5x5          
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_6x5          
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_6x6          
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_8x5          
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_8x6          
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_8x8          
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_10x5         
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_10x6         
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_10x8         
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_10x10        
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_12x10        
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_12x12        
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_4x4_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_5x4_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_5x5_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_6x5_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_6x6_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_8x5_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_8x6_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_8x8_sRGB     
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_10x5_sRGB    
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_10x6_sRGB    
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_10x8_sRGB    
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_10x10_sRGB   
+      OpenGL_Unsupported, OpenGL_Unsupported,   // Format::ASTC_12x10_sRGB   
+      OpenGL_Unsupported, OpenGL_Unsupported    // Format::ASTC_12x12_sRGB   
       };
    
 #elif EN_MOBILE_GPU
@@ -307,70 +333,70 @@ namespace en
       OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBGRA_8              
       OpenGL_ES_Unsupported, OpenGL_ES_3_0,           // FormatRGBA_10_10_10_2      (upload is reversed !!)
       OpenGL_ES_Unsupported, OpenGL_ES_3_0,           // FormatRGBA_10_10_10_2_u    (upload is reversed !!)
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC1_RGB             
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC1_RGB_sRGB        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC1_RGBA            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC1_RGBA_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC2_RGBA_pRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC2_RGBA            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC2_RGBA_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC3_RGBA_pRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC3_RGBA            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC3_RGBA_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC4_R               
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC4_R_sn            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC5_RG              
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC5_RG_sn           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC6H_RGB_f          
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC6H_RGB_uf         
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC7_RGBA            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC7_RGBA_sRGB       
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_R_11           
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_R_11_sn        
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RG_11          
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RG_11_sn       
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGB_8          
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGB_8_sRGB     
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGBA_8         
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGBA_8_sRGB    
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGB8_A1        
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGB8_A1_sRGB   
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGB_2         
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGB_2_sRGB    
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGB_4         
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGB_4_sRGB    
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGBA_2        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGBA_2_sRGB   
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGBA_4        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGBA_4_sRGB   
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_4x4            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_5x4            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_5x5            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_6x5            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_6x6            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x5            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x6            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x8            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x5           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x6           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x8           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x10          
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_12x10          
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_12x12          
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_4x4_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_5x4_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_5x5_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_6x5_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_6x6_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x5_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x6_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x8_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x5_sRGB      
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x6_sRGB      
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x8_sRGB      
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x10_sRGB     
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_12x10_sRGB     
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported    // FormatASTC_12x12_sRGB     
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC1_RGB              
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC1_RGB_sRGB         
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC1_RGBA             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC1_RGBA_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC2_RGBA_pRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC2_RGBA             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC2_RGBA_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC3_RGBA_pRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC3_RGBA             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC3_RGBA_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC4_R                
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC4_R_sn             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC5_RG               
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC5_RG_sn            
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC6H_RGB_f           
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC6H_RGB_uf          
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC7_RGBA             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::BC7_RGBA_sRGB        
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_R_11            
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_R_11_sn         
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_RG_11           
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_RG_11_sn        
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_RGB_8           
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_RGB_8_sRGB      
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_RGBA_8          
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_RGBA_8_sRGB     
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_RGB8_A1         
+      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // Format::ETC2_RGB8_A1_sRGB    
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::PVRTC_RGB_2          
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::PVRTC_RGB_2_sRGB     
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::PVRTC_RGB_4          
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::PVRTC_RGB_4_sRGB     
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::PVRTC_RGBA_2         
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::PVRTC_RGBA_2_sRGB    
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::PVRTC_RGBA_4         
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::PVRTC_RGBA_4_sRGB    
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_4x4             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_5x4             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_5x5             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_6x5             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_6x6             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_8x5             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_8x6             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_8x8             
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_10x5            
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_10x6            
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_10x8            
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_10x10           
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_12x10           
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_12x12           
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_4x4_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_5x4_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_5x5_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_6x5_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_6x6_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_8x5_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_8x6_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_8x8_sRGB        
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_10x5_sRGB       
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_10x6_sRGB       
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_10x8_sRGB       
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_10x10_sRGB      
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // Format::ASTC_12x10_sRGB      
+      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported    // Format::ASTC_12x12_sRGB      
       };
 
 #endif
@@ -416,195 +442,204 @@ namespace en
 
    const TextureFormatTranslation TranslateTextureFormat[underlyingType(Format::Count)] =
       { // Sized Internal Format                      // Base Internal Format
-      { 0,                                            0,                     0                                 },   // FormatUnsupported
-      { GL_R8,                                        GL_RED,                GL_UNSIGNED_BYTE                  },   // FormatR_8                  
-      { GL_R8_SNORM,                                  GL_RED,                GL_BYTE                           },   // FormatR_8_sn               
-      { GL_R8UI,                                      GL_RED_INTEGER,        GL_UNSIGNED_BYTE                  },   // FormatR_8_u                
-      { GL_R8I,                                       GL_RED_INTEGER,        GL_BYTE                           },   // FormatR_8_s                
-      { GL_R16,                                       GL_RED,                GL_UNSIGNED_SHORT                 },   // FormatR_16                 
-      { GL_R16_SNORM,                                 GL_RED,                GL_SHORT                          },   // FormatR_16_sn              
-      { GL_R16UI,                                     GL_RED_INTEGER,        GL_UNSIGNED_SHORT                 },   // FormatR_16_u               
-      { GL_R16I,                                      GL_RED_INTEGER,        GL_SHORT                          },   // FormatR_16_s               
-      { GL_R16F,                                      GL_RED,                GL_HALF_FLOAT                     },   // FormatR_16_hf              
-      { GL_R32UI,                                     GL_RED_INTEGER,        GL_UNSIGNED_INT                   },   // FormatR_32_u               
-      { GL_R32I,                                      GL_RED_INTEGER,        GL_INT                            },   // FormatR_32_s               
-      { GL_R32F,                                      GL_RED,                GL_FLOAT                          },   // FormatR_32_f               
-      { GL_RG8,                                       GL_RG,                 GL_UNSIGNED_BYTE                  },   // FormatRG_8                 
-      { GL_RG8_SNORM,                                 GL_RG,                 GL_BYTE                           },   // FormatRG_8_sn              
-      { GL_RG8UI,                                     GL_RG_INTEGER,         GL_UNSIGNED_BYTE                  },   // FormatRG_8_u               
-      { GL_RG8I,                                      GL_RG_INTEGER,         GL_BYTE                           },   // FormatRG_8_s               
-      { GL_RG16,                                      GL_RG,                 GL_UNSIGNED_SHORT                 },   // FormatRG_16                
-      { GL_RG16_SNORM,                                GL_RG,                 GL_SHORT                          },   // FormatRG_16_sn             
-      { GL_RG16UI,                                    GL_RG_INTEGER,         GL_UNSIGNED_SHORT                 },   // FormatRG_16_u              
-      { GL_RG16I,                                     GL_RG_INTEGER,         GL_SHORT                          },   // FormatRG_16_s              
-      { GL_RG16F,                                     GL_RG,                 GL_HALF_FLOAT                     },   // FormatRG_16_hf             
-      { GL_RG32UI,                                    GL_RG_INTEGER,         GL_UNSIGNED_INT                   },   // FormatRG_32_u              
-      { GL_RG32I,                                     GL_RG_INTEGER,         GL_INT                            },   // FormatRG_32_s              
-      { GL_RG32F,                                     GL_RG,                 GL_FLOAT                          },   // FormatRG_32_f  
-      { GL_RGB8,                                      GL_RGB,                GL_UNSIGNED_BYTE                  },   // FormatRGB_8    
-      { GL_SRGB8,                                     GL_RGB,                GL_UNSIGNED_BYTE                  },   // FormatRGB_8_sRGB            
-      { GL_RGB8_SNORM,                                GL_RGB,                GL_BYTE                           },   // FormatRGB_8_sn     
-      { GL_RGB8UI,                                    GL_RGB_INTEGER,        GL_UNSIGNED_BYTE                  },   // FormatRGB_8_u              
-      { GL_RGB8I,                                     GL_RGB_INTEGER,        GL_BYTE                           },   // FormatRGB_8_s              
-      { GL_RGB16,                                     GL_RGB,                GL_UNSIGNED_SHORT                 },   // FormatRGB_16               
-      { GL_RGB16_SNORM,                               GL_RGB,                GL_SHORT                          },   // FormatRGB_16_sn            
-      { GL_RGB16UI,                                   GL_RGB_INTEGER,        GL_UNSIGNED_SHORT                 },   // FormatRGB_16_u             
-      { GL_RGB16I,                                    GL_RGB_INTEGER,        GL_SHORT                          },   // FormatRGB_16_s             
-      { GL_RGB16F,                                    GL_RGB,                GL_HALF_FLOAT                     },   // FormatRGB_16_hf            
-      { GL_RGB32UI,                                   GL_RGB_INTEGER,        GL_UNSIGNED_INT                   },   // FormatRGB_32_u             
-      { GL_RGB32I,                                    GL_RGB_INTEGER,        GL_INT                            },   // FormatRGB_32_s             
-      { GL_RGB32F,                                    GL_RGB,                GL_FLOAT                          },   // FormatRGB_32_f   
-      { GL_RGBA8,                                     GL_RGBA,               GL_UNSIGNED_BYTE                  },   // FormatRGBA_8               
-      { GL_SRGB8_ALPHA8,                              GL_RGBA,               GL_UNSIGNED_BYTE                  },   // FormatRGBA_8_sRGB          
-      { GL_RGBA8_SNORM,                               GL_RGBA,               GL_BYTE                           },   // FormatRGBA_8_sn            
-      { GL_RGBA8UI,                                   GL_RGBA_INTEGER,       GL_UNSIGNED_BYTE                  },   // FormatRGBA_8_u             
-      { GL_RGBA8I,                                    GL_RGBA_INTEGER,       GL_BYTE                           },   // FormatRGBA_8_s             
-      { GL_RGBA16,                                    GL_RGBA,               GL_UNSIGNED_SHORT                 },   // FormatRGBA_16              
-      { GL_RGBA16_SNORM,                              GL_RGBA,               GL_SHORT                          },   // FormatRGBA_16_sn           
-      { GL_RGBA16UI,                                  GL_RGBA_INTEGER,       GL_UNSIGNED_SHORT                 },   // FormatRGBA_16_u            
-      { GL_RGBA16I,                                   GL_RGBA_INTEGER,       GL_SHORT                          },   // FormatRGBA_16_s            
-      { GL_RGBA16F,                                   GL_RGBA,               GL_HALF_FLOAT                     },   // FormatRGBA_16_hf           
-      { GL_RGBA32UI,                                  GL_RGBA_INTEGER,       GL_UNSIGNED_INT                   },   // FormatRGBA_32_u            
-      { GL_RGBA32I,                                   GL_RGBA_INTEGER,       GL_INT                            },   // FormatRGBA_32_s            
-      { GL_RGBA32F,                                   GL_RGBA,               GL_FLOAT                          },   // FormatRGBA_32_f            
-      { GL_DEPTH_COMPONENT16,                         GL_DEPTH_COMPONENT,    GL_UNSIGNED_SHORT                 },   // FormatD_16                 
-      { GL_DEPTH_COMPONENT24,                         GL_DEPTH_COMPONENT,    GL_UNSIGNED_INT                   },   // FormatD_24                 
-      { GL_DEPTH_COMPONENT32,                         GL_DEPTH_COMPONENT,    GL_UNSIGNED_INT                   },   // FormatD_32                 
-      { GL_DEPTH_COMPONENT32F,                        GL_DEPTH_COMPONENT,    GL_FLOAT                          },   // FormatD_32_f  
-      { GL_STENCIL_INDEX8,                            GL_STENCIL_INDEX,      0                                 },   // FormatS_8  
-      { GL_DEPTH24_STENCIL8,                          GL_DEPTH_STENCIL,      GL_UNSIGNED_INT_24_8              },   // FormatSD_8_24   
-      { GL_DEPTH32F_STENCIL8,                         GL_DEPTH_STENCIL,      GL_FLOAT_32_UNSIGNED_INT_24_8_REV },   // FormatSD_8_32_f 
-      { GL_RGB565,                                    GL_RGB,                GL_UNSIGNED_SHORT_5_6_5           },   // FormatRGB_5_6_5            
-      { GL_RGB565,                                    GL_RGB,                GL_UNSIGNED_SHORT_5_6_5_REV       },   // FormatBGR_5_6_5            
-      { GL_RGB8,                                      GL_BGR,                GL_UNSIGNED_BYTE                  },   // FormatBGR_8                
-      { GL_R11F_G11F_B10F,                            GL_RGB,                GL_UNSIGNED_INT_10F_11F_11F_REV   },   // FormatBGR_10_11_11_f       
-      { GL_RGB9_E5,                                   GL_RGBA,               GL_UNSIGNED_INT_5_9_9_9_REV       },   // FormatEBGR_5_9_9_9_f       
-      { GL_RGB16,                                     GL_BGR,                GL_UNSIGNED_SHORT                 },   // FormatBGR_16  
-      { GL_RGB5_A1,                                   GL_RGBA,               GL_UNSIGNED_SHORT_5_5_5_1         },   // FormatRGBA_5_5_5_1    
-      { GL_RGB5_A1,                                   GL_BGRA,               GL_UNSIGNED_SHORT_5_5_5_1         },   // FormatBGRA_5_5_5_1         
-      { GL_RGB5_A1,                                   GL_BGRA,               GL_UNSIGNED_SHORT_1_5_5_5_REV     },   // FormatARGB_1_5_5_5                
-      { GL_RGB5_A1,                                   GL_RGBA,               GL_UNSIGNED_SHORT_1_5_5_5_REV     },   // FormatABGR_1_5_5_5         
-      { GL_RGBA8,                                     GL_RGBA,               GL_UNSIGNED_INT_8_8_8_8_REV       },   // FormatABGR_8               
-      { GL_RGBA8,                                     GL_BGRA,               GL_UNSIGNED_INT_8_8_8_8_REV       },   // FormatARGB_8               
-      { GL_RGBA8,                                     GL_BGRA,               GL_UNSIGNED_BYTE                  },   // FormatBGRA_8               
-      { GL_RGB10_A2,                                  GL_RGBA,               GL_UNSIGNED_INT_10_10_10_2        },   // FormatRGBA_10_10_10_2      
-      { GL_RGB10_A2UI,                                GL_RGBA_INTEGER,       GL_UNSIGNED_INT_10_10_10_2        },   // FormatRGBA_10_10_10_2_u    
-      { GL_COMPRESSED_RGB_S3TC_DXT1_EXT,              GL_RGB,                0                                 },   // FormatBC1_RGB              
-      { GL_COMPRESSED_SRGB_S3TC_DXT1_EXT,             GL_RGB,                0                                 },   // FormatBC1_RGB_sRGB         
-      { GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,             GL_RGBA,               0                                 },   // FormatBC1_RGBA             
-      { GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT,       GL_RGBA,               0                                 },   // FormatBC1_RGBA_sRGB        
-      { 0,                                            0,                     0                                 },   // FormatBC2_RGBA_pRGB        
-      { GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,             GL_RGBA,               0                                 },   // FormatBC2_RGBA             
-      { GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT,       GL_RGBA,               0                                 },   // FormatBC2_RGBA_sRGB        
-      { 0,                                            0,                     0                                 },   // FormatBC3_RGBA_pRGB        
-      { GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,             GL_RGBA,               0                                 },   // FormatBC3_RGBA             
-      { GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT,       GL_RGBA,               0                                 },   // FormatBC3_RGBA_sRGB        
-      { GL_COMPRESSED_RED_RGTC1,                      GL_RED,                0                                 },   // FormatBC4_R                
-      { GL_COMPRESSED_SIGNED_RED_RGTC1,               GL_RED,                0                                 },   // FormatBC4_R_sn             
-      { GL_COMPRESSED_RG_RGTC2,                       GL_RG,                 0                                 },   // FormatBC5_RG               
-      { GL_COMPRESSED_SIGNED_RG_RGTC2,                GL_RG,                 0                                 },   // FormatBC5_RG_sn
+      { 0,                                            0,                     0                                 },   // Format::Unsupported    
+      { GL_R8,                                        GL_RED,                GL_UNSIGNED_BYTE                  },   // Format::R_8        
+      { 0,                                            GL_RED,                GL_UNSIGNED_BYTE                  },   // Format::R_8_sRGB   
+      { GL_R8_SNORM,                                  GL_RED,                GL_BYTE                           },   // Format::R_8_sn           
+      { GL_R8UI,                                      GL_RED_INTEGER,        GL_UNSIGNED_BYTE                  },   // Format::R_8_u            
+      { GL_R8I,                                       GL_RED_INTEGER,        GL_BYTE                           },   // Format::R_8_s            
+      { GL_R16,                                       GL_RED,                GL_UNSIGNED_SHORT                 },   // Format::R_16             
+      { GL_R16_SNORM,                                 GL_RED,                GL_SHORT                          },   // Format::R_16_sn          
+      { GL_R16UI,                                     GL_RED_INTEGER,        GL_UNSIGNED_SHORT                 },   // Format::R_16_u           
+      { GL_R16I,                                      GL_RED_INTEGER,        GL_SHORT                          },   // Format::R_16_s           
+      { GL_R16F,                                      GL_RED,                GL_HALF_FLOAT                     },   // Format::R_16_hf          
+      { GL_R32UI,                                     GL_RED_INTEGER,        GL_UNSIGNED_INT                   },   // Format::R_32_u           
+      { GL_R32I,                                      GL_RED_INTEGER,        GL_INT                            },   // Format::R_32_s           
+      { GL_R32F,                                      GL_RED,                GL_FLOAT                          },   // Format::R_32_f           
+      { GL_RG8,                                       GL_RG,                 GL_UNSIGNED_BYTE                  },   // Format::RG_8     
+      { 0,                                            GL_RG,                 GL_UNSIGNED_BYTE                  },   // Format::RG_8_sRGB
+      { GL_RG8_SNORM,                                 GL_RG,                 GL_BYTE                           },   // Format::RG_8_sn             
+      { GL_RG8UI,                                     GL_RG_INTEGER,         GL_UNSIGNED_BYTE                  },   // Format::RG_8_u              
+      { GL_RG8I,                                      GL_RG_INTEGER,         GL_BYTE                           },   // Format::RG_8_s              
+      { GL_RG16,                                      GL_RG,                 GL_UNSIGNED_SHORT                 },   // Format::RG_16               
+      { GL_RG16_SNORM,                                GL_RG,                 GL_SHORT                          },   // Format::RG_16_sn            
+      { GL_RG16UI,                                    GL_RG_INTEGER,         GL_UNSIGNED_SHORT                 },   // Format::RG_16_u             
+      { GL_RG16I,                                     GL_RG_INTEGER,         GL_SHORT                          },   // Format::RG_16_s             
+      { GL_RG16F,                                     GL_RG,                 GL_HALF_FLOAT                     },   // Format::RG_16_hf            
+      { GL_RG32UI,                                    GL_RG_INTEGER,         GL_UNSIGNED_INT                   },   // Format::RG_32_u             
+      { GL_RG32I,                                     GL_RG_INTEGER,         GL_INT                            },   // Format::RG_32_s             
+      { GL_RG32F,                                     GL_RG,                 GL_FLOAT                          },   // Format::RG_32_f       
+      { GL_RGB8,                                      GL_RGB,                GL_UNSIGNED_BYTE                  },   // Format::RGB_8      
+      { GL_SRGB8,                                     GL_RGB,                GL_UNSIGNED_BYTE                  },   // Format::RGB_8_sRGB             
+      { GL_RGB8_SNORM,                                GL_RGB,                GL_BYTE                           },   // Format::RGB_8_sn       
+      { GL_RGB8UI,                                    GL_RGB_INTEGER,        GL_UNSIGNED_BYTE                  },   // Format::RGB_8_u               
+      { GL_RGB8I,                                     GL_RGB_INTEGER,        GL_BYTE                           },   // Format::RGB_8_s               
+      { GL_RGB16,                                     GL_RGB,                GL_UNSIGNED_SHORT                 },   // Format::RGB_16                
+      { GL_RGB16_SNORM,                               GL_RGB,                GL_SHORT                          },   // Format::RGB_16_sn             
+      { GL_RGB16UI,                                   GL_RGB_INTEGER,        GL_UNSIGNED_SHORT                 },   // Format::RGB_16_u              
+      { GL_RGB16I,                                    GL_RGB_INTEGER,        GL_SHORT                          },   // Format::RGB_16_s              
+      { GL_RGB16F,                                    GL_RGB,                GL_HALF_FLOAT                     },   // Format::RGB_16_hf             
+      { GL_RGB32UI,                                   GL_RGB_INTEGER,        GL_UNSIGNED_INT                   },   // Format::RGB_32_u              
+      { GL_RGB32I,                                    GL_RGB_INTEGER,        GL_INT                            },   // Format::RGB_32_s              
+      { GL_RGB32F,                                    GL_RGB,                GL_FLOAT                          },   // Format::RGB_32_f    
+      { GL_RGBA8,                                     GL_RGBA,               GL_UNSIGNED_BYTE                  },   // Format::RGBA_8                
+      { GL_SRGB8_ALPHA8,                              GL_RGBA,               GL_UNSIGNED_BYTE                  },   // Format::RGBA_8_sRGB     
+      { GL_RGBA8_SNORM,                               GL_RGBA,               GL_BYTE                           },   // Format::RGBA_8_sn             
+      { GL_RGBA8UI,                                   GL_RGBA_INTEGER,       GL_UNSIGNED_BYTE                  },   // Format::RGBA_8_u              
+      { GL_RGBA8I,                                    GL_RGBA_INTEGER,       GL_BYTE                           },   // Format::RGBA_8_s        
+      { GL_RGBA16,                                    GL_RGBA,               GL_UNSIGNED_SHORT                 },   // Format::RGBA_16               
+      { GL_RGBA16_SNORM,                              GL_RGBA,               GL_SHORT                          },   // Format::RGBA_16_sn            
+      { GL_RGBA16UI,                                  GL_RGBA_INTEGER,       GL_UNSIGNED_SHORT                 },   // Format::RGBA_16_u             
+      { GL_RGBA16I,                                   GL_RGBA_INTEGER,       GL_SHORT                          },   // Format::RGBA_16_s             
+      { GL_RGBA16F,                                   GL_RGBA,               GL_HALF_FLOAT                     },   // Format::RGBA_16_hf            
+      { GL_RGBA32UI,                                  GL_RGBA_INTEGER,       GL_UNSIGNED_INT                   },   // Format::RGBA_32_u             
+      { GL_RGBA32I,                                   GL_RGBA_INTEGER,       GL_INT                            },   // Format::RGBA_32_s             
+      { GL_RGBA32F,                                   GL_RGBA,               GL_FLOAT                          },   // Format::RGBA_32_f             
+      { GL_DEPTH_COMPONENT16,                         GL_DEPTH_COMPONENT,    GL_UNSIGNED_SHORT                 },   // Format::D_16                 
+      { GL_DEPTH_COMPONENT24,                         GL_DEPTH_COMPONENT,    GL_UNSIGNED_INT                   },   // Format::D_24       
+      { 0,                                            GL_DEPTH_COMPONENT,    0                                 },   // Format::D_24_8     
+      { GL_DEPTH_COMPONENT32,                         GL_DEPTH_COMPONENT,    GL_UNSIGNED_INT                   },   // Format::D_32                 
+      { GL_DEPTH_COMPONENT32F,                        GL_DEPTH_COMPONENT,    GL_FLOAT                          },   // Format::D_32_f     
+      { GL_STENCIL_INDEX8,                            GL_STENCIL_INDEX,      GL_UNSIGNED_BYTE                  },   // Format::S_8        
+      { 0,                                            GL_DEPTH_STENCIL,      0                                 },   // Format::DS_16_8    
+      { GL_DEPTH24_STENCIL8,                          GL_DEPTH_STENCIL,      GL_UNSIGNED_INT_24_8              },   // Format::DS_24_8    
+      { GL_DEPTH32F_STENCIL8,                         GL_DEPTH_STENCIL,      GL_FLOAT_32_UNSIGNED_INT_24_8_REV },   // Format::DS_32_f_8  
+      { GL_RGB565,                                    GL_RGB,                GL_UNSIGNED_SHORT_5_6_5           },   // Format::RGB_5_6_5            
+      { GL_RGB565,                                    GL_RGB,                GL_UNSIGNED_SHORT_5_6_5_REV       },   // Format::BGR_5_6_5            
+      { GL_RGB8,                                      GL_BGR,                GL_UNSIGNED_BYTE                  },   // Format::BGR_8           
+      { GL_SRGB8,                                     GL_BGR,                GL_UNSIGNED_BYTE                  },   // Format::BGR_8_sRGB      
+      { GL_RGB8_SNORM,                                GL_BGRA,               GL_BYTE                           },   // Format::BGR_8_sn        
+      { GL_RGB8UI,                                    GL_BGRA_INTEGER,       GL_UNSIGNED_BYTE                  },   // Format::BGR_8_u         
+      { GL_RGB8I,                                     GL_BGRA_INTEGER,       GL_BYTE                           },   // Format::BGR_8_s         
+      { GL_R11F_G11F_B10F,                            GL_RGB,                GL_UNSIGNED_INT_10F_11F_11F_REV   },   // Format::RGB_11_11_10_uf      
+      { GL_RGB9_E5,                                   GL_RGBA,               GL_UNSIGNED_INT_5_9_9_9_REV       },   // Format::RGBE_9_9_9_5_uf   
+      { GL_RGBA8,                                     GL_BGRA,               GL_UNSIGNED_BYTE                  },   // Format::BGRA_8        
+      { GL_SRGB8_ALPHA8,                              GL_BGRA,               GL_UNSIGNED_BYTE                  },   // Format::BGRA_8_sRGB   
+      { GL_RGBA8_SNORM,                               GL_BGRA,               GL_BYTE                           },   // Format::BGRA_8_sn     
+      { GL_RGBA8UI,                                   GL_BGRA_INTEGER,       GL_UNSIGNED_BYTE                  },   // Format::BGRA_8_u      
+      { GL_RGBA8I,                                    GL_BGRA_INTEGER,       GL_BYTE                           },   // Format::BGRA_8_s      
+      { GL_RGB5_A1,                                   GL_BGRA,               GL_UNSIGNED_SHORT_1_5_5_5_REV     },   // Format::BGRA_5_5_5_1  
+      { GL_RGB5_A1,                                   GL_BGRA,               GL_UNSIGNED_SHORT_5_5_5_1         },   // Format::ARGB_1_5_5_5  
+      { GL_RGB5_A1,                                   GL_RGBA,               GL_UNSIGNED_SHORT_5_5_5_1         },   // Format::ABGR_1_5_5_5  
+      { GL_RGB10_A2,                                  GL_RGBA,               GL_UNSIGNED_INT_10_10_10_2        },   // Format::RGBA_10_10_10_2      
+      { GL_RGB10_A2UI,                                GL_RGBA_INTEGER,       GL_UNSIGNED_INT_10_10_10_2        },   // Format::RGBA_10_10_10_2_u    
+      { GL_RGB10_A2,                                  GL_BGRA,               GL_UNSIGNED_INT_10_10_10_2        },   // Format::BGRA_10_10_10_2  
+      { GL_COMPRESSED_RGB_S3TC_DXT1_EXT,              GL_RGB,                0                                 },   // Format::BC1_RGB            
+      { GL_COMPRESSED_SRGB_S3TC_DXT1_EXT,             GL_RGB,                0                                 },   // Format::BC1_RGB_sRGB       
+      { GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,             GL_RGBA,               0                                 },   // Format::BC1_RGBA           
+      { GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT,       GL_RGBA,               0                                 },   // Format::BC1_RGBA_sRGB      
+      { 0,                                            0,                     0                                 },   // Format::BC2_RGBA_pRGB      
+      { GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,             GL_RGBA,               0                                 },   // Format::BC2_RGBA           
+      { GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT,       GL_RGBA,               0                                 },   // Format::BC2_RGBA_sRGB      
+      { 0,                                            0,                     0                                 },   // Format::BC3_RGBA_pRGB      
+      { GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,             GL_RGBA,               0                                 },   // Format::BC3_RGBA           
+      { GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT,       GL_RGBA,               0                                 },   // Format::BC3_RGBA_sRGB      
+      { GL_COMPRESSED_RED_RGTC1,                      GL_RED,                0                                 },   // Format::BC4_R              
+      { GL_COMPRESSED_SIGNED_RED_RGTC1,               GL_RED,                0                                 },   // Format::BC4_R_sn           
+      { GL_COMPRESSED_RG_RGTC2,                       GL_RG,                 0                                 },   // Format::BC5_RG             
+      { GL_COMPRESSED_SIGNED_RG_RGTC2,                GL_RG,                 0                                 },   // Format::BC5_RG_sn       
 #ifndef EN_PLATFORM_OSX
-      { GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT,          GL_RGB,                0                                 },   // FormatBC6H_RGB_f           
-      { GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT,        GL_RGB,                0                                 },   // FormatBC6H_RGB_uf          
-      { GL_COMPRESSED_RGBA_BPTC_UNORM,                GL_RGBA,               0                                 },   // FormatBC7_RGBA             
-      { GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM,          GL_RGBA,               0                                 },   // FormatBC7_RGBA_sRGB        
-      { GL_COMPRESSED_R11_EAC,                        GL_RED,                0                                 },   // FormatETC2_R_11            
-      { GL_COMPRESSED_SIGNED_R11_EAC,                 GL_RED,                0                                 },   // FormatETC2_R_11_sn         
-      { GL_COMPRESSED_RG11_EAC,                       GL_RG,                 0                                 },   // FormatETC2_RG_11           
-      { GL_COMPRESSED_SIGNED_RG11_EAC,                GL_RG,                 0                                 },   // FormatETC2_RG_11_sn        
-      { GL_COMPRESSED_RGB8_ETC2,                      GL_RGB,                0                                 },   // FormatETC2_RGB_8           
-      { GL_COMPRESSED_SRGB8_ETC2,                     GL_RGB,                0                                 },   // FormatETC2_RGB_8_sRGB      
-      { GL_COMPRESSED_RGBA8_ETC2_EAC,                 GL_RGBA,               0                                 },   // FormatETC2_RGBA_8          
-      { GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC,          GL_RGBA,               0                                 },   // FormatETC2_RGBA_8_sRGB     
-      { GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2,  GL_RGBA,               0                                 },   // FormatETC2_RGB8_A1         
-      { GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2, GL_RGBA,               0                                 },   // FormatETC2_RGB8_A1_sRGB    
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_2          
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_2_sRGB     
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_4          
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_4_sRGB     
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_2         
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_2_sRGB    
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_4         
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_4_sRGB    
-      { GL_COMPRESSED_RGBA_ASTC_4x4_KHR,              GL_RGBA,               0                                 },   // FormatASTC_4x4             
-      { GL_COMPRESSED_RGBA_ASTC_5x4_KHR,              GL_RGBA,               0                                 },   // FormatASTC_5x4             
-      { GL_COMPRESSED_RGBA_ASTC_5x5_KHR,              GL_RGBA,               0                                 },   // FormatASTC_5x5             
-      { GL_COMPRESSED_RGBA_ASTC_6x5_KHR,              GL_RGBA,               0                                 },   // FormatASTC_6x5             
-      { GL_COMPRESSED_RGBA_ASTC_6x6_KHR,              GL_RGBA,               0                                 },   // FormatASTC_6x6             
-      { GL_COMPRESSED_RGBA_ASTC_8x5_KHR,              GL_RGBA,               0                                 },   // FormatASTC_8x5             
-      { GL_COMPRESSED_RGBA_ASTC_8x6_KHR,              GL_RGBA,               0                                 },   // FormatASTC_8x6             
-      { GL_COMPRESSED_RGBA_ASTC_8x8_KHR,              GL_RGBA,               0                                 },   // FormatASTC_8x8             
-      { GL_COMPRESSED_RGBA_ASTC_10x5_KHR,             GL_RGBA,               0                                 },   // FormatASTC_10x5            
-      { GL_COMPRESSED_RGBA_ASTC_10x6_KHR,             GL_RGBA,               0                                 },   // FormatASTC_10x6            
-      { GL_COMPRESSED_RGBA_ASTC_10x8_KHR,             GL_RGBA,               0                                 },   // FormatASTC_10x8            
-      { GL_COMPRESSED_RGBA_ASTC_10x10_KHR,            GL_RGBA,               0                                 },   // FormatASTC_10x10           
-      { GL_COMPRESSED_RGBA_ASTC_12x10_KHR,            GL_RGBA,               0                                 },   // FormatASTC_12x10           
-      { GL_COMPRESSED_RGBA_ASTC_12x12_KHR,            GL_RGBA,               0                                 },   // FormatASTC_12x12           
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR,      GL_RGBA,               0                                 },   // FormatASTC_4x4_sRGB        
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR,      GL_RGBA,               0                                 },   // FormatASTC_5x4_sRGB        
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR,      GL_RGBA,               0                                 },   // FormatASTC_5x5_sRGB        
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR,      GL_RGBA,               0                                 },   // FormatASTC_6x5_sRGB        
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR,      GL_RGBA,               0                                 },   // FormatASTC_6x6_sRGB        
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR,      GL_RGBA,               0                                 },   // FormatASTC_8x5_sRGB        
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR,      GL_RGBA,               0                                 },   // FormatASTC_8x6_sRGB        
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR,      GL_RGBA,               0                                 },   // FormatASTC_8x8_sRGB        
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR,     GL_RGBA,               0                                 },   // FormatASTC_10x5_sRGB       
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR,     GL_RGBA,               0                                 },   // FormatASTC_10x6_sRGB       
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR,     GL_RGBA,               0                                 },   // FormatASTC_10x8_sRGB       
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR,    GL_RGBA,               0                                 },   // FormatASTC_10x10_sRGB      
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR,    GL_RGBA,               0                                 },   // FormatASTC_12x10_sRGB      
-      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR,    GL_RGBA,               0                                 }    // FormatASTC_12x12_sRGB
+      { GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT,          GL_RGB,                0                                 },   // Format::BC6H_RGB_f           
+      { GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT,        GL_RGB,                0                                 },   // Format::BC6H_RGB_uf          
+      { GL_COMPRESSED_RGBA_BPTC_UNORM,                GL_RGBA,               0                                 },   // Format::BC7_RGBA             
+      { GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM,          GL_RGBA,               0                                 },   // Format::BC7_RGBA_sRGB        
+      { GL_COMPRESSED_R11_EAC,                        GL_RED,                0                                 },   // Format::ETC2_R_11            
+      { GL_COMPRESSED_SIGNED_R11_EAC,                 GL_RED,                0                                 },   // Format::ETC2_R_11_sn         
+      { GL_COMPRESSED_RG11_EAC,                       GL_RG,                 0                                 },   // Format::ETC2_RG_11           
+      { GL_COMPRESSED_SIGNED_RG11_EAC,                GL_RG,                 0                                 },   // Format::ETC2_RG_11_sn        
+      { GL_COMPRESSED_RGB8_ETC2,                      GL_RGB,                0                                 },   // Format::ETC2_RGB_8           
+      { GL_COMPRESSED_SRGB8_ETC2,                     GL_RGB,                0                                 },   // Format::ETC2_RGB_8_sRGB      
+      { GL_COMPRESSED_RGBA8_ETC2_EAC,                 GL_RGBA,               0                                 },   // Format::ETC2_RGBA_8          
+      { GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC,          GL_RGBA,               0                                 },   // Format::ETC2_RGBA_8_sRGB     
+      { GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2,  GL_RGBA,               0                                 },   // Format::ETC2_RGB8_A1         
+      { GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2, GL_RGBA,               0                                 },   // Format::ETC2_RGB8_A1_sRGB    
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGB_2          
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGB_2_sRGB     
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGB_4          
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGB_4_sRGB     
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGBA_2         
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGBA_2_sRGB    
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGBA_4         
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGBA_4_sRGB    
+      { GL_COMPRESSED_RGBA_ASTC_4x4_KHR,              GL_RGBA,               0                                 },   // Format::ASTC_4x4             
+      { GL_COMPRESSED_RGBA_ASTC_5x4_KHR,              GL_RGBA,               0                                 },   // Format::ASTC_5x4             
+      { GL_COMPRESSED_RGBA_ASTC_5x5_KHR,              GL_RGBA,               0                                 },   // Format::ASTC_5x5             
+      { GL_COMPRESSED_RGBA_ASTC_6x5_KHR,              GL_RGBA,               0                                 },   // Format::ASTC_6x5             
+      { GL_COMPRESSED_RGBA_ASTC_6x6_KHR,              GL_RGBA,               0                                 },   // Format::ASTC_6x6             
+      { GL_COMPRESSED_RGBA_ASTC_8x5_KHR,              GL_RGBA,               0                                 },   // Format::ASTC_8x5             
+      { GL_COMPRESSED_RGBA_ASTC_8x6_KHR,              GL_RGBA,               0                                 },   // Format::ASTC_8x6             
+      { GL_COMPRESSED_RGBA_ASTC_8x8_KHR,              GL_RGBA,               0                                 },   // Format::ASTC_8x8             
+      { GL_COMPRESSED_RGBA_ASTC_10x5_KHR,             GL_RGBA,               0                                 },   // Format::ASTC_10x5            
+      { GL_COMPRESSED_RGBA_ASTC_10x6_KHR,             GL_RGBA,               0                                 },   // Format::ASTC_10x6            
+      { GL_COMPRESSED_RGBA_ASTC_10x8_KHR,             GL_RGBA,               0                                 },   // Format::ASTC_10x8            
+      { GL_COMPRESSED_RGBA_ASTC_10x10_KHR,            GL_RGBA,               0                                 },   // Format::ASTC_10x10           
+      { GL_COMPRESSED_RGBA_ASTC_12x10_KHR,            GL_RGBA,               0                                 },   // Format::ASTC_12x10           
+      { GL_COMPRESSED_RGBA_ASTC_12x12_KHR,            GL_RGBA,               0                                 },   // Format::ASTC_12x12           
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR,      GL_RGBA,               0                                 },   // Format::ASTC_4x4_sRGB        
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR,      GL_RGBA,               0                                 },   // Format::ASTC_5x4_sRGB        
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR,      GL_RGBA,               0                                 },   // Format::ASTC_5x5_sRGB        
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR,      GL_RGBA,               0                                 },   // Format::ASTC_6x5_sRGB        
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR,      GL_RGBA,               0                                 },   // Format::ASTC_6x6_sRGB        
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR,      GL_RGBA,               0                                 },   // Format::ASTC_8x5_sRGB        
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR,      GL_RGBA,               0                                 },   // Format::ASTC_8x6_sRGB        
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR,      GL_RGBA,               0                                 },   // Format::ASTC_8x8_sRGB        
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR,     GL_RGBA,               0                                 },   // Format::ASTC_10x5_sRGB       
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR,     GL_RGBA,               0                                 },   // Format::ASTC_10x6_sRGB       
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR,     GL_RGBA,               0                                 },   // Format::ASTC_10x8_sRGB       
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR,    GL_RGBA,               0                                 },   // Format::ASTC_10x10_sRGB      
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR,    GL_RGBA,               0                                 },   // Format::ASTC_12x10_sRGB      
+      { GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR,    GL_RGBA,               0                                 }    // Format::ASTC_12x12_sRGB      
 #else
-      { 0,                                            GL_RGB,                0                                 },   // FormatBC6H_RGB_f
-      { 0,                                            GL_RGB,                0                                 },   // FormatBC6H_RGB_uf
-      { 0,                                            GL_RGBA,               0                                 },   // FormatBC7_RGBA
-      { 0,                                            GL_RGBA,               0                                 },   // FormatBC7_RGBA_sRGB
-      { 0,                                            GL_RED,                0                                 },   // FormatETC2_R_11
-      { 0,                                            GL_RED,                0                                 },   // FormatETC2_R_11_sn
-      { 0,                                            GL_RG,                 0                                 },   // FormatETC2_RG_11
-      { 0,                                            GL_RG,                 0                                 },   // FormatETC2_RG_11_sn
-      { 0,                                            GL_RGB,                0                                 },   // FormatETC2_RGB_8
-      { 0,                                            GL_RGB,                0                                 },   // FormatETC2_RGB_8_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatETC2_RGBA_8
-      { 0,                                            GL_RGBA,               0                                 },   // FormatETC2_RGBA_8_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatETC2_RGB8_A1
-      { 0,                                            GL_RGBA,               0                                 },   // FormatETC2_RGB8_A1_sRGB
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_2          
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_2_sRGB     
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_4          
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGB_4_sRGB     
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_2         
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_2_sRGB    
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_4         
-      { 0,                                            0,                     0                                 },   // FormatPVRTC_RGBA_4_sRGB    
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_4x4
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_5x4
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_5x5
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_6x5
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_6x6
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x5
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x6
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x8
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x5
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x6
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x8
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x10
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_12x10
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_12x12
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_4x4_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_5x4_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_5x5_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_6x5_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_6x6_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x5_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x6_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_8x8_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x5_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x6_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x8_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_10x10_sRGB
-      { 0,                                            GL_RGBA,               0                                 },   // FormatASTC_12x10_sRGB
-      { 0,                                            GL_RGBA,               0                                 }    // FormatASTC_12x12_sRGB
+      { 0,                                            GL_RGB,                0                                 },   // Format::BC6H_RGB_f           
+      { 0,                                            GL_RGB,                0                                 },   // Format::BC6H_RGB_uf          
+      { 0,                                            GL_RGBA,               0                                 },   // Format::BC7_RGBA             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::BC7_RGBA_sRGB        
+      { 0,                                            GL_RED,                0                                 },   // Format::ETC2_R_11            
+      { 0,                                            GL_RED,                0                                 },   // Format::ETC2_R_11_sn         
+      { 0,                                            GL_RG,                 0                                 },   // Format::ETC2_RG_11           
+      { 0,                                            GL_RG,                 0                                 },   // Format::ETC2_RG_11_sn        
+      { 0,                                            GL_RGB,                0                                 },   // Format::ETC2_RGB_8           
+      { 0,                                            GL_RGB,                0                                 },   // Format::ETC2_RGB_8_sRGB      
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ETC2_RGBA_8          
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ETC2_RGBA_8_sRGB     
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ETC2_RGB8_A1         
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ETC2_RGB8_A1_sRGB    
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGB_2          
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGB_2_sRGB     
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGB_4          
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGB_4_sRGB     
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGBA_2         
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGBA_2_sRGB    
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGBA_4         
+      { 0,                                            0,                     0                                 },   // Format::PVRTC_RGBA_4_sRGB    
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_4x4             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_5x4             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_5x5             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_6x5             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_6x6             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_8x5             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_8x6             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_8x8             
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_10x5            
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_10x6            
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_10x8            
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_10x10           
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_12x10           
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_12x12           
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_4x4_sRGB        
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_5x4_sRGB        
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_5x5_sRGB        
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_6x5_sRGB        
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_6x6_sRGB        
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_8x5_sRGB        
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_8x6_sRGB        
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_8x8_sRGB        
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_10x5_sRGB       
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_10x6_sRGB       
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_10x8_sRGB       
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_10x10_sRGB      
+      { 0,                                            GL_RGBA,               0                                 },   // Format::ASTC_12x10_sRGB      
+      { 0,                                            GL_RGBA,               0                                 }    // Format::ASTC_12x12_sRGB      
 #endif
       };
 
@@ -1151,3 +1186,5 @@ namespace en
 
    }
 }
+
+#endif

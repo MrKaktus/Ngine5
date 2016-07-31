@@ -567,6 +567,30 @@
     <ClCompile Include="..\src\input\winJoystick.cpp">
       <Filter>Source Files\input</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\glBuffer.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\glDevice.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\glInputAssembler.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\buffer.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\device.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\opengl\glBlend.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkHeap.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\heap.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1141,6 +1165,36 @@
     </ClInclude>
     <ClInclude Include="..\src\input\winJoystick.h">
       <Filter>Source Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\glBuffer.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\glDevice.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\glInputAssembler.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\buffer.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\device.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\glBlend.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\opengl\glCache.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkHeap.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\heap.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\heap.h">
+      <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

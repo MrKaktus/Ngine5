@@ -295,7 +295,7 @@ namespace en
 
    RenderPassVK::~RenderPassVK()
    {
-   vkDestroyRenderPass(gpu->device, id, &gpu->defaultAllocCallbacks); 
+   vkDestroyRenderPass(gpu->device, passId, &gpu->defaultAllocCallbacks); 
    }
 
    Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,
@@ -311,11 +311,13 @@ namespace en
    // const uint32   layers)     // Common attachments layers count
 
 
+   Ptr<ColorAttachmentVK> temp = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[0]);
+
    
    VkImageView attachmentHandle[8];
 
 	VkAttachmentDescription attachment[2];
-	attachment[0].format = colorformat;
+	attachment[0].format = temp->texture[0]->format; //color[0] //colorformat;
 	attachment[0].samples = VK_SAMPLE_COUNT_1_BIT;
 	attachment[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachment[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -661,7 +663,11 @@ typedef struct VkSubpassDependency {
 
 
 
-
+   Ptr<RenderPass> VulkanDevice::create(const Ptr<ColorAttachment> color,
+                                        const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   // TODO: !!!
+   }
 
    Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,
                                         const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
@@ -762,6 +768,20 @@ new VkAttachmentReference[_attachments];
 
    return result;
    }
+
+   Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> framebuffer,
+                                        const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   // TODO: !!!
+   }
+
+   Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> temporaryMSAA,
+                                        const Ptr<Texture> framebuffer,
+                                        const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   // TODO: !!!
+   }
+
 
 
 // typedef void (VKAPI_PTR *PFN_vkCmdBeginRenderPass)(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents);

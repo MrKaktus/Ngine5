@@ -84,7 +84,6 @@ namespace en
 
 
 
-   // TODO: THis should be GpuDevice class method
    Ptr<Pipeline> VulkanDevice::Create(const Ptr<InputAssembler> inputAssembler,
                         const Ptr<ViewportState>  viewportState,
                         const Ptr<RasterState>    rasterState,

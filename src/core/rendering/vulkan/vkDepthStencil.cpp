@@ -44,7 +44,7 @@ namespace en
       VK_STENCIL_OP_REPLACE,               // Reference
       VK_STENCIL_OP_INCREMENT_AND_CLAMP,   // Increase
       VK_STENCIL_OP_DECREMENT_AND_CLAMP,   // Decrease
-      VK_STENCIL_OP_INVERT                 // InvertBits
+      VK_STENCIL_OP_INVERT,                // InvertBits
       VK_STENCIL_OP_INCREMENT_AND_WRAP,    // IncreaseWrap
       VK_STENCIL_OP_DECREMENT_AND_WRAP,    // DecreaseWrap
       };

@@ -290,6 +290,18 @@ namespace en
    delete [] state.pInputElementDescs;
    }
 
+   Ptr<InputAssembler> Direct3D12Device::create(const DrawableType primitiveType,
+                                                const uint32 controlPoints,
+                                                const uint32 usedAttributes,
+                                                const uint32 usedBuffers,
+                                                const AttributeDesc* attributes,
+                                                const BufferDesc* buffers)
+   {
+   Ptr<InputAssemblerD3D12> input = Ptr<InputAssemblerD3D12>(new InputAssemblerD3D12(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+
+   return ptr_dynamic_cast<InputAssembler, InputAssemblerD3D12>(input);
+   }
+
    }
 }
 #endif

@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlBlend.h"
+#include "core/rendering/metal/mtlDevice.h"
 #include "core/rendering/state.h"
 #include "utilities/utilities.h"
 
@@ -89,6 +90,17 @@ namespace en
    BlendStateMTL::~BlendStateMTL()
    {
    [blendInfo release];
+   }
+   
+   Ptr<BlendState> MetalDevice::create(const BlendStateInfo& state,
+                                       const uint32 attachments,
+                                       const BlendAttachmentInfo* color)
+   {
+   // We don't support Logic Operations for now
+   // for(uint32 i=0; i<attachments; ++i)
+   //    assert( !(color[0].logicOperation && color[i].blending) );
+         
+   return ptr_dynamic_cast<BlendState, BlendStateMTL>(new BlendStateMTL(state, attachments, color));
    }
    
    }

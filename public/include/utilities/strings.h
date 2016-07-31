@@ -22,22 +22,61 @@ using namespace std;
 
 namespace en
 {
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+
+   // To prevent Objective-C contamination, we need to
+   // encapsulate template implementation into separate mm file.
+//   extern double stringTo_f64(const string& in);
+//   extern float  stringTo_f32(const string& in);
+//   extern sint32 stringTo_s32(const string& in);
+//   extern uint32 stringTo_u32(const string& in);
+   
+   template <class type>
+   type stringTo(const string& in)
+   {
+   istringstream parser(in);
+   type out;
+   parser >> out;
+   return out;
+   }
+
+//   template<>
+//   double stringTo<double>(const string& in)
+//   {
+//   return stringTo_f64(in);
+//   }
+//   
+//   template<>
+//   float stringTo<float>(const string& in)
+//   {
+//   return stringTo_f32(in);
+//   }
+//
+//   template<>
+//   sint32 stringTo<sint32>(const string& in)
+//   {
+//   return stringTo_s32(in);
+//   }
+//
+//   template<>
+//   uint32 stringTo<uint32>(const string& in)
+//   {
+//   return stringTo_u32(in);
+//   }
+
+#else
    // Extracts variable from string
    template <class type>
    type stringTo(const string& in)
    {
-   #ifndef ENG_IPHONE
-    istringstream parser(in);
-    type out;
-    parser >> out;
-    return out;
-   #else
-    // Works only with float types !!
-    NSString* nsStringObj = [NSString stringWithUTF8String: in.c_str()];
-    return [nsStringObj floatValue];
-   #endif
+   istringstream parser(in);
+   type out;
+   parser >> out;
+   return out;
    }
-   
+#endif
+
+
    // Converts variable value to string representation
    string stringFrom(uint8  in);
    string stringFrom(uint16 in);

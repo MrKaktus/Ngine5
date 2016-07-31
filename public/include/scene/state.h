@@ -27,7 +27,7 @@ namespace en
    {
    using namespace en::input;
 
-   class State : public SafeObject
+   class State : public SafeObject<State>
          {
          public:
          virtual bool init(void) = 0;   

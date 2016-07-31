@@ -35,6 +35,8 @@
 
 //#include "core/rendering/api.cpp"
 
+#if !defined(EN_PLATFORM_OSX)
+
 namespace en
 {
    namespace gpu
@@ -240,26 +242,6 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
 
       namespace gl
       {
-   Nversion    OpenGL_Next(255,EN_OpenGL,9,9,0);                   // Future OpenGL versions
-   Nversion    OpenGL_4_4(17,EN_OpenGL,4,4,0);                     // OpenGL 4.4    -   
-   Nversion    OpenGL_4_3(16,EN_OpenGL,4,3,0);                     // OpenGL 4.3    -   
-   Nversion    OpenGL_4_2(15,EN_OpenGL,4,2,0);                     // OpenGL 4.2    -
-   Nversion    OpenGL_4_1(14,EN_OpenGL,4,1,0);                     // OpenGL 4.1    - 
-   Nversion    OpenGL_4_0(13,EN_OpenGL,4,0,0);                     // OpenGL 4.0    - 11.03.2010 ok
-   Nversion    OpenGL_3_3(12,EN_OpenGL,3,3,0);                     // OpenGL 3.3    - 11.03.2010 ok
-   Nversion    OpenGL_3_2(11,EN_OpenGL,3,2,0);                     // OpenGL 3.2    - 24.07.2009 ok
-   Nversion    OpenGL_3_1(10,EN_OpenGL,3,1,0);                     // OpenGL 3.1    - 24.03.2009 ok
-   Nversion    OpenGL_3_0(9,EN_OpenGL,3,0,0);                      // OpenGL 3.0    - 11.08.2008 ok
-   Nversion    OpenGL_2_1(8,EN_OpenGL,2,1,0);                      // OpenGL 2.1    - 30.07.2006 spec
-   Nversion    OpenGL_2_0(7,EN_OpenGL,2,0,0);                      // OpenGL 2.0    - 22.10.2004 spec
-   Nversion    OpenGL_1_5(6,EN_OpenGL,1,5,0);                      // OpenGL 1.5    - 29.07.2003 / 30.10.2003 spec
-   Nversion    OpenGL_1_4(5,EN_OpenGL,1,4,0);                      // OpenGL 1.4    - 24.07.2002 spec
-   Nversion    OpenGL_1_3(4,EN_OpenGL,1,3,0);                      // OpenGL 1.3    - 14.08.2001 spec
-   Nversion    OpenGL_1_2_1(3,EN_OpenGL,1,2,1);                    // OpenGL 1.2.1  - 01.04.1999 spec
-   Nversion    OpenGL_1_2(2,EN_OpenGL,1,2,0);                      // OpenGL 1.2    -
-   Nversion    OpenGL_1_1(1,EN_OpenGL,1,1,0);                      // OpenGL 1.1    - 29.03.1997
-   Nversion    OpenGL_1_0(0,EN_OpenGL,1,0,0);                      // OpenGL 1.0    - 20.06.1992
-
       // OpenGL API versions
       const Nversion openglVersions[] = 
          { 
@@ -401,7 +383,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       GpuContext.device.destroy();
     
       // Clear all settings
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -503,7 +485,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
 #endif
 
       // Clear all settings
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -577,7 +559,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       GpuContext.screen.defaults();
       GpuContext.state.defaults();
 
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -817,7 +799,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       GpuContext.screen.defaults();
       GpuContext.state.defaults();
 
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -1476,7 +1458,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       GpuContext.screen.defaults();
       GpuContext.state.defaults();
       
-      gl20::BuffersClear();
+      //gl20::BuffersClear();
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
       ClearTextureSupport();
 #endif
@@ -2110,3 +2092,5 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       }
    }
 }
+
+#endif

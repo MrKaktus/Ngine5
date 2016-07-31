@@ -54,7 +54,7 @@ namespace en
          virtual CameraState state(void) const;       // Returns joystick state (on/off/initializing...)
          virtual bool        pressed(const uint8 button) const; // Button state
          virtual float       position(const en::input::JoystickAxis axis) const; // Joystick state
-         virtual void        update(void);            // Update camera stream events
+         virtual void        update(void);            // Update joystick events
 
          WinJoystick(uint32 _id, LPDIRECTINPUTDEVICE8 _handle);
          virtual ~WinJoystick();              // Polymorphic deletes require a virtual base destructor

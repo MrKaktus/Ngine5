@@ -11,6 +11,7 @@
 
 #include "core/storage.h"
 #include "core/log/log.h"
+#include "core/rendering/device.h"
 #include "core/utilities/parser.h"
 #include "utilities/strings.h"
 #include "utilities/gpcpu/gpcpu.h"
@@ -436,14 +437,11 @@ namespace en
       uint32 indexes  = static_cast<uint32>(srcMesh.indexes.size());
       
       // Create geometry buffer
-      en::gpu::BufferSettings settings;
-      settings.type      = gpu::VertexBuffer;
-      settings.vertices  = vertexes;
-      uint32 columns     = 1;
+      gpu::Formatting formatting;
+      uint32 columns  = 1;
 
       // Position
-      settings.column[0].type = gpu::Float3; 
-      settings.column[0].name = "inPosition";
+      formatting.column[0] = gpu::Attribute::v3f32; // inPosition
 
       uint32 rowSize = 12;
    
@@ -451,8 +449,7 @@ namespace en
       if (srcMesh.normals)
          {
          rowSize += 12;
-         settings.column[columns].type = gpu::Float3;
-         settings.column[columns].name = "inNormal";
+         formatting.column[columns] = gpu::Attribute::v3f32; // inNormal
          columns++;
          }
 
@@ -463,8 +460,7 @@ namespace en
           srcMaterial.displacement)
          {
          rowSize += 12;
-         settings.column[columns].type = gpu::Float3;
-         settings.column[columns].name = "inBitangent";
+         formatting.column[columns] = gpu::Attribute::v3f32; // inBitangent
          columns++;
          }
            
@@ -472,12 +468,11 @@ namespace en
       if (srcMesh.coords)
          {
          rowSize += 8;
-         settings.column[columns].type = gpu::Float2;
-         settings.column[columns].name = "inTexCoord0";
+         formatting.column[columns] = gpu::Attribute::v2f32; // inTexCoord0
          if (srcMesh.coordW)
             {
             rowSize += 4;
-            settings.column[columns].type = gpu::Float3;
+            formatting.column[columns] = gpu::Attribute::v3f32;
             }
          columns++;
          }
@@ -605,24 +600,22 @@ namespace en
                }
             }
          }
-      gpu::Buffer vertexBuffer = Gpu.buffer.create(settings, geometry);
+      Ptr<gpu::Buffer> vertexBuffer = Graphics->primaryDevice()->create(vertexes, formatting, 0, geometry);
       delete [] geometry;
       delete [] tangents;
       delete [] bitangents;
 
       // Create indices buffer
-      settings.type      = gpu::IndexBuffer;
-      settings.elements  = indexes;
-      settings.column[0] = gpu::UInt;
+      formatting.column[0] = gpu::Attribute::u32;
       for(uint8 j=1; j<16; ++j)
-         settings.column[j] = gpu::None;
+         formatting.column[j] = gpu::Attribute::None;
    
       // Optimize indexes order for Post-Transform Vertex Cache Size
       void* srcIndex = &srcMesh.indexes[0];
       if (en::obj::optimizeIndexOrder)
          {
          srcMesh.optimized.resize(indexes, 0);
-         Forsyth::optimize(srcMesh.indexes, srcMesh.optimized, vertexes);
+         //Forsyth::optimize(srcMesh.indexes, srcMesh.optimized, vertexes);
          srcIndex = &srcMesh.optimized[0];
          }
    
@@ -632,7 +625,7 @@ namespace en
          {
          if (vertexes < 255)
             {
-            settings.column[0] = gpu::UByte;
+            formatting.column[0] = gpu::Attribute::u8;
             uint8* ibo = new uint8[indexes];
             for(uint32 j=0; j<indexes; j++)
                {
@@ -646,7 +639,7 @@ namespace en
          else
          if (vertexes < 65535)
             {
-            settings.column[0] = gpu::UShort;
+            formatting.column[0] = gpu::Attribute::u16;
             uint16* ibo = new uint16[indexes];
             for(uint32 j=0; j<indexes; j++)
                {
@@ -658,7 +651,7 @@ namespace en
             srcIndex = ibo;
             }
          }
-      gpu::Buffer indexBuffer = Gpu.buffer.create(settings, srcIndex);
+      Ptr<gpu::Buffer> indexBuffer = Graphics->primaryDevice()->create(indexes, formatting, 0, srcIndex);
       if (compressed)
          delete [] static_cast<uint8*>(srcIndex);
    

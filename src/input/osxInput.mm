@@ -500,9 +500,9 @@ namespace en
    count[underlyingType(IO::Keyboard)]++;
    stateFlags = 0;
    
-   // Register mouse
-   // mouses.push_back(Ptr<Mouse>(new CommonMouse()));
-   // count[underlyingType(IO::Mouse)]++;
+   // Register mouse (or Touchpad pretending to be mouse)
+   mouses.push_back(Ptr<Mouse>(new OSXMouse()));
+   count[underlyingType(IO::Mouse)]++;
    
    // Register touchpad
    // TODO: Detect MacBook or Magic Touch Pad and add it's support

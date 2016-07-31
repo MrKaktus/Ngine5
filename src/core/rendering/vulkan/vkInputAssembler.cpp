@@ -17,11 +17,13 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
+#include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
+
 namespace en
 {
    namespace gpu
    {   
-   static const VkFormat TranslateAttributeFormat[AttributeFormatsCount]
+   static const VkFormat TranslateAttributeFormat[underlyingType(Attribute::Count)] = 
       {
       VK_FORMAT_UNDEFINED                ,  // None                      
       VK_FORMAT_R16_SFLOAT               ,  // Half                   
@@ -258,10 +260,12 @@ namespace en
       VkVertexInputBindingDescription* desc = (VkVertexInputBindingDescription*)(&state.pVertexBindingDescriptions[i]);
 
       //Ptr<BufferVK> buffer = ptr_dynamic_cast<BufferVK, Buffer>(buffers[i]);
+      // less than : VkPhysicalDeviceLimits::maxVertexInputBindings
       //desc->binding       = /* buffer Handle or buffer slot ??? */ buffer->id;    // THis should be buffer binding slot to decouple buffers!
+      // lessEqual to : VkPhysicalDeviceLimits::maxVertexInputBindingStride
       desc->stride    = buffers[i].elementSize;
       desc->inputRate = buffers[i].stepRate == 0 ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;
-      // TODO: Vulkan - where if final step rate set ?
+      // TODO: Vulkan - where is final step rate set ?
       }
 
    for(uint32 i=0; i<usedAttributes; ++i)
@@ -270,9 +274,21 @@ namespace en
 
       desc->location = i; // Location is adequate to attribute's location in array.
       desc->binding  = attributes[i].buffer;
-      desc->format   = TranslateAttributeFormat[attributes[i].format];
+      desc->format   = TranslateAttributeFormat[underlyingType(attributes[i].format)];
       desc->offset   = attributes[i].offset;
       }
+   }
+   
+   Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
+                                            const uint32 controlPoints,
+                                            const uint32 usedAttributes,
+                                            const uint32 usedBuffers,
+                                            const AttributeDesc* attributes,
+                                            const BufferDesc* buffers)
+   {
+   Ptr<InputAssemblerVK> input = Ptr<InputAssemblerVK>(new InputAssemblerVK(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+
+   return ptr_dynamic_cast<InputAssembler, InputAssemblerVK>(input);
    }
 
    }

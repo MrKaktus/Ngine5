@@ -147,7 +147,7 @@ namespace en
       TurnedOn                ,
       };
       
-   class Keyboard : public SafeObject
+   class Keyboard : public SafeObject<Keyboard>
       {
       public:
       virtual bool pressed(const Key key) const = 0;

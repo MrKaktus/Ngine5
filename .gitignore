@@ -15,3 +15,5 @@ middleware/zlib-1.2.8/contrib/vstudio/vc11/zlibvc.opensdf
 middleware/zlib-1.2.8/contrib/vstudio/vc11/zlibvc.sdf
 project/Ngine5.opensdf
 ._*
+project/Ngine5.VC.db
+project/Ngine5.VC.opendb

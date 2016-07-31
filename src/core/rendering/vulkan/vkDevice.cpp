@@ -241,6 +241,31 @@ namespace en
    ProfileNoRet( vkGetPhysicalDeviceProperties(handle, &properties) )
    ProfileNoRet( vkGetPhysicalDeviceMemoryProperties(handle, &memory) )
 
+    for(uint32_t i=0; i<memory.memoryHeapCount; ++i)
+       {
+       printf("Memory range %i:\n\n", i);
+       printf("    Size          : %u\n", memory.memoryHeaps[i].size);
+       printf("    Backing memory: %s\n", memory.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT ? "VRAM" : "RAM");
+       printf("    Memory types  :\n");
+       for(uint32_t j=0; j<memory.memoryTypeCount; ++j)
+          if (memory.memoryTypes[j].heapIndex == i)
+             {
+             printf("    Type: %i\n", j);
+             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+                printf("        Supports: VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT\n");
+             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+                printf("        Supports: VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT\n");
+             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+                printf("        Supports: VK_MEMORY_PROPERTY_HOST_COHERENT_BIT\n");
+             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
+                printf("        Supports: VK_MEMORY_PROPERTY_HOST_CACHED_BIT\n\n\n"); 
+             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+                printf("        Supports: VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT\n\n\n"); 
+             }
+
+       }
+
+
  // TODO: Gather even more information
  //Profile( vkGetPhysicalDeviceFormatProperties(handle, VkFormat format, VkFormatProperties* pFormatProperties) )
  //Profile( vkGetPhysicalDeviceImageFormatProperties(handle, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties) )
@@ -396,7 +421,7 @@ namespace en
    deviceInfo.pNext                     = nullptr;
    deviceInfo.flags                     = 0;                     // Reserved
    deviceInfo.queueCreateInfoCount      = queueFamiliesCount;
-   deviceInfo.pQueueCreateInfos         = queueInfo;
+   deviceInfo.pQueueCreateInfos         = queueFamilyInfo;
    deviceInfo.enabledLayerCount         = layersCount;
    deviceInfo.ppEnabledLayerNames       = layersCount          ? reinterpret_cast<const char*const*>(layersPtrs) : nullptr;
    deviceInfo.enabledExtensionCount     = totalExtensionsCount;
@@ -441,6 +466,7 @@ namespace en
 
    // Vulkan 1.0
    //
+#if 0 // TODO: Do we need to bind device functions, or are they auto init by loader ??
    bindDeviceFunction( DestroyInstance );
    bindDeviceFunction( GetPhysicalDeviceFeatures );
    bindDeviceFunction( GetPhysicalDeviceFormatProperties );
@@ -497,7 +523,6 @@ namespace en
    bindDeviceFunction( DestroyImageView );
    bindDeviceFunction( CreateShaderModule );
    bindDeviceFunction( DestroyShaderModule );
-
    bindDeviceFunction( CreatePipelineCache );
    bindDeviceFunction( DestroyPipelineCache );
    bindDeviceFunction( GetPipelineCacheData );
@@ -574,18 +599,19 @@ namespace en
    bindDeviceFunction( CmdNextSubpass );
    bindDeviceFunction( CmdEndRenderPass );
    bindDeviceFunction( CmdExecuteCommands );
-
    bindDeviceFunction( CreateSwapchainKHR );
    bindDeviceFunction( DestroySwapchainKHR );
    bindDeviceFunction( GetSwapchainImagesKHR );
    bindDeviceFunction( AcquireNextImageKHR );
    bindDeviceFunction( QueuePresentKHR );
+#endif
    }
 
    void VulkanDevice::unbindDeviceFunctionPointers(void)
    {
    // Vulkan 1.0
    //
+#if 0 // TODO: Do we need to bind device functions, or are they auto init by loader ??
    vkCreateInstance                               = nullptr;
    vkDestroyInstance                              = nullptr;
    vkEnumeratePhysicalDevices                     = nullptr;
@@ -722,180 +748,12 @@ namespace en
    vkCmdNextSubpass                               = nullptr;
    vkCmdEndRenderPass                             = nullptr;
    vkCmdExecuteCommands                           = nullptr;
+#endif
    }
 
 
 
 
-
-   VkDeviceMemory VulkanDevice::allocMemory(VkMemoryRequirements requirements, VkFlags properties)
-   {
-   VkDeviceMemory handle;
-
-   // Find Memory Type that best suits required allocation
-   uint32 index = VK_MAX_MEMORY_TYPES;
-   for(uint32 i=0; i<memory.memoryTypeCount; ++i)
-      {
-      // Memory Type needs to be able to support requested allocation
-      if (checkBit(requirements.memoryTypeBits, (i+1)))
-         // Memory Type needs to support at least requested sub-set of memory properties
-         if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
-            index = i;
-
-      // If this memory type cannot be used to allocate requested resource, continue search
-      if (index == VK_MAX_MEMORY_TYPES)
-         continue;
-
-      // Try to allocate memory on Heap supporting this memory type
-      VkMemoryAllocateInfo allocInfo;
-      allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-      allocInfo.pNext           = nullptr;
-      allocInfo.allocationSize  = requirements.size;
-      allocInfo.memoryTypeIndex = index;
-      
-      Profile( vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
-	  if (lastResult == VK_SUCCESS)
-         return handle;
-      }
-
-   // FAIL
-   return handle;
-   }
-
-
-// typedef struct {
-//     VkDeviceSize                                size;
-//     VkDeviceSize                                alignment;
-//     uint32_t                                    memoryTypeBits;
-// } VkMemoryRequirements;
-// 
-// 
-// - Heaps are fixed up front.
-// - Their amount and types is vendor / gpu / driver dependent.
-// - We alloc memory on given cheap by referring to Memory Type ID -> which points at given heap. (see below).
-// 
-// Acquire GPU heaps count an types available :
-// 
-// 	void vkGetPhysicalDeviceMemoryProperties(
-// 	    VkPhysicalDevice physicalDevice, 
-// 	    VkPhysicalDeviceMemoryProperties* pMemoryProperties);
-// 
-// 	#define VK_MAX_MEMORY_TYPES               32
-// 	#define VK_MAX_MEMORY_HEAPS               16
-// 
-// 	typedef struct {
-// 	    uint32_t                   memoryTypeCount;
-// 	    VkMemoryType               memoryTypes[VK_MAX_MEMORY_TYPES];
-// 	    uint32_t                   memoryHeapCount;
-// 	    VkMemoryHeap               memoryHeaps[VK_MAX_MEMORY_HEAPS];
-// 	} VkPhysicalDeviceMemoryProperties;
-// 
-// 
-// 
-// 
-// 
-// Memory Heap:
-// 
-// 	// size is uint64
-// 	typedef struct {
-// 	    VkDeviceSize               size;
-// 	    VkMemoryHeapFlags          flags;
-// 	} VkMemoryHeap;
-// 
-// 	typedef enum {
-// 	    VK_MEMORY_HEAP_HOST_LOCAL_BIT = 0x00000001,
-// 	} VkMemoryHeapFlagBits;
-// 	typedef VkFlags VkMemoryHeapFlags;
-// 
-// 
-// Memory Type:
-// 
-// 	// heapIndex - refers to memoryHeaps[] array above
-// 	typedef struct {
-// 	    VkMemoryPropertyFlags                       propertyFlags;
-// 	    uint32_t                                    heapIndex;   
-// 	} VkMemoryType;
-// 
-// 	typedef enum {
-// 	    VK_MEMORY_PROPERTY_DEVICE_ONLY = 0,
-// 	    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT = 0x00000001,
-// 	    VK_MEMORY_PROPERTY_HOST_NON_COHERENT_BIT = 0x00000002,
-// 	    VK_MEMORY_PROPERTY_HOST_UNCACHED_BIT = 0x00000004,
-// 	    VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT = 0x00000008,
-// 	} VkMemoryPropertyFlagBits;
-// 	typedef VkFlags VkMemoryPropertyFlags;
-// 
-// When allocating resource, you pass MemoryType ID in the array, and through it, Driver picks Heap to use.
-// 
-// 
-// Query memory layout for given resource:
-// 
-// 	void VKAPI vkGetBufferMemoryRequirements(
-// 	    VkDevice                                    device,
-// 	    VkBuffer                                    buffer,
-// 	    VkMemoryRequirements*                       pMemoryRequirements);
-// 	
-// 	void VKAPI vkGetImageMemoryRequirements(
-// 	    VkDevice                                    device,
-// 	    VkImage                                     image,
-// 	    VkMemoryRequirements*                       pMemoryRequirements);
-// 	
-// 	void VKAPI vkGetImageSparseMemoryRequirements(
-// 	    VkDevice                                    device,
-// 	    VkImage                                     image,
-// 	    uint32_t*                                   pNumRequirements,
-// 	    VkSparseImageMemoryRequirements*            pSparseMemoryRequirements);
-// 
-// Returns simple size/offset + bits :
-// 
-// 	typedef struct {
-// 	    VkDeviceSize                                size;
-// 	    VkDeviceSize                                alignment;
-// 	    uint32_t                                    memoryTypeBits;
-// 	} VkMemoryRequirements;
-// 	
-// 	typedef struct {
-// 	    VkSparseImageFormatProperties               formatProps;
-// 	    uint32_t                                    imageMipTailStartLOD;
-// 	    VkDeviceSize                                imageMipTailSize;
-// 	    VkDeviceSize                                imageMipTailOffset;
-// 	    VkDeviceSize                                imageMipTailStride;
-// 	} VkSparseImageMemoryRequirements;
-// 
-// 
-// So we alloc memory :
-// 
-// 	VkResult VKAPI vkAllocMemory(
-// 	    VkDevice                                    device,
-// 	    const VkMemoryAllocInfo*                    pAllocInfo,
-// 	    VkDeviceMemory*                             pMem);
-// 	
-// 	// memoryTypeIndex <—— alloc by pointing on MEMORY TYPE ID 
-// 	typedef struct {
-// 	    VkStructureType                             sType;
-// 	    const void*                                 pNext;
-// 	    VkDeviceSize                                allocationSize;
-// 	    uint32_t                                    memoryTypeIndex;
-// 	} VkMemoryAllocInfo;
-// 
-// Then we can bind it to resource description/handle to given memory block range:
-// 
-// 	VkResult VKAPI vkBindBufferMemory(
-// 	    VkDevice                                    device,
-// 	    VkBuffer                                    buffer,
-// 	    VkDeviceMemory                              mem,
-// 	    VkDeviceSize                                memOffset);
-// 	
-// 	VkResult VKAPI vkBindImageMemory(
-// 	    VkDevice                                    device,
-// 	    VkImage                                     image,
-// 	    VkDeviceMemory                              mem,
-// 	    VkDeviceSize                                memOffset);
-// 
-// 
-// So it looks like in Vulkan (VkDeviceMemory == Heap in D3D12/Metal) while Vulkan Heaps are even bigger concept.
-// We do allocations on the Heap, but then we can freely bind Resource Handles to different Memory regions.
-// There are also functions for mapping/unmapping/invalidating memory etc.
 
 
 
@@ -1044,9 +902,9 @@ namespace en
    instInfo.pNext                     = nullptr;
    instInfo.flags                     = 0;                     // TODO: VkInstanceCreateFlags
    instInfo.pApplicationInfo          = &appInfo;
-   instInfo.enabledLayerNameCount     = enabledLayersCount;
+   instInfo.enabledLayerCount         = enabledLayersCount;
    instInfo.ppEnabledLayerNames       = enabledLayersCount     ? reinterpret_cast<const char*const*>(layersPtrs) : nullptr;
-   instInfo.enabledExtensionNameCount = enabledExtensionsCount;
+   instInfo.enabledExtensionCount     = enabledExtensionsCount;
    instInfo.ppEnabledExtensionNames   = enabledExtensionsCount ? reinterpret_cast<const char*const*>(extensionPtrs) : nullptr;
 
    // TODO: Needs to have separate aloc callbacks for API
@@ -1060,7 +918,7 @@ namespace en
    // Create interfaces for all available physical devices
    device = new Ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
-      device[i] = new VulkanDevice(*tempHandle);
+      device[i] = Ptr<VulkanDevice>(new VulkanDevice(*tempHandle));
  
    // Bind Interface functions
    bindInterfaceFunctionPointers();

@@ -164,7 +164,7 @@ do
 {
 oldValue = *dst;
 }
-while (__sync_val_compare_and_swap(dst, oldValue, value) != oldValue);
+while(__sync_val_compare_and_swap(dst, oldValue, value) != oldValue);
 return oldValue;
 // No memory barrier variant:
 // return __atomic_swap(value, (volatile int*)dst);
@@ -181,12 +181,43 @@ do
 {
 oldValue = *dst;
 }
-while (!OSAtomicCompareAndSwap32Barrier(oldValue, value, (volatile int32_t*)dst));
+while(!OSAtomicCompareAndSwap32Barrier(oldValue, value, (volatile int32_t*)dst));
 return oldValue;
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
 return InterlockedExchange(dst, value);
+#endif
+
+assert(0);
+return 0;
+}
+
+// Swaps value of pointed memory location with new one.
+// Generates full memory barrier. Returns old value.
+forceinline uint64 AtomicSwap(volatile uint64* dst, uint64 value)
+{
+#ifdef EN_PLATFORM_ANDROID
+// It is not supported on Android.
+#endif
+
+#ifdef EN_PLATFORM_BLACKBERRY
+// It is not supported on BlackBerry.
+#endif
+
+#ifdef EN_PLATFORM_OSX
+// Software implementation
+uint64 oldValue;
+do
+{
+oldValue = *dst;
+}
+while(!OSAtomicCompareAndSwap64Barrier(oldValue, value, (volatile int64_t*)dst));
+return oldValue;
+#endif
+
+#ifdef EN_PLATFORM_WINDOWS
+return InterlockedExchange64((volatile LONGLONG*)dst, value);
 #endif
 
 assert(0);

@@ -36,6 +36,10 @@ namespace en
    #define checkBits(number, bitMask)  (number & bitMask)
    #define getBit(number, bit)    (number & (1 << bit))
    
+   #define clearBitmask(number, bitmask)  (number &= ~bitmask)
+   #define copyBitmask(destination, source, bitmask)  destination = (destination & ~bitmask) | (source & bitmask)
+
+
    // Bit query
    #define bitChanged(previous, current, bit) (checkBit(current, bit) != checkBit(previous, bit))
    #define bitsChanged(previous, current, bitMask) ((current & bitMask) != (previous & bitMask))

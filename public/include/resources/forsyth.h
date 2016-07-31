@@ -16,11 +16,13 @@
 #include "core/defines.h"
 #include "core/types.h"
 
+#include <vector>
+
 namespace en
 {
    namespace Forsyth
    {
-   void optimize(const vector<uint32>& input, vector<uint32>& output, uint32 vertexes);
+   //void optimize(const std::vector<uint32>& input, std::vector<uint32>& output, uint32 vertexes);
    }
 }
 

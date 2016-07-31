@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/mtlTexture.h"
+#include "core/rendering/metal/mtlDevice.h"
 #include "utilities/utilities.h"
 
 using namespace en;
@@ -71,314 +72,6 @@ namespace en
    //  MTLFeatureSet_OSX_GPUFamily1_v1 // Metal 1.0 OSX
 
 #endif
-
-   struct TextureInfoMTL
-      {
-      Nversion supported;    // Supported as texture
-      Nversion rendertarget; // Can be used as rendertarget
-      };
-     
-#ifdef EN_DISCRETE_GPU
-
-
-   // TODO: Populate these fields !
-   // https://developer.apple.com/library/ios/documentation/Miscellaneous/Conceptual/MetalProgrammingGuide/MetalFeatureSetTables/MetalFeatureSetTables.html
-   
-   // Last verified for <???>
-/*
-   // Support of different texture capabilities in Metal specification
-   // (this values can be later overriden in general capabilities table by specific extensions used by engine)
-   static const TextureInfoMTL TextureCapabilitiesMTL[TextureFormatsCount] =
-      {
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatUnsupported         
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_8                 
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatR_8_sn              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_8_u               
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_8_s               
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_16                
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatR_16_sn             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_16_u              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_16_s              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_16_hf             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_32_u              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_32_s              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatR_32_f              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_8                
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRG_8_sn             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_8_u              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_8_s              
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_16               
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRG_16_sn            
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_16_u             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_16_s             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_16_hf            
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_32_u             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_32_s             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRG_32_f             
-      OpenGL_1_0,         OpenGL_Unsupported,   // FormatRGB_8   
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_8_sRGB              
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRGB_8_sn            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_8_u             
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_8_s                     
-      OpenGL_1_0,         OpenGL_Unsupported,   // FormatRGB_16              
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRGB_16_sn           
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_16_u            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_16_s            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_16_hf           
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_32_u            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_32_s            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatRGB_32_f    
-      OpenGL_1_0,         OpenGL_3_0,           // FormatRGBA_8                      
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_8_sRGB
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRGBA_8_sn           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_8_u            
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_8_s     
-      OpenGL_1_0,         OpenGL_3_0,           // FormatRGBA_16             
-      OpenGL_3_1,         OpenGL_Unsupported,   // FormatRGBA_16_sn          
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_16_u           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_16_s           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_16_hf          
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_32_u           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_32_s           
-      OpenGL_3_0,         OpenGL_3_0,           // FormatRGBA_32_f           
-      OpenGL_1_4,         OpenGL_3_0,           // FormatD_16                
-      OpenGL_1_4,         OpenGL_3_0,           // FormatD_24                  
-      OpenGL_1_4,         OpenGL_3_0,           // FormatD_32
-      OpenGL_3_0,         OpenGL_3_0,           // FormatD_32_f              
-      OpenGL_4_4,         OpenGL_4_3,           // FormatS_8                 
-      OpenGL_3_0,         OpenGL_3_0,           // FormatSD_8_24             
-      OpenGL_3_0,         OpenGL_3_0,           // FormatSD_8_32_f                   
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatRGB_5_6_5           
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGR_5_6_5           
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGR_8               
-      OpenGL_3_0,         OpenGL_3_0,           // FormatBGR_10_11_11_f      
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatEBGR_5_9_9_9_f      
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGR_16              
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatRGBA_5_5_5_1        
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGRA_5_5_5_1        
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatARGB_1_5_5_5        
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatABGR_1_5_5_5        
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatABGR_8              
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatARGB_8              
-      OpenGL_1_2,         OpenGL_Unsupported,   // FormatBGRA_8              
-      OpenGL_1_2,         OpenGL_3_0,           // FormatRGBA_10_10_10_2     
-      OpenGL_3_3,         OpenGL_3_3,           // FormatRGBA_10_10_10_2_u   
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC1_RGB
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC1_RGB_sRGB
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC1_RGBA
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC1_RGBA_sRGB
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatBC2_RGBA_pRGB       
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC2_RGBA
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC2_RGBA_sRGB
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatBC3_RGBA_pRGB       
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC3_RGBA
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC3_RGBA_sRGB       
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC4_R               
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC4_R_sn            
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC5_RG              
-      OpenGL_3_0,         OpenGL_Unsupported,   // FormatBC5_RG_sn           
-      OpenGL_4_2,         OpenGL_Unsupported,   // FormatBC6H_RGB_f          
-      OpenGL_4_2,         OpenGL_Unsupported,   // FormatBC6H_RGB_uf         
-      OpenGL_4_2,         OpenGL_Unsupported,   // FormatBC7_RGBA            
-      OpenGL_4_2,         OpenGL_Unsupported,   // FormatBC7_RGBA_sRGB       
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_R_11           
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_R_11_sn        
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RG_11          
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RG_11_sn       
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGB_8          
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGB_8_sRGB     
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGBA_8         
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGBA_8_sRGB    
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGB8_A1        
-      OpenGL_4_3,         OpenGL_Unsupported,   // FormatETC2_RGB8_A1_sRGB   
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGB_2         
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGB_2_sRGB    
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGB_4         
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGB_4_sRGB    
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGBA_2        
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGBA_2_sRGB   
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGBA_4        
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatPVRTC_RGBA_4_sRGB   
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_4x4            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_5x4            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_5x5            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_6x5            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_6x6            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x5            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x6            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x8            
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x5           
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x6           
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x8           
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x10          
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_12x10          
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_12x12          
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_4x4_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_5x4_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_5x5_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_6x5_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_6x6_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x5_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x6_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_8x8_sRGB       
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x5_sRGB      
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x6_sRGB      
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x8_sRGB      
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_10x10_sRGB     
-      OpenGL_Unsupported, OpenGL_Unsupported,   // FormatASTC_12x10_sRGB     
-      OpenGL_Unsupported, OpenGL_Unsupported    // FormatASTC_12x12_sRGB     
-      };
-*/
-#elif EN_MOBILE_GPU
-
-   // Last verified for <???>
-/*
-   // Support of different texture capabilities in Metal specification
-   // (this values can be later overriden in general capabilities table by specific extensions used by engine)
-   static const TextureInfoMTL TextureCapabilitiesMTL[TextureFormatsCount] =
-      {
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatUnsupported         
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatR_8                 
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatR_8_sn              
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatR_8_u               
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatR_8_s               
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatR_16                
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatR_16_sn             
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatR_16_u              
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatR_16_s              
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatR_16_hf             
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatR_32_u              
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatR_32_s              
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatR_32_f              
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRG_8                
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRG_8_sn             
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRG_8_u              
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRG_8_s              
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatRG_16               
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatRG_16_sn            
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRG_16_u             
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRG_16_s             
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRG_16_hf            
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRG_32_u             
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRG_32_s             
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRG_32_f             
-      OpenGL_ES_1_0,         OpenGL_ES_3_0,           // FormatRGB_8   
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_8_sRGB              
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_8_sn            
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_8_u             
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_8_s                     
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatRGB_16              
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatRGB_16_sn           
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_16_u            
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_16_s            
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_16_hf           
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_32_u            
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_32_s            
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGB_32_f    
-      OpenGL_ES_1_0,         OpenGL_ES_3_0,           // FormatRGBA_8                      
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRGBA_8_sRGB
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGBA_8_sn           
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRGBA_8_u            
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRGBA_8_s     
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatRGBA_16             
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatRGBA_16_sn          
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRGBA_16_u           
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRGBA_16_s           
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGBA_16_hf          
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRGBA_32_u           
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRGBA_32_s           
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatRGBA_32_f           
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatD_16                
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatD_24                  
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatD_32                
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatD_32_f              
-      OpenGL_ES_3_1,         OpenGL_ES_Unsupported,   // FormatS_8                 
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatSD_8_24             
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatSD_8_32_f                   
-      OpenGL_ES_3_0,         OpenGL_ES_3_0,           // FormatRGB_5_6_5           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBGR_5_6_5           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBGR_8               
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatBGR_10_11_11_f      
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatEBGR_5_9_9_9_f      
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBGR_16              
-      OpenGL_ES_1_0,         OpenGL_ES_3_0,           // FormatRGBA_5_5_5_1        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBGRA_5_5_5_1        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatARGB_1_5_5_5        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatABGR_1_5_5_5        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatABGR_8              
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatARGB_8              
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBGRA_8              
-      OpenGL_ES_Unsupported, OpenGL_ES_3_0,           // FormatRGBA_10_10_10_2      (upload is reversed !!)
-      OpenGL_ES_Unsupported, OpenGL_ES_3_0,           // FormatRGBA_10_10_10_2_u    (upload is reversed !!)
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC1_RGB             
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC1_RGB_sRGB        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC1_RGBA            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC1_RGBA_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC2_RGBA_pRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC2_RGBA            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC2_RGBA_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC3_RGBA_pRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC3_RGBA            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC3_RGBA_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC4_R               
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC4_R_sn            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC5_RG              
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC5_RG_sn           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC6H_RGB_f          
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC6H_RGB_uf         
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC7_RGBA            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatBC7_RGBA_sRGB       
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_R_11           
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_R_11_sn        
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RG_11          
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RG_11_sn       
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGB_8          
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGB_8_sRGB     
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGBA_8         
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGBA_8_sRGB    
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGB8_A1        
-      OpenGL_ES_3_0,         OpenGL_ES_Unsupported,   // FormatETC2_RGB8_A1_sRGB   
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGB_2         
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGB_2_sRGB    
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGB_4         
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGB_4_sRGB    
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGBA_2        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGBA_2_sRGB   
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGBA_4        
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatPVRTC_RGBA_4_sRGB   
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_4x4            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_5x4            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_5x5            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_6x5            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_6x6            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x5            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x6            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x8            
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x5           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x6           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x8           
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x10          
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_12x10          
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_12x12          
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_4x4_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_5x4_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_5x5_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_6x5_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_6x6_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x5_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x6_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_8x8_sRGB       
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x5_sRGB      
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x6_sRGB      
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x8_sRGB      
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_10x10_sRGB     
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported,   // FormatASTC_12x10_sRGB     
-      OpenGL_ES_Unsupported, OpenGL_ES_Unsupported    // FormatASTC_12x12_sRGB     
-      };
-*/
-
-#endif
-
 #endif
 
    static const MTLTextureType TranslateTextureType[underlyingType(TextureType::Count)] =
@@ -745,7 +438,16 @@ namespace en
    desc.arrayLength      = state.layers;                // [1..2048]
    desc.cpuCacheMode     = MTLCPUCacheModeDefaultCache; // or MTLCPUCacheModeWriteCombined
    desc.storageMode      = MTLStorageModePrivate;       // We try to keep all textures in GPU memory
-   
+   desc.usage            = MTLTextureUsageUnknown;
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::ShaderRead)))
+      desc.usage        |= MTLTextureUsageShaderRead;
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::ShaderWrite)))
+      desc.usage        |= MTLTextureUsageShaderWrite;
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
+      desc.usage        |= MTLTextureUsageRenderTarget;
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::MultipleViews)))
+      desc.usage        |= MTLTextureUsagePixelFormatView;
+      
    handle = [device newTextureWithDescriptor:desc];
    [desc release];
 
@@ -877,6 +579,15 @@ namespace en
    }
 #endif
 
+   Ptr<Texture> MetalDevice::create(const TextureState state)
+   {
+   Ptr<Texture> texture = nullptr;
+   
+   texture = ptr_dynamic_cast<Texture, TextureMTL>(new TextureMTL(device, state));
+   
+   return texture;
+   }
+   
    }
 }
 #endif

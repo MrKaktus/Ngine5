@@ -27,11 +27,13 @@ namespace en
 {
    namespace gpu
    {
-   // It's tightly attached to Render Command Encoder, because there is only one Viewport.
    class ViewportStateMTL : public ViewportState
       {
+      public:
       MTLViewport viewport;
+      MTLScissorRect scissor;
 
+      ViewportStateMTL();
       ViewportStateMTL(const uint32 count,
                        const ViewportStateInfo* viewports,
                        const ScissorStateInfo* scissors);

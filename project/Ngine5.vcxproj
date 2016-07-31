@@ -16,8 +16,11 @@
     <ClCompile Include="..\src\core\log\log.cpp" />
     <ClCompile Include="..\src\core\rendering\api.cpp" />
     <ClCompile Include="..\src\core\rendering\buffer.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cTexture.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\device.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\heap.cpp" />
     <ClCompile Include="..\src\core\rendering\common\inputAssembler.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Blend.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12DepthStencil.cpp" />
@@ -37,6 +40,10 @@
     <ClCompile Include="..\src\core\rendering\opengl\gl40Framebuffer.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\gl43Texture.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\gl45Framebuffer.cpp" />
+    <ClCompile Include="..\src\core\rendering\opengl\glBlend.cpp" />
+    <ClCompile Include="..\src\core\rendering\opengl\glBuffer.cpp" />
+    <ClCompile Include="..\src\core\rendering\opengl\glDevice.cpp" />
+    <ClCompile Include="..\src\core\rendering\opengl\glInputAssembler.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glState.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\opengl.cpp" />
@@ -67,6 +74,7 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkDepthStencil.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkDevice.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkHeap.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkInputAssembler.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkMultisampling.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkPipeline.cpp" />
@@ -159,6 +167,7 @@
     <ClInclude Include="..\public\include\core\rendering\device.h" />
     <ClInclude Include="..\public\include\core\rendering\framebuffer.h" />
     <ClInclude Include="..\public\include\core\rendering\gpu.h" />
+    <ClInclude Include="..\public\include\core\rendering\heap.h" />
     <ClInclude Include="..\public\include\core\rendering\inputAssembler.h" />
     <ClInclude Include="..\public\include\core\rendering\multisampling.h" />
     <ClInclude Include="..\public\include\core\rendering\pipeline.h" />
@@ -261,6 +270,9 @@
     <ClInclude Include="..\src\core\configuration.h" />
     <ClInclude Include="..\src\core\config\context.h" />
     <ClInclude Include="..\src\core\log\context.h" />
+    <ClInclude Include="..\src\core\rendering\common\buffer.h" />
+    <ClInclude Include="..\src\core\rendering\common\device.h" />
+    <ClInclude Include="..\src\core\rendering\common\heap.h" />
     <ClInclude Include="..\src\core\rendering\common\inputAssembler.h" />
     <ClInclude Include="..\src\core\rendering\common\sampler.h" />
     <ClInclude Include="..\src\core\rendering\common\texture.h" />
@@ -293,6 +305,11 @@
     <ClInclude Include="..\src\core\rendering\opengl\gl40Framebuffer.h" />
     <ClInclude Include="..\src\core\rendering\opengl\gl43Texture.h" />
     <ClInclude Include="..\src\core\rendering\opengl\gl45Framebuffer.h" />
+    <ClInclude Include="..\src\core\rendering\opengl\glBlend.h" />
+    <ClInclude Include="..\src\core\rendering\opengl\glBuffer.h" />
+    <ClInclude Include="..\src\core\rendering\opengl\glCache.h" />
+    <ClInclude Include="..\src\core\rendering\opengl\glDevice.h" />
+    <ClInclude Include="..\src\core\rendering\opengl\glInputAssembler.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glState.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glTexture.h" />
     <ClInclude Include="..\src\core\rendering\opengl\opengl.h" />
@@ -315,6 +332,7 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkBlend.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkDepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkDevice.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkHeap.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkInputAssembler.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkMultisampling.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkPipeline.h" />

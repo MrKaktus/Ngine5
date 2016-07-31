@@ -11,7 +11,7 @@
 
 #include "core/storage.h"
 #include "core/log/log.h"
-//#include "core/rendering/rendering.h"
+#include "core/rendering/device.h"
 #include "utilities/utilities.h"
 #include "resources/context.h"
 #include "resources/tga.h"    
@@ -96,9 +96,10 @@ namespace en
    textureState.width  = header.width;
    textureState.height = header.height;
    textureState.type   = gpu::TextureType::Texture2D;
-   if (Gpu.support.texture.type(gpu::TextureType::Texture1D))
-      if (header.height == 1)
-         textureState.type = gpu::TextureType::Texture1D;
+   // We shouldn't dynamically switch between 1D and 2D textures in TGA, always use 2D here
+   //if (Gpu.support.texture.type(gpu::TextureType::Texture1D))
+   //   if (header.height == 1)
+   //      textureState.type = gpu::TextureType::Texture1D;
     
    if (header.bpp == 24)
       textureState.format = gpu::Format::BGR_8;
@@ -231,9 +232,10 @@ namespace en
    textureState.width  = header.width;
    textureState.height = header.height;
    textureState.type   = gpu::TextureType::Texture2D;
-   if (Gpu.support.texture.type(gpu::TextureType::Texture1D))
-      if (header.height == 1)
-         textureState.type = gpu::TextureType::Texture1D;
+   // We shouldn't dynamically switch between 1D and 2D textures in TGA, always use 2D here
+   //if (Gpu.support.texture.type(gpu::TextureType::Texture1D))
+   //   if (header.height == 1)
+   //      textureState.type = gpu::TextureType::Texture1D;
     
    if (header.bpp == 24)
       textureState.format = gpu::Format::BGR_8;
@@ -248,7 +250,7 @@ namespace en
       }
 
    // Create texture
-   Ptr<gpu::Texture> texture = Gpu.texture.create(textureState);
+   Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(textureState);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture object!\n";

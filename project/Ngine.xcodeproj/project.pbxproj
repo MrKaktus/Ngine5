@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8508B68A1CF00A7E00454423 /* mtlShader.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8508B6891CF00A7E00454423 /* mtlShader.mm */; };
+		8508B68C1CF00B7800454423 /* mtlShader.h in Headers */ = {isa = PBXBuildFile; fileRef = 8508B68B1CF00B7800454423 /* mtlShader.h */; };
+		8508B68E1CF133E300454423 /* osxStorage.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8508B68D1CF133E300454423 /* osxStorage.mm */; };
+		851A8E931CC5399100272F88 /* mtlBuffer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 851A8E921CC5399100272F88 /* mtlBuffer.mm */; };
+		851A8E951CC539D800272F88 /* mtlBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 851A8E941CC539D800272F88 /* mtlBuffer.h */; };
+		851A8EB91CC5A4AD00272F88 /* vkBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 851A8EB81CC5A4AD00272F88 /* vkBuffer.cpp */; };
+		851A8EBB1CC5A4F600272F88 /* vkBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 851A8EBA1CC5A4F600272F88 /* vkBuffer.h */; };
 		856E9C941CB874B800875662 /* mtlPipeline.mm in Sources */ = {isa = PBXBuildFile; fileRef = 856E9C931CB874B800875662 /* mtlPipeline.mm */; };
 		856E9C961CB8753000875662 /* mtlPipeline.h in Headers */ = {isa = PBXBuildFile; fileRef = 856E9C951CB8753000875662 /* mtlPipeline.h */; };
 		856E9C971CB8C97200875662 /* mtlBlend.h in Headers */ = {isa = PBXBuildFile; fileRef = 859179CB1C3F66120051382A /* mtlBlend.h */; };
@@ -14,6 +21,14 @@
 		856E9C9B1CBC9B5200875662 /* mtlMultisampling.h in Headers */ = {isa = PBXBuildFile; fileRef = 856E9C9A1CBC9B5200875662 /* mtlMultisampling.h */; };
 		856E9C9D1CBCB45000875662 /* mtlRaster.h in Headers */ = {isa = PBXBuildFile; fileRef = 856E9C9C1CBCB45000875662 /* mtlRaster.h */; };
 		856E9C9F1CBCB4D800875662 /* mtlRaster.mm in Sources */ = {isa = PBXBuildFile; fileRef = 856E9C9E1CBCB4D800875662 /* mtlRaster.mm */; };
+		85846D761CE6D1D000E06629 /* glBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85846D751CE6D1D000E06629 /* glBuffer.cpp */; };
+		85846D781CE779CF00E06629 /* buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85846D771CE779CF00E06629 /* buffer.cpp */; };
+		85846D7A1CE77B6100E06629 /* glBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 85846D791CE77B4E00E06629 /* glBuffer.h */; };
+		85846D7C1CE7814D00E06629 /* glDevice.h in Headers */ = {isa = PBXBuildFile; fileRef = 85846D7B1CE7814D00E06629 /* glDevice.h */; };
+		85846D7E1CE7825C00E06629 /* glDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85846D7D1CE7825C00E06629 /* glDevice.cpp */; };
+		85846D801CE7875000E06629 /* buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 85846D7F1CE7875000E06629 /* buffer.h */; };
+		85846D831CE8DA5100E06629 /* glInputAssembler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85846D811CE8DA5100E06629 /* glInputAssembler.cpp */; };
+		85846D841CE8DA5100E06629 /* glInputAssembler.h in Headers */ = {isa = PBXBuildFile; fileRef = 85846D821CE8DA5100E06629 /* glInputAssembler.h */; };
 		8591790D1C3F64750051382A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178EE1C3EC7680051382A /* libz.dylib */; };
 		8591790E1C3F64800051382A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178EC1C3EC3960051382A /* OpenAL.framework */; };
 		859179101C3F648C0051382A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8591790F1C3F648C0051382A /* OpenGL.framework */; };
@@ -175,6 +190,7 @@
 		85917C921C408C9F0051382A /* threading in Headers */ = {isa = PBXBuildFile; fileRef = 85917C861C408C9F0051382A /* threading */; settings = {ATTRIBUTES = (Public, ); }; };
 		85917C931C408C9F0051382A /* threading.h in Headers */ = {isa = PBXBuildFile; fileRef = 85917C871C408C9F0051382A /* threading.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		85917C941C408C9F0051382A /* utilities in Headers */ = {isa = PBXBuildFile; fileRef = 85917C881C408C9F0051382A /* utilities */; settings = {ATTRIBUTES = (Public, ); }; };
+		8598FD861CF1523600F97D1D /* osxStrings.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8598FD851CF1523600F97D1D /* osxStrings.mm */; };
 		859A39BF1CA6537B00CC4173 /* osxInput.h in Headers */ = {isa = PBXBuildFile; fileRef = 859A39BE1CA6537B00CC4173 /* osxInput.h */; };
 		859A39C11CA78E1900CC4173 /* common.h in Headers */ = {isa = PBXBuildFile; fileRef = 859A39C01CA78E1900CC4173 /* common.h */; };
 		859A39C31CA7AA5B00CC4173 /* andInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859A39C21CA7AA5B00CC4173 /* andInput.cpp */; };
@@ -189,6 +205,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8508B6891CF00A7E00454423 /* mtlShader.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlShader.mm; sourceTree = "<group>"; };
+		8508B68B1CF00B7800454423 /* mtlShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlShader.h; sourceTree = "<group>"; };
+		8508B68D1CF133E300454423 /* osxStorage.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxStorage.mm; sourceTree = "<group>"; };
+		851A8E921CC5399100272F88 /* mtlBuffer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlBuffer.mm; sourceTree = "<group>"; };
+		851A8E941CC539D800272F88 /* mtlBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlBuffer.h; sourceTree = "<group>"; };
+		851A8EB81CC5A4AD00272F88 /* vkBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vkBuffer.cpp; sourceTree = "<group>"; };
+		851A8EBA1CC5A4F600272F88 /* vkBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vkBuffer.h; sourceTree = "<group>"; };
 		85585EE61C0A32C3002EB348 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		8568754A1BF410E400D7FD2D /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		8568754C1BF411AD00D7FD2D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -199,6 +222,14 @@
 		856E9C9A1CBC9B5200875662 /* mtlMultisampling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlMultisampling.h; sourceTree = "<group>"; };
 		856E9C9C1CBCB45000875662 /* mtlRaster.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlRaster.h; sourceTree = "<group>"; };
 		856E9C9E1CBCB4D800875662 /* mtlRaster.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlRaster.mm; sourceTree = "<group>"; };
+		85846D751CE6D1D000E06629 /* glBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glBuffer.cpp; sourceTree = "<group>"; };
+		85846D771CE779CF00E06629 /* buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = buffer.cpp; sourceTree = "<group>"; };
+		85846D791CE77B4E00E06629 /* glBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glBuffer.h; sourceTree = "<group>"; };
+		85846D7B1CE7814D00E06629 /* glDevice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glDevice.h; sourceTree = "<group>"; };
+		85846D7D1CE7825C00E06629 /* glDevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glDevice.cpp; sourceTree = "<group>"; };
+		85846D7F1CE7875000E06629 /* buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffer.h; sourceTree = "<group>"; };
+		85846D811CE8DA5100E06629 /* glInputAssembler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glInputAssembler.cpp; sourceTree = "<group>"; };
+		85846D821CE8DA5100E06629 /* glInputAssembler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glInputAssembler.h; sourceTree = "<group>"; };
 		859178EC1C3EC3960051382A /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		859178EE1C3EC7680051382A /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		859178F01C3EC8490051382A /* libfbxsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfbxsdk.a; path = "../../../../../Applications/Autodesk/FBX SDK/2015.1/lib/clang/debug/libfbxsdk.a"; sourceTree = "<group>"; };
@@ -435,6 +466,7 @@
 		85917C861C408C9F0051382A /* threading */ = {isa = PBXFileReference; lastKnownFileType = folder; path = threading; sourceTree = "<group>"; };
 		85917C871C408C9F0051382A /* threading.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = threading.h; sourceTree = "<group>"; };
 		85917C881C408C9F0051382A /* utilities */ = {isa = PBXFileReference; lastKnownFileType = folder; path = utilities; sourceTree = "<group>"; };
+		8598FD851CF1523600F97D1D /* osxStrings.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxStrings.mm; sourceTree = "<group>"; };
 		859A39BE1CA6537B00CC4173 /* osxInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = osxInput.h; sourceTree = "<group>"; };
 		859A39C01CA78E1900CC4173 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 		859A39C21CA7AA5B00CC4173 /* andInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = andInput.cpp; sourceTree = "<group>"; };
@@ -556,12 +588,14 @@
 			children = (
 				859179AA1C3F66120051382A /* cBlend.cpp */,
 				859179AB1C3F66120051382A /* cTexture.cpp */,
-				859179AC1C3F66120051382A /* inputAssembler.cpp */,
-				859179AD1C3F66120051382A /* inputAssembler.h */,
 				859179AE1C3F66120051382A /* sampler.h */,
-				859179AF1C3F66120051382A /* device.cpp */,
-				859179B01C3F66120051382A /* device.h */,
 				859179B11C3F66120051382A /* texture.h */,
+				85846D7F1CE7875000E06629 /* buffer.h */,
+				85846D771CE779CF00E06629 /* buffer.cpp */,
+				859179AD1C3F66120051382A /* inputAssembler.h */,
+				859179AC1C3F66120051382A /* inputAssembler.cpp */,
+				859179B01C3F66120051382A /* device.h */,
+				859179AF1C3F66120051382A /* device.cpp */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -590,6 +624,8 @@
 			children = (
 				859179C31C3F66120051382A /* metal.h */,
 				85DDD1151C50644B007E707D /* mtlAPI.h */,
+				851A8E941CC539D800272F88 /* mtlBuffer.h */,
+				851A8E921CC5399100272F88 /* mtlBuffer.mm */,
 				859179CB1C3F66120051382A /* mtlBlend.h */,
 				859179D01C3F66120051382A /* mtlBlend.mm */,
 				859179C61C3F66120051382A /* mtlDepthStencil.h */,
@@ -606,6 +642,8 @@
 				856E9C9E1CBCB4D800875662 /* mtlRaster.mm */,
 				859179D21C3F66120051382A /* mtlRenderPass.h */,
 				859179CF1C3F66120051382A /* mtlRenderPass.mm */,
+				8508B68B1CF00B7800454423 /* mtlShader.h */,
+				8508B6891CF00A7E00454423 /* mtlShader.mm */,
 				859179C41C3F66120051382A /* mtlSampler.h */,
 				859179CE1C3F66120051382A /* mtlSampler.mm */,
 				859179C71C3F66120051382A /* mtlTexture.h */,
@@ -619,6 +657,13 @@
 		859179D41C3F66120051382A /* opengl */ = {
 			isa = PBXGroup;
 			children = (
+				859179E51C3F66120051382A /* opengl.h */,
+				85846D791CE77B4E00E06629 /* glBuffer.h */,
+				85846D751CE6D1D000E06629 /* glBuffer.cpp */,
+				85846D821CE8DA5100E06629 /* glInputAssembler.h */,
+				85846D811CE8DA5100E06629 /* glInputAssembler.cpp */,
+				85846D7B1CE7814D00E06629 /* glDevice.h */,
+				85846D7D1CE7825C00E06629 /* glDevice.cpp */,
 				859179D51C3F66120051382A /* bind.cpp */,
 				859179D61C3F66120051382A /* extensions.cpp */,
 				859179D71C3F66120051382A /* extensions.h */,
@@ -635,7 +680,6 @@
 				859179E21C3F66120051382A /* gl43Texture.h */,
 				859179E31C3F66120051382A /* gl45Framebuffer.cpp */,
 				859179E41C3F66120051382A /* gl45Framebuffer.h */,
-				859179E51C3F66120051382A /* opengl.h */,
 				859179E61C3F66120051382A /* glState.h */,
 				859179E71C3F66120051382A /* glTexture.h */,
 				859179E81C3F66120051382A /* opengl.cpp */,
@@ -682,8 +726,10 @@
 		85917A121C3F66120051382A /* vulkan */ = {
 			isa = PBXGroup;
 			children = (
-				85917A131C3F66120051382A /* vkState.cpp */,
+				851A8EBA1CC5A4F600272F88 /* vkBuffer.h */,
+				851A8EB81CC5A4AD00272F88 /* vkBuffer.cpp */,
 				85917A141C3F66120051382A /* vkBlend.h */,
+				85917A281C3F66120051382A /* vkBlend.cpp */,
 				85917A151C3F66120051382A /* vkDepthStencil.cpp */,
 				85917A161C3F66120051382A /* vkDepthStencil.h */,
 				85917A171C3F66120051382A /* vkDevice.cpp */,
@@ -697,14 +743,14 @@
 				85917A1E1C3F66120051382A /* vkRaster.cpp */,
 				85917A1F1C3F66120051382A /* vkRaster.h */,
 				85917A201C3F66120051382A /* vkSampler.h */,
-				85917A211C3F66120051382A /* vkTexture.cpp */,
+				85917A131C3F66120051382A /* vkState.cpp */,
 				85917A221C3F66120051382A /* vkTexture.h */,
+				85917A211C3F66120051382A /* vkTexture.cpp */,
 				85917A231C3F66120051382A /* vkViewport.cpp */,
 				85917A241C3F66120051382A /* vkViewport.h */,
 				85917A251C3F66120051382A /* vulkan.cpp */,
 				85917A261C3F66120051382A /* vulkan.h */,
 				85917A271C3F66120051382A /* vulkan10.h */,
-				85917A281C3F66120051382A /* vkBlend.cpp */,
 				85917A2A1C3F66120051382A /* vkRenderPass.cpp */,
 			);
 			path = vulkan;
@@ -715,6 +761,7 @@
 			children = (
 				85917A2F1C3F66120051382A /* context.h */,
 				85917A301C3F66120051382A /* storage.cpp */,
+				8508B68D1CF133E300454423 /* osxStorage.mm */,
 			);
 			path = storage;
 			sourceTree = "<group>";
@@ -906,6 +953,7 @@
 				85917A8D1C3F66120051382A /* strings.cpp */,
 				85917A8E1C3F66120051382A /* timer.cpp */,
 				85917A8F1C3F66120051382A /* utilities.cpp */,
+				8598FD851CF1523600F97D1D /* osxStrings.mm */,
 			);
 			path = utilities;
 			sourceTree = "<group>";
@@ -986,8 +1034,12 @@
 				85917C8A1C408C9F0051382A /* core in Headers */,
 				85917C8B1C408C9F0051382A /* input in Headers */,
 				859A39C91CA7ACDA00CC4173 /* bbInput.h in Headers */,
+				85846D801CE7875000E06629 /* buffer.h in Headers */,
 				856E9C9D1CBCB45000875662 /* mtlRaster.h in Headers */,
+				85846D7C1CE7814D00E06629 /* glDevice.h in Headers */,
+				85846D841CE8DA5100E06629 /* glInputAssembler.h in Headers */,
 				85917C8C1C408C9F0051382A /* monetization in Headers */,
+				8508B68C1CF00B7800454423 /* mtlShader.h in Headers */,
 				856E9C971CB8C97200875662 /* mtlBlend.h in Headers */,
 				85917C8D1C408C9F0051382A /* Ngine.h in Headers */,
 				859A39C11CA78E1900CC4173 /* common.h in Headers */,
@@ -995,13 +1047,16 @@
 				859A39C51CA7AB4C00CC4173 /* andInput.h in Headers */,
 				859A39BF1CA6537B00CC4173 /* osxInput.h in Headers */,
 				85917C8F1C408C9F0051382A /* rendering in Headers */,
+				85846D7A1CE77B6100E06629 /* glBuffer.h in Headers */,
 				85917C901C408C9F0051382A /* resources in Headers */,
 				859A39CD1CA7AF7C00CC4173 /* winInput.h in Headers */,
 				85917C911C408C9F0051382A /* scene in Headers */,
 				85917C921C408C9F0051382A /* threading in Headers */,
 				856E9C9B1CBC9B5200875662 /* mtlMultisampling.h in Headers */,
+				851A8E951CC539D800272F88 /* mtlBuffer.h in Headers */,
 				85917C931C408C9F0051382A /* threading.h in Headers */,
 				856E9C961CB8753000875662 /* mtlPipeline.h in Headers */,
+				851A8EBB1CC5A4F600272F88 /* vkBuffer.h in Headers */,
 				85917C941C408C9F0051382A /* utilities in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1096,10 +1151,13 @@
 				85917A9E1C3F66F50051382A /* depthStencil.cpp in Sources */,
 				85917A9F1C3F66F50051382A /* framebuffer.cpp in Sources */,
 				85917AA01C3F66F50051382A /* gpu.cpp in Sources */,
+				85846D781CE779CF00E06629 /* buffer.cpp in Sources */,
 				85917AA11C3F66F50051382A /* mtlInputAssembler.mm in Sources */,
 				85917AA21C3F66F50051382A /* mtlDepthStencil.mm in Sources */,
+				8508B68E1CF133E300454423 /* osxStorage.mm in Sources */,
 				85917AA31C3F66F50051382A /* mtlDevice.mm in Sources */,
 				85CDB0941C62D023001A1FA1 /* AppDelegate.mm in Sources */,
+				8508B68A1CF00A7E00454423 /* mtlShader.mm in Sources */,
 				85917AA41C3F66F50051382A /* mtlSampler.mm in Sources */,
 				85917AA51C3F66F50051382A /* mtlRenderPass.mm in Sources */,
 				85917AA61C3F66F50051382A /* mtlBlend.mm in Sources */,
@@ -1119,6 +1177,7 @@
 				85917AB31C3F66F50051382A /* opengl13.cpp in Sources */,
 				85917AB41C3F66F50051382A /* opengl14.cpp in Sources */,
 				85917AB51C3F66F50051382A /* opengl15.cpp in Sources */,
+				8598FD861CF1523600F97D1D /* osxStrings.mm in Sources */,
 				85917AB61C3F66F50051382A /* opengl20.cpp in Sources */,
 				85917AB71C3F66F50051382A /* opengl21.cpp in Sources */,
 				85917AB81C3F66F50051382A /* opengl30.cpp in Sources */,
@@ -1132,6 +1191,7 @@
 				85917AC01C3F66F50051382A /* opengl44.cpp in Sources */,
 				85917AC11C3F66F50051382A /* opengl45.cpp in Sources */,
 				85917AC21C3F66F50051382A /* unbind.cpp in Sources */,
+				851A8E931CC5399100272F88 /* mtlBuffer.mm in Sources */,
 				85917AC31C3F66F50051382A /* glState.cpp in Sources */,
 				85917AC41C3F66F50051382A /* gl43Texture.cpp in Sources */,
 				85917AC51C3F66F50051382A /* gl33Sampler.cpp in Sources */,
@@ -1145,6 +1205,7 @@
 				85917ACC1C3F66F50051382A /* vkDepthStencil.cpp in Sources */,
 				859A39CB1CA7AF6200CC4173 /* winInput.cpp in Sources */,
 				85917ACD1C3F66F50051382A /* vkDevice.cpp in Sources */,
+				85846D7E1CE7825C00E06629 /* glDevice.cpp in Sources */,
 				85917ACE1C3F66F50051382A /* vkMultisampling.cpp in Sources */,
 				85917ACF1C3F66F50051382A /* vkPipeline.cpp in Sources */,
 				85917AD01C3F66F50051382A /* vkRaster.cpp in Sources */,
@@ -1176,6 +1237,7 @@
 				85917AE91C3F66F60051382A /* hmd.cpp in Sources */,
 				85917AEA1C3F66F60051382A /* input.cpp in Sources */,
 				85917AEB1C3F66F60051382A /* winJoystick.cpp in Sources */,
+				85846D761CE6D1D000E06629 /* glBuffer.cpp in Sources */,
 				85917AEC1C3F66F60051382A /* oculus.cpp in Sources */,
 				85917AED1C3F66F60051382A /* vive.cpp in Sources */,
 				85917AEE1C3F66F60051382A /* monetization.cpp in Sources */,
@@ -1219,6 +1281,8 @@
 				85917B121C3F66F60051382A /* cam.cpp in Sources */,
 				85917B131C3F66F60051382A /* maintask.cpp in Sources */,
 				85917B141C3F66F60051382A /* mutex.cpp in Sources */,
+				851A8EB91CC5A4AD00272F88 /* vkBuffer.cpp in Sources */,
+				85846D831CE8DA5100E06629 /* glInputAssembler.cpp in Sources */,
 				85917B151C3F66F60051382A /* task.cpp in Sources */,
 				85917B161C3F66F60051382A /* thread.cpp in Sources */,
 				85917B171C3F66F60051382A /* tls.cpp in Sources */,

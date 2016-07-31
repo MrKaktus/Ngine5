@@ -18,7 +18,10 @@
 #include "core/rendering/opengl/gl33Sampler.h"
 
 #include "core/rendering/context.h"
-#include "core/rendering/rendering.hpp"
+//#include "core/rendering/rendering.hpp"
+#include "core/rendering/device.h"
+
+#if !defined(EN_PLATFORM_OSX)
 
 namespace en
 {
@@ -261,3 +264,5 @@ namespace en
 
    }
 }
+
+#endif

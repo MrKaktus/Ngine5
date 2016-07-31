@@ -53,7 +53,7 @@ namespace en
 
          void set(const float4 tangents);
          void set(const float vFov, const float aspect);
-         Buffer wireframe(void) const;
+         Ptr<Buffer> wireframe(void) const;
          float4x4 projection(void);
          };
 

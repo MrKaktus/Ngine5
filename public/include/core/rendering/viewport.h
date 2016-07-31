@@ -34,7 +34,7 @@ namespace en
 
    typedef uint32v4 ScissorStateInfo;
 
-   class ViewportState : public SafeObject
+   class ViewportState : public SafeObject<ViewportState>
       {
       public:
       virtual ~ViewportState() {};                           // Polymorphic deletes require a virtual base destructor

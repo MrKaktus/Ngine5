@@ -18,11 +18,16 @@ using namespace std;
 #include "utilities/strings.h"
 #include "utilities/utilities.h"
 #include "utilities/gpcpu/gpcpu.h"
+#include "audio/context.h"
+
+//#include "input/context.h"
 #if defined(EN_PLATFORM_OSX)  // New dynamic Interface
 #include "input/osxInput.h"
 #endif
-#include "audio/context.h"
-#include "input/context.h"
+#if defined(EN_PLATFORM_WINDOWS)
+#include "input/winInput.h"
+#endif
+
 #include "scene/context.h"
 #include "core/rendering/context.h"
 #include "monetization/context.h"
@@ -200,7 +205,7 @@ namespace en
       Interface()
    {
    // General
-   memset(&count, 0, sizeof(uint32) * underlyingType(IO::TypesCount));
+   memset(&count, 0, sizeof(uint32) * underlyingType(IO::Count));
    keyboards.clear();
    mouses.clear();
    joysticks.clear();
@@ -211,19 +216,21 @@ namespace en
    // Clear callbacks array
    for(uint32 i=0; i<InputEventsCount; ++i)
       callback[i] = &en::state::HandleEventByState;
-      
-   // TODO: Here init SDK's like OculusSDK, OpenVR, etc.
-   
+
+   // TODO: Here init common SDK's. 
+   //       Other platform specific SDK's like OculusSDK, OpenVR, etc. are init in OS specific implementations.
    }
 
    CommonInterface::~CommonInterface()
    {
    Log << "Closing module: Input." << endl;
+
+   // TODO: Unregister all remaining common devices
    }
 
    uint8 CommonInterface::available(IO type) const
    {
-   assert( type != IO::TypesCount );
+   assert( type != IO::Count );
    return count[underlyingType(type)];
    }
    

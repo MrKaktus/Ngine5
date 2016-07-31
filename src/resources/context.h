@@ -169,7 +169,9 @@ namespace en
 
           struct Defaults
                  {
-                 gpu::Program program;            // Default program for materials
+//                 Ptr<gpu::Pipeline> pipeline;            // Default program for materials
+//                 Ptr<gpu::Shader>   vertex;
+//                 Ptr<gpu
                  Ptr<gpu::Texture> enAlbedoMap;
                  Ptr<gpu::Texture> enMetallicMap;
                  Ptr<gpu::Texture> enCavityMap;
@@ -188,7 +190,7 @@ namespace en
                  // Ptr<gpu::Texture> enNormalMap;
                  // Ptr<gpu::Texture> enDisplacementMap;
                  // Ptr<gpu::Texture> enVectorsMap;
-                 gpu::Buffer  enAxes;             // Default axes buffer
+                 Ptr<gpu::Buffer>  enAxes;             // Default axes buffer
 
                  Defaults();
                 ~Defaults();

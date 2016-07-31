@@ -1515,17 +1515,16 @@ namespace en
    //# CONTEXT
    //##########################################################################
 
-   void Context::HMD::init(void)
+   void InitOpenVR(void)
    {
-   // Get all detected OpenVR Head Mounted Displays
-   uint32 devices = vr::VR_IsHmdPresent() ? 1 : 0;
-   for(uint32 i=0; i<devices; ++i)
-      device.push_back(Ptr<input::HMD>(new ValveHMD(i)));
+   // Register OpenVR Head Mounted Display
+   Ptr<CommonInterface> input = ptr_dynamic_cast<CommonInterface, Interface>(en::Input);
+   if (vr::VR_IsHmdPresent())
+      input->hmds.push_back(Ptr<input::HMD>(new ValveHMD(0)));
    }
 
-   void Context::HMD::destroy(void)
+   void CloseOpenVR(void)
    {
-   device.clear();
    vr::VR_Shutdown();
    }
 

@@ -12,6 +12,7 @@
 #include "core/storage.h"
 #include "core/log/log.h"
 #include "core/utilities/parser.h"
+#include "core/rendering/device.h"
 #include "utilities/strings.h"
 #include "utilities/gpcpu/gpcpu.h"
 #include "resources/context.h" 
@@ -24,7 +25,11 @@ namespace en
    {
    struct Buffer
           {
-          gpu::BufferSettings settings;     // Columns types and names
+          gpu::Formatting     formatting;
+          gpu::BufferType     type;
+          uint32              elements;
+          
+          //gpu::BufferSettings settings;     // Columns types and names
           uint32              columns;      // Columns in buffer
           uint32              rowSize;      // Buffer row size in bytes
           void*               data;         // Pointer to data buffer
@@ -806,26 +811,23 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    // After gathering reference data for each mesh,
    // it is time to create GPU optimized buffer for
    // geometry. It will store data of all sub-meshes.
-   gpu::BufferSettings settings;
-   settings.type     = gpu::VertexBuffer;
-   settings.vertices = 0;
+   Formatting formatting;
+   uint32 vertices   = 0;
    uint32 columns    = 1;
    uint32 rowSize    = 12;
 
    // Calculate total count of vertices in buffer
    for(uint32 mesh=0; mesh<numMeshes; ++mesh)
-      settings.vertices += unpackedMesh[mesh].vertices.size();
+      vertices += unpackedMesh[mesh].vertices.size();
 
    // Position
-   settings.column[0].type = gpu::Float3; 
-   settings.column[0].name = "inPosition";
+   formatting.column[0] = Attribute::v3f32; // inPosition
 
    // Normal
    if (hasNormals)
       {
       rowSize += 12;
-      settings.column[columns].type = gpu::Float3;
-      settings.column[columns].name = "inNormal";
+      formatting.column[columns] = Attribute::v3f32; // inNormal
       columns++;
       }
 
@@ -837,8 +839,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    if (hasNormals && (hasTangents || hasBitangents) )
       {
       rowSize += 12;
-      settings.column[columns].type = gpu::Float3;
-      settings.column[columns].name = "inBitangent";
+      formatting.column[columns] = Attribute::v3f32; // inBitangent
       columns++;
       }
 
@@ -855,14 +856,13 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       for(sint32 set=0; set<numTexCoordSets; ++set)
          {   
          rowSize += 8;
-         settings.column[columns].type = gpu::Float2;
-         settings.column[columns].name = (set == 0) ? "inTexCoord0" : string(texCoordSetNames.GetStringAt(set));
+         formatting.column[columns] = Attribute::v2f32; // (set == 0) ? "inTexCoord0" : string(texCoordSetNames.GetStringAt(set));
          columns++;
          }
       }
 
    // Generate geometry buffer 
-   uint8* geometry = new uint8[settings.vertices * rowSize];
+   uint8* geometry = new uint8[vertices * rowSize];
    assert( geometry );
 
    // Fill buffer with data
@@ -927,7 +927,8 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
                }
          }
       }
-   gpu::Buffer vbo = Gpu.buffer.create(settings, geometry);
+
+   Ptr<Buffer> vbo = en::Graphics->primaryDevice()->create(vertices, formatting, 0, geometry);
    delete [] geometry;
 
    // Now there will be created index buffer optimized
@@ -937,24 +938,21 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       indexCount += unpackedMesh[mesh].optimized.size();
 
    // Create indices buffer
-   BufferSettings iboSettings;
-   iboSettings.type      = gpu::IndexBuffer;
-   iboSettings.elements  = indexCount;
-   iboSettings.column[0] = gpu::UInt;
+   Attribute format = Attribute::u32;
 
    // Determine index buffer entry size. For each
    // range, count one vertex less than maximum, 
    // to leave place for primitive restart index.
    uint32 indexSize = 4;
-   if (settings.vertices <= 255)
+   if (vertices <= 255)
       {
-      iboSettings.column[0] = gpu::UByte;
+      format = Attribute::u8;
       indexSize = 1;
       }
    else
-   if (settings.vertices <= 65535)
+   if (vertices <= 65535)
       {
-      iboSettings.column[0] = gpu::UShort;
+      format = Attribute::u16;
       indexSize = 2;
       }
 
@@ -971,10 +969,10 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       for(uint32 indice=0; indice<unpackedMesh[mesh].optimized.size(); ++indice)
          {
          uint32 index = vboBegin + unpackedMesh[mesh].optimized[indice];
-         if (iboSettings.column[0].type == gpu::UInt)
+         if (format == Attribute::u32)
             *((uint32*)(elements + offset)) = index;
          else
-         if (iboSettings.column[0].type == gpu::UShort)
+         if (format == Attribute::u16)
             *((uint16*)(elements + offset)) = static_cast<uint16>(index);
          else
             *((uint8*)(elements + offset)) = static_cast<uint8>(index);
@@ -984,7 +982,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
       vboBegin += unpackedMesh[mesh].vertices.size();
       }
-   gpu::Buffer ibo = Gpu.buffer.create(iboSettings, elements);
+   Ptr<gpu::Buffer> ibo = en::Graphics->primaryDevice()->create(indexCount, format, elements);
    delete [] elements;
 
    // Local transformation matrix

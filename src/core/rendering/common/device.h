@@ -16,7 +16,11 @@
 #ifndef ENG_CORE_RENDERING_COMMON_DEVICE
 #define ENG_CORE_RENDERING_COMMON_DEVICE
 
+#include <bitset>
+using namespace std;
+
 #include "core/rendering/device.h"
+#include "core/rendering/common/inputAssembler.h"
 #include "utilities/Nversion.h"
 
 namespace en
@@ -35,6 +39,11 @@ namespace en
       // GPU HW and API dependent capabilities
       struct Support
          {
+         // Formats
+         bitset<underlyingType(Attribute::Count)> attribute; // Input Assembler Attribute Formats
+         bitset<underlyingType(Format::Count)> sampling;     // Texel Formats - Sampling support
+         bitset<underlyingType(Format::Count)> rendering;    // Texel Formats - Rendering support
+            
          // Input Assembler
          uint8       maxInputAssemblerAttributesCount;  // Maximum number of input attributes
 
@@ -49,7 +58,12 @@ namespace en
 
          // Sampler
          float       maxAnisotropy;                     // Maximum anisotropic filtering factor
-            
+         
+         // Rasterizer
+         uint32      maxColorAttachments;               // Maximum number of color renderable textures
+         
+         
+         
 
 //         uint32      maxFramebufferColorAttachments; // Number of Framebuffer Color attachments
 //         uint32      maxRenderTargets;               // Maximum supported Render Targets count            
@@ -89,6 +103,24 @@ namespace en
 
 
          } support;
+         
+      virtual void init(void);
+      virtual Ptr<Buffer> create(const uint32 elements, const Formatting& formatting, const uint32 step = 0, const void* data = nullptr);
+      virtual Ptr<Buffer> create(const uint32 elements, const Attribute format, const void* data = nullptr);
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+
+      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
+                                         const uint32 controlPoints,
+                                         const Ptr<Buffer> buffer);
+         
+      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
+                                         const uint32 controlPoints,
+                                         const uint32 usedAttributes,
+                                         const uint32 usedBuffers,
+                                         const AttributeDesc* attributes,
+                                         const BufferDesc* buffers);
+         
+      virtual uint32 texelSize(const Format format);
       };
    }
 }

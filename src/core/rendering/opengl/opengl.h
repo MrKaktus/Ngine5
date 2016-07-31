@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : OpenGL
+ Module      : OpenGL API
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
