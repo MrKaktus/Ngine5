@@ -45,8 +45,6 @@ namespace en
       virtual uint32v3 resolution(const uint8 mipmap = 0) const;
       virtual uint16   layers(void) const;
       virtual uint16   samples(void) const;
-      virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0);  // Surface is: CubeMap face, 3D depth slice, Array layer or CubeMapArray face-layer
-      virtual bool     unmap(void);
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
       virtual Ptr<TextureView> view(void) const;
       

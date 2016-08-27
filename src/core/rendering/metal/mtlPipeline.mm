@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Input Assembler.
+ Module      : Metal Pipeline.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -26,6 +26,8 @@
 #include "core/rendering/metal/mtlMultisampling.h"
 #include "core/rendering/metal/mtlShader.h"
 
+#include "core/rendering/metal/mtlCommandBuffer.h"   // for CommandBuffer::set(Pipeline)
+
 #include "core/rendering/metal/mtlDevice.h"
 
 namespace en
@@ -44,20 +46,6 @@ namespace en
       MTLPrimitiveTopologyClassTriangle    , // TriangleStripes
       MTLPrimitiveTopologyClassUnspecified , // Patches         (unsupported)
       };
-
-   // Types of primitives to draw
-   const MTLPrimitiveType TranslateDrawableType[DrawableTypesCount]
-      {
-      MTLPrimitiveTypePoint                , // Points
-      MTLPrimitiveTypeLine                 , // Lines
-      MTLPrimitiveTypeLineStrip            , // LineLoops       (unsupported)
-      MTLPrimitiveTypeLineStrip            , // LineStripes
-      MTLPrimitiveTypeTriangle             , // Triangles
-      MTLPrimitiveTypeTriangleStrip        , // TriangleFans    (unsupported)
-      MTLPrimitiveTypeTriangleStrip        , // TriangleStripes
-      MTLPrimitiveTypeTriangleStrip        , // Patches         (unsupported)
-      };
-   
 
    PipelineMTL::PipelineMTL(const id<MTLDevice> device, MTLRenderPipelineDescriptor* desc, NSError** result) :
       handle([device newRenderPipelineStateWithDescriptor:desc error:result]),

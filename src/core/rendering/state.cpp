@@ -17,7 +17,7 @@
 #include "core/rendering/context.h"
 #include "core/rendering/device.h"
 
-#if 0 //!defined(EN_PLATFORM_OSX)
+#if !defined(EN_PLATFORM_OSX)
 
 namespace en
 {
@@ -54,6 +54,15 @@ namespace en
          GL_DECR_WRAP   // DecreaseWrap
          };
 
+      // Color Buffer blend equations
+      const uint16 BlendEquation[BlendEquationsCount] =
+         {
+         GL_FUNC_ADD             ,    // Add                    
+         GL_FUNC_SUBTRACT        ,    // Subtract               
+         GL_FUNC_REVERSE_SUBTRACT,    // DestinationMinusSource 
+         GL_MIN                  ,    // Min                    
+         GL_MAX                       // Max                    
+         };
 
       // Surface Face 
       const uint16 Face[FaceChoosesCount] = 
@@ -84,7 +93,29 @@ namespace en
          { OpenGL_4_0, GL_PATCHES        }    // Patches    
          };
 
-
+      // Color Buffer blend functions
+      const BlendFunctionTranslation BlendFunction[BlendFunctionsCount] = 
+         {
+         { OpenGL_1_0, OpenGL_1_0, GL_ZERO                     },   // Zero
+         { OpenGL_1_0, OpenGL_1_0, GL_ONE                      },   // One
+         { OpenGL_1_4, OpenGL_1_0, GL_SRC_COLOR                },   // Source
+         { OpenGL_1_4, OpenGL_1_0, GL_ONE_MINUS_SRC_COLOR      },   // OneMinusSource
+         { OpenGL_1_0, OpenGL_1_4, GL_DST_COLOR                },   // Destination
+         { OpenGL_1_0, OpenGL_1_4, GL_ONE_MINUS_DST_COLOR      },   // OneMinusDestination
+         { OpenGL_1_0, OpenGL_1_0, GL_SRC_ALPHA                },   // SourceAlpha
+         { OpenGL_1_0, OpenGL_1_0, GL_ONE_MINUS_SRC_ALPHA      },   // OneMinusSourceAlpha
+         { OpenGL_1_0, OpenGL_1_0, GL_DST_ALPHA                },   // DestinationAlpha
+         { OpenGL_1_0, OpenGL_1_0, GL_ONE_MINUS_DST_ALPHA      },   // OneMinusDestinationAlpha
+         { OpenGL_1_2, OpenGL_1_2, GL_CONSTANT_COLOR           },   // ConstantColor
+         { OpenGL_1_2, OpenGL_1_2, GL_ONE_MINUS_CONSTANT_COLOR },   // OneMinusConst
+         { OpenGL_1_2, OpenGL_1_2, GL_CONSTANT_ALPHA           },   // ConstantAlpha
+         { OpenGL_1_2, OpenGL_1_2, GL_ONE_MINUS_CONSTANT_ALPHA },   // OneMinusConstantAlpha
+         { OpenGL_1_0, OpenGL_3_3, GL_SRC_ALPHA_SATURATE       },   // SourceAlphaSaturate
+         { OpenGL_3_3, OpenGL_3_3, GL_SRC1_COLOR               },   // SecondSource
+         { OpenGL_3_3, OpenGL_3_3, GL_ONE_MINUS_SRC1_COLOR     },   // OneMinusSecondSource
+         { OpenGL_3_3, OpenGL_3_3, GL_SRC1_ALPHA               },   // SecondSourceAlpha
+         { OpenGL_3_3, OpenGL_3_3, GL_ONE_MINUS_SRC1_ALPHA     }    // OneMinusSecondSourceAlpha
+         };
 
       #endif
       #ifdef EN_OPENGL_MOBILE
@@ -101,7 +132,29 @@ namespace en
          { OpenGL_ES_Unsupported, 0 /*GL_PATCHES*/  }    // Patches   
          };
 
-
+      // Color Buffer blend functions
+      const BlendFunctionTranslation BlendFunction[BlendFunctionsCount] = 
+         {
+         { OpenGL_ES_1_0,         OpenGL_ES_1_0,         GL_ZERO                       },   // Zero
+         { OpenGL_ES_1_0,         OpenGL_ES_1_0,         GL_ONE                        },   // One
+         { OpenGL_ES_1_1,         OpenGL_ES_1_0,         GL_SRC_COLOR                  },   // Source
+         { OpenGL_ES_1_1,         OpenGL_ES_1_0,         GL_ONE_MINUS_SRC_COLOR        },   // OneMinusSource
+         { OpenGL_ES_1_0,         OpenGL_ES_1_1,         GL_DST_COLOR                  },   // Destination
+         { OpenGL_ES_1_0,         OpenGL_ES_1_1,         GL_ONE_MINUS_DST_COLOR        },   // OneMinusDestination
+         { OpenGL_ES_1_0,         OpenGL_ES_1_0,         GL_SRC_ALPHA                  },   // SourceAlpha
+         { OpenGL_ES_1_0,         OpenGL_ES_1_0,         GL_ONE_MINUS_SRC_ALPHA        },   // OneMinusSourceAlpha
+         { OpenGL_ES_1_0,         OpenGL_ES_1_0,         GL_DST_ALPHA                  },   // DestinationAlpha
+         { OpenGL_ES_1_0,         OpenGL_ES_1_0,         GL_ONE_MINUS_DST_ALPHA        },   // OneMinusDestinationAlpha
+         { OpenGL_ES_2_0,         OpenGL_ES_2_0,         GL_CONSTANT_COLOR             },   // ConstantColor
+         { OpenGL_ES_2_0,         OpenGL_ES_2_0,         GL_ONE_MINUS_CONSTANT_COLOR   },   // OneMinusConst
+         { OpenGL_ES_2_0,         OpenGL_ES_2_0,         GL_CONSTANT_ALPHA             },   // ConstantAlpha
+         { OpenGL_ES_2_0,         OpenGL_ES_2_0,         GL_ONE_MINUS_CONSTANT_ALPHA   },   // OneMinusConstantAlpha
+         { OpenGL_ES_1_1,         OpenGL_ES_3_0,         GL_SRC_ALPHA_SATURATE         },   // SourceAlphaSaturate
+         { OpenGL_ES_Unsupported, OpenGL_ES_Unsupported, 0 /*GL_SRC1_COLOR*/           },   // SecondSource
+         { OpenGL_ES_Unsupported, OpenGL_ES_Unsupported, 0 /*GL_ONE_MINUS_SRC1_COLOR*/ },   // OneMinusSecondSource
+         { OpenGL_ES_Unsupported, OpenGL_ES_Unsupported, 0 /*GL_SRC1_ALPHA*/           },   // SecondSourceAlpha
+         { OpenGL_ES_Unsupported, OpenGL_ES_Unsupported, 0 /*GL_ONE_MINUS_SRC1_ALPHA*/ }    // OneMinusSecondSourceAlpha
+         };
 
       #endif
       #ifdef EN_DEBUG
@@ -196,7 +249,119 @@ namespace en
          }
       }
 
+      void BlendUpdate(void)
+      {
+      // Default color buffer 
+      if (checkBit(GpuContext.state.dirtyBits.blend, 0))
+         {
+         if (GpuContext.state.output.color[0].blend.on)
+            Profile( glEnable(GL_BLEND) )
+         else
+            Profile( glDisable(GL_BLEND) )
+         clearBit(GpuContext.state.dirtyBits.blend, 0);
+         }
 
+      // Additional color buffers
+#ifdef EN_OPENGL_DESKTOP
+      for(uint8 i=1; i<GpuContext.support.maxRenderTargets; ++i)
+         if (checkBit(GpuContext.state.dirtyBits.blend, i))
+            {
+            if (GpuContext.state.output.color[i].blend.on)
+               Profile( glEnablei(GL_BLEND, i) )
+            else
+               Profile( glDisablei(GL_BLEND, i) )
+            }  
+#endif
+
+      GpuContext.state.dirtyBits.blend = 0;
+      }
+
+      void BlendFuncUpdate(void)
+      {
+      // Default color buffer 
+      if (checkBit(GpuContext.state.dirtyBits.blendFunction, 0))
+         {
+         Profile( glBlendFuncSeparate(GpuContext.state.output.color[0].blend.srcFuncRGB, 
+                                      GpuContext.state.output.color[0].blend.dstFuncRGB, 
+                                      GpuContext.state.output.color[0].blend.srcFuncA,
+                                      GpuContext.state.output.color[0].blend.dstFuncA) )
+         clearBit(GpuContext.state.dirtyBits.blendFunction, 0);
+         }
+
+      // Additional color buffers
+#ifdef EN_OPENGL_DESKTOP
+      for(uint8 i=1; i<GpuContext.support.maxRenderTargets; ++i)
+         if (checkBit(GpuContext.state.dirtyBits.blendFunction, i))
+            {
+            if (GpuContext.screen.support(OpenGL_4_0))   
+               {      
+               Profile( glBlendFuncSeparatei(i, GpuContext.state.output.color[i].blend.srcFuncRGB, 
+                                                GpuContext.state.output.color[i].blend.dstFuncRGB, 
+                                                GpuContext.state.output.color[i].blend.srcFuncA,
+                                                GpuContext.state.output.color[i].blend.dstFuncA) )
+               }
+            else
+            if (GpuContext.support.extension(ARB_draw_buffers_blend))  
+               {
+               Profile( glBlendFuncSeparateiARB(i, GpuContext.state.output.color[i].blend.srcFuncRGB, 
+                                                   GpuContext.state.output.color[i].blend.dstFuncRGB, 
+                                                   GpuContext.state.output.color[i].blend.srcFuncA,
+                                                   GpuContext.state.output.color[i].blend.dstFuncA) )
+               }
+            }
+#endif
+
+      GpuContext.state.dirtyBits.blendFunction = 0;
+      }
+
+      void BlendEquationUpdate(void)
+      {
+      // Default color buffer 
+      if (checkBit(GpuContext.state.dirtyBits.blendEquation, 0))
+         {
+#if defined(EN_DISCRETE_GPU) && !defined(EN_PLATFORM_OSX)
+         Profile( glBlendEquationSeparateEXT(GpuContext.state.output.color[0].blend.equationRGB,
+                                             GpuContext.state.output.color[0].blend.equationA) )
+#else // defined(EN_MOBILE_GPU)
+         Profile( glBlendEquationSeparate(GpuContext.state.output.color[0].blend.equationRGB, 
+                                          GpuContext.state.output.color[0].blend.equationA) )
+#endif
+         clearBit(GpuContext.state.dirtyBits.blendEquation, 0);
+         }
+
+      // Additional color buffers
+#ifdef EN_OPENGL_DESKTOP
+      for(uint8 i=1; i<GpuContext.support.maxRenderTargets; ++i)
+         if (checkBit(GpuContext.state.dirtyBits.blendEquation, i))
+            {
+            if (GpuContext.screen.support(OpenGL_4_0))  
+               {   
+               Profile( glBlendEquationSeparatei(i, GpuContext.state.output.color[i].blend.equationRGB, 
+                                                    GpuContext.state.output.color[i].blend.equationA) )
+               }
+            else
+            if (GpuContext.support.extension(ARB_draw_buffers_blend)) 
+               {
+               Profile( glBlendEquationSeparateiARB(i, GpuContext.state.output.color[i].blend.equationRGB, 
+                                                       GpuContext.state.output.color[i].blend.equationA) )
+               }
+            }
+#endif
+
+      GpuContext.state.dirtyBits.blendEquation = 0;
+      }
+
+      void BlendColorUpdate(void)
+      {
+      if (GpuContext.state.dirtyBits.blendColor)
+         {
+         Profile( glBlendColor(GpuContext.state.output.blendColor.r,
+                               GpuContext.state.output.blendColor.g,
+                               GpuContext.state.output.blendColor.b,
+                               GpuContext.state.output.blendColor.a) )
+         GpuContext.state.dirtyBits.blendColor = false;
+         }
+      }
 
       void CullingUpdate(void)
       {

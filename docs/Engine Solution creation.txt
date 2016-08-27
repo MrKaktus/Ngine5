@@ -282,3 +282,9 @@ Xcode Game project configuration:
 Search Paths:
 > Header Search Paths                            : ./../src/            non-recursive
                                                    ./../public/include/ non-recursive
+
+
+
+TEMP
+
+$(SYMROOT)

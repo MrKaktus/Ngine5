@@ -94,6 +94,54 @@ namespace en
    const Nversion    OpenGL_1_0(0,EN_OpenGL,1,0,0);                      // OpenGL 1.0    - 20.06.1992
    const Nversion    OpenGL_Unsupported(255,EN_OpenGL,255,255,15);       // For marking unsupported features
 
+//   Display::Display() :
+//      SafeObject()
+//   {
+//   }
+   
+   WindowSettings::WindowSettings() :
+      mode(BorderlessWindow),
+      display(nullptr),
+      position(0u, 0u),
+      size(0u, 0u),
+      format(Format::RGBA_8),
+      resolution(0u, 0u)
+   {
+   }
+
+   uint32v2 CommonDisplay::position(void)
+   {
+   return _position;
+   }
+   
+   CommonWindow::CommonWindow() :
+      _fullscreen(false),
+      Window()
+   {
+   }
+
+   Ptr<Display> CommonWindow::display(void) const
+   {
+   return _display;
+   }
+
+   uint32v2 CommonWindow::position(void) const
+   {
+   return _position;
+   }
+
+   uint32v2 CommonWindow::size(void) const
+   {
+   return _size;
+   }
+   
+   uint32v2 CommonWindow::resolution(void) const
+   {
+   return _resolution;
+   }
+
+
+
    CommonDevice::CommonDevice()
    {
    support.attribute.reset();

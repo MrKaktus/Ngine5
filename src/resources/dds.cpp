@@ -716,10 +716,21 @@ namespace en
             {
             // Stream given surface from file to GPU memory
             uint64 surfaceSize = texture->size(mipmap);
-            void* ptr = texture->map(mipmap, layer);
-            file->read(offset, static_cast<uint32>(surfaceSize), ptr);
-            texture->unmap();
             
+                  // Copy loaded texture to temporary staging buffer
+            Ptr<gpu::Buffer> transfer = Graphics->primaryDevice()->create(gpu::BufferType::Transfer,
+                                                                          static_cast<uint32>(surfaceSize));
+            
+            void* ptr = transfer->content();
+            file->read(offset, static_cast<uint32>(surfaceSize), ptr);
+            
+            // Copy data from staging buffer to final texture
+            Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer();
+            command->populate(transfer, texture, mipmap, slice);
+            command->commit();
+            command->waitUntilCompleted();
+            command = nullptr;
+  
             offset += surfaceSize;
             }
          mipDepth = max(1U, mipDepth >> 1);

@@ -29,20 +29,23 @@ namespace en
 {
    namespace gpu
    {
+   // This API need to use generic defines, as this header is shared with CPP code
    class MetalAPI : public GraphicAPI
       {
       public:
       Ptr<GpuDevice> device[2];  // Primary and Supporting GPU
       uint32         devicesCount;
       bool           preferLowPowerGPU; // If set and two GPU's are available, low-power GPU will be choosed over discreete one
-      Ptr<Screen>*   display;
-      Ptr<Screen>    virtualDisplay;
+      Ptr<CommonDisplay>* display;
+      Ptr<CommonDisplay>  virtualDisplay;
       uint32         displaysCount;
   
 
       MetalAPI();
 
-      virtual uint32 devices(void);
+      virtual Ptr<Display>   primaryDisplay(void);
+      
+      virtual uint32         devices(void);
       virtual Ptr<GpuDevice> primaryDevice(void);
 
       virtual ~MetalAPI();

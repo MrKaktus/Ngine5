@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Input Assembler.
+ Module      : D3D12 Input Assembler.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics

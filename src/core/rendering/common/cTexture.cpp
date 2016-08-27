@@ -524,22 +524,21 @@ namespace en
    return state.samples;
    }
 
-   void* TextureCommon::map(const uint8 mipmap, const uint16 surface)
-   {
-   assert( 0 );
-   return nullptr;
-   }
-
-   bool TextureCommon::unmap(void)
-   {
-   assert( 0 );
-   return false;
-   }
-
    bool TextureCommon::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
    {
    assert( 0 );
    return false;
+   }
+   
+   Ptr<TextureView> TextureCommon::view() const
+   {
+   return ptr_dynamic_cast<TextureView, TextureViewCommon>(Ptr<TextureViewCommon>(textureView));
+   }
+
+
+   uint32 CommonDevice::texelSize(const Format format)
+   {
+   return TextureCompressionInfo[underlyingType(format)].size;
    }
    
    Ptr<TextureView> TextureCommon::view() const

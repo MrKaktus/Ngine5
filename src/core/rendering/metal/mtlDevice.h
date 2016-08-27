@@ -44,30 +44,27 @@ namespace en
 {
    namespace gpu
    {
-   class ScreenMTL : public Screen
+   class DisplayMTL : public CommonDisplay
       {
       public:
       NSScreen* handle;     // Pointer to screen in [NSScreen screens] array
       
-      ScreenMTL();
-     ~ScreenMTL();
+      DisplayMTL();
+     ~DisplayMTL();
       };
      
    class MetalDevice;
    
-   class WindowMTL : public Window
+   class WindowMTL : public CommonWindow
       {
       public:
-      Ptr<Screen>   handle;
-      uint32v2      windowPosition;
-      
       NSWindow*     window;
       CAMetalLayer* layer;
       id <CAMetalDrawable> drawable;
       Ptr<TextureMTL> framebuffer;
       bool          needNewSurface;
       
-      virtual Ptr<Screen> screen(void);
+      virtual Ptr<Display> display(void);
       virtual uint32v2 position(void);
       virtual bool movable(void);
       virtual void move(const uint32v2 position);
@@ -76,36 +73,13 @@ namespace en
       virtual void transparent(const float opacity);
       virtual void opaque(void);
       virtual Ptr<Texture> surface(void);
-      virtual void display(void);
+      virtual void present(void);
       
       WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title); //id<MTLDevice> device
       virtual ~WindowMTL();
       };
    
-   class CommandBufferMTL : public CommandBuffer
-      {
-      public:
-      id <MTLCommandBuffer> handle;
-      id <MTLRenderCommandEncoder> renderEncoder;
-      bool commited;
-      
-      virtual void bind(const Ptr<RasterState> raster);
-      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
-      virtual void bind(const Ptr<DepthStencilState> depthStencil);
-      virtual void bind(const Ptr<BlendState> blend);
-      
-      virtual bool startRenderPass(const Ptr<RenderPass> pass);
-      virtual void set(const Ptr<Pipeline> pipeline);
-      virtual bool endRenderPass(void);
-      virtual void commit(void);
-      virtual void waitUntilCompleted(void);
-   
-      CommandBufferMTL();
-      virtual ~CommandBufferMTL();
-      };
 
-    
-    
    class MetalDevice : public CommonDevice
       {
       public:
@@ -121,19 +95,26 @@ namespace en
       
       // Interface
 
-      uint32 screens(void);           // Screens count the device can render to
-      Ptr<Screen> screen(uint32 id) const;  // Return N'th screen handle
+      uint32 displays(void);           // Screens count the device can render to
+      Ptr<Display> display(uint32 id) const;  // Return N'th screen handle
       Ptr<Window> create(const WindowSettings& settings,
                         const string title); // Create window
       
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size);
+      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data);
     
                                     
       virtual Ptr<Texture> create(const TextureState state);
       
       virtual Ptr<Shader>  create(const string& source, const string& entrypoint);
       
-      virtual Ptr<CommandBuffer>   createCommandBuffer(void);
+      
+      virtual Ptr<Heap>    create(uint32 size);
+
+      virtual uint32 queues(const QueueType type) const;
+      
+      virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
+                                        const uint32 parentQueue = 0u);
 
       virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
                                           const uint32 controlPoints,

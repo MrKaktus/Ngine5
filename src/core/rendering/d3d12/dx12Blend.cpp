@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Blend State.
+ Module      : D3D12 Blend State.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics

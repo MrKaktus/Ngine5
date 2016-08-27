@@ -19,7 +19,6 @@
 #include <string>
 #include "core/utilities/TintrusivePointer.h" 
 
-#include "core/rendering/heap.h"
 #include "core/rendering/inputAssembler.h"
 #include "core/rendering/blend.h"
 #include "core/rendering/depthStencil.h"
@@ -30,6 +29,8 @@
 #include "core/rendering/multisampling.h"
 #include "core/rendering/viewport.h"
 #include "core/rendering/shader.h"
+#include "core/rendering/heap.h"
+#include "core/rendering/commandBuffer.h"
 
 #include "utilities/Nversion.h"
 
@@ -110,38 +111,52 @@ namespace en
    extern const Nversion OpenGL_1_0;                  // OpenGL 1.0    - 20.06.1992
    extern const Nversion OpenGL_Unsupported;          // For marking unsupported features
 
-   class Screen : public SafeObject<Screen>
+   class Display : public SafeObject<Display>
       {
       public:
-      uint32v2 resolution;  // Native resolution
-      uint32v2 position;    // Upper-Left corner position on virtual desktop
+
+      virtual uint32v2 position(void) = 0;   // Position on Virtual Desktop
       
-      Screen();
-      virtual ~Screen() {}; // Polymorphic deletes require a virtual base destructor
+      virtual ~Display() {};   // Polymorphic deletes require a virtual base destructor
       };
-      
+
    enum WindowMode
       {
       Windowed          = 0,   // Create Window
       BorderlessWindow     ,   // Create borderless Window
-      Fullscreen               // Create full screen surface
+      Fullscreen               // Switch given display to full screen mode
       };
       
    struct WindowSettings
       {
-      Ptr<Screen> screen;    // Screen on which window will be created, if not specified, primary screen is choosed.
-      uint32v2    position;  // Position on the screen, by default Upper-Left corner.
-      uint32v2    size;      // Window size in pixels of the screen (if zeroes set, native resolution will be set)
-      WindowMode  mode;      // Mode in which we create surface (BorderlessWindow by default).
-      
+      WindowMode   mode;       // Mode in which we create surface (BorderlessWindow by default).
+      Ptr<Display> display;    // Display on which window will be created, if not specified, primary display is selected.
+      uint32v2     position;   // Position on the display in pixels from Upper-Left corner. Ignored in Fullscreen mode.
+      uint32v2     size;       // Window size in pixels of the screen native resolution (if zeros are set, native
+                               // resolution will be assumed). In Fullscreen mode, if size is set, it need to match
+                               // one of resolutions supported by the display (if it's smaller than native resolution,
+                               // Display will change resolution and use native HW scaler).
+                               // Swap-Chain properties:
+      Format       format;     // Pixel Format for backing surfaces. (Default Format::RGBA_8)
+      uint32v2     resolution; // Destination surface resolution. If set to zeros, resolution will match window size
+                               // (default state). Can be set to smaller resolution than window size if application
+                               // wants to benefit from Windowing System scaler that will upsample the image (useful
+                               // on high DPI displays, allows saving of memory needed for allocation of Swap-Chain
+                               // surfaces, and GPU power needed to rasterize in high resolution).
+                               // In Fullscreen mode, this field should be set to zeroes (default).
+                               // You should use size instead to obtain the same results.
+
       WindowSettings();
       };
 
    class Window : public SafeObject<class Window>
       {
       public:
-      virtual Ptr<Screen> screen(void) = 0;   // Screen on which window's center point is currently located
-      virtual uint32v2 position(void) = 0;
+      virtual Ptr<Display> display(void) const = 0;   // Display on which window's center point is currently located
+      virtual uint32v2 position(void) const = 0;
+      virtual uint32v2 size(void) const = 0;          // Size in displays native resolution pixels
+      virtual uint32v2 resolution(void) const = 0;    // Resolution of backing image
+      
       virtual bool movable(void) = 0;
       virtual void move(const uint32v2 position) = 0;
       virtual void resize(const uint32v2 size) = 0;
@@ -149,41 +164,36 @@ namespace en
       virtual void transparent(const float opacity) = 0;
       virtual void opaque(void) = 0;
       virtual Ptr<Texture> surface(void) = 0; // App should query for current surface each time it wants to reference it
-      virtual void display(void) = 0;
+      virtual void present(void) = 0;
       
       virtual ~Window() {};                               // Polymorphic deletes require a virtual base destructor
       };
 
-   class CommandBuffer : public SafeObject<CommandBuffer>
-      {
-      public:
-      virtual void bind(const Ptr<RasterState> raster) = 0;
-      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor) = 0;
-      virtual void bind(const Ptr<DepthStencilState> depthStencil) = 0;
-      virtual void bind(const Ptr<BlendState> blend) = 0;
 
-      virtual bool startRenderPass(const Ptr<RenderPass> pass) = 0;
-      virtual void set(const Ptr<Pipeline> pipeline) = 0;
-      virtual bool endRenderPass(void) = 0;
-      virtual void commit(void) = 0;
-      virtual void waitUntilCompleted(void) = 0;
-      
-      virtual ~CommandBuffer() {};                        // Polymorphic deletes require a virtual base destructor
+
+   // All queues support transfer operations.
+   // If device support Sparse resources, Universal and Compute queues support Sparse Transfer as well. (can we make this assumption ?)
+   // Except of Transfer, they sypport:
+   enum class QueueType : uint32
+      {
+      Universal      = 0, // Supports both Rendering and Compute workloads
+      Compute           , // Only Compute workloads
+      Transfer          , // Only Transfer operations
+      SparseTransfer    , // Only Transfer operations with support of Sparse Resource updates
+      Count
       };
       
    // Per device context that can be used to perform operations on GPU
    class GpuDevice : public SafeObject<GpuDevice>
       {
       public:
-      virtual uint32 screens(void) = 0;                 // Screens the device can render to
-      virtual Ptr<Screen> screen(uint32 id) const = 0;  // Return N'th screen handle
+      virtual uint32 displays(void) = 0;                 // Screens the device can render to
+      virtual Ptr<Display> display(uint32 id) const = 0;  // Return N'th display handle
       virtual Ptr<class Window> create(const WindowSettings& settings,  // TODO: remove "class" when old Rendering API Abstraction is removed
                                  const string title) = 0; // Create window
          
          
-      // Creates memory heap that can be used to 
-      virtual Ptr<Heap>   create(const MemoryType usedMemory, 
-                                 const uint32 size) = 0;
+
 
       // Create formatted Vertex buffer that can be bound to InputAssembler.
       virtual Ptr<Buffer> create(const uint32 elements,
@@ -200,16 +210,33 @@ namespace en
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
       virtual Ptr<Buffer> create(const BufferType type,
-                                 const uint32 size,
-                                 const void* data = nullptr) = 0;
+                                 const uint32 size) = 0;
       
+      // Create unformatted generic buffer of given type and size.
+      // This is specialized method, that allows passing pointer
+      // to data, to directly initialize buffer content.
+      // It is allowed on mobile devices conforming to UMA architecture.
+      // On Discreete GPU's with NUMA architecture, only Transient buffers
+      // can be created with it.
+      virtual Ptr<Buffer> create(const BufferType type,
+                                 const uint32 size,
+                                 const void* data) = 0;
+   
       virtual Ptr<Texture> create(const TextureState state) = 0;
+      
+      // Create Heap from which GPU resources can be sub-allocated.
+      virtual Ptr<Heap>    create(uint32 size) = 0;
       
       virtual Ptr<Shader>  create(const string& source, const string& entrypoint) = 0;
       
       
+      // Returns count of available Command Queues of given type
+      virtual uint32 queues(const QueueType type) const = 0;
       
-      virtual Ptr<CommandBuffer> createCommandBuffer(void) = 0; // Create command buffer
+      // Creates Command Buffer from the given Command Queue of given type.
+      // When this buffer is commited for execution it will execute on that queue.
+      virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
+                                        const uint32 parentQueue = 0u) = 0;
 
       // Creates InputAssembler description based on single Vertex buffer.
       // Buffer needs to have specified internal formatting.
@@ -312,6 +339,7 @@ namespace en
       static bool create(void);                           // Creates instance of this class (API specific) and assigns it to "Graphics".
       
       virtual uint32 devices(void) = 0;
+      virtual Ptr<Display>   primaryDisplay(void) = 0;
       virtual Ptr<GpuDevice> primaryDevice(void) = 0;
       virtual ~GraphicAPI() {};                           // Polymorphic deletes require a virtual base destructor
       };
@@ -322,6 +350,7 @@ namespace en
 
 extern Ptr<gpu::GraphicAPI> Graphics;
 }
+
 
 //      // Create Buffer formatted for storing array of structures (AOS). Each element of array is a tightly 
 //      // packed structure containing up to MaxInputAssemblerAttributesCount of variables. Each such variable 

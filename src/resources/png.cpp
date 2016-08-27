@@ -253,7 +253,11 @@ namespace en
       }
    }
 
-   bool load(Ptr<en::gpu::Texture> dst, const uint16 layer, const string& filename, const gpu::ColorSpace colorSpace, bool invertHorizontal)
+   bool load(Ptr<en::gpu::Texture> dst,
+             const uint16 layer,
+             const string& filename,
+             const gpu::ColorSpace colorSpace,
+             bool invertHorizontal)
    {
    using namespace en::storage;
 

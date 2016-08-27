@@ -28,12 +28,18 @@ namespace en
       Formatting formatting;
       uint32     elements;
       uint32     step;
+      uint32     size;
       BufferType apiType;
       
-      BufferCommon(const BufferType type);
+      BufferCommon(const BufferType type, uint32 length);
+      virtual uint32 length(void) const;
       virtual BufferType type(void) const;
-      virtual void* map(const DataAccess access = ReadWrite);
-      virtual bool unmap(void);
+      
+      // Returns pointer to buffers memory. This function can be only called on Transfer buffers.
+      virtual void* content(void) const;
+      
+      //virtual void* map(const DataAccess access = ReadWrite);
+      //virtual bool unmap(void);
       
       virtual ~BufferCommon();
       };

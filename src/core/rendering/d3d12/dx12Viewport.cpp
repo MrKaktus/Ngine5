@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Viewport-Scissor State.
+ Module      : D3D12 Viewport-Scissor State.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics

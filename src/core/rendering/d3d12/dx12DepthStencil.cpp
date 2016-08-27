@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Depth-Stencil State.
+ Module      : D3D12 Depth-Stencil State.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics

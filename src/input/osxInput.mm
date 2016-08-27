@@ -595,23 +595,31 @@ namespace en
             
          case NSMouseMoved:
             {
-            Ptr<CommonMouse> cMouse = ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0u]);
+            Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0u]);
                
             NSPoint eventLocation = [event locationInWindow];
 
             // TODO: Did mouse moved to new screen ?
             // - if so, update screen pointer it lays on
             
+            // WA: FIXME: For now, always position on main display.
+            mouse->_display = ptr_dynamic_cast<CommonDisplay, Display>(Graphics->primaryDisplay()); // CGMainDisplayID();
+            
+            
+            // Requires mouse position in global screen coordinates, we get it in window coordinates.
+            //CGError error;
+            //error = CGGetDisplaysWithPoint( CGPoint point, uint32_t maxDisplays, CGDirectDisplayID *displays, uint32_t *matchingDisplayCount );
+            
             // TODO: Did mouse moved over another window?
             // - if so, and position is returned relative to that window, calculate screen position taking this into notice
             if ([event window] == nil)
                {
                // Convert event location to per pixel location on the screen on which mouse is located
-               NSScreen* handle = ptr_dynamic_cast<ScreenMTL, Screen>(cMouse->display)->handle;
+               NSScreen* handle = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(mouse->_display)->handle;
                NSRect frame = NSMakeRect(eventLocation.x, (eventLocation.y - 1.0f), 0.0f, 0.0f);
                NSRect info = [handle convertRectToBacking:frame];  // [handle frame] - Screen resolution
-               cMouse->x = static_cast<uint32>(info.origin.x);
-               cMouse->y = static_cast<uint32>(info.origin.y);
+               mouse->x = static_cast<uint32>(info.origin.x);
+               mouse->y = static_cast<uint32>(info.origin.y);
                }
             else
                {
@@ -623,8 +631,8 @@ namespace en
             MouseEvent outEvent;
             memset(&outEvent, 0, sizeof(outEvent));
             outEvent.type   = MouseMoved;
-            outEvent.x      = static_cast<uint16>(cMouse->x);
-            outEvent.y      = static_cast<uint16>(cMouse->y);
+            outEvent.x      = static_cast<uint16>(mouse->x);
+            outEvent.y      = static_cast<uint16>(mouse->y);
             callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             break;
             }
@@ -823,8 +831,8 @@ namespace en
    bool OSXMouse::position(const uint32 x, const uint32 y)
    {
    // http://stackoverflow.com/questions/1236498/how-to-get-the-display-name-with-the-display-id-in-mac-os-x
-   assert( display );
-   Ptr<ScreenMTL> ptr = ptr_dynamic_cast<ScreenMTL, Screen>(display);
+   assert( _display );
+   Ptr<DisplayMTL> ptr = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(_display);
    NSScreen* handle = ptr->handle;
    
    assert( handle );
@@ -837,11 +845,11 @@ namespace en
    return true;
    }
 
-   bool OSXMouse::position(const Ptr<Screen> screen, const uint32 x, const uint32 y)
+   bool OSXMouse::position(const Ptr<Display> __display, const uint32 x, const uint32 y)
    {
-   assert( screen );
-   display = screen;
-   Ptr<ScreenMTL> ptr = ptr_dynamic_cast<ScreenMTL, Screen>(display);
+   assert( __display );
+   _display = ptr_dynamic_cast<CommonDisplay, Display>(__display);
+   Ptr<DisplayMTL> ptr = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(_display);
    NSScreen* handle = ptr->handle;
    
    assert( handle );

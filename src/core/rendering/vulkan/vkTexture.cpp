@@ -381,7 +381,7 @@ namespace en
       allocInfo.memoryTypeIndex = index;
       
       Profile( vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
-	  if (lastResult == VK_SUCCESS)
+      if (lastResult == VK_SUCCESS)
          return handle;
       }
 
@@ -464,6 +464,7 @@ namespace en
       {
       textureInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
+      // TODO: Shouldn't it be moved outside of this if-section ?
       if (state.type == TextureType::Texture2DArray ||
           state.type == TextureType::TextureCubeMap ||
           state.type == TextureType::TextureCubeMapArray)
@@ -566,7 +567,7 @@ namespace en
 //    {
 //    textureInfo.sharingMode           = VK_SHARING_MODE_CONCURRENT;
 //    textureInfo.queueFamilyIndexCount = queueFamiliesCount;  // Count of Queue Families (for eg.g GPU has 40 Rendering and 10 Compute Queues grouped into 2 Families)
-//    textureInfo.pQueueFamilyIndices   = ;                    // pQueueFamilyIndices is a list of queue families that will access this image
+//    textureInfo.pQueueFamilyIndices   = queueFamilyIndices;  // pQueueFamilyIndices is a list of queue families that will access this image
 //    }
 // else
       {
