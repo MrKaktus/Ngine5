@@ -14,7 +14,7 @@ namespace en
 
    // Last Verified during Vulkan 1.0 Release
    //
-   static const VkFormat TranslateTextureFormat[underlyingType(Format::Count)] = 
+   const VkFormat TranslateTextureFormat[underlyingType(Format::Count)] = 
       { // Sized Internal Format                     
       VK_FORMAT_UNDEFINED                 ,   // Format::Unsupported
       VK_FORMAT_R8_UNORM                  ,   // Format::R_8                    Uncompressed formats:
@@ -256,8 +256,8 @@ namespace en
    samplerInfo.unnormalizedCoordinates = VK_FALSE;  // TODO: Unnormalized coordinates are not supported for now. (both supported by Vulkan & Metal)
 
    VkSampler handle;
-   VkResult res = vkCreateSampler(device, &samplerInfo, nullptr, &handle);
-   if ( res >= 0 )
+   Profile( this, vkCreateSampler(device, &samplerInfo, nullptr, &handle) )
+   if ( lastResult[0] >= 0 )  // FIXME !!! Assuming first thread !!
       {
       sampler = new SamplerVK();
       sampler->handle = handle;
@@ -342,52 +342,52 @@ namespace en
    return VK_IMAGE_ASPECT_COLOR_BIT;
    }
 
-   bool VulkanDevice::getMemoryType(uint32 allowedTypes, VkFlags properties, uint32* memoryType)
-   {
-   for(uint32 i=0; i<memory.memoryTypeCount; ++i)
-      if (checkBit(allowedTypes, i))
-         if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
-            {
-            *memoryType = i;
-            return true;
-            }
+   //bool VulkanDevice::getMemoryType(uint32 allowedTypes, VkFlags properties, uint32* memoryType)
+   //{
+   //for(uint32 i=0; i<memory.memoryTypeCount; ++i)
+   //   if (checkBit(allowedTypes, i))
+   //      if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
+   //         {
+   //         *memoryType = i;
+   //         return true;
+   //         }
 
-   return false;
-   }
+   //return false;
+   //}
 
-   VkDeviceMemory VulkanDevice::allocMemory(VkMemoryRequirements requirements, VkFlags properties)
-   {
-   VkDeviceMemory handle;
+   //VkDeviceMemory VulkanDevice::allocMemory(VkMemoryRequirements requirements, VkFlags properties)
+   //{
+   //VkDeviceMemory handle;
 
-   // Find Memory Type that best suits required allocation
-   uint32 index = VK_MAX_MEMORY_TYPES;
-   for(uint32 i=0; i<memory.memoryTypeCount; ++i)
-      {
-      // Memory Type needs to be able to support requested allocation
-      if (checkBit(requirements.memoryTypeBits, (i+1)))
-         // Memory Type needs to support at least requested sub-set of memory properties
-         if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
-            index = i;
+   //// Find Memory Type that best suits required allocation
+   //uint32 index = VK_MAX_MEMORY_TYPES;
+   //for(uint32 i=0; i<memory.memoryTypeCount; ++i)
+   //   {
+   //   // Memory Type needs to be able to support requested allocation
+   //   if (checkBit(requirements.memoryTypeBits, (i+1)))
+   //      // Memory Type needs to support at least requested sub-set of memory properties
+   //      if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
+   //         index = i;
 
-      // If this memory type cannot be used to allocate requested resource, continue search
-      if (index == VK_MAX_MEMORY_TYPES)
-         continue;
+   //   // If this memory type cannot be used to allocate requested resource, continue search
+   //   if (index == VK_MAX_MEMORY_TYPES)
+   //      continue;
 
-      // Try to allocate memory on Heap supporting this memory type
-      VkMemoryAllocateInfo allocInfo;
-      allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-      allocInfo.pNext           = nullptr;
-      allocInfo.allocationSize  = requirements.size;
-      allocInfo.memoryTypeIndex = index;
-      
-      Profile( vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
-      if (lastResult == VK_SUCCESS)
-         return handle;
-      }
+   //   // Try to allocate memory on Heap supporting this memory type
+   //   VkMemoryAllocateInfo allocInfo;
+   //   allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+   //   allocInfo.pNext           = nullptr;
+   //   allocInfo.allocationSize  = requirements.size;
+   //   allocInfo.memoryTypeIndex = index;
+   //   
+   //   Profile( this, vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
+   //   if (lastResult[0] == VK_SUCCESS)  // FIXME!! First thread assumed!
+   //      return handle;
+   //   }
 
-   // FAIL
-   return handle;
-   }
+   //// FAIL
+   //return handle;
+   //}
 
 
 
@@ -401,14 +401,14 @@ namespace en
    //    On mobile we may want to add: VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT
    //
    // 2) Depth/Stencil buffer for Depth Test, later reused (for eg. as part of GBuffer)
-   //    TextureUsage::ShaderRead
+   //    TextureUsage::Read
    //    TextureUsage::RenderTargetWrite
    //
    //    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
    //    VK_IMAGE_USAGE_SAMPLED_BIT
    //
    // 3) Temporary Color Attachment (for eg. part of Post Process)
-   //    TextureUsage::ShaderRead
+   //    TextureUsage::Read
    //    TextureUsage::RenderTargetWrite
    //
    //    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
@@ -417,7 +417,7 @@ namespace en
    //                                  VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT      - and be input to next Post Process pass
    //
    // 4) GPU Private texture, used for Sampling only (VRAM ReadOnly)
-   //    TextureUsage::ShaderRead
+   //    TextureUsage::Read
    //
    //    VK_IMAGE_USAGE_TRANSFER_DST_BIT - To first populate with data from CPU RAM
    //    VK_IMAGE_USAGE_SAMPLED_BIT
@@ -426,7 +426,7 @@ namespace en
    //    VK_IMAGE_USAGE_TRANSFER_SRC_BIT
    //
    // 6) ShadowMap (first rendered, then sampled)
-   //    TextureUsage::ShaderRead
+   //    TextureUsage::Read
    //    TextureUsage::RenderTargetWrite
    //
    //    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
@@ -448,7 +448,7 @@ namespace en
 
 
 
-   Ptr<Texture> VulkanDevice::Create(const TextureState& state)
+   Ptr<Texture> createTexture(VulkanDevice* gpu, const TextureState& state)
    {
    Ptr<TextureVK> texture = nullptr;
 
@@ -457,22 +457,27 @@ namespace en
    textureInfo.pNext       = nullptr;
    textureInfo.flags       = 0;
 
-   // If app wants to create CubeMap views from this texture,
-   // they can be created only from 2DArray or CubeMap texture 
-   // in the first place (2DArray is a convenience tradeoff).
-   if (checkBit(underlyingType(state.usage), underlyingType(TextureUsage::MultipleViews)))
+   // Cube-Maps
+   if (state.type == TextureType::TextureCubeMap ||
+       state.type == TextureType::TextureCubeMapArray)
+      textureInfo.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+   // Multiple Views
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::MultipleViews)))
       {
+      // If app will create different Views from this texture, we
+      // assume that those Views can map different texel Formats.
       textureInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
-      // TODO: Shouldn't it be moved outside of this if-section ?
-      if (state.type == TextureType::Texture2DArray ||
-          state.type == TextureType::TextureCubeMap ||
-          state.type == TextureType::TextureCubeMapArray)
+      // If app will create different Views from this texture, and
+      // it's 2DArray, it's possible that app will want to create
+      // CubeMap or CubeMapArray Views.
+      if (state.type == TextureType::Texture2DArray)
          textureInfo.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
       }
 
    // Sparse Textures
-   if (checkBit(underlyingType(state.usage), underlyingType(TextureUsage::Sparse)))
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Sparse)))
       {
       textureInfo.flags |= VK_IMAGE_CREATE_SPARSE_BINDING_BIT;
 
@@ -496,11 +501,11 @@ namespace en
    bool isMemoryless    = false;
 
    // Streamed or Static
-   if (checkBit(underlyingType(state.usage), underlyingType(TextureUsage::Streamed)))
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Streamed)))
       {
       // TODO: Optimize it to specify Source/Destination only.
-      textureInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;  
-      textureInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT; 
+      textureInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT; // Streaming Source? (stream from GPU, GPU generated content?)
+      textureInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT; // Definitely destination on Streaming
 
       // VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT  - can be mapped using vkMapMemory
       // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT - memory is always correct (in-sync) on both Host and Device
@@ -513,24 +518,30 @@ namespace en
    else
       {
       // Read only textures need to be populated first using blit
-      if (checkBit(underlyingType(state.usage), underlyingType(TextureUsage::ShaderRead)))
+      if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
          textureInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
       properties |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
       }
 
-   if (checkBit(underlyingType(state.usage), underlyingType(TextureUsage::ShaderRead)))
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
       {
       textureInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
       canBeMemoryless   = false;
       }
 
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Atomic)))
+      {
+      textureInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+      canBeMemoryless   = false;
+      }
+
    // Render Target Attachment
-   if ( checkBit(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetRead)) ||
-        checkBit(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)) )
+   if ( checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetRead)) ||
+        checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)) )
       {
       // Destination for Render Operations
-      if (checkBit(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
+      if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
          {
          if ( TextureFormatIsDepth(state.format)   ||
               TextureFormatIsStencil(state.format) ||
@@ -543,7 +554,7 @@ namespace en
          }
       
       // Can be sourced in next Post Process Pass
-      if (checkBit(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetRead)))
+      if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetRead)))
          {
          textureInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
          }
@@ -565,13 +576,13 @@ namespace en
 // usage, it may be required to share it between Families.
 // if (queueFamiliesCount > 1)
 //    {
-//    textureInfo.sharingMode           = VK_SHARING_MODE_CONCURRENT;
-//    textureInfo.queueFamilyIndexCount = queueFamiliesCount;  // Count of Queue Families (for eg.g GPU has 40 Rendering and 10 Compute Queues grouped into 2 Families)
+//    textureInfo.sharingMode           = VK_SHARING_MODE_CONCURRENT; // Sharing between multiple Queue Families
+//    textureInfo.queueFamilyIndexCount = queueFamiliesCount;  // Count of Queue Families (for eg. GPU has 40 Rendering and 10 Compute Queues grouped into 2 Families)
 //    textureInfo.pQueueFamilyIndices   = queueFamilyIndices;  // pQueueFamilyIndices is a list of queue families that will access this image
 //    }
 // else
       {
-      textureInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE; // Sharing method when accessed by multiple Queue Families (alternative: VK_SHARING_MODE_CONCURRENT)
+      textureInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;  // No sharing between multiple Queue Families
       textureInfo.queueFamilyIndexCount = 0;
       textureInfo.pQueueFamilyIndices   = nullptr;
       }
@@ -581,32 +592,34 @@ namespace en
    // Query additional info about Format required for this Texture to validate it
    VkImageFormatProperties formatInfo;
 
-   VkResult result = vkGetPhysicalDeviceImageFormatProperties(handle, 
+   Profile( gpu, vkGetPhysicalDeviceImageFormatProperties(gpu->handle, 
       textureInfo.format,
       textureInfo.imageType,
       textureInfo.tiling,
       textureInfo.usage,
       textureInfo.flags,
-      &formatInfo);
+      &formatInfo) )
 
-   assert( result != VK_ERROR_FORMAT_NOT_SUPPORTED );
+   uint32 threadId = Scheduler.core();
+
+   assert( gpu->lastResult[threadId] != VK_ERROR_FORMAT_NOT_SUPPORTED );
    assert( textureInfo.extent.width  <= formatInfo.maxExtent.width );
    assert( textureInfo.extent.height <= formatInfo.maxExtent.height );
    assert( textureInfo.extent.depth  <= formatInfo.maxExtent.depth );
    assert( textureInfo.mipLevels     <= formatInfo.maxMipLevels );
    assert( textureInfo.arrayLayers   <= formatInfo.maxArrayLayers );
    assert( textureInfo.samples & formatInfo.sampleCounts );
-   // There is no way to validate against formatInfo.maxResourceSize until texture is created
+   // There is no way to validate against formatInfo.maxResourceSize until texture is created.
 
    VkImage handle;
-   result = vkCreateImage(device, &textureInfo, nullptr, &handle);
-   if ( result >= 0 )
+   Profile( gpu, vkCreateImage(gpu->device, &textureInfo, nullptr, &handle) )
+   if (gpu->lastResult[threadId] >= 0)  
       {
-      texture = new TextureVK();
+      texture = new TextureVK(gpu, state);
       texture->handle = handle;
 
       // Query image requirements and validate if it can be created on this device
-      vkGetImageMemoryRequirements(device, handle, &texture->memoryRequirements);
+      ProfileNoRet( gpu, vkGetImageMemoryRequirements(gpu->device, handle, &texture->memoryRequirements) )
       assert( texture->memoryRequirements.size <= formatInfo.maxResourceSize );
 
       // Default view is not swizzling anything
@@ -633,73 +646,30 @@ namespace en
       viewInfo.subresourceRange.baseArrayLayer = 0;
       viewInfo.subresourceRange.layerCount     = state.layers;
 
-      result = vkCreateImageView(device, &viewInfo, nullptr, &texture->view);
-      assert( !result );
-
-
-
-
-// TODO: Finish
-
-//getMemoryType(texture->memoryRequirements.memoryTypeBits, properties, uint32* memoryType)
-
-
-
-
-      
-
-      // mem_alloc.allocationSize = memReqs.size;
-      // (memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &mem_alloc.memoryTypeIndex);
-      // err = vkAllocateMemory(device, &mem_alloc, nullptr, &depthStencil.mem);
-      // assert(!err);
-      // 
-      // err = vkBindImageMemory(device, depthStencil.image, depthStencil.mem, 0);
-      // assert(!err);
-      // vkTools::setImageLayout(setupCmdBuffer, depthStencil.image, VK_IMAGE_ASPECT_DEPTH_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-      // 
-      // depthStencilView.image = depthStencil.image;
-      // err = vkCreateImageView(device, &depthStencilView, nullptr, &depthStencil.view);
-      // assert(!err);
-
-      // Use Image Transition operation after creation to bind memory and fill it with content.
+      Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &texture->view) )
+      assert( !gpu->lastResult[threadId] );
       }
 
    return ptr_dynamic_cast<Texture, TextureVK>(texture);
    }
 
+   TextureVK::TextureVK(VulkanDevice* _gpu, const TextureState& state) :
+      gpu(_gpu),
+      TextureCommon(state)
+   {
+   }
 
-
+   TextureVK::~TextureVK()
+   {
+   // TODO: Deallocate from the Heap (let Heap allocator know that memory region is available again!).
+   ProfileNoRet( gpu, vkDestroyImageView(gpu->device, view, nullptr) )
+   ProfileNoRet( gpu, vkDestroyImage(gpu->device, handle, nullptr) )
+   }
+ 
    }
 }
 #endif
 
-
-
-
-
-
-
-
-
-// vkGetPhysicalDeviceFormatProperties(handle,
-//     VkFormat                                    format,
-//     VkFormatProperties*                         pFormatProperties);
-
-
-   
-   //Ptr<Texture> VulkanDevice::Create(const TextureState& state)
-   //{
-   //uint32 mipmaps = TextureMipMapCount(state);
-   //
-
-   //
-   //
-   //imageInfo.tiling    = XGL_LINEAR_TILING;     // Can be XGL_OPTIMAL_TILING
-   //
-   //                      // This will be classic 2D texture read by shaders
-   //imageInfo.usage;    = XGL_IMAGE_USAGE_SHADER_ACCESS_READ_BIT |
-   //                      XGL_IMAGE_USAGE_TEXTURE_BIT;
-   //
    //                      // Texture won't be changed (static), and it's format can be 
    //                      // changed for specific GPU to e.g. gain performance or 
    //                      // emulate it on older HW.
@@ -718,27 +688,4 @@ namespace en
    ////   XGL_IMAGE_USAGE_IMAGE_BIT                               = 0x00000040,   // opaque image (2d, 3d, etc.)
    ////   XGL_IMAGE_USAGE_COLOR_ATTACHMENT_BIT                    = 0x00000080,   // framebuffer color attachment
    ////   XGL_IMAGE_USAGE_DEPTH_STENCIL_BIT                       = 0x00000100,   // framebuffer depth/stencil 
-   //
-   //// XGL_IMAGE_CREATE_FLAGS:
-   ////   XGL_IMAGE_CREATE_INVARIANT_DATA_BIT                     = 0x00000001,
-   ////   XGL_IMAGE_CREATE_CLONEABLE_BIT                          = 0x00000002,
-   ////   XGL_IMAGE_CREATE_SHAREABLE_BIT                          = 0x00000004,
-   ////   XGL_IMAGE_CREATE_SPARSE_BIT                             = 0x00000008,
-   ////   XGL_IMAGE_CREATE_MUTABLE_FORMAT_BIT                     = 0x00000010,   // Allows image views to have different format than the base image
-   //
-   //XGL_IMAGE image;
-   //
-   //res = VkCreateImage( gpu[i].handle, &imageInfo, &image);
-   //
-   //res = VkSetFastClearColor( image, static_cast<const float>(float4(0.0f, 0.0f, 0.0f, 1.0f)) ); 
-   //
-   //res = VkSetFastClearDepth( image, 0.0f );
-   //
-   //res = VkGetImageSubresourceInfo( image,
-   //    const XGL_IMAGE_SUBRESOURCE*                pSubresource,
-   //                                  XGL_INFO_TYPE_SUBRESOURCE_LAYOUT
-   //    size_t*                                     pDataSize,
-   //    void*                                       pData);
-   //
-   //
-   //}
+ 

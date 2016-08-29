@@ -19,6 +19,7 @@
 
 #include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
+#include "core/rendering/vulkan/vkTexture.h"   
 
 namespace en
 {
@@ -371,7 +372,6 @@ namespace en
       }
    }
 
-
    Ptr<Heap> VulkanDevice::create(const MemoryUsage usage, const uint32 size)
    {
    // How many different Memory Types this device support for given Memory Usage,
@@ -388,24 +388,40 @@ namespace en
       allocInfo.memoryTypeIndex = memoryTypePerUsage[usageIndex][i];
       
       VkDeviceMemory handle;
-      Profile( gpu, vkAllocateMemory(device, &allocInfo, nullptr /*&defaultAllocCallbacks*/, &handle) )
-	  if (lastResult == VK_SUCCESS)
-         return ptr_dynamic_cast<Heap, HeapVK>(Ptr<HeapVK>(new HeapVK(dynamic_cast<CommonDevice*>(this), handle, size)));
+      Profile( this, vkAllocateMemory(device, &allocInfo, nullptr, &handle) )
+	  if (lastResult[0] == VK_SUCCESS)   // FIXME!! Assumes first thread !
+         {
+         return ptr_dynamic_cast<Heap, HeapVK>(Ptr<HeapVK>(new HeapVK(this, handle, memoryTypePerUsage[usageIndex][i], size)));
+         }
       }
 
    return Ptr<Heap>(nullptr);
    }
 
-   HeapVK::HeapVK(const CommonDevice* _gpu, const VkDeviceMemory _handle, const uint32 size) :
+   HeapVK::HeapVK(VulkanDevice* _gpu, const VkDeviceMemory _handle, const uint32 _memoryType, const uint32 size) :
       gpu(_gpu),
       handle(_handle),
+      memoryType(_memoryType),
       CommonHeap(size)
    {
    }
 
    HeapVK::~HeapVK()
    {
-   Profile( gpu, vkFreeMemory(device, handle, nullptr) )
+   ProfileNoRet( gpu, vkFreeMemory(gpu->device, handle, nullptr) )
+   }
+
+   bool allocate(uint64 size, uint64 alignment, uint64* offset)
+   {
+   // TODO: Alocating algorithm!
+   // TODO: Requires minimum Heap size.
+   // TODO: Generalize this allocator to be of an Engine Type. 
+   //       This will allow it to be used also for CPU memory sub-allocations,
+   //       or to hook-up user specific memory allocators.
+   // TODO: Add "makeAliasable" call to the resources API.
+   // TODO: Ensure resources "dealloc" on Heap's allocator on destruction.
+   // TODO: General and Specified memory allocators are needed.
+   return false;
    }
 
    // Create formatted Vertex buffer that can be bound to InputAssembler.
@@ -423,14 +439,55 @@ namespace en
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size, const void* data)
+   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size)
    {
    return Ptr<Buffer>(nullptr);
    }
    
+   // Create unformatted generic buffer of given type and size.
+   // This is specialized method, that allows passing pointer
+   // to data, to directly initialize buffer content.
+   // It is allowed on mobile devices conforming to UMA architecture.
+   // On Discreete GPU's with NUMA architecture, only Transient buffers
+   // can be created with it.
+   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size, const void* data)
+   {
+   return Ptr<Buffer>(nullptr);
+   }
+ 
    Ptr<Texture> HeapVK::create(const TextureState state)
    {
-   return Ptr<Texture>(nullptr);
+   // Create texture descriptor
+   Ptr<Texture> result = createTexture(gpu, state);
+   if (!result)
+      return result;
+
+   // Check if created texture can be backed by this Heap memory
+   Ptr<TextureVK> texture = ptr_dynamic_cast<TextureVK, Texture>(result);
+   if (!checkBit(texture->memoryRequirements.memoryTypeBits, memoryType))
+      {
+      // Destroy texture descriptor
+      texture = nullptr;
+      result = nullptr;
+      return result;
+      }
+  
+   // Find memory region in the Heap where this texture can be placed.
+   // If allocation succeeded, texture is mapped to given offset.
+   uint64 offset = 0;
+   if (!allocate(texture->memoryRequirements.size,
+                 texture->memoryRequirements.alignment,
+                 &offset))
+      {
+      // Destroy texture descriptor
+      texture = nullptr;
+      result = nullptr;
+      return result;
+      }
+
+   Profile( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )
+
+   return result;
    }
   
    }

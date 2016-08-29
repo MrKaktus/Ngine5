@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/state.h"
+#include "core/rendering/vulkan/vkDevice.h"
 
 namespace en
 {
@@ -115,6 +116,13 @@ namespace en
       //if (color[i].writeMask & ColorMaskAlpha)
       //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_A_BIT;
       }
+   }
+
+   Ptr<BlendState> VulkanDevice::create(const BlendStateInfo& state,
+                                        const uint32 attachments,
+                                        const BlendAttachmentInfo* color)
+   {
+   return ptr_dynamic_cast<BlendState, BlendStateVK>(Ptr<BlendStateVK>(new BlendStateVK(state, attachments, color)));
    }
 
    }

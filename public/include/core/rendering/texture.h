@@ -405,16 +405,17 @@ namespace en
    //   };
 
    // Examples:
-   // - Static        - TextureUsage::ShaderRead
-   // - ShadowMap     - TextureUsage::RenderTargetWrite | TextureUsage::ShaderRead
+   // - Static        - TextureUsage::Read
+   // - ShadowMap     - TextureUsage::RenderTargetWrite | TextureUsage::Read
    // - DepthBuffer   - TextureUsage::RenderTargetWrite
-   // - GBuffer Depth - TextureUsage::RenderTargetWrite | TextureUsage::ShaderRead
+   // - GBuffer Depth - TextureUsage::RenderTargetWrite | TextureUsage::Read
    //
    enum class TextureUsage : uint32
       {
-      ShaderRead          = 0x0001,  // Allows Reading and Sampling Textures
-      ShaderWrite         = 0x0002,  // Allows Writing to Textures (for eg. by Compute Shaders)
-      RenderTargetRead    = 0x0004,  // Texture can be one of Color, Depth, Stencil read sources during rendering operations
+      Read                = 0x0001,  // Allows Reading and Sampling Textures by Shaders
+      Write               = 0x0002,  // Allows Writing to Textures (for eg. by Compute Shaders)
+      Atomic              = 0x0004,  // Allows Atomic operations on Texture
+      RenderTargetRead    = 0x0008,  // Texture can be one of Color, Depth, Stencil read sources during rendering operations
       RenderTargetWrite   = 0x0010,  // Texture can be one of Color, Depth, Stencil destination for Rendering operations
       MultipleViews       = 0x0020,  // Allows creation of multiple Texture Views from one Texture
       Streamed            = 0x0040,  // Optimal for fast streaming of data between CPU and GPU

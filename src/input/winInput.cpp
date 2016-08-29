@@ -430,11 +430,11 @@ namespace en
    {
    }
 
-   Ptr<Screen> WinMouse::screen(void) const
+   Ptr<Display> WinMouse::display(void) const
    {
    // TODO: Return screen on which mouse is currently located
    //       https://msdn.microsoft.com/en-us/library/windows/desktop/dd183314(v=vs.85).aspx
-   return Ptr<Screen>(nullptr);
+   return Ptr<Display>(nullptr);
    }
 
    bool WinMouse::position(const uint32 x, const uint32 y)
@@ -442,9 +442,9 @@ namespace en
    return SetCursorPos(x,y);
    }
 
-   bool WinMouse::position(const Ptr<Screen> screen, const uint32 x, const uint32 y)
+   bool WinMouse::position(const Ptr<Display> screen, const uint32 x, const uint32 y)
    {
-   assert( screen );
+   assert( _display );
    
    // TODO: Position mouse on given screen
 

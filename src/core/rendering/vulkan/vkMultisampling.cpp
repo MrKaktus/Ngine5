@@ -17,6 +17,8 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
+#include "core/rendering/vulkan/vkDevice.h"
+
 namespace en
 {
    namespace gpu
@@ -65,6 +67,13 @@ namespace en
       default:
          state.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
       };
+   }
+
+   Ptr<MultisamplingState> VulkanDevice::create(const uint32 samples,
+                                                const bool enableAlphaToCoverage,
+                                                const bool enableAlphaToOne)
+   {
+   return ptr_dynamic_cast<MultisamplingState, MultisamplingStateVK>(Ptr<MultisamplingStateVK>(new MultisamplingStateVK(samples, enableAlphaToCoverage, enableAlphaToOne)));
    }
 
    }

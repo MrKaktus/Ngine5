@@ -15,7 +15,7 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_WINDOWS)
+#if 0 //defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/opengl/glBlend.h"
 #include "core/rendering/opengl/glDevice.h"
@@ -265,3 +265,4 @@ namespace en
 
    }
 }
+#endif

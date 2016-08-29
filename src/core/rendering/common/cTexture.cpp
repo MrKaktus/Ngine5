@@ -26,7 +26,7 @@ namespace en
    TextureState::TextureState() :
       type(TextureType::Texture2D),
       format(Format::Unsupported),
-      usage(TextureUsage::ShaderRead),
+      usage(TextureUsage::Read),
       width(1),
       height(1),
       depth(1),
@@ -528,17 +528,6 @@ namespace en
    {
    assert( 0 );
    return false;
-   }
-   
-   Ptr<TextureView> TextureCommon::view() const
-   {
-   return ptr_dynamic_cast<TextureView, TextureViewCommon>(Ptr<TextureViewCommon>(textureView));
-   }
-
-
-   uint32 CommonDevice::texelSize(const Format format)
-   {
-   return TextureCompressionInfo[underlyingType(format)].size;
    }
    
    Ptr<TextureView> TextureCommon::view() const

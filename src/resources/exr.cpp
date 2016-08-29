@@ -513,10 +513,12 @@ namespace en
             else
                chunks = (headers[part].dataWindow.height / 32) + ( headers[part].dataWindow.height % 16 ? 1 : 0);
             }
+
          // TODO: Determine chunks count for other types
          // - dataWindow
          // - tileDesc
          // - compression
+         assert( chunks != -1 );
          }
 
       // Calculate block size

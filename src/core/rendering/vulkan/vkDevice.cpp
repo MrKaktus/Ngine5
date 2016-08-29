@@ -19,6 +19,7 @@
 
 #include "core/log/log.h"
 #include "core/utilities/memory.h"
+#include "core/rendering/vulkan/vkTexture.h"
 
 namespace en
 {
@@ -48,7 +49,7 @@ namespace en
 
    #define LoadFunction(function)                                                \
    {                                                                             \
-   function = (PFN_##function)LoadProcAddress(library, #function));              \
+   function = (PFN_##function)LoadProcAddress(library, #function);               \
    if (function == nullptr)                                                      \
       {                                                                          \
       function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
@@ -78,7 +79,8 @@ namespace en
 
    #define LoadDeviceFunction(function)                                          \
    {                                                                             \
-   function = (PFN_##function) vkGetDeviceProcAddr(device, #function);           \
+   Ptr<VulkanAPI> api = ptr_dynamic_cast<VulkanAPI, GraphicAPI>(Graphics);       \
+   function = (PFN_##function) api->vkGetDeviceProcAddr(device, #function);      \
    if (function == nullptr)                                                      \
       {                                                                          \
       function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
@@ -168,9 +170,7 @@ namespace en
 
 
 #if defined(EN_PLATFORM_WINDOWS)
-   winDisplay::winDisplay()
-      observedResolution(),
-      modes(0),
+   winDisplay::winDisplay() :
       index(0),
       resolutionChanged(false),
       CommonDisplay()
@@ -206,7 +206,7 @@ namespace en
      
    // Window settings
    Window.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Have its own Device Context and also cannot be resized. Oculus uses CLASSDC which is not thread safe!    
-   Window.lpfnWndProc   = (WNDPROC) WinEvents;                // Procedure that handles OS evets for this window
+    Window.lpfnWndProc   = (WNDPROC) WinEvents;                // Procedure that handles OS evets for this window
    Window.cbClsExtra    = 0;                                  // No extra window data
    Window.cbWndExtra    = 0;                                  //
    Window.hInstance     = AppInstance;                        // Handle to instance of program that this window belongs to
@@ -302,7 +302,7 @@ namespace en
    if (hWnd == nullptr)
       {
       Log << "Error! Cannot create window.\n";
-      return false;
+      assert( 0 );
       }
    
    _display  = ptr_dynamic_cast<CommonDisplay, winDisplay>(selectedDisplay);
@@ -345,7 +345,7 @@ namespace en
    }
 #endif
 
-   WindowVK::WindowVK(const VulkanDevice* gpu,
+   WindowVK::WindowVK(VulkanDevice* gpu,
                       const Ptr<CommonDisplay> selectedDisplay,
                       const uint32v2 selectedResolution,
                       const WindowSettings& settings,
@@ -366,23 +366,23 @@ namespace en
    VkSurfaceCapabilitiesKHR swapChainCapabilities;
      
 #if defined(EN_PLATFORM_WINDOWS)
-   VkWin32SurfaceCreateInfoKHR createInfo;
-   createInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-   createInfo.pNext     = nullptr;
-   createInfo.flags     = 0;           // VkWin32SurfaceCreateFlagsKHR - Reserved.
-   createInfo.hinstance = AppInstance; // HINSTANCE
-   createInfo.hwnd      = hWnd;        // HWND
+   VkWin32SurfaceCreateInfoKHR winCreateInfo;
+   winCreateInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+   winCreateInfo.pNext     = nullptr;
+   winCreateInfo.flags     = 0;           // VkWin32SurfaceCreateFlagsKHR - Reserved.
+   winCreateInfo.hinstance = AppInstance; // HINSTANCE
+   winCreateInfo.hwnd      = hWnd;        // HWND
 
-   Profile( gpu, vkCreateWin32SurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicsAPI>(en::Graphics)->instance,
-                                         &createInfo, nullptr, &swapChainSurface) )
+   Profile( gpu, vkCreateWin32SurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicAPI>(en::Graphics)->instance,
+                                         &winCreateInfo, nullptr, &swapChainSurface) )
 #else
    // TODO: Implement OS Specific part for other platforms.
    assert( 0 );
 #endif
 
    // Query capabilities of Swap-Chain surface for this device
-   Profile( gpu, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, swapChainSurface, &swapChainCapabilities) )
-   if (lastResult != VK_SUCCESS)
+   Profile( gpu, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->handle, swapChainSurface, &swapChainCapabilities) )
+   if (gpu->lastResult[0] != VK_SUCCESS)  // TODO FIXME! Assumes Thread 0 !
       {
       string info;
       info += "ERROR: Vulkan error:\n";
@@ -411,8 +411,8 @@ namespace en
       
    // Query count of available Pixel Formats supported by this device, and matching destination Window
    uint32 formats = 0;
-   Profile( gpu, vkGetPhysicalDeviceSurfaceFormatsKHR(handle, swapChainSurface, &formats, nullptr) )
-   if ( (lastResult != VK_SUCCESS) ||
+   Profile( gpu, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, nullptr) )
+   if ( (gpu->lastResult[0] != VK_SUCCESS) ||   // TODO FIXME! Assumes Thread 0 !
         (formats == 0) )
       {
       string info;
@@ -425,8 +425,8 @@ namespace en
 
    // Query types of all available device Pixel Formats for that surface
    VkSurfaceFormatKHR* deviceFormats = new VkSurfaceFormatKHR[formats];
-   Profile( gpu, vkGetPhysicalDeviceSurfaceFormatsKHR(handle, swapChainSurface, &formats, &deviceFormats[0]) )
-   if (lastResult != VK_SUCCESS)
+   Profile( gpu, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, &deviceFormats[0]) )
+   if (gpu->lastResult[0] != VK_SUCCESS)   // TODO FIXME! Assumes Thread 0 !
       {
       delete [] deviceFormats;
       
@@ -503,7 +503,7 @@ namespace en
    
    // Swap-Chain images need to support usage as Color Attachment.
    VkImageUsageFlags swapChainUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-   if (!bitsCheck(swapChainCapabilities.supportedUsageFlags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+   if (!checkBits(swapChainCapabilities.supportedUsageFlags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
       {
       Log << "ERROR: Swap-Chain is not supporting mandatory color attachment usage!\n";
       assert( 0 );
@@ -518,7 +518,7 @@ namespace en
 
    // By default we don't want any transformation to take place
    VkSurfaceTransformFlagBitsKHR swapChainTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-   if (!bitsCheck(swapChainCapabilities.supportedTransforms, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR))
+   if (!checkBits(swapChainCapabilities.supportedTransforms, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR))
       {
       // If we need to apply a transform, use current one in the system
       swapChainTransform = swapChainCapabilities.currentTransform;
@@ -531,8 +531,8 @@ namespace en
    VkPresentModeKHR* presentationMode = nullptr;
    
    // Query device Presentation Modes count
-   Profile( vkGetPhysicalDeviceSurfacePresentModesKHR(handle, swapChainSurface, &modes, nullptr) )
-   if ( (lastResult != VK_SUCCESS) ||
+   Profile( gpu, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, nullptr) )
+   if ( (gpu->lastResult[0] != VK_SUCCESS) ||    // TODO FIXME! Assumes Thread 0 !
         (modes == 0) )
       {
       string info;
@@ -545,8 +545,8 @@ namespace en
 
    // Query device Presentation Modes details
    presentationMode = new VkPresentModeKHR[modes];
-   Profile( vkGetPhysicalDeviceSurfacePresentModesKHR(handle, swapChainSurface, &modes, &presentationMode[0]) )
-   if (lastResult != VK_SUCCESS)
+   Profile( gpu, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, &presentationMode[0]) )
+   if (gpu->lastResult[0] != VK_SUCCESS)   // TODO FIXME! Assumes Thread 0 !
       {
       delete [] presentationMode;
       
@@ -605,7 +605,7 @@ namespace en
    createInfo.minImageCount         = swapChainImages;
    createInfo.imageFormat           = swapChainFormat;
    createInfo.imageColorSpace       = swapChainColorSpace;
-   createInfo.imageExtent           = swapChainResolution;
+   createInfo.imageExtent           = { swapChainResolution.width, swapChainResolution.height };
    createInfo.imageArrayLayers      = 1;                    // TODO: This may change for VR support
    createInfo.imageUsage            = swapChainUsage;
    createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE; // Only single Queue Family can access Swap-Chain buffers
@@ -617,7 +617,7 @@ namespace en
    createInfo.clipped               = VK_TRUE;
    createInfo.oldSwapchain          = VK_NULL_HANDLE;
  
-   Profile( vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) )
+   Profile( gpu, vkCreateSwapchainKHR(gpu->device, &createInfo, nullptr, &swapChain) )
 
    _resolution = swapChainResolution;
    }
@@ -627,8 +627,8 @@ namespace en
    // Be sure device is idle before destroying the Window
    Profile( gpu, vkDeviceWaitIdle(gpu->device) )
    
-   Profile( gpu, vkDestroySurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicsAPI>(en::Graphics)->instance,
-                                     surface, nullptr) )
+   ProfileNoRet( gpu, vkDestroySurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicAPI>(en::Graphics)->instance,
+                                          swapChainSurface, nullptr) )
    }
    
    Ptr<Window> VulkanDevice::create(const WindowSettings& settings, const string title)
@@ -782,18 +782,17 @@ namespace en
 
 
 
-   VulkanDevice::VulkanDevice(const VulkanAPI* _api, const VkPhysicalDevice _handle) :
+   VulkanDevice::VulkanDevice(VulkanAPI* _api, const VkPhysicalDevice _handle) :
       api(_api),
       handle(_handle),
       queueFamily(nullptr),
       queueFamiliesCount(0),
       queueFamilyIndices(nullptr),
-      layer(nullptr),
-      layersCount(0),
       globalExtension(nullptr),
       globalExtensionsCount(0),
       memoryRAM(0),
-      memoryDriver(0)
+      memoryDriver(0),
+      CommonDevice()
    {
    for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
       lastResult[i] = VK_SUCCESS;
@@ -817,7 +816,7 @@ namespace en
     for(uint32_t i=0; i<memory.memoryHeapCount; ++i)
        {
        printf("Memory range %i:\n\n", i);
-       printf("    Size          : %u\n", memory.memoryHeaps[i].size);
+       printf("    Size          : %llu\n", memory.memoryHeaps[i].size);
        printf("    Backing memory: %s\n", memory.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT ? "VRAM" : "RAM");
        printf("    Memory types  :\n");
        for(uint32_t j=0; j<memory.memoryTypeCount; ++j)
@@ -953,10 +952,10 @@ namespace en
       {
       Log << "Queue Family %i:" << family << endl;
 
-      Log << "    Queues: " << queueFamily[family].queueCount) << endl;
-      Log << "    Queue Min Transfer W: " << queueFamily[family].minImageTransferGranularity.width) << endl;
-      Log << "    Queue Min Transfer H: " << queueFamily[family].minImageTransferGranularity.height) << endl;
-      Log << "    Queue Min Transfer D: " << queueFamily[family].minImageTransferGranularity.depth) << endl;
+      Log << "    Queues: " << queueFamily[family].queueCount << endl;
+      Log << "    Queue Min Transfer W: " << queueFamily[family].minImageTransferGranularity.width << endl;
+      Log << "    Queue Min Transfer H: " << queueFamily[family].minImageTransferGranularity.height << endl;
+      Log << "    Queue Min Transfer D: " << queueFamily[family].minImageTransferGranularity.depth << endl;
       if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
          Log << "    Family supports: GRAPHICS\n";
       if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
@@ -965,7 +964,7 @@ namespace en
          Log << "    Family supports: TRANSFER\n";
       if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
          Log << "    Family supports: SPARSE_BINDING\n";
-      Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits) << endl << endl;
+      Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << endl << endl;
       }
 #endif
 
@@ -1011,7 +1010,7 @@ namespace en
       {
       extensionPtrs = new char*[globalExtensionsCount];
       for(uint32 i=0; i<globalExtensionsCount; ++i)
-         extensionPtrs[index] = &globalExtension[i].extensionName[0];
+         extensionPtrs[i] = &globalExtension[i].extensionName[0];
       }
       
    // Create Vulkan Device
@@ -1023,7 +1022,7 @@ namespace en
    deviceInfo.pNext                     = nullptr;
    deviceInfo.flags                     = 0;                     // Reserved
    deviceInfo.queueCreateInfoCount      = queueFamiliesCount;
-   deviceInfo.pQueueCreateInfos         = queueInfo;
+   deviceInfo.pQueueCreateInfos         = queueFamilyInfo;
    deviceInfo.enabledLayerCount         = 0;                     // Deprecated, ignored.
    deviceInfo.ppEnabledLayerNames       = nullptr;               // Deprecated, ignored.
    deviceInfo.enabledExtensionCount     = globalExtensionsCount;
@@ -1055,7 +1054,7 @@ namespace en
    for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
       if (queuesCount[i] > 0)
          {
-         uint32 family = queueTypeToFamily[i];
+         uint32 queueFamilyId = queueTypeToFamily[i];
 
          // It's abstract object as it has no size.
          // It's not tied to Queueu, but to Queue Family, so it can be shared by all Queues in this family.
@@ -1067,7 +1066,7 @@ namespace en
          poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT; // To reuse CB's use VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
          poolInfo.queueFamilyIndex = queueFamilyId;
          
-         Profile( this, vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool[thread][i]) )
+         Profile( this, vkCreateCommandPool(device, &poolInfo, nullptr, (VkCommandPool*)(&commandPool[thread][i])) )
          }
 
    // <<<< Per Thread Section
@@ -1105,26 +1104,18 @@ namespace en
    // Release all Command Pools used by this thread for Commands submission
    for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
       if (queuesCount[i] > 0)
-         Profile( this, vkDestroyCommandPool(device, commandPool[thread][i], nullptr) )
+         ProfileNoRet( this, vkDestroyCommandPool(device, commandPool[thread][i], nullptr) )
 
    // <<<< Per Thread Section
 
    if (device != VK_NULL_HANDLE)
-      Profile( this, vkDestroyDevice(device, nullptr) )  // Instance or Device function ?
+      ProfileNoRet( this, vkDestroyDevice(device, nullptr) )  // Instance or Device function ?
 
    delete [] queueFamily;
    delete [] queueFamilyIndices;
-   for(uint32 i=0; i<layersCount; ++i)
-      delete [] layer[i].extension;
-   delete [] layer;
    delete [] globalExtension;
    }
    
-   uint32 VulkanDevice::queues(const QueueType type) const
-   {
-   return queuesCount[underlyingType(type)];  //Need translation table from (Type, N) -> (Family, Index)
-   }
-
    void VulkanDevice::loadDeviceFunctionPointers(void)
    {
    // TODO: Order it by extensions etc.
@@ -1137,7 +1128,7 @@ namespace en
 #undef CreateEvent
 #endif
 
-   // Vulkan 1.0
+   // Vulkan 1.0 
    //
    LoadDeviceFunction( vkDestroyInstance )
    LoadDeviceFunction( vkGetPhysicalDeviceFeatures )
@@ -1146,7 +1137,6 @@ namespace en
    LoadDeviceFunction( vkGetPhysicalDeviceProperties )
    LoadDeviceFunction( vkGetPhysicalDeviceQueueFamilyProperties )
    LoadDeviceFunction( vkGetPhysicalDeviceMemoryProperties )
-   LoadDeviceFunction( vkGetDeviceProcAddr )
    LoadDeviceFunction( vkCreateDevice )
    LoadDeviceFunction( vkDestroyDevice )
    LoadDeviceFunction( vkEnumerateDeviceExtensionProperties )
@@ -1292,7 +1282,6 @@ namespace en
    vkGetPhysicalDeviceProperties                  = nullptr;
    vkGetPhysicalDeviceQueueFamilyProperties       = nullptr;
    vkGetPhysicalDeviceMemoryProperties            = nullptr;
-   vkGetDeviceProcAddr                            = nullptr;
    vkCreateDevice                                 = nullptr;
    vkDestroyDevice                                = nullptr;
    vkEnumerateInstanceExtensionProperties         = nullptr;
@@ -1425,40 +1414,73 @@ namespace en
 
 
 
-   VkDeviceMemory VulkanDevice::allocMemory(VkMemoryRequirements requirements, VkFlags properties)
+
+
+
+
+
+   uint32 VulkanDevice::displays(void) const
    {
-   VkDeviceMemory handle;
-
-   // Find Memory Type that best suits required allocation
-   uint32 index = VK_MAX_MEMORY_TYPES;
-   for(uint32 i=0; i<memory.memoryTypeCount; ++i)
-      {
-      // Memory Type needs to be able to support requested allocation
-      if (checkBit(requirements.memoryTypeBits, (i+1)))
-         // Memory Type needs to support at least requested sub-set of memory properties
-         if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
-            index = i;
-
-      // If this memory type cannot be used to allocate requested resource, continue search
-      if (index == VK_MAX_MEMORY_TYPES)
-         continue;
-
-      // Try to allocate memory on Heap supporting this memory type
-      VkMemoryAllocateInfo allocInfo;
-      allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-      allocInfo.pNext           = nullptr;
-      allocInfo.allocationSize  = requirements.size;
-      allocInfo.memoryTypeIndex = index;
-      
-      // Profile will block here !!! FIXME !!!
-      Profile( this, vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
-      if (lastResult[Scheduler.core()] == VK_SUCCESS)
-         return handle;
-      }
-
-   // FAIL
-   return handle;
+   // Currently all Vulkan devices share all available displays
+   Ptr<VulkanAPI> api = ptr_dynamic_cast<VulkanAPI, GraphicAPI>(en::Graphics);
+   return api->displaysCount;
    }
+   
+   Ptr<Display> VulkanDevice::display(uint32 index) const
+   {
+   // Currently all Metal devices share all available displays
+   Ptr<VulkanAPI> api = ptr_dynamic_cast<VulkanAPI, GraphicAPI>(en::Graphics);
+     
+   assert( api->displaysCount > index );
+   
+   return ptr_dynamic_cast<Display, CommonDisplay>(api->display[index]);
+   }
+
+   uint32 VulkanDevice::queues(const QueueType type) const
+   {
+   return queuesCount[underlyingType(type)];  //Need translation table from (Type, N) -> (Family, Index)
+   }
+
+
+
+
+
+
+
+   //VkDeviceMemory VulkanDevice::allocMemory(VkMemoryRequirements requirements, VkFlags properties)
+   //{
+   //VkDeviceMemory handle;
+
+   //// Find Memory Type that best suits required allocation
+   //uint32 index = VK_MAX_MEMORY_TYPES;
+   //for(uint32 i=0; i<memory.memoryTypeCount; ++i)
+   //   {
+   //   // Memory Type needs to be able to support requested allocation
+   //   if (checkBit(requirements.memoryTypeBits, (i+1)))
+   //      // Memory Type needs to support at least requested sub-set of memory properties
+   //      if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
+   //         index = i;
+
+   //   // If this memory type cannot be used to allocate requested resource, continue search
+   //   if (index == VK_MAX_MEMORY_TYPES)
+   //      continue;
+
+   //   // Try to allocate memory on Heap supporting this memory type
+   //   VkMemoryAllocateInfo allocInfo;
+   //   allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+   //   allocInfo.pNext           = nullptr;
+   //   allocInfo.allocationSize  = requirements.size;
+   //   allocInfo.memoryTypeIndex = index;
+   //   
+   //   // Profile will block here !!! FIXME !!!
+   //   Profile( this, vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
+   //   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+   //      return handle;
+   //   }
+
+   //// FAIL
+   //return handle;
+   //}
 
 
 // typedef struct {
@@ -1605,7 +1627,7 @@ namespace en
 
    VulkanAPI::VulkanAPI(string appName) :
 #if defined(EN_PLATFORM_WINDOWS)
-      library(LoadLibrary("vulkan-1.dll")),
+      library(LoadLibrary(L"vulkan-1.dll")),
 #endif
 #if defined(EN_PLATFORM_LINUX)
       library(dlopen("libvulkan.so", RTLD_NOW)),
@@ -1665,7 +1687,7 @@ namespace en
          assert( EnumDisplaySettingsEx(Device.DeviceName, ENUM_CURRENT_SETTINGS, &DispMode, 0u) )
  
          // Verify that proper values were returned by query
-         assert( checkBits(DispMode.dmFields, DM_POSITION & DM_PELSWIDTH & DM_PELSHEIGHT) )
+         assert( checkBits(DispMode.dmFields, DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT) != 0u )
 
          desktopPosition.x   = DispMode.dmPosition.x;
          desktopPosition.y   = DispMode.dmPosition.y;
@@ -1702,7 +1724,7 @@ namespace en
             modeId++;
             }
         
-         currentDisplay->position           = desktopPosition;
+         currentDisplay->_position          = desktopPosition;
          currentDisplay->resolution         = nativeResolution;
          currentDisplay->observedResolution = currentResolution;
          currentDisplay->modesCount         = modesCount;
@@ -1719,29 +1741,29 @@ namespace en
          // Virtual Display is a bounding box for all available displays.
          if (activeId == 0)
             {
-            virtualDisplay->position   = currentDisplay->position;
+            virtualDisplay->_position  = currentDisplay->_position;
             virtualDisplay->resolution = currentDisplay->resolution;
             }
          else
             {
-            if (currentDisplay->position.x < virtualDisplay->position.x)
+            if (currentDisplay->_position.x < virtualDisplay->_position.x)
                {
-               virtualDisplay->resolution.width += (virtualDisplay->position.x - currentDisplay->position.x);
-               virtualDisplay->position.x = currentDisplay->position.x;
+               virtualDisplay->resolution.width += (virtualDisplay->_position.x - currentDisplay->_position.x);
+               virtualDisplay->_position.x = currentDisplay->_position.x;
                }
-            if (currentDisplay->position.y < virtualDisplay->position.y)
+            if (currentDisplay->_position.y < virtualDisplay->_position.y)
                {
-               virtualDisplay->resolution.height += (virtualDisplay->position.y - currentDisplay->position.y);
-               virtualDisplay->position.y = currentDisplay->position.y;
+               virtualDisplay->resolution.height += (virtualDisplay->_position.y - currentDisplay->_position.y);
+               virtualDisplay->_position.y = currentDisplay->_position.y;
                }
-            uint32 virtualRightBorder = virtualDisplay->position.x + virtualDisplay->resolution.width;
-            uint32 currentRightBorder = currentDisplay->position.x + currentDisplay->resolution.width;
+            uint32 virtualRightBorder = virtualDisplay->_position.x + virtualDisplay->resolution.width;
+            uint32 currentRightBorder = currentDisplay->_position.x + currentDisplay->resolution.width;
             if (virtualRightBorder < currentRightBorder)
-               virtualDisplay->resolution.width = currentRightBorder - virtualDisplay->position.x;
-            uint32 virtualBottomBorder = virtualDisplay->position.y + virtualDisplay->resolution.height;
-            uint32 currentBottomBorder = currentDisplay->position.y + currentDisplay->resolution.height;
+               virtualDisplay->resolution.width = currentRightBorder - virtualDisplay->_position.x;
+            uint32 virtualBottomBorder = virtualDisplay->_position.y + virtualDisplay->resolution.height;
+            uint32 currentBottomBorder = currentDisplay->_position.y + currentDisplay->resolution.height;
             if (virtualBottomBorder < currentBottomBorder)
-               virtualDisplay->resolution.height = currentBottomBorder - virtualDisplay->position.y;
+               virtualDisplay->resolution.height = currentBottomBorder - virtualDisplay->_position.y;
             }
        
          // Add active display to the list
@@ -1920,9 +1942,9 @@ namespace en
    instInfo.pNext                     = nullptr;
    instInfo.flags                     = 0;        // VkInstanceCreateFlags - Reserved.
    instInfo.pApplicationInfo          = &appInfo;
-   instInfo.enabledLayerNameCount     = enabledLayersCount;
+   instInfo.enabledLayerCount         = enabledLayersCount;
    instInfo.ppEnabledLayerNames       = reinterpret_cast<const char*const*>(layersPtrs);
-   instInfo.enabledExtensionNameCount = enabledExtensionsCount;
+   instInfo.enabledExtensionCount     = enabledExtensionsCount;
    instInfo.ppEnabledExtensionNames   = reinterpret_cast<const char*const*>(extensionPtrs);
 
    // TODO: In the future provide our own allocation callbacks to track
@@ -1947,7 +1969,7 @@ namespace en
    // Create interfaces for all available physical devices
    device = new Ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
-      device[i] = new VulkanDevice(deviceHandle[i]);
+      device[i] = new VulkanDevice(this, deviceHandle[i]);
  
    delete [] deviceHandle;
    }
@@ -1962,7 +1984,7 @@ namespace en
    
    // Release Vulkan instance
    if (instance != VK_NULL_HANDLE)
-      Profile( this, vkDestroyInstance(instance, nullptr) )
+      ProfileNoRet( this, vkDestroyInstance(instance, nullptr) )
  
    // Clear Vulkan function pointers
    clearInterfaceFunctionPointers();
@@ -1979,7 +2001,9 @@ namespace en
       }
       
    // Windows OS - Windowing System (API Independent)
-   delete virtualDisplay;
+   virtualDisplay = nullptr;
+   for(uint32 i=0; i<displaysCount; ++i)
+      display[i] = nullptr;
    delete [] display;
    }
 
@@ -2025,6 +2049,20 @@ namespace en
    vkGetPhysicalDeviceSurfaceSupportKHR           = nullptr;
    }
    
+   uint32 VulkanAPI::devices(void) const
+   {
+   return devicesCount;
+   }
+   
+   Ptr<Display> VulkanAPI::primaryDisplay(void) const
+   {
+   return ptr_dynamic_cast<Display, CommonDisplay>(display[0]);
+   }
+      
+   Ptr<GpuDevice> VulkanAPI::primaryDevice(void) const
+   {
+   return ptr_dynamic_cast<GpuDevice, VulkanDevice>(device[0]);
+   }
    
    
 

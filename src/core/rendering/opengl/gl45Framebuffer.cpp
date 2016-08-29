@@ -23,7 +23,8 @@ namespace en
 {
    namespace gpu
    {
-#ifndef EN_PLATFORM_OSX
+#if 0
+//#ifndef EN_PLATFORM_OSX
 
    FramebufferGL45::FramebufferGL45() :
       FramebufferGL40()

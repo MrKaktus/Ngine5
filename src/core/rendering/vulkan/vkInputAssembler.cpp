@@ -17,6 +17,8 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
+#include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
+
 namespace en
 {
    namespace gpu
@@ -38,7 +40,7 @@ namespace en
    
    // Last Verified during Vulkan 1.0 Release
    //
-   static const VkFormat TranslateVertexFormat[underlyingType(VertexFormat::Count)] =
+   static const VkFormat TranslateVertexFormat[underlyingType(Attribute::Count)] =
       { // Sized Internal Format
       VK_FORMAT_UNDEFINED                  ,   // VertexFormat::None
       VK_FORMAT_R8_UNORM                   ,   // VertexFormat::R_8                    Uncompressed formats:
@@ -154,96 +156,96 @@ namespace en
  //  // Vulkan formats represent byte order in memory (RGB -> R byte 0, B byte 2)
 
 
-   // Columns representing data in fixed point sheme 16.16 were introduced 
-   // in OpenGL ES for low end devices without HW acceleration. Currently
-   // almost all mobile devices has HW acceleration for OpenGL ES which means 
-   // that floating point values will be better choose in almost all cases. 
-   // Therefore fixed column formats are not supported by engine.
+   //// Columns representing data in fixed point sheme 16.16 were introduced 
+   //// in OpenGL ES for low end devices without HW acceleration. Currently
+   //// almost all mobile devices has HW acceleration for OpenGL ES which means 
+   //// that floating point values will be better choose in almost all cases. 
+   //// Therefore fixed column formats are not supported by engine.
 
-   // Type of data in columns
-   enum Attribute
-        {
-        None                      = 0,   
-        Float_8                      ,
-        Float2_8                     ,
-        Float3_8                     ,
-        Float4_8                     ,
-        Float_16                     ,
-        Float2_16                    ,
-        Float3_16                    ,
-        Float4_16                    ,
-        UFloat_8                     ,
-        UFloat2_8                    ,
-        UFloat3_8                    ,
-        UFloat4_8                    ,
-        UFloat_16                    ,
-        UFloat2_16                   ,
-        UFloat3_16                   ,
-        UFloat4_16                   ,
-        Half                         ,
-        Half2                        ,
-        Half3                        ,
-        Half4                        ,
-        Float                        ,
-        Float2                       ,
-        Float3                       ,
-        Float4                       ,
-        Double                       ,
-        Double2                      ,
-        Double3                      ,
-        Double4                      ,
-        Float_8_SNorm                ,
-        Float2_8_SNorm               ,
-        Float3_8_SNorm               ,
-        Float4_8_SNorm               ,
-        Half_SNorm                   ,
-        Half2_SNorm                  ,
-        Half3_SNorm                  ,
-        Half4_SNorm                  ,
-        Float_SNorm                  ,
-        Float2_SNorm                 ,
-        Float3_SNorm                 ,
-        Float4_SNorm                 ,
-        Float_8_Norm                 ,
-        Float2_8_Norm                ,
-        Float3_8_Norm                ,
-        Float4_8_Norm                ,
-        Half_Norm                    ,
-        Half2_Norm                   ,
-        Half3_Norm                   ,
-        Half4_Norm                   ,
-        Float_Norm                   ,
-        Float2_Norm                  ,
-        Float3_Norm                  ,
-        Float4_Norm                  ,
-        Byte                         ,
-        Byte2                        ,
-        Byte3                        ,
-        Byte4                        ,
-        Short                        ,
-        Short2                       ,
-        Short3                       ,
-        Short4                       ,
-        Int                          ,
-        Int2                         ,
-        Int3                         ,
-        Int4                         ,
-        UByte                        ,
-        UByte2                       ,
-        UByte3                       ,
-        UByte4                       ,
-        UShort                       ,
-        UShort2                      ,
-        UShort3                      ,
-        UShort4                      ,
-        UInt                         ,
-        UInt2                        ,
-        UInt3                        ,
-        UInt4                        ,
-        Float4_10_10_10_2_SNorm      ,
-        Float4_10_10_10_2_Norm       ,
-        ColumnTypesCount
-        };
+   //// Type of data in columns
+   //enum Attribute
+   //     {
+   //     None                      = 0,   
+   //     Float_8                      ,
+   //     Float2_8                     ,
+   //     Float3_8                     ,
+   //     Float4_8                     ,
+   //     Float_16                     ,
+   //     Float2_16                    ,
+   //     Float3_16                    ,
+   //     Float4_16                    ,
+   //     UFloat_8                     ,
+   //     UFloat2_8                    ,
+   //     UFloat3_8                    ,
+   //     UFloat4_8                    ,
+   //     UFloat_16                    ,
+   //     UFloat2_16                   ,
+   //     UFloat3_16                   ,
+   //     UFloat4_16                   ,
+   //     Half                         ,
+   //     Half2                        ,
+   //     Half3                        ,
+   //     Half4                        ,
+   //     Float                        ,
+   //     Float2                       ,
+   //     Float3                       ,
+   //     Float4                       ,
+   //     Double                       ,
+   //     Double2                      ,
+   //     Double3                      ,
+   //     Double4                      ,
+   //     Float_8_SNorm                ,
+   //     Float2_8_SNorm               ,
+   //     Float3_8_SNorm               ,
+   //     Float4_8_SNorm               ,
+   //     Half_SNorm                   ,
+   //     Half2_SNorm                  ,
+   //     Half3_SNorm                  ,
+   //     Half4_SNorm                  ,
+   //     Float_SNorm                  ,
+   //     Float2_SNorm                 ,
+   //     Float3_SNorm                 ,
+   //     Float4_SNorm                 ,
+   //     Float_8_Norm                 ,
+   //     Float2_8_Norm                ,
+   //     Float3_8_Norm                ,
+   //     Float4_8_Norm                ,
+   //     Half_Norm                    ,
+   //     Half2_Norm                   ,
+   //     Half3_Norm                   ,
+   //     Half4_Norm                   ,
+   //     Float_Norm                   ,
+   //     Float2_Norm                  ,
+   //     Float3_Norm                  ,
+   //     Float4_Norm                  ,
+   //     Byte                         ,
+   //     Byte2                        ,
+   //     Byte3                        ,
+   //     Byte4                        ,
+   //     Short                        ,
+   //     Short2                       ,
+   //     Short3                       ,
+   //     Short4                       ,
+   //     Int                          ,
+   //     Int2                         ,
+   //     Int3                         ,
+   //     Int4                         ,
+   //     UByte                        ,
+   //     UByte2                       ,
+   //     UByte3                       ,
+   //     UByte4                       ,
+   //     UShort                       ,
+   //     UShort2                      ,
+   //     UShort3                      ,
+   //     UShort4                      ,
+   //     UInt                         ,
+   //     UInt2                        ,
+   //     UInt3                        ,
+   //     UInt4                        ,
+   //     Float4_10_10_10_2_SNorm      ,
+   //     Float4_10_10_10_2_Norm       ,
+   //     ColumnTypesCount
+   //     };
 
 
             
@@ -260,7 +262,7 @@ namespace en
 
      
       
-   static const VkFormat TranslateAttributeFormat[AttributeFormatsCount]
+   static const VkFormat TranslateAttributeFormat[underlyingType(Attribute::Count)] = 
       {
       VK_FORMAT_UNDEFINED                ,  // None                      
       VK_FORMAT_R16_SFLOAT               ,  // Half                   
@@ -511,7 +513,7 @@ namespace en
 
       desc->location = i;                    // Location in attributes array.
       desc->binding  = attributes[i].buffer; // Index of binding slot of input buffers to use (indirection decoupling buffers).
-      desc->format   = TranslateAttributeFormat[attributes[i].format];
+      desc->format   = TranslateAttributeFormat[underlyingType(attributes[i].format)];
       desc->offset   = attributes[i].offset;
       }
    }

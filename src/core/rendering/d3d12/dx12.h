@@ -17,6 +17,8 @@
 #ifndef ENG_CORE_RENDERING_D3D12
 #define ENG_CORE_RENDERING_D3D12
 
+#include "core/defines.h"
+
 #if defined(EN_PLATFORM_WINDOWS)
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899120(v=vs.85).aspx

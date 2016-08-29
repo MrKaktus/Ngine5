@@ -18,17 +18,12 @@
 
 #include "core/rendering/buffer.h"
 #include "core/rendering/texture.h"
+#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
    namespace gpu
    {
-   enum class MemoryType : uint32
-      {
-      Dedicated = 0,   // Alocated on dedicated memory (GPU VRAM on discreete GPU's)
-      Shared       ,   // Alocated on shared memory (CPU RAM)
-      };
-
    enum class MemoryUsage : uint32
       {
       Static   = 0,   // Resources will be allocated once and used only by GPU (Static textures, Render Targets)
@@ -37,7 +32,7 @@ namespace en
       Temporary       // Special memory type for Intermediate Render Targets.
       };
 
-   class Heap 
+   class Heap : public SafeObject<Heap>
       {
       public:
       virtual uint32 size(void) const = 0;
@@ -57,9 +52,18 @@ namespace en
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
       virtual Ptr<Buffer> create(const BufferType type,
-                                 const uint32 size,
-                                 const void* data = nullptr) = 0;
+                                 const uint32 size) = 0;
       
+      // Create unformatted generic buffer of given type and size.
+      // This is specialized method, that allows passing pointer
+      // to data, to directly initialize buffer content.
+      // It is allowed on mobile devices conforming to UMA architecture.
+      // On Discreete GPU's with NUMA architecture, only Transient buffers
+      // can be created with it.
+      virtual Ptr<Buffer> create(const BufferType type,
+                                 const uint32 size,
+                                 const void* data) = 0;
+   
       virtual Ptr<Texture> create(const TextureState state) = 0;
 
       virtual ~Heap() {};                           // Polymorphic deletes require a virtual base destructor
@@ -67,3 +71,4 @@ namespace en
    }
 }
 #endif
+

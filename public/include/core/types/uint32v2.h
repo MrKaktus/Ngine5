@@ -23,6 +23,8 @@ namespace en
       
       uint32v2(void);
       uint32v2(uint32 a, uint32 b);
+
+      bool operator== (uint32v2 b);
       };
 }
 

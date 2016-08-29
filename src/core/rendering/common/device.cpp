@@ -109,6 +109,19 @@ namespace en
    {
    }
 
+   CommonDisplay::CommonDisplay() :
+      _position(0, 0),
+      resolution(0, 0),
+      observedResolution(),
+      modeResolution(nullptr),
+      modesCount(0)
+   {
+   }
+
+   CommonDisplay::~CommonDisplay()
+   {
+   }
+
    uint32v2 CommonDisplay::position(void)
    {
    return _position;
@@ -122,7 +135,7 @@ namespace en
 
    Ptr<Display> CommonWindow::display(void) const
    {
-   return _display;
+   return ptr_dynamic_cast<Display, CommonDisplay>(_display);
    }
 
    uint32v2 CommonWindow::position(void) const
@@ -249,7 +262,7 @@ namespace en
 #if defined(EN_PLATFORM_WINDOWS)
    // Graphics = ptr_dynamic_cast<GraphicAPI, Direct3DAPI>(Ptr<Direct3DAPI>(new Direct3DAPI()));
    // Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLAPI>(Ptr<OpenGLAPI>(new OpenGLAPI()));
-   Graphics = ptr_dynamic_cast<GraphicAPI, VulkanAPI>(Ptr<VulkanAPI>(new VulkanAPI()));
+   Graphics = ptr_dynamic_cast<GraphicAPI, VulkanAPI>(Ptr<VulkanAPI>(new VulkanAPI("Ngine5.0")));      // TODO: Propagate application name !
 #endif
 
    return (Graphics == nullptr) ? false : true;

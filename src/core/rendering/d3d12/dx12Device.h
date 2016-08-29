@@ -16,10 +16,11 @@
 #ifndef ENG_CORE_RENDERING_D3D12_DEVICE
 #define ENG_CORE_RENDERING_D3D12_DEVICE
 
-#include <string>
-#include "core/rendering/device.h"
-
 #include "core/rendering/d3d12/dx12.h"
+
+#if defined(EN_PLATFORM_WINDOWS)
+
+#include "core/rendering/common/device.h"
 
 #include "core/rendering/d3d12/dx12InputAssembler.h"
 #include "core/rendering/d3d12/dx12Blend.h"
@@ -45,4 +46,6 @@ namespace en
       };
    }
 }
+#endif
 
+#endif

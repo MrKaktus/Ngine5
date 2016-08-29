@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/state.h"
+#include "core/rendering/vulkan/vkDevice.h"
 
 namespace en
 {
@@ -68,6 +69,11 @@ namespace en
    //rasterStateInfo.pointSize            = raster.pointSize;            // Point Fade Threshold - max value to which point size is clamped (deprecated in 4.2?)
    //rasterStateInfo.pointFadeThreshold   = raster.pointFadeThreshold;   // https://www.opengl.org/registry/specs/ARB/point_sprite.txt
    //                                                                    // https://www.opengl.org/registry/specs/ARB/point_parameters.txt
+   }
+
+   Ptr<RasterState> VulkanDevice::create(const RasterStateInfo& state)
+   {
+   return ptr_dynamic_cast<RasterState, RasterStateVK>(Ptr<RasterStateVK>(new RasterStateVK(state)));
    }
 
    }

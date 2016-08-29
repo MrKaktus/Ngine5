@@ -662,10 +662,6 @@ namespace en
    return 0u;
    }
 
-   
-
-   
-
 
 
 
@@ -839,17 +835,17 @@ namespace en
 
    }
    
-   uint32 MetalAPI::devices(void)
+   uint32 MetalAPI::devices(void) const
    {
    return devicesCount;
    }
    
-   Ptr<Display> MetalAPI::primaryDisplay(void)
+   Ptr<Display> MetalAPI::primaryDisplay(void) const
    {
    return ptr_dynamic_cast<Display, CommonDisplay>(display[0]);
    }
       
-   Ptr<GpuDevice> MetalAPI::primaryDevice(void)
+   Ptr<GpuDevice> MetalAPI::primaryDevice(void) const
    {
    return device[0];
    }

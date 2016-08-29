@@ -591,6 +591,15 @@
     <ClCompile Include="..\src\core\rendering\common\heap.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkBuffer.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkCommandBuffer.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Pipeline.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1196,6 +1205,24 @@
     <ClInclude Include="..\public\include\core\rendering\heap.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlBuffer.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlCommandBuffer.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlHeap.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlShader.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkBuffer.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkCommandBuffer.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">
@@ -1251,6 +1278,18 @@
     </None>
     <None Include="..\src\platform\osx\osx_main.mm">
       <Filter>Source Files\platform\osx</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlBuffer.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlCommandBuffer.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlHeap.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlShader.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
     </None>
   </ItemGroup>
 </Project>

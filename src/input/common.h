@@ -64,13 +64,13 @@ namespace en
       {
       public:
       // General
-      uint32 count[underlyingType(IO::TypesCount)];
-      vector< Ptr<Keyboard> > keyboards;
-      vector< Ptr<Mouse> > mouses;
-      vector< Ptr<Joystick> > joysticks;
-      vector< Ptr<HMD> > hmds;
+      uint32 count[underlyingType(IO::Count)];
+      vector< Ptr<Keyboard> >   keyboards;
+      vector< Ptr<Mouse> >      mouses;
+      vector< Ptr<Joystick> >   joysticks;
+      vector< Ptr<HMD> >        hmds;
       vector< Ptr<Controller> > controllers;
-      vector< Ptr<Camera> > cameras;
+      vector< Ptr<Camera> >     cameras;
       
       // Events
       EventHandlingFuncPtr callback[InputEventsCount];    // Callback per event type

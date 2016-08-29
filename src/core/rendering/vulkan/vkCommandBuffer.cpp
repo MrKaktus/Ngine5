@@ -19,13 +19,14 @@
 
 #include "core/log/log.h"
 #include "core/rendering/vulkan/vkDevice.h"
+#include "core/rendering/vulkan/vkBuffer.h"
 
 namespace en
 {
    namespace gpu
    {
 
-   CommandBufferVK::CommandBufferVK(const VulkanDevice* _gpu, VKQueue _queue, VkCommandBuffer _handle, VkFence _fence) :
+   CommandBufferVK::CommandBufferVK(const VulkanDevice* _gpu, VkQueue _queue, VkCommandBuffer _handle, VkFence _fence) :
       gpu(_gpu),
       queue(_queue),
       handle(_handle),
@@ -385,7 +386,7 @@ namespace en
    
    // Add yourself's fence and CB handle to Garbage Collector
    
-   gpu->add
+   //gpu->add
    
    
    // TODO: Release buffer
@@ -393,10 +394,13 @@ namespace en
    // We need to wait until Command Buffer is finished, before we can release the Fence.
    // Therefore this Command Buffer need to be added to Device's Garbage Collector,
    // which will remove it automatically, when completion is signaled through Fence.
-   
+
    // Release fence
-   // TODO: Can this be done if CB is still during execution ?
-   Profile( gpu, vkDestroyFence(device /* !! */, fence, nullptr) )
+   ProfileNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
+   
+   // Release Command Buffer
+   ProfileNoRet( gpu, vkFreeCommandBuffers(gpu->device, commandPool[thread][underlyingType(type)], 1, &handle) )
+
    }
 
    Ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
@@ -420,7 +424,7 @@ namespace en
    commandInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Secondary CB's need VK_COMMAND_BUFFER_LEVEL_SECONDARY
    commandInfo.commandBufferCount = 1; // Can create multiple CB's at once
    
-   Profile( gpu, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
+   Profile( this, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
 
    // Create Fence that will be signaled when the Command Buffer execution is finished.
    VkFence fence;
@@ -430,11 +434,11 @@ namespace en
    fenceInfo.pNext = nullptr;
    fenceInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT if want to create it signaled from start
    
-   Profile( gpu, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
+   Profile( this, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
 
    // Acquire queue handle (queues are created at device creation time)
    VkQueue queue;
-   Profile( gpu, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
+   Profile( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
    return ptr_dynamic_cast<CommandBuffer, CommandBufferVK>(Ptr<CommandBufferVK>(new CommandBufferVK(this, queue, handle, fence)));
    }

@@ -21,7 +21,7 @@
 //#include "core/rendering/rendering.hpp"
 #include "core/rendering/device.h"
 
-#if !defined(EN_PLATFORM_OSX)
+#if 0 //!defined(EN_PLATFORM_OSX)
 
 namespace en
 {

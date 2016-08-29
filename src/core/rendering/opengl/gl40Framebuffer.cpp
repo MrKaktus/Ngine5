@@ -19,7 +19,7 @@
 
 #include "core/rendering/context.h"
 
-#if !defined(EN_PLATFORM_OSX)
+#if 0 //!defined(EN_PLATFORM_OSX)
 
 namespace en
 {

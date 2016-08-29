@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/state.h"
+#include "core/rendering/vulkan/vkDevice.h"
 
 namespace en
 {
@@ -72,6 +73,11 @@ namespace en
       stencil.writeMask        = desc.stencil[i].writeMask;
       stencil.reference        = desc.stencil[i].reference;
       }
+   }
+
+   Ptr<DepthStencilState> VulkanDevice::create(const DepthStencilStateInfo& desc)
+   {
+   return ptr_dynamic_cast<DepthStencilState, DepthStencilStateVK>(Ptr<DepthStencilStateVK>(new DepthStencilStateVK(desc)));
    }
 
    }

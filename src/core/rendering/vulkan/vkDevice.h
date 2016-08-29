@@ -55,48 +55,48 @@ namespace en
 #ifdef EN_DEBUG
    #ifdef EN_PROFILER_TRACE_GRAPHICS_API
 
-   #define Profile( gpu, command )                                                 \
-           {                                                                       \
-           uint32 thread = Scheduler.core();                                       \
-           Log << "[" << setw(2) << thread << "] ";                                \
-           Log << "Vulkan GPU " << setbase(16) << gpu << ": " << #command << endl; \
-           gpu->lastResult[thread] = gpu->command;                                 \
-           if (en::gpu::IsError(gpu->lastResult[thread]))                          \
-              assert( 0 );                                                         \
-           en::gpu::IsWarning(gpu->lastResult[thread]);                            \
+   #define Profile( _gpu, command )                                                 \
+           {                                                                        \
+           uint32 thread = Scheduler.core();                                        \
+           Log << "[" << setw(2) << thread << "] ";                                 \
+           Log << "Vulkan GPU " << setbase(16) << _gpu << ": " << #command << endl; \
+           _gpu->lastResult[thread] = _gpu->command;                                \
+           if (en::gpu::IsError(_gpu->lastResult[thread]))                          \
+              assert( 0 );                                                          \
+           en::gpu::IsWarning(_gpu->lastResult[thread]);                            \
            }
 
-   #define ProfileNoRet( gpu, command )                                            \
-           {                                                                       \
-           uint32 thread = Scheduler.core();                                       \
-           Log << "[" << setw(2) << thread << "] ";                                \
-           Log << "Vulkan GPU " << setbase(16) << gpu << ": " << #command << endl; \
-           gpu->command;                                                           \
+   #define ProfileNoRet( _gpu, command )                                            \
+           {                                                                        \
+           uint32 thread = Scheduler.core();                                        \
+           Log << "[" << setw(2) << thread << "] ";                                 \
+           Log << "Vulkan GPU " << setbase(16) << _gpu << ": " << #command << endl; \
+           _gpu->command;                                                           \
            }
 
    #else 
 
-   #define Profile( gpu, command )                                   \
-           {                                                         \
-           uint32 thread = Scheduler.core();                         \
-           gpu->lastResult[thread] = gpu->command;                   \
-           if (en::gpu::IsError(gpu->lastResult[thread]))            \
-              assert( 0 );                                           \
-           en::gpu::IsWarning(gpu->lastResult[thread]);              \
+   #define Profile( _gpu, command )                                    \
+           {                                                           \
+           uint32 thread = Scheduler.core();                           \
+           _gpu->lastResult[thread] = _gpu->command;                   \
+           if (en::gpu::IsError(_gpu->lastResult[thread]))             \
+              assert( 0 );                                             \
+           en::gpu::IsWarning(_gpu->lastResult[thread]);               \
            }
 
-   #define ProfileNoRet( gpu, command )                              \
-           gpu->command;
+   #define ProfileNoRet( _gpu, command )                               \
+           _gpu->command;
 
    #endif
    
 #else // Release
 
-   #define Profile( gpu, command )                                   \
-           lastResult[Scheduler.core()] = gpu->command;
+   #define Profile( _gpu, command )                                   \
+           lastResult[Scheduler.core()] = _gpu->command;
 
-   #define ProfileNoRet( gpu, command )                              \
-           gpu->command;
+   #define ProfileNoRet( _gpu, command )                              \
+           _gpu->command;
 
 #endif
 
@@ -108,6 +108,33 @@ namespace en
 {
    namespace gpu
    {
+#if defined(EN_PLATFORM_LINUX)
+   #define LoadProcAddress dlsym
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
+   #define LoadProcAddress GetProcAddress
+#endif
+
+   #define DeclareFunction(function)                                             \
+   PFN_##function function;
+
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /// TEMP START
 
    class PipelineLayout : public SafeObject<PipelineLayout>
@@ -140,57 +167,10 @@ namespace en
 
 
 
-   class winDisplay : public CommonDisplay
-      {
-      public:
-      uint32v2  observedResolution; // Display resolution when app started
-      uint32v2* modeResolution;     // Resolutions of display modes supported by this display
-      uint32    modesCount;         // Count of display modes supported by this display (from the list of modes supported by the driver)
-      uint32    index;              // Index of this display on Windows displays list
-      bool      resolutionChanged;  // Flag if app changed display resolution (allows restoration of original resolution on exit)
-      
-      winDisplay();
-     ~winDisplay();
-      };
-     
-   // TODO: This should be moved to platform specific section
-#if defined(EN_PLATFORM_WINDOWS)
-   class winWindow : public CommonWindow
-      {
-      public:
-      HINSTANCE AppInstance; // Application handle (helper handle)
-      HWND hWnd;             // Window handle
 
-      winWindow();
 
-      virtual bool movable(void);
-      virtual void move(const uint32v2 position);
-      virtual void resize(const uint32v2 size);
-      virtual void active(void);
 
-      virtual ~winWindow();
-      };
-#endif
 
-   class WindowVK : public winWindow
-      {
-      public:
-      VkSurfaceKHR   swapChainSurface; 
-      VkSwapchainKHR swapChain;
-     
-      WindowVK(const VulkanDevice* gpu, const WindowSettings& settings, const string title);
-      
-      virtual bool movable(void);
-      virtual void move(const uint32v2 position);
-      virtual void resize(const uint32v2 size);
-      virtual void active(void);
-      virtual void transparent(const float opacity);
-      virtual void opaque(void);
-      virtual Ptr<Texture> surface(void);
-      virtual void display(void);
-      
-      virtual ~WindowVK();
-      };
 
 
 
@@ -200,6 +180,8 @@ namespace en
    // TODO: Move it to Thread Pool Scheduler
    #define MaxSupportedWorkerThreads 64
    
+   class VulkanAPI;
+
    class VulkanDevice : public CommonDevice
       {
       public:
@@ -237,7 +219,7 @@ namespace en
 
 
       // Device Function Pointers
- //  #include "core/rendering/vulkan/vulkan10.h"
+      #include "core/rendering/vulkan/vulkan10.h"
 
       // Helper functions
       void loadDeviceFunctionPointers(void);
@@ -274,12 +256,35 @@ namespace en
           VkSystemAllocationScope                     allocationScope);
 
       public:
-      VulkanDevice(const VulkanAPI* api, const VkPhysicalDevice handle);
+      VulkanDevice(VulkanAPI* api, const VkPhysicalDevice handle);
      ~VulkanDevice();
 
 
-      bool getMemoryType(uint32 allowedTypes, VkFlags properties, uint32* memoryType);
-      VkDeviceMemory allocMemory(VkMemoryRequirements requirements, VkFlags properties);
+      //bool getMemoryType(uint32 allowedTypes, VkFlags properties, uint32* memoryType);
+      //VkDeviceMemory allocMemory(VkMemoryRequirements requirements, VkFlags properties);
+
+
+
+
+
+
+      virtual uint32 displays(void) const;
+
+      virtual Ptr<Display> display(uint32 index) const;
+
+      virtual Ptr<Window> create(const WindowSettings& settings, 
+                                 const string title);
+
+
+
+      virtual uint32 queues(const QueueType type) const;
+
+      // Creates Command Buffer from the given Command Queue of given type.
+      // When this buffer is commited for execution it will execute on that queue.
+      virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
+                                                     const uint32 parentQueue = 0u) = 0;
+
+
 
 
       virtual Ptr<Heap>   create(const MemoryUsage usage, 
@@ -327,7 +332,88 @@ namespace en
                                      const Ptr<DepthStencilAttachment> depthStencil);
 
 
+
+      virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc);
+
+      virtual Ptr<MultisamplingState> create(const uint32 samples,
+                                             const bool enableAlphaToCoverage,
+                                             const bool enableAlphaToOne);
+
+      virtual Ptr<RasterState>        create(const RasterStateInfo& state);
+
+      virtual Ptr<BlendState>         create(const BlendStateInfo& state,
+                                             const uint32 attachments,
+                                             const BlendAttachmentInfo* color);
+
+      virtual Ptr<ViewportState>      create(const uint32 count,
+                                             const ViewportStateInfo* viewports,
+                                             const ScissorStateInfo* scissors);
       };
+
+
+
+
+
+
+
+
+   class winDisplay : public CommonDisplay
+      {
+      public:
+      uint32    index;              // Index of this display on Windows displays list
+      bool      resolutionChanged;  // Flag if app changed display resolution (allows restoration of original resolution on exit)
+      
+      winDisplay();
+     ~winDisplay();
+      };
+     
+   // TODO: This should be moved to platform specific section
+#if defined(EN_PLATFORM_WINDOWS)
+   class winWindow : public CommonWindow
+      {
+      public:
+      HINSTANCE AppInstance; // Application handle (helper handle)
+      HWND hWnd;             // Window handle
+
+      winWindow(const Ptr<winDisplay> selectedDisplay,
+                const uint32v2 selectedResolution,
+                const WindowSettings& settings,
+                const string title);
+
+      virtual bool movable(void);
+      virtual void move(const uint32v2 position);
+      virtual void resize(const uint32v2 size);
+      virtual void active(void);
+
+      virtual ~winWindow();
+      };
+#endif
+
+   class WindowVK : public winWindow
+      {
+      public:
+      VulkanDevice*  gpu;
+      VkSurfaceKHR   swapChainSurface; 
+      VkSwapchainKHR swapChain;
+     
+      WindowVK(VulkanDevice* gpu,
+               const Ptr<CommonDisplay> selectedDisplay,
+               const uint32v2 selectedResolution,
+               const WindowSettings& settings,
+                      const string title);
+      
+      virtual bool movable(void);
+      virtual void move(const uint32v2 position);
+      virtual void resize(const uint32v2 size);
+      virtual void active(void);
+      virtual void transparent(const float opacity);
+      virtual void opaque(void);
+      virtual Ptr<Texture> surface(void);
+      virtual void display(void);
+      
+      virtual ~WindowVK();
+      };
+
 
 
 
@@ -401,6 +487,10 @@ namespace en
 
       void loadInterfaceFunctionPointers(void);
       void clearInterfaceFunctionPointers(void);
+
+      virtual uint32 devices(void) const;
+      virtual Ptr<Display>   primaryDisplay(void) const;
+      virtual Ptr<GpuDevice> primaryDevice(void) const;
       };
    }
 }

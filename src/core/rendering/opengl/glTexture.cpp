@@ -17,7 +17,7 @@
 #include "core/rendering/opengl/glTexture.h"
 #include "core/rendering/opengl/glDevice.h"
 
-#if !defined(EN_PLATFORM_OSX)
+#if 0 //!defined(EN_PLATFORM_OSX)
 
 //#include "core/rendering/rendering.hpp" // OpenGL versions defines
 #include "core/rendering/context.h" // Profile

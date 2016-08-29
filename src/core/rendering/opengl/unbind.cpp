@@ -24,7 +24,8 @@ namespace en
    {
       namespace wgl
       {
-      #ifdef EN_PLATFORM_WINDOWS
+      #if 0 
+      //#ifdef EN_PLATFORM_WINDOWS
 
       void UnbindFunctionsPointers(void)
       {

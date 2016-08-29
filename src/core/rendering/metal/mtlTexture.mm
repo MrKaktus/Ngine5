@@ -436,9 +436,9 @@ namespace en
    desc.cpuCacheMode     = MTLCPUCacheModeDefaultCache; // or MTLCPUCacheModeWriteCombined
    desc.storageMode      = MTLStorageModePrivate;       // We try to keep all textures in GPU memory
    desc.usage            = MTLTextureUsageUnknown;
-   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::ShaderRead)))
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
       desc.usage        |= MTLTextureUsageShaderRead;
-   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::ShaderWrite)))
+   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Write)))
       desc.usage        |= MTLTextureUsageShaderWrite;
    if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
       desc.usage        |= MTLTextureUsageRenderTarget;

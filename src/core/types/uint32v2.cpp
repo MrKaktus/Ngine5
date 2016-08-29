@@ -23,4 +23,9 @@ namespace en
       y(b)
    {
    }
+
+   bool uint32v2::operator== (uint32v2 b)
+   {
+   return ((x == b.x) && (y == b.y));
+   }
 }

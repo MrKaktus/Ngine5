@@ -18,17 +18,19 @@ namespace en
 
    extern const VkFormat TranslateTextureFormat[underlyingType(Format::Count)];
 
+   class VulkanDevice;
+
    class TextureVK : public TextureCommon
       {
       public:
-      VkImage     handle;    // Vulkan Image ID
-      VkImageView view;      // Vulkan default Image View ID
+      VulkanDevice* gpu;
+      VkImage       handle;    // Vulkan Image ID
+      VkImageView   view;      // Vulkan default Image View ID
       VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
                      // Vulkan memory pool ID
 
-      TextureVK();
-      TextureVK(const TextureState& state);
-      TextureVK(const TextureState& state, const uint32 id);    // Create texture interface for texture that already exists
+      TextureVK(VulkanDevice* gpu, const TextureState& state);
+      TextureVK(VulkanDevice* gpu, const TextureState& state, const uint32 id);    // Create texture interface for texture that already exists
 
       virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0);  // Surface is: CubeMap face, 3D depth slice, Array layer or CubeMapArray face-layer
       virtual bool     unmap(void);
@@ -54,6 +56,11 @@ namespace en
       SamplerVK();
      ~SamplerVK();
       };
+
+
+   class VulkanDevice;
+
+   Ptr<Texture> createTexture(VulkanDevice* gpu, const TextureState& state);
    }
 }
 

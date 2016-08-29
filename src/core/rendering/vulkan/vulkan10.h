@@ -29,9 +29,7 @@
       DeclareFunction( vkGetPhysicalDeviceImageFormatProperties )
       DeclareFunction( vkGetPhysicalDeviceProperties )
       DeclareFunction( vkGetPhysicalDeviceQueueFamilyProperties )
-      DeclareFunction( vkGetPhysicalDeviceMemoryProperties )  
-      DeclareFunction( vkGetInstanceProcAddr )           
-      DeclareFunction( vkGetDeviceProcAddr )       
+      DeclareFunction( vkGetPhysicalDeviceMemoryProperties )                
       DeclareFunction( vkCreateDevice )               
       DeclareFunction( vkDestroyDevice )
       DeclareFunction( vkEnumerateInstanceExtensionProperties )
@@ -160,10 +158,55 @@
       DeclareFunction( vkCmdExecuteCommands )
 
       // Windowing System Interface - KHRONOS extension
+      
+      // VK_KHR_surface
+      // vkGetPhysicalDeviceSurfaceSupportKHR - Interface function 
+      DeclareFunction( vkGetPhysicalDeviceSurfaceCapabilitiesKHR )
+      DeclareFunction( vkGetPhysicalDeviceSurfaceFormatsKHR )
+      DeclareFunction( vkGetPhysicalDeviceSurfacePresentModesKHR )
+      DeclareFunction( vkDestroySurfaceKHR )
+      
+      // VK_KHR_swapchain 
       DeclareFunction( vkCreateSwapchainKHR )
       DeclareFunction( vkDestroySwapchainKHR )
       DeclareFunction( vkGetSwapchainImagesKHR )
       DeclareFunction( vkAcquireNextImageKHR )
       DeclareFunction( vkQueuePresentKHR )
+      
+      // VK_KHR_display
+      DeclareFunction( vkGetPhysicalDeviceDisplayPropertiesKHR )
+      DeclareFunction( vkGetPhysicalDeviceDisplayPlanePropertiesKHR )
+      DeclareFunction( vkGetDisplayPlaneSupportedDisplaysKHR )
+      DeclareFunction( vkGetDisplayModePropertiesKHR )
+      DeclareFunction( vkCreateDisplayModeKHR )
+      DeclareFunction( vkGetDisplayPlaneCapabilitiesKHR )
+      DeclareFunction( vkCreateDisplayPlaneSurfaceKHR )
+      
+      // VK_KHR_display_swapchain
+      DeclareFunction( vkCreateSharedSwapchainsKHR )
+      
+      // Windowing System Interface - OS Specyific extension
+      
+      // VK_KHR_xlib_surface
+      // VK_KHR_xcb_surface
+      // VK_KHR_wayland_surface
+      // VK_KHR_mir_surface
+      // VK_KHR_android_surface
+      
+      // VK_KHR_win32_surface
+      DeclareFunction( vkCreateWin32SurfaceKHR )
+      DeclareFunction( vkGetPhysicalDeviceWin32PresentationSupportKHR )
+      
+      // Extensions
+      
+      // VK_EXT_debug_report
+      // VK_NV_glsl_shader
+      // VK_IMG_filter_cubic
+      // VK_EXT_debug_marker
+      // VK_AMD_rasterization_order
+      // VK_AMD_shader_trinary_minmax
+      // VK_AMD_shader_explicit_vertex_parameter
+      // VK_AMD_gcn_shader
+      // VK_NV_dedicated_allocation
 
 #endif

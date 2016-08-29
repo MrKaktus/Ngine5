@@ -27,7 +27,7 @@
 
 //#include "core/rendering/api.cpp"
 
-#if !defined(EN_PLATFORM_OSX)
+#if 0 //!defined(EN_PLATFORM_OSX)
 
 namespace en
 {

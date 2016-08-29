@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/state.h"
+#include "core/rendering/vulkan/vkDevice.h"
 
 namespace en
 {
@@ -41,6 +42,13 @@ namespace en
    state.pViewports    = viewport;
    state.scissorCount  = count;
    state.pScissors     = scissor;
+   }
+
+   Ptr<ViewportState> VulkanDevice::create(const uint32 count,
+                                           const ViewportStateInfo* viewports,
+                                           const ScissorStateInfo* scissors)
+   {
+   return ptr_dynamic_cast<ViewportState, ViewportStateVK>(Ptr<ViewportStateVK>(new ViewportStateVK(count, viewports, scissors)));
    }
 
    }

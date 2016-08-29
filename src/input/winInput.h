@@ -50,9 +50,9 @@ namespace en
    class WinMouse : public CommonMouse
       {
       public:
-      Ptr<Screen> WinMouse::screen(void) const;
+      Ptr<Display> WinMouse::display(void) const;
       bool   position(const uint32 x, const uint32 y);
-      bool   position(const Ptr<Screen> screen, const uint32 x, const uint32 y);
+      bool   position(const Ptr<Display> screen, const uint32 x, const uint32 y);
       void   show(void);
       void   hide(void);
 

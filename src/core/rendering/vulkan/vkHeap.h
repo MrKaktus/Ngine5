@@ -27,13 +27,19 @@ namespace en
 {
    namespace gpu
    {
+   class VulkanDevice;
+
    class HeapVK : public CommonHeap
       {
       public:
-      const CommonDevice* gpu;
-      VkDeviceMemory      handle;
+      VulkanDevice*  gpu;
+      VkDeviceMemory handle;
+      uint32         memoryType;
 
-      HeapVK(const CommonDevice* gpu, const VkDeviceMemory handle, const uint32 size);
+      HeapVK(VulkanDevice* gpu, 
+             const VkDeviceMemory handle, 
+             const uint32 _memoryType, 
+             const uint32 size);
 
       // Create formatted Vertex buffer that can be bound to InputAssembler.
       virtual Ptr<Buffer> create(const uint32 elements,

@@ -43,10 +43,9 @@ namespace en
 
       MetalAPI();
 
-      virtual Ptr<Display>   primaryDisplay(void);
-      
-      virtual uint32         devices(void);
-      virtual Ptr<GpuDevice> primaryDevice(void);
+      virtual uint32         devices(void) const;
+      virtual Ptr<Display>   primaryDisplay(void) const;
+      virtual Ptr<GpuDevice> primaryDevice(void) const;
 
       virtual ~MetalAPI();
       };

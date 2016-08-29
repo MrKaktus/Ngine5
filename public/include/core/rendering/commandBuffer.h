@@ -21,6 +21,16 @@
 #include "core/types.h"
 #include "core/utilities/TintrusivePointer.h"
 
+#include "core/rendering/buffer.h"
+#include "core/rendering/texture.h"
+#include "core/rendering/blend.h"
+#include "core/rendering/raster.h"
+#include "core/rendering/multisampling.h"
+#include "core/rendering/viewport.h"
+#include "core/rendering/depthStencil.h"
+#include "core/rendering/pipeline.h"
+#include "core/rendering/renderPass.h"
+
 namespace en
 {
    namespace gpu
@@ -61,7 +71,7 @@ namespace en
   
       virtual void draw(const DrawableType primitiveType,
                         const uint32       elements      = 1,      // Elements to process (they are assembled into Primitives)
-                        const Ptr<Buffer>  indexBuffer   = nullptr, // Optional Index buffer
+                        const Ptr<Buffer>  indexBuffer   = Ptr<Buffer>(nullptr), // Optional Index buffer
                         const uint32       instances     = 1,      // Instances to draw
                         const uint32       firstElement  = 0,      // First element to process (or index in Index buffer if specified)
                         const sint32       firstVertex   = 0,      // VertexID from which numeration should start (can be negative)
@@ -70,7 +80,7 @@ namespace en
       virtual void draw(const DrawableType primitiveType,
                         const Ptr<Buffer>  indirectBuffer,         // Buffer from which Draw parameters are sourced
                         const uint32       firstEntry   = 0,       // First entry to process in Indirect buffer
-                        const Ptr<Buffer>  indexBuffer  = nullptr, // Optional Index buffer
+                        const Ptr<Buffer>  indexBuffer  = Ptr<Buffer>(nullptr), // Optional Index buffer
                         const uint32       firstElement = 0) = 0;  // First index to process in Index buffer (if specified)
 
       virtual bool endRenderPass(void) = 0;

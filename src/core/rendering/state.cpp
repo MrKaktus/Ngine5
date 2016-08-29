@@ -15,9 +15,9 @@
 
 #include "core/log/log.h"
 #include "core/rendering/context.h"
-#include "core/rendering/device.h"
+#include "core/rendering/opengl/opengl.h"
 
-#if !defined(EN_PLATFORM_OSX)
+#if 0 //!defined(EN_PLATFORM_OSX)
 
 namespace en
 {

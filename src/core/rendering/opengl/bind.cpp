@@ -24,7 +24,8 @@ namespace en
    {
       namespace wgl
       {
-      #ifdef EN_PLATFORM_WINDOWS
+      #if 0
+      //#ifdef EN_PLATFORM_WINDOWS
 
       // - binds only pointers to functions allowed in given API and version
       // - returns error logs if cannot bind

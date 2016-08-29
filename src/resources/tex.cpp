@@ -134,7 +134,7 @@ namespace en
       // Create texture in GPU 
       TextureState settings(static_cast<TextureType>(textures[i].type),
                             static_cast<Format>(textures[i].format),
-                            TextureUsage::ShaderRead,  // TODO: Fix it
+                            TextureUsage::Read,  // TODO: Fix it
                             textures[i].width,
                             textures[i].height,
                             textures[i].depth,

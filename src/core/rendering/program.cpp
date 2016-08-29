@@ -24,7 +24,7 @@
 #include "core/rendering/opengl/gl33Sampler.h"
 #include "core/rendering/device.h"
 
-#if !defined(EN_PLATFORM_OSX)
+#if 0 //!defined(EN_PLATFORM_OSX)
 
 namespace en
 {

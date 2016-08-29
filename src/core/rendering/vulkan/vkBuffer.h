@@ -32,7 +32,7 @@ namespace en
       VkDevice device;
       VkBuffer handle;
       
-      BufferVK();
+      BufferVK(VkDevice _device, VkBuffer _handle, const BufferType type, const uint32 size);
       virtual ~BufferVK();
       };
       
@@ -43,7 +43,7 @@ namespace en
       VkBuffer     parent; // Buffer from which this View is created TODO: Or maybe generic Ptr<Buffer / BufferVK> parent; ?
       VkBufferView handle;
       
-      BufferViewVK();
+      BufferViewVK(VkDevice _device);
       virtual ~BufferViewVK();
       };
    }

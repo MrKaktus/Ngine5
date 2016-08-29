@@ -127,6 +127,7 @@ namespace en
    {
    // Should be implemented by given API
    assert(0);
+   return nullptr;
    }
       
 //   void* BufferCommon::map(const DataAccess access)

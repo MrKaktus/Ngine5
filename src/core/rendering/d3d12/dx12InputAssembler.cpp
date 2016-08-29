@@ -13,11 +13,11 @@
 
 */
 
-#include "core/defines.h"
+#include "core/rendering/d3d12/dx12InputAssembler.h"
 
 #if defined(EN_PLATFORM_WINDOWS)
 
-#include "core/rendering/d3d12/dx12InputAssembler.h"
+#include "core/rendering/d3d12/dx12Device.h"
 
 namespace en
 {
@@ -190,7 +190,7 @@ namespace en
 //      DXGI_FORMAT_FORCE_UINT                  = 0xffffffff
 //      } DXGI_FORMAT;
 
-   static const DXGI_FORMAT TranslateAttributeFormat[AttributeFormatsCount] =
+   static const DXGI_FORMAT TranslateAttributeFormat[underlyingType(Attribute::Count)] =
       {
       DXGI_FORMAT_UNKNOWN            ,  // None                     
       DXGI_FORMAT_R16_FLOAT          ,  // Half                   
@@ -277,7 +277,7 @@ namespace en
 
       desc[i].SemanticName         = reinterpret_cast<LPCSTR>(nullptr); // Attribute name that matches name in shader.
       desc[i].SemanticIndex        = 0;  // For attributes split into several columns (like matrix4x4 would use 0,1,2,3 indexes). Not supported.
-      desc[i].Format               = TranslateAttributeFormat[attributes[i].format];
+      desc[i].Format               = TranslateAttributeFormat[underlyingType(attributes[i].format)];
       desc[i].InputSlot            = static_cast<UINT>(attributes[i].buffer);
       desc[i].AlignedByteOffset    = static_cast<UINT>(attributes[i].offset);
       desc[i].InputSlotClass       = stepRate == 0 ? D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA : D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;

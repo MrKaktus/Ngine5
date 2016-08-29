@@ -149,7 +149,7 @@ namespace en
       WindowSettings();
       };
 
-   class Window : public SafeObject<class Window>
+   class Window : public SafeObject<Window>
       {
       public:
       virtual Ptr<Display> display(void) const = 0;   // Display on which window's center point is currently located
@@ -187,47 +187,18 @@ namespace en
    class GpuDevice : public SafeObject<GpuDevice>
       {
       public:
-      virtual uint32 displays(void) = 0;                 // Screens the device can render to
+      virtual uint32 displays(void) const = 0;            // Screens the device can render to
       virtual Ptr<Display> display(uint32 id) const = 0;  // Return N'th display handle
-      virtual Ptr<class Window> create(const WindowSettings& settings,  // TODO: remove "class" when old Rendering API Abstraction is removed
+
+
+      virtual Ptr<Window> create(const WindowSettings& settings,  // TODO: remove "class" when old Rendering API Abstraction is removed
                                  const string title) = 0; // Create window
-         
-         
-
-
-      // Create formatted Vertex buffer that can be bound to InputAssembler.
-      virtual Ptr<Buffer> create(const uint32 elements,
-                                 const Formatting& formatting,
-                                 const uint32 step = 0,
-                                 const void* data = nullptr) = 0;
-        
-      // Create formatted Index buffer that can be bound to InputAssembler.
-      virtual Ptr<Buffer> create(const uint32 elements,
-                                 const Attribute format,
-                                 const void* data = nullptr) = 0;
-
-      // Create unformatted generic buffer of given type and size.
-      // This method can still be used to create Vertex or Index buffers,
-      // but it's adviced to use ones with explicit formatting.
-      virtual Ptr<Buffer> create(const BufferType type,
-                                 const uint32 size) = 0;
-      
-      // Create unformatted generic buffer of given type and size.
-      // This is specialized method, that allows passing pointer
-      // to data, to directly initialize buffer content.
-      // It is allowed on mobile devices conforming to UMA architecture.
-      // On Discreete GPU's with NUMA architecture, only Transient buffers
-      // can be created with it.
-      virtual Ptr<Buffer> create(const BufferType type,
-                                 const uint32 size,
-                                 const void* data) = 0;
-   
-      virtual Ptr<Texture> create(const TextureState state) = 0;
-      
+               
       // Create Heap from which GPU resources can be sub-allocated.
       virtual Ptr<Heap>    create(uint32 size) = 0;
       
       virtual Ptr<Shader>  create(const string& source, const string& entrypoint) = 0;
+      
       
       
       // Returns count of available Command Queues of given type
@@ -236,7 +207,7 @@ namespace en
       // Creates Command Buffer from the given Command Queue of given type.
       // When this buffer is commited for execution it will execute on that queue.
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
-                                        const uint32 parentQueue = 0u) = 0;
+                                                     const uint32 parentQueue = 0u) = 0;
 
       // Creates InputAssembler description based on single Vertex buffer.
       // Buffer needs to have specified internal formatting.
@@ -338,9 +309,9 @@ namespace en
       
       static bool create(void);                           // Creates instance of this class (API specific) and assigns it to "Graphics".
       
-      virtual uint32 devices(void) = 0;
-      virtual Ptr<Display>   primaryDisplay(void) = 0;
-      virtual Ptr<GpuDevice> primaryDevice(void) = 0;
+      virtual uint32 devices(void) const = 0;
+      virtual Ptr<Display>   primaryDisplay(void) const = 0;
+      virtual Ptr<GpuDevice> primaryDevice(void) const = 0;
       virtual ~GraphicAPI() {};                           // Polymorphic deletes require a virtual base destructor
       };
 

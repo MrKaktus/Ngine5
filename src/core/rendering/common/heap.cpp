@@ -19,7 +19,7 @@ namespace en
 {
    namespace gpu
    {
-   CommonHeap(const uint32 size) :
+   CommonHeap::CommonHeap(const uint32 size) :
       _size(size)
    {
    }

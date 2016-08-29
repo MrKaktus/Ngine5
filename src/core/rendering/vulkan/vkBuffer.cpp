@@ -33,7 +33,7 @@ namespace en
    vkDestroyBuffer(device, handle, nullptr);
    }
 
-   BufferViewVK::BufferViewVK(const VkDevice _device) :
+   BufferViewVK::BufferViewVK(VkDevice _device) :
       device(_device),
       parent(nullptr),
       handle(nullptr),
