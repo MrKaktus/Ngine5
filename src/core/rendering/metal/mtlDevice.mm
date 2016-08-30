@@ -213,7 +213,7 @@ namespace en
    // Reposition window.
    // Position is from lower-left corner of the screen in OSX.
    // Both position and resolution are in points, not pixels.
-   Ptr<DisplayMTL> metalDisplay = ptr_dynamic_cast<DisplayMTL, Display>(_display);
+   Ptr<DisplayMTL> metalDisplay = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(_display);
    
    NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
@@ -227,7 +227,7 @@ namespace en
    {
    // Resize window.
    // Both position and resolution are in points, not pixels.
-   Ptr<DisplayMTL> metalDisplay = ptr_dynamic_cast<DisplayMTL, Display>(_display);
+   Ptr<DisplayMTL> metalDisplay = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(_display);
    
    NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];

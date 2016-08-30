@@ -577,8 +577,8 @@ namespace en
 // if (queueFamiliesCount > 1)
 //    {
 //    textureInfo.sharingMode           = VK_SHARING_MODE_CONCURRENT; // Sharing between multiple Queue Families
-//    textureInfo.queueFamilyIndexCount = queueFamiliesCount;  // Count of Queue Families (for eg. GPU has 40 Rendering and 10 Compute Queues grouped into 2 Families)
-//    textureInfo.pQueueFamilyIndices   = queueFamilyIndices;  // pQueueFamilyIndices is a list of queue families that will access this image
+//    textureInfo.queueFamilyIndexCount = queueFamiliesCount;         // Count of Queue Families (for eg. GPU has 40 Rendering and 10 Compute Queues grouped into 2 Families)
+//    textureInfo.pQueueFamilyIndices   = queueFamilyIndices;         // pQueueFamilyIndices is a list of queue families that will access this image
 //    }
 // else
       {

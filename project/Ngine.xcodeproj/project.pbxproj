@@ -209,6 +209,12 @@
 		85B17C271CA4E9D800D88AF5 /* osxInput.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85B17C261CA4E9D800D88AF5 /* osxInput.mm */; };
 		85CDB0941C62D023001A1FA1 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85917A5A1C3F66120051382A /* AppDelegate.mm */; };
 		85E070891CAC9B4600F11A41 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E070881CAC9B4600F11A41 /* CoreGraphics.framework */; };
+		85E9CB9C1D7485A80029A9BE /* vkHeap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CB991D7485A80029A9BE /* vkHeap.cpp */; };
+		85E9CB9D1D7485A80029A9BE /* vkHeap.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E9CB9A1D7485A80029A9BE /* vkHeap.h */; };
+		85E9CB9E1D7485A80029A9BE /* vkRenderPass.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E9CB9B1D7485A80029A9BE /* vkRenderPass.h */; };
+		85E9CBA11D7486AC0029A9BE /* heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CB9F1D7486AC0029A9BE /* heap.cpp */; };
+		85E9CBA21D7486AC0029A9BE /* heap.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E9CBA01D7486AC0029A9BE /* heap.h */; };
+		85E9CBA41D7486CD0029A9BE /* dx12Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CBA31D7486CD0029A9BE /* dx12Texture.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -493,6 +499,12 @@
 		85DDD1151C50644B007E707D /* mtlAPI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mtlAPI.h; sourceTree = "<group>"; };
 		85E070861CAC99BB00F11A41 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		85E070881CAC9B4600F11A41 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		85E9CB991D7485A80029A9BE /* vkHeap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vkHeap.cpp; sourceTree = "<group>"; };
+		85E9CB9A1D7485A80029A9BE /* vkHeap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vkHeap.h; sourceTree = "<group>"; };
+		85E9CB9B1D7485A80029A9BE /* vkRenderPass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vkRenderPass.h; sourceTree = "<group>"; };
+		85E9CB9F1D7486AC0029A9BE /* heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heap.cpp; sourceTree = "<group>"; };
+		85E9CBA01D7486AC0029A9BE /* heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heap.h; sourceTree = "<group>"; };
+		85E9CBA31D7486CD0029A9BE /* dx12Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Texture.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -600,6 +612,8 @@
 		859179A91C3F66120051382A /* common */ = {
 			isa = PBXGroup;
 			children = (
+				85E9CB9F1D7486AC0029A9BE /* heap.cpp */,
+				85E9CBA01D7486AC0029A9BE /* heap.h */,
 				859179AA1C3F66120051382A /* cBlend.cpp */,
 				859179AB1C3F66120051382A /* cTexture.cpp */,
 				859179AE1C3F66120051382A /* sampler.h */,
@@ -617,6 +631,7 @@
 		859179B21C3F66120051382A /* d3d12 */ = {
 			isa = PBXGroup;
 			children = (
+				85E9CBA31D7486CD0029A9BE /* dx12Texture.cpp */,
 				859179B31C3F66120051382A /* dx12.h */,
 				859179B41C3F66120051382A /* dx12Blend.cpp */,
 				859179B51C3F66120051382A /* dx12Blend.h */,
@@ -745,6 +760,8 @@
 		85917A121C3F66120051382A /* vulkan */ = {
 			isa = PBXGroup;
 			children = (
+				85E9CB991D7485A80029A9BE /* vkHeap.cpp */,
+				85E9CB9A1D7485A80029A9BE /* vkHeap.h */,
 				851A8EBA1CC5A4F600272F88 /* vkBuffer.h */,
 				851A8EB81CC5A4AD00272F88 /* vkBuffer.cpp */,
 				85917A141C3F66120051382A /* vkBlend.h */,
@@ -761,6 +778,8 @@
 				85917A1A1C3F66120051382A /* vkMultisampling.cpp */,
 				85917A1C1C3F66120051382A /* vkPipeline.cpp */,
 				85917A1D1C3F66120051382A /* vkPipeline.h */,
+				85917A2A1C3F66120051382A /* vkRenderPass.cpp */,
+				85E9CB9B1D7485A80029A9BE /* vkRenderPass.h */,
 				85917A1E1C3F66120051382A /* vkRaster.cpp */,
 				85917A1F1C3F66120051382A /* vkRaster.h */,
 				85917A201C3F66120051382A /* vkSampler.h */,
@@ -772,7 +791,6 @@
 				85917A251C3F66120051382A /* vulkan.cpp */,
 				85917A261C3F66120051382A /* vulkan.h */,
 				85917A271C3F66120051382A /* vulkan10.h */,
-				85917A2A1C3F66120051382A /* vkRenderPass.cpp */,
 			);
 			path = vulkan;
 			sourceTree = "<group>";
@@ -1074,12 +1092,15 @@
 				85917C901C408C9F0051382A /* resources in Headers */,
 				859A39CD1CA7AF7C00CC4173 /* winInput.h in Headers */,
 				85917C911C408C9F0051382A /* scene in Headers */,
+				85E9CB9E1D7485A80029A9BE /* vkRenderPass.h in Headers */,
+				85E9CBA21D7486AC0029A9BE /* heap.h in Headers */,
 				85917C921C408C9F0051382A /* threading in Headers */,
 				856E9C9B1CBC9B5200875662 /* mtlMultisampling.h in Headers */,
 				851A8E951CC539D800272F88 /* mtlBuffer.h in Headers */,
 				858398BA1D0B107B00431C85 /* vkCommandBuffer.h in Headers */,
 				85917C931C408C9F0051382A /* threading.h in Headers */,
 				856E9C961CB8753000875662 /* mtlPipeline.h in Headers */,
+				85E9CB9D1D7485A80029A9BE /* vkHeap.h in Headers */,
 				851A8EBB1CC5A4F600272F88 /* vkBuffer.h in Headers */,
 				85917C941C408C9F0051382A /* utilities in Headers */,
 			);
@@ -1189,6 +1210,7 @@
 				85917AA81C3F66F50051382A /* mtlViewport.mm in Sources */,
 				85917AA91C3F66F50051382A /* bind.cpp in Sources */,
 				85917AAA1C3F66F50051382A /* extensions.cpp in Sources */,
+				85E9CBA11D7486AC0029A9BE /* heap.cpp in Sources */,
 				85917AAB1C3F66F50051382A /* gl30Framebuffer.cpp in Sources */,
 				85917AAC1C3F66F50051382A /* gl31Framebuffer.cpp in Sources */,
 				85917AAD1C3F66F50051382A /* gl32Framebuffer.cpp in Sources */,
@@ -1270,6 +1292,7 @@
 				859A39C71CA7AC7A00CC4173 /* bbInput.cpp in Sources */,
 				85917AEF1C3F66F60051382A /* and_events.cpp in Sources */,
 				85917AF01C3F66F60051382A /* and_main.cpp in Sources */,
+				85E9CB9C1D7485A80029A9BE /* vkHeap.cpp in Sources */,
 				85917AF11C3F66F60051382A /* bb_main.cpp in Sources */,
 				85917AF21C3F66F60051382A /* osx_main.mm in Sources */,
 				85917AF31C3F66F60051382A /* osx_callbacks.mm in Sources */,
@@ -1304,6 +1327,7 @@
 				85917B0D1C3F66F60051382A /* drawable.cpp in Sources */,
 				85917B0E1C3F66F60051382A /* entity.cpp in Sources */,
 				85917B0F1C3F66F60051382A /* frustum.cpp in Sources */,
+				85E9CBA41D7486CD0029A9BE /* dx12Texture.cpp in Sources */,
 				85917B101C3F66F60051382A /* gamestate.cpp in Sources */,
 				85917B111C3F66F60051382A /* scene.cpp in Sources */,
 				85917B121C3F66F60051382A /* cam.cpp in Sources */,

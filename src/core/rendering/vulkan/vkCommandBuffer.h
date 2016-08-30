@@ -38,6 +38,13 @@ namespace en
       bool            encoding;
       bool            commited;
       
+      CommandBufferVK(const VulkanDevice*   gpu,
+                      const VkQueue         queue,
+                      const VkCommandBuffer handle,
+                      const VkFence         fence);
+                      
+      virtual ~CommandBufferVK();
+      
       virtual void bind(const Ptr<RasterState> raster);
       //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
       virtual void bind(const Ptr<DepthStencilState> depthStencil);
@@ -68,13 +75,6 @@ namespace en
       virtual bool endRenderPass(void);
       virtual void commit(void);
       virtual void waitUntilCompleted(void);
-   
-      CommandBufferVK(const VulkanDevice*   gpu,
-                      const VkQueue         queue,
-                      const VkCommandBuffer handle,
-                      const VkFence         fence);
-                      
-      virtual ~CommandBufferVK();
       };
    }
 }

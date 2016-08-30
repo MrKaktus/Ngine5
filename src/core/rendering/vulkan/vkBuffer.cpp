@@ -21,8 +21,8 @@ namespace en
 {
    namespace gpu
    {
-   BufferVK::BufferVK(VkDevice _device, VkBuffer _handle, const BufferType type, const uint32 size) :
-      device(_device),
+   BufferVK::BufferVK(VulkanDevice* _gpu, const VkBuffer _handle, const BufferType type, const uint32 size) :
+      gpu(_gpu),
       handle(_handle),
       BufferCommon(type, size)
    {
@@ -30,11 +30,11 @@ namespace en
    
    BufferVK::~BufferVK()
    {
-   vkDestroyBuffer(device, handle, nullptr);
+   ProfileNoRet( gpu, vkDestroyBuffer(gpu->device, handle, nullptr) )
    }
 
-   BufferViewVK::BufferViewVK(VkDevice _device) :
-      device(_device),
+   BufferViewVK::BufferViewVK(VulkanDevice* _gpu) :
+      gpu(_gpu),
       parent(nullptr),
       handle(nullptr),
       BufferView()
@@ -53,64 +53,10 @@ namespace en
    
    BufferViewVK::~BufferViewVK()
    {
-   vkDestroyBufferView(device, handle, nullptr);
+   ProfileNoRet( gpu, vkDestroyBufferView(gpu->device, handle, nullptr) )
    }
 
-
-
-
-
-
-
-
-   
-   
-
-   Ptr<Buffer> VulkanDevice::create(const uint32 elements, const Formatting& formatting, const uint32 step)
-   {
-   assert( elements );
-   assert( formatting.column[0] != Attribute::None );
-   
-   uint32 rowSize = formatting.rowSize();
-   uint32 size    = elements * rowSize;
-   Ptr<Buffer> buffer = create(BufferType::Vertex, size);
-   if (buffer)
-      {
-      Ptr<BufferVK> ptr = ptr_dynamic_cast<BufferVK, Buffer>(buffer);
-      
-      // TODO: Which of those are later needed ?
-      //ptr->size = size;
-      //ptr->rowSize = rowSize;
-      //ptr->elements = elements;
-      //ptr->formatting = formatting;
-      }
-
-   return buffer;
-   }
-   
-   Ptr<Buffer> VulkanDevice::create(const uint32 elements, const Attribute format)
-   {
-   assert( elements );
-   assert( format == Attribute::R_8_u  ||
-           format == Attribute::R_16_u ||
-           format == Attribute::R_32_u );
-      
-   uint32 rowSize = TranslateAttributeSize[underlyingType(format)];
-   uint32 size    = elements * rowSize;
-   return create(BufferType::Index, size);
-   }
-   
-   
-   
-   
-   
-   
-   
-
-   
-
-   
-   Ptr<Buffer> VulkanDevice::create(const BufferType type, const uint32 size)
+   Ptr<Buffer> createBuffer(VulkanDevice* gpu, const BufferType type, const uint32 size)
    {
    Ptr<BufferVK> buffer = nullptr;
    
@@ -145,20 +91,20 @@ namespace en
          break;
             
       default:
-         assert(0);
+         assert( 0 );
          break;
       };
 
-// Need to be set to enable buffer views:
-//
-// VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT
-// VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT
-//
-// Sparse Buffers are not supported yet:
-//
-// VK_BUFFER_CREATE_SPARSE_BINDING_BIT                                         - backed using sparse binding.
-// VK_BUFFER_CREATE_SPARSE_BINDING_BIT | VK_BUFFER_CREATE_SPARSE_RESIDENCY_BIT - can be partially backed using sparse binding.
-// VK_BUFFER_CREATE_SPARSE_BINDING_BIT | VK_BUFFER_CREATE_SPARSE_ALIASED_BIT   - backed using sparse binding. may alias with others.
+   // Need to be set to enable buffer views (linear textures?):
+   //
+   // VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT
+   // VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT
+   //
+   // Sparse Buffers are not supported yet:
+   //
+   // VK_BUFFER_CREATE_SPARSE_BINDING_BIT                                         - backed using sparse binding.
+   // VK_BUFFER_CREATE_SPARSE_BINDING_BIT | VK_BUFFER_CREATE_SPARSE_RESIDENCY_BIT - can be partially backed using sparse binding.
+   // VK_BUFFER_CREATE_SPARSE_BINDING_BIT | VK_BUFFER_CREATE_SPARSE_ALIASED_BIT   - backed using sparse binding. may alias with others.
   
    VkBufferCreateInfo bufferInfo = {};
    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -173,36 +119,37 @@ namespace en
 // usage, it may be required to share it between Families.
 // if (queueFamiliesCount > 1)
 //    {
-//    bufferInfo.sharingMode           = VK_SHARING_MODE_CONCURRENT;
-//    bufferInfo.queueFamilyIndexCount = queueFamiliesCount;  // Count of Queue Families (for eg.g GPU has 40 Rendering and 10 Compute Queues grouped into 2 Families)
-//    bufferInfo.pQueueFamilyIndices   = ;                    // pQueueFamilyIndices is a list of queue families that will access this buffer
+//    bufferInfo.sharingMode           = VK_SHARING_MODE_CONCURRENT; // Sharing between multiple Queue Families
+//    bufferInfo.queueFamilyIndexCount = queueFamiliesCount;         // Count of Queue Families (for eg.g GPU has 40 Rendering and 10 Compute Queues grouped into 2 Families)
+//    bufferInfo.pQueueFamilyIndices   = queueFamilyIndices;         // pQueueFamilyIndices is a list of queue families that will access this buffer
 //    }
 // else
       {
-      bufferInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE; // Sharing method when accessed by multiple Queue Families (alternative: VK_SHARING_MODE_CONCURRENT)
+      bufferInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;  // No sharing between multiple Queue Families
       bufferInfo.queueFamilyIndexCount = 0;
       bufferInfo.pQueueFamilyIndices   = nullptr;
       }
       
    VkBuffer handle;
-   VkResult result = vkCreateBuffer(device, &bufferInfo, nullptr, &handle);
-   if (result >= 0)
+   Profile( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
+   if (gpu->lastResult[Scheduler.core()] >= 0)
       {
-      buffer = new BufferVK(device, handle, type, size);
+      buffer = new BufferVK(gpu, handle, type, size);
+      
+      // Query buffer requirements
+      ProfileNoRet( gpu, vkGetBufferMemoryRequirements(gpu->device, buffer->handle, &buffer->memoryRequirements) )
+
+      // TODO: Create default Buffer View !
       } 
-   
-   // TODO: Assign memory to Buffer object !
-   
+
    return ptr_dynamic_cast<Buffer, BufferVK>(buffer); 
    }
    
-
-
    // TODO: ifdef Mobile / or Transient
-   Ptr<Buffer> VulkanDevice::create(const BufferType type, const uint32 size, const void* data)
+   Ptr<Buffer> createBufferAndPopulate(VulkanDevice* gpu, const BufferType type, const uint32 size, const void* data)
    {
    assert( size );
-   
+   assert( data );
 
    }
 

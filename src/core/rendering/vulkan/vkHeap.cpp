@@ -425,15 +425,39 @@ namespace en
    }
 
    // Create formatted Vertex buffer that can be bound to InputAssembler.
-   Ptr<Buffer> HeapVK::create(const uint32 elements, const Formatting& formatting, const uint32 step, const void* data)
+   Ptr<Buffer> HeapVK::create(const uint32 elements, const Formatting& formatting, const uint32 step)
    {
-   return Ptr<Buffer>(nullptr);
+   assert( elements );
+   assert( formatting.column[0] != Attribute::None );
+   
+   uint32 rowSize = formatting.rowSize();
+   uint32 size    = elements * rowSize;
+   Ptr<Buffer> buffer = create(BufferType::Vertex, size);
+   if (buffer)
+      {
+      Ptr<BufferVK> ptr = ptr_dynamic_cast<BufferVK, Buffer>(buffer);
+      
+      // TODO: Which of those are later needed ?
+      //ptr->size = size;
+      //ptr->rowSize = rowSize;
+      //ptr->elements = elements;
+      //ptr->formatting = formatting;
+      }
+
+   return buffer;
    }
      
    // Create formatted Index buffer that can be bound to InputAssembler.
-   Ptr<Buffer> HeapVK::create(const uint32 elements, const Attribute format, const void* data)
+   Ptr<Buffer> HeapVK::create(const uint32 elements, const Attribute format)
    {
-   return Ptr<Buffer>(nullptr);
+   assert( elements );
+   assert( format == Attribute::R_8_u  ||
+           format == Attribute::R_16_u ||
+           format == Attribute::R_32_u );
+      
+   uint32 rowSize = TranslateAttributeSize[underlyingType(format)];
+   uint32 size    = elements * rowSize;
+   return create(BufferType::Index, size);
    }
 
    // Create unformatted generic buffer of given type and size.
@@ -441,7 +465,37 @@ namespace en
    // but it's adviced to use ones with explicit formatting.
    Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size)
    {
-   return Ptr<Buffer>(nullptr);
+   // Create buffer descriptor
+   Ptr<Buffer> result = createBuffer(gpu, type, size);
+   if (!result)
+      return result;
+
+   // Check if created buffer can be backed by this Heap memory
+   Ptr<BufferVK> buffer = ptr_dynamic_cast<BufferVK, Buffer>(result);
+   if (!checkBit(buffer->memoryRequirements.memoryTypeBits, memoryType))
+      {
+      // Destroy texture descriptor
+      buffer = nullptr;
+      result = nullptr;
+      return result;
+      }
+
+   // Find memory region in the Heap where this buffer can be placed.
+   // If allocation succeeded, buffer is mapped to given offset.
+   uint64 offset = 0;
+   if (!allocate(buffer->memoryRequirements.size,
+                 buffer->memoryRequirements.alignment,
+                 &offset))
+      {
+      // Destroy buffer descriptor
+      buffer = nullptr;
+      result = nullptr;
+      return result;
+      }
+
+   Profile( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
+
+   return result;
    }
    
    // Create unformatted generic buffer of given type and size.
@@ -449,9 +503,10 @@ namespace en
    // to data, to directly initialize buffer content.
    // It is allowed on mobile devices conforming to UMA architecture.
    // On Discreete GPU's with NUMA architecture, only Transient buffers
-   // can be created with it.
+   // can be created and populated with it.
    Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size, const void* data)
    {
+   // TODO: FINISH !!!!
    return Ptr<Buffer>(nullptr);
    }
  

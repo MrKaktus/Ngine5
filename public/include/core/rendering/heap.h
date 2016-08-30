@@ -40,13 +40,11 @@ namespace en
       // Create formatted Vertex buffer that can be bound to InputAssembler.
       virtual Ptr<Buffer> create(const uint32 elements,
                                  const Formatting& formatting,
-                                 const uint32 step = 0,
-                                 const void* data = nullptr) = 0;
+                                 const uint32 step = 0) = 0;
         
       // Create formatted Index buffer that can be bound to InputAssembler.
       virtual Ptr<Buffer> create(const uint32 elements,
-                                 const Attribute format,
-                                 const void* data = nullptr) = 0;
+                                 const Attribute format) = 0;
 
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
@@ -59,7 +57,7 @@ namespace en
       // to data, to directly initialize buffer content.
       // It is allowed on mobile devices conforming to UMA architecture.
       // On Discreete GPU's with NUMA architecture, only Transient buffers
-      // can be created with it.
+      // can be created and populated with it.
       virtual Ptr<Buffer> create(const BufferType type,
                                  const uint32 size,
                                  const void* data) = 0;

@@ -518,6 +518,15 @@ namespace en
       }
    }
    
+   
+   
+   Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
+                                            const uint32 controlPoints,
+                                            const Ptr<Buffer> buffer)
+   {
+   // TODO: Finish !!!
+   }
+      
    Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
                                             const uint32 controlPoints,
                                             const uint32 usedAttributes,

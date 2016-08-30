@@ -146,10 +146,6 @@ namespace en
          } support;
          
       virtual void init(void);
-      virtual Ptr<Buffer> create(const uint32 elements, const Formatting& formatting, const uint32 step = 0, const void* data = nullptr);
-      virtual Ptr<Buffer> create(const uint32 elements, const Attribute format, const void* data = nullptr);
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size);
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data);
 
       virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
                                          const uint32 controlPoints,

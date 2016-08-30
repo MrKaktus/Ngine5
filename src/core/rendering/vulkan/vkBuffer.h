@@ -26,26 +26,33 @@ namespace en
 {
    namespace gpu
    {
+   class VulkanDevice;
+   
    class BufferVK : public Buffer
       {
       public:
-      VkDevice device;
-      VkBuffer handle;
-      
-      BufferVK(VkDevice _device, VkBuffer _handle, const BufferType type, const uint32 size);
+      VulkanDevice* gpu;
+      VkBuffer      handle;
+      VkMemoryRequirements memoryRequirements; // Memory requirements of this Buffer
+         
+      BufferVK(VulkanDevice* gpu, const VkBuffer handle, const BufferType type, const uint32 size);
       virtual ~BufferVK();
       };
       
    class BufferViewVK : public BufferView
       {
       public:
-      VkDevice     device;
-      VkBuffer     parent; // Buffer from which this View is created TODO: Or maybe generic Ptr<Buffer / BufferVK> parent; ?
-      VkBufferView handle;
+      VulkanDevice* gpu;
+      VkBuffer      parent; // Buffer from which this View is created TODO: Or maybe generic Ptr<Buffer / BufferVK> parent; ?
+      VkBufferView  handle;
       
-      BufferViewVK(VkDevice _device);
+      BufferViewVK(VulkanDevice* gpu);
       virtual ~BufferViewVK();
       };
+      
+   Ptr<Buffer> createBuffer(VulkanDevice* gpu, const BufferType type, const uint32 size);
+   Ptr<Buffer> createBufferAndPopulate(VulkanDevice* gpu, const BufferType type, const uint32 size, const void* data);
+
    }
 }
 #endif

@@ -290,21 +290,14 @@ namespace en
       virtual Ptr<Heap>   create(const MemoryUsage usage, 
                                  const uint32 size);
 
-      virtual Ptr<Buffer> create(const uint32 elements, const Formatting& formatting, const uint32 step = 0);
-      virtual Ptr<Buffer> create(const uint32 elements, const Attribute format);
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size);
-      
-
-
-      Ptr<Texture>  Create(const TextureState& state);   // This should be done out of Heap
-      Ptr<Sampler>  Create(const SamplerState& state);
-      Ptr<Pipeline> Create(const Ptr<InputAssembler> inputAssembler,
-                           const Ptr<ViewportState>  viewportState,
-                           const Ptr<RasterState>    rasterState,
-                           const Ptr<MultisamplingState> multisamplingState,                        
-                           const Ptr<DepthStencilState> depthStencilState,
-                           const Ptr<BlendState>     blendState,
-                           const Ptr<PipelineLayout> pipelineLayout);
+      virtual Ptr<Sampler>  create(const SamplerState& state);
+      virtual Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
+                                   const Ptr<ViewportState>  viewportState,
+                                   const Ptr<RasterState>    rasterState,
+                                   const Ptr<MultisamplingState> multisamplingState,
+                                   const Ptr<DepthStencilState> depthStencilState,
+                                   const Ptr<BlendState>     blendState,
+                                   const Ptr<PipelineLayout> pipelineLayout);
 
 
       virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
