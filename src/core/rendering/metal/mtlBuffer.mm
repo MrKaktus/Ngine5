@@ -25,7 +25,7 @@ namespace en
    namespace gpu
    {
   
-   BufferMTL::BufferMTL(const id<MTLDevice> device, const BufferType type, const uint32 size) :
+   BufferMTL::BufferMTL(const id memory, const BufferType type, const uint32 size) :
       handle(nil),
       BufferCommon(type, size)
    {
@@ -41,11 +41,16 @@ namespace en
       options |= (MTLStorageModePrivate << MTLResourceStorageModeShift);
 #endif
 
-   handle = [device newBufferWithLength:(NSUInteger)size
-                                options:options];
+#if defined(EN_PLATFORM_IOS)
+   handle = [(id<MTLHeap>)memory newBufferWithLength:(NSUInteger)size
+                                             options:options];
+#else
+   handle = [(id<MTLDevice>)memory newBufferWithLength:(NSUInteger)size
+                                               options:options];
+#endif
    }
 
-   BufferMTL::BufferMTL(const id<MTLDevice> device, const BufferType type, const uint32 size, const void* data) :
+   BufferMTL::BufferMTL(const id memory, const BufferType type, const uint32 size, const void* data) :
       handle(nil),
       BufferCommon(type, size)
    {
@@ -54,13 +59,19 @@ namespace en
    assert( type == BufferType::Transfer );
 #endif
 
-   MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift); // MTLCPUCacheModeWriteCombined
-   options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
+   MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift) | // MTLCPUCacheModeWriteCombined
+                                (MTLStorageModeShared << MTLResourceStorageModeShift);
 
    // Creates a MTLBuffer object by copying data from an existing storage allocation into a new allocation.
-   handle = [device newBufferWithBytes:data
-                                length:(NSUInteger)size
-                               options:options];
+#if defined(EN_PLATFORM_IOS)
+   handle = [(id<MTLHeap>)memory newBufferWithLength:(NSUInteger)size
+                                             options:options];
+   // TODO: Copy data to Heap allocation !
+#else
+   handle = [(id<MTLDevice>)memory newBufferWithBytes:data
+                                               length:(NSUInteger)size
+                                              options:options];
+#endif
 
    // Currently unsupported:
    //

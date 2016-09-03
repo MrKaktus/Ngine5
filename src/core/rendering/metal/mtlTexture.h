@@ -34,7 +34,6 @@ namespace en
    class TextureMTL : public TextureCommon
       {
       public:
-      id<MTLDevice>  device;  // GPU owning this texture
       id<MTLTexture> handle;  // Metal texture ID
       id<MTLBuffer>  staging; // Staging buffer to which texture surface data can be written
       Nmutex         lock;    // Locks this texture instance, to prevent it from beeing modified by other thread while it is mapped
@@ -43,8 +42,8 @@ namespace en
 
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
 
-      TextureMTL(const id<MTLDevice> _device, const TextureState& state);
-      TextureMTL(const id<MTLDevice> _device, const TextureState& state, const bool allocateBacking);
+      TextureMTL(const id memory, const TextureState& state);
+      TextureMTL(const id memory, const TextureState& state, const bool allocateBacking);
       virtual ~TextureMTL();
       };
    }

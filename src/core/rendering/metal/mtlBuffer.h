@@ -32,8 +32,8 @@ namespace en
       public:
       id<MTLBuffer> handle;
 
-      BufferMTL(const id<MTLDevice> device, const BufferType type, const uint32 size);
-      BufferMTL(const id<MTLDevice> device, const BufferType type, const uint32 size, const void* data);
+      BufferMTL(const id memory, const BufferType type, const uint32 size);
+      BufferMTL(const id memory, const BufferType type, const uint32 size, const void* data);
       
       // Returns pointer to buffers memory. This function can be only called on Transfer buffers.
       virtual void* content(void) const;

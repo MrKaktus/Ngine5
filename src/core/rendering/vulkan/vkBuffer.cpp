@@ -146,6 +146,7 @@ namespace en
    }
    
    // TODO: ifdef Mobile / or Transient
+   // TODO: Is there a way to support it internally by some WA? On Vulkan probably not :/.
    Ptr<Buffer> createBufferAndPopulate(VulkanDevice* gpu, const BufferType type, const uint32 size, const void* data)
    {
    assert( size );

@@ -24,21 +24,21 @@ namespace en
 {
    namespace gpu
    {  
-   static const MTLLoadAction TranslateLoadOperation[underlyingType(LoadOperation::OperationsCount)] =
+   static const MTLLoadAction TranslateLoadOperation[underlyingType(LoadOperation::Count)] =
       {
       MTLLoadActionDontCare,                    // None
       MTLLoadActionLoad,                        // Load
       MTLLoadActionClear                        // Clear
       };
    
-   static const MTLStoreAction TranslateStoreOperation[underlyingType(StoreOperation::OperationsCount)] =
+   static const MTLStoreAction TranslateStoreOperation[underlyingType(StoreOperation::Count)] =
       {
       MTLStoreActionDontCare,                   // Discard
-      MTLStoreActionStore,                      // Store
-      MTLStoreActionMultisampleResolve,         // ResolveMSAA
-      MTLStoreActionMultisampleResolve          // StoreAndResolveMSAA
+      MTLStoreActionStore                       // Store
       };
 
+   // MTLStoreActionMultisampleResolve
+      
    ColorAttachmentMTL::ColorAttachmentMTL(const Ptr<Texture> texture, 
       const uint32 mipmap, 
 	  const uint32 layer) :
@@ -83,9 +83,34 @@ namespace en
                                         static_cast<double>(clearColor.a) );
    }
 
+
+
+   void ColorAttachmentMTL::onLoad(const LoadOperation load, const uint32v4 clearColor)
+   {
+   desc.loadAction = TranslateLoadOperation[underlyingType(load)];
+   desc.clearColor = MTLClearColorMake( static_cast<double>(clearColor.x),
+                                        static_cast<double>(clearColor.y),
+                                        static_cast<double>(clearColor.z),
+                                        static_cast<double>(clearColor.w) );
+   }
+   
+   void ColorAttachmentMTL::onLoad(const LoadOperation load, const sint32v4 clearColor)
+   {
+   desc.loadAction = TranslateLoadOperation[underlyingType(load)];
+   desc.clearColor = MTLClearColorMake( static_cast<double>(clearColor.x),
+                                        static_cast<double>(clearColor.y),
+                                        static_cast<double>(clearColor.z),
+                                        static_cast<double>(clearColor.w) );
+   }
+
    void ColorAttachmentMTL::onStore(const StoreOperation store)
    {
    desc.storeAction = TranslateStoreOperation[underlyingType(store)];
+   
+   // Auto-detect that surface need to be resolved
+   if ( (desc.storeAction == MTLStoreActionStore) &&
+        (desc.resolveTexture != nil) )
+      desc.storeAction = MTLStoreActionMultisampleResolve;
    }
 
    bool ColorAttachmentMTL::resolve(const Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
@@ -116,6 +141,10 @@ namespace en
    else
    if (resolve->state.type == TextureType::Texture3D)
       desc.resolveDepthPlane = layer;
+      
+   // Correct store action to take into notice resolve
+   if (desc.storeAction == MTLStoreActionStore)
+      desc.storeAction = MTLStoreActionMultisampleResolve;
       
    return true;
    }
@@ -211,6 +240,15 @@ namespace en
    {
    descDepth.storeAction   = TranslateStoreOperation[underlyingType(storeDepthStencil)];
    descStencil.storeAction = TranslateStoreOperation[underlyingType(storeDepthStencil)];
+   
+   // Auto-detect that surface need to be resolved
+   if ( (descDepth.storeAction == MTLStoreActionStore) &&
+        (descDepth.resolveTexture != nil) )
+      descDepth.storeAction = MTLStoreActionMultisampleResolve;
+
+   if ( (descStencil.storeAction == MTLStoreActionStore) &&
+        (descStencil.resolveTexture != nil) )
+      descStencil.storeAction = MTLStoreActionMultisampleResolve;
    }
    
    bool DepthStencilAttachmentMTL::resolve(const Ptr<Texture> depth,
@@ -240,6 +278,10 @@ namespace en
    else
    if (resolve->state.type == TextureType::Texture3D)
       descDepth.resolveDepthPlane = layer;
+    
+   // Correct store action to take into notice resolve
+   if (descDepth.storeAction == MTLStoreActionStore)
+      descDepth.storeAction = MTLStoreActionMultisampleResolve;
       
    return true;
    }
@@ -281,7 +323,11 @@ namespace en
    else
    if (resolve->state.type == TextureType::Texture3D)
       descStencil.resolveDepthPlane = layer;
-      
+
+   // Correct store action to take into notice resolve
+   if (descStencil.storeAction == MTLStoreActionStore)
+      descStencil.storeAction = MTLStoreActionMultisampleResolve;
+   
    return true;
    }
                                   

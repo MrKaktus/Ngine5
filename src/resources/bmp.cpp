@@ -275,7 +275,7 @@ namespace en
       dataSize = lineSize * DIBHeader.height;
 
    // Create texture in gpu
-   Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(settings);
+   Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(settings); // TODO: Use Heap !!
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";

@@ -399,24 +399,21 @@ namespace en
       };
 #endif
 
-   TextureMTL::TextureMTL(const id<MTLDevice> _device, const TextureState& _state) :
-      TextureMTL(_device, _state, true)
+   TextureMTL::TextureMTL(const id memory, const TextureState& _state) :
+      TextureMTL(memory, _state, true)
    {
    }
    
-   TextureMTL::TextureMTL(const id<MTLDevice> _device, const TextureState& _state, const bool allocateBacking) :
+   TextureMTL::TextureMTL(const id memory, const TextureState& _state, const bool allocateBacking) :
       staging(nil),
       lock(),
       mipmap(0),
       layer(0),
       TextureCommon(_state)
    {
-   // Calculate amount of mipmaps texture will have
-   state.mipmaps = TextureMipMapCount(state);
+   // Mipmaps count is calculated by the application
+   assert( state.mipmaps > 0 );
 
-   // Keep handle to parent device
-   device = _device;
-   
    // We may not want to allocate backing memory if texture
    // object is used as container for surface returned by
    // environment (like HMD or Window framebuffer handle).
@@ -445,7 +442,11 @@ namespace en
    if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::MultipleViews)))
       desc.usage        |= MTLTextureUsagePixelFormatView;
       
-   handle = [device newTextureWithDescriptor:desc];
+#if defined(EN_PLATFORM_IOS)
+   handle = [(id<MTLHeap>)memory newTextureWithDescriptor:desc];
+#else
+   handle = [(id<MTLDevice>)memory newTextureWithDescriptor:desc];
+#endif
    [desc release];
 
    assert( handle != nil );

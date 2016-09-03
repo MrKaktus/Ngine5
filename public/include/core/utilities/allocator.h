@@ -25,6 +25,83 @@ using namespace std;
 
 namespace en
 {
+   // Interface for allocation algorith
+   class Allocator : public SafeObject<Allocator>
+      {
+      public:
+      virtual bool allocate(const uint64 size,
+                                  uint64& offset) = 0; // Returns offset for new allocation, or false
+      virtual void deallocate(const uint64 offset,
+                              const uint64 size) = 0;  // Deallocates given memory region
+      virtual ~Allocator() {};                         // Polymorphic deletes require a virtual base destructor
+      }
+
+   // Simple allocator algorithm (used for example by GPU Heaps)
+   class BasicAllocator : public Allocator
+      {
+      public:
+      uint64       size;
+      MemoryChunk* freeHead;
+      
+      BasicAllocator(uint64 size);
+      virtual sint64 allocate(const uint64 size);
+      virtual void   deallocate(const uint64 offset,
+                                const uint64 size);
+      virtual ~BasicAllocator();
+      };
+   
+   
+   struct MemoryChunk
+      {
+      uint64       size;
+      MemoryChunk* prev;
+      MemoryChunk* next;
+      };
+   
+   BasicAllocator::BasicAllocator(uint64 _size) :
+      size(_size),
+      freeHead(new MemoryChunk())
+   {
+   freeHead->size = size;
+   freeHead->prev = nullptr;
+   freeHead->next = nullptr;
+   }
+   
+   bool BasicAllocator::allocate(const uint64 _size, uint64& offset)
+   {
+   if (_size > size)
+      return false;
+      
+   // TODO
+   }
+   
+   void BasicAllocator::deallocate(const uint64 offset, const uint64 _size)
+   {
+   // TODO
+   }
+   
+   BasicAllocator::~BasicAllocator()
+   {
+   MemoryChunk* ptr = freeHead;
+   
+   // Free all elements on the linked list
+   while(ptr)
+      {
+      if (ptr->next)
+         ptr->next->prev = ptr->prev;
+         
+      if (ptr->prev)
+         ptr->prev->next = ptr->next;
+         
+      MemoryChunk* node = ptr;
+      delete node;
+      ptr = ptr->next;
+      }
+   }
+   
+   
+
+
    // + Allows Run-Time capacity initialization through create method
    // + Allocated elements are guaranteed to occupy the same place in memory.
    // - Allocated elements need to be dealocated directly in buffer.

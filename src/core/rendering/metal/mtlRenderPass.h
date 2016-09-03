@@ -38,6 +38,11 @@ namespace en
 
       virtual void onLoad(const LoadOperation load, 
                           const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
+      virtual void onLoad(const LoadOperation load,
+                          const uint32v4 clearColor = uint32v4(0u, 0u, 0u, 1u));
+      virtual void onLoad(const LoadOperation load,
+                          const sint32v4 clearColor = sint32v4(0, 0, 0, 1));
+        
       virtual void onStore(const StoreOperation store);
       virtual bool resolve(const Ptr<Texture> texture, 
                            const uint32 mipmap = 0u,

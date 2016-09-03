@@ -83,7 +83,28 @@ namespace en
    void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 _clearColor)
    {
    state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearColor          = _clearColor;
+   clearValue.color.float32[0] = _clearColor.r;
+   clearValue.color.float32[1] = _clearColor.g;
+   clearValue.color.float32[2] = _clearColor.b;
+   clearValue.color.float32[3] = _clearColor.a;
+   }
+   
+   void ColorAttachmentVK::onLoad(const LoadOperation load, const uint32v4 _clearColor)
+   {
+   state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
+   clearValue.color.uint32[0]  = _clearColor.r;
+   clearValue.color.uint32[1]  = _clearColor.g;
+   clearValue.color.uint32[2]  = _clearColor.b;
+   clearValue.color.uint32[3]  = _clearColor.a;
+   }
+   
+   void ColorAttachmentVK::onLoad(const LoadOperation load, const sint32v4 clearColor)
+   {
+   state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
+   clearValue.color.int32[0] = _clearColor.r;
+   clearValue.color.int32[1] = _clearColor.g;
+   clearValue.color.int32[2] = _clearColor.b;
+   clearValue.color.int32[3] = _clearColor.a;
    }
 
    void ColorAttachmentVK::onStore(const StoreOperation store)
@@ -291,14 +312,40 @@ namespace en
 
    RenderPassVK::RenderPassVK() :
       gpu(nullptr),
-      attachments(0)
+      attachments(0),
+      clearValues(nullptr)
    {
+   // Init clear values array
+   clearValues = new VkClearValue[attachments];
+   memset(clearValues, 0, sizeof(float)*4*attachments);
    }
 
    RenderPassVK::~RenderPassVK()
    {
-   ProfileNoRet( gpu, vkDestroyRenderPass(gpu->device, passId, &gpu->defaultAllocCallbacks) )
+   delete [] clearValues;
+   ProfileNoRet( gpu, vkDestroyRenderPass(gpu->device, passHandle, &gpu->defaultAllocCallbacks) )
    }
+
+
+
+   // Clear Values Setup:
+   
+    // VkClearColorValue           color;
+    // VkClearDepthStencilValue    depthStencil;
+
+//typedef union VkClearColorValue {
+//float float32[4];
+//int32_t int32[4];
+//uint32_t uint32[4];
+//} VkClearColorValue;
+//
+//typedef struct VkClearDepthStencilValue {
+//    float       depth;
+//    uint32_t    stencil;
+//} VkClearDepthStencilValue;
+//
+
+
 
  //  Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,
  //                                       const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],

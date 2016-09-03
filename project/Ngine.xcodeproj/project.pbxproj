@@ -34,6 +34,7 @@
 		85846D801CE7875000E06629 /* buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 85846D7F1CE7875000E06629 /* buffer.h */; };
 		85846D831CE8DA5100E06629 /* glInputAssembler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85846D811CE8DA5100E06629 /* glInputAssembler.cpp */; };
 		85846D841CE8DA5100E06629 /* glInputAssembler.h in Headers */ = {isa = PBXBuildFile; fileRef = 85846D821CE8DA5100E06629 /* glInputAssembler.h */; };
+		8585EB361D78F7DF00437C1D /* sint32v4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8585EB351D78F7DF00437C1D /* sint32v4.cpp */; };
 		8591790D1C3F64750051382A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178EE1C3EC7680051382A /* libz.dylib */; };
 		8591790E1C3F64800051382A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178EC1C3EC3960051382A /* OpenAL.framework */; };
 		859179101C3F648C0051382A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8591790F1C3F648C0051382A /* OpenGL.framework */; };
@@ -248,6 +249,7 @@
 		85846D7F1CE7875000E06629 /* buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffer.h; sourceTree = "<group>"; };
 		85846D811CE8DA5100E06629 /* glInputAssembler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glInputAssembler.cpp; sourceTree = "<group>"; };
 		85846D821CE8DA5100E06629 /* glInputAssembler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glInputAssembler.h; sourceTree = "<group>"; };
+		8585EB351D78F7DF00437C1D /* sint32v4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sint32v4.cpp; sourceTree = "<group>"; };
 		859178EC1C3EC3960051382A /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		859178EE1C3EC7680051382A /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		859178F01C3EC8490051382A /* libfbxsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfbxsdk.a; path = "../../../../../Applications/Autodesk/FBX SDK/2015.1/lib/clang/debug/libfbxsdk.a"; sourceTree = "<group>"; };
@@ -821,6 +823,7 @@
 				85917A3C1C3F66120051382A /* uint32v2.cpp */,
 				85917A3D1C3F66120051382A /* uint32v3.cpp */,
 				85917A3E1C3F66120051382A /* uint32v4.cpp */,
+				8585EB351D78F7DF00437C1D /* sint32v4.cpp */,
 			);
 			path = types;
 			sourceTree = "<group>";
@@ -1293,6 +1296,7 @@
 				85917AEF1C3F66F60051382A /* and_events.cpp in Sources */,
 				85917AF01C3F66F60051382A /* and_main.cpp in Sources */,
 				85E9CB9C1D7485A80029A9BE /* vkHeap.cpp in Sources */,
+				8585EB361D78F7DF00437C1D /* sint32v4.cpp in Sources */,
 				85917AF11C3F66F60051382A /* bb_main.cpp in Sources */,
 				85917AF21C3F66F60051382A /* osx_main.mm in Sources */,
 				85917AF31C3F66F60051382A /* osx_callbacks.mm in Sources */,

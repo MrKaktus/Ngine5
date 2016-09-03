@@ -40,7 +40,7 @@ namespace en
       // Create formatted Vertex buffer that can be bound to InputAssembler.
       virtual Ptr<Buffer> create(const uint32 elements,
                                  const Formatting& formatting,
-                                 const uint32 step = 0) = 0;
+                                 const uint32 step = 0u) = 0;
         
       // Create formatted Index buffer that can be bound to InputAssembler.
       virtual Ptr<Buffer> create(const uint32 elements,

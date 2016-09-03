@@ -51,7 +51,11 @@ namespace en
       // We can use the same actions on immediate renderers.
       virtual void onLoad(const LoadOperation load,
                           const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f)) = 0;
-
+      virtual void onLoad(const LoadOperation load,
+                          const uint32v4 clearColor = uint32v4(0u, 0u, 0u, 1u)) = 0;
+      virtual void onLoad(const LoadOperation load,
+                          const sint32v4 clearColor = sint32v4(0, 0, 0, 1)) = 0;
+         
       virtual void onStore(const StoreOperation store) = 0;
 
       // "layer" parameter can pass specific information, for specific texture types:

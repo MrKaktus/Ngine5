@@ -141,61 +141,6 @@ namespace en
 //   // Should be implemented by given API
 //   assert(0);
 //   }
-   
-   Ptr<Buffer> CommonDevice::create(const uint32 elements, const Formatting& formatting, const uint32 step, const void* data)
-   {
-   assert( elements );
-   assert( formatting.column[0] != Attribute::None );
-
-   uint32 elementSize = formatting.elementSize();
-   uint32 size        = elements * elementSize;
-   Ptr<Buffer> buffer = create(BufferType::Vertex, size, data);
-   if (buffer)
-      {
-      Ptr<BufferCommon> common = ptr_dynamic_cast<BufferCommon, Buffer>(buffer);
       
-      common->formatting = formatting;
-      common->elements   = elements;
-      common->step       = step;
-      }
-
-   return buffer;
-   }
-      
-   Ptr<Buffer> CommonDevice::create(const uint32 elements, const Attribute format, const void* data)
-   {
-   assert( elements );
-   assert( format == Attribute::u8  ||
-           format == Attribute::u16 ||
-           format == Attribute::u32 );
-     
-   uint32 elementSize = TranslateAttributeSize[underlyingType(format)];
-   uint32 size        = elements * elementSize;
-   Ptr<Buffer> buffer = create(BufferType::Index, size, data);
-   if (buffer)
-      {
-      Ptr<BufferCommon> common = ptr_dynamic_cast<BufferCommon, Buffer>(buffer);
-      
-      common->formatting.column[0] = format;
-      common->elements = elements;
-      }
-      
-   return buffer;
-   }
-
-   // Should be implemented by API class
-   Ptr<Buffer> CommonDevice::create(const BufferType type, const uint32 size)
-   {
-   assert(0);
-   return Ptr<Buffer>(nullptr);
-   }
-      
-   // Should be implemented by API class
-   Ptr<Buffer> CommonDevice::create(const BufferType type, const uint32 size, const void* data)
-   {
-   assert(0);
-   return Ptr<Buffer>(nullptr);
-   }
-   
    }
 }

@@ -411,55 +411,6 @@ namespace en
    ProfileNoRet( gpu, vkFreeMemory(gpu->device, handle, nullptr) )
    }
 
-   bool allocate(uint64 size, uint64 alignment, uint64* offset)
-   {
-   // TODO: Alocating algorithm!
-   // TODO: Requires minimum Heap size.
-   // TODO: Generalize this allocator to be of an Engine Type. 
-   //       This will allow it to be used also for CPU memory sub-allocations,
-   //       or to hook-up user specific memory allocators.
-   // TODO: Add "makeAliasable" call to the resources API.
-   // TODO: Ensure resources "dealloc" on Heap's allocator on destruction.
-   // TODO: General and Specified memory allocators are needed.
-   return false;
-   }
-
-   // Create formatted Vertex buffer that can be bound to InputAssembler.
-   Ptr<Buffer> HeapVK::create(const uint32 elements, const Formatting& formatting, const uint32 step)
-   {
-   assert( elements );
-   assert( formatting.column[0] != Attribute::None );
-   
-   uint32 rowSize = formatting.rowSize();
-   uint32 size    = elements * rowSize;
-   Ptr<Buffer> buffer = create(BufferType::Vertex, size);
-   if (buffer)
-      {
-      Ptr<BufferVK> ptr = ptr_dynamic_cast<BufferVK, Buffer>(buffer);
-      
-      // TODO: Which of those are later needed ?
-      //ptr->size = size;
-      //ptr->rowSize = rowSize;
-      //ptr->elements = elements;
-      //ptr->formatting = formatting;
-      }
-
-   return buffer;
-   }
-     
-   // Create formatted Index buffer that can be bound to InputAssembler.
-   Ptr<Buffer> HeapVK::create(const uint32 elements, const Attribute format)
-   {
-   assert( elements );
-   assert( format == Attribute::R_8_u  ||
-           format == Attribute::R_16_u ||
-           format == Attribute::R_32_u );
-      
-   uint32 rowSize = TranslateAttributeSize[underlyingType(format)];
-   uint32 size    = elements * rowSize;
-   return create(BufferType::Index, size);
-   }
-
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.

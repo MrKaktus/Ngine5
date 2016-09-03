@@ -35,6 +35,7 @@ namespace en
       VkQueue         queue;
       VkCommandBuffer handle;
       VkFence         fence;     // Completion notification
+      bool            started;
       bool            encoding;
       bool            commited;
       

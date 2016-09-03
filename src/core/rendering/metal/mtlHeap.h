@@ -21,32 +21,25 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/metal.h"
-#include "core/rendering/heap.h"
+#include "core/rendering/common/heap.h"
 
 namespace en
 {
    namespace gpu
    {
-   class HeapMTL : public Heap
+   class HeapMTL : public CommonHeap
       {
       public:
 #if defined(EN_PLATFORM_IOS)
       id <MTLHeap> handle;
       
-      HeapMTL(id<MTLHeap> handle);
+      HeapMTL(id<MTLHeap> handle, const uint32 _size);
 #endif
 #if defined(EN_PLATFORM_OSX)
-      HeapMTL();      
+      id <MTLDevice> handle;
+      
+      HeapMTL(id<MTLDevice> device, const uint32 _size);
 #endif
-
-      // Create formatted Vertex buffer that can be bound to InputAssembler.
-      virtual Ptr<Buffer> create(const uint32 elements,
-                                 const Formatting& formatting,
-                                 const uint32 step = 0);
-        
-      // Create formatted Index buffer that can be bound to InputAssembler.
-      virtual Ptr<Buffer> create(const uint32 elements,
-                                 const Attribute format);
 
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,

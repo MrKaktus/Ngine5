@@ -632,7 +632,7 @@ namespace en
    //   } 
    }
 
-   uint32 MetalDevice::displays(void)
+   uint32 MetalDevice::displays(void) const
    {
    // Currently all Metal devices share all available displays
    Ptr<MetalAPI> api = ptr_dynamic_cast<MetalAPI, GraphicAPI>(en::Graphics);

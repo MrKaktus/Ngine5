@@ -17,6 +17,7 @@
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
+#include "core/rendering/metal/mtlBuffer.h"
 #include "core/rendering/metal/mtlHeap.h"
 #include "core/rendering/metal/mtlDevice.h"
 
@@ -25,9 +26,9 @@ namespace en
    namespace gpu
    { 
 #if defined(EN_PLATFORM_IOS)
-   HeapMTL::HeapMTL(id<MTLHeap> handle) :
-      handle(handle)
-      Heap()
+   HeapMTL::HeapMTL(id<MTLHeap> handle, const uint32 _size) :
+      handle(handle),
+      CommonHeap(_size)
    {
    }
       
@@ -38,16 +39,42 @@ namespace en
 #endif
 #if defined(EN_PLATFORM_OSX)
    // TODO: How to emulate Heaps on OSX ?
-   HeapMTL::HeapMTL() :
-      Heap()
+   HeapMTL::HeapMTL(id<MTLDevice> device, const uint32 _size) :
+      handle(device),
+      CommonHeap(_size)
    {
    }
       
    HeapMTL::~HeapMTL()
    {
+   handle = nullptr;
    }
 #endif
       
+   // Create unformatted generic buffer of given type and size.
+   // This method can still be used to create Vertex or Index buffers,
+   // but it's adviced to use ones with explicit formatting.
+   Ptr<Buffer> HeapMTL::create(const BufferType type, const uint32 size)
+   {
+   return ptr_dynamic_cast<Buffer, BufferMTL>(new BufferMTL(handle, type, size));
+   }
+   
+   // Create unformatted generic buffer of given type and size.
+   // This is specialized method, that allows passing pointer
+   // to data, to directly initialize buffer content.
+   // It is allowed on mobile devices conforming to UMA architecture.
+   // On Discreete GPU's with NUMA architecture, only Transient buffers
+   // can be created and populated with it.
+   Ptr<Buffer> HeapMTL::create(const BufferType type, const uint32 size, const void* data)
+   {
+   return ptr_dynamic_cast<Buffer, BufferMTL>(new BufferMTL(handle, type, size, data));
+   }
+ 
+   Ptr<Texture> HeapMTL::create(const TextureState state)
+   {
+   return ptr_dynamic_cast<Texture, TextureMTL>(new TextureMTL(handle, state));
+   }
+   
    Ptr<Heap> MetalDevice::create(uint32 size)
    {
    Ptr<Heap> heap = nullptr;
@@ -62,8 +89,11 @@ namespace en
    handle = [device newHeapWithDescriptor:desc];
    if (handle)
       {
-      heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(handle)));
+      heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(handle, size)));
       }
+#else
+   // On macOS we emulate Heaps by passing calls directly to Device
+   heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(device, size)));
 #endif
    
    return heap;

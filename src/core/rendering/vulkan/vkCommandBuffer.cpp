@@ -31,6 +31,7 @@ namespace en
       queue(_queue),
       handle(_handle),
       fence(_fence),
+      started(false),
       encoding(false),
       commited(false),
       CommandBuffer()
@@ -69,43 +70,61 @@ namespace en
    // CB's are automatically commited to their parent queues when done.
 
 
+
+
+   // RENDER PASS
+   //////////////////////////////////////////////////////////////////////////
+   
+   
    bool CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass)
    {
    if (encoding)
       return false;
   
-   // In Metal API we need to create Render Command Encoder.
-   // In Vulkan API we need to explicitly start encoding process as well.
-   VkCommandBufferBeginInfo info;
-   info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-   info.pNext            = nullptr;
-   info.flags            = 0;       // (VkCommandBufferUsageFlags)
-   info.pInheritanceInfo = nullptr; // (VkCommandBufferInheritanceInfo*) We don't support secondary Command Buffers for now
+   if (!started)
+      {
+      // In Metal API we need to create Render Command Encoder.
+      // In Vulkan API CommandBuffer needs to be started first,
+      // before encoding content to it. It only needs to be done
+      // once, and multiple RenderPasses can be encoded afterwards.
+      VkCommandBufferBeginInfo info;
+      info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+      info.pNext            = nullptr;
+      info.flags            = 0;
+      info.pInheritanceInfo = nullptr; // We don't support secondary Command Buffers for now
 
-   Profile( gpu, vkBeginCommandBuffer(handle, &info) )
+      Profile( gpu, vkBeginCommandBuffer(handle, &info) )
+      
+      started = true;
+      }
+      
+   // Begin encoding commands for this Render Pass
+   VkRenderPassBeginInfo beginInfo;
+   beginInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+   beginInfo.pNext           = nullptr;
+   beginInfo.renderPass      = pass->passHandle;
+   beginInfo.framebuffer     = pass->framebufferHandle;
+   beginInfo.renderArea      = { width, height };   // TODO: Source width & height
+   beginInfo.clearValueCount = pass->attachments;
+   beginInfo.pClearValues    = pass->clearValues;
 
-   // TODO: Do other render pass start operations
+   ProfileNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )
    
    encoding = true;
    return true;
    }
    
-
    bool CommandBufferVK::endRenderPass(void)
    {
    if (!encoding)
       return false;
    
-   // In Metal API we end encoding on Encoder object.
-   // In Vulkan API we end encoding through direct call.
-   Profile( gpu, vkEndCommandBuffer(handle) )
-   
-   // TODO: Do other render pass end operations
-   
+   // End encoding commands for this Render Pass
+   ProfileNoRet( gpu, vkCmdEndRenderPass(handle) )
+    
+   encoding = false;
    return true;
    }
-   
-   
    
    
    // DRAW COMMANDS
@@ -143,9 +162,9 @@ namespace en
       // go through this API, it's safe to leave it bounded.
       ProfileNoRet( gpu, vkCmdBindIndexBuffer(handle,
                                               index->handle,
-                                              (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indeges groups in one GPU Buffer
+                                              (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indexes groups in one GPU Buffer
                                               indexType) )
-
+      // TODO: We probably should bind from offset 0, pass starting offset in draw call, and avoid binding at all if index buffer is the same.
       ProfileNoRet( gpu, vkCmdDrawIndexed(handle,
                                           elements,
                                           max(1U, instances),
@@ -227,27 +246,27 @@ namespace en
    class SemaphoreVK
       {
       public:
-      VkDevice    device;
-      VkSemaphore handle;
+      VulkanDevice* gpu;
+      VkSemaphore   handle;
       
       SemaphoreVK();
      ~SemaphoreVK();
       };
    
-   SemaphoreVK::SemaphoreVK(const VkDevice _device) :
-      device(_device)
+   SemaphoreVK::SemaphoreVK(VulkanDevice* _gpu) :
+      gpu(_gpu)
    {
    VkSemaphoreCreateInfo info;
    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
    info.pNext = nullptr;
    info.flags = 0u;       // VkSemaphoreCreateFlags - reserved.
 
-   Profile( gpu, vkCreateSemaphore(device, &info, nullptr, &handle) )
+   Profile( gpu, vkCreateSemaphore(gpu->device, &info, nullptr, &handle) )
    }
 
    SemaphoreVK::~SemaphoreVK()
    {
-   Profile( gpu, vkDestroySemaphore(device, handle, nullptr) )
+   Profile( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
    }
    
 
@@ -257,7 +276,15 @@ namespace en
    
    void CommandBufferVK::commit(void)
    {
+   assert( started );
+   assert( !encoding );
    assert( !commited );
+   
+   // Finish Command Buffer encoding.
+   Profile( gpu, vkEndCommandBuffer(handle) )
+   
+   
+   
    
    
    typedef enum VkPipelineStageFlagBits {
@@ -337,7 +364,7 @@ namespace en
 
 
    // Submit single batch of work to the queue.
-   // Each batch can consisnt of multiple command buffers.
+   // Each batch can consist of multiple command buffers.
    // Internal fence will be signaled when this work is done.
    Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) )
 
@@ -353,8 +380,8 @@ namespace en
    // Wait maximum 1 second, then assume GPU hang.
    uint64 gpuWatchDog = 1000000000;
    
-   Profile( gpu, vkWaitForFences(device /* !! */, 1, &fence, VK_TRUE, gpuWatchDog) )
-   if (lastResult == VK_TIMEOUT)
+   Profile( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
+   if (gpu->lastResult[Scheduler.core()] == VK_TIMEOUT)
       {
       Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << endl;
       }
@@ -399,7 +426,8 @@ namespace en
    ProfileNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
    
    // Release Command Buffer
-   ProfileNoRet( gpu, vkFreeCommandBuffers(gpu->device, commandPool[thread][underlyingType(type)], 1, &handle) )
+   ProfileNoRet( gpu, vkFreeCommandBuffers(gpu->device, commandPool[thread][underlyingType(type)], 1, &handle) )
+
 
    }
 

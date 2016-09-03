@@ -22,3 +22,4 @@
 #include "core/types/uint32v2.h"
 #include "core/types/uint32v3.h"
 #include "core/types/uint32v4.h"
+#include "core/types/sint32v4.h"

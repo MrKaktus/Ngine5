@@ -13,6 +13,8 @@
  
  */
 
+#include "core/rendering/common/buffer.h"
+#include "core/rendering/common/inputAssembler.h"
 #include "core/rendering/common/heap.h"
 
 namespace en
@@ -27,6 +29,74 @@ namespace en
    uint32 CommonHeap::size(void) const
    {
       return _size;
+   }
+
+   bool allocate(uint64 size, uint64 alignment, uint64* offset)
+   {
+   // TODO: Alocating algorithm!
+   // TODO: Requires minimum Heap size.
+   // TODO: Generalize this allocator to be of an Engine Type. 
+   //       This will allow it to be used also for CPU memory sub-allocations,
+   //       or to hook-up user specific memory allocators.
+   // TODO: Add "makeAliasable" call to the resources API.
+   // TODO: Ensure resources "dealloc" on Heap's allocator on destruction.
+   // TODO: General and Specified memory allocators are needed.
+   return false;
+   }
+   
+   Ptr<Buffer> CommonHeap::create(const uint32 elements, const Formatting& formatting, const uint32 step)
+   {
+   assert( elements );
+   assert( formatting.column[0] != Attribute::None );
+
+   uint32 elementSize = formatting.elementSize();
+   uint32 size        = elements * elementSize;
+   Ptr<Buffer> buffer = create(BufferType::Vertex, size);
+   if (buffer)
+      {
+      Ptr<BufferCommon> common = ptr_dynamic_cast<BufferCommon, Buffer>(buffer);
+      
+      common->formatting = formatting;
+      common->elements   = elements;
+      common->step       = step;
+      }
+
+   return buffer;
+   }
+      
+   Ptr<Buffer> CommonHeap::create(const uint32 elements, const Attribute format)
+   {
+   assert( elements );
+   assert( format == Attribute::u8  ||
+           format == Attribute::u16 ||
+           format == Attribute::u32 );
+     
+   uint32 elementSize = TranslateAttributeSize[underlyingType(format)];
+   uint32 size        = elements * elementSize;
+   Ptr<Buffer> buffer = create(BufferType::Index, size);
+   if (buffer)
+      {
+      Ptr<BufferCommon> common = ptr_dynamic_cast<BufferCommon, Buffer>(buffer);
+      
+      common->formatting.column[0] = format;
+      common->elements = elements;
+      }
+      
+   return buffer;
+   }
+
+   // Should be implemented by API class
+   Ptr<Buffer> CommonHeap::create(const BufferType type, const uint32 size)
+   {
+   assert(0);
+   return Ptr<Buffer>(nullptr);
+   }
+      
+   // Should be implemented by API class
+   Ptr<Buffer> CommonHeap::create(const BufferType type, const uint32 size, const void* data)
+   {
+   assert(0);
+   return Ptr<Buffer>(nullptr);
    }
 
    }
