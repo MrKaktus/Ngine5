@@ -18,7 +18,7 @@ namespace en
       public:
       Ptr<TextureViewVK>      view[2];
       VkAttachmentDescription state[2]; // Attachment and optional Resolve
-      VkClearValue clearValue[2];
+      VkClearValue clearValue;
 
       ColorAttachmentVK(const Ptr<TextureView> source);
 

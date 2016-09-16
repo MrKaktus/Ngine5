@@ -100,7 +100,7 @@ namespace en
       };
    #endif
       
-   BufferCommon::BufferCommon(const BufferType type, uint32 length) :
+   CommonBuffer::CommonBuffer(const BufferType type, uint32 length) :
       formatting(),
       elements(0),
       step(0),
@@ -109,34 +109,34 @@ namespace en
    {
    }
 
-   BufferCommon::~BufferCommon()
+   CommonBuffer::~CommonBuffer()
    {
    }
    
-   uint32 BufferCommon::length(void) const
+   uint32 CommonBuffer::length(void) const
    {
    return size;
    }
    
-   BufferType BufferCommon::type(void) const
+   BufferType CommonBuffer::type(void) const
    {
    return apiType;
    }
    
-   void* BufferCommon::content(void) const
+   void* CommonBuffer::content(void) const
    {
    // Should be implemented by given API
    assert(0);
    return nullptr;
    }
       
-//   void* BufferCommon::map(const DataAccess access)
+//   void* CommonBuffer::map(const DataAccess access)
 //   {
 //   // Should be implemented by given API
 //   assert(0);
 //   }
 //   
-//   bool BufferCommon::unmap(void)
+//   bool CommonBuffer::unmap(void)
 //   {
 //   // Should be implemented by given API
 //   assert(0);

@@ -48,11 +48,15 @@ namespace en
    #define Color          0
    #define Resolve        1
 
-   ColorAttachmentVK::ColorAttachmentVK(const Ptr<TextureView> source) :
-      clearColor(0.0f, 0.0f, 0.0f, 1.0f)
+   ColorAttachmentVK::ColorAttachmentVK(const Ptr<TextureView> source)
    {
    assert( source );
  
+   clearValue.color.float32[0] = 0.0f;
+   clearValue.color.float32[1] = 0.0f;
+   clearValue.color.float32[2] = 0.0f;
+   clearValue.color.float32[3] = 1.0f;
+
    view[Color] = ptr_dynamic_cast<TextureViewVK, TextureView>(source);
 
    state[Color].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
@@ -75,31 +79,31 @@ namespace en
    view[Resolve] = nullptr;
    }
 
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 _clearColor)
+   void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 clearValue)
    {
    state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.float32[0] = _clearColor.r;
-   clearValue.color.float32[1] = _clearColor.g;
-   clearValue.color.float32[2] = _clearColor.b;
-   clearValue.color.float32[3] = _clearColor.a;
+   clearValue.color.float32[0] = clearValue.r;
+   clearValue.color.float32[1] = clearValue.g;
+   clearValue.color.float32[2] = clearValue.b;
+   clearValue.color.float32[3] = clearValue.a;
    }
    
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const uint32v4 _clearColor)
+   void ColorAttachmentVK::onLoad(const LoadOperation load, const uint32v4 clearValue)
    {
    state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.uint32[0]  = _clearColor.r;
-   clearValue.color.uint32[1]  = _clearColor.g;
-   clearValue.color.uint32[2]  = _clearColor.b;
-   clearValue.color.uint32[3]  = _clearColor.a;
+   clearValue.color.uint32[0]  = clearValue.x;
+   clearValue.color.uint32[1]  = clearValue.y;
+   clearValue.color.uint32[2]  = clearValue.z;
+   clearValue.color.uint32[3]  = clearValue.w;
    }
    
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const sint32v4 clearColor)
+   void ColorAttachmentVK::onLoad(const LoadOperation load, const sint32v4 clearValue)
    {
    state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.int32[0] = _clearColor.r;
-   clearValue.color.int32[1] = _clearColor.g;
-   clearValue.color.int32[2] = _clearColor.b;
-   clearValue.color.int32[3] = _clearColor.a;
+   clearValue.color.int32[0] = clearValue.x;
+   clearValue.color.int32[1] = clearValue.y;
+   clearValue.color.int32[2] = clearValue.z;
+   clearValue.color.int32[3] = clearValue.w;
    }
 
    void ColorAttachmentVK::onStore(const StoreOperation store)

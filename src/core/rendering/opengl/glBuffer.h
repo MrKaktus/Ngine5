@@ -27,7 +27,7 @@ namespace en
 {
    namespace gpu
    {
-   class BufferGL : public BufferCommon
+   class BufferGL : public CommonBuffer
       {
       public:
       uint32 handle;  // OpenGL VBO handle

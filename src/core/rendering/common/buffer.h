@@ -22,7 +22,7 @@ namespace en
 {
    namespace gpu
    {
-   class BufferCommon : public Buffer
+   class CommonBuffer : public Buffer
       {
       public:
       Formatting formatting;
@@ -31,7 +31,7 @@ namespace en
       uint32     size;
       BufferType apiType;
       
-      BufferCommon(const BufferType type, uint32 length);
+      CommonBuffer(const BufferType type, uint32 length);
       virtual uint32 length(void) const;
       virtual BufferType type(void) const;
       
@@ -41,7 +41,7 @@ namespace en
       //virtual void* map(const DataAccess access = ReadWrite);
       //virtual bool unmap(void);
       
-      virtual ~BufferCommon();
+      virtual ~CommonBuffer();
       };
    }
 }

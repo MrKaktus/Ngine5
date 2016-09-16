@@ -54,7 +54,7 @@ namespace en
    Ptr<Buffer> buffer = create(BufferType::Vertex, size);
    if (buffer)
       {
-      Ptr<BufferCommon> common = ptr_dynamic_cast<BufferCommon, Buffer>(buffer);
+      Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer);
       
       common->formatting = formatting;
       common->elements   = elements;
@@ -76,7 +76,7 @@ namespace en
    Ptr<Buffer> buffer = create(BufferType::Index, size);
    if (buffer)
       {
-      Ptr<BufferCommon> common = ptr_dynamic_cast<BufferCommon, Buffer>(buffer);
+      Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer);
       
       common->formatting.column[0] = format;
       common->elements = elements;

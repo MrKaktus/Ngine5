@@ -27,7 +27,7 @@ namespace en
   
    BufferMTL::BufferMTL(const id memory, const BufferType type, const uint32 size) :
       handle(nil),
-      BufferCommon(type, size)
+      CommonBuffer(type, size)
    {
    MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift); // MTLCPUCacheModeWriteCombined
    
@@ -52,7 +52,7 @@ namespace en
 
    BufferMTL::BufferMTL(const id memory, const BufferType type, const uint32 size, const void* data) :
       handle(nil),
-      BufferCommon(type, size)
+      CommonBuffer(type, size)
    {
    assert( data );
 #if defined(EN_PLATFORM_OSX)

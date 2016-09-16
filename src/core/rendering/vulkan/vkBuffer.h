@@ -20,7 +20,7 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
-#include "core/rendering/buffer.h"
+#include "core/rendering/common/buffer.h"
 
 namespace en
 {
@@ -28,7 +28,7 @@ namespace en
    {
    class VulkanDevice;
    
-   class BufferVK : public Buffer
+   class BufferVK : public CommonBuffer
       {
       public:
       VulkanDevice* gpu;

@@ -90,7 +90,7 @@ namespace en
    {
    assert( buffer );
    
-   Ptr<BufferCommon> common = ptr_dynamic_cast<BufferCommon, Buffer>(buffer);
+   Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer);
    
    // Compute amount of used attributes
    uint32 usedAttributes = 0;
@@ -116,7 +116,7 @@ namespace en
    BufferDesc* buffers = new BufferDesc[usedBuffers];
    for(uint32 i=0; i<usedBuffers; ++i)
       {
-      // Ptr<BufferCommon> common = ptr_dynamic_cast<BufferCommon, Buffer>(buffer[i]);
+      // Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer[i]);
       buffers[i].elementSize = common->formatting.elementSize();
       buffers[i].stepRate    = common->step;
       }

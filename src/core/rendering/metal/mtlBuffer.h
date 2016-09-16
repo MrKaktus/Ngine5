@@ -27,7 +27,7 @@ namespace en
 {
    namespace gpu
    {
-   class BufferMTL : public BufferCommon
+   class BufferMTL : public CommonBuffer
       {
       public:
       id<MTLBuffer> handle;

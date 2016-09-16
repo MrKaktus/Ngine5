@@ -291,6 +291,7 @@ namespace en
                                  const uint32 size);
 
       virtual Ptr<Sampler>  create(const SamplerState& state);
+
       virtual Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
                                    const Ptr<ViewportState>  viewportState,
                                    const Ptr<RasterState>    rasterState,
@@ -299,13 +300,18 @@ namespace en
                                    const Ptr<BlendState>     blendState,
                                    const Ptr<PipelineLayout> pipelineLayout);
 
+      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
+                                         const uint32 controlPoints,
+                                         const Ptr<Buffer> buffer);
 
-      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
-                                          const uint32 controlPoints,
-                                          const uint32 usedAttributes,
-                                          const uint32 usedBuffers,
-                                          const AttributeDesc* attributes,
-                                          const BufferDesc* buffers);
+      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
+                                         const uint32 controlPoints,
+                                         const uint32 usedAttributes,
+                                         const uint32 usedBuffers,
+                                         const AttributeDesc* attributes,
+                                         const BufferDesc* buffers);
+
+
 
       // Creates simple render pass with one color destination
       virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,

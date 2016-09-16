@@ -28,7 +28,7 @@ namespace en
       handle(_handle),
       heap(nullptr),
       offset(0u),
-      BufferCommon(type, size)
+      CommonBuffer(type, size)
    {
    }
    

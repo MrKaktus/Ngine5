@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
+#include "core/rendering/vulkan/vkBuffer.h" 
 
 namespace en
 {
@@ -363,7 +364,7 @@ namespace en
    //(Float3, "inPosition")
 
 
-   //class BufferCommon : public Buffer
+   //class CommonBuffer : public Buffer
    //   {
    //   public:
    //   // Buffer general

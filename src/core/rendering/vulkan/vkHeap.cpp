@@ -19,6 +19,7 @@
 
 #include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
+#include "core/rendering/vulkan/vkBuffer.h" 
 #include "core/rendering/vulkan/vkTexture.h"   
 
 namespace en

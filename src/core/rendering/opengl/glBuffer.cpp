@@ -65,7 +65,7 @@ namespace en
       
    BufferGL::BufferGL(const BufferType type, const uint32 size, const void* data) :
       vao(0),
-      BufferCommon(type, size)
+      CommonBuffer(type, size)
    {
    glType = TranslateBufferType[underlyingType(type)];
    

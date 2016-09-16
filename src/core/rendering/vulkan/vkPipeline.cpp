@@ -228,7 +228,7 @@ const VkSampler* pImmutableSamplers;
    */
    
 
-   Ptr<Pipeline> VulkanDevice::Create(const Ptr<InputAssembler> inputAssembler,
+   Ptr<Pipeline> VulkanDevice::create(const Ptr<InputAssembler> inputAssembler,
                         const Ptr<ViewportState>  viewportState,
                         const Ptr<RasterState>    rasterState,
                         const Ptr<MultisamplingState> multisamplingState,                        

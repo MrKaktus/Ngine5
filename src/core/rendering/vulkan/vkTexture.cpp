@@ -232,7 +232,7 @@ namespace en
    // VK_BORDER_COLOR_INT_OPAQUE_BLACK
    // VK_BORDER_COLOR_INT_OPAQUE_WHITE
 
-   Ptr<Sampler> VulkanDevice::Create(const SamplerState& state)
+   Ptr<Sampler> VulkanDevice::create(const SamplerState& state)
    {
    Ptr<SamplerVK> sampler = nullptr;
    
