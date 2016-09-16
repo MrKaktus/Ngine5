@@ -134,6 +134,30 @@ namespace en
    return true;
    }
    
+   uint32 roundUp(uint32 num, uint32 alignment)
+   {
+   if (alignment == 0u)
+      return num;
+   
+   uint32 remainder = num % alignment;
+   if (remainder == 0u)
+      return num;
+   
+   return num + alignment - remainder;
+   }
+
+   uint64 roundUp(uint64 num, uint64 alignment)
+   {
+   if (alignment == 0u)
+      return num;
+   
+   uint64 remainder = num % alignment;
+   if (remainder == 0u)
+      return num;
+   
+   return num + alignment - remainder;
+   }
+   
    // Changes endiannes of variable
    uint16 endiannes(uint16 in)
    {

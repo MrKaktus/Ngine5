@@ -18,8 +18,8 @@ namespace en
    class uint32v2
       {
       public:
-      union { uint32 x; uint32 width;  };
-      union { uint32 y; uint32 height; };
+      union { uint32 x; uint32 width;  uint32 base;  };
+      union { uint32 y; uint32 height; uint32 count; };
       
       uint32v2(void);
       uint32v2(uint32 a, uint32 b);

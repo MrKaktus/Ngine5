@@ -269,10 +269,36 @@ namespace en
    Profile( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
    }
    
-
-
-
    
+
+
+
+   enum class PipelineStage : uint32
+      {
+      // TODO: Do we mimic Vulkan Pipeline Stages granularity ?
+      Count
+      };
+   
+   static const VkPipelineStageFlagBits TranslatePipelineStage[underlyingType(PipelineStage::Count)] =
+      {
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT                    ,
+      VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT                  ,
+      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT                   ,
+      VK_PIPELINE_STAGE_VERTEX_SHADER_BIT                  ,
+      VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT    ,
+      VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT ,
+      VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT                ,
+      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT                ,
+      VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT           ,
+      VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT            ,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT        ,
+      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT                 ,
+      VK_PIPELINE_STAGE_TRANSFER_BIT                       ,
+      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT                 ,
+      VK_PIPELINE_STAGE_HOST_BIT                           ,
+      VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT                   ,
+      VK_PIPELINE_STAGE_ALL_COMMANDS_BIT                   ,
+      };
    
    void CommandBufferVK::commit(void)
    {
@@ -283,37 +309,15 @@ namespace en
    // Finish Command Buffer encoding.
    Profile( gpu, vkEndCommandBuffer(handle) )
    
-   
-   
-   
-   
-   typedef enum VkPipelineStageFlagBits {
-    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT                    = 0x00000001,
-    VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT                  = 0x00000002,
-    VK_PIPELINE_STAGE_VERTEX_INPUT_BIT                   = 0x00000004,
-    VK_PIPELINE_STAGE_VERTEX_SHADER_BIT                  = 0x00000008,
-    VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT    = 0x00000010,
-    VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT = 0x00000020,
-    VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT                = 0x00000040,
-    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT                = 0x00000080,
-    VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT           = 0x00000100,
-    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT            = 0x00000200,
-    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT        = 0x00000400,
-    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT                 = 0x00000800,
-    VK_PIPELINE_STAGE_TRANSFER_BIT                       = 0x00001000,
-    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT                 = 0x00002000,
-    VK_PIPELINE_STAGE_HOST_BIT                           = 0x00004000,
-    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT                   = 0x00008000,
-    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT                   = 0x00010000,
-} VkPipelineStageFlagBits;
-   
 
+   
+ 
    //
    uint32 waitEvents = 0u;
    VkPipelineStageFlags* waitFlags = nullptr;
 
    // TODO: Add support for waiting for previous job to be finished through use of Semaphores.
-   //       Point out for which Pipeline Stages we wait for.
+   //       Point out for which Pipeline Stages we wait for. One Stage for One Semaphore.
    if (waitEvents)
       {
       waitFlags = new VkPipelineStageFlags[waitEvents];
@@ -321,7 +325,7 @@ namespace en
          {
          waitFlags[i] = 0u;
          for(uint32 j=0; j<waitStagesInEvent[i]; ++j)
-            waitFlags[i] |= TranslatePipelineStage[waitStageInEvent[i][j]];
+            waitFlags[i] |= TranslatePipelineStage[  waitStageInEvent[i][j]  ];
          }
       }
    
@@ -345,9 +349,9 @@ namespace en
    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
    submitInfo.pNext                = nullptr;
    
-   submitInfo.waitSemaphoreCount   = waitEvents;
+   submitInfo.waitSemaphoreCount   = waitEvents; //
     const VkSemaphore* pWaitSemaphores;              // Which semaphores we wait for.
-   submitInfo.pWaitDstStageMask    = waitFlags;      // Before which pipeline stage we wait blocked, before they are signaled.
+   submitInfo.pWaitDstStageMask    = waitFlags;      // pipeline stages at which each corresponding semaphore wait will occur (until this stage is done)
     
    submitInfo.commandBufferCount   = 1u;
    submitInfo.pCommandBuffers      = &handle;

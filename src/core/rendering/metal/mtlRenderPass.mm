@@ -37,33 +37,31 @@ namespace en
       MTLStoreActionStore                       // Store
       };
 
-   // MTLStoreActionMultisampleResolve
-      
-   ColorAttachmentMTL::ColorAttachmentMTL(const Ptr<Texture> texture, 
-      const uint32 mipmap, 
-	  const uint32 layer) :
+#if defined(EN_PLATFORM_IOS)
+   static const MTLMultisampleDepthResolveFilter TranslateDepthResolveMode[underlyingType(DepthResolve::Count)] =
+      {
+      MTLMultisampleDepthResolveFilterSample0,  // Sample0
+      MTLMultisampleDepthResolveFilterMin,      // Min
+      MTLMultisampleDepthResolveFilterMax       // Max
+      };
+#endif
+
+
+   // COLOR ATTACHMENT
+   //////////////////////////////////////////////////////////////////////////
+
+
+   ColorAttachmentMTL::ColorAttachmentMTL(const Ptr<TextureView> source) :
       desc([[MTLRenderPassColorAttachmentDescriptor alloc] init])
    {
-   assert( texture );
+   assert( source );
 
-   Ptr<TextureMTL> target = ptr_dynamic_cast<TextureMTL, Texture>(texture);
-
-   assert( target->state.mipmaps > mipmap );
-   assert( target->state.layers > layer );
+   Ptr<TextureViewMTL> target = ptr_dynamic_cast<TextureViewMTL, TextureView>(source);
 
    desc.texture           = target->handle;
-   desc.level             = mipmap;
+   desc.level             = 0;  // Texture view will specify mipmap/layer/depthPlane of source texture
    desc.slice             = 0;
    desc.depthPlane        = 0;
-
-   if (target->state.type == TextureType::Texture1DArray ||
-       target->state.type == TextureType::Texture2DArray ||
-       target->state.type == TextureType::TextureCubeMap)
-      desc.slice          = layer;
-   else
-   if (target->state.type == TextureType::Texture3D)
-      desc.depthPlane     = layer;
-      
    desc.loadAction        = MTLLoadActionLoad;
    desc.storeAction       = MTLStoreActionStore;
    desc.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
@@ -82,8 +80,6 @@ namespace en
                                         static_cast<double>(clearColor.b), 
                                         static_cast<double>(clearColor.a) );
    }
-
-
 
    void ColorAttachmentMTL::onLoad(const LoadOperation load, const uint32v4 clearColor)
    {
@@ -110,113 +106,78 @@ namespace en
    // Auto-detect that surface need to be resolved
    if ( (desc.storeAction == MTLStoreActionStore) &&
         (desc.resolveTexture != nil) )
-      desc.storeAction = MTLStoreActionMultisampleResolve;
+      desc.storeAction = MTLStoreActionStoreAndMultisampleResolve; // MTLStoreActionMultisampleResolve;
    }
 
-   bool ColorAttachmentMTL::resolve(const Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   bool ColorAttachmentMTL::resolve(const Ptr<TextureView> destination)
    {
-   assert( texture );
+   assert( destination );
 
-   Ptr<TextureMTL> resolve = ptr_dynamic_cast<TextureMTL, Texture>(texture);
-
-   assert( resolve->state.mipmaps > mipmap );
-   assert( resolve->state.layers > layer );
+   Ptr<TextureViewMTL> resolve = ptr_dynamic_cast<TextureViewMTL, TextureView>(destination);
 
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
-   assert( resolve->state.type != TextureType::Texture2DMultisampleArray );
-   assert( resolve->state.type != TextureType::TextureCubeMapArray );
+   assert( resolve->viewType != TextureType::Texture2DMultisampleArray );
+   assert( resolve->viewType != TextureType::TextureCubeMapArray );
   
    // HERE: If in debug layer return false
   
    desc.resolveTexture    = resolve->handle;
-   desc.resolveLevel      = mipmap;
+   desc.resolveLevel      = 0; // Texture view will specify mipmap/layer/depthPlane of source texture
    desc.resolveSlice      = 0;
    desc.resolveDepthPlane = 0; 
 
-   if (resolve->state.type == TextureType::Texture1DArray ||
-       resolve->state.type == TextureType::Texture2DArray ||
-       resolve->state.type == TextureType::TextureCubeMap)
-      desc.resolveSlice = layer;
-   else
-   if (resolve->state.type == TextureType::Texture3D)
-      desc.resolveDepthPlane = layer;
-      
    // Correct store action to take into notice resolve
    if (desc.storeAction == MTLStoreActionStore)
-      desc.storeAction = MTLStoreActionMultisampleResolve;
+      desc.storeAction = MTLStoreActionStoreAndMultisampleResolve; // MTLStoreActionMultisampleResolve;
       
    return true;
    }
 
 
+   // DEPTH-STENCIL ATTACHMENT
+   //////////////////////////////////////////////////////////////////////////
 
    
-   DepthStencilAttachmentMTL::DepthStencilAttachmentMTL(const Ptr<Texture> depth,
-      const Ptr<Texture> stencil,
-      const uint32 mipmap,
-      const uint32 layer) :
+   DepthStencilAttachmentMTL::DepthStencilAttachmentMTL(const Ptr<TextureView> depth,
+                                                        const Ptr<TextureView> stencil) :
       descDepth([[MTLRenderPassDepthAttachmentDescriptor alloc] init]),
       descStencil([[MTLRenderPassStencilAttachmentDescriptor alloc] init])
    {
    assert( depth );
 
-   Ptr<TextureMTL> targetDepth = ptr_dynamic_cast<TextureMTL, Texture>(depth);
+   Ptr<TextureViewMTL> targetDepth = ptr_dynamic_cast<TextureViewMTL, TextureView>(depth);
 
-   assert( targetDepth->state.mipmaps > mipmap );
-   assert( targetDepth->state.layers > layer );
-
-   descDepth.texture           = targetDepth->handle;
-   descDepth.level             = mipmap;
-   descDepth.slice             = 0;
-   descDepth.depthPlane        = 0;
-
-   if (targetDepth->state.type == TextureType::Texture1DArray ||
-       targetDepth->state.type == TextureType::Texture2DArray ||
-       targetDepth->state.type == TextureType::TextureCubeMap)
-      descDepth.slice          = layer;
-   else
-   if (targetDepth->state.type == TextureType::Texture3D)
-      descDepth.depthPlane     = layer;
-      
-   descDepth.loadAction        = MTLLoadActionClear;
-   descDepth.storeAction       = MTLStoreActionStore;
-   descDepth.clearDepth        = 1.0f;
+   descDepth.texture     = targetDepth->handle;
+   descDepth.level       = 0; // Texture view will specify mipmap/layer/depthPlane of source texture
+   descDepth.slice       = 0;
+   descDepth.depthPlane  = 0;
+   descDepth.loadAction  = MTLLoadActionClear;
+   descDepth.storeAction = MTLStoreActionStore;
+   descDepth.clearDepth  = 1.0f;
    
    // If Depth attachment is Depth-Stencil texture, it needs to be bound to Stencil attachment as well.
    bool depthStencil = false;
-   if ( (targetDepth->state.format == Format::DS_24_8) ||
-        (targetDepth->state.format == Format::DS_32_f_8) )
+   if ( (targetDepth->viewFormat == Format::DS_24_8) ||
+        (targetDepth->viewFormat == Format::DS_32_f_8) )
       depthStencil = true;
    
    // TODO: Separate stencil texture can have different mipmap and layer ?
    if (stencil || depthStencil)
       {
-      Ptr<TextureMTL> targetStencil = stencil ? ptr_dynamic_cast<TextureMTL, Texture>(stencil) :
-                                                ptr_dynamic_cast<TextureMTL, Texture>(depth);
+      Ptr<TextureViewMTL> targetStencil = stencil ? ptr_dynamic_cast<TextureViewMTL, TextureView>(stencil) :
+                                                    ptr_dynamic_cast<TextureViewMTL, TextureView>(depth);
 
       // Separate Stencil must have the same type as Depth attachment.
-      assert( targetStencil->state.type == targetDepth->state.type );
-      assert( targetStencil->state.mipmaps > mipmap );
-      assert( targetStencil->state.layers > layer );
+      assert( targetStencil->viewType == targetDepth->viewType );
 
-      descStencil.texture           = targetStencil->handle;
-      descStencil.level             = mipmap;
-      descStencil.slice             = 0;
-      descStencil.depthPlane        = 0;
-
-      // TODO: Separate Stencil must have the same type as Depth attachment.
-      if (targetDepth->state.type == TextureType::Texture1DArray ||
-          targetDepth->state.type == TextureType::Texture2DArray ||
-          targetDepth->state.type == TextureType::TextureCubeMap)
-         descStencil.slice          = layer;
-      else
-      if (targetDepth->state.type == TextureType::Texture3D)
-         descStencil.depthPlane     = layer;
-      
-      descStencil.loadAction        = MTLLoadActionClear;
-      descStencil.storeAction       = MTLStoreActionStore;
-      descStencil.clearStencil      = 0u;
+      descStencil.texture      = targetStencil->handle;
+      descStencil.level        = 0; // Texture view will specify mipmap/layer/depthPlane of source texture
+      descStencil.slice        = 0;
+      descStencil.depthPlane   = 0;
+      descStencil.loadAction   = MTLLoadActionClear;
+      descStencil.storeAction  = MTLStoreActionStore;
+      descStencil.clearStencil = 0u;
       }
    }
 
@@ -244,46 +205,43 @@ namespace en
    // Auto-detect that surface need to be resolved
    if ( (descDepth.storeAction == MTLStoreActionStore) &&
         (descDepth.resolveTexture != nil) )
-      descDepth.storeAction = MTLStoreActionMultisampleResolve;
+      descDepth.storeAction = MTLStoreActionStoreAndMultisampleResolve; // MTLStoreActionMultisampleResolve;;
 
    if ( (descStencil.storeAction == MTLStoreActionStore) &&
         (descStencil.resolveTexture != nil) )
-      descStencil.storeAction = MTLStoreActionMultisampleResolve;
+      descStencil.storeAction = MTLStoreActionStoreAndMultisampleResolve; // MTLStoreActionMultisampleResolve;;
    }
    
-   bool DepthStencilAttachmentMTL::resolve(const Ptr<Texture> depth,
-      const uint32 mipmap,
-      const uint32 layer)
+   bool DepthStencilAttachmentMTL::resolve(const Ptr<TextureView> destination,
+      const DepthResolve mode)
    {
-   assert( depth );
+#if defined(EN_PLATFORM_OSX)
+   return false;
+#endif
+#if defined(EN_PLATFORM_IOS)
+   assert( destination );
 
-   Ptr<TextureMTL> resolve = ptr_dynamic_cast<TextureMTL, Texture>(depth);
+   Ptr<TextureViewMTL> resolveView = ptr_dynamic_cast<TextureViewMTL, TextureView>(destination);
 
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
-   assert( resolve->state.type != TextureType::Texture2DMultisampleArray );
-   assert( resolve->state.type != TextureType::TextureCubeMapArray );
+   assert( resolveView->viewType != TextureType::Texture2DMultisampleArray );
+   assert( resolveView->viewType != TextureType::TextureCubeMapArray );
   
    // HERE: If in debug layer return false
-  
-   descDepth.resolveTexture    = resolve->handle;
-   descDepth.resolveLevel      = mipmap;
-   descDepth.resolveSlice      = 0;
-   descDepth.resolveDepthPlane = 0;
-
-   if (resolve->state.type == TextureType::Texture1DArray ||
-       resolve->state.type == TextureType::Texture2DArray ||
-       resolve->state.type == TextureType::TextureCubeMap)
-      descDepth.resolveSlice = layer;
-   else
-   if (resolve->state.type == TextureType::Texture3D)
-      descDepth.resolveDepthPlane = layer;
-    
+   
+   descDepth.resolveTexture     = resolve->handle;
+   descDepth.resolveLevel       = 0; // Texture view will specify mipmap/layer/depthPlane of source texture
+   descDepth.resolveSlice       = 0;
+   descDepth.resolveDepthPlane  = 0;
+   descDepth.depthResolveFilter = TranslateDepthResolveMode[mode];
+      
    // Correct store action to take into notice resolve
    if (descDepth.storeAction == MTLStoreActionStore)
-      descDepth.storeAction = MTLStoreActionMultisampleResolve;
+      descDepth.storeAction = MTLStoreActionStoreAndMultisampleResolve; // MTLStoreActionMultisampleResolve;;
       
    return true;
+#endif
    }
       
    void DepthStencilAttachmentMTL::onStencilLoad(const LoadOperation loadStencil)
@@ -296,40 +254,6 @@ namespace en
    descStencil.storeAction = TranslateStoreOperation[underlyingType(storeStencil)];
    }
    
-   bool DepthStencilAttachmentMTL::resolveStencil(const Ptr<Texture> stencil,
-      const uint32 mipmap,
-      const uint32 layer)
-   {
-   assert( stencil );
-   
-   Ptr<TextureMTL> resolve = ptr_dynamic_cast<TextureMTL, Texture>(stencil);
-
-   // Metal is currently not supporting 
-   // Texture2DMultisampleArray, nor TextureCubeMapArray
-   assert( resolve->state.type != TextureType::Texture2DMultisampleArray );
-   assert( resolve->state.type != TextureType::TextureCubeMapArray );
-  
-   // HERE: If in debug layer return false
-  
-   descStencil.resolveTexture    = resolve->handle;
-   descStencil.resolveLevel      = mipmap;
-   descStencil.resolveSlice      = 0;
-   descStencil.resolveDepthPlane = 0;
-
-   if (resolve->state.type == TextureType::Texture1DArray ||
-       resolve->state.type == TextureType::Texture2DArray ||
-       resolve->state.type == TextureType::TextureCubeMap)
-      descStencil.resolveSlice = layer;
-   else
-   if (resolve->state.type == TextureType::Texture3D)
-      descStencil.resolveDepthPlane = layer;
-
-   // Correct store action to take into notice resolve
-   if (descStencil.storeAction == MTLStoreActionStore)
-      descStencil.storeAction = MTLStoreActionMultisampleResolve;
-   
-   return true;
-   }
                                   
 
 
@@ -337,66 +261,75 @@ namespace en
 
 
 
-   Ptr<ColorAttachment> MetalDevice::createColorAttachment(const Ptr<Texture> texture,
-      const uint32 mipmap,
-      const uint32 layer,
-      const uint32 layers)
+   Ptr<ColorAttachment> MetalDevice::createColorAttachment(const Ptr<TextureView> source)
    {
-   assert( texture );
-
-   // Metal is not supporting rendering to more than one layer at the same time.
-   assert( layers == 1 );
+   assert( source );
 
    // Metal is currently not supporting 
    // Texture2DMultisampleArray, nor TextureCubeMapArray
-   Ptr<TextureMTL> validate = ptr_dynamic_cast<TextureMTL, Texture>(texture);
-   assert( validate->state.type != TextureType::Texture2DMultisampleArray );
-   assert( validate->state.type != TextureType::TextureCubeMapArray );
+   Ptr<TextureViewMTL> validate = ptr_dynamic_cast<TextureViewMTL, TextureView>(source);
+   assert( validate->viewType != TextureType::Texture2DMultisampleArray );
+   assert( validate->viewType != TextureType::TextureCubeMapArray );
   
    // HERE: If in debug layer return nullptr
    
-   return ptr_dynamic_cast<ColorAttachment, ColorAttachmentMTL>(new ColorAttachmentMTL(texture, mipmap, layer));
+   return ptr_dynamic_cast<ColorAttachment, ColorAttachmentMTL>(new ColorAttachmentMTL(source));
    }
    
-   Ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(const Ptr<Texture> depth,
-      const Ptr<Texture> stencil,
-      const uint32 mipmap,
-      const uint32 layer,
-      const uint32 layers)
+   Ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(const Ptr<TextureView> depth,
+                                                                         const Ptr<TextureView> stencil)
    {
-   assert( depth );
-
-   // Metal is not supporting rendering to more than one layer at the same time.
-   assert( layers == 1 );
+   assert( depth || stencil );
    
-   // Metal is currently not supporting 
-   // Texture2DMultisampleArray, nor TextureCubeMapArray
-   Ptr<TextureMTL> validateDepth = ptr_dynamic_cast<TextureMTL, Texture>(depth);
-   assert( validateDepth->state.type != TextureType::Texture2DMultisampleArray );
-   assert( validateDepth->state.type != TextureType::TextureCubeMapArray );
+   // Metal is currently not supporting Texture2DMultisampleArray, nor TextureCubeMapArray
+   Ptr<TextureViewMTL> validateDepth   = nullptr;
+   Ptr<TextureViewMTL> validateStencil = nullptr;
+   if (depth)
+      {
+      validateDepth = ptr_dynamic_cast<TextureViewMTL, TextureView>(depth);
+      assert( validateDepth->viewType != TextureType::Texture2DMultisampleArray );
+      assert( validateDepth->viewType != TextureType::TextureCubeMapArray );
+      }
    if (stencil)
       {
-      Ptr<TextureMTL> validateStencil = ptr_dynamic_cast<TextureMTL, Texture>(stencil);
-      assert( validateStencil->state.type != TextureType::Texture2DMultisampleArray );
-      assert( validateStencil->state.type != TextureType::TextureCubeMapArray );
-      
+      validateStencil = ptr_dynamic_cast<TextureViewMTL, TextureView>(stencil);
+      assert( validateStencil->viewType != TextureType::Texture2DMultisampleArray );
+      assert( validateStencil->viewType != TextureType::TextureCubeMapArray );
+      }
+   if (depth && stencil)
+      {
       // Depth and Stencil need to be of the same type
-      assert( validateDepth->state.type == validateStencil->state.type );
+      assert( validateDepth->viewType == validateStencil->viewType );
       }
       
    // HERE: If in debug layer return nullptr
-   
-   return ptr_dynamic_cast<DepthStencilAttachment, DepthStencilAttachmentMTL>(new DepthStencilAttachmentMTL(depth, stencil, mipmap, layer));
+    
+   return ptr_dynamic_cast<DepthStencilAttachment, DepthStencilAttachmentMTL>(new DepthStencilAttachmentMTL(depth, stencil));
    }
 
 
+   // TODO: Use Views, mipma and layer always equal to 0 !
+   
+   // Metal supports specifying base layer of Render Pass attachment through
+   // explicitly setting "slice" or "depthPlane" in MTLRenderPassAttachmentDescriptor.
+   //
+   // Vulkan supports the same feature through providing new ImageView that
+   // starts at given layer offset.
+   //
+   // Metal is not supporting rendering to more than one layer at the same time.
 
 
 
 
+   RenderPassMTL::RenderPassMTL() :
+      desc([[MTLRenderPassDescriptor alloc] init])
+   {
+   }
 
-
-
+   RenderPassMTL::~RenderPassMTL()
+   {
+   [desc release];
+   }
 
 
    // Creates simple render pass with one color destination
@@ -529,49 +462,6 @@ namespace en
    return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
    }
    
-
-
-
-
-
-
-
-
-
-   RenderPassMTL::RenderPassMTL() :
-      desc([[MTLRenderPassDescriptor alloc] init])
-   {
-   }
-
-   RenderPassMTL::~RenderPassMTL()
-   {
-   [desc release];
-   }
-
-//   Ptr<RenderPass> MetalDevice::create(const uint32 _attachments,
-//                                       const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-//                                       const Ptr<DepthStencilAttachment> depthstencil)
-//   {
-//   Ptr<RenderPass> result = nullptr;
-//   
-//
-//
-//   // Create renderpass object
-//   VkRenderPass renderpass;
-//   VkResult res = vkCreateRenderPass(device, &passInfo, &defaultAllocCallbacks, &renderpass);
-//   if (res == VK_SUCCESS)
-//      {
-//      Ptr<RenderPassVK> rpo = new RenderPassVK();
-//      rpo->id          = renderpass;
-//      rpo->gpu         = this;
-//      rpo->attachments = _attachments;
-//      result = ptr_dynamic_cast<RenderPass, RenderPassVK>(rpo);
-//      }
-//
-//   delete [] attachment;
-//
-//   return result;
-//   }
 
 
 // declaration - h

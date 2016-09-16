@@ -127,15 +127,10 @@ namespace en
 
    // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
    // similarly when binding CubeMap texture, pass it's "face" through "layer".
-      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<Texture> texture,
-                                          const uint32 mipmap = 0,
-                                          const uint32 layer = 0,
-                                          const uint32 layers = 1);
+      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<TextureView> source);
 
-      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<Texture> depth, const Ptr<Texture> stencil,
-                                                 const uint32 mipmap = 0,
-                                                 const uint32 layer = 0,
-                                                 const uint32 layers = 1);
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<TextureView> depth,
+                                                                       const Ptr<TextureView> stencil);
 
 
 

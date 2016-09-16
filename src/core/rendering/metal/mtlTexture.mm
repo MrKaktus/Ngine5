@@ -457,6 +457,60 @@ namespace en
    [handle release];
    }
  
+   Ptr<TextureView> TextureMTL::view(const TextureType _type,
+      const Format _format,
+      const uint32v2 _mipmaps,
+      const uint32v2 _layers) const
+   {
+   Ptr<TextureView> result = nullptr;
+   
+   // Metal is not supporting components swizzling.
+   
+   id<MTLTexture> view = nullptr;
+   view = [handle newTextureViewWithPixelFormat:TranslateTextureFormat[underlyingType(_format)]
+                                    textureType:TranslateTextureType[underlyingType(_type)]
+                                         levels:NSMakeRange(_mipmaps.base, _mipmaps.count)
+                                         slices:NSMakeRange(_layers.base, _layers.count)];
+   if (view)
+      {
+      Ptr<TextureViewMTL> ptr = new TextureViewMTL(Ptr<TextureMTL>(self),
+                                                 view, type, format, mipmaps, layers);
+      result = ptr_dynamic_cast<TextureView, TextureViewMTL>(ptr);
+      }
+      
+   return result;
+   }
+ 
+
+   TextureViewMTL::TextureViewMTL(Ptr<TextureMTL> parent,
+         id<MTLTexture> view,
+         const TextureType _type,
+         const Format _format,
+         const uint32v2 _mipmaps,
+         const uint32v2 _layers) :
+      texture(parent),
+      handle(view),
+      CommonTextureView(_type, _format, _mipmaps, _layers)
+   {
+   }
+   
+   TextureViewMTL::~TextureViewMTL()
+   {
+   [handle release];
+   texture = nullptr;
+   }
+   
+   Ptr<Texture> TextureViewMTL::parent(void) const
+   {
+   return ptr_dynamic_cast<Texture, TextureMTL>(texture);
+   }
+
+
+   
+
+
+
+
    bool TextureMTL::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
    {
    // Check if specified mipmap and layer are correct

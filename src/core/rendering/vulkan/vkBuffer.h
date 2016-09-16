@@ -34,7 +34,9 @@ namespace en
       VulkanDevice* gpu;
       VkBuffer      handle;
       VkMemoryRequirements memoryRequirements; // Memory requirements of this Buffer
-         
+      Ptr<Heap>     heap;      // Memory backing heap
+      uint64        offset;    // Offset in the heap
+
       BufferVK(VulkanDevice* gpu, const VkBuffer handle, const BufferType type, const uint32 size);
       virtual ~BufferVK();
       };

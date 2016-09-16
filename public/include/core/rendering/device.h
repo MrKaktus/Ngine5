@@ -225,20 +225,26 @@ namespace en
 
 
 
+      // TODO: Those methods should be reworked to accept TextureView,
+      //       and layer selection should be done through it.
 
-
+   // Metal supports specifying base layer of Render Pass attachment through
+   // explicitly setting "slice" or "depthPlane" in MTLRenderPassAttachmentDescriptor,
+   // and given mipmap through setting "level" in the same object.
+   // iOS can render to any layer and mipmap, on macOS only to 0 layer, so use views anyway to
+   // avoid internal copies.
+   //
+   // Vulkan supports the same feature through providing new ImageView that
+   // starts at given mipmap and layer of original texture.
+   //
+   // Metal is not supporting rendering to more than one layer at the same time.
+ 
       // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
       // similarly when binding CubeMap texture, pass it's "face" through "layer".
-      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<Texture> texture,
-                                          const uint32 mipmap = 0,
-                                          const uint32 layer = 0,
-                                          const uint32 layers = 1) = 0;
+      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<TextureView> textureView) = 0;
 
-      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<Texture> depth,
-                                                 const Ptr<Texture> stencil,
-                                                 const uint32 mipmap = 0,
-                                                 const uint32 layer = 0,
-                                                 const uint32 layers = 1) = 0;
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<TextureView> depth,
+                                                                       const Ptr<TextureView> stencil) = 0;
 
       // Creates simple render pass with one color destination
       virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,

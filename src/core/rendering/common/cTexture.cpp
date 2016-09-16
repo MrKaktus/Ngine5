@@ -532,9 +532,39 @@ namespace en
    
    Ptr<TextureView> TextureCommon::view() const
    {
-   return ptr_dynamic_cast<TextureView, TextureViewCommon>(Ptr<TextureViewCommon>(textureView));
+   return ptr_dynamic_cast<TextureView, CommonTextureView>(Ptr<CommonTextureView>(textureView));
    }
 
+   CommonTextureView::CommonTextureView(const TextureType _type,
+         const Format   _format,
+         const uint32v2 _mipmaps,
+         const uint32v2 _layers) :
+      viewType(_type),
+      viewFormat(_format),
+      mipmaps(_mipmaps),
+      layers(_layers)
+   {
+   }
+   
+   TextureType CommonTextureView::type(void) const
+   {
+   return viewType;
+   }
+   
+   Format CommonTextureView::format(void) const
+   {
+   return viewFormat;
+   }
+      
+   uint32v2 CommonTextureView::parentMipmaps(void) const
+   {
+   return mipmaps;
+   }
+   
+   uint32v2 CommonTextureView::parentLayers(void) const
+   {
+   return layers;
+   }
 
    uint32 CommonDevice::texelSize(const Format format)
    {

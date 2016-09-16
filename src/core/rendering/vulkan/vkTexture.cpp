@@ -5,6 +5,7 @@
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
 #include "core/rendering/vulkan/vkDevice.h"
+#include "core/rendering/vulkan/vkHeap.h"
 
 namespace en
 {
@@ -342,55 +343,6 @@ namespace en
    return VK_IMAGE_ASPECT_COLOR_BIT;
    }
 
-   //bool VulkanDevice::getMemoryType(uint32 allowedTypes, VkFlags properties, uint32* memoryType)
-   //{
-   //for(uint32 i=0; i<memory.memoryTypeCount; ++i)
-   //   if (checkBit(allowedTypes, i))
-   //      if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
-   //         {
-   //         *memoryType = i;
-   //         return true;
-   //         }
-
-   //return false;
-   //}
-
-   //VkDeviceMemory VulkanDevice::allocMemory(VkMemoryRequirements requirements, VkFlags properties)
-   //{
-   //VkDeviceMemory handle;
-
-   //// Find Memory Type that best suits required allocation
-   //uint32 index = VK_MAX_MEMORY_TYPES;
-   //for(uint32 i=0; i<memory.memoryTypeCount; ++i)
-   //   {
-   //   // Memory Type needs to be able to support requested allocation
-   //   if (checkBit(requirements.memoryTypeBits, (i+1)))
-   //      // Memory Type needs to support at least requested sub-set of memory properties
-   //      if ((memory.memoryTypes[i].propertyFlags & properties) == properties)
-   //         index = i;
-
-   //   // If this memory type cannot be used to allocate requested resource, continue search
-   //   if (index == VK_MAX_MEMORY_TYPES)
-   //      continue;
-
-   //   // Try to allocate memory on Heap supporting this memory type
-   //   VkMemoryAllocateInfo allocInfo;
-   //   allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-   //   allocInfo.pNext           = nullptr;
-   //   allocInfo.allocationSize  = requirements.size;
-   //   allocInfo.memoryTypeIndex = index;
-   //   
-   //   Profile( this, vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
-   //   if (lastResult[0] == VK_SUCCESS)  // FIXME!! First thread assumed!
-   //      return handle;
-   //   }
-
-   //// FAIL
-   //return handle;
-   //}
-
-
-
 
    // Use Cases:
 
@@ -655,17 +607,90 @@ namespace en
 
    TextureVK::TextureVK(VulkanDevice* _gpu, const TextureState& state) :
       gpu(_gpu),
+      heap(nullptr),
+      offset(0u),
       TextureCommon(state)
    {
    }
 
    TextureVK::~TextureVK()
    {
-   // TODO: Deallocate from the Heap (let Heap allocator know that memory region is available again!).
    ProfileNoRet( gpu, vkDestroyImageView(gpu->device, view, nullptr) )
    ProfileNoRet( gpu, vkDestroyImage(gpu->device, handle, nullptr) )
+   
+   // Deallocate from the Heap (let Heap allocator know that memory region is available again)
+   heap->allocator->deallocate(offset, memoryRequirements.size);
+   heap = nullptr;
    }
  
+   Ptr<TextureView> TextureVK::view(const TextureType _type,
+      const Format _format,
+      const uint32v2 _mipmaps,
+      const uint32v2 _layers) const
+   {
+   Ptr<TextureView> result = nullptr;
+   
+   // Engine is not supporting swizzling (as Metal doesn't support it)
+   VkComponentMapping components = {};
+   components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+   components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+   components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+   components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+   // Create default Texture View that will be used to access it
+   VkImageViewCreateInfo viewInfo = {};
+   viewInfo.sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+   viewInfo.pNext      = nullptr;
+   viewInfo.flags      = 0; // Reserved
+   viewInfo.image      = handle;
+   viewInfo.viewType   = TranslateViewType[underlyingType(_type)];
+   viewInfo.format     = TranslateTextureFormat[underlyingType(_format)];
+   viewInfo.components = components;  // Note: Set for clarity. It should default to 0's which corresponds to no swizzling.
+
+   // Default view is representing whole resource
+   viewInfo.subresourceRange.aspectMask     = TranslateImageAspect(_format);
+   viewInfo.subresourceRange.baseMipLevel   = _mipmaps.base;
+   viewInfo.subresourceRange.levelCount     = _mipmaps.count;
+   viewInfo.subresourceRange.baseArrayLayer = _layers.base;
+   viewInfo.subresourceRange.layerCount     = _layers.count;
+
+   VkImageView view;
+
+   Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &view) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      Ptr<TextureViewVK> ptr = new TextureViewVK(Ptr<TextureVK>(this),
+                                                 view, type, format, mipmaps, layers);
+      result = ptr_dynamic_cast<TextureView, TextureViewVK>(ptr);
+      }
+      
+   return result;
+   }
+ 
+ 
+   TextureViewVK::TextureViewVK(Ptr<TextureVK> parent,
+         const VkImageView view,
+         const TextureType _type,
+         const Format _format,
+         const uint32v2 _mipmaps,
+         const uint32v2 _layers) :
+      texture(parent),
+      handle(view),
+      CommonTextureView(_type, _format, _mipmaps, _layers)
+   {
+   }
+   
+   TextureViewVK::~TextureViewVK()
+   {
+   Profile( texture->gpu, vkDestroyImageView(texture->gpu->device, handle, nullptr) )
+   texture = nullptr;
+   }
+   
+   Ptr<Texture> TextureViewVK::parent(void) const
+   {
+   return ptr_dynamic_cast<Texture, TextureVK>(texture);
+   }
+     
    }
 }
 #endif

@@ -29,8 +29,6 @@ namespace en
 {
    namespace gpu
    {
-
-
    class TextureMTL : public TextureCommon
       {
       public:
@@ -44,7 +42,31 @@ namespace en
 
       TextureMTL(const id memory, const TextureState& state);
       TextureMTL(const id memory, const TextureState& state, const bool allocateBacking);
+
+      Ptr<TextureView> view(const TextureType type,
+                            const Format format,
+                            const uint32v2 mipmaps,         
+                            const uint32v2 layers) const;
+                            
       virtual ~TextureMTL();
+      };
+      
+   class TextureViewMTL : public CommonTextureView
+      {
+      public:
+      Ptr<TextureMTL> texture; // Parent texture
+      id<MTLTexture>  handle;  // Vulkan Image View ID
+
+      TextureViewMTL(Ptr<TextureMTL>   parent,
+                     id<MTLTexture>    view,
+                     const TextureType type,
+                     const Format      format,
+                     const uint32v2    mipmaps,
+                     const uint32v2    layers);
+         
+      Ptr<Texture> parent(void) const;
+   
+      virtual ~TextureViewMTL();
       };
    }
 }

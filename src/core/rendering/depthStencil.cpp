@@ -89,14 +89,14 @@ namespace en
 
 
 
-   // Default Values: D3D12                                       Metal                Vulkan     OpenGL 
+   // Default Values: D3D12                                       Metal                Vulkan                OpenGL
    // 
-   // depthTest       T                                         | F (func: Always)  |  ?       |
-   // depthWrite      T (write mask)                            | F                 |  ?       |
-   // depthBounds     ----                                      | ----              |  ?       |
-   // stencilTest     F                                         | F       F         |  ?       |
-   // depthFunc       Less                                      | Always            |  ?       |
-   // depthRange      ----                                      | ----              |  ?       |
+   // depthTest       T                                         | F (func: Always)  |  ?                  |
+   // depthWrite      T (write mask)                            | F                 |  ?                  |
+   // depthBounds     ----                                      | ----              |  ? (Static/Dynamic) |
+   // stencilTest     F                                         | F       F         |  ?                  |
+   // depthFunc       Less                                      | Always            |  ?                  |
+   // depthRange      ----                                      | ----              |  ?                  |
    //                                                                                          
    //                 FRONT:  BACK:                               FRONT:  BACK:                
    //                                                                                          

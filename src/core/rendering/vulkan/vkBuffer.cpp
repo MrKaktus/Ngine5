@@ -17,6 +17,8 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
+#include "core/rendering/vulkan/vkHeap.h"
+
 namespace en
 {
    namespace gpu
@@ -24,6 +26,8 @@ namespace en
    BufferVK::BufferVK(VulkanDevice* _gpu, const VkBuffer _handle, const BufferType type, const uint32 size) :
       gpu(_gpu),
       handle(_handle),
+      heap(nullptr),
+      offset(0u),
       BufferCommon(type, size)
    {
    }
@@ -31,6 +35,10 @@ namespace en
    BufferVK::~BufferVK()
    {
    ProfileNoRet( gpu, vkDestroyBuffer(gpu->device, handle, nullptr) )
+   
+   // Deallocate from the Heap (let Heap allocator know that memory region is available again)
+   heap->allocator->deallocate(offset, memoryRequirements.size);
+   heap = nullptr;
    }
 
    BufferViewVK::BufferViewVK(VulkanDevice* _gpu) :

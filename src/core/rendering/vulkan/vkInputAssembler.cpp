@@ -518,14 +518,10 @@ namespace en
       }
    }
    
-   
-   
-   Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
-                                            const uint32 controlPoints,
-                                            const Ptr<Buffer> buffer)
-   {
-   // TODO: Finish !!!
-   }
+   // Implemented by CommonDevice
+   // Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
+   //                                          const uint32 controlPoints,
+   //                                          const Ptr<Buffer> buffer)
       
    Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
                                             const uint32 controlPoints,

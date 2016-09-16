@@ -23,7 +23,122 @@
 namespace en
 {
    namespace gpu
-   {   
+   {
+
+
+
+
+
+ 
+   typedef enum VkShaderStageFlagBits {
+    VK_SHADER_STAGE_VERTEX_BIT = 0x00000001,
+    VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT = 0x00000002,
+    VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT = 0x00000004,
+    VK_SHADER_STAGE_GEOMETRY_BIT = 0x00000008,
+    VK_SHADER_STAGE_FRAGMENT_BIT = 0x00000010,
+    VK_SHADER_STAGE_COMPUTE_BIT = 0x00000020,
+    VK_SHADER_STAGE_ALL_GRAPHICS = 0x0000001F,
+    VK_SHADER_STAGE_ALL = 0x7FFFFFFF,
+
+
+   {
+   Ptr<SetLayout> result = nullptr;
+   
+   VK_DESCRIPTOR_TYPE_SAMPLER = 0,
+   VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,
+   VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE = 2,
+   VK_DESCRIPTOR_TYPE_STORAGE_IMAGE = 3,
+   VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER = 4,
+   VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER = 5,
+   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6,
+   VK_DESCRIPTOR_TYPE_STORAGE_BUFFER = 7,
+   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,
+   VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,
+   VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,
+   
+   VkDescriptorSetLayoutBinding setBinding;
+   setBinding.binding = i; // Binding the same as in Shader
+   setBinding.descriptorType = ;// VkDescriptorType
+   setBinding.descriptorCount = ; // uint32_t
+VkShaderStageFlags stageFlags;
+const VkSampler* pImmutableSamplers;
+   
+   VkDescriptorSetLayoutCreateInfo setInfo;
+   setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+   setInfo.pNext        = nullptr;
+   setInfo.flags        = 0; // Reserved for future
+   setInfo.bindingCount = 0;       // uint32
+   setInfo.pBindings    = nullptr; // const VkDescriptorSetLayoutBinding*
+
+   VkDescriptorSetLayout setLayout;
+      
+   Profile( gpu, vkCreateDescriptorSetLayout(gpu->device, &setInfo, nullptr, &setLayout) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      result = ptr_dynamic_cast<SetLayout, SetLayoutVK>(new SetLayoutVK(gpu, setLayout));
+      }
+      
+   return result;
+   }
+
+   
+   {
+   Ptr<Layout> result = nullptr;
+   
+   uint32 descriptorSets = 0; // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers
+   
+   
+	typedef struct {
+	    VkShaderStageFlags                          stageFlags;
+	    uint32_t                                    offset;
+	    uint32_t                                    size; // <= VkPhysicalDeviceLimits::maxPushConstantsSize - offset
+	} VkPushConstantRange;
+   
+   // total accessible to any given shader stage across all elements of pSetLayouts:
+   
+   // VK_DESCRIPTOR_TYPE_SAMPLER
+   // VK_DESCRIPTOR_ TYPE_COMBINED_IMAGE_SAMPLER
+   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers
+   
+   // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+   // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
+   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorUniformBuffers
+   
+   // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+   // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC
+   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorStorageBuffers
+   
+   // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+   // VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
+   // VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
+   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSampledImages
+   
+   // VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+   // VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
+   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorStorageImages
+  
+   VkPipelineLayoutCreateInfo layoutInfo;
+   layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+   layoutInfo.pNext                  = nullptr;
+   layoutInfo.flags                  = 0;
+   layoutInfo.setLayoutCount         = descriptorSets;
+   layoutInfo.pSetLayouts            = nullptr; // const VkDescriptorSetLayout*
+   layoutInfo.pushConstantRangeCount = 0;       // uint32_t
+   layoutInfo.pPushConstantRanges    = nullptr; // const VkPushConstantRange*
+
+   VkPipelineLayout layout;
+   Profile( gpu, vkCreatePipelineLayout(gpu->device, &layoutInfo, nullptr, &layout) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      result = ptr_dynamic_cast<Layout, LayoutVK>(new LayoutVK(gpu, layout));
+      }
+      
+   return result;
+   }
+
+
+
+
    //enum ProvokingVertex
    //   {
    //   ProvokingVertexFirst     = 0,
@@ -84,6 +199,35 @@ namespace en
 
 
 
+   /*
+   
+   DYNAMIC RENDER PASS STATE
+   
+   enum VkDynamicState
+   
+   VkPipelineDynamicStateCreateInfo dynamicInfo;
+   dynamicInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+   dynamicInfo.pNext             = nullptr;
+   dynamicInfo.flags             = 0; // Reserved for future
+   dynamicInfo.dynamicStateCount = //elements in array;
+   dynamicInfo.pDynamicStates    = //ptr to array of enums
+
+
+   VK_DYNAMIC_STATE_VIEWPORT = 0,
+   VK_DYNAMIC_STATE_SCISSOR = 1,
+   VK_DYNAMIC_STATE_LINE_WIDTH = 2,
+   VK_DYNAMIC_STATE_DEPTH_BIAS = 3,
+   VK_DYNAMIC_STATE_BLEND_CONSTANTS = 4,
+   VK_DYNAMIC_STATE_DEPTH_BOUNDS = 5,
+   VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK = 6,
+   VK_DYNAMIC_STATE_STENCIL_WRITE_MASK = 7,
+   VK_DYNAMIC_STATE_STENCIL_REFERENCE
+   
+   vkCmdSetStencilReference();
+   
+   */
+   
+
    Ptr<Pipeline> VulkanDevice::Create(const Ptr<InputAssembler> inputAssembler,
                         const Ptr<ViewportState>  viewportState,
                         const Ptr<RasterState>    rasterState,
@@ -125,7 +269,7 @@ namespace en
    pipelineInfo.pMultisampleState   = multisampling ? &multisampling->state    : VK_NULL_HANDLE; // optional - nullptr == Multisampling Disabled
    pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == disabled
    pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Blending Disabled
-//    const VkPipelineDynamicStateCreateInfo*     pDynamicState       = ;
+   pipelineInfo.pDynamicState       = nullptr; // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
    pipelineInfo.flags               = 0;
 #ifdef EN_DEBUG
    pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
@@ -138,8 +282,8 @@ namespace en
 
    // Create pipeline state object
    VkPipeline pipeline;
-// VkResult res = vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineInfo, const VkAllocCallbacks* pAllocator, &pipeline);  
-//   if (!res)
+   Profile( this, vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineInfo, nullptr, &pipeline) )
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       Ptr<PipelineVK> pso = new PipelineVK();
       pso->id = pipeline;

@@ -89,6 +89,10 @@ namespace en
    bool whichPowerOfTwo(uint32 in, uint32& power);
    bool whichPowerOfTwo(uint64 in, uint32& power);
    
+   // Rounds up number to multiple of given alignment
+   uint32 roundUp(uint32 num, uint32 alignment);
+   uint64 roundUp(uint64 num, uint64 alignment);
+   
    // Changes endiannes of variable
    uint16 endiannes(uint16 in);
    uint32 endiannes(uint32 in);

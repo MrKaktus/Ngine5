@@ -38,7 +38,6 @@ namespace en
    }
 #endif
 #if defined(EN_PLATFORM_OSX)
-   // TODO: How to emulate Heaps on OSX ?
    HeapMTL::HeapMTL(id<MTLDevice> device, const uint32 _size) :
       handle(device),
       CommonHeap(_size)
@@ -80,8 +79,10 @@ namespace en
    Ptr<Heap> heap = nullptr;
 
 #if defined(EN_PLATFORM_IOS)
+   uint32 roundedSize = roundUp(size, 4096);
+   
    MTLHeapDescriptor desc;
-   desc.size         = size;
+   desc.size         = roundedSize;
    desc.storageMode  = MTLStorageModePrivate;
    desc.cpuCacheMode = MTLCPUCacheModeDefaultCache;
    
@@ -89,11 +90,11 @@ namespace en
    handle = [device newHeapWithDescriptor:desc];
    if (handle)
       {
-      heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(handle, size)));
+      heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(handle, roundedSize)));
       }
 #else
    // On macOS we emulate Heaps by passing calls directly to Device
-   heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(device, size)));
+   heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(device, roundUp(size, 4096u))));
 #endif
    
    return heap;

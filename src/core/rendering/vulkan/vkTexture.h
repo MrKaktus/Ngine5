@@ -19,6 +19,7 @@ namespace en
    extern const VkFormat TranslateTextureFormat[underlyingType(Format::Count)];
 
    class VulkanDevice;
+   class Heap;
 
    class TextureVK : public TextureCommon
       {
@@ -27,11 +28,17 @@ namespace en
       VkImage       handle;    // Vulkan Image ID
       VkImageView   view;      // Vulkan default Image View ID
       VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
-                     // Vulkan memory pool ID
+      Ptr<Heap>     heap;      // Memory backing heap
+      uint64        offset;    // Offset in the heap
 
       TextureVK(VulkanDevice* gpu, const TextureState& state);
       TextureVK(VulkanDevice* gpu, const TextureState& state, const uint32 id);    // Create texture interface for texture that already exists
 
+      Ptr<TextureView> view(const TextureType type,
+                            const Format format,
+                            const uint32v2 mipmaps,         
+                            const uint32v2 layers) const;
+         
       virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0);  // Surface is: CubeMap face, 3D depth slice, Array layer or CubeMapArray face-layer
       virtual bool     unmap(void);
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
@@ -39,15 +46,24 @@ namespace en
       virtual ~TextureVK();
       };
       
-   class TextureViewVK : public TextureView
+   class TextureViewVK : public CommonTextureView
       {
       public:
-      VkImageView view;      // Vulkan Image View ID
-      
-      TextureViewVK();
+      Ptr<TextureVK> texture; // Parent texture
+      VkImageView    handle;  // Vulkan Image View ID
+
+      TextureViewVK(Ptr<TextureVK>    parent,
+                    const VkImageView view,
+                    const TextureType type,
+                    const Format      format,
+                    const uint32v2    mipmaps,
+                    const uint32v2    layers);
+
+      Ptr<Texture> parent(void) const;
+   
       virtual ~TextureViewVK();
       };
-   
+      
    class SamplerVK : public Sampler
       {
       public:

@@ -24,13 +24,13 @@ namespace en
 {
    namespace gpu
    {
-   class TextureViewCommon;
+   class CommonTextureView;
    
    class TextureCommon : public Texture
       {
       public:
       TextureState      state;
-      Weak<TextureViewCommon> textureView;
+      Weak<CommonTextureView> textureView;
       
       TextureCommon();
       TextureCommon(const TextureState& state);
@@ -51,20 +51,26 @@ namespace en
       virtual ~TextureCommon() {};                           // Polymorphic deletes require a virtual base destructor
       };
 
-   class TextureViewCommon : public TextureView
+   class CommonTextureView : public TextureView
       {
       public:
-      Ptr<Texture> texture; // Parent texture
-      
-      TextureViewCommon();
-      
-      virtual Ptr<Texture> parent(void) const;
-      virtual uint32v2 parentMipmaps(void) const;    // Sub-set of parent texture mipmaps, creating this view
-      virtual uint32v2 parentLayers(void) const;     // Sub-set of parent texture layers, creating this view
-      
-      virtual ~TextureViewCommon() {};               // Polymorphic deletes require a virtual base destructor
-      };
+      TextureType  viewType;
+      Format       viewFormat;
+      uint32v2     mipmaps;    // Base mipmap in parent texture and mipmaps count
+      uint32v2     layers;     // Base layer in parent texture and layers count
 
+      CommonTextureView(const TextureType type,
+                        const Format   format,
+                        const uint32v2 mipmaps,
+                        const uint32v2 layers);
+         
+      virtual TextureType type(void) const;
+      virtual Format   format(void) const;
+      virtual uint32v2 parentMipmaps(void) const;
+      virtual uint32v2 parentLayers(void) const;
+      
+      virtual ~CommonTextureView() {};               // Polymorphic deletes require a virtual base destructor
+      };
 
    struct TextureCompressedBlockInfo
       {

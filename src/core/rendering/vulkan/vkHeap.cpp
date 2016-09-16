@@ -276,25 +276,113 @@ namespace en
 // There are also functions for mapping/unmapping/invalidating memory etc.
 
 
-   uint32 roundUp(uint32 num, uint32 alignment)
+   HeapVK::HeapVK(VulkanDevice* _gpu, const VkDeviceMemory _handle, const uint32 _memoryType, const uint32 size) :
+      gpu(_gpu),
+      handle(_handle),
+      memoryType(_memoryType),
+      allocator(new BasicAllocator(size)),
+      CommonHeap(size)
    {
-   if (alignment == 0)
-      return num;
-   
-   uint32 remainder = num % alignment;
-   if (remainder == 0)
-      return num;
-   
-   return num + alignment - remainder;
    }
 
-
+   HeapVK::~HeapVK()
+   {
+   ProfileNoRet( gpu, vkFreeMemory(gpu->device, handle, nullptr) )
    
+   delete allocator;
+   }
 
+   // Create unformatted generic buffer of given type and size.
+   // This method can still be used to create Vertex or Index buffers,
+   // but it's adviced to use ones with explicit formatting.
+   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size)
+   {
+   // Create buffer descriptor
+   Ptr<Buffer> result = createBuffer(gpu, type, size);
+   if (!result)
+      return result;
 
+   // Check if created buffer can be backed by this Heap memory
+   Ptr<BufferVK> buffer = ptr_dynamic_cast<BufferVK, Buffer>(result);
+   if (!checkBit(buffer->memoryRequirements.memoryTypeBits, memoryType))
+      {
+      // Destroy texture descriptor
+      buffer = nullptr;
+      result = nullptr;
+      return result;
+      }
 
+   // Find memory region in the Heap where this buffer can be placed.
+   // If allocation succeeded, buffer is mapped to given offset.
+   uint64 offset = 0u;
+   if (!allocator->allocate(buffer->memoryRequirements.size,
+                            buffer->memoryRequirements.alignment,
+                            &offset))
+      {
+      // Destroy buffer descriptor
+      buffer = nullptr;
+      result = nullptr;
+      return result;
+      }
 
+   Profile( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
 
+   buffer->heap   = this;
+   buffer->offset = offset;
+   return result;
+   }
+   
+   // Create unformatted generic buffer of given type and size.
+   // This is specialized method, that allows passing pointer
+   // to data, to directly initialize buffer content.
+   // It is allowed on mobile devices conforming to UMA architecture.
+   // On Discreete GPU's with NUMA architecture, only Transient buffers
+   // can be created and populated with it.
+   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size, const void* data)
+   {
+   // TODO: FINISH !!!!
+   return Ptr<Buffer>(nullptr);
+   }
+ 
+   Ptr<Texture> HeapVK::create(const TextureState state)
+   {
+   // Create texture descriptor
+   Ptr<Texture> result = createTexture(gpu, state);
+   if (!result)
+      return result;
+
+   // Check if created texture can be backed by this Heap memory
+   Ptr<TextureVK> texture = ptr_dynamic_cast<TextureVK, Texture>(result);
+   if (!checkBit(texture->memoryRequirements.memoryTypeBits, memoryType))
+      {
+      // Destroy texture descriptor
+      texture = nullptr;
+      result = nullptr;
+      return result;
+      }
+  
+   // Find memory region in the Heap where this texture can be placed.
+   // If allocation succeeded, texture is mapped to given offset.
+   uint64 offset = 0;
+   if (!allocator->allocate(texture->memoryRequirements.size,
+                            texture->memoryRequirements.alignment,
+                            &offset))
+      {
+      // Destroy texture descriptor
+      texture = nullptr;
+      result = nullptr;
+      return result;
+      }
+
+   Profile( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )
+
+   texture->heap   = this;
+   texture->offset = offset;
+   return result;
+   }
+  
+  
+  
    void VulkanDevice::initMemoryManager()
    {
    // Engine Default preferences
@@ -374,6 +462,8 @@ namespace en
 
    Ptr<Heap> VulkanDevice::create(const MemoryUsage usage, const uint32 size)
    {
+   uint32 roundedSize = roundUp(size, 4096u);
+   
    // How many different Memory Types this device support for given Memory Usage,
    // this many times app will try to allocate memory iterating from best matching 
    // and available memory type to worst matching one. 
@@ -384,118 +474,20 @@ namespace en
       VkMemoryAllocateInfo allocInfo;
       allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
       allocInfo.pNext           = nullptr;
-      allocInfo.allocationSize  = size;
+      allocInfo.allocationSize  = roundedSize;
       allocInfo.memoryTypeIndex = memoryTypePerUsage[usageIndex][i];
       
       VkDeviceMemory handle;
       Profile( this, vkAllocateMemory(device, &allocInfo, nullptr, &handle) )
 	  if (lastResult[0] == VK_SUCCESS)   // FIXME!! Assumes first thread !
          {
-         return ptr_dynamic_cast<Heap, HeapVK>(Ptr<HeapVK>(new HeapVK(this, handle, memoryTypePerUsage[usageIndex][i], size)));
+         return ptr_dynamic_cast<Heap, HeapVK>(Ptr<HeapVK>(new HeapVK(this, handle, memoryTypePerUsage[usageIndex][i], roundedSize)));
          }
       }
 
    return Ptr<Heap>(nullptr);
    }
 
-   HeapVK::HeapVK(VulkanDevice* _gpu, const VkDeviceMemory _handle, const uint32 _memoryType, const uint32 size) :
-      gpu(_gpu),
-      handle(_handle),
-      memoryType(_memoryType),
-      CommonHeap(size)
-   {
-   }
-
-   HeapVK::~HeapVK()
-   {
-   ProfileNoRet( gpu, vkFreeMemory(gpu->device, handle, nullptr) )
-   }
-
-   // Create unformatted generic buffer of given type and size.
-   // This method can still be used to create Vertex or Index buffers,
-   // but it's adviced to use ones with explicit formatting.
-   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size)
-   {
-   // Create buffer descriptor
-   Ptr<Buffer> result = createBuffer(gpu, type, size);
-   if (!result)
-      return result;
-
-   // Check if created buffer can be backed by this Heap memory
-   Ptr<BufferVK> buffer = ptr_dynamic_cast<BufferVK, Buffer>(result);
-   if (!checkBit(buffer->memoryRequirements.memoryTypeBits, memoryType))
-      {
-      // Destroy texture descriptor
-      buffer = nullptr;
-      result = nullptr;
-      return result;
-      }
-
-   // Find memory region in the Heap where this buffer can be placed.
-   // If allocation succeeded, buffer is mapped to given offset.
-   uint64 offset = 0;
-   if (!allocate(buffer->memoryRequirements.size,
-                 buffer->memoryRequirements.alignment,
-                 &offset))
-      {
-      // Destroy buffer descriptor
-      buffer = nullptr;
-      result = nullptr;
-      return result;
-      }
-
-   Profile( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
-
-   return result;
-   }
-   
-   // Create unformatted generic buffer of given type and size.
-   // This is specialized method, that allows passing pointer
-   // to data, to directly initialize buffer content.
-   // It is allowed on mobile devices conforming to UMA architecture.
-   // On Discreete GPU's with NUMA architecture, only Transient buffers
-   // can be created and populated with it.
-   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size, const void* data)
-   {
-   // TODO: FINISH !!!!
-   return Ptr<Buffer>(nullptr);
-   }
- 
-   Ptr<Texture> HeapVK::create(const TextureState state)
-   {
-   // Create texture descriptor
-   Ptr<Texture> result = createTexture(gpu, state);
-   if (!result)
-      return result;
-
-   // Check if created texture can be backed by this Heap memory
-   Ptr<TextureVK> texture = ptr_dynamic_cast<TextureVK, Texture>(result);
-   if (!checkBit(texture->memoryRequirements.memoryTypeBits, memoryType))
-      {
-      // Destroy texture descriptor
-      texture = nullptr;
-      result = nullptr;
-      return result;
-      }
-  
-   // Find memory region in the Heap where this texture can be placed.
-   // If allocation succeeded, texture is mapped to given offset.
-   uint64 offset = 0;
-   if (!allocate(texture->memoryRequirements.size,
-                 texture->memoryRequirements.alignment,
-                 &offset))
-      {
-      // Destroy texture descriptor
-      texture = nullptr;
-      result = nullptr;
-      return result;
-      }
-
-   Profile( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )
-
-   return result;
-   }
-  
    }
 }
 #endif

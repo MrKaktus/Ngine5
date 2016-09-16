@@ -35,6 +35,7 @@ namespace en
       VulkanDevice*  gpu;
       VkDeviceMemory handle;
       uint32         memoryType;
+      Allocator*     allocator;    // Allocation algorithm used to place resources on the Heap
 
       HeapVK(VulkanDevice* gpu, 
              const VkDeviceMemory handle, 

@@ -479,8 +479,17 @@ namespace en
       //virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0) = 0;  // Surface is: CubeMap face, 3D depth, Array layer or CubeMapArray face-layer
       //virtual bool     unmap(void) = 0;
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
-      virtual Ptr<TextureView> view(void) const = 0;   // Default view representing this texture
-
+      virtual Ptr<TextureView> view(void) const = 0;                  // Default view representing this texture
+      
+      // "layer" parameter can pass specific information, for specific texture types:
+      // - for 3D it represents "depth" slice
+      // - for CubeMap it represents "face" surface
+      // - for CubeMapArray it represents "layer-face" surface
+      virtual Ptr<TextureView> view(const TextureType type,           // Creates new texture view with given
+                                    const Format format,              // type, format, base mipmap and mipmaps count
+                                    const uint32v2 mipmaps,           // as well as base layer and layers count
+                                    const uint32v2 layers) const = 0;
+      
       virtual ~Texture() {};                           // Polymorphic deletes require a virtual base destructor
       };
 
@@ -488,6 +497,8 @@ namespace en
       {
       public:
       virtual Ptr<Texture> parent(void) const = 0;
+      virtual TextureType  type(void) const = 0;
+      virtual Format       format(void) const = 0;
       virtual uint32v2 parentMipmaps(void) const = 0;    // Sub-set of parent texture mipmaps, creating this view
       virtual uint32v2 parentLayers(void) const = 0;     // Sub-set of parent texture layers, creating this view
       

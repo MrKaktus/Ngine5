@@ -32,9 +32,7 @@ namespace en
       public:
       MTLRenderPassColorAttachmentDescriptor* desc;
 
-      ColorAttachmentMTL(const Ptr<Texture> texture,
-                         const uint32 mipmap = 0u,
-                         const uint32 layer = 0u);
+      ColorAttachmentMTL(const Ptr<TextureView> source);
 
       virtual void onLoad(const LoadOperation load, 
                           const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -44,9 +42,7 @@ namespace en
                           const sint32v4 clearColor = sint32v4(0, 0, 0, 1));
         
       virtual void onStore(const StoreOperation store);
-      virtual bool resolve(const Ptr<Texture> texture, 
-                           const uint32 mipmap = 0u,
-                           const uint32 layer = 0u);
+      virtual bool resolve(const Ptr<TextureView> destination);
          
       virtual ~ColorAttachmentMTL();
       };
@@ -57,31 +53,25 @@ namespace en
       MTLRenderPassDepthAttachmentDescriptor*   descDepth;
       MTLRenderPassStencilAttachmentDescriptor* descStencil;
 
-      DepthStencilAttachmentMTL(const Ptr<Texture> depth,
-                                const Ptr<Texture> stencil = nullptr,
-                                const uint32 mipmap = 0u,
-                                const uint32 layer = 0u);
+      DepthStencilAttachmentMTL(const Ptr<TextureView> depth,
+                                const Ptr<TextureView> stencil = nullptr);
 
       virtual void onLoad(const LoadOperation loadDepthStencil,
-                          const float  clearDepth = 0.0f,
+                          const float  clearDepth = 1.0f,
                           const uint32 clearStencil = 0u);
          
       virtual void onStore(const StoreOperation storeDepthStencil);
       
-      virtual bool resolve(const Ptr<Texture> depth,
-                           const uint32 mipmap = 0u,
-                           const uint32 layer = 0u);
+      // Specify Depth resolve method and destination, if it's supported by the GPU.
+      virtual bool resolve(const Ptr<TextureView> destination,
+                           const DepthResolve mode = DepthResolve::Sample0);
          
-      // If GPU supports separate Depth and Stencil atachments,
-      // custom load and store actions; and MSAA resolve destination
-      // can be specifid for Stencil.
+      // Custom load and store actions can be specifid for Stencil.
+      // (no matter if it's shared DepthStencil attachment, or
+      //  if GPU support separate Depth and Stencil attachments).
       virtual void onStencilLoad(const LoadOperation loadStencil);
 
       virtual void onStencilStore(const StoreOperation storeStencil);
-      
-      virtual bool resolveStencil(const Ptr<Texture> stencil,
-                                  const uint32 mipmap = 0u,
-                                  const uint32 layer = 0u);
          
       virtual ~DepthStencilAttachmentMTL();
       };
