@@ -34,7 +34,7 @@ namespace en
       SurfaceDescriptorGL();
       };
 
-   class TextureGL : public TextureCommon
+   class TextureGL : public CommonTexture
       {
       public:
       SurfaceDescriptorGL desc;  // Mapped surface description

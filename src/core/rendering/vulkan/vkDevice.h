@@ -330,7 +330,14 @@ namespace en
                                      const Ptr<Texture> framebuffer,
                                      const Ptr<DepthStencilAttachment> depthStencil);
 
-
+      // Internal universal method to create Render Pass
+      Ptr<RenderPass> create(const uint32 attachments,
+                             const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+                             const Ptr<DepthStencilAttachment> depthStencil,
+                             const uint32v2 explicitResolution,
+                             const uint32v2 explicitLayers)
+         
+         
 
       virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc);
 

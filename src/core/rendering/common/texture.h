@@ -26,14 +26,14 @@ namespace en
    {
    class CommonTextureView;
    
-   class TextureCommon : public Texture
+   class CommonTexture : public Texture
       {
       public:
       TextureState      state;
       Weak<CommonTextureView> textureView;
       
-      TextureCommon();
-      TextureCommon(const TextureState& state);
+      CommonTexture();
+      CommonTexture(const TextureState& state);
 
       virtual TextureType type(void) const;
       virtual Format   format(void) const;
@@ -48,7 +48,7 @@ namespace en
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
       virtual Ptr<TextureView> view(void) const;
       
-      virtual ~TextureCommon() {};                           // Polymorphic deletes require a virtual base destructor
+      virtual ~CommonTexture() {};                           // Polymorphic deletes require a virtual base destructor
       };
 
    class CommonTextureView : public TextureView

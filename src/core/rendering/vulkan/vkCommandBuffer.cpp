@@ -104,7 +104,7 @@ namespace en
    beginInfo.pNext           = nullptr;
    beginInfo.renderPass      = pass->passHandle;
    beginInfo.framebuffer     = pass->framebufferHandle;
-   beginInfo.renderArea      = { width, height };   // TODO: Source width & height
+   beginInfo.renderArea      = { pass->resolution.width, pass->resolution.height };
    beginInfo.clearValueCount = pass->attachments;
    beginInfo.pClearValues    = pass->clearValues;
 

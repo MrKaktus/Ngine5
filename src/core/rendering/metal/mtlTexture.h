@@ -29,7 +29,7 @@ namespace en
 {
    namespace gpu
    {
-   class TextureMTL : public TextureCommon
+   class TextureMTL : public CommonTexture
       {
       public:
       id<MTLTexture> handle;  // Metal texture ID

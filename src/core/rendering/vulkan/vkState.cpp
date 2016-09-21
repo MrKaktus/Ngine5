@@ -2051,13 +2051,13 @@
 //    //                      const uint8 mipmap = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
 //      };
 //
-//   class TextureCommon : public Texture
+//   class CommonTexture : public Texture
 //      {
 //      private:
 //      TextureState state;
 //
 //      public:
-//      TextureCommon(const TextureState& state);
+//      CommonTexture(const TextureState& state);
 //      virtual TextureType type(void) const;
 //      virtual TextureFormat format(void) const;
 //      virtual uint32   mipmaps(void) const;
@@ -2111,65 +2111,12 @@
 //
 //   return mipmaps;
 //   }
-//
-//   TextureCommon::TextureCommon(const TextureState& _state) :
-//      state(_state)
-//   {
-//   }
-//   
-//   TextureType TextureCommon::type(void) const
-//   {
-//   return state.type;
-//   }
-//   
-//   TextureFormat TextureCommon::format(void) const
-//   {
-//   return state.format;
-//   }
-//
-//   uint32 TextureCommon::mipmaps(void) const
-//   {
-//   return state.mipmaps;
-//   }
-//   
-//   uint32 TextureCommon::width(const uint8 mipmap) const
-//   {
-//   return state.width >> mipmap;
-//   }
-//   
-//   uint32 TextureCommon::height(const uint8 mipmap) const
-//   {
-//   return state.height >> mipmap;
-//   }
-//   
-//   uint32 TextureCommon::depth(const uint8 mipmap) const
-//   {
-//   return state.depth >> mipmap;
-//   }
-//   
-//   uint32v3 TextureCommon::resolution(const uint8 mipmap) const
-//   {
-//   return uint32v3( state.width >> mipmap, state.height >> mipmap, state.depth >> mipmap );
-//   }
-//   
-//   uint16 TextureCommon::layers(void) const
-//   {
-//   return state.layers;
-//   }
-//   
-//   uint16 TextureCommon::samples(void) const
-//   {
-//   return state.samples;
-//   }
-//
-//
-//
-//
+
 //// Texture   -   Metal
 ////---------------------------------------------------------------------
 //
 //
-//   class mtlTexture : public TextureCommon
+//   class mtlTexture : public CommonTexture
 //      {
 //      id <MTLTexture> handle;
 //
@@ -2319,12 +2266,6 @@
 //      MTLPixelFormatASTC_12x10_sRGB, // FormatASTC_12x10_sRGB 
 //      MTLPixelFormatASTC_12x12_sRGB, // FormatASTC_12x12_sRGB
 //      };
-//
-//   mtlTexture::mtlTexture(const id<MTLTexture> _handle, const TextureState& _state) :
-//      handle(_handle),
-//      TextureCommon(_state)
-//   {
-//   }
 //
 //   Ptr<Texture> Create(const TextureState& state)
 //   {
@@ -2633,35 +2574,7 @@
 //
 //
 //
-//
-//
-//
-//
-//   class ColorAttachment : public SafeObject
-//      {
-//      // On tiled renderers we can specify additional actions
-//      // that should be performed when render target is rebind. 
-//      virtual onLoad(const LoadOperation load, 
-//                     const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 0.0f)) = 0;
-//      virtual onStore(const StoreOperation store) = 0;
-//      // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
-//      // similarly when binding CubeMap texture, pass it's "face" through "layer".
-//      virtual resolve(const Ptr<Texture> texture, 
-//                      const uint32 mipmap = 0,
-//                      const uint32 layer = 0) = 0;
-//      };
-//
-//   class DepthStencilAttachment : public SafeObject
-//      {
-//      };
-//
-//   // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
-//   // similarly when binding CubeMap texture, pass it's "face" through "layer".
-//   Ptr<ColorAttachment> Create(const Ptr<Texture> texture, 
-//                               const TextureFormat format,
-//                               const uint32 mipmap = 0,
-//                               const uint32 layer = 0,
-//                               const uint32 layers = 1);
+
 //
 //   // METAL COLOR ATTACHMENT
 //   //--------------------------------------------------------------------------

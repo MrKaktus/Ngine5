@@ -261,11 +261,13 @@ namespace en
    RenderPassVK::RenderPassVK(VulkanDevice* _gpu, const VkRenderPass _passHandle, const uint32 _attachments) :
       gpu(_gpu),
       passHandle(_passHandle),
+      resolution(),
       attachments(_attachments),
-      clearValues(new VkClearValue[attachments])
+      clearValues(_attachments ? new VkClearValue[attachments] : nullptr)
    {
    // Init clear values array
-   memset(clearValues, 0, sizeof(float) * 4 * attachments);
+   if (attachments)
+      memset(clearValues, 0, sizeof(float) * 4 * attachments);
    }
 
    RenderPassVK::~RenderPassVK()
@@ -399,6 +401,8 @@ namespace en
    return create(1, color, depthStencil);
    }
    
+   // TODO: Connect this to external interface!
+   
    // Internal universal method to create Render Pass
    Ptr<RenderPass> VulkanDevice::create(const uint32 attachments,
                                         const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
@@ -406,13 +410,15 @@ namespace en
                                         const uint32v2 explicitResolution,
                                         const uint32v2 explicitLayers)
    {
-   Ptr<RenderPass> result = nullptr;
+   Ptr<RenderPassKV> result = nullptr;
    
    assert( attachments < support.maxColorAttachments );
 
    // Vulkan allows pass without any color and depth attachments.
    // In such case, rasterization is still performed in width x height x layers x sampler space,
    // but it is expected that results will be outputted as a result of side effects operation.
+   //
+   // Metal is not supporting that !
    //
    // TODO: Make this method universal and internal. Provide common width/height/layers paarameters.
    //       There should be separate method for creating such RenderPass that accepts only those parameters.
@@ -541,7 +547,7 @@ namespace en
    VkRenderPass renderpass;
    Profile( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = ptr_dynamic_cast<RenderPass, RenderPassVK>(new RenderPassVK(this, renderpass, attachments));
+      result = new RenderPassVK(this, renderpass, surfaces);
 
    delete [] attColor;
    delete [] attResolve;
@@ -551,7 +557,7 @@ namespace en
    if (!result)
       {
       delete [] handles;
-      return result;
+      return Ptr<RenderPass>(nullptr);
       }
 
    // TODO: This function should only validate that all surfaces have the same
@@ -604,13 +610,40 @@ namespace en
    VkFramebuffer framebuffer;
    Profile( vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      ptr_dynamic_cast<RenderPassVK, RenderPass>(result)->framebufferHandle = framebuffer;
+      result->framebufferHandle = framebuffer;
       
-   // TODO: Do clear values !!!!!!!!!
+   // Those values will be used at beginning of RenderPass
+   index = 0;
+   for(uint32 i=0; i<attachments; ++i)
+      {
+      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
+      result->clearValues[index] = ptr->clearValue;
+      index++;
+      }
+      
+   // Were not specifying clear values for MSAA resolve destinations (but need keep entries)
+   if (resolve)
+      index += attachments;
+
+   if (depthStencil)
+      {
+      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+      result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
+      result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
+      }
+      
+   // Resolution we render in on RenderPass start
+   result->resolution = resolution;
    
    delete [] handles;
-   return result;
+   return ptr_dynamic_cast<RenderPass, RenderPassVK>(result);
    }
+   
+   
+   
+   
+   
+   
    
    // Creates render pass which's output goes to window framebuffer
    Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> framebuffer,
@@ -653,25 +686,14 @@ namespace en
 
 
 
-   // Clear Values Setup:
-   
-    // VkClearColorValue           color;
-    // VkClearDepthStencilValue    depthStencil;
-
-//typedef union VkClearColorValue {
-//float float32[4];
-//int32_t int32[4];
-//uint32_t uint32[4];
-//} VkClearColorValue;
-//
-//typedef struct VkClearDepthStencilValue {
-//    float       depth;
-//    uint32_t    stencil;
-//} VkClearDepthStencilValue;
-//
-
-
-
+   // Internal universal method to create Render Pass
+   Ptr<RenderPass> create(const uint32 attachments,
+                          const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+                          const Ptr<DepthStencilAttachment> depthStencil,
+                          const uint32v2 explicitResolution,
+                          const uint32v2 explicitLayers)
+      
+      
  //  Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,
  //                                       const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
  //                                       const Ptr<DepthStencilAttachment> depthStencil)
@@ -797,37 +819,9 @@ namespace en
 
 
 
-   //FramebufferVK::FramebufferVK() :
-   //   gpu(nullptr)
-   //{
-   //}
-
-   //FramebufferVK::~FramebufferVK()
-   //{
-   //
-   //}
-
-
    //Ptr<ColorAttachment> VulkanDevice::create(const Format format, const uint32 samples)
    //{
    //return ptr_dynamic_cast<ColorAttachment, ColorAttachmentVK>(new ColorAttachmentVK(format, samples));
-   //}
-
-   //   // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
-   //   // similarly when binding CubeMap texture, pass it's "face" through "layer".
-   //Ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Ptr<Texture> texture,
-   //                                       const uint32 mipmap = 0,
-   //                                       const uint32 layer = 0,
-   //                                       const uint32 layers = 1)
-   //{
-   //}
-
-   //Ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(const Ptr<Texture> depth,
-   //                                              const Ptr<Texture> stencil,
-   //                                              const uint32 mipmap = 0,
-   //                                              const uint32 layer = 0,
-   //                                              const uint32 layers = 1)
-   //{
    //}
 
    //   // Creates simple render pass with one color destination
@@ -891,89 +885,7 @@ namespace en
 
 
 
-   // Framebuffer
 
-
-//   class vkDepthStencilAttachment : public DepthStencilAttachment
-//      { 
-//      public:
-//      VkDepthStencilView id;
-//      };
-//
-//   class vkFramebuffer : public Framebuffer
-//      {
-//      public:
-//      vkFramebuffer id;
-//      uint32        colorAttachments;
-//      };
-//
-//   class vkCommandBuffer : public CommandBuffer
-//      {
-//      public:
-//      VkCmdBuffer id;
-//
-//      void bind(const Ptr<RasterState> raster);
-//      void bind(const Ptr<ViewportScissorState> viewportScissor);
-//      void bind(const Ptr<DepthStencilState> depthStencil);
-//      void bind(const Ptr<BlendState> blend);
-//      };
-//
-//    // VULKAN DEPTH ATTACHMENT
-//   //--------------------------------------------------------------------------
-//
-//   Ptr<DepthStencilAttachment> Create(const Ptr<Texture> depthStencil, 
-//                                      const Ptr<Texture> resolveMsaa, 
-//                                      const uint32 depthStencilMipMap,
-//                                      const uint32 msaaMipMap,
-//                                      const uint32 depthStencilLayer,
-//                                      const uint32 msaaLayer,
-//                                      const uint32 layers)
-//   {
-//   Ptr<DepthStencilAttachment> result = nullptr;
-//
-//   Ptr<vkTexture> vkDepthStencil = ptr_dynamic_cast<vkTexture, Texture>(depthStencil);
-//   Ptr<vkTexture> vkMsaa         = ptr_dynamic_cast<vkTexture, Texture>(resolveMsaa);
-//
-//   // Determine depth-stencil attachment type
-//   VkImageAspect aspect = VK_IMAGE_ASPECT_DEPTH | VK_IMAGE_ASPECT_STENCIL;
-//   if ( (depthStencil->state.format == FormatD_16) ||
-//        (depthStencil->state.format == FormatD_24) ||
-//        (depthStencil->state.format == FormatD_32) ||
-//        (depthStencil->state.format == FormatD_32_f) )
-//      aspect = VK_IMAGE_ASPECT_DEPTH;
-//
-//   VkImageSubresourceRange resourceRange;
-//   resourceRange.aspect                    = aspect;
-//   resourceRange.baseMipLevel              = msaaMipMap;
-//   resourceRange.mipLevels                 = 1;
-//   resourceRange.baseArraySlice            = msaaLayer;
-//   resourceRange.arraySize                 = layers;
-//
-//   VkDepthStencilViewCreateInfo depthStencilInfo;
-//   depthStencilInfo.sType                  = VK_STRUCTURE_TYPE_DEPTH_STENCIL_VIEW_CREATE_INFO;
-//   depthStencilInfo.pNext                  = nullptr;
-//   depthStencilInfo.image                  = vkDepthStencil->id;
-//   depthStencilInfo.mipLevel               = depthStencilMipMap;
-//   depthStencilInfo.baseArraySlice         = depthStencilLayer;
-//   depthStencilInfo.arraySize              = layers;
-//   depthStencilInfo.msaaResolveImage       = vkMsaa->id;
-//   depthStencilInfo.msaaResolveSubResource = resourceRange;
-//   depthStencilInfo.flags                  = 0;
-//                                          // VK_DEPTH_STENCIL_VIEW_CREATE_FLAGS:
-//                                          // VK_DEPTH_STENCIL_VIEW_CREATE_READ_ONLY_DEPTH_BIT
-//                                          // VK_DEPTH_STENCIL_VIEW_CREATE_READ_ONLY_STENCIL_BIT  
-//
-//   VkDepthStencilView depthStencilView;
-//   VkResult res = vkCreateDepthStencilView( gpu[i].handle, &depthStencilInfo, &depthStencilView );
-//   if (!res)
-//      {
-//      Ptr<vkDepthStencilAttachment> vkAttachment = new vkDepthStencilAttachment();
-//      vkAttachment->id = depthStencilView;
-//      result = ptr_dynamic_cast<DepthStencilAttachment, vkDepthStencilAttachment>(vkAttachment);
-//      }
-//
-//   return result;
-//   }
 //
 //   // VULKAN FRAMEBUFFER
 //   //-------------------------------------------------------------
@@ -1162,26 +1074,6 @@ namespace en
 //
 //   return result;
 //   }
-//
-//   Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> framebuffer,
-//                                        const Ptr<DepthStencilAttachment> depthStencil)
-//   {
-//   // TODO: !!!
-//   }
-//
-//   Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> temporaryMSAA,
-//                                        const Ptr<Texture> framebuffer,
-//                                        const Ptr<DepthStencilAttachment> depthStencil)
-//   {
-//   // TODO: !!!
-//   }
-//
-//
-//
-//// typedef void (VKAPI_PTR *PFN_vkCmdBeginRenderPass)(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents);
-//// typedef void (VKAPI_PTR *PFN_vkCmdNextSubpass)(VkCommandBuffer commandBuffer, VkSubpassContents contents);
-//// typedef void (VKAPI_PTR *PFN_vkCmdEndRenderPass)(VkCommandBuffer commandBuffer);
-//
 //
 //   Ptr<Framebuffer> RenderPassVK::create(const uint32v2 resolution, // Common attachments resolution
 //                                         const uint32   layers)     // Common attachments layers count

@@ -652,12 +652,12 @@ namespace en
    }
 
    TextureGL::TextureGL() :
-      TextureCommon()
+      CommonTexture()
    {
    }
 
    TextureGL::TextureGL(const TextureState& _state) :
-      TextureCommon(_state)
+      CommonTexture(_state)
    {
    // Calculate amount of mipmaps texture will have
    state.mipmaps = TextureMipMapCount(state);
@@ -884,7 +884,7 @@ namespace en
 
    TextureGL::TextureGL(const TextureState& _state, const uint32 _id) :
       id(_id),
-      TextureCommon(_state)
+      CommonTexture(_state)
    {
    }
 

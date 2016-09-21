@@ -21,7 +21,7 @@ namespace en
    class VulkanDevice;
    class Heap;
 
-   class TextureVK : public TextureCommon
+   class TextureVK : public CommonTexture
       {
       public:
       VulkanDevice* gpu;

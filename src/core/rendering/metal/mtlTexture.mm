@@ -409,7 +409,7 @@ namespace en
       lock(),
       mipmap(0),
       layer(0),
-      TextureCommon(_state)
+      CommonTexture(_state)
    {
    // Mipmaps count is calculated by the application
    assert( state.mipmaps > 0 );
@@ -473,8 +473,8 @@ namespace en
                                          slices:NSMakeRange(_layers.base, _layers.count)];
    if (view)
       {
-      Ptr<TextureViewMTL> ptr = new TextureViewMTL(Ptr<TextureMTL>(self),
-                                                 view, type, format, mipmaps, layers);
+      Ptr<TextureViewMTL> ptr = new TextureViewMTL(Ptr<TextureMTL>((TextureMTL*)this),
+                                                 view, _type, _format, _mipmaps, _layers);
       result = ptr_dynamic_cast<TextureView, TextureViewMTL>(ptr);
       }
       

@@ -69,6 +69,7 @@ namespace en
       VulkanDevice* gpu;
       VkRenderPass  passHandle;
       VkFramebuffer framebufferHandle;
+      uint32v2      resolution;
       uint32        attachments;
       VkClearValue* clearValues;   // Array of clear values per attachment
       

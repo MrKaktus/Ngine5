@@ -437,31 +437,31 @@ namespace en
    return mipmaps;
    }
 
-   TextureCommon::TextureCommon()
+   CommonTexture::CommonTexture()
    {
    }
 
-   TextureCommon::TextureCommon(const TextureState& _state) :
+   CommonTexture::CommonTexture(const TextureState& _state) :
       state(_state)
    {
    }
 
-   TextureType TextureCommon::type(void) const
+   TextureType CommonTexture::type(void) const
    {
    return state.type;
    }
    
-   Format TextureCommon::format(void) const
+   Format CommonTexture::format(void) const
    {
    return state.format;
    }
 
-   uint32 TextureCommon::mipmaps(void) const
+   uint32 CommonTexture::mipmaps(void) const
    {
    return state.mipmaps;
    }
    
-   uint32 TextureCommon::size(const uint8 mipmap) const
+   uint32 CommonTexture::size(const uint8 mipmap) const
    {
    if (mipmap > state.mipmaps)
       return 0;
@@ -478,25 +478,25 @@ namespace en
    return mipWidth * mipHeight * block.size;
    }
 
-   uint32 TextureCommon::width(const uint8 mipmap) const
+   uint32 CommonTexture::width(const uint8 mipmap) const
    {
    // If mipmap exceeds total mipmaps count, result will be 0
    return state.width >> mipmap;
    }
    
-   uint32 TextureCommon::height(const uint8 mipmap) const
+   uint32 CommonTexture::height(const uint8 mipmap) const
    {
    // If mipmap exceeds total mipmaps count, result will be 0
    return state.height >> mipmap;
    }
    
-   uint32 TextureCommon::depth(const uint8 mipmap) const
+   uint32 CommonTexture::depth(const uint8 mipmap) const
    {
    // If mipmap exceeds total mipmaps count, result will be 0
    return state.depth >> mipmap;
    }
    
-   uint32v3 TextureCommon::resolution(const uint8 mipmap) const
+   uint32v3 CommonTexture::resolution(const uint8 mipmap) const
    {
    uint32 width  = state.width >> mipmap;
    uint32 height = state.height >> mipmap;
@@ -514,23 +514,23 @@ namespace en
    return uint32v3(width, height, depth);
    }
    
-   uint16 TextureCommon::layers(void) const
+   uint16 CommonTexture::layers(void) const
    {
    return state.layers;
    }
    
-   uint16 TextureCommon::samples(void) const
+   uint16 CommonTexture::samples(void) const
    {
    return state.samples;
    }
 
-   bool TextureCommon::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
+   bool CommonTexture::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
    {
    assert( 0 );
    return false;
    }
    
-   Ptr<TextureView> TextureCommon::view() const
+   Ptr<TextureView> CommonTexture::view() const
    {
    return ptr_dynamic_cast<TextureView, CommonTextureView>(Ptr<CommonTextureView>(textureView));
    }

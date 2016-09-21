@@ -67,7 +67,12 @@ namespace en
    {
    
    }
-      
+
+
+   // RENDER PASS
+   //////////////////////////////////////////////////////////////////////////
+   
+ 
    bool CommandBufferMTL::startRenderPass(const Ptr<RenderPass> pass)
    {
    if (renderEncoder != nil)
@@ -79,89 +84,19 @@ namespace en
    return true;
    }
    
-   void CommandBufferMTL::setVertexBuffer(Ptr<Buffer> buffer, uint32 slot)
+   bool CommandBufferMTL::endRenderPass(void)
    {
-   assert( buffer );
-   Ptr<BufferMTL> ptr = ptr_dynamic_cast<BufferMTL, Buffer>(buffer);
-   [renderEncoder setVertexBuffer:ptr->handle offset:0 atIndex:(NSUInteger)slot];
-   
-// - (void)setVertexBuffer:(nullable id <MTLBuffer>)buffer offset:(NSUInteger)offset atIndex:(NSUInteger)index;
-// - (void)setVertexBufferOffset:(NSUInteger)offset atIndex:(NSUInteger)index NS_AVAILABLE(10_11, 8_3);
-// - (void)setVertexBuffers:(const id <MTLBuffer> __nullable [__nullable])buffers offsets:(const NSUInteger [__nullable])offsets withRange:(NSRange)range;
-   }
-   
-/* Init Resoure */
-
-   // Populate Private buffer before use (first time only)
-   bool CommandBufferMTL::populate(Ptr<Buffer> transfer, Ptr<Buffer> buffer)
-   {
-   assert( transfer );
-   assert( transfer->type() == BufferType::Transfer );
-   assert( buffer );
-
-   Ptr<BufferMTL> source      = ptr_dynamic_cast<BufferMTL, Buffer>(transfer);
-   Ptr<BufferMTL> destination = ptr_dynamic_cast<BufferMTL, Buffer>(buffer);
-
-   assert( source->size >= destination->size );
-
-   @autoreleasepool
-   {
-      // Blit to Private buffer
-      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
-      [blit copyFromBuffer:source->handle
-              sourceOffset:0
-                  toBuffer:destination->handle
-         destinationOffset:0
-                      size:destination->size];
-
-      [blit endEncoding];
-      blit = nil;
-   } // autoreleasepool
-   
+   if (renderEncoder == nil)
+      return false;
+   [renderEncoder endEncoding];
+   [renderEncoder release];
+   renderEncoder = nullptr;
    return true;
    }
-
-   // Populate Private texture before use (first time only)
-   bool CommandBufferMTL::populate(Ptr<Buffer> transfer, Ptr<Texture> texture, uint32 mipmap, uint32 layer)
-   {
-   assert( transfer );
-   assert( transfer->type() == BufferType::Transfer );
-   assert( texture );
-   assert( texture->mipmaps() > mipmap );
-   assert( texture->layers() > layer );
    
-   Ptr<BufferMTL>  source      = ptr_dynamic_cast<BufferMTL, Buffer>(transfer);
-   Ptr<TextureMTL> destination = ptr_dynamic_cast<TextureMTL, Texture>(texture);
-
-   assert( source->size >= destination->size(mipmap) );
-
-   @autoreleasepool
-   {
-      // Blit to Private buffer
-      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
-      [blit copyFromBuffer:source->handle
-              sourceOffset:0
-         sourceBytesPerRow:destination->width(mipmap)
-       sourceBytesPerImage:destination->size(mipmap)
-                sourceSize:MTLSizeMake(destination->width(mipmap), destination->height(mipmap), 1)
-                 toTexture:destination->handle
-          destinationSlice:layer
-          destinationLevel:mipmap
-         destinationOrigin:MTLOriginMake(0, 0, 0)
-                   options:MTLBlitOptionNone ];
-      
-      [blit endEncoding];
-      blit = nil;
-   } // autoreleasepool
    
-   return true;
-   }
-
-/* Blitting */
-
-   // TODO
-
-/* Drawing */
+   // DRAW COMMANDS
+   //////////////////////////////////////////////////////////////////////////
 
 
    // Types of primitives to draw
@@ -280,15 +215,109 @@ namespace en
       }
    }
 
-   bool CommandBufferMTL::endRenderPass(void)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+   
+   void CommandBufferMTL::setVertexBuffer(Ptr<Buffer> buffer, uint32 slot)
    {
-   if (renderEncoder == nil)
-      return false;
-   [renderEncoder endEncoding];
-   [renderEncoder release];
-   renderEncoder = nullptr;
+   assert( buffer );
+   Ptr<BufferMTL> ptr = ptr_dynamic_cast<BufferMTL, Buffer>(buffer);
+   [renderEncoder setVertexBuffer:ptr->handle offset:0 atIndex:(NSUInteger)slot];
+   
+// - (void)setVertexBuffer:(nullable id <MTLBuffer>)buffer offset:(NSUInteger)offset atIndex:(NSUInteger)index;
+// - (void)setVertexBufferOffset:(NSUInteger)offset atIndex:(NSUInteger)index NS_AVAILABLE(10_11, 8_3);
+// - (void)setVertexBuffers:(const id <MTLBuffer> __nullable [__nullable])buffers offsets:(const NSUInteger [__nullable])offsets withRange:(NSRange)range;
+   }
+   
+/* Init Resoure */
+
+   // Populate Private buffer before use (first time only)
+   bool CommandBufferMTL::populate(Ptr<Buffer> transfer, Ptr<Buffer> buffer)
+   {
+   assert( transfer );
+   assert( transfer->type() == BufferType::Transfer );
+   assert( buffer );
+
+   Ptr<BufferMTL> source      = ptr_dynamic_cast<BufferMTL, Buffer>(transfer);
+   Ptr<BufferMTL> destination = ptr_dynamic_cast<BufferMTL, Buffer>(buffer);
+
+   assert( source->size >= destination->size );
+
+   @autoreleasepool
+   {
+      // Blit to Private buffer
+      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
+      [blit copyFromBuffer:source->handle
+              sourceOffset:0
+                  toBuffer:destination->handle
+         destinationOffset:0
+                      size:destination->size];
+
+      [blit endEncoding];
+      blit = nil;
+   } // autoreleasepool
+   
    return true;
    }
+
+   // Populate Private texture before use (first time only)
+   bool CommandBufferMTL::populate(Ptr<Buffer> transfer, Ptr<Texture> texture, uint32 mipmap, uint32 layer)
+   {
+   assert( transfer );
+   assert( transfer->type() == BufferType::Transfer );
+   assert( texture );
+   assert( texture->mipmaps() > mipmap );
+   assert( texture->layers() > layer );
+   
+   Ptr<BufferMTL>  source      = ptr_dynamic_cast<BufferMTL, Buffer>(transfer);
+   Ptr<TextureMTL> destination = ptr_dynamic_cast<TextureMTL, Texture>(texture);
+
+   assert( source->size >= destination->size(mipmap) );
+
+   @autoreleasepool
+   {
+      // Blit to Private buffer
+      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
+      [blit copyFromBuffer:source->handle
+              sourceOffset:0
+         sourceBytesPerRow:destination->width(mipmap)
+       sourceBytesPerImage:destination->size(mipmap)
+                sourceSize:MTLSizeMake(destination->width(mipmap), destination->height(mipmap), 1)
+                 toTexture:destination->handle
+          destinationSlice:layer
+          destinationLevel:mipmap
+         destinationOrigin:MTLOriginMake(0, 0, 0)
+                   options:MTLBlitOptionNone ];
+      
+      [blit endEncoding];
+      blit = nil;
+   } // autoreleasepool
+   
+   return true;
+   }
+
+/* Blitting */
+
+   // TODO
+
+
    
    void CommandBufferMTL::commit(void)
    {

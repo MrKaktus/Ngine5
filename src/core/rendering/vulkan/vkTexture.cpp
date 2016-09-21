@@ -609,7 +609,7 @@ namespace en
       gpu(_gpu),
       heap(nullptr),
       offset(0u),
-      TextureCommon(state)
+      CommonTexture(state)
    {
    }
 
