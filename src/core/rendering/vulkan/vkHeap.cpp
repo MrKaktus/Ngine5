@@ -318,7 +318,7 @@ namespace en
    uint64 offset = 0u;
    if (!allocator->allocate(buffer->memoryRequirements.size,
                             buffer->memoryRequirements.alignment,
-                            &offset))
+                            offset))
       {
       // Destroy buffer descriptor
       buffer = nullptr;
@@ -367,7 +367,7 @@ namespace en
    uint64 offset = 0;
    if (!allocator->allocate(texture->memoryRequirements.size,
                             texture->memoryRequirements.alignment,
-                            &offset))
+                            offset))
       {
       // Destroy texture descriptor
       texture = nullptr;

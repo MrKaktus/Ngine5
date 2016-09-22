@@ -46,7 +46,7 @@ namespace en
    class CommonWindow : public Window
       {
       public:
-      const Ptr<CommonDisplay> _display;
+      Ptr<CommonDisplay> _display;
       uint32v2 _position;
       uint32v2 _size;
       uint32v2 _resolution;

@@ -407,7 +407,7 @@ namespace en
    //---------------------------------------
    
    VkFormat        swapChainFormat     = TranslateTextureFormat[underlyingType(settings.format)];
-   VkColorSpaceKHR swapChainColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+   VkColorSpaceKHR swapChainColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
       
    // Query count of available Pixel Formats supported by this device, and matching destination Window
    uint32 formats = 0;
@@ -1659,7 +1659,7 @@ namespace en
       if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
          displaysCount++;
 
-   display = new Ptr<winDisplay>[displaysCount];
+   display = new Ptr<CommonDisplay>[displaysCount];
    virtualDisplay = new winDisplay();
   
    // Clear structure for next display (to ensure there is no old data)

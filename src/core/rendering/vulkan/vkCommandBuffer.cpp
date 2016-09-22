@@ -20,15 +20,17 @@
 #include "core/log/log.h"
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/rendering/vulkan/vkBuffer.h"
+#include "core/rendering/vulkan/vkRenderPass.h"
 
 namespace en
 {
    namespace gpu
    {
 
-   CommandBufferVK::CommandBufferVK(const VulkanDevice* _gpu, VkQueue _queue, VkCommandBuffer _handle, VkFence _fence) :
+   CommandBufferVK::CommandBufferVK(VulkanDevice* _gpu, const VkQueue _queue, const QueueType type, const VkCommandBuffer _handle, const VkFence _fence) :
       gpu(_gpu),
       queue(_queue),
+      queueType(type),
       handle(_handle),
       fence(_fence),
       started(false),
@@ -40,6 +42,29 @@ namespace en
    
    CommandBufferVK::~CommandBufferVK()
    {
+   // Finish encoded tasks
+   if (!commited)
+      commit();
+      
+   // Don't wait for completion
+   
+   // Add yourself's fence and CB handle to Garbage Collector
+   
+   //gpu->add
+   
+   
+   // TODO: Release buffer
+   
+   // We need to wait until Command Buffer is finished, before we can release the Fence.
+   // Therefore this Command Buffer need to be added to Device's Garbage Collector,
+   // which will remove it automatically, when completion is signaled through Fence.
+
+   // Release fence
+   ProfileNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
+   
+   // Release Command Buffer
+   uint32 thread = Scheduler.core();
+   ProfileNoRet( gpu, vkFreeCommandBuffers(gpu->device, gpu->commandPool[thread][underlyingType(queueType)], 1, &handle) )
    }
 
 
@@ -98,15 +123,17 @@ namespace en
       started = true;
       }
       
+   Ptr<RenderPassVK> renderPass = ptr_dynamic_cast<RenderPassVK, RenderPass>(pass);
+
    // Begin encoding commands for this Render Pass
    VkRenderPassBeginInfo beginInfo;
    beginInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
    beginInfo.pNext           = nullptr;
-   beginInfo.renderPass      = pass->passHandle;
-   beginInfo.framebuffer     = pass->framebufferHandle;
-   beginInfo.renderArea      = { pass->resolution.width, pass->resolution.height };
-   beginInfo.clearValueCount = pass->attachments;
-   beginInfo.pClearValues    = pass->clearValues;
+   beginInfo.renderPass      = renderPass->passHandle;
+   beginInfo.framebuffer     = renderPass->framebufferHandle;
+   beginInfo.renderArea      = { 0, 0, renderPass->resolution.width, renderPass->resolution.height };
+   beginInfo.clearValueCount = renderPass->attachments;
+   beginInfo.pClearValues    = renderPass->clearValues;
 
    ProfileNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )
    
@@ -217,7 +244,7 @@ namespace en
       // IndirectIndexedDrawArgument can be directly cast to VkDrawIndexedIndirectCommand.
 
       // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-      ProfileNoRet( gpu, vkCmdDrawIndexedIndirect(handle
+      ProfileNoRet( gpu, vkCmdDrawIndexedIndirect(handle,
                                                   indirect->handle,
                                                   (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
                                                   (indirect->size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
@@ -249,7 +276,7 @@ namespace en
       VulkanDevice* gpu;
       VkSemaphore   handle;
       
-      SemaphoreVK();
+      SemaphoreVK(VulkanDevice* _gpu);
      ~SemaphoreVK();
       };
    
@@ -266,39 +293,39 @@ namespace en
 
    SemaphoreVK::~SemaphoreVK()
    {
-   Profile( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
+   ProfileNoRet( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
    }
    
    
 
 
 
-   enum class PipelineStage : uint32
-      {
-      // TODO: Do we mimic Vulkan Pipeline Stages granularity ?
-      Count
-      };
-   
-   static const VkPipelineStageFlagBits TranslatePipelineStage[underlyingType(PipelineStage::Count)] =
-      {
-      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT                    ,
-      VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT                  ,
-      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT                   ,
-      VK_PIPELINE_STAGE_VERTEX_SHADER_BIT                  ,
-      VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT    ,
-      VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT ,
-      VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT                ,
-      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT                ,
-      VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT           ,
-      VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT            ,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT        ,
-      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT                 ,
-      VK_PIPELINE_STAGE_TRANSFER_BIT                       ,
-      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT                 ,
-      VK_PIPELINE_STAGE_HOST_BIT                           ,
-      VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT                   ,
-      VK_PIPELINE_STAGE_ALL_COMMANDS_BIT                   ,
-      };
+   //enum class PipelineStage : uint32
+   //   {
+   //   // TODO: Do we mimic Vulkan Pipeline Stages granularity ?
+   //   Count
+   //   };
+   //
+   //static const VkPipelineStageFlagBits TranslatePipelineStage[underlyingType(PipelineStage::Count)] =
+   //   {
+   //   VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT                    ,
+   //   VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT                  ,
+   //   VK_PIPELINE_STAGE_VERTEX_INPUT_BIT                   ,
+   //   VK_PIPELINE_STAGE_VERTEX_SHADER_BIT                  ,
+   //   VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT    ,
+   //   VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT ,
+   //   VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT                ,
+   //   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT                ,
+   //   VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT           ,
+   //   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT            ,
+   //   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT        ,
+   //   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT                 ,
+   //   VK_PIPELINE_STAGE_TRANSFER_BIT                       ,
+   //   VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT                 ,
+   //   VK_PIPELINE_STAGE_HOST_BIT                           ,
+   //   VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT                   ,
+   //   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT                   ,
+   //   };
    
    void CommandBufferVK::commit(void)
    {
@@ -321,7 +348,7 @@ namespace en
    if (waitEvents)
       {
       waitFlags = new VkPipelineStageFlags[waitEvents];
-      for(uint32 i=0; i<waitEvent; ++i)
+      for(uint32 i=0; i<waitEvents; ++i)
          {
          waitFlags[i] = 0u;
          for(uint32 j=0; j<waitStagesInEvent[i]; ++j)
@@ -407,34 +434,6 @@ namespace en
    //
    }
    
-   CommandBufferVK::~CommandBufferVK()
-   {
-   // Finish encoded tasks
-   if (!commited)
-      commit();
-      
-   // Don't wait for completion
-   
-   // Add yourself's fence and CB handle to Garbage Collector
-   
-   //gpu->add
-   
-   
-   // TODO: Release buffer
-   
-   // We need to wait until Command Buffer is finished, before we can release the Fence.
-   // Therefore this Command Buffer need to be added to Device's Garbage Collector,
-   // which will remove it automatically, when completion is signaled through Fence.
-
-   // Release fence
-   ProfileNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
-   
-   // Release Command Buffer
-   ProfileNoRet( gpu, vkFreeCommandBuffers(gpu->device, commandPool[thread][underlyingType(type)], 1, &handle) )
-
-
-   }
-
    Ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
    {
    assert( queuesCount[underlyingType(type)] > parentQueue );
@@ -452,7 +451,7 @@ namespace en
    VkCommandBufferAllocateInfo commandInfo;
    commandInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
    commandInfo.pNext              = nullptr;
-   commandPool                    = commandPool[thread][parentQueue];
+   commandInfo.commandPool        = commandPool[thread][parentQueue];
    commandInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Secondary CB's need VK_COMMAND_BUFFER_LEVEL_SECONDARY
    commandInfo.commandBufferCount = 1; // Can create multiple CB's at once
    
@@ -470,9 +469,9 @@ namespace en
 
    // Acquire queue handle (queues are created at device creation time)
    VkQueue queue;
-   Profile( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
+   ProfileNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
-   return ptr_dynamic_cast<CommandBuffer, CommandBufferVK>(Ptr<CommandBufferVK>(new CommandBufferVK(this, queue, handle, fence)));
+   return ptr_dynamic_cast<CommandBuffer, CommandBufferVK>(Ptr<CommandBufferVK>(new CommandBufferVK(this, queue, type, handle, fence)));
    }
 
    }

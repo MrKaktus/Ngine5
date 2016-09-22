@@ -79,31 +79,31 @@ namespace en
    view[Resolve] = nullptr;
    }
 
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 clearValue)
+   void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 _clearValue)
    {
    state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.float32[0] = clearValue.r;
-   clearValue.color.float32[1] = clearValue.g;
-   clearValue.color.float32[2] = clearValue.b;
-   clearValue.color.float32[3] = clearValue.a;
+   clearValue.color.float32[0] = _clearValue.r;
+   clearValue.color.float32[1] = _clearValue.g;
+   clearValue.color.float32[2] = _clearValue.b;
+   clearValue.color.float32[3] = _clearValue.a;
    }
    
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const uint32v4 clearValue)
+   void ColorAttachmentVK::onLoad(const LoadOperation load, const uint32v4 _clearValue)
    {
    state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.uint32[0]  = clearValue.x;
-   clearValue.color.uint32[1]  = clearValue.y;
-   clearValue.color.uint32[2]  = clearValue.z;
-   clearValue.color.uint32[3]  = clearValue.w;
+   clearValue.color.uint32[0]  = _clearValue.x;
+   clearValue.color.uint32[1]  = _clearValue.y;
+   clearValue.color.uint32[2]  = _clearValue.z;
+   clearValue.color.uint32[3]  = _clearValue.w;
    }
    
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const sint32v4 clearValue)
+   void ColorAttachmentVK::onLoad(const LoadOperation load, const sint32v4 _clearValue)
    {
    state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.int32[0] = clearValue.x;
-   clearValue.color.int32[1] = clearValue.y;
-   clearValue.color.int32[2] = clearValue.z;
-   clearValue.color.int32[3] = clearValue.w;
+   clearValue.color.int32[0] = _clearValue.x;
+   clearValue.color.int32[1] = _clearValue.y;
+   clearValue.color.int32[2] = _clearValue.z;
+   clearValue.color.int32[3] = _clearValue.w;
    }
 
    void ColorAttachmentVK::onStore(const StoreOperation store)
@@ -170,9 +170,7 @@ namespace en
    //
    DepthStencilAttachmentVK::DepthStencilAttachmentVK(const Ptr<TextureView> _depth,
                                                       const Ptr<TextureView> _stencil) :
-      texture(nullptr),
-      mipmap(0),
-      layer(0),
+      view(nullptr),
       clearDepth(1.0f),
       clearStencil(0)
    {
@@ -233,7 +231,7 @@ namespace en
    state.stencilStoreOp = store;
    }
 
-   bool DepthStencilAttachmentVK::resolve(const Ptr<TextureView> destination)
+   bool DepthStencilAttachmentVK::resolve(const Ptr<TextureView> destination, const DepthResolve mode)
    {
    // Vulkan is not supporting Depth/Stencil resolve operations.
    return false;
@@ -277,19 +275,17 @@ namespace en
    ProfileNoRet( gpu, vkDestroyRenderPass(gpu->device, passHandle, nullptr) )
    }
 
-   Ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Ptr<TextureView> texture,
-                                                            const uint32 layers)
+   Ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Ptr<TextureView> texture)
    {
    // TODO: Layers is unused!
-   return ptr_dynamic_cast<ColorAttachment, ColorAttachmentVK>(Ptr<ColorAttachmentVK>(new ColorAttachmentVK(texture, mipmap, layer)));
+   return ptr_dynamic_cast<ColorAttachment, ColorAttachmentVK>(Ptr<ColorAttachmentVK>(new ColorAttachmentVK(texture)));
    }
 
    Ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(const Ptr<TextureView> depth,
-      const Ptr<TextureView> stencil,
-      const uint32 layers)
+      const Ptr<TextureView> stencil)
    {
    // TODO: Layers is unused!
-   return ptr_dynamic_cast<DepthStencilAttachment, DepthStencilAttachmentVK>(Ptr<DepthStencilAttachmentVK>(new DepthStencilAttachmentVK(depth, stencil, mipmap, layer)));
+   return ptr_dynamic_cast<DepthStencilAttachment, DepthStencilAttachmentVK>(Ptr<DepthStencilAttachmentVK>(new DepthStencilAttachmentVK(depth, stencil)));
    }
    
    // Creates simple render pass with one color destination
@@ -398,19 +394,19 @@ namespace en
 //
 //   return result;
    
-   return create(1, color, depthStencil);
+   return createRenderPass(1, color, depthStencil);
    }
    
    // TODO: Connect this to external interface!
    
    // Internal universal method to create Render Pass
-   Ptr<RenderPass> VulkanDevice::create(const uint32 attachments,
-                                        const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-                                        const Ptr<DepthStencilAttachment> depthStencil,
-                                        const uint32v2 explicitResolution,
-                                        const uint32v2 explicitLayers)
+   Ptr<RenderPass> VulkanDevice::createRenderPass(const uint32 attachments,
+                                                  const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+                                                  const Ptr<DepthStencilAttachment> depthStencil,
+                                                  const uint32v2 explicitResolution,
+                                                  const uint32   explicitLayers)
    {
-   Ptr<RenderPassKV> result = nullptr;
+   Ptr<RenderPassVK> result = nullptr;
    
    assert( attachments < support.maxColorAttachments );
 
@@ -448,8 +444,8 @@ namespace en
          }
          
       surfaces += attachments;
-         
-      if (color[0]->view[Resolve])
+
+      if (ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[0])->view[Resolve])
          resolve = true;
       }
       
@@ -462,7 +458,8 @@ namespace en
       for(uint32 i=0; i<attachments; ++i)
          {
          // If one Color Attachment is beeing resolved, all of them need to be resolved
-         assert( color[i]->view[Resolve] != nullptr );
+         Ptr<TextureViewVK> view = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i])->view[Resolve];
+         assert( view );
          
          attResolve[i].attachment = surfaces;
          attResolve[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -575,12 +572,12 @@ namespace en
          Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
          resolution.width  = min(resolution.width,  ptr->view[Color]->texture->state.width);
          resolution.height = min(resolution.height, ptr->view[Color]->texture->state.height);
-         layers            = min(layers,            ptr->view[Color]->_layers.count);
+         layers            = min(layers,            ptr->view[Color]->layers.count);
          if (resolve)
             {
             resolution.width  = min(resolution.width,  ptr->view[Resolve]->texture->state.width);
             resolution.height = min(resolution.height, ptr->view[Resolve]->texture->state.height);
-            layers            = min(layers,            ptr->view[Resolve]->_layers.count);
+            layers            = min(layers,            ptr->view[Resolve]->layers.count);
             }
          }
          
@@ -589,7 +586,7 @@ namespace en
          Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
          resolution.width  = min(resolution.width,  ptr->view->texture->state.width);
          resolution.height = min(resolution.height, ptr->view->texture->state.height);
-         layers            = min(layers,            ptr->view->_layers.count);
+         layers            = min(layers,            ptr->view->layers.count);
          }
       }
 
@@ -608,7 +605,7 @@ namespace en
 
    // Create framebuffer object
    VkFramebuffer framebuffer;
-   Profile( vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer) )
+   Profile( this, vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       result->framebufferHandle = framebuffer;
       
@@ -686,12 +683,7 @@ namespace en
 
 
 
-   // Internal universal method to create Render Pass
-   Ptr<RenderPass> create(const uint32 attachments,
-                          const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-                          const Ptr<DepthStencilAttachment> depthStencil,
-                          const uint32v2 explicitResolution,
-                          const uint32v2 explicitLayers)
+
       
       
  //  Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,

@@ -20,6 +20,7 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
+#include "core/rendering/heap.h"
 #include "core/rendering/common/buffer.h"
 
 namespace en

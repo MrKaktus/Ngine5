@@ -22,6 +22,7 @@
 
 #include "core/rendering/common/heap.h"
 #include "core/rendering/common/device.h"
+#include "core/utilities/basicAllocator.h"
 
 namespace en
 {

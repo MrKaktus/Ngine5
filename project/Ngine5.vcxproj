@@ -101,6 +101,7 @@
     <ClCompile Include="..\src\core\types\uint32v2.cpp" />
     <ClCompile Include="..\src\core\types\uint32v3.cpp" />
     <ClCompile Include="..\src\core\types\uint32v4.cpp" />
+    <ClCompile Include="..\src\core\utilities\basicAllocator.cpp" />
     <ClCompile Include="..\src\core\utilities\parser.cpp" />
     <ClCompile Include="..\src\input\andInput.cpp" />
     <ClCompile Include="..\src\input\bbInput.cpp" />
@@ -353,6 +354,7 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan10.h" />
     <ClInclude Include="..\src\core\storage\context.h" />
+    <ClInclude Include="..\src\core\utilities\basicAllocator.h" />
     <ClInclude Include="..\src\input\andInput.h" />
     <ClInclude Include="..\src\input\bbInput.h" />
     <ClInclude Include="..\src\input\common.h" />

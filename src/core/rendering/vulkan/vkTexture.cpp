@@ -598,7 +598,7 @@ namespace en
       viewInfo.subresourceRange.baseArrayLayer = 0;
       viewInfo.subresourceRange.layerCount     = state.layers;
 
-      Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &texture->view) )
+      Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &texture->viewHandle) )
       assert( !gpu->lastResult[threadId] );
       }
 
@@ -615,11 +615,11 @@ namespace en
 
    TextureVK::~TextureVK()
    {
-   ProfileNoRet( gpu, vkDestroyImageView(gpu->device, view, nullptr) )
+   ProfileNoRet( gpu, vkDestroyImageView(gpu->device, viewHandle, nullptr) )
    ProfileNoRet( gpu, vkDestroyImage(gpu->device, handle, nullptr) )
    
    // Deallocate from the Heap (let Heap allocator know that memory region is available again)
-   heap->allocator->deallocate(offset, memoryRequirements.size);
+   ptr_dynamic_cast<HeapVK, Heap>(heap)->allocator->deallocate(offset, memoryRequirements.size);
    heap = nullptr;
    }
  
@@ -654,13 +654,13 @@ namespace en
    viewInfo.subresourceRange.baseArrayLayer = _layers.base;
    viewInfo.subresourceRange.layerCount     = _layers.count;
 
-   VkImageView view;
+   VkImageView viewHandle;
 
-   Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &view) )
+   Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
-      Ptr<TextureViewVK> ptr = new TextureViewVK(Ptr<TextureVK>(this),
-                                                 view, type, format, mipmaps, layers);
+      Ptr<TextureVK> parent((TextureVK*)this);
+      Ptr<TextureViewVK> ptr = new TextureViewVK(parent, viewHandle, _type, _format, _mipmaps, _layers);
       result = ptr_dynamic_cast<TextureView, TextureViewVK>(ptr);
       }
       
@@ -682,7 +682,7 @@ namespace en
    
    TextureViewVK::~TextureViewVK()
    {
-   Profile( texture->gpu, vkDestroyImageView(texture->gpu->device, handle, nullptr) )
+   ProfileNoRet( texture->gpu, vkDestroyImageView(texture->gpu->device, handle, nullptr) )
    texture = nullptr;
    }
    

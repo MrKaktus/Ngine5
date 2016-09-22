@@ -600,6 +600,9 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Pipeline.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\utilities\basicAllocator.cpp">
+      <Filter>Source Files\core\utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1222,6 +1225,9 @@
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\vulkan\vkCommandBuffer.h">
       <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\utilities\basicAllocator.h">
+      <Filter>Source Files\core\utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

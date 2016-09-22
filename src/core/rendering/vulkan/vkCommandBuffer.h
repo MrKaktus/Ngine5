@@ -20,6 +20,7 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
+#include "core/rendering/device.h"
 #include "core/rendering/commandBuffer.h"
 
 namespace en
@@ -33,14 +34,16 @@ namespace en
       public:
       VulkanDevice*   gpu;       // Vulkan Device (for Device function calls)
       VkQueue         queue;
+      QueueType       queueType;
       VkCommandBuffer handle;
       VkFence         fence;     // Completion notification
       bool            started;
       bool            encoding;
       bool            commited;
       
-      CommandBufferVK(const VulkanDevice*   gpu,
+      CommandBufferVK(VulkanDevice*         gpu,
                       const VkQueue         queue,
+                      const QueueType       queueType,
                       const VkCommandBuffer handle,
                       const VkFence         fence);
                       

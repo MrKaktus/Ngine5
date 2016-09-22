@@ -25,11 +25,11 @@ namespace en
       {
       public:
       VulkanDevice* gpu;
-      VkImage       handle;    // Vulkan Image ID
-      VkImageView   view;      // Vulkan default Image View ID
+      VkImage       handle;     // Vulkan Image ID
+      VkImageView   viewHandle; // Vulkan default Image View ID
       VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
-      Ptr<Heap>     heap;      // Memory backing heap
-      uint64        offset;    // Offset in the heap
+      Ptr<Heap>     heap;       // Memory backing heap
+      uint64        offset;     // Offset in the heap
 
       TextureVK(VulkanDevice* gpu, const TextureState& state);
       TextureVK(VulkanDevice* gpu, const TextureState& state, const uint32 id);    // Create texture interface for texture that already exists
