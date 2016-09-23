@@ -439,7 +439,7 @@ namespace en
 
    bool WinMouse::position(const uint32 x, const uint32 y)
    {
-   return SetCursorPos(x,y);
+   return SetCursorPos(x,y) == TRUE ? true : false;
    }
 
    bool WinMouse::position(const Ptr<Display> screen, const uint32 x, const uint32 y)

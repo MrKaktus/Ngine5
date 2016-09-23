@@ -43,6 +43,22 @@ namespace en
       
       virtual ~CommonBuffer();
       };
+
+   class CommonBufferView : public BufferView
+      {
+      public:
+      Format _format;
+      uint32 _offset;
+      uint32 _length;
+
+      CommonBufferView(const Format format, const uint32 offset, const uint32 length);
+      virtual uint32 offset(void) const;
+      virtual uint32 length(void) const;
+      virtual Format format(void) const;
+      
+      virtual ~CommonBufferView() {};
+      };
+
    }
 }
 #endif

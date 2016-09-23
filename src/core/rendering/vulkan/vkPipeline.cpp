@@ -118,7 +118,7 @@ typedef enum D3D12_SHADER_VISIBILITY
    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER = 7,          //   Storage
    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,  // * Uniform (dynamic array size, specifcied on runtime)
    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,  //   Storage (dynamic array size, specifcied on runtime)
-   VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,
+   VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,       // Render Pass Input Attachment for multi-sub-pass graph (Fragment Shader read of RT) 
    
    // SetLayour - Single Range
    VkDescriptorSetLayoutBinding setBinding;

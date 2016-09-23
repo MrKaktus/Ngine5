@@ -42,28 +42,73 @@ namespace en
    heap = nullptr;
    }
 
-   BufferViewVK::BufferViewVK(VulkanDevice* _gpu) :
-      gpu(_gpu),
-      parent(VK_NULL_HANDLE),
-      handle(VK_NULL_HANDLE),
-      BufferView()
+   // Vulkan Buffer View is created only for Linear Textures backed by Buffers - not supported currently.
+   //
+#if 0
+   Ptr<BufferView> BufferVK::view(const Format format, const uint64 offset, const uint64 length)
    {
-   VkBufferViewCreateInfo viewInfo = {};
-   viewInfo.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
-   viewInfo.pNext = nullptr;
-   viewInfo.flags = 0; // Reserved
-   viewInfo. VkBuffer                   buffer;
-   viewInfo. VkFormat                   format;
-   viewInfo. VkDeviceSize               offset; // multiple of VkPhysicalDeviceLimits::minTexelBufferOffsetAlignment
-   viewInfo. VkDeviceSize               range;
+   Ptr<BufferViewVK> result = nullptr;
 
-   // TODO!
+   uint64 finalOffset = roundUp( offset, gpu->properties.limits.minTexelBufferOffsetAlignment );
+   uint64 finalLength = roundUp( length, gpu->properties.limits.minTexelBufferOffsetAlignment );
+   if (finalOffset + finalLength > size)
+      finalLength = VK_WHOLE_SIZE;  // TODO: Round up to Texel Format size, then to limits, then calculate adjusted length
+
+   VkBufferViewCreateInfo viewInfo = {};
+   viewInfo.sType  = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+   viewInfo.pNext  = nullptr;
+   viewInfo.flags  = 0; // Reserved
+   viewInfo.buffer = handle;
+   viewInfo.format = TranslateTextureFormat[underlyingType(format)];
+   viewInfo.offset = finalOffset;
+   viewInfo.range  = finalLength;
+   
+   VkBufferView viewHandle = VK_NULL_HANDLE;
+
+   Profile( gpu, vkCreateBufferView(gpu->device, &viewInfo, nullptr, &viewHandle) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      result = new BufferViewVK(Ptr<BufferVK>(this), viewHandle, format, finalOffset, finalLength);
+
+   return ptr_dynamic_cast<BufferView, BufferViewVK>(result);
+   }
+
+   BufferViewVK::BufferViewVK(Ptr<BufferVK>      parent,
+                              const VkBufferView view,
+                              const Format       format,
+                              const uint32       offset,
+                              const uint32       length) :
+      buffer(parent),
+      handle(view),
+      CommonBufferView(format, offset, length)
+   {
    }
    
    BufferViewVK::~BufferViewVK()
    {
-   ProfileNoRet( gpu, vkDestroyBufferView(gpu->device, handle, nullptr) )
+   ProfileNoRet( buffer->gpu, vkDestroyBufferView(buffer->gpu->device, handle, nullptr) )
+   buffer = nullptr;
    }
+
+   Ptr<Buffer> BufferViewVK::parent(void) const
+   {
+   return ptr_dynamic_cast<Buffer, BufferVK>(buffer);
+   }
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
    Ptr<Buffer> createBuffer(VulkanDevice* gpu, const BufferType type, const uint32 size)
    {

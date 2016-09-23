@@ -41,18 +41,28 @@ namespace en
       BufferVK(VulkanDevice* gpu, const VkBuffer handle, const BufferType type, const uint32 size);
       virtual ~BufferVK();
       };
-      
-   class BufferViewVK : public BufferView
+
+   // Vulkan Buffer View is created only for Linear Textures backed by Buffers - not supported currently.
+   //
+#if 0
+   class BufferViewVK : public CommonBufferView
       {
       public:
-      VulkanDevice* gpu;
-      VkBuffer      parent; // Buffer from which this View is created TODO: Or maybe generic Ptr<Buffer / BufferVK> parent; ?
-      VkBufferView  handle;
-      
-      BufferViewVK(VulkanDevice* gpu);
+      Ptr<BufferVK> buffer; // Parent buffer
+      VkBufferView  handle;  
+
+      BufferViewVK(Ptr<BufferVK>      parent,
+                   const VkBufferView view,
+                   const Format       format,
+                   const uint32       offset,
+                   const uint32       length);
+
+      Ptr<Buffer> parent(void) const;
+   
       virtual ~BufferViewVK();
       };
-      
+#endif
+
    Ptr<Buffer> createBuffer(VulkanDevice* gpu, const BufferType type, const uint32 size);
    Ptr<Buffer> createBufferAndPopulate(VulkanDevice* gpu, const BufferType type, const uint32 size, const void* data);
 

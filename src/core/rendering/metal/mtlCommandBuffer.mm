@@ -94,7 +94,48 @@ namespace en
    return true;
    }
    
-   
+
+   // SETTING INPUT ASSEMBLER VERTEX BUFFERS
+   //////////////////////////////////////////////////////////////////////////
+
+
+   void CommandBufferMTL::setVertexBuffers(const uint32 count, const uint32 firstSlot, const Ptr<Buffer>* buffers, const uint64* offsets) const
+   {
+   assert( count );
+   // assert( (firstSlot + count) <= gpu->properties.limits.maxVertexInputBindings ); TODO: Populate GPU support field depending on iOS and macOS limitations and check it here
+
+   // Extrack Metal buffer handles
+   id<MTLBuffer> handles = new id<MTLBuffer>[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+   for(uint32 i=0; i<count; ++i)
+      {
+      assert( buffers[i] );
+      handles[i] = ptr_dynamic_cast<BufferMTL, Buffer>(buffers[i])->handle;
+      }
+
+   // Generate default zero offsets array if none is passed
+   uint64* finalOffsets = offsets;
+   if (!offsets)
+      {
+	  finalOffsets = new uint64[count];
+	  memset(finalOffsets, 0, sizeof(uint64)*count);
+	  }
+
+   [renderEncoder setVertexBuffers:handles 
+                           offsets:finalOffsets 
+						 withRange:NSMakeRange()];
+
+   delete [] handles;
+   if (!offsets)
+      delete [] finalOffsets;
+   }
+
+   void CommandBufferMTL::setVertexBuffer(const uint32 slot, const Ptr<Buffer> buffer, const uint64 offset) const
+   {
+   [renderEncoder setVertexBuffer:ptr_dynamic_cast<BufferMTL, Buffer>(buffer)->handle 
+                           offset:offset 
+						  atIndex:slot];
+   }
+
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 
@@ -234,17 +275,7 @@ namespace en
 
 
    
-   
-   void CommandBufferMTL::setVertexBuffer(Ptr<Buffer> buffer, uint32 slot)
-   {
-   assert( buffer );
-   Ptr<BufferMTL> ptr = ptr_dynamic_cast<BufferMTL, Buffer>(buffer);
-   [renderEncoder setVertexBuffer:ptr->handle offset:0 atIndex:(NSUInteger)slot];
-   
-// - (void)setVertexBuffer:(nullable id <MTLBuffer>)buffer offset:(NSUInteger)offset atIndex:(NSUInteger)index;
-// - (void)setVertexBufferOffset:(NSUInteger)offset atIndex:(NSUInteger)index NS_AVAILABLE(10_11, 8_3);
-// - (void)setVertexBuffers:(const id <MTLBuffer> __nullable [__nullable])buffers offsets:(const NSUInteger [__nullable])offsets withRange:(NSRange)range;
-   }
+
    
 /* Init Resoure */
 

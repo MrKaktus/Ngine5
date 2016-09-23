@@ -142,5 +142,30 @@ namespace en
 //   assert(0);
 //   }
       
+
+
+   CommonBufferView::CommonBufferView(const Format format, const uint32 offset, const uint32 length) :
+      _format(format),
+      _offset(offset),
+      _length(length)
+   {
+   }
+
+   uint32 CommonBufferView::offset(void) const
+   {
+   return _offset;
+   }
+
+   uint32 CommonBufferView::length(void) const
+   {
+   return _length;
+   }
+
+   Format CommonBufferView::format(void) const
+   {
+   return _format;
+   }
+
+
    }
 }

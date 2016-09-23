@@ -21,6 +21,7 @@
 #include "core/rendering/state.h"
 #include "core/utilities/Tproxy.h"
 #include "core/utilities/TintrusivePointer.h"
+#include "core/rendering/texture.h"
 
 namespace en
 {
@@ -214,6 +215,9 @@ namespace en
    class BufferView : public SafeObject<BufferView>
       {
       public:
+      virtual uint32 offset(void) const = 0;
+      virtual uint32 length(void) const = 0;
+      virtual Format format(void) const = 0;
       virtual ~BufferView() {};       // Polymorphic deletes require a virtual base destructor
       };
       

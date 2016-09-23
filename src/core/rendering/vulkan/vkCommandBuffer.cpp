@@ -153,7 +153,51 @@ namespace en
    return true;
    }
    
-   
+
+   // SETTING INPUT ASSEMBLER VERTEX BUFFERS
+   //////////////////////////////////////////////////////////////////////////
+
+
+   void CommandBufferVK::setVertexBuffers(const uint32 count, const uint32 firstSlot, const Ptr<Buffer>* buffers, const uint64* offsets) const
+   {
+   assert( count );
+   assert( (firstSlot + count) <= gpu->properties.limits.maxVertexInputBindings );
+
+   // Extrack Vulkan buffer handles
+   VkBuffer* handles = new VkBuffer[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+   for(uint32 i=0; i<count; ++i)
+      {
+      assert( buffers[i] );
+      handles[i] = ptr_dynamic_cast<BufferVK, Buffer>(buffers[i])->handle;
+      }
+
+   // Generate default zero offsets array if none is passed
+   uint64* finalOffsets = static_cast<uint64*>(offsets);
+   if (!offsets)
+      {
+	  finalOffsets = new uint64[count];
+	  memset(finalOffsets, 0, sizeof(uint64)*count);
+	  }
+
+   ProfileNoRet( gpu, vkCmdBindVertexBuffers(handle, 
+                                             firstSlot, 
+                                             count, 
+                                             handles, 
+                                             static_cast<const VkDeviceSize*>(finalOffsets)) )
+   delete [] handles;
+   if (!offsets)
+      delete [] finalOffsets;
+   }
+
+   void CommandBufferVK::setVertexBuffer(const uint32 slot, const Ptr<Buffer> buffer, const uint64 offset) const
+   {
+   ProfileNoRet( gpu, vkCmdBindVertexBuffers(handle, 
+                                             slot, 1,
+                                             &ptr_dynamic_cast<BufferVK, Buffer>(buffer)->handle, 
+                                             static_cast<const VkDeviceSize*>(&offset)) )
+   }
+
+
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 

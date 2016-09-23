@@ -318,7 +318,7 @@ namespace en
       virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<TextureView> depth,
                                                                        const Ptr<TextureView> stencil) = 0;
 
-      // Creates simple render pass with one color destination
+      // Creates simple render pass with one color or depth-stencil destination (or both)
       virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,
                                      const Ptr<DepthStencilAttachment> depthStencil);
       
@@ -337,7 +337,7 @@ namespace en
 
       // Internal universal method to create Render Pass
       Ptr<RenderPass> createRenderPass(const uint32 attachments,
-                                       const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+                                       const Ptr<ColorAttachment>* color,
                                        const Ptr<DepthStencilAttachment> depthStencil,
                                        const uint32v2 explicitResolution,
                                        const uint32   explicitLayers);

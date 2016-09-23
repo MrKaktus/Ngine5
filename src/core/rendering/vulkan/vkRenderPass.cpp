@@ -17,6 +17,7 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
+#include "core/defines.h"
 #include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/vulkan/vkTexture.h"   // For TranslateTextureFormat[]
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
@@ -288,120 +289,173 @@ namespace en
    return ptr_dynamic_cast<DepthStencilAttachment, DepthStencilAttachmentVK>(Ptr<DepthStencilAttachmentVK>(new DepthStencilAttachmentVK(depth, stencil)));
    }
    
-   // Creates simple render pass with one color destination
+
+   // CREATE RENDER PASS
+   //////////////////////////////////////////////////////////////////////////
+
+
    Ptr<RenderPass> VulkanDevice::create(const Ptr<ColorAttachment> color,
                                         const Ptr<DepthStencilAttachment> depthStencil)
    {
-//   Ptr<RenderPass> result = nullptr;
-//   
-//   assert( color );
-//   
-//   uint32 freeIndex = 0u;
-//   uint32 attachments = 1u;
-//   
-//   VkAttachmentReference attColor;
-//   attColor.attachment = freeIndex;
-//   attColor.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-//   freeIndex++;
-//   
-//   bool resolve = color->texture[Resolve] ? true : false;
-//   
-//   // Optional Color Resolve
-//   VkAttachmentReference attResolve;
-//   attResolve.attachment = VK_ATTACHMENT_UNUSED;
-//   attResolve.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-//   if (resolve)
-//      {
-//      attResolve.attachment = freeIndex;
-//      freeIndex++;
-//      }
-//      
-//   // Optional Depth-Stencil / Depth / Stencil
-//   VkAttachmentReference attDepthStencil;
-//   attDepthStencil.attachment = VK_ATTACHMENT_UNUSED;
-//   attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-//   if (depthStencil)
-//      {
-//      attDepthStencil.attachment = freeIndex;
-//      freeIndex++;
-//      }
-//
-//   // Engine is currently not supporting multiple sub-passes described as one dependency graph
-//   VkSubpassDescription subInfo;
-//   subInfo.flags                   = 0u;  // Reserved for future
-//   subInfo.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
-//   subInfo.inputAttachmentCount    = 0u;
-//   subInfo.pInputAttachments       = nullptr;
-//   subInfo.colorAttachmentCount    = 1u;
-//   subInfo.pColorAttachments       = &attColor;
-//   subInfo.pResolveAttachments     = resolve      ? &attResolve      : nullptr;
-//   subInfo.pDepthStencilAttachment = depthStencil ? &attDepthStencil : nullptr;
-//   subInfo.preserveAttachmentCount = 0;
-//   subInfo.pPreserveAttachments    = nullptr;
-//
-//   // Calculate amount of used surfaces
-//   uint32 surfaces = attachments;
-//   if (resolve)
-//      surfaces *= 2;
-//   if (depthStencil)
-//      surfaces++;
-//   
-//   // Render Pass attachments layouy:
-//   // 0..7  - Up to 8 Color Attachments
-//   // 8..15 - Up to 8 Resolve surfaces
-//   // 16    - Depth-Stencil / Depth / Stencil
-//   
-//   // Gather Attachment states
-//   VkAttachmentDescription* attachment = new VkAttachmentDescription[attachments];
-//   uint32 index = 0;
-//   for(; index<attachments; ++index)
-//      {
-//      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color); // color[index]
-//      memcpy(&attachment[index], &ptr->state[Color], sizeof(VkAttachmentDescription));
-//      }
-//      
-//   if (resolve)
-//      for(uint32 i=0; i<attachments; ++i)
-//         {
-//         Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color); // color[i]
-//         memcpy(&attachment[index], &ptr->state[Resolve], sizeof(VkAttachmentDescription));
-//         index++;
-//         }
-//      
-//   if (depthStencil)
-//      {
-//      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
-//      memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
-//      }
-//
-//   VkRenderPassCreateInfo passInfo;
-//   passInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-//   passInfo.pNext           = nullptr;
-//   passInfo.attachmentCount = surfaces;
-//   passInfo.pAttachments    = attachment;
-//   passInfo.subpassCount    = 1;
-//   passInfo.pSubpasses      = &subInfo;
-//   passInfo.dependencyCount = 0;
-//   passInfo.pDependencies   = nullptr;
-//
-//   // Create renderpass object
-//   VkRenderPass renderpass;
-//   Profile( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
-//   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-//      result = ptr_dynamic_cast<RenderPass, RenderPassVK>(new RenderPassVK(this, renderpass, attachments));
-//
-//   delete [] attachment;
-//
-//   return result;
-   
-   return createRenderPass(1, color, depthStencil);
+   // At least one of the two needs to be present
+   assert( color || depthStencil );
+
+   // Calculate resolution of mipmap used as rendering destination,
+   // and count of available layers. Validate that they are identical
+   // between all used surfaces.
+   uint32v2 resolution;
+   uint32 layers = 1;
+   bool selected = false;
+   if (color)
+      {
+      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color);
+      Ptr<TextureViewVK> view = ptr->view[Color];
+      uint32 mipmap = view->mipmaps.base;
+      resolution = view->texture->resolution(mipmap);
+      layers     = view->layers.count;
+      selected   = true;
+      }
+   else
+   if (depthStencil)
+      {
+      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+      Ptr<TextureViewVK> view = ptr->view;
+      uint32 mipmap = view->mipmaps.base;
+
+      if (!selected)
+         {
+         resolution = view->texture->resolution(mipmap);
+         layers     = view->layers.count;
+         selected = true;
+         }
+      else
+         {
+         assert( resolution == view->texture->resolution(mipmap) );
+         assert( layers     == view->layers.count );
+         }
+      }
+   assert( selected );
+
+   return createRenderPass(1, &color, depthStencil, resolution, layers);
    }
    
-   // TODO: Connect this to external interface!
+      
+   Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,
+                                        const Ptr<ColorAttachment>* color,
+                                        const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   // At least one type of the two needs to be present
+   assert( _attachments > 0 || depthStencil );
    
+   // Calculate resolution of mipmap used as rendering destination,
+   // and count of available layers. Validate that they are identical
+   // between all used surfaces.
+   uint32v2 resolution;
+   uint32   layers = 1;
+   bool     selected = false;
+   if (_attachments)
+      {
+      for(uint32 i=0; i<_attachments; ++i)
+         if (color[i]) // Allow empty entries in the input array.
+            {
+            Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
+            Ptr<TextureViewVK> view = ptr->view[Color];
+            uint32 mipmap = view->mipmaps.base;
+
+            if (!selected)
+               {
+               resolution = view->texture->resolution(mipmap);
+               layers     = view->layers.count;
+               selected = true;
+               }
+            else
+               {
+               assert( resolution == view->texture->resolution(mipmap) );
+               assert( layers     == view->layers.count );
+               }
+            }
+      }
+   if (depthStencil)
+      {
+      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+      Ptr<TextureViewVK> view = ptr->view;
+      uint32 mipmap = view->mipmaps.base;
+
+      if (!selected)
+         {
+         resolution = view->texture->resolution(mipmap);
+         layers     = view->layers.count;
+         selected = true;
+         }
+      else
+         {
+         assert( resolution == view->texture->resolution(mipmap) );
+         assert( layers     == view->layers.count );
+         }
+      }
+   assert( selected );
+
+   return createRenderPass(_attachments, color, depthStencil, resolution, layers);
+
+
+
+   //// Calculate smallest common resolution and layers count of passed attachments,
+   //// or use explicitly pased ones if this Render Pass is not rendering anything
+   //// (has no attachments, uses shader side effects).
+   //uint32v2 resolution = explicitResolution;
+   //uint32   layers     = explicitLayers;
+   //if (surfaces)
+   //   {
+   //   for(uint32 i=0; i<attachments; ++i)
+   //      {
+   //      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
+   //      resolution.width  = min(resolution.width,  ptr->view[Color]->texture->state.width);
+   //      resolution.height = min(resolution.height, ptr->view[Color]->texture->state.height);
+   //      layers            = min(layers,            ptr->view[Color]->layers.count);
+   //      if (resolve)
+   //         {
+   //         resolution.width  = min(resolution.width,  ptr->view[Resolve]->texture->state.width);
+   //         resolution.height = min(resolution.height, ptr->view[Resolve]->texture->state.height);
+   //         layers            = min(layers,            ptr->view[Resolve]->layers.count);
+   //         }
+   //      }
+   //      
+   //   if (depthStencil)
+   //      {
+   //      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+   //      resolution.width  = min(resolution.width,  ptr->view->texture->state.width);
+   //      resolution.height = min(resolution.height, ptr->view->texture->state.height);
+   //      layers            = min(layers,            ptr->view->layers.count);
+   //      }
+   //   }
+
+
+   //// Calculate resolution of mipmap used as rendering destination,
+   //// and count of available layers.
+
+
+   //   Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color);
+   //   Ptr<TextureViewVK> view = ptr->view[Color];
+   //   uint32 mipmap = view->mipmaps.base;
+   //   resolution = view->texture->resolution(mipmap);
+   //   layers = view->layers.count;
+   //   }
+   //else
+   //if (depthStencil)
+   //   {
+   //   Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+   //   Ptr<TextureViewVK> view = ptr->view;
+   //   uint32 mipmap = view->mipmaps.base;
+   //   resolution = view->texture->resolution(mipmap);
+   //   layers = view->layers.count;
+   //   }
+
+   }
+
+
    // Internal universal method to create Render Pass
    Ptr<RenderPass> VulkanDevice::createRenderPass(const uint32 attachments,
-                                                  const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
+                                                  const Ptr<ColorAttachment>* color,
                                                   const Ptr<DepthStencilAttachment> depthStencil,
                                                   const uint32v2 explicitResolution,
                                                   const uint32   explicitLayers)
@@ -419,8 +473,6 @@ namespace en
    // TODO: Make this method universal and internal. Provide common width/height/layers paarameters.
    //       There should be separate method for creating such RenderPass that accepts only those parameters.
    //
-   assert( color[0] );
-
    uint32 surfaces = 0u;
    bool   resolve  = false;
    
@@ -559,37 +611,8 @@ namespace en
 
    // TODO: This function should only validate that all surfaces have the same
    //       resolution and layers count!
+   //       Calculation of common resolution and layers should be done by the app !
    
-   // Calculate smallest common resolution and layers count of passed attachments,
-   // or use explicitly pased ones if this Render Pass is not rendering anything
-   // (has no attachments, uses shader side effects).
-   uint32v2 resolution = explicitResolution;
-   uint32   layers     = explicitLayers;
-   if (surfaces)
-      {
-      for(uint32 i=0; i<attachments; ++i)
-         {
-         Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
-         resolution.width  = min(resolution.width,  ptr->view[Color]->texture->state.width);
-         resolution.height = min(resolution.height, ptr->view[Color]->texture->state.height);
-         layers            = min(layers,            ptr->view[Color]->layers.count);
-         if (resolve)
-            {
-            resolution.width  = min(resolution.width,  ptr->view[Resolve]->texture->state.width);
-            resolution.height = min(resolution.height, ptr->view[Resolve]->texture->state.height);
-            layers            = min(layers,            ptr->view[Resolve]->layers.count);
-            }
-         }
-         
-      if (depthStencil)
-         {
-         Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
-         resolution.width  = min(resolution.width,  ptr->view->texture->state.width);
-         resolution.height = min(resolution.height, ptr->view->texture->state.height);
-         layers            = min(layers,            ptr->view->layers.count);
-         }
-      }
-
    
    // Describe Framebuffer
    VkFramebufferCreateInfo framebufferInfo;
@@ -599,9 +622,9 @@ namespace en
    framebufferInfo.renderPass      = renderpass;
    framebufferInfo.attachmentCount = surfaces;
    framebufferInfo.pAttachments    = handles;
-   framebufferInfo.width           = resolution.width;
-   framebufferInfo.height          = resolution.height;
-   framebufferInfo.layers          = layers;
+   framebufferInfo.width           = explicitResolution.width;
+   framebufferInfo.height          = explicitResolution.height;
+   framebufferInfo.layers          = explicitLayers;
 
    // Create framebuffer object
    VkFramebuffer framebuffer;
@@ -630,7 +653,7 @@ namespace en
       }
       
    // Resolution we render in on RenderPass start
-   result->resolution = resolution;
+   result->resolution = explicitResolution;
    
    delete [] handles;
    return ptr_dynamic_cast<RenderPass, RenderPassVK>(result);
@@ -685,92 +708,7 @@ namespace en
 
 
       
-      
- //  Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,
- //                                       const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
- //                                       const Ptr<DepthStencilAttachment> depthStencil)
- //  {
- //  Ptr<RenderPass> result = nullptr;
- //  
 
-
- //  // const uint32v2 resolution, // Common attachments resolution
- //  // const uint32   layers)     // Common attachments layers count
-
-
- //  Ptr<ColorAttachmentVK> temp = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[0]);
-
- //  
- //  VkImageView attachmentHandle[8];
-
-	//VkAttachmentDescription attachment[2];
-	//attachment[0].format = TranslateTextureFormat[ underlyingType((temp->texture[0])->format) ]; //color[0] //colorformat;
-	//attachment[0].samples = VK_SAMPLE_COUNT_1_BIT;
-	//attachment[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	//attachment[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	//attachment[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	//attachment[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	//attachment[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	//attachment[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	//attachment[1].format = depthFormat;
-	//attachment[1].samples = VK_SAMPLE_COUNT_1_BIT;
-	//attachment[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	//attachment[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	//attachment[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	//attachment[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	//attachment[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	//attachment[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
- //  VkAttachmentReference colorReference = {};
- //  colorReference.attachment = 0;
- //  colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
- //  VkAttachmentReference depthReference = {};
- //  depthReference.attachment = 1;
- //  depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
- //  VkSubpassDescription subPassInfo = {};
- //  subPassInfo.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
- //  subPassInfo.flags                   = 0;
- //  subPassInfo.inputAttachmentCount    = 0;
- //  subPassInfo.pInputAttachments       = nullptr;
- //  subPassInfo.colorAttachmentCount    = _attachments;
- //  subPassInfo.pColorAttachments       = &colorReference;
- //  subPassInfo.pResolveAttachments = NULL;
- //  subPassInfo.pDepthStencilAttachment = &depthReference;
- //  subPassInfo.preserveAttachmentCount = 0;
- //  subPassInfo.pPreserveAttachments = NULL;
-
- //  VkRenderPassCreateInfo renderPassInfo = {};
- //  renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
- //  renderPassInfo.pNext           = nullptr;
- //  renderPassInfo.flags           = 0;  // Reserved for future use
- //  renderPassInfo.attachmentCount = _attachments + (depthStencil == nullptr ? 0 : 1);
- //  renderPassInfo.pAttachments    = attachment;
- //  renderPassInfo.subpassCount    = 1;
- //  renderPassInfo.pSubpasses      = &subPassInfo;
- //  renderPassInfo.dependencyCount = 0;
- //  renderPassInfo.pDependencies   = nullptr;
-
-
-
-	//renderPassInfo.attachmentCount = 2;
-	//renderPassInfo.pAttachments = attachments;
-	//renderPassInfo.subpassCount = 1;
-	//renderPassInfo.pSubpasses = &subpass;
-	//renderPassInfo.dependencyCount = 0;
-	//renderPassInfo.pDependencies = NULL;
-
-	//VkResult err;
-
-	//err = vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
-	//assert(!err);
-
-
- //  return result;
-
- //  }
 
 
 
