@@ -472,12 +472,20 @@ namespace en
       virtual uint32   width(const uint8 mipmap = 0) const = 0;
       virtual uint32   height(const uint8 mipmap = 0) const = 0;
       virtual uint32   depth(const uint8 mipmap = 0) const = 0;
-      virtual uint32v3 resolution(const uint8 mipmap = 0) const = 0;
+      virtual uint32v2 resolution(const uint8 mipmap = 0) const = 0;
+      virtual uint32v3 volume(const uint8 mipmap = 0) const = 0;
       virtual uint16   layers(void) const = 0;
       virtual uint16   samples(void) const = 0;
-      // TODO: Delete: Texture transfer is done through using "StagingBuffer" and "CommandBuffer" transfer calls.
+      
+      // TODO: Delete: Texture transfer is done through usage of "StagingBuffer" and "CommandBuffer" transfer calls.
+      //               Are we sure? Depending on type of backing memory, there may be a performance gain in
+      //               "mapping" resources:
+      //               - iOS, tvOS - those are UMA devices.
+      //               - Vulkan specific Heaps backing memory types
       //virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0) = 0;  // Surface is: CubeMap face, 3D depth, Array layer or CubeMapArray face-layer
       //virtual bool     unmap(void) = 0;
+      
+      
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
       virtual Ptr<TextureView> view(void) const = 0;                  // Default view representing this texture
       

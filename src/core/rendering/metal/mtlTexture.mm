@@ -502,7 +502,8 @@ namespace en
    
    Ptr<Texture> TextureViewMTL::parent(void) const
    {
-   return ptr_dynamic_cast<Texture, TextureMTL>(texture);
+   return ptr_reinterpret_cast<Texture>(&texture);
+   //return ptr_dynamic_cast<Texture, TextureMTL>(texture);
    }
 
 
@@ -562,15 +563,6 @@ namespace en
    // TODO: Here add support of ASTC if A8 / GPU Family v2
    }
 #endif
-
-   Ptr<Texture> MetalDevice::create(const TextureState state)
-   {
-   Ptr<Texture> texture = nullptr;
-   
-   texture = ptr_dynamic_cast<Texture, TextureMTL>(new TextureMTL(device, state));
-   
-   return texture;
-   }
    
    }
 }

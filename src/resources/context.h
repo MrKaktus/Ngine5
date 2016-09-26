@@ -17,7 +17,7 @@
 #include "core/configuration.h"
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/rendering/rendering.hpp"
+#include "core/rendering/device.h"
 #include "core/utilities/TarrayAdvanced.h"
 #include "audio/audio.h"
 #include "resources/resources.h"
@@ -172,6 +172,7 @@ namespace en
 //                 Ptr<gpu::Pipeline> pipeline;            // Default program for materials
 //                 Ptr<gpu::Shader>   vertex;
 //                 Ptr<gpu
+                 Ptr<gpu::Heap>    enHeap;
                  Ptr<gpu::Texture> enAlbedoMap;
                  Ptr<gpu::Texture> enMetallicMap;
                  Ptr<gpu::Texture> enCavityMap;

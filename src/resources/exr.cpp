@@ -490,7 +490,7 @@ namespace en
          }
    
       // Create texture in gpu
-      Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(settings);
+      Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(settings);
       if (!texture)
          {
          Log << "ERROR: Cannot create texture in GPU!\n";
@@ -645,7 +645,7 @@ namespace en
       delete [] offsets;
       
       // Copy loaded texture to temporary staging buffer
-      Ptr<gpu::Buffer> transfer = Graphics->primaryDevice()->create(gpu::BufferType::Transfer,
+      Ptr<gpu::Buffer> transfer = en::ResourcesContext.defaults.enHeap->createBuffer(gpu::BufferType::Transfer,
                                                                     texture->size(),
                                                                     reinterpret_cast<void*>(dst));
       delete [] dst;

@@ -97,31 +97,12 @@ namespace en
    }
 
 
-
-
-
-
    BufferViewMTL::BufferViewMTL()
    {
    }
    
    BufferViewMTL::~BufferViewMTL()
    {
-   }
-
-   Ptr<Buffer> MetalDevice::create(const BufferType type, const uint32 size)
-   {
-   assert( size );
-   
-   return ptr_dynamic_cast<Buffer, BufferMTL>(Ptr<BufferMTL>(new BufferMTL(device, type, size)));
-   }
-   
-   // TODO: ifdef Mobile / or Transient
-   Ptr<Buffer> MetalDevice::create(const BufferType type, const uint32 size, const void* data)
-   {
-   assert( size );
-   
-   return ptr_dynamic_cast<Buffer, BufferMTL>(Ptr<BufferMTL>(new BufferMTL(device, type, size, data)));
    }
    
    }

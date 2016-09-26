@@ -296,7 +296,7 @@ namespace en
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size)
+   Ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
    {
    // Create buffer descriptor
    Ptr<Buffer> result = createBuffer(gpu, type, size);
@@ -339,13 +339,13 @@ namespace en
    // It is allowed on mobile devices conforming to UMA architecture.
    // On Discreete GPU's with NUMA architecture, only Transient buffers
    // can be created and populated with it.
-   Ptr<Buffer> HeapVK::create(const BufferType type, const uint32 size, const void* data)
+   Ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size, const void* data)
    {
    // TODO: FINISH !!!!
    return Ptr<Buffer>(nullptr);
    }
  
-   Ptr<Texture> HeapVK::create(const TextureState state)
+   Ptr<Texture> HeapVK::createTexture(const TextureState state)
    {
    // Create texture descriptor
    Ptr<Texture> result = createTexture(gpu, state);
@@ -461,7 +461,7 @@ namespace en
       }
    }
 
-   Ptr<Heap> VulkanDevice::create(const MemoryUsage usage, const uint32 size)
+   Ptr<Heap> VulkanDevice::createHeap(const MemoryUsage usage, const uint32 size)
    {
    uint32 roundedSize = roundUp(size, 4096u);
    

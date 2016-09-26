@@ -53,7 +53,7 @@ namespace en
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   Ptr<Buffer> HeapMTL::create(const BufferType type, const uint32 size)
+   Ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size)
    {
    return ptr_dynamic_cast<Buffer, BufferMTL>(new BufferMTL(handle, type, size));
    }
@@ -64,17 +64,17 @@ namespace en
    // It is allowed on mobile devices conforming to UMA architecture.
    // On Discreete GPU's with NUMA architecture, only Transient buffers
    // can be created and populated with it.
-   Ptr<Buffer> HeapMTL::create(const BufferType type, const uint32 size, const void* data)
+   Ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size, const void* data)
    {
    return ptr_dynamic_cast<Buffer, BufferMTL>(new BufferMTL(handle, type, size, data));
    }
  
-   Ptr<Texture> HeapMTL::create(const TextureState state)
+   Ptr<Texture> HeapMTL::createTexture(const TextureState state)
    {
    return ptr_dynamic_cast<Texture, TextureMTL>(new TextureMTL(handle, state));
    }
    
-   Ptr<Heap> MetalDevice::create(uint32 size)
+   Ptr<Heap> MetalDevice::createHeap(const MemoryUsage usage, const uint32 size)
    {
    Ptr<Heap> heap = nullptr;
 

@@ -244,29 +244,6 @@ namespace en
    return pointer == nullptr ? 0 : ((SafeObject<T>*)pointer)->references;
    }
 
-   template <typename T, typename Other>
-   Ptr<T> ptr_dynamic_cast(const Ptr<Other>& src)
-   {
-   T* ptr = dynamic_cast<T*>( *((Other**)(&src)) );
-   return Ptr<T>(ptr);
-   }
-
-   //
-   //// Dynamic cast intrusive pointer types
-   //template <typename T, typename Tsrc>
-   //T dynamic_cast_ptr(Ptr<Tsrc>)
-   //{
-   //return *(Ptr<T>*)(&Ptr<Tsrc>);
-   //}
-   //
-   //template <class Ty, class Other>
-   //Ptr<Ty> dynamic_pointer_cast(const Ptr<Other>& sp)
-   //{
-   //return
-   //}
-   
-   
-   
    // WEAK POINTER
    
    template <typename T>
@@ -393,6 +370,59 @@ namespace en
    }
 
 
+   // CASTS
+   
+   
+   // Pass in pointer to (weak or strong) pointer to safe object.
+   // Generates new Safe Pointer of different base class type.
+   // Reference counter of pointed object is increased.
+   template <typename T>
+   Ptr<T> ptr_reinterpret_cast(const void* src)
+   {
+   return Ptr<T>( *((T**)(src)) ); // *reinterpret_cast<T**>(src)
+   }
+
+   // Pass in pointer to (weak or strong) pointer to safe object.
+   // Generates new Weak Pointer of different base class type.
+   // Reference counter of pointed object is not changed.
+   template <typename T>
+   Ptr<T> weak_reinterpret_cast(const void* src)
+   {
+   return Weak<T>( *((T**)(src)) );
+   }
+
+   // TODO: This shouldn't be public!
+   
+   // Pass in pointer to (weak or strong) pointer to safe object.
+   // Returns raw pointer of different base class type.
+   // Reference counter of pointed object is not changed.
+   template <typename T>
+   T* raw_reinterpret_cast(const void* src)
+   {
+   return *((T**)(src));
+   }
+   
+   
+   template <typename T, typename Other>
+   Ptr<T> ptr_dynamic_cast(const Ptr<Other>& src)
+   {
+   T* ptr = dynamic_cast<T*>( *((Other**)(&src)) );
+   return Ptr<T>(ptr);
+   }
+
+   //
+   //// Dynamic cast intrusive pointer types
+   //template <typename T, typename Tsrc>
+   //T dynamic_cast_ptr(Ptr<Tsrc>)
+   //{
+   //return *(Ptr<T>*)(&Ptr<Tsrc>);
+   //}
+   //
+   //template <class Ty, class Other>
+   //Ptr<Ty> dynamic_pointer_cast(const Ptr<Other>& sp)
+   //{
+   //return
+   //}
 }
 
 #endif

@@ -44,14 +44,14 @@ namespace en
    return false;
    }
    
-   Ptr<Buffer> CommonHeap::create(const uint32 elements, const Formatting& formatting, const uint32 step)
+   Ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
    {
    assert( elements );
    assert( formatting.column[0] != Attribute::None );
 
    uint32 elementSize = formatting.elementSize();
    uint32 size        = elements * elementSize;
-   Ptr<Buffer> buffer = create(BufferType::Vertex, size);
+   Ptr<Buffer> buffer = createBuffer(BufferType::Vertex, size);
    if (buffer)
       {
       Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer);
@@ -64,7 +64,7 @@ namespace en
    return buffer;
    }
       
-   Ptr<Buffer> CommonHeap::create(const uint32 elements, const Attribute format)
+   Ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Attribute format)
    {
    assert( elements );
    assert( format == Attribute::u8  ||
@@ -73,7 +73,7 @@ namespace en
      
    uint32 elementSize = TranslateAttributeSize[underlyingType(format)];
    uint32 size        = elements * elementSize;
-   Ptr<Buffer> buffer = create(BufferType::Index, size);
+   Ptr<Buffer> buffer = createBuffer(BufferType::Index, size);
    if (buffer)
       {
       Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer);
@@ -86,14 +86,14 @@ namespace en
    }
 
    // Should be implemented by API class
-   Ptr<Buffer> CommonHeap::create(const BufferType type, const uint32 size)
+   Ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size)
    {
    assert(0);
    return Ptr<Buffer>(nullptr);
    }
       
    // Should be implemented by API class
-   Ptr<Buffer> CommonHeap::create(const BufferType type, const uint32 size, const void* data)
+   Ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size, const void* data)
    {
    assert(0);
    return Ptr<Buffer>(nullptr);

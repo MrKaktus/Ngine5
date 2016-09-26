@@ -42,7 +42,8 @@ namespace en
       virtual uint32   width(const uint8 mipmap = 0) const;
       virtual uint32   height(const uint8 mipmap = 0) const;
       virtual uint32   depth(const uint8 mipmap = 0) const;
-      virtual uint32v3 resolution(const uint8 mipmap = 0) const;
+      virtual uint32v2 resolution(const uint8 mipmap = 0) const;
+      virtual uint32v3 volume(const uint8 mipmap = 0) const;
       virtual uint16   layers(void) const;
       virtual uint16   samples(void) const;
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)

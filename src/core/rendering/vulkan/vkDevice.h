@@ -287,8 +287,7 @@ namespace en
 
 
 
-      virtual Ptr<Heap>   create(const MemoryUsage usage, 
-                                 const uint32 size);
+      virtual Ptr<Heap>   createHeap(const MemoryUsage usage, const uint32 size);
 
       virtual Ptr<Sampler>  create(const SamplerState& state);
 

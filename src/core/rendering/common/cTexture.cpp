@@ -496,7 +496,23 @@ namespace en
    return state.depth >> mipmap;
    }
    
-   uint32v3 CommonTexture::resolution(const uint8 mipmap) const
+   uint32v2 CommonTexture::resolution(const uint8 mipmap) const
+   {
+   uint32 width  = state.width >> mipmap;
+   uint32 height = state.height >> mipmap;
+   
+   // If mipmap exceeds total mipmaps count, result will be all 0's
+   // otherwise other dimensions are properly clamped to 1's.
+   if ((width > 0) || (height > 0))
+      {
+      if (width  == 0) width  = 1;
+      if (height == 0) height = 1;
+      }
+
+   return uint32v2(width, height);
+   }
+
+   uint32v3 CommonTexture::volume(const uint8 mipmap) const
    {
    uint32 width  = state.width >> mipmap;
    uint32 height = state.height >> mipmap;
@@ -513,7 +529,7 @@ namespace en
 
    return uint32v3(width, height, depth);
    }
-   
+      
    uint16 CommonTexture::layers(void) const
    {
    return state.layers;

@@ -105,7 +105,7 @@ namespace en
    // assert( (firstSlot + count) <= gpu->properties.limits.maxVertexInputBindings ); TODO: Populate GPU support field depending on iOS and macOS limitations and check it here
 
    // Extrack Metal buffer handles
-   id<MTLBuffer> handles = new id<MTLBuffer>[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+   id<MTLBuffer>* handles = new id<MTLBuffer>[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
    for(uint32 i=0; i<count; ++i)
       {
       assert( buffers[i] );
@@ -113,7 +113,7 @@ namespace en
       }
 
    // Generate default zero offsets array if none is passed
-   uint64* finalOffsets = offsets;
+   uint64* finalOffsets = (uint64*)offsets;
    if (!offsets)
       {
 	  finalOffsets = new uint64[count];
@@ -121,8 +121,8 @@ namespace en
 	  }
 
    [renderEncoder setVertexBuffers:handles 
-                           offsets:finalOffsets 
-						 withRange:NSMakeRange()];
+                           offsets:(const NSUInteger*)finalOffsets   // Warning: Will fail if compiled as 32bit
+						 withRange:NSMakeRange(firstSlot, count)];
 
    delete [] handles;
    if (!offsets)

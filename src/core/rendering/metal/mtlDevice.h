@@ -100,17 +100,10 @@ namespace en
       Ptr<Window> create(const WindowSettings& settings,
                         const string title); // Create window
       
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size);
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data);
-    
-                                    
-      virtual Ptr<Texture> create(const TextureState state);
-      
+      virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
+
       virtual Ptr<Shader>  create(const string& source, const string& entrypoint);
       
-      
-      virtual Ptr<Heap>    create(uint32 size);
-
       virtual uint32 queues(const QueueType type) const;
       
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,

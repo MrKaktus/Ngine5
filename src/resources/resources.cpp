@@ -145,6 +145,13 @@ namespace en
    //shaders[1] = Gpu.shader.create(Fragment, fsCode);
    //defaults.program     = Gpu.program.create(shaders);
 
+   // Create GPU Heap used as backing store for all resources (for now 256MB)
+   defaults.enHeap = Graphics->primaryDevice()->createHeap(MemoryUsage::Static, 256*1024*1024);
+
+   // TODO: This is temporary solution. Resources should be dynamically streamed in,
+   //       from storage to RAM and then VRAM. Also different Heaps should be used
+   //       for different kinds of resources.
+   
    // Create default textures for materials
    defaults.enAlbedoMap             = png::load(string("./resources/engine/textures/enDefaultAlbedoMap.png"));   
    defaults.enMetallicMap           = png::load(string("./resources/engine/textures/enDefaultMetallicMap.png"));
@@ -167,7 +174,7 @@ namespace en
 
    // Create default mesh for corrdinate system axes
    Formatting formatting(Attribute::v3f32, Attribute::v3f32); // inPosition, inColor
-   defaults.enAxes = en::Graphics->primaryDevice()->create(14, formatting, 0, &axes);
+   defaults.enAxes = defaults.enHeap->createBuffer(14, formatting, 0, &axes);
 
 #ifdef EN_PLATFORM_WINDOWS
    fbxManager = FbxManager::Create();
