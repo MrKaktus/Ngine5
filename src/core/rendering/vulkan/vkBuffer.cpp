@@ -38,9 +38,58 @@ namespace en
    ProfileNoRet( gpu, vkDestroyBuffer(gpu->device, handle, nullptr) )
    
    // Deallocate from the Heap (let Heap allocator know that memory region is available again)
-   ptr_dynamic_cast<HeapVK, Heap>(heap)->allocator->deallocate(offset, memoryRequirements.size);
+   heap->allocator->deallocate(offset, memoryRequirements.size);
    heap = nullptr;
    }
+
+
+
+
+   // Only one continous memory range can be mapped for each heap at the same time.
+   // Thus to update multiple objects, create separate heaps with staging buffers
+   // for each of them.
+
+   // There may be only one heap resource mapped at a time. To update
+   // several resources at the same time (for e.g. simultaneous streaming
+   // by several threads), create separate heap's for each such update.
+
+   void* BufferVK::map(void)
+   {
+   return map(0u, size);
+   }
+   
+   void* BufferVK::map(const uint64 _offset, const uint64 _size)
+   {
+   assert( _offset + _size <= size );
+   
+   // Buffers can be mapped only on Streamed and Immediate Heaps.
+   assert( heap->_usage == MemoryType::Streamed ||
+           heap->_usage == MemoryType::Immediate );
+      
+   // If heap is already locked by other thread mapping resource, fail.
+   if (!heap->mapped.tryLock())
+      return nullptr;
+     
+   void* mappedPtr = nullptr;
+   
+   mappedOffset = _offset;
+   mappedSize   = _size;
+   
+   Profile( heap->gpu, vkMapMemory(heap->gpu->device, heap->handle, mappedOffset, mappedSize, 0u, &mappedPtr) )
+
+   return mappedPtr;
+   }
+
+   void BuferVK::unmap(void)
+   {
+   assert( heap->mapped.isLocked() );
+
+   // Unmaps memory object
+   ProfileNoRet( heap->gpu, vkUnmapMemory(heap->gpu->device, heap->handle) )
+
+   mapped.unlock();
+   }
+
 
    // Vulkan Buffer View is created only for Linear Textures backed by Buffers - not supported currently.
    //
@@ -95,22 +144,7 @@ namespace en
    }
 #endif
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   Ptr<Buffer> createBuffer(VulkanDevice* gpu, const BufferType type, const uint32 size)
+   Ptr<Buffer> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size)
    {
    Ptr<BufferVK> buffer = nullptr;
    
@@ -138,16 +172,20 @@ namespace en
       case BufferType::Indirect:
          bufferUsage = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
          break;
-
-      case BufferType::Transfer:
-         // For now universal transfer buffer. In future could specialise to Source and Destination buffers.
-         bufferUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-         break;
             
       default:
          assert( 0 );
          break;
       };
+      
+   // If buffer is created on Heaps designated to data transfer, mark that
+   if (heap->_usage == MemoryUsage::Streamed ||
+       heap->_usage == MemoryUsage::Immediate)
+      {
+      // TODO: Optimize it so that transfer direction is specified
+      bufferUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+      bufferUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+      }
 
    // Need to be set to enable buffer views (linear textures?):
    //
@@ -185,6 +223,7 @@ namespace en
       }
       
    VkBuffer handle;
+   VulkanDevice* gpu = heap->gpu;
    Profile( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
    if (gpu->lastResult[Scheduler.core()] >= 0)
       {
@@ -196,18 +235,9 @@ namespace en
       // TODO: Create default Buffer View !
       } 
 
-   return ptr_dynamic_cast<Buffer, BufferVK>(buffer); 
+   return ptr_reinterpret_cast<Buffer>(&buffer);
    }
    
-   // TODO: ifdef Mobile / or Transient
-   // TODO: Is there a way to support it internally by some WA? On Vulkan probably not :/.
-   Ptr<Buffer> createBufferAndPopulate(VulkanDevice* gpu, const BufferType type, const uint32 size, const void* data)
-   {
-   assert( size );
-   assert( data );
-
-   }
-
    }
 }
 #endif

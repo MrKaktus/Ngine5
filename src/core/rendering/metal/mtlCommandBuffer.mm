@@ -136,6 +136,74 @@ namespace en
 						  atIndex:slot];
    }
 
+
+   // TRANSFER COMMANDS
+   //////////////////////////////////////////////////////////////////////////
+
+
+   // Copies content of source buffer to destination buffer
+   void CommandBufferMTL::copy(Ptr<Buffer> transfer, Ptr<Buffer> buffer)
+   {
+   assert( transfer );
+   assert( transfer->type() == BufferType::Transfer );
+   assert( buffer );
+
+   BufferMTL* source      = raw_reinterpret_cast<BufferMTL>(&transfer);
+   BufferMTL* destination = raw_reinterpret_cast<BufferMTL>(&buffer);
+
+   assert( source->size >= destination->size );
+
+   @autoreleasepool
+      {
+      // Blit to Private buffer
+      id <MTLBlitCommandEncoder> blit = [[handle blitCommandEncoder] autorelease];
+      [blit copyFromBuffer:source->handle
+              sourceOffset:0
+                  toBuffer:destination->handle
+         destinationOffset:0
+                      size:destination->size];
+
+      [blit endEncoding];
+      blit = nil;
+      } // autoreleasepool
+   
+   }
+
+   // Copies content of buffer, to given mipmap and layer of destination texture
+   void CommandBufferMTL::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   {
+   assert( transfer );
+   assert( transfer->type() == BufferType::Transfer );
+   assert( texture );
+   assert( texture->mipmaps() > mipmap );
+   assert( texture->layers() > layer );
+   
+   BufferMTL*  source      = raw_reinterpret_cast<BufferMTL>(&transfer);
+   TextureMTL* destination = raw_reinterpret_cast<TextureMTL>(&texture);
+
+   assert( source->size >= destination->size(mipmap) );
+
+   @autoreleasepool
+      {
+      // Blit to Private buffer
+      id <MTLBlitCommandEncoder> blit = [[handle blitCommandEncoder] autorelease];
+      [blit copyFromBuffer:source->handle
+              sourceOffset:0
+         sourceBytesPerRow:destination->width(mipmap)
+       sourceBytesPerImage:destination->size(mipmap)
+                sourceSize:MTLSizeMake(destination->width(mipmap), destination->height(mipmap), 1)
+                 toTexture:destination->handle
+          destinationSlice:layer
+          destinationLevel:mipmap
+         destinationOrigin:MTLOriginMake(0, 0, 0)
+                   options:MTLBlitOptionNone ];
+      
+      [blit endEncoding];
+      blit = nil;
+      } // autoreleasepool
+   }
+
+
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 
@@ -276,77 +344,7 @@ namespace en
 
    
 
-   
-/* Init Resoure */
 
-   // Populate Private buffer before use (first time only)
-   bool CommandBufferMTL::populate(Ptr<Buffer> transfer, Ptr<Buffer> buffer)
-   {
-   assert( transfer );
-   assert( transfer->type() == BufferType::Transfer );
-   assert( buffer );
-
-   Ptr<BufferMTL> source      = ptr_dynamic_cast<BufferMTL, Buffer>(transfer);
-   Ptr<BufferMTL> destination = ptr_dynamic_cast<BufferMTL, Buffer>(buffer);
-
-   assert( source->size >= destination->size );
-
-   @autoreleasepool
-   {
-      // Blit to Private buffer
-      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
-      [blit copyFromBuffer:source->handle
-              sourceOffset:0
-                  toBuffer:destination->handle
-         destinationOffset:0
-                      size:destination->size];
-
-      [blit endEncoding];
-      blit = nil;
-   } // autoreleasepool
-   
-   return true;
-   }
-
-   // Populate Private texture before use (first time only)
-   bool CommandBufferMTL::populate(Ptr<Buffer> transfer, Ptr<Texture> texture, uint32 mipmap, uint32 layer)
-   {
-   assert( transfer );
-   assert( transfer->type() == BufferType::Transfer );
-   assert( texture );
-   assert( texture->mipmaps() > mipmap );
-   assert( texture->layers() > layer );
-   
-   Ptr<BufferMTL>  source      = ptr_dynamic_cast<BufferMTL, Buffer>(transfer);
-   Ptr<TextureMTL> destination = ptr_dynamic_cast<TextureMTL, Texture>(texture);
-
-   assert( source->size >= destination->size(mipmap) );
-
-   @autoreleasepool
-   {
-      // Blit to Private buffer
-      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
-      [blit copyFromBuffer:source->handle
-              sourceOffset:0
-         sourceBytesPerRow:destination->width(mipmap)
-       sourceBytesPerImage:destination->size(mipmap)
-                sourceSize:MTLSizeMake(destination->width(mipmap), destination->height(mipmap), 1)
-                 toTexture:destination->handle
-          destinationSlice:layer
-          destinationLevel:mipmap
-         destinationOrigin:MTLOriginMake(0, 0, 0)
-                   options:MTLBlitOptionNone ];
-      
-      [blit endEncoding];
-      blit = nil;
-   } // autoreleasepool
-   
-   return true;
-   }
-
-/* Blitting */
-
-   // TODO
 
 
    
@@ -380,14 +378,14 @@ namespace en
    assert( type == QueueType::Universal );
    assert( parentQueue == 0u );
    
-   // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers they can be recycled / reused !!! )
+   // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers can be recycled / reused !!! )
    // Multiple buffers can be created simultaneously for one queue
    // Buffers are executed in order in queue
    Ptr<CommandBufferMTL> buffer = new CommandBufferMTL(device);
    
    buffer->handle = [queue commandBuffer];
    
-   return ptr_dynamic_cast<CommandBuffer, CommandBufferMTL>(buffer);
+   return ptr_reinterpret_cast<CommandBuffer>(&buffer);
    }
    
    }

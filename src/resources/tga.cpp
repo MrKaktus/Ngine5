@@ -118,26 +118,38 @@ namespace en
        dst->type() != gpu::TextureType::Texture2DArray            &&
        dst->type() != gpu::TextureType::Texture2DMultisampleArray &&
        dst->type() != gpu::TextureType::TextureCubeMapArray)
+      {
+      delete file;
       return false;
-   if (dst->layers() < layer)
+      }
+   if ( (dst->layers() < layer) ||
+        (dst->width()  != textureState.width)  ||
+        (dst->height() != textureState.height) ||
+        (dst->format() != textureState.format) )
+      {
+      delete file;
       return false;
-   if (dst->width() != textureState.width)
-      return false;
-   if (dst->height() != textureState.height)
-      return false;
-   if (dst->format() != textureState.format)
-      return false;
+      }
 
    // Calculate size of data to load
    uint32 srcOffset = sizeof(Header) + header.idSize;
    uint32 dataSize   = (header.width * header.height * header.bpp) / 8;
-              
+      
+   // Create staging buffer
+   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
+   if (!staging)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      delete file;
+      return false;
+      }
+      
    // Read image to gpu memory   
    if (header.format == RGB) 
       {
-      void* ptr = dst->map(0, layer);      
+      void* ptr = staging->map();
       file->read(srcOffset, dataSize, ptr);    
-      dst->unmap();   
+      staging->unmap();
       }
    else
    if (header.format == RGB_RLE)
@@ -146,7 +158,7 @@ namespace en
       uint32 dstOffset = 0;
       uint8  pixelSize = header.bpp / 8;
       void*  pixel = new uint8[pixelSize];
-      void*  ptr   = dst->map(0, layer);
+      void*  ptr   = staging->map();
 
       while(dstOffset < dataSize)
            {
@@ -181,10 +193,31 @@ namespace en
               }
            }
 
-      dst->unmap();
+      staging->unmap();
       delete [] static_cast<uint8*>(pixel);
       }
 
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType type = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      type = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final texture
+   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   command->copy(staging, dst, 0u, layer);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
+ 
    delete file;
    return true;
    }
@@ -249,8 +282,12 @@ namespace en
       return Ptr<gpu::Texture>(nullptr);
       }
 
+   // Calculate size of data to load
+   uint32 srcOffset = sizeof(Header) + header.idSize;
+   uint32 dataSize  = (header.width * header.height * header.bpp) / 8;
+      
    // Create texture
-   Ptr<gpu::Texture> texture = Graphics->primaryDevice()->create(textureState);
+   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(textureState);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture object!\n";
@@ -258,16 +295,21 @@ namespace en
       return texture;
       }
 
-   // Calculate size of data to load
-   uint32 srcOffset = sizeof(Header) + header.idSize;
-   uint32 dataSize   = (header.width * header.height * header.bpp) / 8;
-              
+   // Create staging buffer
+   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
+   if (!staging)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      delete file;
+      return texture;
+      }
+      
    // Read image to gpu memory   
    if (header.format == RGB) 
       {     
-      void* dst = texture->map();      
+      void* dst = staging->map();
       file->read(srcOffset, dataSize, dst);    
-      texture->unmap();   
+      staging->unmap();
       }
    else
    if (header.format == RGB_RLE)
@@ -276,7 +318,7 @@ namespace en
       uint32 dstOffset = 0;
       uint8  pixelSize = header.bpp / 8;
       void*  pixel = new uint8[pixelSize];
-      void*  dst   = texture->map();
+      void*  dst   = staging->map();
 
       while(dstOffset < dataSize)
            {
@@ -311,10 +353,35 @@ namespace en
               }
            }
 
-      texture->unmap();
+      staging->unmap();
       delete [] static_cast<uint8*>(pixel);
       }
+ 
+   // TODO: Now blit from staging to texture
+   uint32 mipmap = 0u;
+   uint32 slice  = 0u;
+   
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType type = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      type = gpu::QueueType::Transfer;
 
+   // Copy data from staging buffer to final texture
+   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   command->copy(staging, texture, mipmap, slice);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
+ 
    // Update list of loaded textures
    ResourcesContext.textures.insert(pair<string, Ptr<en::gpu::Texture> >(filename, texture));
   

@@ -39,43 +39,105 @@ namespace en
    //
    // Intel integrated GPU (CPU and GPU can both access the same cache)
    // CPU, GPU <---> SHARED CACHE <---> L4 EDRAM <---> RAM 
-
+   //
    // Allowed Memory Types:
 
    #define SystemEviction              0
    #define System                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
    #define SystemCached                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT
-   #define SystemSharedCache           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+   #define SystemWriteThrough          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
    #define Dedicated                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-   #define DedicatedMappedPCIE         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+   #define DedicatedMapped             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
    #define DedicatedWithCopy           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT
    #define DedicatedSharedCache        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
    #define DedicatedMemorylessFallback VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT
 
    // Description:
+   //
+   // a) SystemEviction              - System memory region visible only by driver.
+   //                                  Used for temporary eviction of resources from VRAM (on over commitment).
+   // b) System                      - System memory, CPU writes directly to memory without caching.
+   //                                  Access is slower but explicit synchronization is not needed.
+   //                                  (GPU writes are immediately visible as well). Equivalent of Write-Around cache.
+   // c) SystemCached                - System memory, CPU caches it's writes. Memory access is faster, but
+   //                                  requires mapping and explicit flushing, to make changes visible for GPU.
+   // d) SystemWriteThrough          - System memory, CPU caches it's writes and sends data to RAM at the same time.
+   //                                  Data is coherent but writes confirmation take more time. Write-Through cache.
+   // e) Dedicated                   - GPU dedicated memory (VRAM on Discreete or BIOS mapped region of RAM on Integrated).
+   //                                  Can be populated only through staging buffers and transfer operations.
+   // f) DedicatedMapped             - GPU dedicated memory. It's adress space is directly mapped to CPU adress space
+   //                                  (through PCI-E for Discreete), so synchronisation is immediate and flushing is not needed.
+   // g) DedicatedWithCopy           - GPU dedicated memory. CPU keeps local copy of resource through
+   //                                  Mapping mechanism. Requires explicit flushing.
+   //                                  (equivalent of MTLStorageModeManaged in Metal API)
+   // h) DedicatedSharedCache        - CPU and GPU can share common cahe on integrated GPU's like in case of Intel.
+   // i) DedicatedMemorylessFallback - Memory used as drivers fallback alocation area for intermediate render targets
+   //                                  (that on mobile could be processed in tile cache).
+   //                                  Equivalent of Memoryless Textures / Render Targets in Metal API.
+   //
+   // Access patterns:
+   //
+   // SystemEviction
+   // System                      map/unmap
+   // SystemCached                map/unmap flush/invalidate
+   // SystemWriteThrough          map/unmap
+   // Dedicated                   blit
+   // DedicatedMapped             map/unmap
+   // DedicatedWithCopy           map/unmap flush/invalidate
+   // DedicatedSharedCache        map/unmap
+   // DedicatedMemorylessFallback
+   //
+   // Because Engine currently is not using "SystemCached" nor "DedicatedWithCopy" memory types,
+   // (as they doesn't occur in the actual drivers), it doesn't need to use nelow Vulkan calls:
+   //
+   // vkFlushMappedMemoryRanges      - non-coherent
+   // vkInvalidateMappedMemoryRanges - non-coherent , after barrier and fence
 
-   // a) System memory region visible only by driver. Used for temporary eviction of resources from VRAM (on over commitment).
-   // b) System memory, CPU writes directly to memory without caching. Access is slower but explicit synchronization is not needed. (GPU writes are immediately visible as well).
-   // c) System memory, CPU caches it's writes. Memory access is faster, but requires mapping and explicit flushing, to make changes visible for GPU.
-   // d) System memory accessed by Intel integrated GPU. CPU and GPU share common cache.   
-   //    ? Why AMD and  NVidia reports this memory ?
-   // e) GPU dedicated memory (VRAM). Can be populated only through staging buffers and transfer operations.
-   // f) GPU dedicated memory (VRAM). It's adress space is directly mapped to CPU adress space through PCI-E, so synchronisation is immediate and flushing is not needed.
-   // g) GPU dedicated memory (VRAM). CPU keeps local copy of resource through Mapping mechanism. Requires explicit flushing. (equivalent of MTLStorageModeManaged in Metal API)
-   // h) Equivalent of (d). Reported by Intel GPU's. ( Can it be EDRAM?)
-   // i) VRAM used as drivers fallback alocation area for intermediate render targets (that on mobile could be processed in tile cache).
-   //    Equivalent of Memoryless Textures / Render Targets in Metal API.
+
+
+   AMD R9 390:
+   
+   Dedicated
+   DedicatedMapped
+   System
+   SystemWriteThrough
+   
+   NV GTX 980 Ti:
+   
+   Dedicated
+   System
+   SystemWriteThrough
+   
+   Intel HD 520:
+
+   DedicatedMapped
+   DedicatedSharedCache
+   
+   Intel Ivybridge / Haswell / Skylake:
+   
+   DedicatedSharedCache   
+   
+   Adreno 430:
+   
+   Dedicated             ( reports shared system memory as Dedicated )
+   DedicatedWithCopy
+   DedicatedSharedCache
+   
+   Tegra K1, X1:
+   
+   Dedicated
+   DedicatedMapped
+   DedicatedWithCopy
+
+   // Description:
+
+
    //
    //    There may be two separate Memory Heaps marked with VK_MEMORY_HEAP_DEVICE_LOCAL_BIT. 
-   //    If one is of size 256MB then it represents PCI-E mapped VRAM. It may be used for fast streaming of uniforms / push constants (view matrix, model transforms etc.).
+   //    If one is of size 256MB then it represents PCI-E mapped VRAM.
+   //    It may be used for fast streaming of uniforms / push constants (view matrix, model transforms etc.).
    //
-   // Memory Types hierarchy (Discreete):
-   // - general allocations - e) > g) > f) > d) or h) > c) > b)
-   // - UBO's / push const. - f) > g) > e) > d) or h) > c) > b)
-   //
-   // Memory Types hierarchy (Integrated/Mobile):
-   // - general allocations - d) or h) > c) > b)
-   // - intermediate RT's   - i) > d) or h) > c) > b)
+
 
 
 // Possible Memory Types:
@@ -133,94 +195,8 @@ namespace en
 // 
 
 
-//typedef enum VkMemoryPropertyFlagBits {
-//    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT = 0x00000001,
-//    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT = 0x00000002,
-//    VK_MEMORY_PROPERTY_HOST_COHERENT_BIT = 0x00000004,
-//    VK_MEMORY_PROPERTY_HOST_CACHED_BIT = 0x00000008,
-//    VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT = 0x00000010,
-//} VkMemoryPropertyFlagBits;
-//typedef VkFlags VkMemoryPropertyFlags;
 
 
-// typedef struct {
-//     VkDeviceSize                                size;
-//     VkDeviceSize                                alignment;
-//     uint32_t                                    memoryTypeBits;
-// } VkMemoryRequirements;
-
-
-
-
-
-
-
-
-// typedef struct {
-//     VkDeviceSize                                size;
-//     VkDeviceSize                                alignment;
-//     uint32_t                                    memoryTypeBits;
-// } VkMemoryRequirements;
-// 
-// 
-// - Heaps are fixed up front.
-// - Their amount and types is vendor / gpu / driver dependent.
-// - We alloc memory on given cheap by referring to Memory Type ID -> which points at given heap. (see below).
-// 
-// Acquire GPU heaps count an types available :
-// 
-// 	void vkGetPhysicalDeviceMemoryProperties(
-// 	    VkPhysicalDevice physicalDevice, 
-// 	    VkPhysicalDeviceMemoryProperties* pMemoryProperties);
-// 
-// 	#define VK_MAX_MEMORY_TYPES               32
-// 	#define VK_MAX_MEMORY_HEAPS               16
-// 
-// 	typedef struct {
-// 	    uint32_t                   memoryTypeCount;
-// 	    VkMemoryType               memoryTypes[VK_MAX_MEMORY_TYPES];
-// 	    uint32_t                   memoryHeapCount;
-// 	    VkMemoryHeap               memoryHeaps[VK_MAX_MEMORY_HEAPS];
-// 	} VkPhysicalDeviceMemoryProperties;
-// 
-// 
-// 
-// 
-// 
-// Memory Heap:
-// 
-// 	// size is uint64
-// 	typedef struct {
-// 	    VkDeviceSize               size;
-// 	    VkMemoryHeapFlags          flags;
-// 	} VkMemoryHeap;
-// 
-// 	typedef enum {
-// 	    VK_MEMORY_HEAP_HOST_LOCAL_BIT = 0x00000001,
-// 	} VkMemoryHeapFlagBits;
-// 	typedef VkFlags VkMemoryHeapFlags;
-// 
-// 
-// Memory Type:
-// 
-// 	// heapIndex - refers to memoryHeaps[] array above
-// 	typedef struct {
-// 	    VkMemoryPropertyFlags                       propertyFlags;
-// 	    uint32_t                                    heapIndex;   
-// 	} VkMemoryType;
-// 
-// 	typedef enum {
-// 	    VK_MEMORY_PROPERTY_DEVICE_ONLY = 0,
-// 	    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT = 0x00000001,
-// 	    VK_MEMORY_PROPERTY_HOST_NON_COHERENT_BIT = 0x00000002,
-// 	    VK_MEMORY_PROPERTY_HOST_UNCACHED_BIT = 0x00000004,
-// 	    VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT = 0x00000008,
-// 	} VkMemoryPropertyFlagBits;
-// 	typedef VkFlags VkMemoryPropertyFlags;
-// 
-// When allocating resource, you pass MemoryType ID in the array, and through it, Driver picks Heap to use.
-// There can be several Memory Types that have the same subset of properties, but uses different backing Heaps (?).
-// 
 // 
 // Query memory layout for given resource:
 // 
@@ -277,12 +253,16 @@ namespace en
 // There are also functions for mapping/unmapping/invalidating memory etc.
 
 
-   HeapVK::HeapVK(VulkanDevice* _gpu, const VkDeviceMemory _handle, const uint32 _memoryType, const uint32 size) :
+   HeapVK::HeapVK(VulkanDevice* _gpu,
+                  const VkDeviceMemory _handle,
+                  const uint32 _memoryType,
+                  const MemoryUsage _usage,
+                  const uint32 size) :
       gpu(_gpu),
       handle(_handle),
       memoryType(_memoryType),
       allocator(new BasicAllocator(size)),
-      CommonHeap(size)
+      CommonHeap(_usage, size)
    {
    }
 
@@ -299,18 +279,16 @@ namespace en
    Ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
    {
    // Create buffer descriptor
-   Ptr<Buffer> result = createBuffer(gpu, type, size);
-   if (!result)
-      return result;
+   Ptr<BufferVK> buffer = createBuffer(gpu, type, size);
+   if (!buffer)
+      return Ptr<Buffer>(nullptr);
 
    // Check if created buffer can be backed by this Heap memory
-   Ptr<BufferVK> buffer = ptr_dynamic_cast<BufferVK, Buffer>(result);
    if (!checkBit(buffer->memoryRequirements.memoryTypeBits, memoryType))
       {
       // Destroy texture descriptor
       buffer = nullptr;
-      result = nullptr;
-      return result;
+      return Ptr<Buffer>(nullptr);
       }
 
    // Find memory region in the Heap where this buffer can be placed.
@@ -322,44 +300,33 @@ namespace en
       {
       // Destroy buffer descriptor
       buffer = nullptr;
-      result = nullptr;
-      return result;
+      return Ptr<Buffer>(nullptr);
       }
 
    Profile( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
-
    buffer->heap   = this;
    buffer->offset = offset;
-   return result;
+   
+   return ptr_reinterpret_cast<Buffer>(&buffer);
    }
    
-   // Create unformatted generic buffer of given type and size.
-   // This is specialized method, that allows passing pointer
-   // to data, to directly initialize buffer content.
-   // It is allowed on mobile devices conforming to UMA architecture.
-   // On Discreete GPU's with NUMA architecture, only Transient buffers
-   // can be created and populated with it.
-   Ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size, const void* data)
-   {
-   // TODO: FINISH !!!!
-   return Ptr<Buffer>(nullptr);
-   }
- 
    Ptr<Texture> HeapVK::createTexture(const TextureState state)
    {
+   // Do not create textures on Heaps designated for Streaming.
+   // (Engine currently is not supporting Linear Textures).
+   assert( _usage == MemoryUsage::Static );
+   
    // Create texture descriptor
-   Ptr<Texture> result = createTexture(gpu, state);
-   if (!result)
-      return result;
+   Ptr<TextureVK> texture = createTexture(gpu, state);
+   if (!texture)
+      return Ptr<Texture>(nullptr);
 
    // Check if created texture can be backed by this Heap memory
-   Ptr<TextureVK> texture = ptr_dynamic_cast<TextureVK, Texture>(result);
    if (!checkBit(texture->memoryRequirements.memoryTypeBits, memoryType))
       {
       // Destroy texture descriptor
       texture = nullptr;
-      result = nullptr;
-      return result;
+      return Ptr<Texture>(nullptr);
       }
   
    // Find memory region in the Heap where this texture can be placed.
@@ -371,15 +338,14 @@ namespace en
       {
       // Destroy texture descriptor
       texture = nullptr;
-      result = nullptr;
-      return result;
+      return Ptr<Texture>(nullptr);
       }
 
    Profile( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )
-
    texture->heap   = this;
    texture->offset = offset;
-   return result;
+   
+   return ptr_reinterpret_cast<Texture>(&texture);
    }
   
   
@@ -402,41 +368,41 @@ namespace en
 
    // Discrete
 
-   memoryTypePerUsageCount[underlyingType(MemoryUsage::Static)]    = 4;
-   memoryTypePerUsageCount[underlyingType(MemoryUsage::Streamed)]  = 3;
-   memoryTypePerUsageCount[underlyingType(MemoryUsage::Immediate)] = 4;
-   memoryTypePerUsageCount[underlyingType(MemoryUsage::Temporary)] = 1;
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Static)]    = 1; // Staging in using Immediate or Streamed
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Streamed)]  = 3; // Map-unmap (only for buffers, staging)
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Immediate)] = 3; // Map-unmap (only for buffers, staging)
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Temporary)] = 1; // Staging in using Immediate or Streamed
    uint32 prefferedMemoryTypePerUsage[4][8] = {
-      { Dedicated, DedicatedWithCopy, System, SystemCached },            // Fastest possible GPU read and write
-      { SystemCached, System, DedicatedWithCopy },                       // Fastest possible CPU read and write, burst upload to GPU preffered
-      { DedicatedMappedPCIE, System, SystemCached, DedicatedWithCopy },  // Fastest possible CPU read and write, immediate upload to GPU preffered
-      { DedicatedMemorylessFallback }                                    // Fastest possible allocation, GPU read and write
+      { Dedicated },                                    // Fastest possible GPU read and write
+      { SystemWriteThrough, System, DedicatedMapped },  // Fastest possible CPU read and write
+      { DedicatedMapped, SystemWriteThrough, System },  // Fastest possible CPU write, immediate upload to GPU memory if possible
+      { DedicatedMemorylessFallback }                   // Fastest possible allocation, GPU read and write
       };
-
+      
    // // Integrated 
    // 
-   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Static)]    = 5;
-   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Streamed)]  = 5;
-   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Immediate)] = 5;
-   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Temporary)] = 1;
-   // memoryTypePerUsage = {
-   //    { Dedicated, DedicatedSharedCache, SystemSharedCache, SystemCached, System },         // Fastest possible GPU read and write (with focus on cache)
-   //    { DedicatedSharedCache, SystemSharedCache, SystemCached, System, DedicatedWithCopy }, // Fastest possible CPU read and write (with focus on cache)
-   //    { DedicatedSharedCache, SystemSharedCache, SystemCached, System, DedicatedWithCopy },
-   //    { DedicatedMemorylessFallback }
+   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Static)]    = 3; // Staging in using Immediate or Streamed
+   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Streamed)]  = 4; // Map-unmap (only for buffers, staging)
+   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Immediate)] = 4; // Map-unmap (only for buffers, staging)
+   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Temporary)] = 1; // Staging in using Immediate or Streamed
+   // uint32 prefferedMemoryTypePerUsage[4][8] = {
+   //    { DedicatedSharedCache, DedicatedMapped, Dedicated },                   // Fastest possible GPU read and write
+   //    { SystemWriteThrough, System, DedicatedSharedCache, DedicatedMapped },  // Fastest possible CPU read and write
+   //    { DedicatedSharedCache, DedicatedMapped, SystemWriteThrough, System },  // Fastest possible CPU write, immediate upload to GPU memory if possible
+   //    { DedicatedMemorylessFallback }                                         // Fastest possible allocation, GPU read and write
    //    };
    // 
    // // Mobile 
    // 
-   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Static)]    = 5;
-   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Streamed)]  = 5;
-   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Immediate)] = 4;
-   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Temporary)] = 1;
-   // memoryTypePerUsage = {
-   //    { Dedicated, DedicatedSharedCache, SystemSharedCache, SystemCached, System },         // Fastest possible GPU read and write (with focus on cache)
-   //    { DedicatedSharedCache, SystemSharedCache, SystemCached, System, DedicatedWithCopy }, // Fastest possible CPU read and write (with focus on cache)
-   //    { DedicatedSharedCache, SystemSharedCache, SystemCached, System, DedicatedWithCopy },
-   //    { DedicatedMemorylessFallback }
+   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Static)]    = 3; // Staging in using Immediate or Streamed
+   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Streamed)]  = 4; // Map-unmap (only for buffers, staging)
+   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Immediate)] = 4; // Map-unmap (only for buffers, staging)
+   // memoryTypePerUsageCount[underlyingType(MemoryUsage::Temporary)] = 1; // Staging in using Immediate or Streamed
+   // uint32 prefferedMemoryTypePerUsage[4][8] = {
+   //    { DedicatedSharedCache, DedicatedMapped, Dedicated },                   // Fastest possible GPU read and write
+   //    { SystemWriteThrough, System, DedicatedSharedCache, DedicatedMapped },  // Fastest possible CPU read and write
+   //    { DedicatedSharedCache, DedicatedMapped, SystemWriteThrough, System },  // Fastest possible CPU write, immediate upload to GPU memory if possible
+   //    { DedicatedMemorylessFallback }                                         // Fastest possible allocation, GPU read and write
    //    };
 
    // Then engine preffered memory types are validated at runtime with available memory types reported by device.
@@ -456,6 +422,9 @@ namespace en
                break;
                }
 
+      // For each memory usage there need to be at least one memory type.
+      assert( index > 0u );
+      
       // Set final count of Vulkan Memory Type indexes stored in array.
       memoryTypePerUsageCount[usage] = index;
       }
@@ -480,9 +449,10 @@ namespace en
       
       VkDeviceMemory handle;
       Profile( this, vkAllocateMemory(device, &allocInfo, nullptr, &handle) )
-	  if (lastResult[0] == VK_SUCCESS)   // FIXME!! Assumes first thread !
+      if (lastResult[en::Scheduler.core()] == VK_SUCCESS)
          {
-         return ptr_dynamic_cast<Heap, HeapVK>(Ptr<HeapVK>(new HeapVK(this, handle, memoryTypePerUsage[usageIndex][i], roundedSize)));
+         Ptr<HeapVK> heap = new HeapVK(this, handle, memoryTypePerUsage[usageIndex][i], usage, roundedSize);
+         return ptr_reinterpret_cast<Heap>(&heap);
          }
       }
 

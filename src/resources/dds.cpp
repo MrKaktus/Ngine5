@@ -717,20 +717,41 @@ namespace en
             // Stream given surface from file to GPU memory
             uint64 surfaceSize = texture->size(mipmap);
             
-                  // Copy loaded texture to temporary staging buffer
-            Ptr<gpu::Buffer> transfer = en::ResourcesContext.defaults.enHeap->createBuffer(gpu::BufferType::Transfer,
-                                                                          static_cast<uint32>(surfaceSize));
-            
-            void* ptr = transfer->content();
+            // Create staging buffer
+            Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, static_cast<uint32>(surfaceSize));
+            if (!staging)
+               {
+               Log << "ERROR: Cannot create staging buffer!\n";
+               delete file;
+               return texture;
+               }
+
+            // Read texture to temporary buffer
+            void* ptr = staging->map();
             file->read(offset, static_cast<uint32>(surfaceSize), ptr);
-            
+            staging->unmap();
+          
+            // TODO: In future distribute transfers to different queues in the same queue type family
+            gpu::QueueType type = gpu::QueueType::Universal;
+            if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+               type = gpu::QueueType::Transfer;
+
             // Copy data from staging buffer to final texture
-            Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer();
-            command->populate(transfer, texture, mipmap, slice);
+            Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+            command->copy(staging, texture, mipmap, slice);
             command->commit();
+            
+            // TODO:
+            // here return completion handler callback !!! (no waiting for completion)
+            // - this callback destroys CommandBuffer object
+            // - destroys staging buffer
+            //
+            // Till it's done, wait for completion:
+            
             command->waitUntilCompleted();
             command = nullptr;
-  
+            staging = nullptr;
+
             offset += surfaceSize;
             }
          mipDepth = max(1U, mipDepth >> 1);

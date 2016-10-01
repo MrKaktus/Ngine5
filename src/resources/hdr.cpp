@@ -338,13 +338,22 @@ namespace en
    settings.type   = TextureType::Texture2D;
 
    // Create texture in gpu
-   Ptr<Texture> texture = Graphics->primaryDevice()->create(settings);
+   Ptr<Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
       return Ptr<Texture>(nullptr);
       }
    
+   // Create staging buffer
+   uint32 stagingSize = texture->size();
+   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+   if (!staging)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      return Ptr<Texture>(nullptr);
+      }
+
    // Recompress texture directly to gpu memory
    //uint16* dst = reinterpret_cast<uint16*>(texture.map());
    //for(uint32 texel=0; texel<(height * width); ++texel)
@@ -393,7 +402,7 @@ namespace en
    //   dst[texel] = flo;
    //   }
 
-   uint16* dst = reinterpret_cast<uint16*>(texture->map());
+   uint16* dst = reinterpret_cast<uint16*>(staging->map());
    for(uint32 texel=0; texel<(height * width); ++texel)
       {
       //uint16 mR = static_cast<uint16>(data[texel*4 + 0]);
@@ -423,7 +432,29 @@ namespace en
       dst[texel*3 + 2] = hB.value;
       }
 
-   texture->unmap();
+   staging->unmap();
+    
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType type = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      type = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final texture
+   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   command->copy(staging, texture, 0u, 0u);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
+   
    deallocate<uint8>(data);
    return texture;
    }

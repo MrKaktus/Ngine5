@@ -43,8 +43,6 @@ namespace en
       virtual bool startRenderPass(const Ptr<RenderPass> pass);
       virtual void set(const Ptr<Pipeline> pipeline);
       
-      virtual bool populate(Ptr<Buffer> transfer, Ptr<Buffer> buffer);
-      virtual bool populate(Ptr<Buffer> transfer, Ptr<Texture> texture, uint32 mipmap, uint32 layer);
 
 
 
@@ -56,6 +54,14 @@ namespace en
       virtual void setVertexBuffer(const uint32 slot, 
                                    const Ptr<Buffer> buffer, 
                                    const uint64 offset = 0u) const;
+
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> buffer);
+                        
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Texture> texture,
+                        const uint32 mipmap,
+                        const uint32 layer);
          
       virtual void draw(const DrawableType primitiveType,
                         const uint32       elements      = 1,   // Elements to process (they are assembled into Primitives)

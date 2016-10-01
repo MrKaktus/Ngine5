@@ -25,9 +25,10 @@ namespace en
    class CommonHeap : public Heap
       {
       public:
+      MemoryUsage _usage;
       uint32 _size;
 
-      CommonHeap(const uint32 size);
+      CommonHeap(const MemoryUsage usage, const uint32 size);
 
       virtual uint32 size(void) const;
 
@@ -45,16 +46,6 @@ namespace en
       // but it's adviced to use ones with explicit formatting.
       virtual Ptr<Buffer> createBuffer(const BufferType type,
                                        const uint32 size);
-
-      // Create unformatted generic buffer of given type and size.
-      // This is specialized method, that allows passing pointer
-      // to data, to directly initialize buffer content.
-      // It is allowed on mobile devices conforming to UMA architecture.
-      // On Discreete GPU's with NUMA architecture, only Transient buffers
-      // can be created and populated with it.
-      virtual Ptr<Buffer> createBuffer(const BufferType type,
-                                       const uint32 size,
-                                       const void* data);
 
       virtual ~CommonHeap() {};                           // Polymorphic deletes require a virtual base destructor
       };

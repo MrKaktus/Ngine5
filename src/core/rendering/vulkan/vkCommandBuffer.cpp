@@ -198,6 +198,120 @@ namespace en
    }
 
 
+   // TRANSFER COMMANDS
+   //////////////////////////////////////////////////////////////////////////
+
+
+   void CommandBufferVK::copy(Ptr<Buffer> source, Ptr<Buffer> buffer)
+   {
+   // TODO:
+   
+//   void vkCmdCopyBuffer(
+//    VkCommandBuffer                             commandBuffer,
+//    VkBuffer                                    srcBuffer,
+//    VkBuffer                                    dstBuffer,
+//    uint32_t                                    regionCount,
+//    const VkBufferCopy*                         pRegions);
+   }
+   
+   void CommandBufferVK::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   {
+   assert( transfer );
+   assert( transfer->type() == BufferType::Transfer );
+   assert( texture );
+   assert( texture->mipmaps() > mipmap );
+   assert( texture->layers() > layer );
+   
+   BufferVK*  source      = raw_reinterpret_cast<BufferVK>(&transfer);
+   TextureVK* destination = raw_reinterpret_cast<TextureVK>(&texture);
+
+   assert( source->size >= destination->size(mipmap) );
+   
+   VkImageSubresourceLayers layersInfo;
+   layersInfo.aspectMask     = TranslateImageAspect(const Format format);
+   layersInfo.mipLevel       = mipmap;
+   layersInfo.baseArrayLayer = layer;
+   layersInfo.layerCount     = 1u;
+   
+   VkBufferImageCopy regionInfo;
+   regionInfo.bufferOffset      = 0u;
+   regionInfo.bufferRowLength   = source->size;
+   regionInfo.bufferImageHeight = 0u;
+   regionInfo.imageSubresource  = layersInfo;
+   regionInfo.imageOffset       = { 0u, 0u, 0u };
+   regionInfo.imageExtent       = { destination->width(mipmap), destination->height(mipmap), 1 };
+   
+   ProfileNoRet( gpu, vkCmdCopyBufferToImage(handle,
+                                             source->handle,
+                                             destination->handle,
+                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                             1, &regionInfo) )
+   }
+      
+//   // CPU data -> Buffer (max 64KB, recorded on CommandBuffer itself, for UBO's ?)
+//   void vkCmdUpdateBuffer(
+//    VkCommandBuffer                             commandBuffer,
+//    VkBuffer                                    dstBuffer,
+//    VkDeviceSize                                dstOffset,
+//    VkDeviceSize                                dataSize,
+//    const void*                                 pData);
+//   
+//   // Fill buffer with 32bit pattern (like clearing)
+//   void vkCmdFillBuffer(
+//    VkCommandBuffer                             commandBuffer,
+//    VkBuffer                                    dstBuffer,
+//    VkDeviceSize                                dstOffset,
+//    VkDeviceSize                                size,
+//    uint32_t                                    data);
+//    
+//   // Buffer -> Buffer
+//   void vkCmdCopyBuffer(
+//    VkCommandBuffer                             commandBuffer,
+//    VkBuffer                                    srcBuffer,
+//    VkBuffer                                    dstBuffer,
+//    uint32_t                                    regionCount,
+//    const VkBufferCopy*                         pRegions);
+//    
+//   // Buffer -> Image
+//   void vkCmdCopyBufferToImage(
+//    VkCommandBuffer                             commandBuffer,
+//    VkBuffer                                    srcBuffer,
+//    VkImage                                     dstImage,
+//    VkImageLayout                               dstImageLayout,
+//    uint32_t                                    regionCount,
+//    const VkBufferImageCopy*                    pRegions);
+//    
+//   // Image -> Buffer
+//   void vkCmdCopyImageToBuffer(
+//    VkCommandBuffer                             commandBuffer,
+//    VkImage                                     srcImage,
+//    VkImageLayout                               srcImageLayout,
+//    VkBuffer                                    dstBuffer,
+//    uint32_t                                    regionCount,
+//    const VkBufferImageCopy*                    pRegions);
+//    
+//   // Image -> Image (no filtering)
+//   void vkCmdCopyImage(
+//    VkCommandBuffer                             commandBuffer,
+//    VkImage                                     srcImage,
+//    VkImageLayout                               srcImageLayout,
+//    VkImage                                     dstImage,
+//    VkImageLayout                               dstImageLayout,
+//    uint32_t                                    regionCount,
+//    const VkImageCopy*                          pRegions);
+//    
+//   // Texture -> Texture
+//   void vkCmdBlitImage(
+//    VkCommandBuffer                             commandBuffer,
+//    VkImage                                     srcImage,
+//    VkImageLayout                               srcImageLayout,
+//    VkImage                                     dstImage,
+//    VkImageLayout                               dstImageLayout,
+//    uint32_t                                    regionCount,
+//    const VkImageBlit*                          pRegions,
+//    VkFilter                                    filter);
+   
+
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 

@@ -173,6 +173,7 @@ namespace en
 //                 Ptr<gpu::Shader>   vertex;
 //                 Ptr<gpu
                  Ptr<gpu::Heap>    enHeap;
+                 Ptr<gpu::Heap>    enStagingHeap;
                  Ptr<gpu::Texture> enAlbedoMap;
                  Ptr<gpu::Texture> enMetallicMap;
                  Ptr<gpu::Texture> enCavityMap;

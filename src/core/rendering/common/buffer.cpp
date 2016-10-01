@@ -102,10 +102,12 @@ namespace en
       
    CommonBuffer::CommonBuffer(const BufferType type, uint32 length) :
       formatting(),
-      elements(0),
-      step(0),
+      elements(0u),
+      step(0u),
       size(length),
-      apiType(type)
+      apiType(type),
+      mappedOffset(0u),
+      mappedSize(0u)
    {
    }
 
@@ -123,12 +125,12 @@ namespace en
    return apiType;
    }
    
-   void* CommonBuffer::content(void) const
-   {
-   // Should be implemented by given API
-   assert(0);
-   return nullptr;
-   }
+//   void* CommonBuffer::content(void) const
+//   {
+//   // Should be implemented by given API
+//   assert(0);
+//   return nullptr;
+//   }
       
 //   void* CommonBuffer::map(const DataAccess access)
 //   {

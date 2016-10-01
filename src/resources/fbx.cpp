@@ -928,7 +928,43 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
          }
       }
 
-   Ptr<Buffer> vbo = en::Graphics->primaryDevice()->create(vertices, formatting, 0, geometry);
+   Ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeap->createBuffer(vertices, formatting, 0u);
+
+   // Create staging buffer
+   uint32 stagingSize = vertices * rowSize;
+   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   if (!staging)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      return meshes;
+      }
+
+   // Read texture to temporary buffer
+   void* dst = staging->map();
+   memcpy(dst, geometry, stagingSize);
+   staging->unmap();
+    
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType queueType = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      queueType = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final texture
+   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   command->copy(staging, vbo);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
+
    delete [] geometry;
 
    // Now there will be created index buffer optimized
@@ -982,7 +1018,43 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
       vboBegin += unpackedMesh[mesh].vertices.size();
       }
-   Ptr<gpu::Buffer> ibo = en::Graphics->primaryDevice()->create(indexCount, format, elements);
+   Ptr<gpu::Buffer> ibo = en::ResourcesContext.defaults.enHeap->createBuffer(indexCount, format);
+
+   // Create staging buffer
+   stagingSize = indexCount * indexSize;
+   staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   if (!staging)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      return meshes;
+      }
+
+   // Read texture to temporary buffer
+   dst = staging->map();
+   memcpy(dst, elements, stagingSize);
+   staging->unmap();
+    
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   queueType = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      queueType = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final texture
+   command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   command->copy(staging, vbo);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
+
    delete [] elements;
 
    // Local transformation matrix

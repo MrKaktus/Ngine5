@@ -37,7 +37,8 @@ namespace en
       VkDeviceMemory handle;
       uint32         memoryType;
       Allocator*     allocator;    // Allocation algorithm used to place resources on the Heap
-
+      Nmutex         mapped;
+      
       HeapVK(VulkanDevice* gpu, 
              const VkDeviceMemory handle, 
              const uint32 _memoryType, 
@@ -58,16 +59,6 @@ namespace en
       virtual Ptr<Buffer> createBuffer(const BufferType type,
                                        const uint32 size);
       
-      // Create unformatted generic buffer of given type and size.
-      // This is specialized method, that allows passing pointer
-      // to data, to directly initialize buffer content.
-      // It is allowed on mobile devices conforming to UMA architecture.
-      // On Discreete GPU's with NUMA architecture, only Transient buffers
-      // can be created and populated with it.
-      virtual Ptr<Buffer> createBuffer(const BufferType type,
-                                       const uint32 size,
-                                       const void* data);
-
       virtual Ptr<Texture> createTexture(const TextureState state);
 
       virtual ~HeapVK();

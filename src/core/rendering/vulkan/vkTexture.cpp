@@ -400,14 +400,14 @@ namespace en
 
 
 
-   Ptr<Texture> createTexture(VulkanDevice* gpu, const TextureState& state)
+   Ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state)
    {
    Ptr<TextureVK> texture = nullptr;
 
    VkImageCreateInfo textureInfo = {};
-   textureInfo.sType       = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-   textureInfo.pNext       = nullptr;
-   textureInfo.flags       = 0;
+   textureInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+   textureInfo.pNext = nullptr;
+   textureInfo.flags = 0u;
 
    // Cube-Maps
    if (state.type == TextureType::TextureCubeMap ||
@@ -479,13 +479,13 @@ namespace en
    if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
       {
       textureInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-      canBeMemoryless   = false;
+      canBeMemoryless = false;
       }
 
    if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Atomic)))
       {
       textureInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-      canBeMemoryless   = false;
+      canBeMemoryless = false;
       }
 
    // Render Target Attachment
@@ -602,7 +602,7 @@ namespace en
       assert( !gpu->lastResult[threadId] );
       }
 
-   return ptr_dynamic_cast<Texture, TextureVK>(texture);
+   return texture;
    }
 
    TextureVK::TextureVK(VulkanDevice* _gpu, const TextureState& state) :

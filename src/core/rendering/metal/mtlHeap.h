@@ -33,12 +33,12 @@ namespace en
 #if defined(EN_PLATFORM_IOS)
       id <MTLHeap> handle;
       
-      HeapMTL(id<MTLHeap> handle, const uint32 _size);
+      HeapMTL(id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size);
 #endif
 #if defined(EN_PLATFORM_OSX)
       id <MTLDevice> handle;
       
-      HeapMTL(id<MTLDevice> device, const uint32 _size);
+      HeapMTL(id<MTLDevice> device, const MemoryUsage _usage, const uint32 _size);
 #endif
 
       // Create unformatted generic buffer of given type and size.
@@ -47,16 +47,6 @@ namespace en
       virtual Ptr<Buffer> createBuffer(const BufferType type,
                                        const uint32 size);
       
-      // Create unformatted generic buffer of given type and size.
-      // This is specialized method, that allows passing pointer
-      // to data, to directly initialize buffer content.
-      // It is allowed on mobile devices conforming to UMA architecture.
-      // On Discreete GPU's with NUMA architecture, only Transient buffers
-      // can be created and populated with it.
-      virtual Ptr<Buffer> createBuffer(const BufferType type,
-                                       const uint32 size,
-                                       const void* data);
-
       virtual Ptr<Texture> createTexture(const TextureState state);
 
       virtual ~HeapMTL();

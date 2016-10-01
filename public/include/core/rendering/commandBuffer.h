@@ -63,9 +63,6 @@ namespace en
       virtual bool startRenderPass(const Ptr<RenderPass> pass) = 0;
       virtual void set(const Ptr<Pipeline> pipeline) = 0;
       
-      virtual bool populate(Ptr<Buffer> transfer, Ptr<Buffer> buffer) = 0;
-      virtual bool populate(Ptr<Buffer> transfer, Ptr<Texture> texture, uint32 mipmap, uint32 layer) = 0;
-  
       // Assigns Vertex Buffers to specified input attachment slots.
       // Optionally starting offsets in those buffers can be specified.
       virtual void setVertexBuffers(const uint32 count, 
@@ -78,6 +75,14 @@ namespace en
                                    const Ptr<Buffer> buffer, 
                                    const uint64 offset = 0u) const;
 
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> buffer);
+         
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Texture> texture,
+                        const uint32 mipmap,
+                        const uint32 layer);
+         
       virtual void draw(const DrawableType primitiveType,
                         const uint32       elements      = 1,      // Elements to process (they are assembled into Primitives)
                         const Ptr<Buffer>  indexBuffer   = Ptr<Buffer>(nullptr), // Optional Index buffer

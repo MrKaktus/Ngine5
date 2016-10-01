@@ -26,9 +26,9 @@ namespace en
    namespace gpu
    { 
 #if defined(EN_PLATFORM_IOS)
-   HeapMTL::HeapMTL(id<MTLHeap> handle, const uint32 _size) :
+   HeapMTL::HeapMTL(id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size) :
       handle(handle),
-      CommonHeap(_size)
+      CommonHeap(_usage, _size)
    {
    }
       
@@ -38,9 +38,9 @@ namespace en
    }
 #endif
 #if defined(EN_PLATFORM_OSX)
-   HeapMTL::HeapMTL(id<MTLDevice> device, const uint32 _size) :
+   HeapMTL::HeapMTL(id<MTLDevice> device, const MemoryUsage _usage, const uint32 _size) :
       handle(device),
-      CommonHeap(_size)
+      CommonHeap(_usage, _size)
    {
    }
       
@@ -55,49 +55,42 @@ namespace en
    // but it's adviced to use ones with explicit formatting.
    Ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size)
    {
-   return ptr_dynamic_cast<Buffer, BufferMTL>(new BufferMTL(handle, type, size));
-   }
-   
-   // Create unformatted generic buffer of given type and size.
-   // This is specialized method, that allows passing pointer
-   // to data, to directly initialize buffer content.
-   // It is allowed on mobile devices conforming to UMA architecture.
-   // On Discreete GPU's with NUMA architecture, only Transient buffers
-   // can be created and populated with it.
-   Ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size, const void* data)
-   {
-   return ptr_dynamic_cast<Buffer, BufferMTL>(new BufferMTL(handle, type, size, data));
+   Ptr<BufferMTL> ptr = new BufferMTL(Ptr<HeapMTL>(this), type, size);
+   return ptr_reinterpret_cast<Buffer>(&ptr);
    }
  
    Ptr<Texture> HeapMTL::createTexture(const TextureState state)
    {
-   return ptr_dynamic_cast<Texture, TextureMTL>(new TextureMTL(handle, state));
+   // Do not create textures on Heaps designated for Streaming.
+   // (Engine currently is not supporting Linear Textures).
+   assert( _usage == MemoryUsage::Static );
+   
+   Ptr<TextureMTL> ptr = new TextureMTL(handle, state);
+   return ptr_reinterpret_cast<Texture>(&ptr);
    }
    
    Ptr<Heap> MetalDevice::createHeap(const MemoryUsage usage, const uint32 size)
    {
-   Ptr<Heap> heap = nullptr;
+   Ptr<HeapMTL> heap = nullptr;
 
-#if defined(EN_PLATFORM_IOS)
-   uint32 roundedSize = roundUp(size, 4096);
+   uint32 roundedSize = roundUp(size, 4096u);
    
+#if defined(EN_PLATFORM_IOS)
    MTLHeapDescriptor desc;
    desc.size         = roundedSize;
-   desc.storageMode  = MTLStorageModePrivate;
+   desc.storageMode  = MTLStorageModeShared;   // Private on macOS
    desc.cpuCacheMode = MTLCPUCacheModeDefaultCache;
    
    id<MTLHeap> handle = nil;
    handle = [device newHeapWithDescriptor:desc];
    if (handle)
-      {
-      heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(handle, roundedSize)));
-      }
+      heap = new HeapMTL(handle, usage, roundedSize);
 #else
    // On macOS we emulate Heaps by passing calls directly to Device
-   heap = ptr_dynamic_cast<Heap, HeapMTL>(Ptr<HeapMTL>(new HeapMTL(device, roundUp(size, 4096u))));
+   heap = new HeapMTL(device, usage, roundedSize);
 #endif
    
-   return heap;
+   return ptr_reinterpret_cast<Heap>(&heap);
    }
       
    }

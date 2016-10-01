@@ -30,16 +30,19 @@ namespace en
       uint32     step;
       uint32     size;
       BufferType apiType;
+      uint64     mappedOffset;
+      uint64     mappedSize;
       
       CommonBuffer(const BufferType type, uint32 length);
       virtual uint32 length(void) const;
       virtual BufferType type(void) const;
-      
+
       // Returns pointer to buffers memory. This function can be only called on Transfer buffers.
-      virtual void* content(void) const;
+      //virtual void* content(void) const;
       
-      //virtual void* map(const DataAccess access = ReadWrite);
-      //virtual bool unmap(void);
+      virtual void* map(void);
+      virtual void* map(const uint64 offset, const uint64 size);
+      virtual void  unmap(void);
       
       virtual ~CommonBuffer();
       };

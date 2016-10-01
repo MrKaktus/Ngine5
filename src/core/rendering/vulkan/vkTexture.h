@@ -76,7 +76,7 @@ namespace en
 
    class VulkanDevice;
 
-   Ptr<Texture> createTexture(VulkanDevice* gpu, const TextureState& state);
+   Ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state);
    }
 }
 

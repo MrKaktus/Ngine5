@@ -140,7 +140,7 @@ namespace en
                             textures[i].depth,
                             textures[i].layers,
                             textures[i].samples);
-      out[i] = Graphics->primaryDevice()->create(settings);
+      out[i] = en::ResourcesContext.defaults.enHeap->createTexture(settings);
 
       // TODO: Add proper support for error reporting
       assert( out[i] );
@@ -153,9 +153,40 @@ namespace en
       // Load surfaces of texture (mipmaps, faces, layers)
       for(uint16 j=0; j<textures[i].surfaces; ++j)
          {
-         void* ptr = out[i]->map(surfaces[j].mipmap, surfaces[j].layer);
-         file->read(surfaces[j].offset, surfaces[j].size, ptr);
-         out[i]->unmap();
+         // Create staging buffer
+         Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, (uint32)surfaces[j].size);
+         if (!staging)
+            {
+            Log << "ERROR: Cannot create staging buffer!\n";
+            delete file;
+            return nullptr;
+            }
+
+         // Read texture to temporary buffer
+         void* ptr = staging->map();
+         file->read(surfaces[j].offset, (uint32)surfaces[j].size, ptr);
+         staging->unmap();
+ 
+         // TODO: In future distribute transfers to different queues in the same queue type family
+         gpu::QueueType type = gpu::QueueType::Universal;
+         if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+            type = gpu::QueueType::Transfer;
+
+         // Copy data from staging buffer to final texture
+         Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+         command->copy(staging, out[i], surfaces[j].mipmap, surfaces[j].layer);
+         command->commit();
+         
+         // TODO:
+         // here return completion handler callback !!! (no waiting for completion)
+         // - this callback destroys CommandBuffer object
+         // - destroys staging buffer
+         //
+         // Till it's done, wait for completion:
+         
+         command->waitUntilCompleted();
+         command = nullptr;
+         staging = nullptr;
          }
 
       delete [] surfaces;

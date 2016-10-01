@@ -12,6 +12,7 @@
 
 #include "scene/cam.h"
 #include "core/rendering/rendering.hpp"
+#include "resources/context.h"
 
 namespace en
 {
@@ -157,7 +158,38 @@ namespace en
    points[15] = float3( nearEdges.w, -nearEdges.y, nearPlane); // Lower-right connector
 
    // Create geometry buffer for given frustum
-   Ptr<Buffer> buffer = Graphics->primaryDevice()->create(16, Formatting(Attribute::v3f32), 0, points); // inPosition
+   Ptr<Buffer> buffer = ResourcesContext.defaults.enHeap->createBuffer(16, Formatting(Attribute::v3f32), 0u); // inPosition
+
+   // Create staging buffer
+   Ptr<Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, 16);
+   assert( staging );
+   
+   // Read texture to temporary buffer
+   void* dst = staging->map();
+   memcpy(dst, points, 16);
+   staging->unmap();
+
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType type = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      type = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final texture
+   Ptr<CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   command->copy(staging, buffer);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
+
    delete [] points;
    
    return buffer;

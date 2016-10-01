@@ -174,10 +174,42 @@ namespace en
    if (dst->format() != settings.format)
       return false;
 
-   // Read image to texture layer in gpu memory
-   void* ptr = dst->map(0, layer);
+   // Create staging buffer
+   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
+   if (!staging)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      delete file;
+      return false;
+      }
+
+   // Read texture to temporary buffer
+   void* ptr = staging->map();
    file->read(header.dataOffset, dataSize, ptr);
-   return dst->unmap();
+   staging->unmap();
+ 
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType type = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      type = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final texture
+   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   command->copy(staging, dst, 0u, layer);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
+
+   return true;
    }
 
    Ptr<en::gpu::Texture> load(const string& filename)
@@ -275,18 +307,52 @@ namespace en
       dataSize = lineSize * DIBHeader.height;
 
    // Create texture in gpu
-   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(settings); // TODO: Use Heap !!
+   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
       delete file;
       return texture;
       }
+      
+   // Create staging buffer
+   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
+   if (!staging)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      delete file;
+      return texture;
+      }
 
-   // Read texture to gpu memory
-   void* dst = texture->map();
+   // Read texture to temporary buffer
+   void* dst = staging->map();
    file->read(header.dataOffset, dataSize, dst);
-   texture->unmap();
+   staging->unmap();
+ 
+   // TODO: Now blit from staging to texture
+   uint32 mipmap = 0u;
+   uint32 slice  = 0u;
+   
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType type = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      type = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final texture
+   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   command->copy(staging, texture, mipmap, slice);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
  
    // Update list of loaded textures
    ResourcesContext.textures.insert(pair<string, Ptr<en::gpu::Texture> >(filename, texture));

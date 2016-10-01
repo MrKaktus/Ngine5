@@ -36,7 +36,7 @@ namespace en
       
       BufferGL(const BufferType type, const uint32 size, const void* data);
       virtual void* map(const DataAccess access = ReadWrite);
-      virtual bool unmap(void);
+      virtual void unmap(void);
       virtual ~BufferGL();
       };
    }

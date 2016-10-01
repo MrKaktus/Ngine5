@@ -35,8 +35,9 @@ namespace en
       Uniform                , // Uniform  - Read Only, 16KB to 64KB buffer for data
       Storage                , // Storage  - Read-Write, Atomic, minimum 1MB buffer for data
       Indirect               , // Indirect - Used as source for Draw and Dispatch Indirect commands
-      Transfer               , // Transfer - Buffer used to transfer data between CPU RAM and Buffers and Textures in VRAM.
-      Count
+      Transfer               , // Upload   - Buffer used to transfer data from CPU RAM to Buffers and Textures in VRAM.
+                               // Download - Buffer used to transfer data from Buffers and Textures in VRAM to CPU RAM.
+      Count                    //            Upload buffers are used to populate all other resources with data.
       };
  
    // Attributes representing data in fixed point schemes like 16.16, 8.0, 16.0
@@ -199,8 +200,11 @@ namespace en
       virtual uint32 length(void) const = 0;
       virtual BufferType type(void) const = 0;
       
-      // Returns pointer to buffers memory. This function can be only called on Transfer buffers.
-      virtual void* content(void) const = 0;
+      // Buffers created on heaps with "Streamed" and "Immediate" memory usage, can be mapped
+      // to obtain pointers to their content. This is not allowed on "Storage" heaps.
+      virtual void* map(void);
+      virtual void* map(const uint64 offset, const uint64 size);
+      virtual void  unmap(void);
       
 //      virtual Ptr<BufferView> view(void) = 0;  // Default buffer view, if it was created with formatting
 //      virtual Ptr<BufferView> view(const uint32 elements, 
@@ -408,154 +412,6 @@ namespace en
         Streaming                    ,  // Data in most cases will be used only once and updated all the time
         DataTransferTypes
         };
-   
-   // Buffer column description
-   class ColumnInfo
-         {
-         public:
-         ColumnType type;       // Column type
-         string     name;       // Column name
-
-         ColumnInfo();
-         ColumnInfo(const ColumnType type);
-         ColumnInfo(const ColumnType type,
-                    const string     name );
-         };
-
-   // Buffer Settings structure
-   class BufferSettings
-         {
-         public:
-         ColumnInfo column[16];  // Vector holding types of each column
-         BufferType type;        // Buffer type
-         union {                 // Vertex buffer can store geometry vertices
-               uint32 vertices;  // or like Index buffer "elements" of some 
-               uint32 elements;  // other type, while other buffers just need
-               uint32 size;      // their size specified.
-               };
-
-         BufferSettings(const BufferType type  = VertexBuffer, // Default Constructor   
-                        const uint32 vertices  = 0,  
-                        const ColumnType col0  = None,
-                        const ColumnType col1  = None,
-                        const ColumnType col2  = None,
-                        const ColumnType col3  = None,
-                        const ColumnType col4  = None,
-                        const ColumnType col5  = None,
-                        const ColumnType col6  = None,
-                        const ColumnType col7  = None,
-                        const ColumnType col8  = None,
-                        const ColumnType col9  = None,
-                        const ColumnType col10 = None,
-                        const ColumnType col11 = None,
-                        const ColumnType col12 = None,
-                        const ColumnType col13 = None,
-                        const ColumnType col14 = None,
-                        const ColumnType col15 = None
-                        );
-
-         BufferSettings(const BufferType type,                 // Constructor 
-                        const uint32 vertices  = 0,  
-                        const ColumnInfo col0  = ColumnInfo(None),
-                        const ColumnInfo col1  = ColumnInfo(None),
-                        const ColumnInfo col2  = ColumnInfo(None),
-                        const ColumnInfo col3  = ColumnInfo(None),
-                        const ColumnInfo col4  = ColumnInfo(None),
-                        const ColumnInfo col5  = ColumnInfo(None),
-                        const ColumnInfo col6  = ColumnInfo(None),
-                        const ColumnInfo col7  = ColumnInfo(None),
-                        const ColumnInfo col8  = ColumnInfo(None),
-                        const ColumnInfo col9  = ColumnInfo(None),
-                        const ColumnInfo col10 = ColumnInfo(None),
-                        const ColumnInfo col11 = ColumnInfo(None),
-                        const ColumnInfo col12 = ColumnInfo(None),
-                        const ColumnInfo col13 = ColumnInfo(None),
-                        const ColumnInfo col14 = ColumnInfo(None),
-                        const ColumnInfo col15 = ColumnInfo(None)
-                        );
-         };
-
-   // Buffer
-   class Buffer : public ProxyInterface<class BufferDescriptor>
-         {
-         public:
-         Buffer();
-         Buffer(class BufferDescriptor* src);
-
-         void*  map(void);           // Maps buffer to clients memory
-         bool   unmap(void);         // Unmaps buffer from client memory
-         uint32 columns(void);       // Returns buffer columns count
-         };
-
-
-   // Vertex Buffer Settings structure
-   struct VertexBufferSettings
-      {
-      ColumnInfo   column[16]; // Vector holding types of each column
-      DataTransfer transfer;   // Buffer can store static/dynamic data or be used for streaming
-      DataAccess   access;     // Buffer can be used for reading from or writing data to GPU, or both
-      union {                  // Buffer can store geometry vertices or 
-            uint32 vertices;   // "elements" of some other type. This is
-            uint32 elements;   // why two naming conventions are allowed.
-            };
-      
-      // Default Constructor 
-      VertexBufferSettings();
-      
-      // Basic constructor
-      VertexBufferSettings(
-         const uint32 vertices,  
-         const ColumnInfo col0,
-         const ColumnInfo col1  = ColumnInfo(None),
-         const ColumnInfo col2  = ColumnInfo(None),
-         const ColumnInfo col3  = ColumnInfo(None),
-         const ColumnInfo col4  = ColumnInfo(None),
-         const ColumnInfo col5  = ColumnInfo(None),
-         const ColumnInfo col6  = ColumnInfo(None),
-         const ColumnInfo col7  = ColumnInfo(None),
-         const ColumnInfo col8  = ColumnInfo(None),
-         const ColumnInfo col9  = ColumnInfo(None),
-         const ColumnInfo col10 = ColumnInfo(None),
-         const ColumnInfo col11 = ColumnInfo(None),
-         const ColumnInfo col12 = ColumnInfo(None),
-         const ColumnInfo col13 = ColumnInfo(None),
-         const ColumnInfo col14 = ColumnInfo(None),
-         const ColumnInfo col15 = ColumnInfo(None)
-         );
-      
-      // Advanced constructor
-      VertexBufferSettings(
-         const DataTransfer transfer, 
-         const DataAccess access,
-         const uint32 vertices,  
-         const ColumnInfo col0,
-         const ColumnInfo col1  = ColumnInfo(None),
-         const ColumnInfo col2  = ColumnInfo(None),
-         const ColumnInfo col3  = ColumnInfo(None),
-         const ColumnInfo col4  = ColumnInfo(None),
-         const ColumnInfo col5  = ColumnInfo(None),
-         const ColumnInfo col6  = ColumnInfo(None),
-         const ColumnInfo col7  = ColumnInfo(None),
-         const ColumnInfo col8  = ColumnInfo(None),
-         const ColumnInfo col9  = ColumnInfo(None),
-         const ColumnInfo col10 = ColumnInfo(None),
-         const ColumnInfo col11 = ColumnInfo(None),
-         const ColumnInfo col12 = ColumnInfo(None),
-         const ColumnInfo col13 = ColumnInfo(None),
-         const ColumnInfo col14 = ColumnInfo(None),
-         const ColumnInfo col15 = ColumnInfo(None)
-         );
-      };
-
-   // Index Buffer Settings structure
-   struct IndexBufferSettings
-      {
-      ColumnType type;     // Column type, should be one of: UByte, UShort, UInt
-      uint32     indices;  // Number indices in buffer
-      
-      IndexBufferSettings();
-      IndexBufferSettings(const uint32 indices, const ColumnType type);
-      };
 #endif
    }
 }

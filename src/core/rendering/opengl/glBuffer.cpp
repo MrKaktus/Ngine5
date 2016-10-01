@@ -91,13 +91,11 @@ namespace en
    return pointer;
    }
 
-   bool BufferGL::unmap(void)
+   void BufferGL::unmap(void)
    {
    // We don't care if it was mapped or not
-   bool success = false;
    Profile( glBindBuffer(glType, handle) )
-   Profile( success = static_cast<bool>(glUnmapBuffer(glType)) )
-   return success;
+   Profile( glUnmapBuffer(glType) )
    }
 #endif
 

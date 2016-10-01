@@ -21,6 +21,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/rendering/metal/metal.h"
+#include "core/rendering/metal/mtlHeap.h"
 #include "core/rendering/common/buffer.h"
 
 namespace en
@@ -31,15 +32,13 @@ namespace en
       {
       public:
       id<MTLBuffer> handle;
+      Ptr<HeapMTL>  heap;      // Memory backing heap
+      
+      BufferMTL(Ptr<HeapMTL> heap, const BufferType type, const uint32 size);
 
-      BufferMTL(const id memory, const BufferType type, const uint32 size);
-      BufferMTL(const id memory, const BufferType type, const uint32 size, const void* data);
-      
-      // Returns pointer to buffers memory. This function can be only called on Transfer buffers.
-      virtual void* content(void) const;
-      
-      //virtual void* map(const DataAccess access = ReadWrite);
-      //virtual bool unmap(void);
+      virtual void* map(void);
+      virtual void* map(const uint64 offset, const uint64 size);
+      virtual void  unmap(void);
       
       virtual ~BufferMTL();
       };

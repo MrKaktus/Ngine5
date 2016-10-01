@@ -46,6 +46,7 @@ namespace en
       Ptr(const Ptr<T>& src);           // Copy constructor
       Ptr(const Weak<T>& src);          // Copy constructor
       Ptr& operator=(const Ptr& src);   // Copy Assigment operator
+      Ptr& operator=(T* src);           // Direct pointer assigment
      ~Ptr();                            // Destructor
 
       // Check at the beginning, if pointer is properly initiated
@@ -195,6 +196,32 @@ namespace en
  
    return *this;
    }
+
+
+   template <typename T>
+   Ptr<T>& Ptr<T>::operator=(T* src)
+   {
+   if (pointer == src)
+      return *this;
+
+   // Stops being interface of old value
+   if (pointer)
+      {
+      uint32 ref = AtomicDecrease(&((SafeObject<T>*)pointer)->references);
+      if (ref == 0)
+         delete pointer;
+      }
+
+   // Starts to be interface of new value
+   pointer = src;
+   if (pointer)
+      AtomicIncrease(&((SafeObject<T>*)pointer)->references);
+ 
+   return *this;
+   }
+   
+   
+   
 
    template <typename T>
    Ptr<T>::~Ptr()

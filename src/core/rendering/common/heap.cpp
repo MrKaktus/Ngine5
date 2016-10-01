@@ -21,7 +21,8 @@ namespace en
 {
    namespace gpu
    {
-   CommonHeap::CommonHeap(const uint32 size) :
+   CommonHeap::CommonHeap(const MemoryUsage usage, const uint32 size) :
+      _usage(usage),
       _size(size)
    {
    }
@@ -31,18 +32,18 @@ namespace en
       return _size;
    }
 
-   bool allocate(uint64 size, uint64 alignment, uint64* offset)
-   {
-   // TODO: Alocating algorithm!
-   // TODO: Requires minimum Heap size.
-   // TODO: Generalize this allocator to be of an Engine Type. 
-   //       This will allow it to be used also for CPU memory sub-allocations,
-   //       or to hook-up user specific memory allocators.
-   // TODO: Add "makeAliasable" call to the resources API.
-   // TODO: Ensure resources "dealloc" on Heap's allocator on destruction.
-   // TODO: General and Specified memory allocators are needed.
-   return false;
-   }
+//   bool allocate(uint64 size, uint64 alignment, uint64* offset)
+//   {
+//   // TODO: Alocating algorithm!
+//   // TODO: Requires minimum Heap size.
+//   // TODO: Generalize this allocator to be of an Engine Type. 
+//   //       This will allow it to be used also for CPU memory sub-allocations,
+//   //       or to hook-up user specific memory allocators.
+//   // TODO: Add "makeAliasable" call to the resources API.
+//   // TODO: Ensure resources "dealloc" on Heap's allocator on destruction.
+//   // TODO: General and Specified memory allocators are needed.
+//   return false;
+//   }
    
    Ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
    {
@@ -87,13 +88,6 @@ namespace en
 
    // Should be implemented by API class
    Ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size)
-   {
-   assert(0);
-   return Ptr<Buffer>(nullptr);
-   }
-      
-   // Should be implemented by API class
-   Ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size, const void* data)
    {
    assert(0);
    return Ptr<Buffer>(nullptr);

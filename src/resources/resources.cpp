@@ -62,6 +62,8 @@ namespace en
 
    Context::Defaults::Defaults() :
       //program(nullptr),
+      enHeap(nullptr),
+      enStagingHeap(nullptr),
       enAlbedoMap(nullptr),
       enMetallicMap(nullptr),
       enCavityMap(nullptr),
@@ -146,7 +148,10 @@ namespace en
    //defaults.program     = Gpu.program.create(shaders);
 
    // Create GPU Heap used as backing store for all resources (for now 256MB)
-   defaults.enHeap = Graphics->primaryDevice()->createHeap(MemoryUsage::Static, 256*1024*1024);
+   defaults.enHeap        = Graphics->primaryDevice()->createHeap(MemoryUsage::Static, 256*1024*1024);
+   
+   // Create Heap as temporary location for resources upload
+   defaults.enStagingHeap = Graphics->primaryDevice()->createHeap(MemoryUsage::Streamed, 64*1024*1024);
 
    // TODO: This is temporary solution. Resources should be dynamically streamed in,
    //       from storage to RAM and then VRAM. Also different Heaps should be used
@@ -174,7 +179,38 @@ namespace en
 
    // Create default mesh for corrdinate system axes
    Formatting formatting(Attribute::v3f32, Attribute::v3f32); // inPosition, inColor
-   defaults.enAxes = defaults.enHeap->createBuffer(14, formatting, 0, &axes);
+   defaults.enAxes = defaults.enHeap->createBuffer(14u, formatting, 0u);
+
+   // Create staging buffer
+   uint32 stagingSize = 14u;
+   Ptr<gpu::Buffer> staging = defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   assert( staging );
+
+   // Read texture to temporary buffer
+   void* dst = staging->map();
+   memcpy(dst, &axes, stagingSize);
+   staging->unmap();
+    
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType queueType = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      queueType = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final texture
+   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   command->copy(staging, defaults.enAxes);
+   command->commit();
+   
+   // TODO:
+   // here return completion handler callback !!! (no waiting for completion)
+   // - this callback destroys CommandBuffer object
+   // - destroys staging buffer
+   //
+   // Till it's done, wait for completion:
+   
+   command->waitUntilCompleted();
+   command = nullptr;
+   staging = nullptr;
 
 #ifdef EN_PLATFORM_WINDOWS
    fbxManager = FbxManager::Create();

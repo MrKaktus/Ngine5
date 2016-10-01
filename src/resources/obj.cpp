@@ -600,12 +600,49 @@ namespace en
                }
             }
          }
-      Ptr<gpu::Buffer> vertexBuffer = Graphics->primaryDevice()->create(vertexes, formatting, 0, geometry);
+      Ptr<gpu::Buffer> vertexBuffer = en::ResourcesContext.defaults.enHeap->createBuffer(vertexes, formatting, 0u);
+
+      // Create staging buffer
+      uint32 stagingSize = vertexes * rowSize;
+      Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      if (!staging)
+         {
+         Log << "ERROR: Cannot create staging buffer!\n";
+         return Ptr<en::resource::Model>(nullptr);
+         }
+
+      // Read texture to temporary buffer
+      void* dst = staging->map();
+      memcpy(dst, geometry, stagingSize);
+      staging->unmap();
+       
+      // TODO: In future distribute transfers to different queues in the same queue type family
+      gpu::QueueType queueType = gpu::QueueType::Universal;
+      if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+         queueType = gpu::QueueType::Transfer;
+
+      // Copy data from staging buffer to final texture
+      Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      command->copy(staging, vertexBuffer);
+      command->commit();
+      
+      // TODO:
+      // here return completion handler callback !!! (no waiting for completion)
+      // - this callback destroys CommandBuffer object
+      // - destroys staging buffer
+      //
+      // Till it's done, wait for completion:
+      
+      command->waitUntilCompleted();
+      command = nullptr;
+      staging = nullptr;
+
       delete [] geometry;
       delete [] tangents;
       delete [] bitangents;
 
       // Create indices buffer
+      stagingSize = indexes * 4;
       formatting.column[0] = gpu::Attribute::u32;
       for(uint8 j=1; j<16; ++j)
          formatting.column[j] = gpu::Attribute::None;
@@ -625,6 +662,7 @@ namespace en
          {
          if (vertexes < 255)
             {
+            stagingSize = indexes;
             formatting.column[0] = gpu::Attribute::u8;
             uint8* ibo = new uint8[indexes];
             for(uint32 j=0; j<indexes; j++)
@@ -639,6 +677,7 @@ namespace en
          else
          if (vertexes < 65535)
             {
+            stagingSize = indexes * 2;
             formatting.column[0] = gpu::Attribute::u16;
             uint16* ibo = new uint16[indexes];
             for(uint32 j=0; j<indexes; j++)
@@ -651,7 +690,37 @@ namespace en
             srcIndex = ibo;
             }
          }
-      Ptr<gpu::Buffer> indexBuffer = Graphics->primaryDevice()->create(indexes, formatting, 0, srcIndex);
+      Ptr<gpu::Buffer> indexBuffer = en::ResourcesContext.defaults.enHeap->createBuffer(indexes, formatting, 0u);
+      
+      // Create staging buffer
+      staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      if (!staging)
+         {
+         Log << "ERROR: Cannot create staging buffer!\n";
+         return Ptr<en::resource::Model>(nullptr);
+         }
+
+      // Read texture to temporary buffer
+      dst = staging->map();
+      memcpy(dst, srcIndex, stagingSize);
+      staging->unmap();
+
+      // Copy data from staging buffer to final texture
+      command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      command->copy(staging, vertexBuffer);
+      command->commit();
+      
+      // TODO:
+      // here return completion handler callback !!! (no waiting for completion)
+      // - this callback destroys CommandBuffer object
+      // - destroys staging buffer
+      //
+      // Till it's done, wait for completion:
+      
+      command->waitUntilCompleted();
+      command = nullptr;
+      staging = nullptr;
+      
       if (compressed)
          delete [] static_cast<uint8*>(srcIndex);
    

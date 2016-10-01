@@ -71,6 +71,14 @@ namespace en
                                    const Ptr<Buffer> buffer, 
                                    const uint64 offset = 0u) const;
 
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> buffer);
+         
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Texture> texture,
+                        const uint32 mipmap,
+                        const uint32 layer);
+                        
       virtual void draw(const DrawableType primitiveType,
                         const uint32       elements      = 1,   // Elements to process (they are assembled into Primitives)
                         const Ptr<Buffer>  indexBuffer   = nullptr, // Optional Index buffer
