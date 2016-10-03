@@ -28,19 +28,17 @@ namespace en
    namespace gpu
    {
    
-   ShaderMTL::ShaderMTL(id <MTLLibrary> library, id <MTLFunction> function) :
-      library(library),
-      function(function)
+   ShaderMTL::ShaderMTL(id <MTLLibrary> library) :
+      library(library)
    {
    }
    
    ShaderMTL::~ShaderMTL()
    {
-   [function release];
    [library release];
    }
    
-   Ptr<Shader> MetalDevice::createShader(const string& source, const string& entrypoint)
+   Ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const string& source)
    {
    Ptr<ShaderMTL> shader = nullptr;
 
@@ -82,17 +80,7 @@ namespace en
          }
       }
     
-   error = nil;
-   id <MTLFunction> function = nil;
-   function = [library newFunctionWithName:stringTo_NSString(entrypoint)];
-   if (error)
-      {
-      Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
-      [library release];
-      return Ptr<Shader>(nullptr);
-      }
-
-   return ptr_dynamic_cast<Shader, ShaderMTL>(Ptr<ShaderMTL>(new ShaderMTL(library, function)));
+   return ptr_dynamic_cast<Shader, ShaderMTL>(Ptr<ShaderMTL>(new ShaderMTL(library)));
    }
 
       

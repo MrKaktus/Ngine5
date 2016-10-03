@@ -40,7 +40,8 @@ namespace en
                                                                  const bool enableAlphaToCoverage,
                                                                  const bool enableAlphaToOne)
    {
-   return ptr_reinterpret_cast<MultisamplingState>(&Ptr<MultisamplingStateMTL>(new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne)));
+   Ptr<MultisamplingStateMTL> ptr = new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne);
+   return ptr_reinterpret_cast<MultisamplingState>(&ptr);
    }
    
    }

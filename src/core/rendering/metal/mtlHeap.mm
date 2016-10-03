@@ -26,7 +26,8 @@ namespace en
    namespace gpu
    { 
 #if defined(EN_PLATFORM_IOS)
-   HeapMTL::HeapMTL(id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size) :
+   HeapMTL::HeapMTL(MetalDevice* _gpu, id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size) :
+      gpu(_gpu),
       handle(handle),
       CommonHeap(_usage, _size)
    {
@@ -38,7 +39,8 @@ namespace en
    }
 #endif
 #if defined(EN_PLATFORM_OSX)
-   HeapMTL::HeapMTL(id<MTLDevice> device, const MemoryUsage _usage, const uint32 _size) :
+   HeapMTL::HeapMTL(MetalDevice* _gpu, id<MTLDevice> device, const MemoryUsage _usage, const uint32 _size) :
+      gpu(_gpu),
       handle(device),
       CommonHeap(_usage, _size)
    {
@@ -49,6 +51,12 @@ namespace en
    handle = nullptr;
    }
 #endif
+
+   // Return parent device
+   Ptr<GpuDevice> HeapMTL::device(void) const
+   {
+   return Ptr<GpuDevice>(gpu);
+   }
       
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
@@ -84,10 +92,10 @@ namespace en
    id<MTLHeap> handle = nil;
    handle = [device newHeapWithDescriptor:desc];
    if (handle)
-      heap = new HeapMTL(handle, usage, roundedSize);
+      heap = new HeapMTL(this, handle, usage, roundedSize);
 #else
    // On macOS we emulate Heaps by passing calls directly to Device
-   heap = new HeapMTL(device, usage, roundedSize);
+   heap = new HeapMTL(this, device, usage, roundedSize);
 #endif
    
    return ptr_reinterpret_cast<Heap>(&heap);

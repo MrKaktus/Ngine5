@@ -91,7 +91,8 @@ namespace en
 
    Ptr<DepthStencilState> MetalDevice::createDepthStencilState(const DepthStencilStateInfo& desc)
    {
-   return ptr_reinterpret_cast<DepthStencilState>(&Ptr<DepthStencilStateMTL>(new DepthStencilStateMTL(this, desc)));
+   Ptr<DepthStencilStateMTL> ptr = new DepthStencilStateMTL(this, desc);
+   return ptr_reinterpret_cast<DepthStencilState>(&ptr);
    }
    
    }

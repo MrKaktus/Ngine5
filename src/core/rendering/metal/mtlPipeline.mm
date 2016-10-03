@@ -18,6 +18,7 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include "core/log/log.h"
+#include "utilities/osxStrings.h"
 
 #include "core/rendering/metal/mtlPipeline.h"
 #include "core/rendering/metal/mtlInputAssembler.h"
@@ -61,17 +62,7 @@ namespace en
    depthStencil = nullptr;
    }
  
-   
-
-
-
-
-   
-   
-   
-
-
-   Ptr<Pipeline> MetalDevice::create(const PipelineState& pipelineState)
+   Ptr<Pipeline> MetalDevice::createPipeline(const PipelineState& pipelineState)
    {
    Ptr<PipelineMTL> pipeline = nullptr;
 
@@ -84,17 +75,45 @@ namespace en
    
    // Fragment Shader is optional if rasterization is disabled
    const Ptr<RasterStateMTL> rasterizer = ptr_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState);
-   assert( pipelineState.shader[4] || (!pipelineState.shader[4] && pipelineState.rasterizer && !pipelineState.rasterizer->enableRasterization) );
+   assert( pipelineState.shader[4] ||
+           (!pipelineState.shader[4] && pipelineState.rasterState &&
+            !ptr_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState)->enableRasterization) );
    
    // Cast to Metal states
    const Ptr<RenderPassMTL>     pass     = ptr_reinterpret_cast<RenderPassMTL>(&pipelineState.renderPass);
    const Ptr<InputAssemblerMTL> input    = ptr_reinterpret_cast<InputAssemblerMTL>(&pipelineState.inputAssembler);
    const Ptr<BlendStateMTL>     blend    = ptr_reinterpret_cast<BlendStateMTL>(&pipelineState.blendState);
 
+   // Extract entry point functions from shader libraries
+   // TODO: This may not be optimal?
+   NSError* error = nil;
+   string entrypoint = pipelineState.function[0];
+   Ptr<ShaderMTL> vertexShader = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[0]);
+   id <MTLFunction> functionVertex = [vertexShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
+   if (error)
+      {
+      Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
+      return Ptr<Pipeline>(nullptr);
+      }
+      
+   entrypoint = pipelineState.function[4];
+   id <MTLFunction> functionFragment = nil;
+   if (pipelineState.shader[4])
+      {
+      Ptr<ShaderMTL> fragmentShader = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[4]);
+      functionFragment = [fragmentShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
+      if (error)
+         {
+         Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
+         [functionVertex release];
+         return Ptr<Pipeline>(nullptr);
+         }
+      }
+      
    // Pipeline state
    MTLRenderPipelineDescriptor* pipeDesc = [[MTLRenderPipelineDescriptor alloc] init];
-   pipeDesc.vertexFunction               = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[0])->function;
-   pipeDesc.fragmentFunction             = pipelineState.shader[4] ? ptr_dynamic_cast<ShaderMTL>(&pipelineState.shader[4])->function : nil;
+   pipeDesc.vertexFunction               = functionVertex;
+   pipeDesc.fragmentFunction             = pipelineState.shader[4] ? functionFragment : nil;
    pipeDesc.vertexDescriptor             = input->desc;
    pipeDesc.sampleCount                  = 1;
    pipeDesc.alphaToCoverageEnabled       = NO;
@@ -135,7 +154,7 @@ namespace en
       pipeDesc.inputPrimitiveTopology       = TranslateDrawableTopology[input->primitive];
 
    // Create Pipeline
-   NSError* error = nullptr;
+   error = nullptr;
    pipeline = new PipelineMTL(device, pipeDesc, &error);
    [pipeDesc release];
 
@@ -153,9 +172,9 @@ namespace en
       }
    else // Populate Pipeline with Metal dynamic states
       {
-      pipeline->depthStencil = ptr_dynamic_cast<DepthStencilStateMTL, DepthStencilState>(depthStencilState);
-      pipeline->raster       = *ptr_dynamic_cast<RasterStateMTL, RasterState>(rasterState);
-      pipeline->viewport     = *ptr_dynamic_cast<ViewportStateMTL,  ViewportState>(viewportState);
+      pipeline->depthStencil = ptr_reinterpret_cast<DepthStencilStateMTL>(&pipelineState.depthStencilState);
+      pipeline->raster       = *ptr_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState);
+      pipeline->viewport     = *ptr_reinterpret_cast<ViewportStateMTL>(&pipelineState.viewportState);
       }
 
    return ptr_reinterpret_cast<Pipeline>(&pipeline);

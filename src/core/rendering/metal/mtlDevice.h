@@ -102,7 +102,8 @@ namespace en
       
       virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
 
-      virtual Ptr<Shader>  createShader(const string& source, const string& entrypoint);
+      virtual Ptr<Shader>  createShader(const ShaderStage stage,
+                                        const string& source);
       
       virtual uint32 queues(const QueueType type) const;
       

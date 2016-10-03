@@ -32,9 +32,8 @@ namespace en
       public:
       // TODO: In future separate library objects for reuse and batching of functions
       id <MTLLibrary> library;
-      id <MTLFunction> function;
       
-      ShaderMTL(id <MTLLibrary> library, id <MTLFunction> function);
+      ShaderMTL(id <MTLLibrary> library);
       virtual ~ShaderMTL();
       };
    }

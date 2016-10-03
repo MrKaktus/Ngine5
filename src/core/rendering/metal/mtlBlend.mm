@@ -99,8 +99,9 @@ namespace en
    // We don't support Logic Operations for now
    // for(uint32 i=0; i<attachments; ++i)
    //    assert( !(color[0].logicOperation && color[i].blending) );
-         
-   return ptr_reinterpret_cast<BlendState>(&Ptr<BlendStateMTL>(new BlendStateMTL(state, attachments, color)));
+   
+   Ptr<BlendStateMTL> ptr = new BlendStateMTL(state, attachments, color);
+   return ptr_reinterpret_cast<BlendState>(&ptr);
    }
    
    }

@@ -804,30 +804,18 @@ namespace en
 #endif
 
    // Create device interfaces
-   device[0] = ptr_dynamic_cast<GpuDevice, MetalDevice>(new MetalDevice(primaryDevice));
+   Ptr<MetalDevice> ptr = new MetalDevice(primaryDevice);
+   device[0] = ptr_reinterpret_cast<GpuDevice>(&ptr);
    if (supportingDevice)
-      device[1] = ptr_dynamic_cast<GpuDevice, MetalDevice>(new MetalDevice(supportingDevice));
-
+      {
+      Ptr<MetalDevice> ptr = new MetalDevice(supportingDevice);
+      device[1] = ptr_reinterpret_cast<GpuDevice>(&ptr);
+      }
 
 
 
 // ((CAMetalLayer*)view.layer).drawableSize =
 //   metalLayer.drawableSize - CGSizeMake(  0, 0, screen.width, screen.height );
-
-
-
-
-
-
-
-
-
-   
-    
-    
-   
-    
-    
 
 
 

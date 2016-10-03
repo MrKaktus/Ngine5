@@ -27,20 +27,27 @@ namespace en
 {
    namespace gpu
    {
+   class MetalDevice;
+   
    class HeapMTL : public CommonHeap
       {
       public:
+      MetalDevice* gpu;
+      
 #if defined(EN_PLATFORM_IOS)
       id <MTLHeap> handle;
       
-      HeapMTL(id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size);
+      HeapMTL(MetalDevice* gpu, id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size);
 #endif
 #if defined(EN_PLATFORM_OSX)
       id <MTLDevice> handle;
       
-      HeapMTL(id<MTLDevice> device, const MemoryUsage _usage, const uint32 _size);
+      HeapMTL(MetalDevice* gpu, id<MTLDevice> device, const MemoryUsage _usage, const uint32 _size);
 #endif
 
+      // Return parent device
+      virtual Ptr<GpuDevice> device(void) const;
+      
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
