@@ -67,15 +67,17 @@ namespace en
    class SamplerVK : public Sampler
       {
       public:
-      VkSampler handle;  // Vulkan Sampler ID
+      VulkanDevice* gpu;
+      VkSampler     handle;  // Vulkan Sampler ID
    
-      SamplerVK();
+      SamplerVK(VulkanDevice* gpu, VkSampler handle);
      ~SamplerVK();
       };
 
 
    class VulkanDevice;
 
+   VkImageAspectFlags TranslateImageAspect(const Format format);
    Ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state);
    }
 }

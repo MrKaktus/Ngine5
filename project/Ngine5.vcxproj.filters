@@ -603,6 +603,9 @@
     <ClCompile Include="..\src\core\utilities\basicAllocator.cpp">
       <Filter>Source Files\core\utilities</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkShader.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1228,6 +1231,15 @@
     </ClInclude>
     <ClInclude Include="..\src\core\utilities\basicAllocator.h">
       <Filter>Source Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkShader.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\commandBuffer.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\shader.h">
+      <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

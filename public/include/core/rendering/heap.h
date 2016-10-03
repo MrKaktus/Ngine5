@@ -42,10 +42,15 @@ namespace en
       Temporary       // Use as a backup memory for intermediate Render Targets.
       };
 
+   class GpuDevice;
+
    class Heap : public SafeObject<Heap>
       {
       public:
       virtual uint32 size(void) const = 0;
+
+      // Return parent device
+      virtual Ptr<GpuDevice> device(void) const = 0;
 
       // Create formatted Vertex buffer that can be bound to InputAssembler.
       virtual Ptr<Buffer> createBuffer(const uint32 elements,

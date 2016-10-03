@@ -137,12 +137,6 @@ namespace en
 
 /// TEMP START
 
-   class PipelineLayout : public SafeObject<PipelineLayout>
-      {
-      public:
-      virtual ~PipelineLayout();                              // Polymorphic deletes require a virtual base destructor
-      };
-
    class PipelineLayoutVK : public PipelineLayout
       {
       public:
@@ -259,12 +253,7 @@ namespace en
       VulkanDevice(VulkanAPI* api, const VkPhysicalDevice handle);
      ~VulkanDevice();
 
-
-      //bool getMemoryType(uint32 allowedTypes, VkFlags properties, uint32* memoryType);
-      //VkDeviceMemory allocMemory(VkMemoryRequirements requirements, VkFlags properties);
-
-
-
+      virtual void init(void);
 
 
 
@@ -282,14 +271,19 @@ namespace en
       // Creates Command Buffer from the given Command Queue of given type.
       // When this buffer is commited for execution it will execute on that queue.
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
-                                                     const uint32 parentQueue = 0u) = 0;
+                                                     const uint32 parentQueue = 0u);
 
 
 
 
       virtual Ptr<Heap>   createHeap(const MemoryUsage usage, const uint32 size);
 
+      virtual Ptr<Shader>  createShader(const ShaderStage stage,
+                                        const string& source);
+
       virtual Ptr<Sampler>  create(const SamplerState& state);
+
+      virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
       virtual Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
                                    const Ptr<ViewportState>  viewportState,
@@ -297,6 +291,7 @@ namespace en
                                    const Ptr<MultisamplingState> multisamplingState,
                                    const Ptr<DepthStencilState> depthStencilState,
                                    const Ptr<BlendState>     blendState,
+                                   const Ptr<Shader>         shader,
                                    const Ptr<PipelineLayout> pipelineLayout);
 
       virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
@@ -312,27 +307,27 @@ namespace en
 
 
 
-      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<TextureView> textureView) = 0;
+      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<TextureView> textureView);
 
       virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<TextureView> depth,
-                                                                       const Ptr<TextureView> stencil) = 0;
+                                                                       const Ptr<TextureView> stencil);
 
       // Creates simple render pass with one color or depth-stencil destination (or both)
-      virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,
-                                     const Ptr<DepthStencilAttachment> depthStencil);
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> color,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
       
-      virtual Ptr<RenderPass> create(const uint32 _attachments,
-                                     const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-                                     const Ptr<DepthStencilAttachment> depthStencil);
+      virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
+                                               const Ptr<ColorAttachment>* color,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
         
       // Creates render pass which's output goes to window framebuffer
-      virtual Ptr<RenderPass> create(const Ptr<Texture> framebuffer,
-                                     const Ptr<DepthStencilAttachment> depthStencil);
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> framebuffer,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
       
       // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-      virtual Ptr<RenderPass> create(const Ptr<Texture> temporaryMSAA,
-                                     const Ptr<Texture> framebuffer,
-                                     const Ptr<DepthStencilAttachment> depthStencil);
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> temporaryMSAA,
+                                               const Ptr<Texture> framebuffer,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
 
       // Internal universal method to create Render Pass
       Ptr<RenderPass> createRenderPass(const uint32 attachments,
@@ -341,19 +336,18 @@ namespace en
                                        const uint32v2 explicitResolution,
                                        const uint32   explicitLayers);
          
-         
+        
+      virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state);
 
-      virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc);
+      virtual Ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
+                                                               const bool enableAlphaToCoverage,
+                                                               const bool enableAlphaToOne);
 
-      virtual Ptr<MultisamplingState> create(const uint32 samples,
-                                             const bool enableAlphaToCoverage,
-                                             const bool enableAlphaToOne);
+      virtual Ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc);
 
-      virtual Ptr<RasterState>        create(const RasterStateInfo& state);
-
-      virtual Ptr<BlendState>         create(const BlendStateInfo& state,
-                                             const uint32 attachments,
-                                             const BlendAttachmentInfo* color);
+      virtual Ptr<BlendState>         createBlendState(const BlendStateInfo& state,
+                                                       const uint32 attachments,
+                                                       const BlendAttachmentInfo* color);
 
       virtual Ptr<ViewportState>      create(const uint32 count,
                                              const ViewportStateInfo* viewports,

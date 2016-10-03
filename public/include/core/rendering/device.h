@@ -195,12 +195,15 @@ namespace en
                                  const string title) = 0; // Create window
                
       // Create Heap from which GPU resources can be sub-allocated.
-      virtual Ptr<Heap>    createHeap(const MemoryUsage usage, uint32 size) = 0;
+      virtual Ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;
       
       // Buffers and Textures are allocated from the Heaps.
       
-      virtual Ptr<Shader>  create(const string& source, const string& entrypoint) = 0;
-      
+      // TODO:
+      // Vulkan - entrypoint is specified at Pipeline creation I guess
+      // Metal  - has libraries, from which we pick functions as entry points
+      virtual Ptr<Shader> createShader(const ShaderStage stage,
+                                       const string& source) = 0;
       
       
       // Returns count of available Command Queues of given type
@@ -249,55 +252,48 @@ namespace en
                                                                        const Ptr<TextureView> stencil) = 0;
 
       // Creates simple render pass with one color destination
-      virtual Ptr<RenderPass> create(const Ptr<ColorAttachment> color,
-                                     const Ptr<DepthStencilAttachment> depthStencil) = 0;
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> color,
+                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
       
       // Creates render pass with Multiple Render Targets
-      virtual Ptr<RenderPass> create(const uint32 _attachments,
-                                     const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-                                     const Ptr<DepthStencilAttachment> depthStencil) = 0;
+      virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
+                                               const Ptr<ColorAttachment>* color,
+                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
         
       // Creates render pass which's output goes to window framebuffer
-      virtual Ptr<RenderPass> create(const Ptr<Texture> framebuffer,
-                                     const Ptr<DepthStencilAttachment> depthStencil) = 0;
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> framebuffer,
+                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
       
       // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-      virtual Ptr<RenderPass> create(const Ptr<Texture> temporaryMSAA,
-                                     const Ptr<Texture> framebuffer,
-                                     const Ptr<DepthStencilAttachment> depthStencil) = 0;
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> temporaryMSAA,
+                                               const Ptr<Texture> framebuffer,
+                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
 
 
 
 
 
-      virtual Ptr<DepthStencilState>  create(const DepthStencilStateInfo& desc) = 0;
-      virtual Ptr<MultisamplingState> create(const uint32 samples,
-                                             const bool enableAlphaToCoverage,
-                                             const bool enableAlphaToOne) = 0;
-         
-      virtual Ptr<RasterState>        create(const RasterStateInfo& state) = 0;
+      virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state) = 0;
 
-      virtual Ptr<BlendState>         create(const BlendStateInfo& state,
-                                             const uint32 attachments,
-                                             const BlendAttachmentInfo* color) = 0;
+      virtual Ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
+                                                               const bool enableAlphaToCoverage,
+                                                               const bool enableAlphaToOne) = 0;
+
+      virtual Ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc) = 0;
+
+      virtual Ptr<BlendState>         createBlendState(const BlendStateInfo& state,
+                                                       const uint32 attachments,
+                                                       const BlendAttachmentInfo* color) = 0;
       
       virtual Ptr<ViewportState>      create(const uint32 count,
                                              const ViewportStateInfo* viewports,
                                              const ScissorStateInfo* scissors) = 0;
 
-      virtual Ptr<Pipeline> create(const Ptr<RenderPass> renderPass,
-                                   const Ptr<InputAssembler> inputAssembler,
-                                   const Ptr<ViewportState>  viewportState,
-                                   const Ptr<RasterState>    rasterState,
-                                   const Ptr<MultisamplingState> multisamplingState,
-                                   const Ptr<DepthStencilState> depthStencilState,
-                                   const Ptr<BlendState>     blendState,
-                                   const Ptr<Shader>         vertex,
-                                   const Ptr<Shader>         fragment
-                                   /*const Ptr<PipelineLayout> pipelineLayout*/) = 0;
+      // Returns default Pipeline state helper structure, that can be easily
+      // modified and passed to Pipeline object creation call.
+      virtual PipelineState defaultPipelineState(void) = 0;
 
-
-
+      virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState) = 0;
 
 
       // Capabilities query

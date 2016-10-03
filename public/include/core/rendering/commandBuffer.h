@@ -30,6 +30,7 @@
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/pipeline.h"
 #include "core/rendering/renderPass.h"
+#include "core/rendering/pipeline.h"
 
 namespace en
 {

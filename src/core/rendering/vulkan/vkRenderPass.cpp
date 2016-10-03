@@ -58,7 +58,7 @@ namespace en
    clearValue.color.float32[2] = 0.0f;
    clearValue.color.float32[3] = 1.0f;
 
-   view[Color] = ptr_dynamic_cast<TextureViewVK, TextureView>(source);
+   view[Color] = ptr_reinterpret_cast<TextureViewVK>(&source);
 
    state[Color].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
    state[Color].format         = TranslateTextureFormat[underlyingType(view[Color]->viewFormat)];
@@ -116,7 +116,7 @@ namespace en
    {
    assert( destination );
 
-   view[Resolve] = ptr_dynamic_cast<TextureViewVK, TextureView>(destination);
+   view[Resolve] = ptr_reinterpret_cast<TextureViewVK>(&destination);
 
    assert( view[Color]->texture->state.samples > 1 );              // Cannot resolve non-MSAA source
    assert( view[Resolve]->texture->state.samples == 1 );           // Cannot resolve to MSAA destination
@@ -180,10 +180,10 @@ namespace en
    assert( _depth || _stencil );
    
    if (_depth)
-      view = ptr_dynamic_cast<TextureViewVK, TextureView>(_depth);
+      view = ptr_reinterpret_cast<TextureViewVK>(&_depth);
 
    if (_stencil)
-      view = ptr_dynamic_cast<TextureViewVK, TextureView>(_stencil);
+      view = ptr_reinterpret_cast<TextureViewVK>(&_stencil);
 
    // Needs to be DepthStencil, Depth or Stencil
    Format format = view->viewFormat;
@@ -279,14 +279,14 @@ namespace en
    Ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Ptr<TextureView> texture)
    {
    // TODO: Layers is unused!
-   return ptr_dynamic_cast<ColorAttachment, ColorAttachmentVK>(Ptr<ColorAttachmentVK>(new ColorAttachmentVK(texture)));
+   return ptr_reinterpret_cast<ColorAttachment>(&Ptr<ColorAttachmentVK>(new ColorAttachmentVK(texture)));
    }
 
    Ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(const Ptr<TextureView> depth,
       const Ptr<TextureView> stencil)
    {
    // TODO: Layers is unused!
-   return ptr_dynamic_cast<DepthStencilAttachment, DepthStencilAttachmentVK>(Ptr<DepthStencilAttachmentVK>(new DepthStencilAttachmentVK(depth, stencil)));
+   return ptr_reinterpret_cast<DepthStencilAttachment>(&Ptr<DepthStencilAttachmentVK>(new DepthStencilAttachmentVK(depth, stencil)));
    }
    
 
@@ -294,8 +294,8 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   Ptr<RenderPass> VulkanDevice::create(const Ptr<ColorAttachment> color,
-                                        const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<RenderPass> VulkanDevice::createRenderPass(const Ptr<ColorAttachment> color,
+                                                  const Ptr<DepthStencilAttachment> depthStencil)
    {
    // At least one of the two needs to be present
    assert( color || depthStencil );
@@ -308,7 +308,7 @@ namespace en
    bool selected = false;
    if (color)
       {
-      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color);
+      ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color);
       Ptr<TextureViewVK> view = ptr->view[Color];
       uint32 mipmap = view->mipmaps.base;
       resolution = view->texture->resolution(mipmap);
@@ -318,7 +318,7 @@ namespace en
    else
    if (depthStencil)
       {
-      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+      DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
       Ptr<TextureViewVK> view = ptr->view;
       uint32 mipmap = view->mipmaps.base;
 
@@ -340,9 +340,9 @@ namespace en
    }
    
       
-   Ptr<RenderPass> VulkanDevice::create(uint32 _attachments,
-                                        const Ptr<ColorAttachment>* color,
-                                        const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<RenderPass> VulkanDevice::createRenderPass(uint32 _attachments,
+                                                  const Ptr<ColorAttachment>* color,
+                                                  const Ptr<DepthStencilAttachment> depthStencil)
    {
    // At least one type of the two needs to be present
    assert( _attachments > 0 || depthStencil );
@@ -358,7 +358,7 @@ namespace en
       for(uint32 i=0; i<_attachments; ++i)
          if (color[i]) // Allow empty entries in the input array.
             {
-            Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
+            ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
             Ptr<TextureViewVK> view = ptr->view[Color];
             uint32 mipmap = view->mipmaps.base;
 
@@ -377,7 +377,7 @@ namespace en
       }
    if (depthStencil)
       {
-      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+      DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
       Ptr<TextureViewVK> view = ptr->view;
       uint32 mipmap = view->mipmaps.base;
 
@@ -497,7 +497,7 @@ namespace en
          
       surfaces += attachments;
 
-      if (ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[0])->view[Resolve])
+      if (raw_reinterpret_cast<ColorAttachmentVK>(&color[0])->view[Resolve])
          resolve = true;
       }
       
@@ -510,7 +510,7 @@ namespace en
       for(uint32 i=0; i<attachments; ++i)
          {
          // If one Color Attachment is beeing resolved, all of them need to be resolved
-         Ptr<TextureViewVK> view = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i])->view[Resolve];
+         Ptr<TextureViewVK> view = raw_reinterpret_cast<ColorAttachmentVK>(&color[i])->view[Resolve];
          assert( view );
          
          attResolve[i].attachment = surfaces;
@@ -559,7 +559,7 @@ namespace en
       attachment = new VkAttachmentDescription[surfaces];
    for(uint32 i=0; i<attachments; ++i)
       {
-      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
+      ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
       memcpy(&attachment[index], &ptr->state[Color], sizeof(VkAttachmentDescription));
       handles[index] = ptr->view[Color]->handle;
       index++;
@@ -568,7 +568,7 @@ namespace en
    if (resolve)
       for(uint32 i=0; i<attachments; ++i)
          {
-         Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
+         ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
          memcpy(&attachment[index], &ptr->state[Resolve], sizeof(VkAttachmentDescription));
          handles[index] = ptr->view[Resolve]->handle;
          index++;
@@ -576,7 +576,7 @@ namespace en
       
    if (depthStencil)
       {
-      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+      DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
       memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
       handles[index] = ptr->view->handle;
       }
@@ -636,7 +636,7 @@ namespace en
    index = 0;
    for(uint32 i=0; i<attachments; ++i)
       {
-      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
+      ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
       result->clearValues[index] = ptr->clearValue;
       index++;
       }
@@ -647,7 +647,7 @@ namespace en
 
    if (depthStencil)
       {
-      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+      DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
       result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
       result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
       }
@@ -656,7 +656,7 @@ namespace en
    result->resolution = explicitResolution;
    
    delete [] handles;
-   return ptr_dynamic_cast<RenderPass, RenderPassVK>(result);
+   return ptr_reinterpret_cast<RenderPass>(&result);
    }
    
    
@@ -666,18 +666,20 @@ namespace en
    
    
    // Creates render pass which's output goes to window framebuffer
-   Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> framebuffer,
-                                        const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<RenderPass> VulkanDevice::createRenderPass(const Ptr<Texture> framebuffer,
+                                                  const Ptr<DepthStencilAttachment> depthStencil)
    {
-   // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+   // TODO: VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+   return Ptr<RenderPass>(nullptr);
    }
       
    // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-   Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> temporaryMSAA,
-                                        const Ptr<Texture> framebuffer,
-                                        const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<RenderPass> VulkanDevice::createRenderPass(const Ptr<Texture> temporaryMSAA,
+                                                  const Ptr<Texture> framebuffer,
+                                                  const Ptr<DepthStencilAttachment> depthStencil)
    {
-   // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+   // TODO: VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+   return Ptr<RenderPass>(nullptr);
    }
 
 

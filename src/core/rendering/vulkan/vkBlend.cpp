@@ -118,11 +118,11 @@ namespace en
       }
    }
 
-   Ptr<BlendState> VulkanDevice::create(const BlendStateInfo& state,
-                                        const uint32 attachments,
-                                        const BlendAttachmentInfo* color)
+   Ptr<BlendState> VulkanDevice::createBlendState(const BlendStateInfo& state,
+                                                  const uint32 attachments,
+                                                  const BlendAttachmentInfo* color)
    {
-   return ptr_dynamic_cast<BlendState, BlendStateVK>(Ptr<BlendStateVK>(new BlendStateVK(state, attachments, color)));
+   return ptr_reinterpret_cast<BlendState>(&Ptr<BlendStateVK>(new BlendStateVK(state, attachments, color)));
    }
 
    }

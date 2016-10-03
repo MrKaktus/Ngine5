@@ -21,6 +21,17 @@
 #include "core/types.h"
 #include "core/utilities/TintrusivePointer.h"
 
+// For PipelineState 
+#include <string>
+#include "core/rendering/renderPass.h"
+#include "core/rendering/inputAssembler.h"
+#include "core/rendering/viewport.h"
+#include "core/rendering/raster.h"
+#include "core/rendering/multisampling.h"
+#include "core/rendering/depthStencil.h"
+#include "core/rendering/blend.h"
+#include "core/rendering/shader.h"
+
 namespace en
 {
    namespace gpu
@@ -67,11 +78,37 @@ namespace en
    //    } support;
    //
 
+   class PipelineLayout : public SafeObject<PipelineLayout>
+      {
+      public:
+      virtual ~PipelineLayout() {};                              // Polymorphic deletes require a virtual base destructor
+      };
+
    // Handle for Pipeline State Object binding specification
    class Pipeline : public SafeObject<Pipeline>
       {
       public:
       virtual ~Pipeline() {};                            // Polymorphic deletes require a virtual base destructor
+      };
+
+   class GpuDevice;
+
+   // Helper structure for Pipeline object creation.
+   struct PipelineState
+      {
+      Ptr<RenderPass>         renderPass;
+      Ptr<InputAssembler>     inputAssembler;
+      Ptr<ViewportState>      viewportState;
+      Ptr<RasterState>        rasterState;
+      Ptr<MultisamplingState> multisamplingState;
+      Ptr<DepthStencilState>  depthStencilState;
+      Ptr<BlendState>         blendState;
+      Ptr<Shader>             shader[5];
+      std::string             function[5];
+      Ptr<PipelineLayout>     pipelineLayout;
+
+      PipelineState();
+      PipelineState(GpuDevice* device);
       };
 
    }

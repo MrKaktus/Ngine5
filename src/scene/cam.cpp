@@ -130,7 +130,7 @@ namespace en
    vFov       = _vFov;
    }
 
-   Ptr<Buffer> FrustumSettings::wireframe(void) const
+   Ptr<Buffer> FrustumSettings::wireframe(Ptr<Heap> heap) const
    {
    //assert(Gpu.screen.created());
 
@@ -158,7 +158,7 @@ namespace en
    points[15] = float3( nearEdges.w, -nearEdges.y, nearPlane); // Lower-right connector
 
    // Create geometry buffer for given frustum
-   Ptr<Buffer> buffer = ResourcesContext.defaults.enHeap->createBuffer(16, Formatting(Attribute::v3f32), 0u); // inPosition
+   Ptr<Buffer> buffer = heap->createBuffer(16, Formatting(Attribute::v3f32)); 
 
    // Create staging buffer
    Ptr<Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, 16);

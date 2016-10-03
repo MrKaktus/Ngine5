@@ -299,7 +299,7 @@ namespace en
    {
    Ptr<InputAssemblerD3D12> input = Ptr<InputAssemblerD3D12>(new InputAssemblerD3D12(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
-   return ptr_dynamic_cast<InputAssembler, InputAssemblerD3D12>(input);
+   return ptr_reinterpret_cast<InputAssembler>(&input);
    }
 
    }

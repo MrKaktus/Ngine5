@@ -88,46 +88,46 @@ namespace en
    // DedicatedMemorylessFallback
    //
    // Because Engine currently is not using "SystemCached" nor "DedicatedWithCopy" memory types,
-   // (as they doesn't occur in the actual drivers), it doesn't need to use nelow Vulkan calls:
+   // (as they doesn't occur in the actual drivers), it doesn't need to use below Vulkan calls:
    //
    // vkFlushMappedMemoryRanges      - non-coherent
    // vkInvalidateMappedMemoryRanges - non-coherent , after barrier and fence
 
 
 
-   AMD R9 390:
-   
-   Dedicated
-   DedicatedMapped
-   System
-   SystemWriteThrough
-   
-   NV GTX 980 Ti:
-   
-   Dedicated
-   System
-   SystemWriteThrough
-   
-   Intel HD 520:
+   //AMD R9 390:
+   //
+   //Dedicated
+   //DedicatedMapped
+   //System
+   //SystemWriteThrough
+   //
+   //NV GTX 980 Ti:
+   //
+   //Dedicated
+   //System
+   //SystemWriteThrough
+   //
+   //Intel HD 520:
 
-   DedicatedMapped
-   DedicatedSharedCache
-   
-   Intel Ivybridge / Haswell / Skylake:
-   
-   DedicatedSharedCache   
-   
-   Adreno 430:
-   
-   Dedicated             ( reports shared system memory as Dedicated )
-   DedicatedWithCopy
-   DedicatedSharedCache
-   
-   Tegra K1, X1:
-   
-   Dedicated
-   DedicatedMapped
-   DedicatedWithCopy
+   //DedicatedMapped
+   //DedicatedSharedCache
+   //
+   //Intel Ivybridge / Haswell / Skylake:
+   //
+   //DedicatedSharedCache   
+   //
+   //Adreno 430:
+   //
+   //Dedicated             ( reports shared system memory as Dedicated )
+   //DedicatedWithCopy
+   //DedicatedSharedCache
+   //
+   //Tegra K1, X1:
+   //
+   //Dedicated
+   //DedicatedMapped
+   //DedicatedWithCopy
 
    // Description:
 
@@ -273,13 +273,19 @@ namespace en
    delete allocator;
    }
 
+   // Return parent device
+   Ptr<GpuDevice> HeapVK::device(void) const
+   {
+   return Ptr<GpuDevice>(gpu);
+   }
+
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
    Ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
    {
    // Create buffer descriptor
-   Ptr<BufferVK> buffer = createBuffer(gpu, type, size);
+   Ptr<BufferVK> buffer = gpu::createBuffer(gpu, type, size);
    if (!buffer)
       return Ptr<Buffer>(nullptr);
 
@@ -317,7 +323,7 @@ namespace en
    assert( _usage == MemoryUsage::Static );
    
    // Create texture descriptor
-   Ptr<TextureVK> texture = createTexture(gpu, state);
+   Ptr<TextureVK> texture = gpu::createTexture(gpu, state);
    if (!texture)
       return Ptr<Texture>(nullptr);
 
@@ -449,7 +455,7 @@ namespace en
       
       VkDeviceMemory handle;
       Profile( this, vkAllocateMemory(device, &allocInfo, nullptr, &handle) )
-      if (lastResult[en::Scheduler.core()] == VK_SUCCESS)
+      if (lastResult[Scheduler.core()] == VK_SUCCESS)
          {
          Ptr<HeapVK> heap = new HeapVK(this, handle, memoryTypePerUsage[usageIndex][i], usage, roundedSize);
          return ptr_reinterpret_cast<Heap>(&heap);

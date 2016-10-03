@@ -67,7 +67,7 @@ namespace en
    {
    }
    
-   Ptr<RasterState> MetalDevice::create(const RasterStateInfo& state)
+   Ptr<RasterState> MetalDevice::createRasterState(const RasterStateInfo& state)
    {
    return ptr_dynamic_cast<RasterState, RasterStateMTL>(new RasterStateMTL(state));
    }

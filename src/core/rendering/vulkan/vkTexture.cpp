@@ -232,6 +232,17 @@ namespace en
    // VK_BORDER_COLOR_INT_OPAQUE_BLACK
    // VK_BORDER_COLOR_INT_OPAQUE_WHITE
 
+   SamplerVK::SamplerVK(VulkanDevice* _gpu, VkSampler _handle) :
+      gpu(_gpu),
+      handle(_handle)
+   {
+   }
+  
+   SamplerVK::~SamplerVK()
+   {
+   ProfileNoRet( gpu, vkDestroySampler(gpu->device, handle, nullptr) )
+   }
+
    Ptr<Sampler> VulkanDevice::create(const SamplerState& state)
    {
    Ptr<SamplerVK> sampler = nullptr;
@@ -258,13 +269,10 @@ namespace en
 
    VkSampler handle;
    Profile( this, vkCreateSampler(device, &samplerInfo, nullptr, &handle) )
-   if ( lastResult[0] >= 0 )  // FIXME !!! Assuming first thread !!
-      {
-      sampler = new SamplerVK();
-      sampler->handle = handle;
-      }
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      sampler = new SamplerVK(this, handle);
 
-   return ptr_dynamic_cast<Sampler, SamplerVK>(sampler);
+   return ptr_reinterpret_cast<Sampler>(&sampler);
    };
 
 
@@ -565,7 +573,7 @@ namespace en
 
    VkImage handle;
    Profile( gpu, vkCreateImage(gpu->device, &textureInfo, nullptr, &handle) )
-   if (gpu->lastResult[threadId] >= 0)  
+   if (gpu->lastResult[threadId] == VK_SUCCESS)  
       {
       texture = new TextureVK(gpu, state);
       texture->handle = handle;
@@ -619,7 +627,7 @@ namespace en
    ProfileNoRet( gpu, vkDestroyImage(gpu->device, handle, nullptr) )
    
    // Deallocate from the Heap (let Heap allocator know that memory region is available again)
-   ptr_dynamic_cast<HeapVK, Heap>(heap)->allocator->deallocate(offset, memoryRequirements.size);
+   raw_reinterpret_cast<HeapVK>(&heap)->allocator->deallocate(offset, memoryRequirements.size);
    heap = nullptr;
    }
  
@@ -661,7 +669,7 @@ namespace en
       {
       Ptr<TextureVK> parent((TextureVK*)this);
       Ptr<TextureViewVK> ptr = new TextureViewVK(parent, viewHandle, _type, _format, _mipmaps, _layers);
-      result = ptr_dynamic_cast<TextureView, TextureViewVK>(ptr);
+      result = ptr_reinterpret_cast<TextureView>(&ptr);
       }
       
    return result;
@@ -688,7 +696,7 @@ namespace en
    
    Ptr<Texture> TextureViewVK::parent(void) const
    {
-   return ptr_dynamic_cast<Texture, TextureVK>(texture);
+   return ptr_reinterpret_cast<Texture>(&texture);
    }
      
    }

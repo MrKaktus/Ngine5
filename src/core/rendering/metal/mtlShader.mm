@@ -40,7 +40,7 @@ namespace en
    [library release];
    }
    
-   Ptr<Shader> MetalDevice::create(const string& source, const string& entrypoint)
+   Ptr<Shader> MetalDevice::createShader(const string& source, const string& entrypoint)
    {
    Ptr<ShaderMTL> shader = nullptr;
 
@@ -56,6 +56,7 @@ namespace en
    // On desktop keep to IEEE 754 standard
    options.fastMathEnabled    = NO;
 #endif
+   // TODO: Dynamic version in future ?
    options.languageVersion    = MTLLanguageVersion1_2;
    
    NSError* error = nil;

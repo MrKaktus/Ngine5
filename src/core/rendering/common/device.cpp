@@ -155,7 +155,8 @@ namespace en
 
 
 
-   CommonDevice::CommonDevice()
+   CommonDevice::CommonDevice() :
+      defaultState(this)
    {
    support.attribute.reset();
    support.sampling.reset();
@@ -220,12 +221,17 @@ namespace en
 
    CommonDevice::~CommonDevice()
    {
+   // Release default device objects
+   defaultState.rasterState        = nullptr;
+   defaultState.multisamplingState = nullptr;
+   defaultState.depthStencilState  = nullptr;
+   defaultState.blendState         = nullptr;
    }
    
    void CommonDevice::init(void)
    {
-   // Should be implemented by API
-   assert(0);
+   // Should be called by API implementation init
+   assert( 0 );
    }
    
    Ptr<InputAssembler> CommonDevice::create(const DrawableType primitiveType,
@@ -240,6 +246,54 @@ namespace en
    return Ptr<InputAssembler>(nullptr);
    }
    
+
+   // INFO: Descriptor is used when we want to be able to override any field with pur custom settings, but overall we want to use default ones
+
+   // Device -> default State
+   //           default States > default Pipeline description :
+   //                            user optional changes
+   //                            create pipeline with this description
+
+   // Those objects need to be created from specific device, -> thus this whole structure need to be queried from device, that is then init with default objects kept by device and created on it's init
+
+
+   PipelineState::PipelineState()
+   {
+   }
+
+   PipelineState::PipelineState(GpuDevice* device)
+   {
+   // Create default Pipeline State
+   // Application still needs to be set those:
+   // 
+   // inputAssembler
+   // viewportState
+   // shader[5]
+   // pipelineLayout
+   //
+   RasterStateInfo defaultRasterState;
+   rasterState        = device->createRasterState(defaultRasterState);
+   multisamplingState = device->createMultisamplingState(1u, false, false);
+
+   DepthStencilStateInfo defaultDepthStencilState;
+   depthStencilState  = device->createDepthStencilState(defaultDepthStencilState);
+
+   BlendStateInfo      defaultBlendState;
+   BlendAttachmentInfo defaultBlendAttachmentState;
+   blendState         = device->createBlendState(defaultBlendState, 1u, &defaultBlendAttachmentState);
+
+   for(uint32 i=0; i<5; ++i)
+      function[i] = string("main");
+   }
+
+   PipelineState CommonDevice::defaultPipelineState(void)
+   {
+   return defaultState;
+   }
+
+
+
+
    
    // This static function should be in .mm file if we include Metal headers !!!
    bool GraphicAPI::create(void)

@@ -42,7 +42,11 @@ namespace en
       HeapVK(VulkanDevice* gpu, 
              const VkDeviceMemory handle, 
              const uint32 _memoryType, 
+             const MemoryUsage _usage,
              const uint32 size);
+
+      // Return parent device
+      virtual Ptr<GpuDevice> device(void) const;
 
       // Create formatted Vertex buffer that can be bound to InputAssembler.
       virtual Ptr<Buffer> createBuffer(const uint32 elements,

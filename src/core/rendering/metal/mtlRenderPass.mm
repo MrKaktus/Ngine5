@@ -333,8 +333,8 @@ namespace en
 
 
    // Creates simple render pass with one color destination
-   Ptr<RenderPass> MetalDevice::create(const Ptr<ColorAttachment> color,
-                                       const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<RenderPass> MetalDevice::createRenderPass(const Ptr<ColorAttachment> color,
+                                                 const Ptr<DepthStencilAttachment> depthStencil)
    {
    Ptr<RenderPassMTL> pass = new RenderPassMTL();
 
@@ -355,9 +355,9 @@ namespace en
    return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
    }
 
-   Ptr<RenderPass> MetalDevice::create(const uint32 _attachments,
-                                       const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-                                       const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<RenderPass> MetalDevice::createRenderPass(const uint32 _attachments,
+                                                 const Ptr<ColorAttachment>* color,
+                                                 const Ptr<DepthStencilAttachment> depthStencil)
    {
    assert( _attachments < MaxColorAttachmentsCount );
 
@@ -387,8 +387,8 @@ namespace en
    }
 
    // Creates render pass which's output goes to window framebuffer
-   Ptr<RenderPass> MetalDevice::create(const Ptr<Texture> framebuffer,
-                                       const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<RenderPass> MetalDevice::createRenderPass(const Ptr<Texture> framebuffer,
+                                                 const Ptr<DepthStencilAttachment> depthStencil)
    {
    Ptr<RenderPassMTL> pass = new RenderPassMTL();
 
@@ -423,9 +423,9 @@ namespace en
    }
 
    // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-   Ptr<RenderPass> MetalDevice::create(const Ptr<Texture> temporaryMSAA,
-                                       const Ptr<Texture> framebuffer,
-                                       const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<RenderPass> MetalDevice::createRenderPass(const Ptr<Texture> temporaryMSAA,
+                                                 const Ptr<Texture> framebuffer,
+                                                 const Ptr<DepthStencilAttachment> depthStencil)
    {
    assert( temporaryMSAA );
    assert( framebuffer );

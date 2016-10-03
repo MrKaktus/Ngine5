@@ -36,11 +36,11 @@ namespace en
    {
    }
    
-   Ptr<MultisamplingState> MetalDevice::create(const uint32 samples,
-                            const bool enableAlphaToCoverage,
-                            const bool enableAlphaToOne)
+   Ptr<MultisamplingState> MetalDevice::createMultisamplingState(const uint32 samples,
+                                                                 const bool enableAlphaToCoverage,
+                                                                 const bool enableAlphaToOne)
    {
-   return ptr_dynamic_cast<MultisamplingState, MultisamplingStateMTL>(new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne));
+   return ptr_reinterpret_cast<MultisamplingState>(&Ptr<MultisamplingStateMTL>(new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne)));
    }
    
    }

@@ -83,6 +83,7 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkPipeline.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkRaster.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkRenderPass.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkShader.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkState.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkViewport.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="..\public\include\core\log\log.h" />
     <ClInclude Include="..\public\include\core\rendering\blend.h" />
     <ClInclude Include="..\public\include\core\rendering\buffer.h" />
+    <ClInclude Include="..\public\include\core\rendering\commandBuffer.h" />
     <ClInclude Include="..\public\include\core\rendering\depthStencil.h" />
     <ClInclude Include="..\public\include\core\rendering\device.h" />
     <ClInclude Include="..\public\include\core\rendering\framebuffer.h" />
@@ -180,6 +182,7 @@
     <ClInclude Include="..\public\include\core\rendering\rendering.hpp" />
     <ClInclude Include="..\public\include\core\rendering\renderPass.h" />
     <ClInclude Include="..\public\include\core\rendering\sampler.h" />
+    <ClInclude Include="..\public\include\core\rendering\shader.h" />
     <ClInclude Include="..\public\include\core\rendering\state.h" />
     <ClInclude Include="..\public\include\core\rendering\texture.h" />
     <ClInclude Include="..\public\include\core\rendering\viewport.h" />
@@ -349,6 +352,7 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkRaster.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkRenderPass.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkSampler.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkShader.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkTexture.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkViewport.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan.h" />
@@ -443,7 +447,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>opengl32.lib;zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.8\contrib\vstudio\vc11\x86\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2013;.\..\middleware\openvr-0.9.11\lib\win32;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.8\contrib\vstudio\vc11\x86\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2015;.\..\middleware\openvr-0.9.11\lib\win32;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Lib>
     <BuildLog>
       <Path>.\..\build\win32\$(Configuration)\$(MSBuildProjectName).log</Path>

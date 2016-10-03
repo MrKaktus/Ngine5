@@ -5,6 +5,8 @@ public/lib/
 public/bin/libfbxsdk.dll
 public/bin/openvr_api.dll
 public/bin/zlibwapi.dll
+middleware/OculusSDK/LibOVR/Lib/
+middleware/OculusSDK/LibOVR/Obj/
 middleware/openvr-0.9.11/.gitattributes
 bin/win32/Debug/Ngine5dbg.lib
 project/Ngine5.v12.suo

@@ -71,39 +71,30 @@ namespace en
    
 
 
-   Ptr<Pipeline> MetalDevice::create(const Ptr<RenderPass>     renderPass,
-                                     const Ptr<InputAssembler> inputAssembler,
-                                     const Ptr<ViewportState>  viewportState,
-                                     const Ptr<RasterState>    rasterState,
-                                     const Ptr<MultisamplingState> multisamplingState,
-                                     const Ptr<DepthStencilState> depthStencilState,
-                                     const Ptr<BlendState>     blendState,
-                                     const Ptr<Shader>         vertex,
-                                     const Ptr<Shader>         fragment
-                                 /*const Ptr<PipelineLayout> pipelineLayout*/)
+   Ptr<Pipeline> MetalDevice::create(const PipelineState& pipelineState)
    {
    Ptr<PipelineMTL> pipeline = nullptr;
 
    // Required States
-   assert( renderPass );
-   assert( inputAssembler );
-   assert( blendState );
-   assert( viewportState );
-   assert( vertex );
+   assert( pipelineState.renderPass );
+   assert( pipelineState.inputAssembler );
+   assert( pipelineState.blendState );
+   assert( pipelineState.viewportState );
+   assert( pipelineState.shader[0] );
    
    // Fragment Shader is optional if rasterization is disabled
-   const Ptr<RasterStateMTL> rasterizer = ptr_dynamic_cast<RasterStateMTL, RasterState>(rasterState);
-   assert( fragment || (!fragment && rasterizer && !rasterizer->enableRasterization) );
+   const Ptr<RasterStateMTL> rasterizer = ptr_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState);
+   assert( pipelineState.shader[4] || (!pipelineState.shader[4] && pipelineState.rasterizer && !pipelineState.rasterizer->enableRasterization) );
    
    // Cast to Metal states
-   const Ptr<RenderPassMTL>     pass     = ptr_dynamic_cast<RenderPassMTL,     RenderPass>(renderPass);
-   const Ptr<InputAssemblerMTL> input    = ptr_dynamic_cast<InputAssemblerMTL, InputAssembler>(inputAssembler);
-   const Ptr<BlendStateMTL>     blend    = ptr_dynamic_cast<BlendStateMTL,     BlendState>(blendState);
+   const Ptr<RenderPassMTL>     pass     = ptr_reinterpret_cast<RenderPassMTL>(&pipelineState.renderPass);
+   const Ptr<InputAssemblerMTL> input    = ptr_reinterpret_cast<InputAssemblerMTL>(&pipelineState.inputAssembler);
+   const Ptr<BlendStateMTL>     blend    = ptr_reinterpret_cast<BlendStateMTL>(&pipelineState.blendState);
 
    // Pipeline state
    MTLRenderPipelineDescriptor* pipeDesc = [[MTLRenderPipelineDescriptor alloc] init];
-   pipeDesc.vertexFunction               = ptr_dynamic_cast<ShaderMTL, Shader>(vertex)->function;
-   pipeDesc.fragmentFunction             = fragment ? ptr_dynamic_cast<ShaderMTL, Shader>(fragment)->function : nil;
+   pipeDesc.vertexFunction               = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[0])->function;
+   pipeDesc.fragmentFunction             = pipelineState.shader[4] ? ptr_dynamic_cast<ShaderMTL>(&pipelineState.shader[4])->function : nil;
    pipeDesc.vertexDescriptor             = input->desc;
    pipeDesc.sampleCount                  = 1;
    pipeDesc.alphaToCoverageEnabled       = NO;
@@ -120,9 +111,9 @@ namespace en
       pipeDesc.colorAttachments[i].pixelFormat = [pass->desc.colorAttachments[i].texture pixelFormat];
       
    // Optional Multisample State
-   if (multisamplingState)
+   if (pipelineState.multisamplingState)
       {
-      const Ptr<MultisamplingStateMTL> multisampling = ptr_dynamic_cast<MultisamplingStateMTL, MultisamplingState>(multisamplingState);
+      const Ptr<MultisamplingStateMTL> multisampling = ptr_reinterpret_cast<MultisamplingStateMTL>(&pipelineState.multisamplingState);
 
       pipeDesc.sampleCount               = multisampling->samples;
       pipeDesc.alphaToCoverageEnabled    = multisampling->alphaToCoverage;
@@ -130,7 +121,7 @@ namespace en
       }
       
    // Optional Rasterization State
-   if (rasterState)
+   if (pipelineState.rasterState)
       {
       pipeDesc.rasterizationEnabled      = rasterizer->enableRasterization;
       }
@@ -167,7 +158,7 @@ namespace en
       pipeline->viewport     = *ptr_dynamic_cast<ViewportStateMTL,  ViewportState>(viewportState);
       }
 
-   return ptr_dynamic_cast<Pipeline, PipelineMTL>(pipeline);
+   return ptr_reinterpret_cast<Pipeline>(&pipeline);
    }
 
 

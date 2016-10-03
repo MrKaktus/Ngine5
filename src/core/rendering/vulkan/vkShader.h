@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Pipeline.
+ Module      : Shader.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,14 +13,14 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_VULKAN_PIPELINE
-#define ENG_CORE_RENDERING_VULKAN_PIPELINE
+#ifndef ENG_CORE_RENDERING_VULKAN_SHADER
+#define ENG_CORE_RENDERING_VULKAN_SHADER
 
 #include "core/rendering/vulkan/vulkan.h"
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
-#include "core/rendering/pipeline.h"
+#include "core/rendering/shader.h"
 
 namespace en
 {
@@ -28,14 +28,15 @@ namespace en
    {
    class VulkanDevice;
 
-   class PipelineVK : public Pipeline
+   class ShaderVK : public Shader
       {
       public:
-      VulkanDevice* gpu;
-      VkPipeline    handle;
+      VulkanDevice*  gpu;
+      VkShaderModule handle;
+      ShaderStage    stage;
 
-      PipelineVK(VulkanDevice* gpu, VkPipeline handle);
-      virtual ~PipelineVK();
+      ShaderVK(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
+      virtual ~ShaderVK();
       };
 
    }

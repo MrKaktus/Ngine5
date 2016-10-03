@@ -24,14 +24,15 @@ namespace en
 {
    namespace gpu
    {
-   // Pipeline stages
-   enum class PipelineStage : uint32
+   // Pipeline shader stages
+   enum class ShaderStage : uint32
         {
         Vertex                    = 0,
         Control                      ,
         Evaluation                   ,
         Geometry                     ,
         Fragment                     ,
+        Compute                      ,
         Count
         };
       

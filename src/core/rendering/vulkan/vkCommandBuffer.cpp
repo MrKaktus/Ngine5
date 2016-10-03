@@ -20,6 +20,7 @@
 #include "core/log/log.h"
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/rendering/vulkan/vkBuffer.h"
+#include "core/rendering/vulkan/vkTexture.h"
 #include "core/rendering/vulkan/vkRenderPass.h"
 
 namespace en
@@ -172,7 +173,7 @@ namespace en
       }
 
    // Generate default zero offsets array if none is passed
-   uint64* finalOffsets = static_cast<uint64*>(offsets);
+   uint64* finalOffsets = (uint64*)(offsets);
    if (!offsets)
       {
 	  finalOffsets = new uint64[count];
@@ -228,7 +229,7 @@ namespace en
    assert( source->size >= destination->size(mipmap) );
    
    VkImageSubresourceLayers layersInfo;
-   layersInfo.aspectMask     = TranslateImageAspect(const Format format);
+   layersInfo.aspectMask     = TranslateImageAspect(destination->state.format);
    layersInfo.mipLevel       = mipmap;
    layersInfo.baseArrayLayer = layer;
    layersInfo.layerCount     = 1u;
@@ -503,16 +504,16 @@ namespace en
 
    // TODO: Add support for waiting for previous job to be finished through use of Semaphores.
    //       Point out for which Pipeline Stages we wait for. One Stage for One Semaphore.
-   if (waitEvents)
-      {
-      waitFlags = new VkPipelineStageFlags[waitEvents];
-      for(uint32 i=0; i<waitEvents; ++i)
-         {
-         waitFlags[i] = 0u;
-         for(uint32 j=0; j<waitStagesInEvent[i]; ++j)
-            waitFlags[i] |= TranslatePipelineStage[  waitStageInEvent[i][j]  ];
-         }
-      }
+   // if (waitEvents)
+   //    {
+   //    waitFlags = new VkPipelineStageFlags[waitEvents];
+   //    for(uint32 i=0; i<waitEvents; ++i)
+   //       {
+   //       waitFlags[i] = 0u;
+   //       for(uint32 j=0; j<waitStagesInEvent[i]; ++j)
+   //          waitFlags[i] |= TranslatePipelineStage[  waitStageInEvent[i][j]  ];
+   //       }
+   //    }
    
    uint32 signalEvents = 0u;
 
@@ -533,25 +534,16 @@ namespace en
    VkSubmitInfo submitInfo;
    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
    submitInfo.pNext                = nullptr;
-   
-   submitInfo.waitSemaphoreCount   = waitEvents; //
-    const VkSemaphore* pWaitSemaphores;              // Which semaphores we wait for.
+   submitInfo.waitSemaphoreCount   = waitEvents;     // 
+   submitInfo.pWaitSemaphores      = nullptr;        // TODO: const VkSemaphore* - Which semaphores we wait for. One Semaphore for one Pipeline Stage of other queue executing CommandBuffer.
    submitInfo.pWaitDstStageMask    = waitFlags;      // pipeline stages at which each corresponding semaphore wait will occur (until this stage is done)
-    
    submitInfo.commandBufferCount   = 1u;
    submitInfo.pCommandBuffers      = &handle;
-   
-   // Amount of Semaphores we want to signal when this batch of job is done.
-   // (more than one so we can unblock several queues at the same time)
-   submitInfo.signalSemaphoreCount = signalEvents;
-    const VkSemaphore* pSignalSemaphores = signalHandles;
+   submitInfo.signalSemaphoreCount = signalEvents;   // Amount of Semaphores we want to signal when this batch of job is done (more than one so we can unblock several queues at the same time)
+   submitInfo.pSignalSemaphores    = nullptr;        // TODO: const VkSemaphore* signalHandles
 
    // Fence is optional. TODO: Analyze this.
    
-
-
-
-
    // Submit single batch of work to the queue.
    // Each batch can consist of multiple command buffers.
    // Internal fence will be signaled when this work is done.
@@ -572,7 +564,7 @@ namespace en
    Profile( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
    if (gpu->lastResult[Scheduler.core()] == VK_TIMEOUT)
       {
-      Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << endl;
+      Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << endl;   // TODO: File / line doesn't make sense as it will always point this method!
       }
 
    // TODO:
@@ -584,9 +576,10 @@ namespace en
    //   end of the submission that will signal the fence, with dstAccessMask having
    //   the VK_ACCESS_HOST_READ_BIT bit set, with dstStageMask having the
    //   VK_PIPELINE_STAGE_HOST_BIT bit set, and with the appropriate srcStageMask
-   //   and srcAccessMask members set to guarantee completion of the writes. If the
-   //   memory was allocated without the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT set,
-   //   then vkInvalidateMappedMemoryRanges must be called after the fence is
+   //   and srcAccessMask members set to guarantee completion of the writes. 
+   //
+   //   If the memory was allocated without the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT 
+   //   set, then vkInvalidateMappedMemoryRanges must be called after the fence is
    //   signaled in order to ensure the writes are visible to the host, as described
    //   in Host Access to Device Memory Objects. "
    //
@@ -621,7 +614,7 @@ namespace en
    VkFenceCreateInfo fenceInfo;
    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
    fenceInfo.pNext = nullptr;
-   fenceInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT if want to create it signaled from start
+   fenceInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT if want to create it in signaled state from start
    
    Profile( this, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
 

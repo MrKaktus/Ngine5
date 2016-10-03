@@ -21,6 +21,10 @@
 #include "core/utilities/memory.h"
 #include "core/rendering/vulkan/vkTexture.h"
 
+#if defined(EN_PLATFORM_WINDOWS)
+#include "platform/windows/win_events.h"
+#endif
+
 namespace en
 {
    namespace gpu
@@ -206,7 +210,7 @@ namespace en
      
    // Window settings
    Window.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Have its own Device Context and also cannot be resized. Oculus uses CLASSDC which is not thread safe!    
-    Window.lpfnWndProc   = (WNDPROC) WinEvents;                // Procedure that handles OS evets for this window
+   Window.lpfnWndProc   = (WNDPROC) WinEvents;                // Procedure that handles OS evets for this window
    Window.cbClsExtra    = 0;                                  // No extra window data
    Window.cbWndExtra    = 0;                                  //
    Window.hInstance     = AppInstance;                        // Handle to instance of program that this window belongs to
@@ -1090,7 +1094,12 @@ namespace en
 
 
 
+   init();
+   }
 
+   void VulkanDevice::init()
+   {
+   // TODO: Populate API capabilities
    }
 
    VulkanDevice::~VulkanDevice()
@@ -1684,10 +1693,10 @@ namespace en
          DispMode.dmSize = sizeof(DispMode);
 
          // Query displays current resolution before game started
-         assert( EnumDisplaySettingsEx(Device.DeviceName, ENUM_CURRENT_SETTINGS, &DispMode, 0u) )
+         assert( EnumDisplaySettingsEx(Device.DeviceName, ENUM_CURRENT_SETTINGS, &DispMode, 0u) );
  
          // Verify that proper values were returned by query
-         assert( checkBits(DispMode.dmFields, DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT) != 0u )
+         assert( checkBits(DispMode.dmFields, (DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT)) );
 
          desktopPosition.x   = DispMode.dmPosition.x;
          desktopPosition.y   = DispMode.dmPosition.y;

@@ -69,11 +69,11 @@ namespace en
       };
    }
 
-   Ptr<MultisamplingState> VulkanDevice::create(const uint32 samples,
-                                                const bool enableAlphaToCoverage,
-                                                const bool enableAlphaToOne)
+   Ptr<MultisamplingState> VulkanDevice::createMultisamplingState(const uint32 samples,
+                                                                  const bool enableAlphaToCoverage,
+                                                                  const bool enableAlphaToOne)
    {
-   return ptr_dynamic_cast<MultisamplingState, MultisamplingStateVK>(Ptr<MultisamplingStateVK>(new MultisamplingStateVK(samples, enableAlphaToCoverage, enableAlphaToOne)));
+   return ptr_reinterpret_cast<MultisamplingState>(&Ptr<MultisamplingStateVK>(new MultisamplingStateVK(samples, enableAlphaToCoverage, enableAlphaToOne)));
    }
 
    }

@@ -40,6 +40,8 @@ namespace en
 
    RasterStateD3D12::RasterStateD3D12(const RasterStateInfo& desc)
    {
+   // To create default descriptor: state = CD3D12_RASTERIZER_DESC(CD3D12_DEFAULT);
+
    state.FillMode              = TranslateFillMode[desc.fillMode];
    state.CullMode              = desc.enableCulling ? TranslateCullingMethod[desc.cullFace] : D3D12_CULL_MODE_NONE;
    state.FrontCounterClockwise = desc.frontFace == CounterClockWise ? TRUE : FALSE;

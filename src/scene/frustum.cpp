@@ -12,6 +12,7 @@
 
 #include "resources/effect.h"
 #include "scene/frustum.h"
+#include "resources/context.h"
 
 namespace en
 {
@@ -19,7 +20,7 @@ namespace en
    {
 
    Frustum::Frustum(const FrustumSettings settings) :
-      buffer(settings.wireframe()),
+      buffer(settings.wireframe(en::ResourcesContext.defaults.enHeap)),
       //program(nullptr),
       //enModelMatrix(nullptr),
       Drawable()

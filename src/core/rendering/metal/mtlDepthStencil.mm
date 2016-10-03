@@ -89,9 +89,9 @@ namespace en
    state = nil;
    }
 
-   Ptr<DepthStencilState> MetalDevice::create(const DepthStencilStateInfo& desc)
+   Ptr<DepthStencilState> MetalDevice::createDepthStencilState(const DepthStencilStateInfo& desc)
    {
-   return ptr_dynamic_cast<DepthStencilState, DepthStencilStateMTL>(new DepthStencilStateMTL(this, desc));
+   return ptr_reinterpret_cast<DepthStencilState>(&Ptr<DepthStencilStateMTL>(new DepthStencilStateMTL(this, desc)));
    }
    
    }

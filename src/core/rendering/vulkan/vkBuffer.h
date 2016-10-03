@@ -20,7 +20,7 @@
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
 
-#include "core/rendering/heap.h"
+#include "core/rendering/vulkan/vkHeap.h"
 #include "core/rendering/common/buffer.h"
 
 namespace en
@@ -67,7 +67,7 @@ namespace en
       };
 #endif
 
-   Ptr<Buffer> createBuffer(VulkanDevice* gpu, const BufferType type, const uint32 size);
+   Ptr<BufferVK> createBuffer(VulkanDevice* gpu, const BufferType type, const uint32 size);
    Ptr<Buffer> createBufferAndPopulate(VulkanDevice* gpu, const BufferType type, const uint32 size, const void* data);
 
    }

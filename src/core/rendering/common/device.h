@@ -75,8 +75,9 @@ namespace en
      ~CommonDevice();
      
       // Graphic API version supported by this device
-      Nversion api;
-      
+      Nversion      api;
+      PipelineState defaultState;
+
       // GPU HW and API dependent capabilities
       struct Support
          {
@@ -158,6 +159,8 @@ namespace en
                                          const AttributeDesc* attributes,
                                          const BufferDesc* buffers);
          
+      virtual PipelineState defaultPipelineState(void);
+
       virtual uint32 texelSize(const Format format);
       };
    }

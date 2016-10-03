@@ -63,8 +63,8 @@ namespace en
    assert( _offset + _size <= size );
    
    // Buffers can be mapped only on Streamed and Immediate Heaps.
-   assert( heap->_usage == MemoryType::Streamed ||
-           heap->_usage == MemoryType::Immediate );
+   assert( heap->_usage == MemoryUsage::Streamed ||
+           heap->_usage == MemoryUsage::Immediate );
       
    // If heap is already locked by other thread mapping resource, fail.
    if (!heap->mapped.tryLock())
@@ -80,14 +80,14 @@ namespace en
    return mappedPtr;
    }
 
-   void BuferVK::unmap(void)
+   void BufferVK::unmap(void)
    {
    assert( heap->mapped.isLocked() );
 
    // Unmaps memory object
    ProfileNoRet( heap->gpu, vkUnmapMemory(heap->gpu->device, heap->handle) )
 
-   mapped.unlock();
+   heap->mapped.unlock();
    }
 
 
@@ -144,7 +144,7 @@ namespace en
    }
 #endif
 
-   Ptr<Buffer> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size)
+   Ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size)
    {
    Ptr<BufferVK> buffer = nullptr;
    
@@ -225,7 +225,7 @@ namespace en
    VkBuffer handle;
    VulkanDevice* gpu = heap->gpu;
    Profile( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
-   if (gpu->lastResult[Scheduler.core()] >= 0)
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       buffer = new BufferVK(gpu, handle, type, size);
       
@@ -235,7 +235,7 @@ namespace en
       // TODO: Create default Buffer View !
       } 
 
-   return ptr_reinterpret_cast<Buffer>(&buffer);
+   return buffer;
    }
    
    }

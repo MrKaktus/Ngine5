@@ -92,15 +92,15 @@ namespace en
    [blendInfo release];
    }
    
-   Ptr<BlendState> MetalDevice::create(const BlendStateInfo& state,
-                                       const uint32 attachments,
-                                       const BlendAttachmentInfo* color)
+   Ptr<BlendState> MetalDevice::createBlendState(const BlendStateInfo& state,
+                                                 const uint32 attachments,
+                                                 const BlendAttachmentInfo* color)
    {
    // We don't support Logic Operations for now
    // for(uint32 i=0; i<attachments; ++i)
    //    assert( !(color[0].logicOperation && color[i].blending) );
          
-   return ptr_dynamic_cast<BlendState, BlendStateMTL>(new BlendStateMTL(state, attachments, color));
+   return ptr_reinterpret_cast<BlendState>(&Ptr<BlendStateMTL>(new BlendStateMTL(state, attachments, color)));
    }
    
    }
