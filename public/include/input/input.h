@@ -346,17 +346,22 @@ namespace en
    class Mouse : public SafeObject<Mouse>
       {
       public:
-      virtual Ptr<Display> display(void) const = 0; // Current screen on which mouse is located
-      virtual float2 position(void) const = 0;    // Mouse normalized position on current screen (coordinate origin at upper-left corner)
-      virtual uint32 position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
-      virtual bool   position(const uint32 x, 
-                              const uint32 y) = 0;
-      virtual bool   position(const Ptr<Display> display, 
-                              const uint32 x, 
-                              const uint32 y) = 0;
-      virtual bool   pressed(const MouseButton button) const = 0;
-      virtual void   show(void) = 0;      // Show cursor
-      virtual void   hide(void) = 0;      // Hide cursor
+      virtual Ptr<Display> display(void) = 0;                   // Current screen on which mouse is located
+      virtual float2       position(void) const = 0;            // Mouse normalized position on current screen (coordinate origin at upper-left corner)
+      virtual uint32       position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
+      virtual bool         position(const uint32 x, 
+                                    const uint32 y) = 0;        // Sets mouse position on current screen (coordinate origin at upper-left corner)
+      virtual bool         position(const Ptr<Display> display, // Sets mouse position on given screen
+                                    const uint32 x, 
+                                    const uint32 y) = 0;
+
+      virtual uint32v2     virtualPosition(void) const = 0;     // Get global position on Virtual Desktop
+      virtual bool         virtualPosition(const uint32 x,      // Set global position on Virtual Desktop
+                                           const uint32 y) = 0;
+
+      virtual bool         pressed(const MouseButton button) const = 0;
+      virtual void         show(void) = 0;                      // Show cursor
+      virtual void         hide(void) = 0;                      // Hide cursor
       
       virtual ~Mouse() {};                             // Polymorphic deletes require a virtual base destructor
       };

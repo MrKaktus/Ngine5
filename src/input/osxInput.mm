@@ -832,7 +832,7 @@ namespace en
    {
    // http://stackoverflow.com/questions/1236498/how-to-get-the-display-name-with-the-display-id-in-mac-os-x
    assert( _display );
-   Ptr<DisplayMTL> ptr = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(_display);
+   Ptr<DisplayMTL> ptr = ptr_reinterpret_cast<DisplayMTL>(&_display);
    NSScreen* handle = ptr->handle;
    
    assert( handle );
@@ -848,8 +848,8 @@ namespace en
    bool OSXMouse::position(const Ptr<Display> __display, const uint32 x, const uint32 y)
    {
    assert( __display );
-   _display = ptr_dynamic_cast<CommonDisplay, Display>(__display);
-   Ptr<DisplayMTL> ptr = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(_display);
+   _display = ptr_reinterpret_cast<CommonDisplay>(&__display);
+   Ptr<DisplayMTL> ptr = ptr_reinterpret_cast<DisplayMTL>(&_display);
    NSScreen* handle = ptr->handle;
    
    assert( handle );
@@ -861,7 +861,21 @@ namespace en
    CGDisplayMoveCursorToPoint([screenID unsignedIntValue], frame.origin);
    return true;
    }
-      
+
+   uint32v2 OSXMouse::virtualPosition(void) const
+   {
+   // TODO: Finish!
+   assert( 0 );
+   return uint32v2(0, 0);
+   }
+     
+   bool OSXMouse::virtualPosition(const uint32 x, const uint32 y)
+   {
+   // TODO: Finish!
+   assert( 0 );
+   return false;
+   }
+
    void OSXMouse::show(void)
    {
    CGDisplayShowCursor(kCGNullDirectDisplay);

@@ -116,7 +116,8 @@ namespace en
       public:
 
       virtual uint32v2 position(void) = 0;   // Position on Virtual Desktop
-      
+      virtual uint32v2 resolution(void) = 0; // Native resolution
+
       virtual ~Display() {};   // Polymorphic deletes require a virtual base destructor
       };
 
@@ -314,8 +315,12 @@ namespace en
       static bool create(void);                           // Creates instance of this class (API specific) and assigns it to "Graphics".
       
       virtual uint32 devices(void) const = 0;
-      virtual Ptr<Display>   primaryDisplay(void) const = 0;
       virtual Ptr<GpuDevice> primaryDevice(void) const = 0;
+
+      virtual uint32 displays(void) const = 0;
+      virtual Ptr<Display> primaryDisplay(void) const = 0;
+      virtual Ptr<Display> display(uint32 index) const = 0;
+
       virtual ~GraphicAPI() {};                           // Polymorphic deletes require a virtual base destructor
       };
 

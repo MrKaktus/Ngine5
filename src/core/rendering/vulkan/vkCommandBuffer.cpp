@@ -130,8 +130,8 @@ namespace en
    VkRenderPassBeginInfo beginInfo;
    beginInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
    beginInfo.pNext           = nullptr;
-   beginInfo.renderPass      = renderPass->passHandle;
-   beginInfo.framebuffer     = renderPass->framebufferHandle;
+   beginInfo.renderPass      = renderPass->handleRenderPass;
+   beginInfo.framebuffer     = renderPass->handleFramebuffer;
    beginInfo.renderArea      = { 0, 0, renderPass->resolution.width, renderPass->resolution.height };
    beginInfo.clearValueCount = renderPass->attachments;
    beginInfo.pClearValues    = renderPass->clearValues;

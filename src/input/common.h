@@ -52,6 +52,8 @@ namespace en
       virtual uint32 position(const Axis axis) const;
       virtual bool   position(const uint32 x, const uint32 y) = 0;
       virtual bool   position(const Ptr<Display> display, const uint32 x, const uint32 y) = 0;
+      virtual uint32v2 virtualPosition(void) const = 0;     
+      virtual bool     virtualPosition(const uint32 x, const uint32 y) = 0;
       virtual bool   pressed(const MouseButton button) const;
       virtual void   show(void) = 0;
       virtual void   hide(void) = 0;

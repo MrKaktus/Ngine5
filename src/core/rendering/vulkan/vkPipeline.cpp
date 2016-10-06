@@ -19,6 +19,7 @@
 
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/rendering/vulkan/vkShader.h"
+#include "core/rendering/vulkan/vkRenderPass.h"
 #include "core/rendering/state.h"
 
 namespace en
@@ -344,6 +345,7 @@ namespace en
    assert( pipelineState.inputAssembler );
  
    // Cast to Vulkan states
+   const Ptr<RenderPassVK>         renderPass     = ptr_reinterpret_cast<RenderPassVK>(&pipelineState.renderPass);
    const Ptr<InputAssemblerVK>     input          = ptr_reinterpret_cast<InputAssemblerVK>(&pipelineState.inputAssembler);
    const Ptr<ViewportStateVK>      viewport       = ptr_reinterpret_cast<ViewportStateVK>(&pipelineState.viewportState);
    const Ptr<RasterStateVK>        raster         = ptr_reinterpret_cast<RasterStateVK>(&pipelineState.rasterState);
@@ -355,9 +357,8 @@ namespace en
 
    // Patch States
 
-   // Can shader module keep source code of more than one shader stage ?
-   // Do all that stages need then to have the same entry point name? (there is only one entry point name in VkPipelineShaderStageCreateInfo)
-
+   // Can shader module keep source code of more than one shader stage, and then be bound several times to different stages to reuse it ?
+ 
    // Count amount of shader stages in use
    uint32 stages = 0;
    for(uint32 i=0; i<5; ++i)
@@ -379,7 +380,6 @@ namespace en
          shaderInfo[stage].module = shader->handle;
          shaderInfo[stage].pName  = pipelineState.function[i].c_str();
          shaderInfo[stage].pSpecializationInfo = nullptr; // Engine is not supporting specialization for now. (const VkSpecializationInfo*)
-
          stage++;
          }
 
@@ -387,6 +387,10 @@ namespace en
    VkGraphicsPipelineCreateInfo pipelineInfo;
    pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
    pipelineInfo.pNext               = nullptr;
+   pipelineInfo.flags               = 0;
+#ifdef EN_DEBUG
+   pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
+#endif
    pipelineInfo.stageCount          = stages;
    pipelineInfo.pStages             = shaderInfo;
    pipelineInfo.pVertexInputState   = (input->state.vertexAttributeDescriptionCount > 0) ? &input->state : VK_NULL_HANDLE; // optional - nullptr == Use Programmable Vertex Fetch
@@ -397,16 +401,12 @@ namespace en
    pipelineInfo.pMultisampleState   = multisampling ? &multisampling->state    : VK_NULL_HANDLE; // optional - nullptr == Multisampling Disabled
    pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == disabled
    pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Blending Disabled
-   pipelineInfo.pDynamicState       = nullptr; // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
-   pipelineInfo.flags               = 0;
-#ifdef EN_DEBUG
-   pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
-#endif
+   pipelineInfo.pDynamicState       = nullptr;        // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
    pipelineInfo.layout              = layout->state;
-//    VkRenderPass                                renderPass          = ;
-//    uint32_t                                    subpass             = ;
+   pipelineInfo.renderPass          = renderPass->handleRenderPass;
+   pipelineInfo.subpass             = 0u;             // TODO: For now engine is not supporting subpasses except default one.
    pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE; // Pipeline to derive from. (optional)
-//    int32_t                                     basePipelineIndex   = ;
+   pipelineInfo.basePipelineIndex   = -1;
 
    // Create pipeline state object
    VkPipeline pipeline;

@@ -458,7 +458,7 @@ namespace en
       uint32                           devicesCount;
 
       // API Independent, OS Dependent - Windowing System
-      Ptr<CommonDisplay>*              display;
+      Ptr<CommonDisplay>*              displayArray;
       Ptr<CommonDisplay>               virtualDisplay;
       uint32                           displaysCount;
       uint32                           displayPrimary;
@@ -493,8 +493,11 @@ namespace en
       void clearInterfaceFunctionPointers(void);
 
       virtual uint32 devices(void) const;
-      virtual Ptr<Display>   primaryDisplay(void) const;
       virtual Ptr<GpuDevice> primaryDevice(void) const;
+
+      virtual uint32 displays(void) const;
+      virtual Ptr<Display> primaryDisplay(void) const;
+      virtual Ptr<Display> display(uint32 index) const;
       };
    }
 }

@@ -111,7 +111,7 @@ namespace en
 
    CommonDisplay::CommonDisplay() :
       _position(0, 0),
-      resolution(0, 0),
+      _resolution(0, 0),
       observedResolution(),
       modeResolution(nullptr),
       modesCount(0)
@@ -125,6 +125,11 @@ namespace en
    uint32v2 CommonDisplay::position(void)
    {
    return _position;
+   }
+
+   uint32v2 CommonDisplay::resolution(void)
+   {
+   return _resolution;
    }
    
    CommonWindow::CommonWindow() :

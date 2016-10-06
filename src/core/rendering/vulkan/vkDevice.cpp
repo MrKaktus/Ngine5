@@ -653,7 +653,7 @@ namespace en
    // Select resolution to use (to which display should switch in Fullscreen mode)
    uint32v2 selectedResolution = settings.size;
    if (useNativeResolution)
-      selectedResolution = display->resolution;
+      selectedResolution = display->_resolution;
 
    // Verify apps custom size in Fullscreen mode is supported, and that app is not using
    // size and resolution at once in this mode.
@@ -1431,18 +1431,18 @@ namespace en
    uint32 VulkanDevice::displays(void) const
    {
    // Currently all Vulkan devices share all available displays
-   Ptr<VulkanAPI> api = ptr_dynamic_cast<VulkanAPI, GraphicAPI>(en::Graphics);
+   Ptr<VulkanAPI> api = ptr_reinterpret_cast<VulkanAPI>(&en::Graphics);
    return api->displaysCount;
    }
    
    Ptr<Display> VulkanDevice::display(uint32 index) const
    {
-   // Currently all Metal devices share all available displays
-   Ptr<VulkanAPI> api = ptr_dynamic_cast<VulkanAPI, GraphicAPI>(en::Graphics);
+   // Currently all Vulkan devices share all available displays
+   Ptr<VulkanAPI> api = ptr_reinterpret_cast<VulkanAPI>(&en::Graphics);
      
    assert( api->displaysCount > index );
    
-   return ptr_dynamic_cast<Display, CommonDisplay>(api->display[index]);
+   return ptr_reinterpret_cast<Display>(&api->displayArray[index]);
    }
 
    uint32 VulkanDevice::queues(const QueueType type) const
@@ -1646,7 +1646,7 @@ namespace en
       globalExtension(nullptr),
       globalExtensionsCount(0),
       devicesCount(0),
-      display(nullptr),
+      displayArray(nullptr),
       virtualDisplay(nullptr),
       displaysCount(0),
       GraphicAPI() // or SafeObject()
@@ -1668,7 +1668,7 @@ namespace en
       if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
          displaysCount++;
 
-   display = new Ptr<CommonDisplay>[displaysCount];
+   displayArray = new Ptr<CommonDisplay>[displaysCount];
    virtualDisplay = new winDisplay();
   
    // Clear structure for next display (to ensure there is no old data)
@@ -1734,7 +1734,7 @@ namespace en
             }
         
          currentDisplay->_position          = desktopPosition;
-         currentDisplay->resolution         = nativeResolution;
+         currentDisplay->_resolution        = nativeResolution;
          currentDisplay->observedResolution = currentResolution;
          currentDisplay->modesCount         = modesCount;
          currentDisplay->index              = displayId;
@@ -1750,33 +1750,33 @@ namespace en
          // Virtual Display is a bounding box for all available displays.
          if (activeId == 0)
             {
-            virtualDisplay->_position  = currentDisplay->_position;
-            virtualDisplay->resolution = currentDisplay->resolution;
+            virtualDisplay->_position   = currentDisplay->_position;
+            virtualDisplay->_resolution = currentDisplay->_resolution;
             }
          else
             {
             if (currentDisplay->_position.x < virtualDisplay->_position.x)
                {
-               virtualDisplay->resolution.width += (virtualDisplay->_position.x - currentDisplay->_position.x);
+               virtualDisplay->_resolution.width += (virtualDisplay->_position.x - currentDisplay->_position.x);
                virtualDisplay->_position.x = currentDisplay->_position.x;
                }
             if (currentDisplay->_position.y < virtualDisplay->_position.y)
                {
-               virtualDisplay->resolution.height += (virtualDisplay->_position.y - currentDisplay->_position.y);
+               virtualDisplay->_resolution.height += (virtualDisplay->_position.y - currentDisplay->_position.y);
                virtualDisplay->_position.y = currentDisplay->_position.y;
                }
-            uint32 virtualRightBorder = virtualDisplay->_position.x + virtualDisplay->resolution.width;
-            uint32 currentRightBorder = currentDisplay->_position.x + currentDisplay->resolution.width;
+            uint32 virtualRightBorder = virtualDisplay->_position.x + virtualDisplay->_resolution.width;
+            uint32 currentRightBorder = currentDisplay->_position.x + currentDisplay->_resolution.width;
             if (virtualRightBorder < currentRightBorder)
-               virtualDisplay->resolution.width = currentRightBorder - virtualDisplay->_position.x;
-            uint32 virtualBottomBorder = virtualDisplay->_position.y + virtualDisplay->resolution.height;
-            uint32 currentBottomBorder = currentDisplay->_position.y + currentDisplay->resolution.height;
+               virtualDisplay->_resolution.width = currentRightBorder - virtualDisplay->_position.x;
+            uint32 virtualBottomBorder = virtualDisplay->_position.y + virtualDisplay->_resolution.height;
+            uint32 currentBottomBorder = currentDisplay->_position.y + currentDisplay->_resolution.height;
             if (virtualBottomBorder < currentBottomBorder)
-               virtualDisplay->resolution.height = currentBottomBorder - virtualDisplay->_position.y;
+               virtualDisplay->_resolution.height = currentBottomBorder - virtualDisplay->_position.y;
             }
        
          // Add active display to the list
-         display[activeId] = ptr_dynamic_cast<CommonDisplay, winDisplay>(currentDisplay);
+         displayArray[activeId] = ptr_dynamic_cast<CommonDisplay, winDisplay>(currentDisplay);
          activeId++;
          }
          
@@ -2012,8 +2012,8 @@ namespace en
    // Windows OS - Windowing System (API Independent)
    virtualDisplay = nullptr;
    for(uint32 i=0; i<displaysCount; ++i)
-      display[i] = nullptr;
-   delete [] display;
+      displayArray[i] = nullptr;
+   delete [] displayArray;
    }
 
    void VulkanAPI::loadInterfaceFunctionPointers(void)
@@ -2062,18 +2062,27 @@ namespace en
    {
    return devicesCount;
    }
+         
+   Ptr<GpuDevice> VulkanAPI::primaryDevice(void) const
+   {
+   return ptr_reinterpret_cast<GpuDevice>(&device[0]);
+   }
+
+   uint32 VulkanAPI::displays(void) const
+   {
+   return displaysCount;
+   }
    
    Ptr<Display> VulkanAPI::primaryDisplay(void) const
    {
-   return ptr_dynamic_cast<Display, CommonDisplay>(display[0]);
+   return ptr_reinterpret_cast<Display>(&displayArray[0]);
    }
-      
-   Ptr<GpuDevice> VulkanAPI::primaryDevice(void) const
+   
+   Ptr<Display> VulkanAPI::display(uint32 index) const
    {
-   return ptr_dynamic_cast<GpuDevice, VulkanDevice>(device[0]);
+   assert( index < displaysCount );
+   return ptr_reinterpret_cast<Display>(&displayArray[index]);   
    }
-   
-   
 
 
 // TODO: Window creation and bind !

@@ -257,9 +257,9 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   RenderPassVK::RenderPassVK(VulkanDevice* _gpu, const VkRenderPass _passHandle, const uint32 _attachments) :
+   RenderPassVK::RenderPassVK(VulkanDevice* _gpu, const VkRenderPass _handleRenderPass, const uint32 _attachments) :
       gpu(_gpu),
-      passHandle(_passHandle),
+      handleRenderPass(_handleRenderPass),
       resolution(),
       attachments(_attachments),
       clearValues(_attachments ? new VkClearValue[attachments] : nullptr)
@@ -272,8 +272,8 @@ namespace en
    RenderPassVK::~RenderPassVK()
    {
    delete [] clearValues;
-   ProfileNoRet( gpu, vkDestroyFramebuffer(gpu->device, framebufferHandle, nullptr) )
-   ProfileNoRet( gpu, vkDestroyRenderPass(gpu->device, passHandle, nullptr) )
+   ProfileNoRet( gpu, vkDestroyFramebuffer(gpu->device, handleFramebuffer, nullptr) )
+   ProfileNoRet( gpu, vkDestroyRenderPass(gpu->device, handleRenderPass, nullptr) )
    }
 
    Ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Ptr<TextureView> texture)
@@ -630,7 +630,7 @@ namespace en
    VkFramebuffer framebuffer;
    Profile( this, vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      result->framebufferHandle = framebuffer;
+      result->handleFramebuffer = framebuffer;
       
    // Those values will be used at beginning of RenderPass
    index = 0;

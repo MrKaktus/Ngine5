@@ -50,11 +50,15 @@ namespace en
    class WinMouse : public CommonMouse
       {
       public:
-      Ptr<Display> WinMouse::display(void) const;
+      Ptr<Display> display(void);
       bool   position(const uint32 x, const uint32 y);
       bool   position(const Ptr<Display> screen, const uint32 x, const uint32 y);
+      uint32v2 virtualPosition(void) const;     
+      bool     virtualPosition(const uint32 x, const uint32 y);
       void   show(void);
       void   hide(void);
+
+      void updateDisplay(uint32v2 pos);
 
       WinMouse();
       virtual ~WinMouse();                           // Polymorphic deletes require a virtual base destructor

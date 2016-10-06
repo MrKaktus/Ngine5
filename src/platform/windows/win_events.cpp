@@ -36,7 +36,7 @@ void ConvertWindowPositionToScreenPosition(HWND hWnd, LPARAM lParam, uint32& x, 
 POINT pt;
 pt.x = (uint32)GET_X_LPARAM(lParam);
 pt.y = (uint32)GET_Y_LPARAM(lParam);
-ClientToScreen(hWnd, &pt);
+ClientToScreen(hWnd, &pt);  // TODO: Is this calculated to screen as current display, or screen like desktop / virtual display ?
 x = pt.x; 
 y = pt.y; 
 }
@@ -87,6 +87,7 @@ switch(msg)
       break;
       } 
 
+   // TODO: Is Mouse position reported in current display coordinates or virtual display / desktop coordinates ?
    case WM_MOUSEMOVE:
       {
       Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(input->mouses[0]);

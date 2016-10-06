@@ -67,13 +67,13 @@ namespace en
       {
       public:
       VulkanDevice* gpu;
-      VkRenderPass  passHandle;
-      VkFramebuffer framebufferHandle;
+      VkRenderPass  handleRenderPass;
+      VkFramebuffer handleFramebuffer;
       uint32v2      resolution;
       uint32        attachments;
       VkClearValue* clearValues;   // Array of clear values per attachment
       
-      RenderPassVK(VulkanDevice* _gpu, const VkRenderPass passHandle, const uint32 _attachments);
+      RenderPassVK(VulkanDevice* _gpu, const VkRenderPass handleRenderPass, const uint32 _attachments);
      ~RenderPassVK();
       };
    }

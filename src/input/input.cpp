@@ -175,14 +175,14 @@ namespace en
  
    Ptr<Display> CommonMouse::display(void) const
    {
-   return ptr_dynamic_cast<Display, CommonDisplay>(_display);
+   return ptr_reinterpret_cast<Display>(&_display);
    }
    
    float2 CommonMouse::position(void) const
    {
    assert( _display );
-   return float2( static_cast<float>(x) / static_cast<float>(_display->resolution.x),
-                  static_cast<float>(y) / static_cast<float>(_display->resolution.y) );
+   return float2( static_cast<float>(x) / static_cast<float>(_display->_resolution.x),
+                  static_cast<float>(y) / static_cast<float>(_display->_resolution.y) );
    }
    
    uint32 CommonMouse::position(const Axis axis) const

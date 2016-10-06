@@ -424,41 +424,104 @@ namespace en
    WinMouse::WinMouse() :
       CommonMouse()
    {
+   // See Microsoft documentation on Multiple Display Systems for more info:
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd183314(v=vs.85).aspx
+   // ( it's assumed that GetCursorPos and SetCursorPos work in global Virtual Desktop coordinates )
    }
    
    WinMouse::~WinMouse()
    {
    }
 
-   Ptr<Display> WinMouse::display(void) const
+   void WinMouse::updateDisplay(uint32v2 globalPos)
    {
-   // TODO: Return screen on which mouse is currently located
-   //       https://msdn.microsoft.com/en-us/library/windows/desktop/dd183314(v=vs.85).aspx
-   return Ptr<Display>(nullptr);
+   uint32 displays = Graphics->displays();
+   for(uint32 i=0; i<displays; ++i)
+      {
+      Ptr<Display> display = Graphics->display(i);
+      uint32v2 position = display->position();
+      uint32v2 resolution = display->resolution();
+      if ( (globalPos.x >= position.x) && (globalPos.x < (position.x + resolution.x)) &&
+           (globalPos.y >= position.y) && (globalPos.y < (position.y + resolution.y)) )
+         {
+         _display = ptr_reinterpret_cast<CommonDisplay>(&display);
+         return;
+         }
+      }
+
+   // We should never reach this place
+   assert( 0 );
    }
+
+ 
+   //Ptr<Display> WinMouse::display(void)
+   //{
+   //LPPOINT winPos;
+   //assert( GetCursorPos(winPos) == TRUE );
+   //updateDisplay(uint32v2(winPos->x, winPos->y));
+
+   //return ptr_reinterpret_cast<Display>(&_display);
+   //}
 
    bool WinMouse::position(const uint32 x, const uint32 y)
    {
-   return SetCursorPos(x,y) == TRUE ? true : false;
+   uint32v2 relativeStart = _display->_position;
+   uint32v2 globalPos = uint32v2(relativeStart.x + x, relativeStart.y + y);
+   if (SetCursorPos(globalPos.x, globalPos.y) == TRUE)
+      {
+      updateDisplay(globalPos);
+      return true;
+      }
+
+   return false;
    }
 
    bool WinMouse::position(const Ptr<Display> screen, const uint32 x, const uint32 y)
    {
-   assert( _display );
-   
-   // TODO: Position mouse on given screen
+   assert( screen ); 
+   assert( x < screen->resolution().x );
+   assert( y < screen->resolution().y );
 
-   return true;
+   _display = ptr_reinterpret_cast<CommonDisplay>(&screen);
+
+   uint32v2 relativeStart = _display->_position;
+   return (bool)SetCursorPos(relativeStart.x + x, relativeStart.y + y);
    }
-      
+
+   uint32v2 WinMouse::virtualPosition(void) const
+   {
+   LPPOINT winPos;
+   // TODO: This should be set during processing events from Windows ( WM_MOUSEMOVE etc. )
+   //       so GetCursorPos shouldn't be called here, nor updateDisplay.
+   if (GetCursorPos(winPos) == TRUE)          
+      {
+      // updateDisplay(uint32v2(winPos->x, winPos->y));  <- Cannot even call this because this method is supposed to be const!
+      return uint32v2(winPos->x, winPos->y);
+      }
+   else
+      return uint32v2(0u, 0u);
+   }
+     
+   bool WinMouse::virtualPosition(const uint32 x, const uint32 y)
+   {
+   uint32v2 globalPos = uint32v2(x, y);
+   if (SetCursorPos(globalPos.x, globalPos.y) == TRUE)
+      {
+      updateDisplay(globalPos);
+      return true;
+      }
+
+   return false;
+   }
+
    void WinMouse::show(void)
    {
-   ShowCursor(true);
+   ShowCursor(TRUE);
    }
    
    void WinMouse::hide(void)
    {
-   ShowCursor(false);
+   ShowCursor(FALSE);
    }
 
    }
