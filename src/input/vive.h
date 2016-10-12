@@ -14,10 +14,9 @@
 #include "input/context.h"
 #include "input/hmd.h"
 
-#if OPEN_VR
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_OPENVR)
 
-#include ".\..\middleware\openvr-0.9.11\headers\openvr.h"
+#include "openvr-0.9.11/headers/openvr.h"
 
 namespace en
 {
@@ -156,7 +155,6 @@ namespace en
    CloseOpenVR();  
    }
 }
-#endif
 #endif
 
 #endif

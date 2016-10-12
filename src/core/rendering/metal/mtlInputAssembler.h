@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Input Assembler.
+ Module      : Metal Input Assembler.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -18,7 +18,7 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#if defined(EN_MODULE_RENDERER_METAL)
 
 #include "core/rendering/state.h"
 #include "core/rendering/common/inputAssembler.h"

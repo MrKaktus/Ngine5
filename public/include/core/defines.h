@@ -55,15 +55,6 @@
    #define EN_COMPILER_VISUAL_STUDIO
 #endif
 
-// Determine target renderer
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-   #define EN_OPENGL_DESKTOP
-   #define EN_DISCRETE_GPU
-#elif defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_IOS)
-   #define EN_OPENGL_MOBILE
-   #define EN_MOBILE_GPU
-#endif
-
 // Determine engine debugging
 #if defined(_DEBUG) || defined(DEBUG)
    #define EN_DEBUG
@@ -74,6 +65,56 @@
    #define forceinline __forceinline
 #else
    #define forceinline inline
+#endif
+
+// Input modules
+
+#if defined(EN_PLATFORM_WINDOWS)
+#define EN_MODULE_KINECT
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
+#define EN_MODULE_OCULUS
+#endif
+
+#if /* defined(EN_PLATFORM_OSX) || */ defined(EN_PLATFORM_WINDOWS)
+#define EN_MODULE_OPENVR
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
+#define EN_MODULE_REALSENSE
+#endif
+
+// Rendering backend modules
+
+#if defined(EN_PLATFORM_WINDOWS)
+#define EN_MODULE_RENDERER_OPENGL
+#endif
+
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY)
+#define EN_MODULE_RENDERER_OPENGLES
+#endif
+
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_LINUX) || defined(EN_PLATFORM_WINDOWS)
+#define EN_MODULE_RENDERER_VULKAN
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
+#define EN_MODULE_RENDERER_DIRECT3D12
+#endif
+
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#define EN_MODULE_RENDERER_METAL
+#endif
+
+// Determine target renderer
+// TODO: DEPRECATED, Remove
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+   #define EN_OPENGL_DESKTOP
+   #define EN_DISCRETE_GPU
+#elif defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_IOS)
+   #define EN_OPENGL_MOBILE
+   #define EN_MOBILE_GPU
 #endif
 
 // TODO: This should be moved to "platform.h" or similar init header

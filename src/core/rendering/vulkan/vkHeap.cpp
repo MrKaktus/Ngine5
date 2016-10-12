@@ -15,7 +15,7 @@
 
 #include "core/rendering/vulkan/vkHeap.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems

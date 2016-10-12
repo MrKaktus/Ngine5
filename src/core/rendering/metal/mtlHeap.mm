@@ -13,12 +13,11 @@
  
  */
 
-#include "core/defines.h"
+#include "core/rendering/metal/mtlHeap.h"
 
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#if defined(EN_MODULE_RENDERER_METAL)
 
 #include "core/rendering/metal/mtlBuffer.h"
-#include "core/rendering/metal/mtlHeap.h"
 #include "core/rendering/metal/mtlDevice.h"
 
 namespace en

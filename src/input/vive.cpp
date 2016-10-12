@@ -10,6 +10,10 @@
 
 */
 
+#include "core/defines.h"
+
+#if defined(EN_MODULE_OPENVR)
+
 #include "core/log/log.h"
 #include "input/context.h"
 #include "scene/cam.h"
@@ -21,9 +25,6 @@
 
 #include "core/rendering/opengl/gl43Texture.h"
 #include "resources/effect.h"
-
-#if OPEN_VR
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 
 #include "input/vive.h"
 
@@ -463,34 +464,34 @@ namespace en
             u =        static_cast<float>(x) * w; 
             v = 1.0f - static_cast<float>(y) * h;
 
-			vr::DistortionCoordinates_t dc0 = context->ComputeDistortion(static_cast<vr::Hmd_Eye>(eye), u, v);
+            vr::DistortionCoordinates_t dc0 = context->ComputeDistortion(static_cast<vr::Hmd_Eye>(eye), u, v);
 
-			dst->position = float2(Xoffset + u,   -1.0f + 2.0f * y * h);
+            dst->position = float2(Xoffset + u,   -1.0f + 2.0f * y * h);
 
             // If both eyes share one render target, adjust UV's per eye
             if (sharedRT)
                {
                if (eye == 0)
                   {
-			      dst->uv[0] = float2(0.5f * dc0.rfRed[0],   1.0f - dc0.rfRed[1]);
-			      dst->uv[1] = float2(0.5f * dc0.rfGreen[0], 1.0f - dc0.rfGreen[1]);
-			      dst->uv[2] = float2(0.5f * dc0.rfBlue[0],  1.0f - dc0.rfBlue[1]);
+                  dst->uv[0] = float2(0.5f * dc0.rfRed[0],   1.0f - dc0.rfRed[1]);
+                  dst->uv[1] = float2(0.5f * dc0.rfGreen[0], 1.0f - dc0.rfGreen[1]);
+                  dst->uv[2] = float2(0.5f * dc0.rfBlue[0],  1.0f - dc0.rfBlue[1]);
                   }
                else
                   {
-			      dst->uv[0] = float2(0.5f * dc0.rfRed[0]   + 0.5f,  1.0f - dc0.rfRed[1]);
-			      dst->uv[1] = float2(0.5f * dc0.rfGreen[0] + 0.5f,  1.0f - dc0.rfGreen[1]);
-			      dst->uv[2] = float2(0.5f * dc0.rfBlue[0]  + 0.5f,  1.0f - dc0.rfBlue[1]);
+                  dst->uv[0] = float2(0.5f * dc0.rfRed[0]   + 0.5f,  1.0f - dc0.rfRed[1]);
+                  dst->uv[1] = float2(0.5f * dc0.rfGreen[0] + 0.5f,  1.0f - dc0.rfGreen[1]);
+                  dst->uv[2] = float2(0.5f * dc0.rfBlue[0]  + 0.5f,  1.0f - dc0.rfBlue[1]);
                   }
                }
             else
                {
-			   dst->uv[0] = float2(dc0.rfRed[0],   1.0f - dc0.rfRed[1]);
-			   dst->uv[1] = float2(dc0.rfGreen[0], 1.0f - dc0.rfGreen[1]);
-			   dst->uv[2] = float2(dc0.rfBlue[0],  1.0f - dc0.rfBlue[1]);
+               dst->uv[0] = float2(dc0.rfRed[0],   1.0f - dc0.rfRed[1]);
+               dst->uv[1] = float2(dc0.rfGreen[0], 1.0f - dc0.rfGreen[1]);
+               dst->uv[2] = float2(dc0.rfBlue[0],  1.0f - dc0.rfBlue[1]);
                }
 
-			dst++;
+            dst++;
             }
 
       model->mesh[eye].geometry.buffer.unmap();
@@ -506,16 +507,16 @@ namespace en
       for(uint16 y=0; y<lensGridSegmentCountV-1; ++y)
          for(uint16 x=0; x<lensGridSegmentCountH-1; ++x)
             {
-			uint16 a = lensGridSegmentCountH * y + x;
-			uint16 b = lensGridSegmentCountH * y + x + 1;
-			uint16 c = lensGridSegmentCountH * (y+1) + x + 1;
-			uint16 d = lensGridSegmentCountH * (y+1) + x;
-			*index = a; index++;
-			*index = b; index++;
-			*index = c; index++;
-			*index = a; index++;
-			*index = c; index++;
-			*index = d; index++;
+            uint16 a = lensGridSegmentCountH * y + x;
+            uint16 b = lensGridSegmentCountH * y + x + 1;
+            uint16 c = lensGridSegmentCountH * (y+1) + x + 1;
+            uint16 d = lensGridSegmentCountH * (y+1) + x;
+            *index = a; index++;
+            *index = b; index++;
+            *index = c; index++;
+            *index = a; index++;
+            *index = c; index++;
+            *index = d; index++;
             }
       model->mesh[eye].elements.buffer.unmap();
       }
@@ -1530,6 +1531,4 @@ namespace en
 
    }
 }
-
-#endif
 #endif

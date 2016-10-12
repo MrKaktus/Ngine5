@@ -15,7 +15,7 @@
 
 #include "core/rendering/vulkan/vkDevice.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/log/log.h"
 #include "core/utilities/memory.h"

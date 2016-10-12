@@ -19,7 +19,7 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_LINUX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_VULKAN)
 
 
 // Specify which Windowing System Interface we will use

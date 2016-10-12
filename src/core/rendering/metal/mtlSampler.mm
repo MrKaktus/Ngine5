@@ -13,12 +13,11 @@
 
 */
 
-#include "core/defines.h"
-#include "core/types.h"
-
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-
 #include "core/rendering/metal/mtlSampler.h"
+
+#if defined(EN_MODULE_RENDERER_METAL)
+
+#include "core/types.h"
 #include "core/rendering/metal/mtlDevice.h"
 #include "utilities/Nversion.h"
 

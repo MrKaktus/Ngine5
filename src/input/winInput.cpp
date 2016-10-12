@@ -14,7 +14,7 @@
 #include "input/oculus.h"
 #endif
 
-#if OPEN_VR
+#if defined(EN_MODULE_OPENVR)
 #include "input/vive.h"
 #endif
 
@@ -384,7 +384,7 @@ namespace en
    InitOculusSDK();
 #endif
 
-#if OPEN_VR 
+#if defined(EN_MODULE_OPENVR)
    // Register OpenVR HMD
    InitOpenVR();
 #endif
@@ -400,7 +400,7 @@ namespace en
    CloseOculusSDK();
 #endif
 
-#if OPEN_VR 
+#if defined(EN_MODULE_OPENVR)
    CloseOpenVR();
 #endif
    }

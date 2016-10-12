@@ -13,8 +13,11 @@
 
 */
 
-#include "core/log/log.h"
 #include "core/rendering/metal/mtlDevice.h"
+
+#if defined(EN_MODULE_RENDERER_METAL)
+
+#include "core/log/log.h"
 #include "core/rendering/metal/mtlAPI.h"
 #include "core/utilities/memory.h"
 
@@ -71,7 +74,7 @@ namespace en
       {
       Ptr<DisplayMTL> ptr = ptr_dynamic_cast<DisplayMTL, Display>(settings.display);
       handle     = ptr->handle;
-      resolution = ptr->resolution;
+      resolution = ptr->_resolution;
       }
    else
       {
@@ -213,12 +216,12 @@ namespace en
    // Reposition window.
    // Position is from lower-left corner of the screen in OSX.
    // Both position and resolution are in points, not pixels.
-   Ptr<DisplayMTL> metalDisplay = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(_display);
+   Ptr<DisplayMTL> metalDisplay = ptr_reinterpret_cast<DisplayMTL>(&_display);
    
    NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
    frame.origin.x = position.x;
-   frame.origin.y = metalDisplay->resolution.height - position.y;
+   frame.origin.y = metalDisplay->_resolution.height - position.y;
    [window setFrame:[screen convertRectFromBacking:frame] display:YES animate:NO];
    _position = position;
    }
@@ -227,7 +230,7 @@ namespace en
    {
    // Resize window.
    // Both position and resolution are in points, not pixels.
-   Ptr<DisplayMTL> metalDisplay = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(_display);
+   Ptr<DisplayMTL> metalDisplay = ptr_reinterpret_cast<DisplayMTL>(&_display);
    
    NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
@@ -635,24 +638,24 @@ namespace en
    uint32 MetalDevice::displays(void) const
    {
    // Currently all Metal devices share all available displays
-   Ptr<MetalAPI> api = ptr_dynamic_cast<MetalAPI, GraphicAPI>(en::Graphics);
+   Ptr<MetalAPI> api = ptr_reinterpret_cast<MetalAPI>(&en::Graphics);
    return api->displaysCount;
    }
    
    Ptr<Display> MetalDevice::display(uint32 index) const
    {
    // Currently all Metal devices share all available displays
-   Ptr<MetalAPI> api = ptr_dynamic_cast<MetalAPI, GraphicAPI>(en::Graphics);
+   Ptr<MetalAPI> api = ptr_reinterpret_cast<MetalAPI>(&en::Graphics);
      
    assert( api->displaysCount > index );
    
-   return ptr_dynamic_cast<Display, CommonDisplay>(api->display[index]);
+   return ptr_reinterpret_cast<Display>(&api->_display[index]);
    }
 
    Ptr<Window> MetalDevice::create(const WindowSettings& settings, const string title)
    {
    Ptr<WindowMTL> ptr = new WindowMTL(this, settings, title);
-   return ptr_dynamic_cast<Window>(ptr);
+   return ptr_reinterpret_cast<Window>(&ptr);
    }
 
    uint32 MetalDevice::queues(const QueueType type) const
@@ -670,7 +673,7 @@ namespace en
    MetalAPI::MetalAPI(void) :
       devicesCount(0),
       preferLowPowerGPU(false),
-      display(nullptr),
+      _display(nullptr),
       virtualDisplay(nullptr),
       displaysCount(0)
    {
@@ -682,7 +685,7 @@ namespace en
       if (Screen)
          displaysCount++;
 
-   display = new Ptr<CommonDisplay>[displaysCount];
+   _display = new Ptr<CommonDisplay>[displaysCount];
    virtualDisplay = new CommonDisplay();
    
    // Gather information about available displays.
@@ -694,11 +697,11 @@ namespace en
          
          Ptr<DisplayMTL> currentDisplay = new DisplayMTL();
  
-         currentDisplay->_position.x       = static_cast<uint32>(info.origin.x);
-         currentDisplay->_position.y       = static_cast<uint32>(info.origin.y);
-         currentDisplay->resolution.width  = static_cast<uint32>(info.size.width);
-         currentDisplay->resolution.height = static_cast<uint32>(info.size.height);
-         currentDisplay->handle            = handle;
+         currentDisplay->_position.x        = static_cast<uint32>(info.origin.x);
+         currentDisplay->_position.y        = static_cast<uint32>(info.origin.y);
+         currentDisplay->_resolution.width  = static_cast<uint32>(info.size.width);
+         currentDisplay->_resolution.height = static_cast<uint32>(info.size.height);
+         currentDisplay->handle             = handle;
          
          // Calculate upper-left corner position, and size of virtual display.
          // It's assumed that X axis increases right, and Y axis increases down.
@@ -706,31 +709,31 @@ namespace en
          if (displayId == 0)
             {
             virtualDisplay->_position   = currentDisplay->_position;
-            virtualDisplay->resolution = currentDisplay->resolution;
+            virtualDisplay->_resolution = currentDisplay->_resolution;
             }
          else
             {
             if (currentDisplay->_position.x < virtualDisplay->_position.x)
                {
-               virtualDisplay->resolution.width += (virtualDisplay->_position.x - currentDisplay->_position.x);
+               virtualDisplay->_resolution.width += (virtualDisplay->_position.x - currentDisplay->_position.x);
                virtualDisplay->_position.x = currentDisplay->_position.x;
                }
             if (currentDisplay->_position.y < virtualDisplay->_position.y)
                {
-               virtualDisplay->resolution.height += (virtualDisplay->_position.y - currentDisplay->_position.y);
+               virtualDisplay->_resolution.height += (virtualDisplay->_position.y - currentDisplay->_position.y);
                virtualDisplay->_position.y = currentDisplay->_position.y;
                }
-            uint32 virtualRightBorder = virtualDisplay->_position.x + virtualDisplay->resolution.width;
-            uint32 currentRightBorder = currentDisplay->_position.x + currentDisplay->resolution.width;
+            uint32 virtualRightBorder = virtualDisplay->_position.x + virtualDisplay->_resolution.width;
+            uint32 currentRightBorder = currentDisplay->_position.x + currentDisplay->_resolution.width;
             if (virtualRightBorder < currentRightBorder)
-               virtualDisplay->resolution.width = currentRightBorder - virtualDisplay->_position.x;
-            uint32 virtualBottomBorder = virtualDisplay->_position.y + virtualDisplay->resolution.height;
-            uint32 currentBottomBorder = currentDisplay->_position.y + currentDisplay->resolution.height;
+               virtualDisplay->_resolution.width = currentRightBorder - virtualDisplay->_position.x;
+            uint32 virtualBottomBorder = virtualDisplay->_position.y + virtualDisplay->_resolution.height;
+            uint32 currentBottomBorder = currentDisplay->_position.y + currentDisplay->_resolution.height;
             if (virtualBottomBorder < currentBottomBorder)
-               virtualDisplay->resolution.height = currentBottomBorder - virtualDisplay->_position.y;
+               virtualDisplay->_resolution.height = currentBottomBorder - virtualDisplay->_position.y;
             }
             
-         display[displayId] = ptr_dynamic_cast<CommonDisplay, DisplayMTL>(currentDisplay);
+         _display[displayId] = ptr_reinterpret_cast<CommonDisplay>(&currentDisplay);
          displayId++;
          }
 
@@ -827,15 +830,26 @@ namespace en
    {
    return devicesCount;
    }
-   
-   Ptr<Display> MetalAPI::primaryDisplay(void) const
-   {
-   return ptr_dynamic_cast<Display, CommonDisplay>(display[0]);
-   }
       
    Ptr<GpuDevice> MetalAPI::primaryDevice(void) const
    {
    return device[0];
+   }
+
+   uint32 MetalAPI::displays(void) const
+   {
+   return displaysCount;
+   }
+
+   Ptr<Display> MetalAPI::primaryDisplay(void) const
+   {
+   return ptr_reinterpret_cast<Display>(&_display[0]);
+   }
+   
+   Ptr<Display> MetalAPI::display(uint32 index) const
+   {
+   assert( index < displaysCount );
+   return ptr_reinterpret_cast<Display>(&_display[index]);
    }
 
    MetalAPI::~MetalAPI() 
@@ -849,8 +863,8 @@ namespace en
    device[1] = nullptr;
    
    for(uint32 i=0; i<displaysCount; ++i)
-      display[i] = nullptr;
-   delete [] display;
+      _display[i] = nullptr;
+   delete [] _display;
    
    virtualDisplay = nullptr;
    
@@ -861,7 +875,7 @@ namespace en
 
    }
 }
-
+#endif
 
 
 

@@ -85,14 +85,14 @@ namespace en
       Info
       };
 
-   // Per Eye Distortion Settings
-   struct DistortionSettings
-      {
-      uint32   width;            // In:  Rendertarget width
-      uint32   height;           // In:  Rendertarget height
-      uint32v4 viewport;         // In:  Viewport rectangle
-      float2   UVScaleOffset[2]; // Out: UV Scale and Offset vectors for distortion shader
-      };
+//   // Per Eye Distortion Settings
+//   struct DistortionSettings
+//      {
+//      uint32   width;            // In:  Rendertarget width
+//      uint32   height;           // In:  Rendertarget height
+//      uint32v4 viewport;         // In:  Viewport rectangle
+//      float2   UVScaleOffset[2]; // Out: UV Scale and Offset vectors for distortion shader
+//      };
 
    class HMD : public SafeObject<HMD>
       {

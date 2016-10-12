@@ -18,7 +18,7 @@
 
 #include "core/rendering/vulkan/vulkan.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_VULKAN) 
 
 #include <string>
 #include "core/rendering/common/device.h"

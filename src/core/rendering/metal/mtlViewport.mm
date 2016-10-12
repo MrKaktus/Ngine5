@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Viewport-Scissor State.
+ Module      : Metal Viewport-Scissor State.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,11 +13,10 @@
 
 */
 
-#include "core/defines.h"
-
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-
 #include "core/rendering/metal/mtlViewport.h"
+
+#if defined(EN_MODULE_RENDERER_METAL)
+
 #include "core/rendering/metal/mtlDevice.h"
 #include "core/rendering/state.h"
 

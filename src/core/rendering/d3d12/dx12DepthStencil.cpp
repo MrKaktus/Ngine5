@@ -13,11 +13,10 @@
 
 */
 
-#include "core/defines.h"
-
-#if defined(EN_PLATFORM_WINDOWS)
-
 #include "core/rendering/d3d12/dx12DepthStencil.h"
+
+#if defined(EN_MODULE_RENDERER_DIRECT3D12)
+
 #include "core/rendering/state.h"
 
 namespace en

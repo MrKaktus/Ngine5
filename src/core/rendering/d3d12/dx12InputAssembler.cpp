@@ -15,7 +15,7 @@
 
 #include "core/rendering/d3d12/dx12InputAssembler.h"
 
-#if defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 #include "core/rendering/d3d12/dx12Device.h"
 

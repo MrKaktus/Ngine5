@@ -346,7 +346,7 @@ namespace en
    class Mouse : public SafeObject<Mouse>
       {
       public:
-      virtual Ptr<Display> display(void) = 0;                   // Current screen on which mouse is located
+      virtual Ptr<Display> display(void) const = 0;             // Current screen on which mouse is located
       virtual float2       position(void) const = 0;            // Mouse normalized position on current screen (coordinate origin at upper-left corner)
       virtual uint32       position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
       virtual bool         position(const uint32 x, 

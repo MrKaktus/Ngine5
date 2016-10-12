@@ -1366,6 +1366,7 @@
 					"\"/Applications/Autodesk/FBX SDK/2015.1/include\"",
 					./../public/include/,
 					./../src/,
+					./../middleware/,
 				);
 				OTHER_LDFLAGS = "";
 				"OTHER_LDFLAGS[sdk=macosx*][arch=x86_64]" = (
@@ -1388,6 +1389,7 @@
 					"\"/Applications/Autodesk/FBX SDK/2015.1/include\"",
 					./../public/include/,
 					./../src/,
+					./../middleware/,
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Render Pass.
+ Module      : Vulkan Render Pass.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -15,7 +15,7 @@
 
 #include "core/rendering/vulkan/vkRenderPass.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/defines.h"
 #include "core/utilities/TintrusivePointer.h"

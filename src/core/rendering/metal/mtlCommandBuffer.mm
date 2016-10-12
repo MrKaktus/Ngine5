@@ -13,11 +13,15 @@
 
 */
 
+#include "core/rendering/metal/mtlCommandBuffer.h"
+
+#if defined(EN_MODULE_RENDERER_METAL)
+
 #include "core/log/log.h"
 #include "core/rendering/metal/mtlDevice.h"
 
 
-#include "core/rendering/metal/mtlCommandBuffer.h"
+
 
 #include "core/rendering/metal/mtlBuffer.h"
 //#include "core/rendering/metal/mtlTexture.h"
@@ -390,3 +394,4 @@ namespace en
    
    }
 }
+#endif

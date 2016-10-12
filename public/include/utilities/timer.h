@@ -5,7 +5,7 @@
  Module      : Timer
  Requirements: types
  Description : Supports calculation of time on level
-               of up to 1 microsecond.
+               of up to 1 nanosecond.
    
 */
 

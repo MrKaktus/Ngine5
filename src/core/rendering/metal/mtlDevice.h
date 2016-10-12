@@ -18,7 +18,7 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#if defined(EN_MODULE_RENDERER_METAL)
 
 #include <string>
 #include "core/rendering/metal/metal.h"
@@ -95,8 +95,9 @@ namespace en
       
       // Interface
 
-      uint32 displays(void) const;           // Screens count the device can render to
+      uint32 displays(void) const;            // Screens count the device can render to
       Ptr<Display> display(uint32 id) const;  // Return N'th screen handle
+      
       Ptr<Window> create(const WindowSettings& settings,
                         const string title); // Create window
       

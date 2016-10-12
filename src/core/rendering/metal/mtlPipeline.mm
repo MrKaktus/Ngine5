@@ -13,14 +13,13 @@
 
 */
 
-#include "core/defines.h"
+#include "core/rendering/metal/mtlPipeline.h"
 
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#if defined(EN_MODULE_RENDERER_METAL)
 
 #include "core/log/log.h"
 #include "utilities/osxStrings.h"
 
-#include "core/rendering/metal/mtlPipeline.h"
 #include "core/rendering/metal/mtlInputAssembler.h"
 #include "core/rendering/metal/mtlRenderPass.h"
 #include "core/rendering/metal/mtlBlend.h"

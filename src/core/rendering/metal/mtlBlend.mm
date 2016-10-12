@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Blend State.
+ Module      : Metal Blend State.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,11 +13,10 @@
 
 */
 
-#include "core/defines.h"
-
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-
 #include "core/rendering/metal/mtlBlend.h"
+
+#if defined(EN_MODULE_RENDERER_METAL)
+
 #include "core/rendering/metal/mtlDevice.h"
 #include "core/rendering/state.h"
 #include "utilities/utilities.h"

@@ -19,7 +19,7 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899120(v=vs.85).aspx
 

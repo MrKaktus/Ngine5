@@ -13,14 +13,13 @@
 
 */
 
-#include "core/defines.h"
+#include "core/rendering/metal/mtlShader.h"
+
+#if defined(EN_MODULE_RENDERER_METAL)
+
 #include "core/types.h"
-
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-
 #include "core/log/log.h"
 #include "utilities/osxStrings.h"
-#include "core/rendering/metal/mtlShader.h"
 #include "core/rendering/metal/mtlDevice.h"
 
 namespace en

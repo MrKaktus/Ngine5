@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Input Assembler.
+ Module      : Metal Render Pass.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -15,7 +15,7 @@
 
 #include "core/rendering/metal/mtlRenderPass.h"
 
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#if defined(EN_MODULE_RENDERER_METAL)
 
 #include "utilities/utilities.h" // For underlyingType()
 #include "core/rendering/metal/mtlDevice.h"

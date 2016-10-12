@@ -18,7 +18,7 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#if defined(EN_MODULE_RENDERER_METAL)
 
 #include <string>
 #include "core/rendering/common/device.h"
@@ -36,7 +36,7 @@ namespace en
       Ptr<GpuDevice> device[2];  // Primary and Supporting GPU
       uint32         devicesCount;
       bool           preferLowPowerGPU; // If set and two GPU's are available, low-power GPU will be choosed over discreete one
-      Ptr<CommonDisplay>* display;
+      Ptr<CommonDisplay>* _display;
       Ptr<CommonDisplay>  virtualDisplay;
       uint32         displaysCount;
   
@@ -44,9 +44,12 @@ namespace en
       MetalAPI();
 
       virtual uint32         devices(void) const;
-      virtual Ptr<Display>   primaryDisplay(void) const;
       virtual Ptr<GpuDevice> primaryDevice(void) const;
 
+      virtual uint32         displays(void) const;       // Screens count the device can render to
+      virtual Ptr<Display>   primaryDisplay(void) const;
+      virtual Ptr<Display>   display(uint32 index) const;   // Return N'th screen handle
+      
       virtual ~MetalAPI();
       };
    }

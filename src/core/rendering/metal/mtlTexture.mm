@@ -13,11 +13,10 @@
 
 */
 
-#include "core/defines.h"
-
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-
 #include "core/rendering/metal/mtlTexture.h"
+
+#if defined(EN_MODULE_RENDERER_METAL)
+
 #include "core/rendering/metal/mtlDevice.h"
 #include "utilities/utilities.h"
 

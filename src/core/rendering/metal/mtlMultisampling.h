@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Multisample.
+ Module      : Metal Multisampling State.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -18,7 +18,7 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+#if defined(EN_MODULE_RENDERER_METAL)
 
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/multisampling.h"

@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Input Assembler.
+ Module      : Vulkan Input Assembler.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -15,7 +15,7 @@
 
 #include "core/rendering/vulkan/vkInputAssembler.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
 #include "core/rendering/vulkan/vkBuffer.h" 

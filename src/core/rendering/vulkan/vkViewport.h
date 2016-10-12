@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Viewport-Stencil State.
+ Module      : Vulkan Viewport-Scissor State.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -18,7 +18,7 @@
 
 #include "core/rendering/vulkan/vulkan.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/rendering/viewport.h"
 
