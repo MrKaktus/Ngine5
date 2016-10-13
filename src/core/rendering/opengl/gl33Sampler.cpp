@@ -21,7 +21,7 @@
 //#include "core/rendering/rendering.hpp"
 #include "core/rendering/device.h"
 
-#if 0 //!defined(EN_PLATFORM_OSX)
+#if defined(EN_MODULE_RENDERER_OPENGL)
 
 namespace en
 {

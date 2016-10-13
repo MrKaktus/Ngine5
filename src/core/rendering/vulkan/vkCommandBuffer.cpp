@@ -102,7 +102,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
    
-   bool CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass)
+   bool CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer>_framebuffer)
    {
    if (encoding)
       return false;
@@ -124,16 +124,17 @@ namespace en
       started = true;
       }
       
-   Ptr<RenderPassVK> renderPass = ptr_dynamic_cast<RenderPassVK, RenderPass>(pass);
+   Ptr<RenderPassVK>  renderPass  = ptr_dynamic_cast<RenderPassVK, RenderPass>(pass);
+   Ptr<FramebufferVK> framebuffer = ptr_dynamic_cast<FramebufferVK, Framebuffer>(_framebuffer);
 
    // Begin encoding commands for this Render Pass
    VkRenderPassBeginInfo beginInfo;
    beginInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
    beginInfo.pNext           = nullptr;
-   beginInfo.renderPass      = renderPass->handleRenderPass;
-   beginInfo.framebuffer     = renderPass->handleFramebuffer;
-   beginInfo.renderArea      = { 0, 0, renderPass->resolution.width, renderPass->resolution.height };
-   beginInfo.clearValueCount = renderPass->attachments;
+   beginInfo.renderPass      = renderPass->handle;
+   beginInfo.framebuffer     = framebuffer->handle;
+   beginInfo.renderArea      = { 0, 0, framebuffer->resolution.width, framebuffer->resolution.height };
+   beginInfo.clearValueCount = renderPass->surfaces;
    beginInfo.pClearValues    = renderPass->clearValues;
 
    ProfileNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )

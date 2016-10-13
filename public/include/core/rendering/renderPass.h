@@ -34,12 +34,13 @@ namespace en
       Clear                 ,
       Count
       };
-   
-   // Resolving is done through binding resolve texture
+
    enum class StoreOperation : uint32
       {
       Discard            = 0,
       Store                 ,
+      Resolve               ,
+      StoreAndResolve       ,
       Count
       };
 
@@ -73,7 +74,7 @@ namespace en
       // all color attachments in the Render Pass need to be resolved
       // as well. Content of destination surface for resolve operation
       // is not modified in any way before resolve operation occurs.
-      virtual bool resolve(const Ptr<TextureView> destination) = 0;
+      //virtual bool resolve(const Ptr<TextureView> destination) = 0;
 
       virtual ~ColorAttachment() {};                  // Polymorphic deletes require a virtual base destructor
       };
@@ -86,11 +87,13 @@ namespace en
                           const float  clearDepth = 1.0f,
                           const uint32 clearStencil = 0u) = 0;
          
-      virtual void onStore(const StoreOperation storeDepthStencil) = 0;
+      // Specify store operation, and Depth resolve method if it's supported by the GPU.
+      virtual void onStore(const StoreOperation storeDepthStencil,
+                           const DepthResolve resolveMode = DepthResolve::Sample0) = 0;
       
       // Specify destination and method for depth resolve (if it's supported by the GPU)
-      virtual bool resolve(const Ptr<TextureView> destination,
-                           const DepthResolve mode = DepthResolve::Sample0) = 0;
+      //virtual bool resolve(const Ptr<TextureView> destination,
+       //                    const DepthResolve mode = DepthResolve::Sample0) = 0;
          
       // Custom load and store actions can be specifid for Stencil.
       // (no matter if it's shared DepthStencil attachment, or
@@ -100,6 +103,12 @@ namespace en
       virtual void onStencilStore(const StoreOperation storeStencil) = 0;
          
       virtual ~DepthStencilAttachment() {};           // Polymorphic deletes require a virtual base destructor
+      };
+
+   class Framebuffer : public SafeObject<Framebuffer>
+      {
+      public:
+      virtual ~Framebuffer() {};  // Polymorphic deletes require a virtual base destructor
       };
 
    class RenderPass : public SafeObject<RenderPass>

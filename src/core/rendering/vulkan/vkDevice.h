@@ -307,35 +307,21 @@ namespace en
 
 
 
-      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<TextureView> textureView);
+      virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
+                                                         const uint32 samples = 1u);
 
-      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<TextureView> depth,
-                                                                       const Ptr<TextureView> stencil);
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
+                                                                       const Format stencilFormat = Format::Unsupported,
+                                                                       const uint32 samples = 1u);
 
-      // Creates simple render pass with one color or depth-stencil destination (or both)
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> color,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
-      
       virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil);
-        
-      // Creates render pass which's output goes to window framebuffer
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> framebuffer,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
-      
-      // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> temporaryMSAA,
-                                               const Ptr<Texture> framebuffer,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
 
-      // Internal universal method to create Render Pass
-      Ptr<RenderPass> createRenderPass(const uint32 attachments,
-                                       const Ptr<ColorAttachment>* color,
-                                       const Ptr<DepthStencilAttachment> depthStencil,
-                                       const uint32v2 explicitResolution,
-                                       const uint32   explicitLayers);
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
          
+
         
       virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state);
 
@@ -399,7 +385,12 @@ namespace en
       VulkanDevice*  gpu;
       VkSurfaceKHR   swapChainSurface; 
       VkSwapchainKHR swapChain;
-     
+      Ptr<Texture>*  swapChainTexture;
+      uint32         swapChainImages;
+      uint32         swapChainCurrentImageIndex;
+      VkQueue        presentQueue;
+      VkFence        presentationFence;
+
       WindowVK(VulkanDevice* gpu,
                const Ptr<CommonDisplay> selectedDisplay,
                const uint32v2 selectedResolution,
@@ -413,7 +404,7 @@ namespace en
       virtual void transparent(const float opacity);
       virtual void opaque(void);
       virtual Ptr<Texture> surface(void);
-      virtual void display(void);
+      virtual void present(void);
       
       virtual ~WindowVK();
       };

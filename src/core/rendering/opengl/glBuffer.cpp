@@ -15,7 +15,7 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_OPENGL)
 
 #include "core/rendering/opengl/glBuffer.h"
 #include "core/rendering/opengl/glInputAssembler.h"

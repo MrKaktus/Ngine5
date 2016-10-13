@@ -15,7 +15,7 @@
 
 #include "core/defines.h"
 
-#if 0 //defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_OPENGL)
 
 #include "core/rendering/opengl/glBlend.h"
 #include "core/rendering/opengl/glDevice.h"

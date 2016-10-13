@@ -18,6 +18,8 @@
 
 #include "core/rendering/framebuffer.h"
 
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 namespace en
 {
    namespace gpu
@@ -71,5 +73,6 @@ namespace en
       };
    }
 }
+#endif
 
 #endif

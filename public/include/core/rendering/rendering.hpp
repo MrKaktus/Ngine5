@@ -16,15 +16,15 @@
 #ifndef ENG_CORE_RENDERING
 #define ENG_CORE_RENDERING
 
+#include "core/defines.h"
+
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 #include <string>
 #include <vector>
 using namespace std;
 
-#include "core/defines.h"
 #include "core/types.h"
-
-#if !defined(EN_PLATFORM_OSX)
-
 #include "utilities/Nversion.h"
 
 #include "core/rendering/state.h"

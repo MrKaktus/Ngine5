@@ -29,6 +29,13 @@ namespace en
    return false;
    }
    
+   uint32 bitsCount(uint32 number)
+   {
+   number = number - ((number >> 1) & 0x55555555);
+   number = (number & 0x33333333) + ((number >> 2) & 0x33333333);
+   return (((number + (number >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+   }
+
    // Returns true for 0's.
    // See more at: http://www.exploringbinary.com/ten-ways-to-check-if-an-integer-is-a-power-of-two-in-c/
    bool powerOfTwo(uint8 in)

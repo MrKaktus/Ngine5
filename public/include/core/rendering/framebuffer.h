@@ -17,6 +17,9 @@
 #define ENG_CORE_RENDERING_FRAMEBUFFER
 
 #include "core/defines.h"
+
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 #include "core/types.h"
 #include "core/utilities/TintrusivePointer.h"
 
@@ -73,5 +76,6 @@ namespace en
          };
    }
 }
+#endif
 
 #endif

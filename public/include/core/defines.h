@@ -77,9 +77,11 @@
 #define EN_MODULE_OCULUS
 #endif
 
-#if /* defined(EN_PLATFORM_OSX) || */ defined(EN_PLATFORM_WINDOWS)
+/* 
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 #define EN_MODULE_OPENVR
 #endif
+ */
 
 #if defined(EN_PLATFORM_WINDOWS)
 #define EN_MODULE_REALSENSE
@@ -87,9 +89,11 @@
 
 // Rendering backend modules
 
-#if defined(EN_PLATFORM_WINDOWS)
+/* 
+#if defined(EN_PLATFORM_WINDOWS) 
 #define EN_MODULE_RENDERER_OPENGL
 #endif
+*/
 
 #if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY)
 #define EN_MODULE_RENDERER_OPENGLES

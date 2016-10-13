@@ -16,6 +16,9 @@
 
 #include "core/configuration.h"
 #include "core/defines.h"
+
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 #include "core/types.h"
 #include "core/utilities/Tsingleton.h"
 #include "core/utilities/Tproxy.h"
@@ -105,3 +108,4 @@ bool   oglProgramParameterUpdate(en::gpu::ParameterDescriptor* parameter, const 
 
 
 
+#endif

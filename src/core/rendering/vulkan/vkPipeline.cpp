@@ -403,7 +403,7 @@ namespace en
    pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Blending Disabled
    pipelineInfo.pDynamicState       = nullptr;        // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
    pipelineInfo.layout              = layout->state;
-   pipelineInfo.renderPass          = renderPass->handleRenderPass;
+   pipelineInfo.renderPass          = renderPass->handle;
    pipelineInfo.subpass             = 0u;             // TODO: For now engine is not supporting subpasses except default one.
    pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE; // Pipeline to derive from. (optional)
    pipelineInfo.basePipelineIndex   = -1;

@@ -22,6 +22,7 @@ using namespace std;
 #include "core/rendering/device.h"
 #include "core/rendering/common/inputAssembler.h"
 #include "utilities/Nversion.h"
+#include "threading/mutex.h"
 
 namespace en
 {
@@ -51,8 +52,10 @@ namespace en
       uint32v2 _position;
       uint32v2 _size;
       uint32v2 _resolution;
+      Nmutex   surfaceAcquire;   // Window instance mutex.
       bool     _fullscreen;
-      
+      bool     needNewSurface;
+
       CommonWindow();
       
       virtual Ptr<Display> display(void) const;   // Display on which window's center point is currently located

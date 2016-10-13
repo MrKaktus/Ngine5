@@ -39,6 +39,8 @@ namespace en
       {
       VK_ATTACHMENT_STORE_OP_DONT_CARE,         // Discard
       VK_ATTACHMENT_STORE_OP_STORE,             // Store
+      VK_ATTACHMENT_STORE_OP_DONT_CARE,         // Resolve
+      VK_ATTACHMENT_STORE_OP_STORE,             // StoreAndResolve
       };
 
    
@@ -46,43 +48,35 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   #define Color          0
-   #define Resolve        1
+   #define AttColor          0
+   #define AttResolve        1
 
-   ColorAttachmentVK::ColorAttachmentVK(const Ptr<TextureView> source)
+   ColorAttachmentVK::ColorAttachmentVK(const Format format, const uint32 samples) :
+      resolve(false)
    {
-   assert( source );
- 
    clearValue.color.float32[0] = 0.0f;
    clearValue.color.float32[1] = 0.0f;
    clearValue.color.float32[2] = 0.0f;
    clearValue.color.float32[3] = 1.0f;
 
-   view[Color] = ptr_reinterpret_cast<TextureViewVK>(&source);
-
-   state[Color].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   state[Color].format         = TranslateTextureFormat[underlyingType(view[Color]->viewFormat)];
-   state[Color].samples        = static_cast<VkSampleCountFlagBits>(view[Color]->texture->state.samples);
-   state[Color].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
-   state[Color].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-   state[Color].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
-   state[Color].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
-   state[Color].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-   state[Color].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-   // Resolve destination
-   view[Resolve] = nullptr;
+   state[AttColor].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
+   state[AttColor].format         = TranslateTextureFormat[underlyingType(format)];
+   state[AttColor].samples        = static_cast<VkSampleCountFlagBits>(samples);
+   state[AttColor].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+   state[AttColor].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+   state[AttColor].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
+   state[AttColor].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
+   state[AttColor].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+   state[AttColor].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
    }
 
    ColorAttachmentVK::~ColorAttachmentVK()
    {
-   view[Color]   = nullptr;
-   view[Resolve] = nullptr;
    }
 
    void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 _clearValue)
    {
-   state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
+   state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
    clearValue.color.float32[0] = _clearValue.r;
    clearValue.color.float32[1] = _clearValue.g;
    clearValue.color.float32[2] = _clearValue.b;
@@ -91,7 +85,7 @@ namespace en
    
    void ColorAttachmentVK::onLoad(const LoadOperation load, const uint32v4 _clearValue)
    {
-   state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
+   state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
    clearValue.color.uint32[0]  = _clearValue.x;
    clearValue.color.uint32[1]  = _clearValue.y;
    clearValue.color.uint32[2]  = _clearValue.z;
@@ -100,7 +94,7 @@ namespace en
    
    void ColorAttachmentVK::onLoad(const LoadOperation load, const sint32v4 _clearValue)
    {
-   state[Color].loadOp = TranslateLoadOperation[underlyingType(load)];
+   state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
    clearValue.color.int32[0] = _clearValue.x;
    clearValue.color.int32[1] = _clearValue.y;
    clearValue.color.int32[2] = _clearValue.z;
@@ -109,34 +103,30 @@ namespace en
 
    void ColorAttachmentVK::onStore(const StoreOperation store)
    {
-   state[Color].storeOp = TranslateStoreOperation[underlyingType(store)];
-   }
+   state[AttColor].storeOp = TranslateStoreOperation[underlyingType(store)];
+   resolve = false;
 
-   bool ColorAttachmentVK::resolve(const Ptr<TextureView> destination)
-   {
-   assert( destination );
+   if (store == StoreOperation::Resolve ||
+       store == StoreOperation::StoreAndResolve)
+      {
+      // Source surface need to be MSAA to be later resolved
+      assert( state[AttColor].samples > 1 );
 
-   view[Resolve] = ptr_reinterpret_cast<TextureViewVK>(&destination);
+      // If app want to just store resolved image, we discard temporary MSAA content
+      if (store == StoreOperation::Resolve)
+          state[AttColor].storeOp      = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-   assert( view[Color]->texture->state.samples > 1 );              // Cannot resolve non-MSAA source
-   assert( view[Resolve]->texture->state.samples == 1 );           // Cannot resolve to MSAA destination
-   assert( view[Resolve]->viewFormat == view[Color]->viewFormat ); // Cannot resolve between different Pixel Formats
-   
-   // Cannot resolve between different resolutions
-   assert( view[Resolve]->texture->state.width   == view[Color]->texture->state.width );
-   assert( view[Resolve]->texture->state.height  == view[Color]->texture->state.height );
-
-   state[Resolve].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   state[Resolve].format         = state[Color].format;
-   state[Resolve].samples        = VK_SAMPLE_COUNT_1_BIT;
-   state[Resolve].loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // We Resolve to it, so don't care
-   state[Resolve].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-   state[Resolve].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
-   state[Resolve].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
-   state[Resolve].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
-   state[Resolve].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO: Vulkan: Add special resolve for presenting surface
-
-   return true;
+      state[AttResolve].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
+      state[AttResolve].format         = state[AttColor].format;
+      state[AttResolve].samples        = VK_SAMPLE_COUNT_1_BIT;
+      state[AttResolve].loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // We Resolve to it, so don't care
+      state[AttResolve].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+      state[AttResolve].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
+      state[AttResolve].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
+      state[AttResolve].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
+      state[AttResolve].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO: Vulkan: Add special resolve for presenting surface
+      resolve = true;
+      }
    }
 
 
@@ -169,31 +159,31 @@ namespace en
    //
    // Metal allows Depth attachment resolve on iOS GPU Family 3 v1.
    //
-   DepthStencilAttachmentVK::DepthStencilAttachmentVK(const Ptr<TextureView> _depth,
-                                                      const Ptr<TextureView> _stencil) :
-      view(nullptr),
+
+
+   // If you don't want to use DEpth, nor Stencil surfaces, just don't assign
+   // this object at all at Render Pass creation time.
+   DepthStencilAttachmentVK::DepthStencilAttachmentVK(const Format depthFormat, 
+                                                      const Format stencilFormat,
+                                                      const uint32 samples) :
       clearDepth(1.0f),
       clearStencil(0)
    {
    // Vulkan doesn't support separate Depth and Stencil surfaces at the same time.
-   assert( !(_depth && _stencil) );
-   assert( _depth || _stencil );
-   
-   if (_depth)
-      view = ptr_reinterpret_cast<TextureViewVK>(&_depth);
-
-   if (_stencil)
-      view = ptr_reinterpret_cast<TextureViewVK>(&_stencil);
+   assert( !(depthFormat   != Format::Unsupported && 
+             stencilFormat != Format::Unsupported) );
+   assert( depthFormat   != Format::Unsupported || 
+           stencilFormat != Format::Unsupported );
 
    // Needs to be DepthStencil, Depth or Stencil
-   Format format = view->viewFormat;
-   assert( TextureFormatIsDepthStencil(format) ||
-           TextureFormatIsDepth(format)        ||
-           TextureFormatIsStencil(format) );
+   assert( TextureFormatIsDepthStencil(depthFormat) ||
+           TextureFormatIsDepth(depthFormat)        ||
+           TextureFormatIsStencil(stencilFormat) );
 
    state.flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   state.format         = TranslateTextureFormat[underlyingType(view->viewFormat)];
-   state.samples        = static_cast<VkSampleCountFlagBits>(view->texture->state.samples);
+   state.format         = depthFormat != Format::Unsupported ? TranslateTextureFormat[underlyingType(depthFormat)] :
+                                                               TranslateTextureFormat[underlyingType(stencilFormat)];
+   state.samples        = static_cast<VkSampleCountFlagBits>(samples);
    state.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;   // If this is Stencil only format, it's ignored
    state.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;  // If this is Stencil only format, it's ignored
    state.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_LOAD;    // If this is Depth only format, it's ignored
@@ -204,7 +194,6 @@ namespace en
 
    DepthStencilAttachmentVK::~DepthStencilAttachmentVK()
    {
-   view = nullptr;
    }
 
    void DepthStencilAttachmentVK::onLoad(const LoadOperation loadDepthStencil,
@@ -222,7 +211,8 @@ namespace en
    clearStencil = _clearStencil;
    }
 
-   void DepthStencilAttachmentVK::onStore(const StoreOperation storeDepthStencil)
+   void DepthStencilAttachmentVK::onStore(const StoreOperation storeDepthStencil,
+                                          const DepthResolve resolveMode)
    {
    VkAttachmentStoreOp store = TranslateStoreOperation[underlyingType(storeDepthStencil)];
 
@@ -230,12 +220,8 @@ namespace en
    // but by default we set them to the same operation.
    state.storeOp        = store;
    state.stencilStoreOp = store;
-   }
 
-   bool DepthStencilAttachmentVK::resolve(const Ptr<TextureView> destination, const DepthResolve mode)
-   {
    // Vulkan is not supporting Depth/Stencil resolve operations.
-   return false;
    }
 
    void DepthStencilAttachmentVK::onStencilLoad(const LoadOperation loadStencil)
@@ -253,212 +239,184 @@ namespace en
    }
 
 
+   // FRAMEBUFFER
+   //////////////////////////////////////////////////////////////////////////
+
+
+   FramebufferVK::FramebufferVK(VulkanDevice* _gpu, const VkFramebuffer _handle, const uint32v2 _resolution, const uint32 _layers) :
+      gpu(_gpu),
+      handle(_handle),
+      resolution(_resolution),
+      layers(_layers)
+   {
+   }
+
+   FramebufferVK::~FramebufferVK()
+   {
+   ProfileNoRet( gpu, vkDestroyFramebuffer(gpu->device, handle, nullptr) )
+   }
+
+
    // RENDER PASS
    //////////////////////////////////////////////////////////////////////////
 
 
-   RenderPassVK::RenderPassVK(VulkanDevice* _gpu, const VkRenderPass _handleRenderPass, const uint32 _attachments) :
+   RenderPassVK::RenderPassVK(VulkanDevice* _gpu, const VkRenderPass _handle, const uint32 _usedAttachments, const uint32 _surfaces) :
       gpu(_gpu),
-      handleRenderPass(_handleRenderPass),
-      resolution(),
-      attachments(_attachments),
-      clearValues(_attachments ? new VkClearValue[attachments] : nullptr)
+      handle(_handle),
+      usedAttachments(_usedAttachments),
+      surfaces(_surfaces),
+      clearValues(surfaces ? new VkClearValue[surfaces] : nullptr)
    {
    // Init clear values array
-   if (attachments)
-      memset(clearValues, 0, sizeof(float) * 4 * attachments);
+   if (surfaces)
+      memset(clearValues, 0, sizeof(float) * 4 * surfaces);
    }
 
    RenderPassVK::~RenderPassVK()
    {
    delete [] clearValues;
-   ProfileNoRet( gpu, vkDestroyFramebuffer(gpu->device, handleFramebuffer, nullptr) )
-   ProfileNoRet( gpu, vkDestroyRenderPass(gpu->device, handleRenderPass, nullptr) )
+   ProfileNoRet( gpu, vkDestroyRenderPass(gpu->device, handle, nullptr) )
    }
 
-   Ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Ptr<TextureView> texture)
-   {
-   // TODO: Layers is unused!
-   return ptr_reinterpret_cast<ColorAttachment>(&Ptr<ColorAttachmentVK>(new ColorAttachmentVK(texture)));
-   }
 
-   Ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(const Ptr<TextureView> depth,
-      const Ptr<TextureView> stencil)
-   {
-   // TODO: Layers is unused!
-   return ptr_reinterpret_cast<DepthStencilAttachment>(&Ptr<DepthStencilAttachmentVK>(new DepthStencilAttachmentVK(depth, stencil)));
-   }
-   
-
-   // CREATE RENDER PASS
+   // DEVICE
    //////////////////////////////////////////////////////////////////////////
 
 
-   Ptr<RenderPass> VulkanDevice::createRenderPass(const Ptr<ColorAttachment> color,
-                                                  const Ptr<DepthStencilAttachment> depthStencil)
+   Ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Format format, const uint32 samples)
    {
-   // At least one of the two needs to be present
-   assert( color || depthStencil );
+   // TODO: Layers is unused!
+   Ptr<ColorAttachmentVK> ptr(new ColorAttachmentVK(format, samples));
+   return ptr_reinterpret_cast<ColorAttachment>(&ptr);
+   }
 
-   // Calculate resolution of mipmap used as rendering destination,
-   // and count of available layers. Validate that they are identical
-   // between all used surfaces.
-   uint32v2 resolution;
-   uint32 layers = 1;
-   bool selected = false;
-   if (color)
-      {
-      ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color);
-      Ptr<TextureViewVK> view = ptr->view[Color];
-      uint32 mipmap = view->mipmaps.base;
-      resolution = view->texture->resolution(mipmap);
-      layers     = view->layers.count;
-      selected   = true;
-      }
-   else
-   if (depthStencil)
-      {
-      DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
-      Ptr<TextureViewVK> view = ptr->view;
-      uint32 mipmap = view->mipmaps.base;
-
-      if (!selected)
-         {
-         resolution = view->texture->resolution(mipmap);
-         layers     = view->layers.count;
-         selected = true;
-         }
-      else
-         {
-         assert( resolution == view->texture->resolution(mipmap) );
-         assert( layers     == view->layers.count );
-         }
-      }
-   assert( selected );
-
-   return createRenderPass(1, &color, depthStencil, resolution, layers);
+   Ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(const Format depthFormat, 
+                                                                          const Format stencilFormat,
+                                                                          const uint32 samples)
+   {
+   // TODO: Layers is unused!
+   return ptr_reinterpret_cast<DepthStencilAttachment>(&Ptr<DepthStencilAttachmentVK>(new DepthStencilAttachmentVK(depthFormat, stencilFormat, samples)));
    }
    
+   // Creates render pass which's output goes to window framebuffer
+   Ptr<RenderPass> VulkanDevice::createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
+                                                  const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   Ptr<RenderPassVK> result = nullptr;
+   
+   assert( swapChainSurface );
+
+   uint32 surfaces = 0u;
+   bool   resolve  = false;
+   uint32 usedAttachments = 0u;
+
+   ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&swapChainSurface);
+   
+   // Color attachment
+   VkAttachmentReference attColor;
+   attColor.attachment = surfaces;
+   attColor.layout     = ptr->resolve ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+   setBit(usedAttachments, 0);
+   surfaces++;
+
+   // Optional Color Resolve
+   VkAttachmentReference attResolve;
+   if (resolve)
+      {
+      attResolve.attachment = surfaces;
+      attResolve.layout     = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+      surfaces++;
+      }
       
-   Ptr<RenderPass> VulkanDevice::createRenderPass(uint32 _attachments,
-                                                  const Ptr<ColorAttachment>* color,
-                                                  const Ptr<DepthStencilAttachment> depthStencil)
-   {
-   // At least one type of the two needs to be present
-   assert( _attachments > 0 || depthStencil );
-   
-   // Calculate resolution of mipmap used as rendering destination,
-   // and count of available layers. Validate that they are identical
-   // between all used surfaces.
-   uint32v2 resolution;
-   uint32   layers = 1;
-   bool     selected = false;
-   if (_attachments)
+   // Optional Depth-Stencil / Depth / Stencil
+   VkAttachmentReference attDepthStencil;
+   if (depthStencil)
       {
-      for(uint32 i=0; i<_attachments; ++i)
-         if (color[i]) // Allow empty entries in the input array.
-            {
-            ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
-            Ptr<TextureViewVK> view = ptr->view[Color];
-            uint32 mipmap = view->mipmaps.base;
-
-            if (!selected)
-               {
-               resolution = view->texture->resolution(mipmap);
-               layers     = view->layers.count;
-               selected = true;
-               }
-            else
-               {
-               assert( resolution == view->texture->resolution(mipmap) );
-               assert( layers     == view->layers.count );
-               }
-            }
+      attDepthStencil.attachment = surfaces;
+      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+      surfaces++;
       }
+
+   // Engine is currently not supporting multiple sub-passes described as one dependency graph
+   VkSubpassDescription subInfo;
+   subInfo.flags                   = 0u;  // Reserved for future
+   subInfo.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+   subInfo.inputAttachmentCount    = 0u;
+   subInfo.pInputAttachments       = nullptr;
+   subInfo.colorAttachmentCount    = 1u;
+   subInfo.pColorAttachments       = &attColor;
+   subInfo.pResolveAttachments     = resolve      ? &attResolve      : nullptr;
+   subInfo.pDepthStencilAttachment = depthStencil ? &attDepthStencil : nullptr;
+   subInfo.preserveAttachmentCount = 0;
+   subInfo.pPreserveAttachments    = nullptr;
+
+   // Gather global Attachment states (for all subpasses)
+   uint32 index = 0;
+   VkAttachmentDescription* attachment = new VkAttachmentDescription[surfaces];
+   memcpy(&attachment[index], &ptr->state[AttColor], sizeof(VkAttachmentDescription));
+   index++;
+
+   if (resolve)
+      {
+      memcpy(&attachment[index], &ptr->state[AttResolve], sizeof(VkAttachmentDescription));
+      index++;
+      }
+
    if (depthStencil)
       {
       DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
-      Ptr<TextureViewVK> view = ptr->view;
-      uint32 mipmap = view->mipmaps.base;
+      memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
+      index++;
+      }
 
-      if (!selected)
+   // Sanity check
+   assert( surfaces == index );
+
+   // Describe final Render Pass
+   VkRenderPassCreateInfo passInfo;
+   passInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+   passInfo.pNext           = nullptr;
+   passInfo.attachmentCount = surfaces;
+   passInfo.pAttachments    = attachment;
+   passInfo.subpassCount    = 1;
+   passInfo.pSubpasses      = &subInfo;
+   passInfo.dependencyCount = 0;
+   passInfo.pDependencies   = nullptr;
+
+   // Create renderpass object
+   VkRenderPass renderpass;
+   Profile( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      result = new RenderPassVK(this, renderpass, usedAttachments, surfaces);
+      assert( result );
+
+      // Those values will be used at beginning of RenderPass
+      index = 0;
+      result->clearValues[index] = ptr->clearValue;
+      index++;
+
+      // Were not specifying clear values for MSAA resolve destinations (but need to keep entries)
+      if (resolve)
+         index *= 2;
+      
+      if (depthStencil)
          {
-         resolution = view->texture->resolution(mipmap);
-         layers     = view->layers.count;
-         selected = true;
-         }
-      else
-         {
-         assert( resolution == view->texture->resolution(mipmap) );
-         assert( layers     == view->layers.count );
+         DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
+         result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
+         result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
          }
       }
-   assert( selected );
 
-   return createRenderPass(_attachments, color, depthStencil, resolution, layers);
+   delete [] attachment;
 
-
-
-   //// Calculate smallest common resolution and layers count of passed attachments,
-   //// or use explicitly pased ones if this Render Pass is not rendering anything
-   //// (has no attachments, uses shader side effects).
-   //uint32v2 resolution = explicitResolution;
-   //uint32   layers     = explicitLayers;
-   //if (surfaces)
-   //   {
-   //   for(uint32 i=0; i<attachments; ++i)
-   //      {
-   //      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
-   //      resolution.width  = min(resolution.width,  ptr->view[Color]->texture->state.width);
-   //      resolution.height = min(resolution.height, ptr->view[Color]->texture->state.height);
-   //      layers            = min(layers,            ptr->view[Color]->layers.count);
-   //      if (resolve)
-   //         {
-   //         resolution.width  = min(resolution.width,  ptr->view[Resolve]->texture->state.width);
-   //         resolution.height = min(resolution.height, ptr->view[Resolve]->texture->state.height);
-   //         layers            = min(layers,            ptr->view[Resolve]->layers.count);
-   //         }
-   //      }
-   //      
-   //   if (depthStencil)
-   //      {
-   //      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
-   //      resolution.width  = min(resolution.width,  ptr->view->texture->state.width);
-   //      resolution.height = min(resolution.height, ptr->view->texture->state.height);
-   //      layers            = min(layers,            ptr->view->layers.count);
-   //      }
-   //   }
-
-
-   //// Calculate resolution of mipmap used as rendering destination,
-   //// and count of available layers.
-
-
-   //   Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color);
-   //   Ptr<TextureViewVK> view = ptr->view[Color];
-   //   uint32 mipmap = view->mipmaps.base;
-   //   resolution = view->texture->resolution(mipmap);
-   //   layers = view->layers.count;
-   //   }
-   //else
-   //if (depthStencil)
-   //   {
-   //   Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
-   //   Ptr<TextureViewVK> view = ptr->view;
-   //   uint32 mipmap = view->mipmaps.base;
-   //   resolution = view->texture->resolution(mipmap);
-   //   layers = view->layers.count;
-   //   }
-
+   return ptr_reinterpret_cast<RenderPass>(&result);
    }
 
-
-   // Internal universal method to create Render Pass
    Ptr<RenderPass> VulkanDevice::createRenderPass(const uint32 attachments,
                                                   const Ptr<ColorAttachment>* color,
-                                                  const Ptr<DepthStencilAttachment> depthStencil,
-                                                  const uint32v2 explicitResolution,
-                                                  const uint32   explicitLayers)
+                                                  const Ptr<DepthStencilAttachment> depthStencil)
    {
    Ptr<RenderPassVK> result = nullptr;
    
@@ -477,10 +435,12 @@ namespace en
    bool   resolve  = false;
    
    // Render Pass attachments layouy:
-   // 0..7  - Up to 8 Color Attachments
-   // 8..15 - Up to 8 Resolve surfaces
+   // 0..7  - Up to 8 Color Attachments (tightly packed)
+   // 8..15 - Up to 8 Resolve surfaces (tightly packed)
    // 16    - Depth-Stencil / Depth / Stencil
    
+   uint32 usedAttachments = 0u;
+
    // Optional Color Attachments
    VkAttachmentReference* attColor = nullptr;
    if (attachments)
@@ -488,17 +448,18 @@ namespace en
       attColor = new VkAttachmentReference[attachments];
       for(uint32 i=0; i<attachments; ++i)
          {
-         // All passed in Color Attachments need to be valid
-         assert( color[i] );
-         
-         attColor[i].attachment = surfaces;
+         // Passed in array of Color Attachment descriptors may have empty slots.
+         attColor[i].attachment = VK_ATTACHMENT_UNUSED;
          attColor[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+         if (color[i])
+            {
+            if (raw_reinterpret_cast<ColorAttachmentVK>(&color[i])->resolve)
+               resolve = true;
+            attColor[i].attachment = surfaces;
+            setBit(usedAttachments, i);
+            surfaces++;
+            }
          }
-         
-      surfaces += attachments;
-
-      if (raw_reinterpret_cast<ColorAttachmentVK>(&color[0])->view[Resolve])
-         resolve = true;
       }
       
    // Optional Color Resolve
@@ -506,18 +467,16 @@ namespace en
    if (resolve)
       {
       attResolve = new VkAttachmentReference[attachments];
-      
       for(uint32 i=0; i<attachments; ++i)
          {
-         // If one Color Attachment is beeing resolved, all of them need to be resolved
-         Ptr<TextureViewVK> view = raw_reinterpret_cast<ColorAttachmentVK>(&color[i])->view[Resolve];
-         assert( view );
-         
-         attResolve[i].attachment = surfaces;
+         attResolve[i].attachment = VK_ATTACHMENT_UNUSED;
          attResolve[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+         if (checkBit(usedAttachments, i))
+            {
+            attResolve[i].attachment = surfaces;
+            surfaces++;
+            }
          }
-
-      surfaces += attachments;
       }
       
    // Optional Depth-Stencil / Depth / Stencil
@@ -529,9 +488,7 @@ namespace en
       surfaces++;
       
       // TODO: How to determine below situation ?
-      // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-      // When DepthStencil texture is filled earlier in Depth pre-pass, and now only used for discarding
-      // Or is this flag supposed to be used only for ShadowMapping? Sampling with Z Test?
+      // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL - is a once rendered depth buffer, now used for depth test OR sample as shadow map
       }
 
    // Engine is currently not supporting multiple sub-passes described as one dependency graph
@@ -547,39 +504,38 @@ namespace en
    subInfo.preserveAttachmentCount = 0;
    subInfo.pPreserveAttachments    = nullptr;
 
-   // Surface Views
-   VkImageView* handles = nullptr;
-   if (surfaces)
-      handles = new VkImageView[surfaces];
-      
-   // Gather Attachment states and Texture Views for Framebuffer
+
+   // Gather global Attachment states (for all subpasses)
    uint32 index = 0;
    VkAttachmentDescription* attachment = nullptr;
    if (surfaces)
       attachment = new VkAttachmentDescription[surfaces];
    for(uint32 i=0; i<attachments; ++i)
-      {
-      ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
-      memcpy(&attachment[index], &ptr->state[Color], sizeof(VkAttachmentDescription));
-      handles[index] = ptr->view[Color]->handle;
-      index++;
-      }
-      
-   if (resolve)
-      for(uint32 i=0; i<attachments; ++i)
+      if (checkBit(usedAttachments, i))
          {
          ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
-         memcpy(&attachment[index], &ptr->state[Resolve], sizeof(VkAttachmentDescription));
-         handles[index] = ptr->view[Resolve]->handle;
+         memcpy(&attachment[index], &ptr->state[AttColor], sizeof(VkAttachmentDescription));
          index++;
          }
       
+   if (resolve)
+      for(uint32 i=0; i<attachments; ++i)
+         if (checkBit(usedAttachments, i))
+            {
+            ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
+            memcpy(&attachment[index], &ptr->state[AttResolve], sizeof(VkAttachmentDescription));
+            index++;
+            }
+            
    if (depthStencil)
       {
       DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
       memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
-      handles[index] = ptr->view->handle;
+      index++;
       }
+
+   // Sanity check
+   assert( surfaces == index );
 
    // Describe final Render Pass
    VkRenderPassCreateInfo passInfo;
@@ -596,18 +552,282 @@ namespace en
    VkRenderPass renderpass;
    Profile( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = new RenderPassVK(this, renderpass, surfaces);
+      {
+      result = new RenderPassVK(this, renderpass, usedAttachments, surfaces);
+      assert( result );
+
+      // Those values will be used at beginning of RenderPass
+      index = 0;
+      for(uint32 i=0; i<attachments; ++i)
+         if (checkBit(usedAttachments, i))
+            {
+            ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
+            result->clearValues[index] = ptr->clearValue;
+            index++;
+            }
+         
+      // Were not specifying clear values for MSAA resolve destinations (but need to keep entries)
+      if (resolve)
+         index *= 2;
+      
+      if (depthStencil)
+         {
+         DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
+         result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
+         result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
+         }
+      }
 
    delete [] attColor;
    delete [] attResolve;
    delete [] attachment;
 
-   // If Render Pass creation failed, early out
-   if (!result)
+   return ptr_reinterpret_cast<RenderPass>(&result);
+   }
+
+
+
+
+
+
+
+   //Ptr<RenderPass> VulkanDevice::createRenderPass(const Ptr<ColorAttachment> color,
+   //                                               const Ptr<DepthStencilAttachment> depthStencil)
+   //{
+   //// At least one of the two needs to be present
+   //assert( color || depthStencil );
+
+   //// Calculate resolution of mipmap used as rendering destination,
+   //// and count of available layers. Validate that they are identical
+   //// between all used surfaces.
+   //uint32v2 resolution;
+   //uint32 layers = 1;
+   //bool selected = false;
+   //if (color)
+   //   {
+   //   ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color);
+   //   Ptr<TextureViewVK> view = ptr->view[Color];
+   //   uint32 mipmap = view->mipmaps.base;
+   //   resolution = view->texture->resolution(mipmap);
+   //   layers     = view->layers.count;
+   //   selected   = true;
+   //   }
+   //else
+   //if (depthStencil)
+   //   {
+   //   DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
+   //   Ptr<TextureViewVK> view = ptr->view;
+   //   uint32 mipmap = view->mipmaps.base;
+
+   //   if (!selected)
+   //      {
+   //      resolution = view->texture->resolution(mipmap);
+   //      layers     = view->layers.count;
+   //      selected = true;
+   //      }
+   //   else
+   //      {
+   //      assert( resolution == view->texture->resolution(mipmap) );
+   //      assert( layers     == view->layers.count );
+   //      }
+   //   }
+   //assert( selected );
+
+   //return createRenderPass(1, &color, depthStencil, resolution, layers);
+   //}
+   
+      
+   //Ptr<RenderPass> VulkanDevice::createRenderPass(uint32 _attachments,
+   //                                               const Ptr<ColorAttachment>* color,
+   //                                               const Ptr<DepthStencilAttachment> depthStencil)
+   //{
+   //// At least one type of the two needs to be present
+   //assert( _attachments > 0 || depthStencil );
+   //
+   //// Calculate resolution of mipmap used as rendering destination,
+   //// and count of available layers. Validate that they are identical
+   //// between all used surfaces.
+   //uint32v2 resolution;
+   //uint32   layers = 1;
+   //bool     selected = false;
+   //if (_attachments)
+   //   {
+   //   for(uint32 i=0; i<_attachments; ++i)
+   //      if (color[i]) // Allow empty entries in the input array.
+   //         {
+   //         ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
+   //         Ptr<TextureViewVK> view = ptr->view[Color];
+   //         uint32 mipmap = view->mipmaps.base;
+
+   //         if (!selected)
+   //            {
+   //            resolution = view->texture->resolution(mipmap);
+   //            layers     = view->layers.count;
+   //            selected = true;
+   //            }
+   //         else
+   //            {
+   //            assert( resolution == view->texture->resolution(mipmap) );
+   //            assert( layers     == view->layers.count );
+   //            }
+   //         }
+   //   }
+   //if (depthStencil)
+   //   {
+   //   DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
+   //   Ptr<TextureViewVK> view = ptr->view;
+   //   uint32 mipmap = view->mipmaps.base;
+
+   //   if (!selected)
+   //      {
+   //      resolution = view->texture->resolution(mipmap);
+   //      layers     = view->layers.count;
+   //      selected = true;
+   //      }
+   //   else
+   //      {
+   //      assert( resolution == view->texture->resolution(mipmap) );
+   //      assert( layers     == view->layers.count );
+   //      }
+   //   }
+   //assert( selected );
+
+   //return createRenderPass(_attachments, color, depthStencil, resolution, layers);
+
+
+
+   ////// Calculate smallest common resolution and layers count of passed attachments,
+   ////// or use explicitly pased ones if this Render Pass is not rendering anything
+   ////// (has no attachments, uses shader side effects).
+   ////uint32v2 resolution = explicitResolution;
+   ////uint32   layers     = explicitLayers;
+   ////if (surfaces)
+   ////   {
+   ////   for(uint32 i=0; i<attachments; ++i)
+   ////      {
+   ////      Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color[i]);
+   ////      resolution.width  = min(resolution.width,  ptr->view[Color]->texture->state.width);
+   ////      resolution.height = min(resolution.height, ptr->view[Color]->texture->state.height);
+   ////      layers            = min(layers,            ptr->view[Color]->layers.count);
+   ////      if (resolve)
+   ////         {
+   ////         resolution.width  = min(resolution.width,  ptr->view[Resolve]->texture->state.width);
+   ////         resolution.height = min(resolution.height, ptr->view[Resolve]->texture->state.height);
+   ////         layers            = min(layers,            ptr->view[Resolve]->layers.count);
+   ////         }
+   ////      }
+   ////      
+   ////   if (depthStencil)
+   ////      {
+   ////      Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+   ////      resolution.width  = min(resolution.width,  ptr->view->texture->state.width);
+   ////      resolution.height = min(resolution.height, ptr->view->texture->state.height);
+   ////      layers            = min(layers,            ptr->view->layers.count);
+   ////      }
+   ////   }
+
+
+   ////// Calculate resolution of mipmap used as rendering destination,
+   ////// and count of available layers.
+
+
+   ////   Ptr<ColorAttachmentVK> ptr = ptr_dynamic_cast<ColorAttachmentVK, ColorAttachment>(color);
+   ////   Ptr<TextureViewVK> view = ptr->view[Color];
+   ////   uint32 mipmap = view->mipmaps.base;
+   ////   resolution = view->texture->resolution(mipmap);
+   ////   layers = view->layers.count;
+   ////   }
+   ////else
+   ////if (depthStencil)
+   ////   {
+   ////   Ptr<DepthStencilAttachmentVK> ptr = ptr_dynamic_cast<DepthStencilAttachmentVK, DepthStencilAttachment>(depthStencil);
+   ////   Ptr<TextureViewVK> view = ptr->view;
+   ////   uint32 mipmap = view->mipmaps.base;
+   ////   resolution = view->texture->resolution(mipmap);
+   ////   layers = view->layers.count;
+   ////   }
+
+   //}
+
+
+
+
+
+
+
+
+
+
+
+
+   //assert( view[Color]->texture->state.samples > 1 );              // Cannot resolve non-MSAA source
+   //assert( view[Resolve]->texture->state.samples == 1 );           // Cannot resolve to MSAA destination
+   //assert( view[Resolve]->viewFormat == view[Color]->viewFormat ); // Cannot resolve between different Pixel Formats
+   //
+   //// Cannot resolve between different resolutions
+   //assert( view[Resolve]->texture->state.width   == view[Color]->texture->state.width );
+   //assert( view[Resolve]->texture->state.height  == view[Color]->texture->state.height );
+
+   //// Vulkan doesn't support separate Depth and Stencil surfaces at the same time.
+   //assert( !(_depth && _stencil) );
+   //assert( _depth || _stencil );
+   //
+   //if (_depth)
+   //   view = ptr_reinterpret_cast<TextureViewVK>(&_depth);
+
+   //if (_stencil)
+   //   view = ptr_reinterpret_cast<TextureViewVK>(&_stencil);
+
+
+
+   Ptr<Framebuffer> RenderPassVK::createFramebuffer(const uint32 surfaces, const Ptr<TextureView>* surface, uint32v2 resolution, uint32 layers)
+   {
+   // TODO: If there is only one surface view.
+   //       If this view is default, and points to one of the Swap-Chain textures of any created Window.
+   //       Get this window pre-created Framebuffer object and return pointer to it.
+
+   Ptr<FramebufferVK> result = nullptr;
+
+   uint32 attachments = bitsCount(usedAttachments);
+
+   assert( surface );
+   assert( surfaces >= attachments );
+
+   // Create Framebuffer object only if render pass usues any destination surfaces
+   if (surfaces == 0u)
+      return Ptr<Framebuffer>(nullptr);
+
+   // Surface Views for all attachments (color, resolve, depth and stencil)
+   VkImageView* views = new VkImageView[surfaces];
+      
+   // Check if there are resolve destinations
+   bool resolve = false;
+   if (surfaces > (attachments + 1)) // TODO: This is a bug! there can be 1 attachment with resolve and no depth-stencil -> 2 surfaces
+      resolve = true;
+
+   // Check if there is depth-stencil destination
+   bool depthStencil = false;
+   if (surfaces > (attachments * 2)) // TODO: This is a bug! there can be 1 attachment with one depth-stencil -> 2 surfaces
+      depthStencil = true;
+
+   // Gather Texture Views 
+   uint32 index = 0;
+   for(uint32 i=0; i<attachments; ++i)
       {
-      delete [] handles;
-      return Ptr<RenderPass>(nullptr);
+      views[index] = raw_reinterpret_cast<TextureViewVK>(&surface[index])->handle;
+      index++;
       }
+      
+   if (resolve)
+      for(uint32 i=0; i<attachments; ++i)
+         {
+         views[index] = raw_reinterpret_cast<TextureViewVK>(&surface[index])->handle;
+         index++;
+         }
+      
+   if (depthStencil)
+      views[index] = raw_reinterpret_cast<TextureViewVK>(&surface[index])->handle;
+
 
    // TODO: This function should only validate that all surfaces have the same
    //       resolution and layers count!
@@ -619,68 +839,136 @@ namespace en
    framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
    framebufferInfo.pNext           = nullptr;
    framebufferInfo.flags           = 0; // Reserved for future.
-   framebufferInfo.renderPass      = renderpass;
+   framebufferInfo.renderPass      = handle;
    framebufferInfo.attachmentCount = surfaces;
-   framebufferInfo.pAttachments    = handles;
-   framebufferInfo.width           = explicitResolution.width;
-   framebufferInfo.height          = explicitResolution.height;
-   framebufferInfo.layers          = explicitLayers;
+   framebufferInfo.pAttachments    = views;
+   framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
+   framebufferInfo.height          = resolution.height;
+   framebufferInfo.layers          = layers;
 
    // Create framebuffer object
    VkFramebuffer framebuffer;
-   Profile( this, vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      result->handleFramebuffer = framebuffer;
+   Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, layers));
       
-   // Those values will be used at beginning of RenderPass
-   index = 0;
-   for(uint32 i=0; i<attachments; ++i)
-      {
-      ColorAttachmentVK* ptr = raw_reinterpret_cast<ColorAttachmentVK>(&color[i]);
-      result->clearValues[index] = ptr->clearValue;
-      index++;
-      }
-      
-   // Were not specifying clear values for MSAA resolve destinations (but need keep entries)
-   if (resolve)
-      index += attachments;
+   return ptr_reinterpret_cast<Framebuffer>(&result);
+   }
+   
+   Ptr<Framebuffer> RenderPassVK::createFramebuffer(const Ptr<TextureView> swapChainSurface,
+                                                    const Ptr<TextureView> depthStencil, 
+                                                    uint32v2 resolution, 
+                                                    uint32 layers)
+   {
+   assert( swapChainSurface );
+   assert( surfaces > 0 );
+   assert( surfaces <= 2 );
 
-   if (depthStencil)
-      {
-      DepthStencilAttachmentVK* ptr = raw_reinterpret_cast<DepthStencilAttachmentVK>(&depthStencil);
-      result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
-      result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
-      }
+   uint32 attachments = bitsCount(usedAttachments);
+   assert( attachments == 1 );
+
+   Ptr<FramebufferVK> result = nullptr;
+
+   // Surface Views for all attachments (color, resolve, depth and stencil)
+   VkImageView* views = new VkImageView[surfaces];
       
-   // Resolution we render in on RenderPass start
-   result->resolution = explicitResolution;
+   // Gather Texture Views 
+   uint32 index = 0;
+   views[index] = raw_reinterpret_cast<TextureViewVK>(&swapChainSurface)->handle;
+   index++;
+  
+   // Check if there is depth-stencil destination
+   if (surfaces == 2)
+      views[index] = raw_reinterpret_cast<TextureViewVK>(&depthStencil)->handle;
+
+
+   // TODO: This function should only validate that all surfaces have the same
+   //       resolution and layers count!
+   //       Calculation of common resolution and layers should be done by the app !
    
-   delete [] handles;
-   return ptr_reinterpret_cast<RenderPass>(&result);
-   }
    
-   
-   
-   
-   
-   
-   
-   // Creates render pass which's output goes to window framebuffer
-   Ptr<RenderPass> VulkanDevice::createRenderPass(const Ptr<Texture> framebuffer,
-                                                  const Ptr<DepthStencilAttachment> depthStencil)
-   {
-   // TODO: VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-   return Ptr<RenderPass>(nullptr);
+   // Describe Framebuffer
+   VkFramebufferCreateInfo framebufferInfo;
+   framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+   framebufferInfo.pNext           = nullptr;
+   framebufferInfo.flags           = 0; // Reserved for future.
+   framebufferInfo.renderPass      = handle;
+   framebufferInfo.attachmentCount = surfaces;
+   framebufferInfo.pAttachments    = views;
+   framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
+   framebufferInfo.height          = resolution.height;
+   framebufferInfo.layers          = layers;
+
+   // Create framebuffer object
+   VkFramebuffer framebuffer;
+   Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, layers));
+      
+   return ptr_reinterpret_cast<Framebuffer>(&result);
    }
       
-   // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-   Ptr<RenderPass> VulkanDevice::createRenderPass(const Ptr<Texture> temporaryMSAA,
-                                                  const Ptr<Texture> framebuffer,
-                                                  const Ptr<DepthStencilAttachment> depthStencil)
+   // Creates framebuffer which resolves from temporary MSAA target to window Swap-Chain surface
+   Ptr<Framebuffer> RenderPassVK::createFramebuffer(const Ptr<TextureView> temporaryMSAA,
+                                                    const Ptr<TextureView> swapChainSurface,
+                                                    const Ptr<TextureView> depthStencil, 
+                                                    uint32v2 resolution, 
+                                                    uint32 layers)
    {
-   // TODO: VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-   return Ptr<RenderPass>(nullptr);
+   assert( temporaryMSAA );
+   assert( swapChainSurface );
+   assert( surfaces >= 2 );
+   assert( surfaces <= 3 );
+
+   uint32 attachments = bitsCount(usedAttachments);
+   assert( attachments == 1 );
+
+   Ptr<FramebufferVK> result = nullptr;
+
+   // Surface Views for all attachments (color, resolve, depth and stencil)
+   VkImageView* views = new VkImageView[surfaces];
+      
+   // Gather Texture Views 
+   uint32 index = 0;
+   views[index] = raw_reinterpret_cast<TextureViewVK>(&temporaryMSAA)->handle;
+   index++;
+
+   // Resolve to Swap-Chain
+   views[index] = raw_reinterpret_cast<TextureViewVK>(&swapChainSurface)->handle;
+   index++;
+  
+   // Check if there is depth-stencil destination
+   if (surfaces == 3)
+      views[index] = raw_reinterpret_cast<TextureViewVK>(&depthStencil)->handle;
+
+
+   // TODO: This function should only validate that all surfaces have the same
+   //       resolution and layers count!
+   //       Calculation of common resolution and layers should be done by the app !
+   
+   
+   // Describe Framebuffer
+   VkFramebufferCreateInfo framebufferInfo;
+   framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+   framebufferInfo.pNext           = nullptr;
+   framebufferInfo.flags           = 0; // Reserved for future.
+   framebufferInfo.renderPass      = handle;
+   framebufferInfo.attachmentCount = surfaces;
+   framebufferInfo.pAttachments    = views;
+   framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
+   framebufferInfo.height          = resolution.height;
+   framebufferInfo.layers          = layers;
+
+   // Create framebuffer object
+   VkFramebuffer framebuffer;
+   Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, layers));
+      
+   return ptr_reinterpret_cast<Framebuffer>(&result);
    }
+   
+
 
 
 

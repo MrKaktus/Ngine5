@@ -24,6 +24,7 @@ namespace en
 {
    namespace gpu
    {
+#if defined(EN_MODULE_RENDERER_OPENGL)
    // Texture Filtering
    enum TextureFiltering
       {
@@ -59,7 +60,7 @@ namespace en
       TransparentBlack               ,
       TextureBorderColorsCount
       };
-
+#endif
 
 
 
@@ -117,10 +118,10 @@ namespace en
       SamplerFilter     magnification; // Filtering during pixelation
       SamplerMipMapMode mipmap;        // Filtering between mipmaps
       float             anisotropy;    // Maximum anisotropy (clamped to maximum supported by the HW). Values smaller than 1.0f means anisotropy is disabled. 
-      TextureWraping    coordU;
-      TextureWraping    coordV;
-      TextureWraping    coordW;
-      TextureBorder     borderColor;
+      SamplerAdressing  coordU;
+      SamplerAdressing  coordV;
+      SamplerAdressing  coordW;
+      SamplerBorder     borderColor;
       CompareOperation  compare;       // For Shadow maps sampling ??
       float             LodBias;       // 0.0f;
       float             minLod;        // 0.0f;        // Can force sampling of less detailed LOD levels (less mip levels used saves GPU memory)

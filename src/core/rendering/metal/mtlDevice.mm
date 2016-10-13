@@ -60,7 +60,6 @@ namespace en
       layer(nil),
       drawable(nil),
       framebuffer(nullptr),
-      needNewSurface(true),
       CommonWindow()
    {
    _position = settings.position;
@@ -270,9 +269,16 @@ namespace en
    {
    if (needNewSurface)
       {
-      drawable            = [layer nextDrawable];
-      framebuffer->handle = drawable.texture;
-      needNewSurface      = false;
+      surfaceAcquire.lock();
+
+      if (needNewSurface)
+         {
+         drawable            = [layer nextDrawable];
+         framebuffer->handle = drawable.texture;
+         needNewSurface      = false;
+		 }
+
+	  surfaceAcquire.unlock();
       }
 
    return ptr_dynamic_cast<Texture, TextureMTL>(framebuffer);

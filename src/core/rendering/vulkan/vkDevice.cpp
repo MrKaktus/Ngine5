@@ -359,6 +359,10 @@ namespace en
       winWindow(ptr_dynamic_cast<winDisplay, CommonDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
    {
+   swapChainTexture           = nullptr;
+   swapChainImages            = 0;
+   swapChainCurrentImageIndex = 0;
+
    // Window > Surface > Swap-Chain > Device - connection
 
    // Be sure device is idle before creating Swap-Chain
@@ -377,7 +381,9 @@ namespace en
    winCreateInfo.hinstance = AppInstance; // HINSTANCE
    winCreateInfo.hwnd      = hWnd;        // HWND
 
-   Profile( gpu, vkCreateWin32SurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicAPI>(en::Graphics)->instance,
+   Ptr<VulkanAPI> api = ptr_reinterpret_cast<VulkanAPI>(&en::Graphics);
+
+   Profile( gpu, vkCreateWin32SurfaceKHR(api->instance,
                                          &winCreateInfo, nullptr, &swapChainSurface) )
 #else
    // TODO: Implement OS Specific part for other platforms.
@@ -396,12 +402,30 @@ namespace en
       assert( 0 );
       }
 
+   // Verify that queue family picked to handle QueueType::Universal is supporting present calls on this Window.
+   VkBool32 supportPresent = VK_FALSE;
+   Profile( api, vkGetPhysicalDeviceSurfaceSupportKHR(gpu->handle, gpu->queueTypeToFamily[underlyingType(QueueType::Universal)], swapChainSurface, &supportPresent) )
+   if (supportPresent == VK_FALSE)
+      {
+      string info;
+      info += "ERROR: Vulkan error:\n";
+      info += "       Queue Family supporting Present is different than queue family handling Universal queue type!\n";
+      Log << info.c_str();
+      assert( 0 );
+      }
+
+   // Engine assumes that queue family handling QueueType::Universal is supporting Present.
+   // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
+   ProfileNoRet( gpu, vkGetDeviceQueue(gpu->device, gpu->queueTypeToFamily[underlyingType(QueueType::Universal)], 0u, &presentQueue) )
+
    // Calculate amount of backing images in Swap-Chain
    //--------------------------------------------------
    
    // Typical Swap-Chain consist of 3 surfaces, one is presented on display, next is
    // queued to be presented, and the third one is used by application for rendering.
-   uint32 swapChainImages = max(3, swapChainCapabilities.minImageCount);
+   // We use 4, to be able to use Mailbox mode rendering (where we can replace last
+   // waiting frame with more recent one at any time, and still have one frame to query).
+   swapChainImages = max(4, swapChainCapabilities.minImageCount);
    if (swapChainCapabilities.maxImageCount)
       swapChainImages = min(swapChainImages, swapChainCapabilities.maxImageCount);
    
@@ -623,18 +647,141 @@ namespace en
  
    Profile( gpu, vkCreateSwapchainKHR(gpu->device, &createInfo, nullptr, &swapChain) )
 
+   // Create array of textures backed by Swap-Chain images
+   //------------------------------------------------------
+ 
+   // Ensure that amount of images in swap-chain is equal to requested one
+   uint32 swapChainActualImagesCount = 0;
+   Profile( gpu, vkGetSwapchainImagesKHR(gpu->device, swapChain, &swapChainActualImagesCount, nullptr) )
+   assert( swapChainActualImagesCount == swapChainImages );
+
+   // Request handles to swap-chain images
+   VkImage* swapChainImageHandles = new VkImage[swapChainImages];
+   Profile( gpu, vkGetSwapchainImagesKHR(gpu->device, swapChain, &swapChainImages, swapChainImageHandles) )
+
+   // Create textures backed with handles
+   TextureState textureState = TextureState(TextureType::Texture2D, 
+                                            settings.format, 
+                                            TextureUsage::RenderTargetWrite,
+                                            swapChainResolution.width,
+                                            swapChainResolution.height);
+
+   swapChainTexture = new Ptr<Texture>[swapChainImages];
+   for(uint32 i=0; i<swapChainImages; ++i)
+      {
+      Ptr<TextureVK> texture = new TextureVK(gpu, textureState);
+      texture->handle = swapChainImageHandles[i];
+      swapChainTexture[i] = ptr_reinterpret_cast<Texture>(&texture);
+      }
+
+   delete [] swapChainImageHandles;
+
+   // Create Fence that will be signaled when acquired surface is safe to use
+   //------------------------------------------------------------------------- 
+         
+   VkFenceCreateInfo fenceInfo;
+   fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+   fenceInfo.pNext = nullptr;
+   fenceInfo.flags = 0u; 
+         
+   Profile( gpu, vkCreateFence(gpu->device, &fenceInfo, nullptr, &presentationFence) )
+
    _resolution = swapChainResolution;
    }
    
    WindowVK::~WindowVK()
    {
-   // Be sure device is idle before destroying the Window
+   // Be sure device is idle before destroying the Window connection
    Profile( gpu, vkDeviceWaitIdle(gpu->device) )
-   
-   ProfileNoRet( gpu, vkDestroySurfaceKHR(ptr_dynamic_cast<VulkanAPI, GraphicAPI>(en::Graphics)->instance,
+
+   // Release presentation fence
+   ProfileNoRet( gpu, vkDestroyFence(gpu->device, presentationFence, nullptr) )
+
+   // Detach swap-chain surfaces from texture containers
+   // TODO: Do we need to present/release currently acquired surface first ?
+   for(uint32 i=0; i<swapChainImages; ++i)
+      ptr_reinterpret_cast<TextureVK>(&swapChainTexture[i])->handle = VK_NULL_HANDLE;
+ 
+   // TODO: Do we release swap-chain surfaces in any particular way?
+
+   delete [] swapChainTexture;
+
+   ProfileNoRet( gpu, vkDestroySurfaceKHR(ptr_reinterpret_cast<VulkanAPI>(&en::Graphics)->instance,
                                           swapChainSurface, nullptr) )
    }
    
+   Ptr<Texture> WindowVK::surface(void)
+   {
+   if (needNewSurface)
+      {
+      surfaceAcquire.lock();
+
+      if (needNewSurface)
+         {
+         uint32 thread = Scheduler.core();
+
+         // Acquire one of the Swap-Chain surfaces for rendering
+         Profile( gpu, vkAcquireNextImageKHR(gpu->device, swapChain, UINT64_MAX /* wait time in nanoseconds */, 
+                                             VK_NULL_HANDLE, /* semaphore to wait for presentation engine to finish reading from it*/
+                                             presentationFence, &swapChainCurrentImageIndex) )
+         
+         // Ensure that engine is recreating Swap-Chain on window resize
+         assert( gpu->lastResult[thread] != VK_ERROR_OUT_OF_DATE_KHR );
+
+         // Active wait for presentation engine to finish reading from Swap-Chain surface to display panel
+         gpu->lastResult[thread] = VK_NOT_READY;
+         while(gpu->lastResult[thread] != VK_SUCCESS)
+            {
+            Profile( gpu, vkGetFenceStatus(gpu->device, presentationFence) )
+            }
+
+         // Reset fence for reuse
+         Profile( gpu, vkResetFences(gpu->device, 1u, &presentationFence) )
+
+         // TODO: Transition image to valid layout before use!         
+         // before modifying it, the application must use a synchronization primitive to ensure that the
+         // presentation engine has finished reading from the image. The application can then transition the image’s layout, queue
+         // rendering commands to it, etc.
+         
+         needNewSurface = false;
+         }
+
+      surfaceAcquire.unlock();
+      }
+
+   return swapChainTexture[swapChainCurrentImageIndex];
+   }
+
+   void WindowVK::present(void)
+   {
+   surfaceAcquire.lock();
+   if (!needNewSurface)
+      {
+      VkDisplayPresentInfoKHR displayInfo;
+      displayInfo.sType      = VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR;
+      displayInfo.pNext      = nullptr;
+      displayInfo.srcRect    = { (sint32)_resolution.width, (sint32)_resolution.height }; // Region of surface to present. Smaller or equal to Swap-Chain surface size.
+      displayInfo.dstRect    = { (sint32)_size.width, (sint32)_size.height };             // Region of display area to render to. 
+      displayInfo.persistent = VK_TRUE;                                   // If display has it's own copy of image, it will keep displaying it until 
+                                                                          // new image arrives from presentation engine.
+      VkPresentInfoKHR info;
+      info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+      info.pNext              = _fullscreen ? &displayInfo : nullptr;     // If using VK_KHR_display_swapchain, pass additional information.
+      info.waitSemaphoreCount = 1;
+       const VkSemaphore*       pWaitSemaphores; // At least one Semaphore, indicating that rendering to presentation surface is done (if not used waitUntilComplete).
+      info.swapchainCount     = 1;               // Can present Swap-Chains of multiple windows at the same time (then we pass array of those and their surface id's).
+      info.pSwapchains        = &swapChain;      
+      info.pImageIndices      = &swapChainCurrentImageIndex;
+      info.pResults           = nullptr;         // Results per Swap-Chain. We present only one so general function call result is enough.
+      
+      Profile( gpu, vkQueuePresentKHR(presentQueue, &info) )
+      needNewSurface = true;
+
+      // TODO: Measure here Window rendering time (average between present calls) ?
+      }
+   surfaceAcquire.unlock();
+   }
+
    Ptr<Window> VulkanDevice::create(const WindowSettings& settings, const string title)
    {
    // Select destination display
@@ -1078,8 +1225,8 @@ namespace en
 
    // TODO: Do we want to support reset of Command Pools? Should it go to API?
    //
-   // // Resets Command Pool, frees all resources encoded on all CB's created from this pool. CB's are rest to initial state.
-   // uint32 thread = 0;
+   // // Resets Command Pool, frees all resources encoded on all CB's created from this pool. CB's are reset to initial state.
+   // uint32 thread = 0; 
    // uint32 type = 0;
    // Profile( vkResetCommandPool(VkDevice device, commandPool[thread][type], VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT) )
 

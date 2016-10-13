@@ -134,6 +134,7 @@ namespace en
    
    CommonWindow::CommonWindow() :
       _fullscreen(false),
+      needNewSurface(true),
       Window()
    {
    }

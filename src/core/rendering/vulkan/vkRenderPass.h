@@ -31,11 +31,11 @@ namespace en
    class ColorAttachmentVK : public ColorAttachment
       {
       public:
-      Ptr<TextureViewVK>      view[2];
-      VkAttachmentDescription state[2]; // Attachment and optional Resolve
-      VkClearValue clearValue;
+      VkAttachmentDescription state[2];   // Attachment and optional Resolve
+      VkClearValue            clearValue;
+      bool                    resolve;
 
-      ColorAttachmentVK(const Ptr<TextureView> source);
+      ColorAttachmentVK(const Format format, const uint32 samples);
 
       virtual void onLoad(const LoadOperation load,
          const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -45,7 +45,6 @@ namespace en
          const sint32v4 clearColor = sint32v4(0, 0, 0, 1));
          
       virtual void onStore(const StoreOperation store);
-      virtual bool resolve(const Ptr<TextureView> destination);
 
       virtual ~ColorAttachmentVK();
       };
@@ -53,23 +52,21 @@ namespace en
    class DepthStencilAttachmentVK : public DepthStencilAttachment
       {
       public:
-      Ptr<TextureViewVK>      view;
-      VkAttachmentDescription state; // Shared DepthStencil, Depth or Stencil
-      float  clearDepth;
-      uint32 clearStencil;
+      VkAttachmentDescription state;        // Shared DepthStencil, Depth or Stencil
+      float                   clearDepth;
+      uint32                  clearStencil;
 
-      DepthStencilAttachmentVK(const Ptr<TextureView> depth,
-                               const Ptr<TextureView> stencil = nullptr);
+      DepthStencilAttachmentVK(const Format depthFormat, 
+                               const Format stencilFormat = Format::Unsupported,
+                               const uint32 samples = 1u);
 
       virtual void onLoad(const LoadOperation loadDepthStencil,
-         const float  clearDepth = 1.0f,
-         const uint32 clearStencil = 0u);
+                          const float  clearDepth = 1.0f,
+                          const uint32 clearStencil = 0u);
 
-      virtual void onStore(const StoreOperation storeDepthStencil);
-
-      // Specify Depth resolve method and destination, if it's supported by the GPU.
-      virtual bool resolve(const Ptr<TextureView> destination,
-                           const DepthResolve mode = DepthResolve::Sample0);
+      // Specify store operation, and Depth resolve method if it's supported by the GPU.
+      virtual void onStore(const StoreOperation storeDepthStencil,
+                           const DepthResolve resolveMode = DepthResolve::Sample0);
 
       virtual void onStencilLoad(const LoadOperation loadStencil);
 
@@ -78,18 +75,49 @@ namespace en
       virtual ~DepthStencilAttachmentVK();
       };
 
+   class FramebufferVK : public Framebuffer
+      {
+      public:
+      VulkanDevice* gpu;
+      VkFramebuffer handle;
+      uint32v2      resolution;
+      uint32        layers;
+
+      FramebufferVK(VulkanDevice* gpu, const VkFramebuffer handle, const uint32v2 resolution, const uint32 layers);
+     ~FramebufferVK();
+      };
+
    class RenderPassVK : public RenderPass
       {
       public:
       VulkanDevice* gpu;
-      VkRenderPass  handleRenderPass;
-      VkFramebuffer handleFramebuffer;
-      uint32v2      resolution;
-      uint32        attachments;
+      VkRenderPass  handle;
+      uint32        usedAttachments;  // Bitmask
+      uint32        surfaces;
       VkClearValue* clearValues;   // Array of clear values per attachment
       
-      RenderPassVK(VulkanDevice* _gpu, const VkRenderPass handleRenderPass, const uint32 _attachments);
+      RenderPassVK(VulkanDevice* gpu, const VkRenderPass handle, const uint32 usedAttachments, const uint32 surfaces);
      ~RenderPassVK();
+
+      virtual Ptr<Framebuffer> createFramebuffer(const uint32 surfaces, 
+                                                 const Ptr<TextureView>* surface, 
+                                                 uint32v2 resolution, 
+                                                 uint32 layers);
+
+      // Creates framebuffer using window Swap-Chain surface
+      virtual Ptr<Framebuffer> createFramebuffer(const Ptr<TextureView> swapChainSurface,
+                                                 const Ptr<TextureView> depthStencil, 
+                                                 uint32v2 resolution, 
+                                                 uint32 layers);
+      
+      // Creates framebuffer which resolves from temporary MSAA target to window Swap-Chain surface
+      virtual Ptr<Framebuffer> createFramebuffer(const Ptr<TextureView> temporaryMSAA,
+                                                 const Ptr<TextureView> swapChainSurface,
+                                                 const Ptr<TextureView> depthStencil, 
+                                                 uint32v2 resolution, 
+                                                 uint32 layers);
+
+
       };
    }
 }

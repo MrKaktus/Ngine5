@@ -19,13 +19,12 @@
 
 #include "core/rendering/context.h"
 
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 namespace en
 {
    namespace gpu
    {
-#if 0
-//#ifndef EN_PLATFORM_OSX
-
    FramebufferGL45::FramebufferGL45() :
       FramebufferGL40()
    {
@@ -127,7 +126,7 @@ namespace en
          break;
       }
    }
-   
-#endif
+
    }
 }
+#endif

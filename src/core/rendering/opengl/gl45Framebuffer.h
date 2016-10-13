@@ -18,12 +18,12 @@
 
 #include "core/rendering/opengl/gl40Framebuffer.h"
 
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 namespace en
 {
    namespace gpu
    {
-#ifndef EN_PLATFORM_OSX
-
    class FramebufferGL45 : public FramebufferGL40
       {
       public:
@@ -45,9 +45,8 @@ namespace en
          const uint8 mipmap = 0);     // Mipmap
          
       };
-
-#endif
    }
 }
+#endif
 
 #endif

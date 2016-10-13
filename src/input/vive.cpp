@@ -61,19 +61,19 @@ namespace en
       currentIndex(0),
       chaperone(nullptr),
       areaDimensions(0.0f, 0.0f),
-      model(nullptr),
-      distortion(nullptr)
+      model(nullptr)//,
+      //distortion(nullptr)
    {
    // OpenVR currently supports only one HMD
    assert( index == 0 );
 
    // Initialize the SteamVR Runtime
-   vr::HmdError res = vr::HmdError_None;
-   context = vr::VR_Init(&res);
-   if (res != vr::HmdError_None)
+   vr::EVRInitError res = vr::VRInitError_None;
+   context = vr::VR_Init(&res, vr::VRApplication_Scene);
+   if (res != vr::VRInitError_None)
       {
       context = nullptr;
-      Log << "ERROR OpenVR Init Failed: " << vr::VR_GetStringForHmdError(res) << endl;
+      Log << "ERROR OpenVR Init Failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << endl;
       return;
       }
 
@@ -83,7 +83,7 @@ namespace en
       {
       context = nullptr;
       vr::VR_Shutdown();
-      Log << "ERROR OpenVR Init Failed: " << vr::VR_GetStringForHmdError(res) << endl;
+      Log << "ERROR OpenVR Init Failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << endl;
       return;
       }
 
@@ -191,12 +191,12 @@ namespace en
    sharedRT = sharedRendertarget;
 
    // Init compositor
-   vr::HmdError res = vr::HmdError_None;
+   vr::EVRInitError res = vr::VRInitError_None;
    compositor = reinterpret_cast<vr::IVRCompositor*>(vr::VR_GetGenericInterface(vr::IVRCompositor_Version, &res)); 
-   if (!compositor || res != vr::HmdError_None)
+   if (!compositor || res != vr::VRInitError_None)
       {
       compositor = nullptr;
-      Log << "ERROR OpenVR Compositor initialization failed: " << vr::VR_GetStringForHmdError(res) << endl;
+      Log << "ERROR OpenVR Compositor initialization failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << endl;
       return false;
       }
 
@@ -240,8 +240,8 @@ namespace en
          {
          // Create texture interface that can be exposed to application
          en::gpu::TextureState state;
-         state.type    = Texture2D;
-         state.format  = FormatRGBA_8_sRGB; //FormatRGBA_8;
+         state.type    = TextureType::Texture2D;
+         state.format  = Format::RGBA_8_sRGB; //FormatRGBA_8;
          state.width   = resolutionRT.width;
          state.height  = resolutionRT.height;
          state.depth   = 1;
@@ -589,7 +589,7 @@ namespace en
    model->mesh[0].elements.indexes = indices;
    
    // Create texture
-   TextureState settings(Texture2D, FormatRGBA_8, tempModel.diffuseTexture.unWidth, tempModel.diffuseTexture.unHeight);
+   TextureState settings(TextureType::Texture2D, Format::RGBA_8, tempModel.diffuseTexture.unWidth, tempModel.diffuseTexture.unHeight);
    texture = en::Gpu.texture.create(settings);
 
    // Free temporary model

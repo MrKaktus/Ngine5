@@ -447,7 +447,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>opengl32.lib;zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.8\contrib\vstudio\vc11\x86\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2015;.\..\middleware\openvr-0.9.11\lib\win32;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.8\contrib\vstudio\vc11\x86\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win32;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Lib>
     <BuildLog>
       <Path>.\..\build\win32\$(Configuration)\$(MSBuildProjectName).log</Path>

@@ -14,6 +14,9 @@
 */
 
 #include "core/defines.h"
+
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 #include "core/types.h"
 #include "core/log/log.h"
 #include "core/rendering/context.h"
@@ -24,7 +27,6 @@ namespace en
    {
       namespace wgl
       {
-      #if 0
       //#ifdef EN_PLATFORM_WINDOWS
 
       // - binds only pointers to functions allowed in given API and version
@@ -1846,7 +1848,7 @@ namespace en
          }
       }
 
-      #endif
       }
    }
 }
+#endif

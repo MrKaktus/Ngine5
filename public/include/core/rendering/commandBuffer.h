@@ -61,7 +61,9 @@ namespace en
       virtual void bind(const Ptr<DepthStencilState> depthStencil) = 0;
       virtual void bind(const Ptr<BlendState> blend) = 0;
 
-      virtual bool startRenderPass(const Ptr<RenderPass> pass) = 0;
+      virtual bool startRenderPass(const Ptr<RenderPass> pass, 
+                                   const Ptr<Framebuffer> framebuffer) = 0;
+
       virtual void set(const Ptr<Pipeline> pipeline) = 0;
       
       // Assigns Vertex Buffers to specified input attachment slots.

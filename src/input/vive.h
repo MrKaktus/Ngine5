@@ -16,7 +16,10 @@
 
 #if defined(EN_MODULE_OPENVR)
 
-#include "openvr-0.9.11/headers/openvr.h"
+#include "./openvr-1.0.3/headers/openvr.h"
+
+#include <map>
+using namespace std;
 
 namespace en
 {
@@ -147,12 +150,13 @@ namespace en
       // Resources for rendering to Window
       uint32v2 window;                    // Resolution of window to mirror to
       Ptr<en::resource::Model> model;     // Distortion lenses model
-      en::gpu::Program      distortion;   // Distortion rendering program
+// TODO:
+//      en::gpu::Program      distortion;   // Distortion rendering program
       uint32            samplerLocation;  // Sampler location
       };  
 
-   InitOpenVR(); 
-   CloseOpenVR();  
+   void InitOpenVR(void); 
+   void CloseOpenVR(void);  
    }
 }
 #endif

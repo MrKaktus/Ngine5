@@ -21,6 +21,8 @@
 //#include "core/rendering/opengl/glRenderPass.h"
 //#include "core/rendering/opengl/glTexture.h"
 
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 namespace en
 {
    namespace gpu
@@ -89,3 +91,4 @@ namespace en
 
    }
 }
+#endif

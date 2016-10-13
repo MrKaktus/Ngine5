@@ -17,11 +17,10 @@
 #define ENG_CORE_RENDERING_PROGRAM
 
 #include "core/defines.h"
+
+#if defined(EN_MODULE_RENDERER_OPENGL)
+
 #include "core/types.h"
-
-#if !defined(EN_PLATFORM_OSX)
-
-
 #include "core/utilities/Tproxy.h"
 
 #include "core/rendering/state.h"

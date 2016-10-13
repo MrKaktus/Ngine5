@@ -62,7 +62,6 @@ namespace en
       CAMetalLayer* layer;
       id <CAMetalDrawable> drawable;
       Ptr<TextureMTL> framebuffer;
-      bool          needNewSurface;
       
       virtual Ptr<Display> display(void);
       virtual uint32v2 position(void);

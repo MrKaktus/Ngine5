@@ -164,8 +164,8 @@ namespace en
       virtual void active(void) = 0;
       virtual void transparent(const float opacity) = 0;
       virtual void opaque(void) = 0;
-      virtual Ptr<Texture> surface(void) = 0; // App should query for current surface each time it wants to reference it
-      virtual void present(void) = 0;
+      virtual Ptr<Texture> surface(void) = 0;         // App should query for current surface each time it wants to reference it
+      virtual void present(void) = 0;                 // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
       
       virtual ~Window() {};                               // Polymorphic deletes require a virtual base destructor
       };
@@ -247,28 +247,25 @@ namespace en
  
       // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
       // similarly when binding CubeMap texture, pass it's "face" through "layer".
-      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<TextureView> textureView) = 0;
+      virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
+                                                         const uint32 samples = 1u) = 0;
 
-      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<TextureView> depth,
-                                                                       const Ptr<TextureView> stencil) = 0;
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
+                                                                       const Format stencilFormat = Format::Unsupported,
+                                                                       const uint32 samples = 1u) = 0;
 
-      // Creates simple render pass with one color destination
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> color,
-                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
-      
-      // Creates render pass with Multiple Render Targets
+      // Creates render pass 
       virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil) = 0;
-        
-      // Creates render pass which's output goes to window framebuffer
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> framebuffer,
+
+      // Creates render pass with Swap-Chain surface as destination.
+      // Swap-Chain surface may be destination of MSAA resolve operation.
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
                                                const Ptr<DepthStencilAttachment> depthStencil) = 0;
       
-      // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> temporaryMSAA,
-                                               const Ptr<Texture> framebuffer,
-                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
+
+
 
 
 
