@@ -168,6 +168,8 @@ namespace en
           {
           uint8 id;
           uint8 button;
+
+          JoystickButtonEvent(const uint8 id, const uint8 button);
           };
 
    struct JoystickMoveEvent : public Event
@@ -175,6 +177,8 @@ namespace en
           uint8        id;
           JoystickAxis axis;
           float        position;   // Position normalised to [-1.0 .. 1.0] range
+
+          JoystickMoveEvent(const uint8 id, const JoystickAxis axis, const float position);
           };
       
    struct ControllerEvent : public Event

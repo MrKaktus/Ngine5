@@ -259,15 +259,17 @@ namespace en
                                                                        const Format stencilFormat = Format::Unsupported,
                                                                        const uint32 samples = 1u) = 0;
 
+      // Creates render pass with Swap-Chain surface as destination.
+      // Swap-Chain surface may be destination of MSAA resolve operation.
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
+                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
+
       // Creates render pass 
       virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil) = 0;
 
-      // Creates render pass with Swap-Chain surface as destination.
-      // Swap-Chain surface may be destination of MSAA resolve operation.
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
-                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
+
       
 
 

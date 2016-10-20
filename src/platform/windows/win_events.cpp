@@ -59,10 +59,8 @@ switch(msg)
       keyboard->keys[underlyingType(key)] = KeyState::Pressed; 
   
       // Call event handling function
-      KeyboardEvent event;
-      memset(&event, 0, sizeof(KeyboardEvent));
-      event.type = KeyPressed;
-      event.key  = key;
+      KeyboardEvent event(key);
+      event.type  = KeyPressed;
       input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
       break;
       }
@@ -79,10 +77,8 @@ switch(msg)
       keyboard->keys[underlyingType(key)] = KeyState::Released; 
   
       // Call event handling function
-      KeyboardEvent event;
-      memset(&event, 0, sizeof(KeyboardEvent));
+      KeyboardEvent event(key);
       event.type = KeyReleased;
-      event.key  = key;
       input->callback[event.type]( reinterpret_cast<Event&>(event) );
       break;
       } 
@@ -96,11 +92,9 @@ switch(msg)
       ConvertWindowPositionToScreenPosition(hWnd, lParam, mouse->x, mouse->y);
       
       // Call event handling function
-      MouseEvent event;
-      memset(&event, 0, sizeof(MouseEvent));
-      event.type = MouseMoved;
-      event.x    = mouse->x;
-      event.y    = mouse->y;
+      MouseEvent event(MouseMoved);
+      event.x = mouse->x;
+      event.y = mouse->y;
       input->callback[event.type]( reinterpret_cast<Event&>(event) );
       break;
       }
@@ -115,9 +109,7 @@ switch(msg)
       ConvertWindowPositionToScreenPosition(hWnd, lParam, mouse->x, mouse->y);
 
       // Call event handling function
-      MouseEvent event;
-      memset(&event, 0, sizeof(MouseEvent));
-      event.type   = MouseButtonPressed;
+      MouseEvent event(MouseButtonPressed);
       event.button = MouseButton::Left;
       event.x      = mouse->x;
       event.y      = mouse->y;
@@ -135,9 +127,7 @@ switch(msg)
       ConvertWindowPositionToScreenPosition(hWnd, lParam, mouse->x, mouse->y);
 
       // Call event handling function
-      MouseEvent event;
-      memset(&event, 0, sizeof(MouseEvent));
-      event.type   = MouseButtonReleased;
+      MouseEvent event(MouseButtonReleased);
       event.button = MouseButton::Left;
       event.x      = mouse->x;
       event.y      = mouse->y;
@@ -155,9 +145,7 @@ switch(msg)
       ConvertWindowPositionToScreenPosition(hWnd, lParam, mouse->x, mouse->y);
 
       // Call event handling function
-      MouseEvent event;
-      memset(&event, 0, sizeof(MouseEvent));
-      event.type   = MouseButtonPressed;
+      MouseEvent event(MouseButtonPressed);
       event.button = MouseButton::Right;
       event.x      = mouse->x;
       event.y      = mouse->y;
@@ -175,9 +163,7 @@ switch(msg)
       ConvertWindowPositionToScreenPosition(hWnd, lParam, mouse->x, mouse->y);
       
       // Call event handling function
-      MouseEvent event;
-      memset(&event, 0, sizeof(MouseEvent));
-      event.type   = MouseButtonReleased;
+      MouseEvent event(MouseButtonReleased);
       event.button = MouseButton::Right;
       event.x      = mouse->x;
       event.y      = mouse->y;
@@ -195,9 +181,7 @@ switch(msg)
       ConvertWindowPositionToScreenPosition(hWnd, lParam, mouse->x, mouse->y);
 
       // Call event handling function
-      MouseEvent event;
-      memset(&event, 0, sizeof(MouseEvent));
-      event.type   = MouseButtonPressed;
+      MouseEvent event(MouseButtonPressed);
       event.button = MouseButton::Middle;
       event.x      = mouse->x;
       event.y      = mouse->y;
@@ -215,9 +199,7 @@ switch(msg)
       ConvertWindowPositionToScreenPosition(hWnd, lParam, mouse->x, mouse->y);
 
       // Call event handling function
-      MouseEvent event;
-      memset(&event, 0, sizeof(MouseEvent));
-      event.type   = MouseButtonReleased;
+      MouseEvent event(MouseButtonReleased);
       event.button = MouseButton::Middle;
       event.x      = mouse->x;
       event.y      = mouse->y;
@@ -257,9 +239,7 @@ switch(msg)
        case WM_CLOSE:
             {
             // Call event handling function
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = AppClose;
+            Event event(AppClose);
             input->callback[event.type](event); 
             break;
             }
@@ -276,17 +256,13 @@ switch(msg)
             if (wParam == SIZE_RESTORED) 
                {
                // Call event handling function
-               Event event;
-               memset(&event, 0, sizeof(Event));
-               event.type = AppWindowActive;
+               Event event(AppWindowActive);
                input->callback[event.type](event); 
                }
             if (wParam == SIZE_MINIMIZED) 
                {
                // Call event handling function
-               Event event;
-               memset(&event, 0, sizeof(Event));
-               event.type = AppWindowHidden;
+               Event event(AppWindowHidden);
                input->callback[event.type](event); 
                }
 

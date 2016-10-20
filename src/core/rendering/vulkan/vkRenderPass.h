@@ -98,28 +98,36 @@ namespace en
       bool          resolve;
       bool          depthStencil;
       
-      RenderPassVK(VulkanDevice* gpu, const VkRenderPass handle, const uint32 usedAttachments, const uint32 surfaces);
+      RenderPassVK(VulkanDevice* gpu, 
+                   const VkRenderPass handle, 
+                   const uint32 usedAttachments, 
+                   const uint32 surfaces,
+                   const bool   _resolve,
+                   const bool   _depthStencil);
+
      ~RenderPassVK();
 
-      virtual Ptr<Framebuffer> createFramebuffer(const uint32 surfaces, 
-                                                 const Ptr<TextureView>* surface, 
-                                                 uint32v2 resolution, 
-                                                 uint32 layers);
+      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
+                                                 const uint32   layers,
+                                                 const uint32   attachments,
+                                                 const Ptr<TextureView>* attachment,
+                                                 const Ptr<TextureView> depthStencil = nullptr,
+                                                 const Ptr<TextureView> stencil      = nullptr,
+                                                 const Ptr<TextureView> depthResolve = nullptr);
 
-      // Creates framebuffer using window Swap-Chain surface
-      virtual Ptr<Framebuffer> createFramebuffer(const Ptr<TextureView> swapChainSurface,
-                                                 const Ptr<TextureView> depthStencil, 
-                                                 uint32v2 resolution, 
-                                                 uint32 layers);
-      
-      // Creates framebuffer which resolves from temporary MSAA target to window Swap-Chain surface
-      virtual Ptr<Framebuffer> createFramebuffer(const Ptr<TextureView> temporaryMSAA,
+      // Creates framebuffer using window Swap-Chain surface.
+      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
                                                  const Ptr<TextureView> swapChainSurface,
-                                                 const Ptr<TextureView> depthStencil, 
-                                                 uint32v2 resolution, 
-                                                 uint32 layers);
-
-
+                                                 const Ptr<TextureView> depthStencil = nullptr,
+                                                 const Ptr<TextureView> stencil      = nullptr);
+      
+      // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
+      // window Swap-Chain surface.
+      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
+                                                 const Ptr<TextureView> temporaryMSAA,
+                                                 const Ptr<TextureView> swapChainSurface,
+                                                 const Ptr<TextureView> depthStencil = nullptr,
+                                                 const Ptr<TextureView> stencil      = nullptr);
       };
    }
 }

@@ -284,6 +284,7 @@ namespace en
    assert( surfaces >= attachments );
 
    // Create Framebuffer object only if render pass usues any destination surfaces
+   // TODO: It shouldn't check Input but RenderPass requirements!
    if (surfaces      == 0u      &&
        _depthStencil == nullptr &&
        _stencil      == nullptr &&

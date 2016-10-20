@@ -194,11 +194,7 @@ namespace en
          x.position = state->dwData;
 
          // Call event handling function 
-         JoystickMoveEvent event;
-         event.type     = JoystickMoved;
-         event.id       = id;
-         event.axis     = JoystickAxis::X;
-         event.position = static_cast<float>(x.position - 32768) / 32768.0f;
+         JoystickMoveEvent event(id, JoystickAxis::X, static_cast<float>(x.position - 32768) / 32768.0f);
          input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
          }
       else
@@ -208,11 +204,7 @@ namespace en
          y.position = state->dwData;
 
          // Call event handling function 
-         JoystickMoveEvent event;
-         event.type     = JoystickMoved;
-         event.id       = id;
-         event.axis     = JoystickAxis::Y;
-         event.position = static_cast<float>(y.position - 32768) / 32768.0f;
+         JoystickMoveEvent event(id, JoystickAxis::Y, static_cast<float>(y.position - 32768) / 32768.0f);
          input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
          }
       else
@@ -222,11 +214,7 @@ namespace en
          z.position = state->dwData;
 
          // Call event handling function 
-         JoystickMoveEvent event;
-         event.type     = JoystickMoved;
-         event.id       = id;
-         event.axis     = JoystickAxis::Z;
-         event.position = static_cast<float>(z.position - 32768) / 32768.0f;
+         JoystickMoveEvent event(id, JoystickAxis::Z, static_cast<float>(z.position - 32768) / 32768.0f);
          input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
          }
       else
@@ -249,10 +237,8 @@ namespace en
             buttons[j] = state->dwData & 0x80 ? KeyState::Pressed : KeyState::Released;
 
             // Call event handling function 
-            JoystickButtonEvent event;
+            JoystickButtonEvent event(id, j);
             event.type   = state->dwData & 0x80 ? JoystickButtonPressed : JoystickButtonReleased;
-            event.id     = id;
-            event.button = j;
             input->callback[event.type]( reinterpret_cast<Event&>(event) ); 
             }
       }

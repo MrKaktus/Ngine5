@@ -1597,7 +1597,13 @@ namespace en
    return queuesCount[underlyingType(type)];  //Need translation table from (Type, N) -> (Family, Index)
    }
 
-
+   Ptr<Texture> VulkanDevice::createSharedTexture(Ptr<SharedSurface> backingSurface)
+   {
+   // Vulkan is not supporting cross-API / cross-process surfaces for now.
+   // Implement it in the future.
+   assert( 0 );
+   return Ptr<Texture>(nullptr);
+   }
 
 
 

@@ -1241,6 +1241,9 @@
     <ClInclude Include="..\public\include\core\rendering\shader.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\surface.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">

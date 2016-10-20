@@ -12,12 +12,9 @@
 
 #include "core/defines.h"
 
-#if defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_OCULUS)
 
 #include "input/common.h"
-
-#if OCULUS_VR
-
 #include "input/hmd.h"
 
 // WA: Undefines "Profile" Macro defined in rendering to avoid collision with OVR::Profile
@@ -121,7 +118,6 @@ namespace en
    void CloseOculusSDK(void); 
    }
 }
-#endif
 #endif
 
 #endif

@@ -128,12 +128,14 @@ namespace en
                                                                        const Format stencilFormat = Format::Unsupported,
                                                                        const uint32 samples = 1u);
 
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
+
       virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil);
 
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
+
 
    // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
    // similarly when binding CubeMap texture, pass it's "face" through "layer".

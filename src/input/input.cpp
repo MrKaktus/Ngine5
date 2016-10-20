@@ -27,6 +27,9 @@ using namespace std;
 #if defined(EN_PLATFORM_WINDOWS)
 #include "input/winInput.h"
 #endif
+#if defined(EN_MODULE_OCULUS)
+#include "input/oculus.h"
+#endif
 #if defined(EN_MODULE_OPENVR)
 #include "input/vive.h"
 #endif
@@ -128,11 +131,27 @@ namespace en
    {
    }
 
+   JoystickButtonEvent::JoystickButtonEvent(const uint8 _id, const uint8 _button) :
+      id(_id),
+      button(_button),
+      Event(None)
+   {
+   }
+
+   JoystickMoveEvent::JoystickMoveEvent(const uint8 _id, const JoystickAxis _axis, const float _position) :
+      id(_id),
+      axis(_axis),
+      position(_position),
+      Event(JoystickMoved)
+   {
+   }
+
    ControllerEvent::ControllerEvent(EventType _type) :
       pointer(nullptr),
       Event(_type)
    {
    }
+
 
    bool Interface::create(void)
    {

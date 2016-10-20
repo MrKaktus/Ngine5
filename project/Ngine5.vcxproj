@@ -184,6 +184,7 @@
     <ClInclude Include="..\public\include\core\rendering\sampler.h" />
     <ClInclude Include="..\public\include\core\rendering\shader.h" />
     <ClInclude Include="..\public\include\core\rendering\state.h" />
+    <ClInclude Include="..\public\include\core\rendering\surface.h" />
     <ClInclude Include="..\public\include\core\rendering\texture.h" />
     <ClInclude Include="..\public\include\core\rendering\viewport.h" />
     <ClInclude Include="..\public\include\core\storage.h" />

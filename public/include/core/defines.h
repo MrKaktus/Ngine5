@@ -73,9 +73,12 @@
 #define EN_MODULE_KINECT
 #endif
 
+// Disable until Oculus is piped through using new Rendering frontend.
+/*
 #if defined(EN_PLATFORM_WINDOWS)
 #define EN_MODULE_OCULUS
 #endif
+*/
 
 // Disable until Rendering abstraction is finished!
 /*

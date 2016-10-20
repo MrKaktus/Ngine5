@@ -278,6 +278,8 @@ namespace en
 
       virtual Ptr<Heap>   createHeap(const MemoryUsage usage, const uint32 size);
 
+      virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
+
       virtual Ptr<Shader>  createShader(const ShaderStage stage,
                                         const string& source);
 
@@ -314,12 +316,14 @@ namespace en
                                                                        const Format stencilFormat = Format::Unsupported,
                                                                        const uint32 samples = 1u);
 
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
+
       virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil);
 
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
+
          
 
         
