@@ -20,6 +20,7 @@
 
 #if defined(EN_MODULE_RENDERER_METAL)
 
+#include "core/rendering/osxSurface.h"
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/texture.h"
 #include "core/rendering/common/device.h"
@@ -29,24 +30,33 @@ namespace en
 {
    namespace gpu
    {
+   extern const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)];
+
    class TextureMTL : public CommonTexture
       {
       public:
-      id<MTLTexture> handle;  // Metal texture ID
-      id<MTLBuffer>  staging; // Staging buffer to which texture surface data can be written
-      Nmutex         lock;    // Locks this texture instance, to prevent it from beeing modified by other thread while it is mapped
-      uint16         mipmap;  // Mapped mipmap
-      uint16         layer;   // Mapped depth slice / cube face / array layer / cube array face-layer
+      id<MTLTexture>        handle;      // Metal texture ID
+      Ptr<SharedSurfaceOSX> ioSurface;   // Texture object may own backing, but this backing may be in form of shared IOSurface
+      bool                  ownsBacking; // Is this texture container the owner of backing surface (no for Swap-Chain surfaces)
+      
+      virtual bool read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
 
-      virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
-
-      TextureMTL(const id memory, const TextureState& state);
-      TextureMTL(const id memory, const TextureState& state, const bool allocateBacking);
-
-      Ptr<TextureView> view(const TextureType type,
-                            const Format format,
-                            const uint32v2 mipmaps,         
-                            const uint32v2 layers) const;
+      TextureMTL(const id memory,
+                 const TextureState& state);
+         
+      TextureMTL(const id memory,
+                 const TextureState& state,
+                 const bool allocateBacking);
+      
+      // Creates Texture backed by IOSurface, that can be shared between processes.
+      TextureMTL(const id<MTLDevice> device,
+                 const Ptr<SharedSurface> backingSurface);
+      
+      virtual Ptr<TextureView> view(void) const;
+      virtual Ptr<TextureView> view(const TextureType type,
+                                    const Format format,
+                                    const uint32v2 mipmaps,
+                                    const uint32v2 layers) const;
                             
       virtual ~TextureMTL();
       };

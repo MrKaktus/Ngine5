@@ -378,16 +378,6 @@ namespace en
       // Register joysticks
       hr = directInput->EnumDevices(DI8DEVCLASS_GAMECTRL, initJoystick, NULL, DIEDFL_ATTACHEDONLY);
       }
-
-#if OCULUS_VR
-   // Register Oculus HMD
-   InitOculusSDK();
-#endif
-
-#if defined(EN_MODULE_OPENVR)
-   // Register OpenVR HMD
-   InitOpenVR();
-#endif
    }
    
    WinInterface::~WinInterface()

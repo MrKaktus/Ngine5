@@ -92,7 +92,7 @@ namespace en
    // Metal OSX Pixel Formats:
    // https://developer.apple.com/library/mac/documentation/Metal/Reference/MetalConstants_Ref/#//apple_ref/c/tdef/MTLPixelFormat
    // (last verified for Metal on OSX 10.11)
-   static const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)] =
+   const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)] =
       { // Sized Internal Format     
       MTLPixelFormatInvalid               ,   // Format::Unsupported
       MTLPixelFormatR8Unorm               ,   // Format::R_8                    
@@ -247,7 +247,7 @@ namespace en
    // Metal IOS Pixel Formats:
    // https://developer.apple.com/library/ios/documentation/Metal/Reference/MetalConstants_Ref/#//apple_ref/c/tdef/MTLPixelFormat
    // (last verified for Metal on IOS 9.0)
-   static const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)] =
+   const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)] =
       { // Sized Internal Format     
       MTLPixelFormatInvalid               ,   // Format::Unsupported
       MTLPixelFormatR8Unorm               ,   // Format::R_8                    
@@ -404,10 +404,8 @@ namespace en
    }
    
    TextureMTL::TextureMTL(const id memory, const TextureState& _state, const bool allocateBacking) :
-      staging(nil),
-      lock(),
-      mipmap(0),
-      layer(0),
+      ioSurface(nullptr),
+      ownsBacking(allocateBacking),
       CommonTexture(_state)
    {
    // Mipmaps count is calculated by the application
@@ -451,17 +449,90 @@ namespace en
    assert( handle != nil );
    }
 
+   TextureMTL::TextureMTL(const id<MTLDevice> device, const Ptr<SharedSurface> backingSurface) :
+      ioSurface(nullptr),
+      ownsBacking(true)
+   {
+#if defined(EN_PLATFORM_IOS)
+   // IOSurfaces are not supported on iOS
+   assert( 0 );
+#endif
+   
+   ioSurface = ptr_reinterpret_cast<SharedSurfaceOSX>(&backingSurface);
+   
+   state.type    = TextureType::Texture2D;
+   state.format  = Format::BGRA_8;
+   state.usage   = (TextureUsage)(underlyingType(TextureUsage::Read) & underlyingType(TextureUsage::RenderTargetWrite));
+   state.width   = ioSurface->resolution.width;
+   state.height  = ioSurface->resolution.height;
+   state.depth   = 1u;
+   state.layers  = 1u;
+   state.samples = 1u;
+   state.mipmaps = 1u;
+
+   // All validation was done in interface, parameters should be correct
+   MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
+   desc.textureType      = MTLTextureType2D;
+   desc.pixelFormat      = MTLPixelFormatBGRA8Unorm;
+   desc.width            = state.width;
+   desc.height           = state.height;
+   desc.depth            = 1u;
+   desc.mipmapLevelCount = 1u;
+   desc.sampleCount      = 1u;
+   desc.arrayLength      = 1u;
+   desc.cpuCacheMode     = MTLCPUCacheModeDefaultCache; // or MTLCPUCacheModeWriteCombined
+   desc.storageMode      = MTLStorageModePrivate;       // We try to keep all textures in GPU memory
+   desc.usage            = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget;
+
+   // Create Metal texture backed by IOSurface
+   handle = [device newTextureWithDescriptor:desc iosurface:ioSurface->surface plane:0u];
+
+   [desc release];
+
+   assert( handle != nil );
+   }
+   
    TextureMTL::~TextureMTL()
    {
-   [handle release];
+   if (ownsBacking)
+      // Auto-release pool to ensure that garbage collector is flushed
+      @autoreleasepool
+         {
+         [handle release];
+         handle = nil;
+         }
+      
+   ioSurface = nullptr;
    }
- 
+
+   Ptr<TextureView> TextureMTL::view(void) const
+   {
+   Ptr<TextureViewMTL> result = nullptr;
+   
+   // Metal is not supporting components swizzling.
+   
+   id<MTLTexture> view = nullptr;
+   view = [handle newTextureViewWithPixelFormat:TranslateTextureFormat[underlyingType(state.format)]
+                                    textureType:TranslateTextureType[underlyingType(state.type)]
+                                         levels:NSMakeRange(0u, state.mipmaps)
+                                         slices:NSMakeRange(0u, state.layers)];
+   if (view)
+      result = new TextureViewMTL(Ptr<TextureMTL>((TextureMTL*)this),
+                                  view,
+                                  state.type,
+                                  state.format,
+                                  uint32v2(0u, state.mipmaps),
+                                  uint32v2(0u, state.layers));
+      
+   return ptr_reinterpret_cast<TextureView>(&result);
+   }
+   
    Ptr<TextureView> TextureMTL::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
       const uint32v2 _layers) const
    {
-   Ptr<TextureView> result = nullptr;
+   Ptr<TextureViewMTL> result = nullptr;
    
    // Metal is not supporting components swizzling.
    
@@ -471,13 +542,10 @@ namespace en
                                          levels:NSMakeRange(_mipmaps.base, _mipmaps.count)
                                          slices:NSMakeRange(_layers.base, _layers.count)];
    if (view)
-      {
-      Ptr<TextureViewMTL> ptr = new TextureViewMTL(Ptr<TextureMTL>((TextureMTL*)this),
-                                                 view, _type, _format, _mipmaps, _layers);
-      result = ptr_dynamic_cast<TextureView, TextureViewMTL>(ptr);
-      }
-      
-   return result;
+      result = new TextureViewMTL(Ptr<TextureMTL>((TextureMTL*)this),
+                                  view, _type, _format, _mipmaps, _layers);
+
+   return ptr_reinterpret_cast<TextureView>(&result);
    }
  
 
@@ -495,22 +563,28 @@ namespace en
    
    TextureViewMTL::~TextureViewMTL()
    {
-   [handle release];
+   // Auto-release pool to ensure that garbage collector is flushed
+   @autoreleasepool
+      {
+      [handle release];
+      handle = nil;
+      }
+
+   // Release reference to parent
    texture = nullptr;
    }
    
    Ptr<Texture> TextureViewMTL::parent(void) const
    {
    return ptr_reinterpret_cast<Texture>(&texture);
-   //return ptr_dynamic_cast<Texture, TextureMTL>(texture);
    }
 
-
-   
-
-
-
-
+   Ptr<Texture> MetalDevice::createSharedTexture(Ptr<SharedSurface> backingSurface)
+   {
+   Ptr<TextureMTL> ptr = new TextureMTL(device, backingSurface);
+   return ptr_reinterpret_cast<Texture>(&ptr);
+   }
+      
    bool TextureMTL::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
    {
    // Check if specified mipmap and layer are correct
@@ -528,10 +602,8 @@ namespace en
          return false;
       }
    else
-      {
       if (state.layers <= surface)
          return false;
-      }
 
    // TODO: Read back texture content !!!
    return false;

@@ -27,7 +27,9 @@ using namespace std;
 #if defined(EN_PLATFORM_WINDOWS)
 #include "input/winInput.h"
 #endif
-
+#if defined(EN_MODULE_OPENVR)
+#include "input/vive.h"
+#endif
 #include "scene/context.h"
 #include "core/rendering/context.h"
 #include "monetization/context.h"
@@ -107,7 +109,30 @@ namespace en
 
 #if 1  // New dynamic Interface
 
+   Event::Event(EventType _type) :
+      type(_type)
+   {
+   }
+   
+   KeyboardEvent::KeyboardEvent(Key _key) :
+      key(_key),
+      Event(None)
+   {
+   }
+   
+   MouseEvent::MouseEvent(EventType _type) :
+      button(MouseButton::Left),
+      x(0u),
+      y(0u),
+      Event(_type)
+   {
+   }
 
+   ControllerEvent::ControllerEvent(EventType _type) :
+      pointer(nullptr),
+      Event(_type)
+   {
+   }
 
    bool Interface::create(void)
    {
@@ -217,13 +242,29 @@ namespace en
    for(uint32 i=0; i<InputEventsCount; ++i)
       callback[i] = &en::state::HandleEventByState;
 
-   // TODO: Here init common SDK's. 
-   //       Other platform specific SDK's like OculusSDK, OpenVR, etc. are init in OS specific implementations.
+   // Init all engine input modules
+#if defined(EN_MODULE_OCULUS)
+   InitOculusSDK();
+#endif
+
+#if defined(EN_MODULE_OPENVR)
+   InitOpenVR();
+#endif
+ 
+   // TODO: Other modules like Kinect, etc.
    }
 
    CommonInterface::~CommonInterface()
    {
    Log << "Closing module: Input." << endl;
+
+#if defined(EN_MODULE_OCULUS)
+   CloseOculusSDK();
+#endif
+
+#if defined(EN_MODULE_OPENVR)
+   CloseOpenVR();
+#endif
 
    // TODO: Unregister all remaining common devices
    }
@@ -329,45 +370,6 @@ namespace en
    //}
 
 
-
-   //uint8 Interface::Joystick::count(void)
-   //{
-   //return InputContext.joystick.count;
-   //}
-
-   //bool Interface::Joystick::on(uint8 num)
-   //{
-   //if (InputContext.joystick.count <= num)
-   //   return false;
-
-   //InputContext.joystick.used[num] = true;
-   //if (!InputContext.joystick.on[num])
-   //   InputContext.joystick.on[num] = true;
-   //return true;
-   //}
-
-   //bool Interface::Joystick::off(uint8 num)
-   //{
-   //if (InputContext.joystick.count <= num)
-   //   return false;
-
-   //InputContext.joystick.used[num] = false;
-   //if ( InputContext.joystick.on[num] )
-   //   InputContext.joystick.on[num] = false;
-   //return true;
-   //}
-
-   //bool Interface::Joystick::state(uint8 num)
-   //{
-   //if (InputContext.joystick.count <= num)
-   //   return false;
-   //return InputContext.joystick.used[num];
-   //}
-
-   //bool Interface::Joystick::available(uint8 count)
-   //{
-   //return InputContext.joystick.count >= count ? true : false;
-   //}
 
    //bool Interface::Joystick::pressed(const uint8 button)
    //{

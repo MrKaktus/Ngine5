@@ -23,8 +23,9 @@ namespace en
 {
    namespace gpu
    {
-   BufferMTL::BufferMTL(Ptr<HeapMTL> heap, const BufferType type, const uint32 size) :
+   BufferMTL::BufferMTL(Ptr<HeapMTL> _heap, const BufferType type, const uint32 size) :
       handle(nil),
+      heap(_heap),
       CommonBuffer(type, size)
    {
    MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift); // MTLCPUCacheModeWriteCombined

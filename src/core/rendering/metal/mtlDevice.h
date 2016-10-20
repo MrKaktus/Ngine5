@@ -62,9 +62,8 @@ namespace en
       CAMetalLayer* layer;
       id <CAMetalDrawable> drawable;
       Ptr<TextureMTL> framebuffer;
+      bool          firstFrame;
       
-      virtual Ptr<Display> display(void);
-      virtual uint32v2 position(void);
       virtual bool movable(void);
       virtual void move(const uint32v2 position);
       virtual void resize(const uint32v2 size);
@@ -102,6 +101,8 @@ namespace en
       
       virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
 
+      virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
+      
       virtual Ptr<Shader>  createShader(const ShaderStage stage,
                                         const string& source);
       
@@ -119,35 +120,27 @@ namespace en
 
 
 
-   // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
-   // similarly when binding CubeMap texture, pass it's "face" through "layer".
-      virtual Ptr<ColorAttachment> createColorAttachment(const Ptr<TextureView> source);
 
-      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Ptr<TextureView> depth,
-                                                                       const Ptr<TextureView> stencil);
+      virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
+                                                         const uint32 samples = 1u);
 
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
+                                                                       const Format stencilFormat = Format::Unsupported,
+                                                                       const uint32 samples = 1u);
 
-
-      //virtual Ptr<ColorAttachment> create(const TextureFormat format = FormatUnsupported,
-      //                                    const uint32 samples = 1);
-
-
-      // Creates simple render pass with one color destination
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> color,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
-      
       virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil);
-        
-      // Creates render pass which's output goes to window framebuffer
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> framebuffer,
+
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
                                                const Ptr<DepthStencilAttachment> depthStencil);
-      
-      // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<Texture> temporaryMSAA,
-                                               const Ptr<Texture> framebuffer,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
+
+   // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
+   // similarly when binding CubeMap texture, pass it's "face" through "layer".
+
+
+
+
 
       virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state);
 

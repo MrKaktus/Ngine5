@@ -71,20 +71,20 @@ namespace en
       virtual void setVertexBuffers(const uint32 count, 
                                     const uint32 firstSlot, 
                                     const Ptr<Buffer>* buffers, 
-                                    const uint64* offsets = nullptr) const;
+                                    const uint64* offsets = nullptr) const = 0;
 
       // Helper method simplifying setting of single Vertex Buffer.
       virtual void setVertexBuffer(const uint32 slot, 
                                    const Ptr<Buffer> buffer, 
-                                   const uint64 offset = 0u) const;
+                                   const uint64 offset = 0u) const = 0;
 
       virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> buffer);
+                        Ptr<Buffer> buffer) = 0;
          
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,
                         const uint32 mipmap,
-                        const uint32 layer);
+                        const uint32 layer) = 0;
          
       virtual void draw(const DrawableType primitiveType,
                         const uint32       elements      = 1,      // Elements to process (they are assembled into Primitives)

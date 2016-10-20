@@ -202,9 +202,9 @@ namespace en
       
       // Buffers created on heaps with "Streamed" and "Immediate" memory usage, can be mapped
       // to obtain pointers to their content. This is not allowed on "Storage" heaps.
-      virtual void* map(void);
-      virtual void* map(const uint64 offset, const uint64 size);
-      virtual void  unmap(void);
+      virtual void* map(void) = 0;
+      virtual void* map(const uint64 offset, const uint64 size) = 0;
+      virtual void  unmap(void) = 0;
       
 //      virtual Ptr<BufferView> view(void) = 0;  // Default buffer view, if it was created with formatting
 //      virtual Ptr<BufferView> view(const uint32 elements, 

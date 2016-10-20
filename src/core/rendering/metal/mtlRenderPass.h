@@ -20,8 +20,10 @@
 
 #if defined(EN_MODULE_RENDERER_METAL)
 
+#include "core/rendering/blend.h"       // For MaxColorAttachmentsCount
 #include "core/rendering/renderPass.h"
 #include "core/rendering/metal/metal.h"
+#include "core/rendering/metal/mtlTexture.h"
 
 namespace en
 {
@@ -31,8 +33,12 @@ namespace en
       {
       public:
       MTLRenderPassColorAttachmentDescriptor* desc;
-
-      ColorAttachmentMTL(const Ptr<TextureView> source);
+      Format format;
+      uint32 samples;
+      bool   resolve;
+      
+      ColorAttachmentMTL(const Format format, 
+                         const uint32 samples);
 
       virtual void onLoad(const LoadOperation load, 
                           const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -42,7 +48,6 @@ namespace en
                           const sint32v4 clearColor = sint32v4(0, 0, 0, 1));
         
       virtual void onStore(const StoreOperation store);
-      virtual bool resolve(const Ptr<TextureView> destination);
          
       virtual ~ColorAttachmentMTL();
       };
@@ -52,19 +57,24 @@ namespace en
       public:
       MTLRenderPassDepthAttachmentDescriptor*   descDepth;
       MTLRenderPassStencilAttachmentDescriptor* descStencil;
-
-      DepthStencilAttachmentMTL(const Ptr<TextureView> depth,
-                                const Ptr<TextureView> stencil = nullptr);
+      Format depthFormat;
+      Format stencilFormat;
+      uint32 samples;
+      
+      DepthStencilAttachmentMTL(const Format depthFormat, 
+                                const Format stencilFormat,
+                                const uint32 samples);
 
       virtual void onLoad(const LoadOperation loadDepthStencil,
                           const float  clearDepth = 1.0f,
                           const uint32 clearStencil = 0u);
          
-      virtual void onStore(const StoreOperation storeDepthStencil);
+      virtual void onStore(const StoreOperation storeDepthStencil,
+                           const DepthResolve resolveMode = DepthResolve::Sample0);
       
       // Specify Depth resolve method and destination, if it's supported by the GPU.
-      virtual bool resolve(const Ptr<TextureView> destination,
-                           const DepthResolve mode = DepthResolve::Sample0);
+      //virtual bool resolve(const Ptr<TextureView> destination,
+      //                     const DepthResolve mode = DepthResolve::Sample0);
          
       // Custom load and store actions can be specifid for Stencil.
       // (no matter if it's shared DepthStencil attachment, or
@@ -75,14 +85,59 @@ namespace en
          
       virtual ~DepthStencilAttachmentMTL();
       };
+     
+   class FramebufferMTL : public Framebuffer
+      {
+      public:
+      // Packed, kept to ensure source textures won't be freed from underneath of us.
+      // (do we really need that?)
+      Ptr<TextureViewMTL> views[MaxColorAttachmentsCount*2+3];
+      
+      // Direct Metal handles (unpacked, with holes)
+      id<MTLTexture>      color[MaxColorAttachmentsCount];
+      id<MTLTexture>      resolve[MaxColorAttachmentsCount];
+      id<MTLTexture>      depthStencil[3];
+      
+      uint32v2            resolution;
+      uint32              layers;
+
+      FramebufferMTL(const uint32v2 resolution, const uint32 layers);
+     ~FramebufferMTL();
+      };
       
    class RenderPassMTL : public RenderPass
       {
       public:
       MTLRenderPassDescriptor* desc;
+      Format format[MaxColorAttachmentsCount+2];
+      uint32 samples[MaxColorAttachmentsCount+1];
+      uint32 usedAttachments; // Bitmask
+      bool   resolve;
       
       RenderPassMTL();
-     ~RenderPassMTL();
+      virtual ~RenderPassMTL();
+     
+      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
+                                                 const uint32   layers,
+                                                 const uint32   attachments,
+                                                 const Ptr<TextureView>* attachment,
+                                                 const Ptr<TextureView> depthStencil = nullptr,
+                                                 const Ptr<TextureView> stencil      = nullptr,
+                                                 const Ptr<TextureView> depthResolve = nullptr);
+
+      // Creates framebuffer using window Swap-Chain surface.
+      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
+                                                 const Ptr<TextureView> swapChainSurface,
+                                                 const Ptr<TextureView> depthStencil = nullptr,
+                                                 const Ptr<TextureView> stencil      = nullptr);
+      
+      // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
+      // window Swap-Chain surface.
+      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
+                                                 const Ptr<TextureView> temporaryMSAA,
+                                                 const Ptr<TextureView> swapChainSurface,
+                                                 const Ptr<TextureView> depthStencil = nullptr,
+                                                 const Ptr<TextureView> stencil      = nullptr);
       };
    }
 }

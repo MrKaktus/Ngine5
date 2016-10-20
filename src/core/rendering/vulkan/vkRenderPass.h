@@ -82,7 +82,7 @@ namespace en
       VkFramebuffer handle;
       uint32v2      resolution;
       uint32        layers;
-
+      
       FramebufferVK(VulkanDevice* gpu, const VkFramebuffer handle, const uint32v2 resolution, const uint32 layers);
      ~FramebufferVK();
       };
@@ -95,6 +95,8 @@ namespace en
       uint32        usedAttachments;  // Bitmask
       uint32        surfaces;
       VkClearValue* clearValues;   // Array of clear values per attachment
+      bool          resolve;
+      bool          depthStencil;
       
       RenderPassVK(VulkanDevice* gpu, const VkRenderPass handle, const uint32 usedAttachments, const uint32 surfaces);
      ~RenderPassVK();

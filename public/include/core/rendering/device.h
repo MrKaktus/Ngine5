@@ -25,6 +25,7 @@
 #include "core/rendering/raster.h"
 #include "core/rendering/pipeline.h"
 #include "core/rendering/texture.h"
+#include "core/rendering/surface.h"
 #include "core/rendering/renderPass.h"
 #include "core/rendering/multisampling.h"
 #include "core/rendering/viewport.h"
@@ -199,6 +200,10 @@ namespace en
       virtual Ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;
       
       // Buffers and Textures are allocated from the Heaps.
+      
+      // Create texture that can be shared between processes and API's through
+      // shared backing surface.
+      virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface) = 0;
       
       // TODO:
       // Vulkan - entrypoint is specified at Pipeline creation I guess

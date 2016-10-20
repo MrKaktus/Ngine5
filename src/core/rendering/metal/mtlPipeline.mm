@@ -25,6 +25,7 @@
 #include "core/rendering/metal/mtlBlend.h"
 #include "core/rendering/metal/mtlMultisampling.h"
 #include "core/rendering/metal/mtlShader.h"
+#include "core/rendering/metal/mtlTexture.h"
 
 #include "core/rendering/metal/mtlCommandBuffer.h"   // for CommandBuffer::set(Pipeline)
 
@@ -126,8 +127,8 @@ namespace en
     
    // Required Pipeline State depending from Render Pass
    for(uint32 i=0; i<8; ++i)                                  // TODO: Change 8 to support.maxColorAttachments
-      pipeDesc.colorAttachments[i].pixelFormat = [pass->desc.colorAttachments[i].texture pixelFormat];
-      
+      pipeDesc.colorAttachments[i].pixelFormat = TranslateTextureFormat[underlyingType(pass->format[i])];
+
    // Optional Multisample State
    if (pipelineState.multisamplingState)
       {
@@ -146,9 +147,11 @@ namespace en
    
    // Optional Pipeline State depending from Render Pass
    if (pass->desc.depthAttachment.texture)
-      pipeDesc.depthAttachmentPixelFormat   = [pass->desc.depthAttachment.texture pixelFormat];
+      pipeDesc.depthAttachmentPixelFormat   = TranslateTextureFormat[underlyingType(pass->format[8])];
    if (pass->desc.stencilAttachment.texture)
-      pipeDesc.stencilAttachmentPixelFormat = [pass->desc.stencilAttachment.texture pixelFormat];
+      pipeDesc.stencilAttachmentPixelFormat = TranslateTextureFormat[underlyingType(pass->format[9])];
+      
+   // TODO: !! This is stored now in Framebuffer !
    if (pass->desc.renderTargetArrayLength > 0) // Metal 1.0 for OSX - Default is unspecified, but needs to be set, when layered rendering is performed.
       pipeDesc.inputPrimitiveTopology       = TranslateDrawableTopology[input->primitive];
 

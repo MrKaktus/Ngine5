@@ -60,10 +60,11 @@ namespace en
       layer(nil),
       drawable(nil),
       framebuffer(nullptr),
+      firstFrame(true),
       CommonWindow()
    {
    _position = settings.position;
-
+ 
    id<MTLDevice> device = gpu->device;
    
    // Determine destination screen properties
@@ -161,6 +162,9 @@ namespace en
    layer.presentsWithTransaction = NO;
    layer.drawsAsynchronously     = YES;
     
+   // TODO: Hardcoded for now!
+   assert( settings.format == Format::BGRA_8 );
+
    // Attach Device to Layer
    [layer setDevice:device ];                                                 // <<-- pass device here
    [layer setPixelFormat:MTLPixelFormatBGRA8Unorm ];     // <--- TODO: What about HDR? 30bpp? Wide Gamut? sRGB?
@@ -201,6 +205,9 @@ namespace en
    
    WindowMTL::~WindowMTL()
    {
+   // Present last surface if there is any
+   present();
+   
    // TODO: Release device, layer, view, window
    }
    
@@ -273,21 +280,27 @@ namespace en
 
       if (needNewSurface)
          {
+         //if (!firstFrame)
+         //   [framebuffer->handle release];
          drawable            = [layer nextDrawable];
          framebuffer->handle = drawable.texture;
          needNewSurface      = false;
-		 }
+         //firstFrame          = false;
+         }
 
-	  surfaceAcquire.unlock();
+      surfaceAcquire.unlock();
       }
 
-   return ptr_dynamic_cast<Texture, TextureMTL>(framebuffer);
+   return ptr_reinterpret_cast<Texture>(&framebuffer);
    }
    
    void WindowMTL::present(void)
    {
-   [drawable present];
-   needNewSurface = true;
+   if (!needNewSurface)
+      {
+      [drawable present];
+      needNewSurface = true;
+      }
    }
    
 // Volumetric Lighting Integration (references)
@@ -371,11 +384,12 @@ namespace en
     
     
 
-    
+
+
+
+
    
-   
-   
-   
+
    
    MetalDevice::MetalDevice(id<MTLDevice> _device) :
       device(_device)
@@ -638,7 +652,9 @@ namespace en
 
    //if ([device supportsFeatureSet:MTLFeatureSet_tvOS_GPUFamily2_v1])
    //   {
-   //   } 
+   //   }
+   
+   CommonDevice::init();
    }
 
    uint32 MetalDevice::displays(void) const
@@ -818,6 +834,7 @@ namespace en
    if (supportingDevice)
       {
       Ptr<MetalDevice> ptr = new MetalDevice(supportingDevice);
+      ptr->init();
       device[1] = ptr_reinterpret_cast<GpuDevice>(&ptr);
       }
 

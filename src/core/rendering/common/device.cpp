@@ -139,6 +139,11 @@ namespace en
    {
    }
 
+   CommonWindow::~CommonWindow()
+   {
+   _display = nullptr;
+   }
+
    Ptr<Display> CommonWindow::display(void) const
    {
    return ptr_dynamic_cast<Display, CommonDisplay>(_display);
@@ -159,10 +164,34 @@ namespace en
    return _resolution;
    }
 
+   void CommonWindow::transparent(const float opacity)
+   {
+   // Should be implemented by specialization class.
+   assert( 0 );
+   }
+   
+   void CommonWindow::opaque(void)
+   {
+   // Should be implemented by specialization class.
+   assert( 0 );
+   }
+   
+   Ptr<Texture> CommonWindow::surface(void)
+   {
+   // Should be implemented by specialization class.
+   assert( 0 );
+   return Ptr<Texture>(nullptr);
+   }
+   
+   void CommonWindow::present(void)
+   {
+   // Should be implemented by specialization class.
+   assert( 0 );
+   }
 
 
    CommonDevice::CommonDevice() :
-      defaultState(this)
+      defaultState(nullptr)
    {
    support.attribute.reset();
    support.sampling.reset();
@@ -225,19 +254,19 @@ namespace en
 //   maxPatchSize                   = 0;
    }
 
+   void CommonDevice::init(void)
+   {
+   defaultState = new PipelineState(this);
+   }
+   
    CommonDevice::~CommonDevice()
    {
    // Release default device objects
-   defaultState.rasterState        = nullptr;
-   defaultState.multisamplingState = nullptr;
-   defaultState.depthStencilState  = nullptr;
-   defaultState.blendState         = nullptr;
-   }
-   
-   void CommonDevice::init(void)
-   {
-   // Should be called by API implementation init
-   assert( 0 );
+   defaultState->rasterState        = nullptr;
+   defaultState->multisamplingState = nullptr;
+   defaultState->depthStencilState  = nullptr;
+   defaultState->blendState         = nullptr;
+   delete defaultState;
    }
    
    Ptr<InputAssembler> CommonDevice::create(const DrawableType primitiveType,
@@ -263,10 +292,38 @@ namespace en
    // Those objects need to be created from specific device, -> thus this whole structure need to be queried from device, that is then init with default objects kept by device and created on it's init
 
 
-   PipelineState::PipelineState()
+   PipelineState::PipelineState() :
+      renderPass(nullptr),
+      inputAssembler(nullptr),
+      viewportState(nullptr),
+      rasterState(nullptr),
+      multisamplingState(nullptr),
+      depthStencilState(nullptr),
+      blendState(nullptr),
+      pipelineLayout(nullptr)
    {
+   for(uint32 i=0; i<5; ++i)
+      shader[i] = nullptr;
    }
 
+   PipelineState::PipelineState(const PipelineState& src) :
+      renderPass(src.renderPass),
+      inputAssembler(src.inputAssembler),
+      viewportState(src.viewportState),
+      rasterState(src.rasterState),
+      multisamplingState(src.multisamplingState),
+      depthStencilState(src.depthStencilState),
+      blendState(src.blendState),
+      pipelineLayout(src.pipelineLayout)
+
+   {
+   for(uint32 i=0; i<5; ++i)
+      {
+      shader[i]   = src.shader[i];
+      function[i] = src.function[i];
+      }
+   }
+   
    PipelineState::PipelineState(GpuDevice* device)
    {
    // Create default Pipeline State
@@ -294,7 +351,7 @@ namespace en
 
    PipelineState CommonDevice::defaultPipelineState(void)
    {
-   return defaultState;
+   return *defaultState;
    }
 
 

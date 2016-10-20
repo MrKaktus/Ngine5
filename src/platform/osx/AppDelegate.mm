@@ -93,10 +93,8 @@ static void* mainGameThread(void* ptr)
 {
    //  Send to main app thread info about request to quit.
    // App should register this event and return control to this thread, then on it's thread close itself and return.
-   Event event;
-   memset(&event, 0, sizeof(Event));
-   event.type = AppClose;
-   //Ptr<en::input::OSXInterface> ptr = en::ptr_dynamic_cast<en::input::OSXInterface, en::input::Interface>(Input);
+   Event event(AppClose);
+   //Ptr<en::input::OSXInterface> ptr = en::ptr_reinterpret_cast<en::input::OSXInterface>(&Input);
    //ptr->callback(event);
 
    // TODO: There should be 2 types of events.
@@ -135,9 +133,7 @@ static void* mainGameThread(void* ptr)
 {
    //  Send to main app thread info about request to quit.
    // App should register this event and return control to this thread, then on it's thread close itself and return.
-   Event event;
-   memset(&event, 0, sizeof(Event));
-   event.type = AppClose;
+   Event event(AppClose);
    //en::InputContext.events.callback(event);
 }
 

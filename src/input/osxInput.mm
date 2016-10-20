@@ -546,9 +546,7 @@ namespace en
             ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Left)] = KeyState::Pressed;
 
             // Call event handling function
-            MouseEvent outEvent;
-            memset(&outEvent, 0, sizeof(outEvent));
-            outEvent.type   = MouseButtonPressed;
+            MouseEvent outEvent(MouseButtonPressed);
             outEvent.button = MouseButton::Left;
             callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             break;
@@ -559,9 +557,7 @@ namespace en
             ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Left)] = KeyState::Released;
             
             // Call event handling function
-            MouseEvent outEvent;
-            memset(&outEvent, 0, sizeof(outEvent));
-            outEvent.type   = MouseButtonReleased;
+            MouseEvent outEvent(MouseButtonReleased);
             outEvent.button = MouseButton::Left;
             callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             break;
@@ -572,9 +568,7 @@ namespace en
             ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Right)] = KeyState::Pressed;
 
             // Call event handling function
-            MouseEvent outEvent;
-            memset(&outEvent, 0, sizeof(outEvent));
-            outEvent.type   = MouseButtonPressed;
+            MouseEvent outEvent(MouseButtonPressed);
             outEvent.button = MouseButton::Right;
             callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             break;
@@ -585,9 +579,7 @@ namespace en
             ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Right)] = KeyState::Released;
             
             // Call event handling function
-            MouseEvent outEvent;
-            memset(&outEvent, 0, sizeof(outEvent));
-            outEvent.type   = MouseButtonReleased;
+            MouseEvent outEvent(MouseButtonReleased);
             outEvent.button = MouseButton::Right;
             callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             break;
@@ -628,11 +620,9 @@ namespace en
                }
                
             // Call event handling function
-            MouseEvent outEvent;
-            memset(&outEvent, 0, sizeof(outEvent));
-            outEvent.type   = MouseMoved;
-            outEvent.x      = static_cast<uint16>(mouse->x);
-            outEvent.y      = static_cast<uint16>(mouse->y);
+            MouseEvent outEvent(MouseMoved);
+            outEvent.x = static_cast<uint16>(mouse->x);
+            outEvent.y = static_cast<uint16>(mouse->y);
             callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             break;
             }
@@ -692,19 +682,17 @@ namespace en
             // Send event only for recognized keys
             if (key != Key::Unknown)
                {
-               KeyboardEvent outEvent;
-               memset(&outEvent, 0, sizeof(KeyboardEvent));
-               outEvent.key = key;
+               KeyboardEvent outEvent(key);
                
                if ([event type] == NSKeyDown)
                   {
-                  ptr_dynamic_cast<CommonKeyboard, Keyboard>(keyboards[0])->keys[underlyingType(key)] = KeyState::Pressed;
+                  ptr_reinterpret_cast<CommonKeyboard>(&keyboards[0])->keys[underlyingType(key)] = KeyState::Pressed;
                   outEvent.type = KeyPressed;
                   }
                else
                if ([event type] == NSKeyUp)
                   {
-                  ptr_dynamic_cast<CommonKeyboard, Keyboard>(keyboards[0])->keys[underlyingType(key)] = KeyState::Released;
+                  ptr_reinterpret_cast<CommonKeyboard>(&keyboards[0])->keys[underlyingType(key)] = KeyState::Released;
                   outEvent.type = KeyReleased;
                   }
    

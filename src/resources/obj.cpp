@@ -700,7 +700,7 @@ namespace en
          return Ptr<en::resource::Model>(nullptr);
          }
 
-      // Read texture to temporary buffer
+      // Read buffer to temporary buffer
       dst = staging->map();
       memcpy(dst, srcIndex, stagingSize);
       staging->unmap();

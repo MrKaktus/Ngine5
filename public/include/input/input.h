@@ -144,11 +144,15 @@ namespace en
    struct Event
           {
           EventType type; // 32 bits
+          
+          Event(EventType type);
           };
        
    struct KeyboardEvent : public Event
           {
           Key key;
+          
+          KeyboardEvent(Key key);
           };
       
    struct MouseEvent : public Event
@@ -156,6 +160,8 @@ namespace en
           MouseButton button;
           uint16 x;
           uint16 y;
+          
+          MouseEvent(EventType type);
           };
       
    struct JoystickButtonEvent : public Event
@@ -174,6 +180,8 @@ namespace en
    struct ControllerEvent : public Event
           {
           Ptr<Controller> pointer;
+          
+          ControllerEvent(EventType type);
           };
 
    struct CameraEvent : public Event

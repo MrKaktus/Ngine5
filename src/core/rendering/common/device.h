@@ -79,8 +79,8 @@ namespace en
      ~CommonDevice();
      
       // Graphic API version supported by this device
-      Nversion      api;
-      PipelineState defaultState;
+      Nversion       api;
+      PipelineState* defaultState;
 
       // GPU HW and API dependent capabilities
       struct Support

@@ -40,7 +40,9 @@ namespace en
       virtual void bind(const Ptr<DepthStencilState> depthStencil);
       virtual void bind(const Ptr<BlendState> blend);
       
-      virtual bool startRenderPass(const Ptr<RenderPass> pass);
+      virtual bool startRenderPass(const Ptr<RenderPass> pass, 
+                                   const Ptr<Framebuffer> framebuffer);
+                                   
       virtual void set(const Ptr<Pipeline> pipeline);
       
 

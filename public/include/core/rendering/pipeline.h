@@ -108,6 +108,7 @@ namespace en
       Ptr<PipelineLayout>     pipelineLayout;
 
       PipelineState();
+      PipelineState(const PipelineState& src);  // Copy constructor
       PipelineState(GpuDevice* device);
       };
 

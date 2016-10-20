@@ -30,8 +30,7 @@ namespace en
       {
       public:
       TextureState      state;
-      Weak<CommonTextureView> textureView;
-      
+
       CommonTexture();
       CommonTexture(const TextureState& state);
 
@@ -49,7 +48,7 @@ namespace en
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
       virtual Ptr<TextureView> view(void) const;
       
-      virtual ~CommonTexture() {};                           // Polymorphic deletes require a virtual base destructor
+      virtual ~CommonTexture() {};                         // Polymorphic deletes require a virtual base destructor
       };
 
    class CommonTextureView : public TextureView

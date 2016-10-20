@@ -11,11 +11,12 @@
 #ifndef ENG_INPUT_HMD_OPENVR
 #define ENG_INPUT_HMD_OPENVR
 
-#include "input/context.h"
-#include "input/hmd.h"
+#include "core/defines.h"
 
 #if defined(EN_MODULE_OPENVR)
 
+#include "input/input.h"
+#include "input/hmd.h"
 #include "./openvr-1.0.3/headers/openvr.h"
 
 #include <map>
@@ -133,6 +134,11 @@ namespace en
       vr::IVRCompositor*   compositor;    // Image compositor
       uint32               currentIndex;  // Swap used rendertarget textures in swap-chain
       Ptr<en::gpu::Texture> swap[2][2];   // Up to two sets, 2 textures each
+#if defined(EN_MODULE_RENDERER_METAL)
+      Ptr<SharedSurface>   surface[2][2]; // Shared surfaces
+      uint32               opengl[2][2];  // OpenGL texture handles for VRCompositor
+      OpenGLContext*       glContext;     // Dummy OpenGL context used to create OpenGL handles of Swap-Chain surfaces
+#endif
       vr::IVRChaperone*    chaperone;
       float2               areaDimensions;
       float3               areaCorners[4];      

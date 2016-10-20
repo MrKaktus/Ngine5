@@ -10,21 +10,33 @@
 
 */
 
+// TODO: Input vive.h is declaring some stuff then interacts with objective.c
+// thus mtl texture needs to be declare before it.
 #include "core/defines.h"
+
+#if defined(EN_MODULE_RENDERER_METAL)
+#include "core/rendering/metal/mtlInternal.h"
+#endif
 
 #if defined(EN_MODULE_OPENVR)
 
 #include "core/log/log.h"
-#include "input/context.h"
+#include "input/common.h" // For update() event callbacks
 #include "scene/cam.h"
+
+#if defined(EN_MODULE_RENDERER_VULKAN)
+#include "core/rendering/vulkan/vkTexture.h"
+#endif
+
+
 
 #include "utilities/strings.h"
 
-#include "core/rendering/context.h"
-#include "core/rendering/rendering.hpp"
-
-#include "core/rendering/opengl/gl43Texture.h"
-#include "resources/effect.h"
+//#include "core/rendering/context.h"  // DEPRECATED
+//#include "core/rendering/rendering.hpp" // DEPRECATED
+//#include "core/rendering/opengl/gl43Texture.h" // DEPRECATED
+//#include "resources/effect.h" // DEPRECATED
+#include "resources/context.h"
 
 #include "input/vive.h"
 
@@ -32,6 +44,19 @@ namespace en
 {
    namespace input
    {
+   void InitOpenVR(void)
+   {
+   // Register OpenVR Head Mounted Display
+   Ptr<CommonInterface> input = ptr_reinterpret_cast<CommonInterface>(&en::Input);
+   if (vr::VR_IsHmdPresent())
+      input->hmds.push_back(Ptr<input::HMD>(new ValveHMD(0u)));
+   }
+
+   void CloseOpenVR(void)
+   {
+   vr::VR_Shutdown();
+   }
+   
    //# IMPLEMENTATION
    //##########################################################################
 
@@ -102,7 +127,9 @@ namespace en
    vr::HmdQuad_t tempCorners;
    if (chaperone->GetPlayAreaRect(&tempCorners))
       for(uint32 i=0; i<4; ++i)
-         areaCorners[i] = float3(tempCorners.vCorners[i].v[0], tempCorners.vCorners[i].v[1], tempCorners.vCorners[i].v[2]);
+         areaCorners[i] = float3(tempCorners.vCorners[i].v[0],
+                                 tempCorners.vCorners[i].v[1],
+                                 tempCorners.vCorners[i].v[2]);
 
    // Other sub-systems to use in the future
 
@@ -138,10 +165,10 @@ namespace en
    // Tangents need to be absolute values to properly calculate projection matrices
    for(uint8 i=0; i<2; ++i)
       {
-      tangents[i].x = abs(tangents[i].x);
-      tangents[i].y = abs(tangents[i].y);
-      tangents[i].z = abs(tangents[i].z);
-      tangents[i].w = abs(tangents[i].w);
+      tangents[i].x = fabs(tangents[i].x);
+      tangents[i].y = fabs(tangents[i].y);
+      tangents[i].z = fabs(tangents[i].z);
+      tangents[i].w = fabs(tangents[i].w);
       }
 
    // HMD to eye view vectors
@@ -200,16 +227,6 @@ namespace en
       return false;
       }
 
-   // Detect any Compositor errors on init
-   uint32 size = compositor->GetLastError(nullptr, 0);
-   if (size > 1)
-      {
-      uint8* buffer = new uint8[size];
-      compositor->GetLastError(reinterpret_cast<char*>(buffer), size);
-      Log << "ERROR OpenVR Compositor error: " << buffer << endl;
-      delete [] buffer;
-      }
-
    // Calculate resolution of Render Target
    context->GetRecommendedRenderTargetSize(&resolutionRT.width, &resolutionRT.height);
    if (sharedRT)
@@ -228,20 +245,33 @@ namespace en
    if (sharedRT)
       view[1].x = view[0].width + 1;
 
-   assert( GpuContext.screen.created );
-
    // Store resolution of window to which we will be mirroring to
    window = windowResolution;
 
-   // Create double buffered textures for each used rendertarget
+#if defined(EN_MODULE_RENDERER_METAL)
+   glContext = createDummyOpenGLContext();
+   assert( glContext );
+#endif
+
+   // Create OpenVR double buffered Swap-Chain for each used rendertarget
    for(uint32 i=0; i<(sharedRT ? 1U : 2U); ++i)
       {
       for(sint32 j=0; j<2; ++j)
          {
+#if defined(EN_MODULE_RENDERER_METAL)
+         // Create cross-process IOSuface that can be interpreted by VRCompositor
+         // as OpenGL texture and by application as Metal texture. This should also
+         // prevent one blit operation in compositor.
+         surface[i][j] = createSharedSurface(resolutionRT);
+         swap[i][j] = Graphics->primaryDevice()->createSharedTexture(surface[i][j]);
+
+         // Create OpenGL texture handle for passing to compositor
+         opengl[i][j] = glContext->createSharedTexture(surface[i][j]);
+#else
          // Create texture interface that can be exposed to application
-         en::gpu::TextureState state;
+         TextureState state;
          state.type    = TextureType::Texture2D;
-         state.format  = Format::RGBA_8_sRGB; //FormatRGBA_8;
+         state.format  = Format::RGBA_8_sRGB;
          state.width   = resolutionRT.width;
          state.height  = resolutionRT.height;
          state.depth   = 1;
@@ -249,17 +279,32 @@ namespace en
          state.samples = 1;
          state.mipmaps = 1;
  
-         swap[i][j] = Gpu.texture.create(state);
+         // Create texture in gpu
+         swap[i][j] = ResourcesContext.defaults.enHeap->createTexture(state);
+#endif
+         if (!swap[i][j])
+            {
+            Log << "ERROR: Cannot create OpenVR Swap-Chain texture!\n";
+            assert( 0 );
+            }
          }
       }
 
    // Create distortion model
    distortionModel();
 
+   Ptr<GpuDevice> gpu = Graphics->primaryDevice();
+
+
+   // TODO: Create pipeline and shaders !
+   
+   
    // Create distortion rendering program
-   Effect effect(eGLSL_4_10, "enOpenVR", false);
-   distortion = effect.program();
-   assert( distortion.samplerLocation("inTexture", samplerLocation) );
+   //Effect effect(eGLSL_4_10, "enOpenVR", false);
+   //distortion = effect.program();
+   //assert( distortion.samplerLocation("inTexture", samplerLocation) );
+
+
 
    // There is no game state set yet, so this won't work, it's too soon !
 
@@ -292,17 +337,27 @@ namespace en
       // TODO: Turn off display here
       }
 
-   // Remove texture interfaces
-   swap[0][0] = nullptr;
-   swap[0][1] = nullptr;
-   swap[1][0] = nullptr;
-   swap[1][1] = nullptr;
+   // Remove Swap-Chain interfaces
+   for(uint32 i=0; i<2; ++i)
+      for(uint32 j=0; j<2; ++j)
+         {
+         swap[i][j] = nullptr;
+#if defined(EN_MODULE_RENDERER_METAL)
+         glContext->destroySharedTexture(opengl[i][j]);
+         surface[i][j] = nullptr;
+#endif
+         }
+
    //mirror     = nullptr;
    model      = nullptr;
 
    // Disable HMD
  
    // TODO: Disable HMD here , disable Compositor
+
+#if defined(EN_MODULE_RENDERER_METAL)
+   delete glContext;
+#endif
 
    enabled = false;
    return true;
@@ -413,7 +468,6 @@ namespace en
    using namespace en::gpu;
    using namespace en::resource;
 
-   assert( Gpu.screen.created() );
    assert( model == nullptr );
 
    model = new en::resource::Model();
@@ -432,14 +486,12 @@ namespace en
    for(uint8 eye=0; eye<2; ++eye)
       {
       // Create Vertex Buffer
-      BufferSettings vboSettings(VertexBuffer,
-                                 vertices,
-                                 ColumnInfo(Float2,"inPosition"),
-                                 ColumnInfo(Float2,"inTexCoord0"),
-                                 ColumnInfo(Float2,"inTexCoord1"),
-                                 ColumnInfo(Float2,"inTexCoord2"));
-      
-      model->mesh[eye].geometry.buffer = Gpu.buffer.create(vboSettings);
+      Formatting formatting(Attribute::v2f32,  // inPosition
+                            Attribute::v2f32,  // inTexCoord0
+                            Attribute::v2f32,  // inTexCoord1
+                            Attribute::v2f32); // inTexCoord2
+
+      model->mesh[eye].geometry.buffer = en::ResourcesContext.defaults.enHeap->createBuffer(vertices, formatting, 0u);
       model->mesh[eye].geometry.begin  = 0;
       model->mesh[eye].geometry.end    = vertices;
 
@@ -452,8 +504,17 @@ namespace en
              };
       aligndefault
 
+      // Create staging vertex buffer
+      uint32 stagingSize = vertices * formatting.elementSize();
+      Ptr<gpu::Buffer> stagingVertex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      if (!stagingVertex)
+         {
+         Log << "ERROR: Cannot create staging buffer!\n";
+         assert( 0 );
+         }
+
       // Generate distortion mesh vertices
-      DistortionVertex* dst = static_cast<DistortionVertex*>(model->mesh[eye].geometry.buffer.map());
+      DistortionVertex* dst = static_cast<DistortionVertex*>(stagingVertex->map());
 
       // Eye distortion verts
       float Xoffset = eye == 0 ? -1.0f : 0.0f;
@@ -494,16 +555,24 @@ namespace en
             dst++;
             }
 
-      model->mesh[eye].geometry.buffer.unmap();
+      stagingVertex->unmap();
 
       // Create Index Buffer
-      model->mesh[eye].elements.buffer  = Gpu.buffer.create(BufferSettings(IndexBuffer, indices, ColumnType(UShort)));
+      model->mesh[eye].elements.buffer  = en::ResourcesContext.defaults.enHeap->createBuffer(indices, Attribute::u16);
       model->mesh[eye].elements.type    = Triangles;
       model->mesh[eye].elements.offset  = 0;
       model->mesh[eye].elements.indexes = indices;
 
+      // Create staging index buffer
+      Ptr<gpu::Buffer> stagingIndex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, indices * 2u);
+      if (!stagingIndex)
+         {
+         Log << "ERROR: Cannot create staging buffer!\n";
+         assert( 0 );
+         }
+         
       // Generate distortion mesh indices
-      uint16* index = static_cast<uint16*>(model->mesh[eye].elements.buffer.map());
+      uint16* index = static_cast<uint16*>(stagingIndex->map());
       for(uint16 y=0; y<lensGridSegmentCountV-1; ++y)
          for(uint16 x=0; x<lensGridSegmentCountH-1; ++x)
             {
@@ -518,7 +587,30 @@ namespace en
             *index = c; index++;
             *index = d; index++;
             }
-      model->mesh[eye].elements.buffer.unmap();
+      stagingIndex->unmap();
+      
+      // TODO: In future distribute transfers to different queues in the same queue type family
+      gpu::QueueType queueType = gpu::QueueType::Universal;
+      if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+         queueType = gpu::QueueType::Transfer;
+
+      // Copy data from staging buffer to final texture
+      Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      command->copy(stagingVertex, model->mesh[eye].geometry.buffer);
+      command->copy(stagingIndex, model->mesh[eye].elements.buffer);
+      command->commit();
+      
+      // TODO:
+      // here return completion handler callback !!! (no waiting for completion)
+      // - this callback destroys CommandBuffer object
+      // - destroys staging buffer
+      //
+      // Till it's done, wait for completion:
+      
+      command->waitUntilCompleted();
+      command = nullptr;
+      stagingVertex = nullptr;
+      stagingIndex  = nullptr;
       }
    }
 
@@ -548,18 +640,18 @@ namespace en
 // };
 
 
-   pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> > ValveHMD::controllerModel(const string name)
+   pair< Ptr<en::resource::Model>, Ptr<Texture> > ValveHMD::controllerModel(const string name)
    {
    Ptr<en::resource::Model> model = nullptr;
-   Ptr<en::gpu::Texture> texture = nullptr;
+   Ptr<Texture> texture = nullptr;
 
    // Check if needed model is not already in the cache
    map<string, pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> > >::iterator it = modelCache.find(name);
    if (it != modelCache.end())
       return it->second;
 
-   vr::RenderModel_t tempModel;
-   if (!renderModels->LoadRenderModel(name.c_str(), &tempModel))
+   vr::RenderModel_t* tempModel = nullptr;
+   if (!renderModels->LoadRenderModel_Async(name.c_str(), &tempModel))
       {
       Log << "Unable to load render model " << name << endl;
       return pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> >(model, texture);
@@ -571,34 +663,122 @@ namespace en
    model->mesh.resize(1);
    
    // Create Vertex Buffer
-   BufferSettings vboSettings(VertexBuffer,
-                              tempModel.unVertexCount,
-                              ColumnInfo(Float3,"inPosition"),
-                              ColumnInfo(Float3,"inNormal"),
-                              ColumnInfo(Float2,"inTexCoord0"));
+   Formatting formatting(Attribute::v3f32,  // inPosition
+                         Attribute::v3f32,  // inNormal
+                         Attribute::v2f32); // inTexCoord0
+      
+   uint32 vertices = tempModel->unVertexCount;
+   Ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeap->createBuffer(vertices, formatting, 0u);
+   model->mesh[0u].geometry.buffer  = vbo;
+   model->mesh[0u].geometry.begin   = 0u;
+   model->mesh[0u].geometry.end     = vertices;
    
-   model->mesh[0].geometry.buffer  = Gpu.buffer.create(vboSettings, (void*)(tempModel.rVertexData));
-   model->mesh[0].geometry.begin   = 0;
-   model->mesh[0].geometry.end     = tempModel.unVertexCount;
-   
+   // Create staging vertex buffer
+   uint32 stagingSize = vertices * formatting.elementSize();
+   Ptr<gpu::Buffer> stagingVertex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+   if (!stagingVertex)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      assert( 0 );
+      }
+  
+   // Read buffer to temporary buffer
+   void* dst = stagingVertex->map();
+   memcpy(dst, (void*)(tempModel->rVertexData), stagingSize);
+   stagingVertex->unmap();
+      
    // Create Index Buffer
-   uint32 indices = tempModel.unTriangleCount * 3;
-   model->mesh[0].elements.buffer  = Gpu.buffer.create(BufferSettings(IndexBuffer, indices, ColumnType(UShort)), (void*)(tempModel.rIndexData));
-   model->mesh[0].elements.type    = Triangles;
-   model->mesh[0].elements.offset  = 0;
-   model->mesh[0].elements.indexes = indices;
+   uint32 indices = tempModel->unTriangleCount * 3u;
+   model->mesh[0u].elements.buffer  = en::ResourcesContext.defaults.enHeap->createBuffer(indices, Attribute::u16);
+   model->mesh[0u].elements.type    = Triangles;
+   model->mesh[0u].elements.offset  = 0u;
+   model->mesh[0u].elements.indexes = indices;
    
-   // Create texture
-   TextureState settings(TextureType::Texture2D, Format::RGBA_8, tempModel.diffuseTexture.unWidth, tempModel.diffuseTexture.unHeight);
-   texture = en::Gpu.texture.create(settings);
+   // Create staging index buffer
+   Ptr<gpu::Buffer> stagingIndex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, indices * 2u);
+   if (!stagingIndex)
+      {
+      Log << "ERROR: Cannot create staging buffer!\n";
+      assert( 0 );
+      }
+   
+   // Read index buffer to temporary buffer
+   dst = stagingVertex->map();
+   memcpy(dst, (void*)(tempModel->rIndexData), stagingSize);
+   stagingVertex->unmap();
 
+   // TODO: In future distribute transfers to different queues in the same queue type family
+   gpu::QueueType queueType = gpu::QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
+      queueType = gpu::QueueType::Transfer;
+
+   // Copy data from staging buffer to final buffers
+   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   command->copy(stagingVertex, model->mesh[0u].geometry.buffer);
+   command->copy(stagingIndex, model->mesh[0u].elements.buffer);
+   command->commit();
+      
+      // TODO:
+      // here return completion handler callback !!! (no waiting for completion)
+      // - this callback destroys CommandBuffer object
+      // - destroys staging buffer
+      //
+      // Till it's done, wait for completion:
+      
+   command->waitUntilCompleted();
+   command = nullptr;
+   stagingVertex = nullptr;
+   stagingIndex  = nullptr;
+
+   if (tempModel->diffuseTextureId > 0)
+      {
+      vr::RenderModel_TextureMap_t* tempTexture = nullptr;
+
+      vr::EVRRenderModelError result = vr::VRRenderModelError_None;
+      result = renderModels->LoadTexture_Async(tempModel->diffuseTextureId, &tempTexture);
+
+      // Create texture
+      TextureState settings(TextureType::Texture2D,
+                            Format::RGBA_8,
+                            TextureUsage::Read,
+                            tempTexture->unWidth,
+                            tempTexture->unHeight);
+    
+      // Create controller texture
+      texture = en::ResourcesContext.defaults.enHeap->createTexture(settings);
+      
+      // Create staging texture buffer
+      uint32 stagingSize = tempTexture->unWidth * tempTexture->unHeight * 4u;
+      Ptr<gpu::Buffer> stagingTexture = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      if (!stagingTexture)
+         {
+         Log << "ERROR: Cannot create staging buffer!\n";
+         assert( 0 );
+         }
+      
+      // Read index buffer to temporary buffer
+      void* dst = stagingTexture->map();
+      memcpy(dst, (void*)(tempTexture->rubTextureMapData), stagingSize);
+      stagingTexture->unmap();
+
+      // Copy data from staging buffer to final texture
+      Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      command->copy(stagingTexture, texture, 0u, 0u);
+      command->commit();
+      command->waitUntilCompleted();
+      command = nullptr;
+      
+      // Free temporary texture
+      renderModels->FreeTexture(tempTexture);
+      }
+   
    // Free temporary model
-   renderModels->FreeRenderModel(&tempModel);
+   renderModels->FreeRenderModel(tempModel);
    
    // Add new model-texture pair to the cache
-   modelCache.insert(pair<string, pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> > >(name, pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> >(model, texture) ));
+   modelCache.insert(pair<string, pair< Ptr<en::resource::Model>, Ptr<Texture> > >(name, pair< Ptr<en::resource::Model>, Ptr<Texture> >(model, texture) ));
  
-   return pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> >(model, texture);
+   return pair< Ptr<en::resource::Model>, Ptr<Texture> >(model, texture);
    }
 
    void ValveHMD::activateController(vr::TrackedDeviceIndex_t deviceId)
@@ -617,15 +797,6 @@ namespace en
                                           assets.first,           // Mesh
                                           assets.second,          // Texture
                                           deviceId);
-   
-   // Send event with new controller
-   ControllerEvent event;
-   memset(&event, 0, sizeof(ControllerEvent));
-   event.type    = ControllerActivated;
-   event.pointer = ptr_dynamic_cast<Controller, ValveController>(handle[deviceId]);
-   en::InputContext.events.callback(event); 
-   
-   Log << "Device " << deviceId << " attached.\n";
    }
 
    void ValveHMD::startFrame(const uint32 frameIndex)
@@ -675,20 +846,39 @@ namespace en
          }
       }
 
+   CommonInterface* interface = raw_reinterpret_cast<CommonInterface>(&en::Input);
+
    // Process SteamVR events
    vr::VREvent_t vrevent;
-   while(context->PollNextEvent(&vrevent))
+   while(context->PollNextEvent(&vrevent, sizeof(vr::VREvent_t)))
       {
       switch(vrevent.eventType)
          {
+            // Call event handling function
+            //MouseEvent outEvent;
+            //memset(&outEvent, 0, sizeof(outEvent));
+            //outEvent.type   = MouseButtonReleased;
+            //outEvent.button = MouseButton::Right;
+            //callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            
+            
+            
+            
          case vr::VREvent_TrackedDeviceActivated:
             {
             // We care only about controllers here
             vr::TrackedDeviceIndex_t deviceId = vrevent.trackedDeviceIndex;
-	        if (context->GetTrackedDeviceClass(deviceId) != vr::TrackedDeviceClass_Controller)
+            if (context->GetTrackedDeviceClass(deviceId) != vr::TrackedDeviceClass_Controller)
                break;
 
             activateController(deviceId);
+            
+            // Send event with new controller
+            ControllerEvent outEvent(ControllerActivated);
+            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+   
+            Log << "Device " << deviceId << " attached.\n";
             }
             break;
 
@@ -696,15 +886,13 @@ namespace en
             {
             // We care only about controllers here
             vr::TrackedDeviceIndex_t deviceId = vrevent.trackedDeviceIndex;
-	        if (context->GetTrackedDeviceClass(deviceId) != vr::TrackedDeviceClass_Controller)
+            if (context->GetTrackedDeviceClass(deviceId) != vr::TrackedDeviceClass_Controller)
                break;
 
             // Send event to discard controller
-            ControllerEvent event;
-            memset(&event, 0, sizeof(ControllerEvent));
-            event.type    = ControllerDeactivated;
-            event.pointer = ptr_dynamic_cast<Controller, ValveController>(handle[deviceId]);
-            en::InputContext.events.callback(event); 
+            ControllerEvent outEvent(ControllerDeactivated);
+            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
 
             // Remove controller
             handle[deviceId] = nullptr;
@@ -712,37 +900,46 @@ namespace en
             Log << "Device " << deviceId << " detached.\n";
             }
             break;
-
+            
          case vr::VREvent_TrackedDeviceUpdated:
             Log << "Device " << vrevent.trackedDeviceIndex << " updated.\n";
             break;
-
+            
+         case vr::VREvent_TrackedDeviceUserInteractionStarted:
+         case vr::VREvent_TrackedDeviceUserInteractionEnded:
+         case vr::VREvent_IpdChanged:
+         case vr::VREvent_EnterStandbyMode:
+         case vr::VREvent_LeaveStandbyMode:
+         case vr::VREvent_TrackedDeviceRoleChanged:
+         case vr::VREvent_WatchdogWakeUpRequested:
+         case vr::VREvent_LensDistortionChanged:
+            // TODO: Implement support for those callbacks.
+            break;
+            
          case vr::VREvent_ButtonPress: 
             {
             // We care only about controllers here
             vr::TrackedDeviceIndex_t deviceId = vrevent.trackedDeviceIndex;
-	        if (context->GetTrackedDeviceClass(deviceId) != vr::TrackedDeviceClass_Controller)
+            if (context->GetTrackedDeviceClass(deviceId) != vr::TrackedDeviceClass_Controller)
                Log << "PRESSED non CONTROLLER button ???? " << deviceId << "\n";
 
             // Activate controller if it wasn't activated yet
             if (handle[deviceId] == nullptr)
                activateController(deviceId);
 
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = ControllerButtonPressed;
-            // TODO: Fill the event with data, data is controller
-            en::InputContext.events.callback(event); 
+            ControllerEvent outEvent(ControllerButtonPressed);
+            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
          case vr::VREvent_ButtonUnpress:
             {
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = ControllerButtonReleased;
-            // TODO: Fill the event with data, data is controller
-            en::InputContext.events.callback(event); 
+            vr::TrackedDeviceIndex_t deviceId = vrevent.trackedDeviceIndex;
+            
+            ControllerEvent outEvent(ControllerButtonReleased);
+            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
@@ -753,110 +950,212 @@ namespace en
             if (handle[deviceId] == nullptr)
                activateController(deviceId);
 
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type =  ControllerButtonTouched;
-            // TODO: Fill the event with data, data is controller
-            en::InputContext.events.callback(event); 
+            ControllerEvent outEvent(ControllerButtonTouched);
+            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
          case vr::VREvent_ButtonUntouch:
             {
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = ControllerButtonUntouched;
-            // TODO: Fill the event with data, data is controller
-            en::InputContext.events.callback(event); 
+            vr::TrackedDeviceIndex_t deviceId = vrevent.trackedDeviceIndex;
+            
+            ControllerEvent outEvent(ControllerButtonUntouched);
+            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
-
-         // Other application released controllers
-         case vr::VREvent_InputFocusReleased: 
-            {
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = VRInputFocusAvailable;
-            en::InputContext.events.callback(event); 
-            // TODO: We could pass more data (process info) in the future
-            }
+         case vr::VREvent_MouseMove:            // data is mouse
+         case vr::VREvent_MouseButtonDown:      // data is mouse
+         case vr::VREvent_MouseButtonUp:        // data is mouse
+         case vr::VREvent_FocusEnter:           // data is overlay
+         case vr::VREvent_FocusLeave:           // data is overlay
+         case vr::VREvent_Scroll:               // data is mouse
+         case vr::VREvent_TouchPadMove:         // data is mouse
+         case vr::VREvent_OverlayFocusChanged:  // data is overlay, global event
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_InputFocusCaptured:      // data is process DEPRECATED
+         case vr::VREvent_InputFocusReleased:      // data is process DEPRECATED
             break;
 
-         // Application lost controll over controller
-         case vr::VREvent_InputFocusCaptured: 
-            {
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = VRInputFocusLost;
-            en::InputContext.events.callback(event); 
-            // TODO: We could pass more data (process info) in the future
-            }
-            break;
+//         // Application lost controll over controller
+//         case vr::VREvent_InputFocusCaptured: 
+//            {
+//            Event outEvent(VRInputFocusLost);
+//            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+//            // TODO: We could pass more data (process info) in the future
+//            }
+//            break;
+//
+//         // Other application released controllers (app can regain focus)
+//         case vr::VREvent_InputFocusReleased: 
+//            {
+//            Event outEvent(VRInputFocusAvailable);
+//            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+//            // TODO: We could pass more data (process info) in the future
+//            }
+//            break;
 
-
-
-
-
-
+            
          case vr::VREvent_SceneFocusLost: 
             {
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = VRSceneFocusLost;
+            Event outEvent(VRSceneFocusLost);
             // TODO: Fill the event with data, data is process
-            en::InputContext.events.callback(event); 
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
          case vr::VREvent_SceneFocusGained: 
             {
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = VRSceneFocusGained;
+            Event outEvent(VRSceneFocusGained);
             // TODO: Fill the event with data, data is process
-            en::InputContext.events.callback(event); 
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
-
-         case vr::VREvent_SceneApplicationChanged: 
+         
+         case vr::VREvent_SceneApplicationChanged: // data is process - The App actually drawing the scene changed (usually to or from the compositor)
             {
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = VRSceneApplicationChanged;
+            Event outEvent(VRSceneApplicationChanged);
             // TODO: Fill the event with data, data is process
-            en::InputContext.events.callback(event); 
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
-         case vr::VREvent_Quit:
-         case vr::VREvent_ProcessQuit:
-            {
-            Event event;
-            memset(&event, 0, sizeof(Event));
-            event.type = AppClose;
-            en::InputContext.events.callback(event); 
-            }
+         case vr::VREvent_SceneFocusChanged:       // data is process - New app got access to draw the scene
+         case vr::VREvent_InputFocusChanged:       // data is process
+         case vr::VREvent_SceneApplicationSecondaryRenderingStarted: // data is process
+            // TODO: Implement support for those callbacks.
             break;
-
-         case vr::VREvent_MouseMove: // data is mouse
-         case vr::VREvent_MouseButtonDown: // data is mouse
-         case vr::VREvent_MouseButtonUp: // data is mouse
+            
+         case vr::VREvent_HideRenderModels: // Sent to the scene application to request hiding render models temporarily
+         case vr::VREvent_ShowRenderModels: // Sent to the scene application to request restoring render model visibility
+            // TODO: Implement support for those callbacks.
+            break;
+            
          case vr::VREvent_OverlayShown:
          case vr::VREvent_OverlayHidden:
          case vr::VREvent_DashboardActivated:
          case vr::VREvent_DashboardDeactivated:
-         case vr::VREvent_DashboardThumbSelected: // Sent to the overlay manager - data is overlay
-         case vr::VREvent_DashboardRequested: // Sent to the overlay manager - data is overlay
-         case vr::VREvent_ResetDashboard: // Send to the overlay manager
-         case vr::VREvent_RenderToast: // Send to the dashboard to render a toast - data is the notification ID
-         case vr::VREvent_ImageLoaded: // Sent to overlays when a SetOverlayRaw or SetOverlayFromFile call finishes loading
-         case vr::VREvent_Notification_Show:
-         case vr::VREvent_Notification_Dismissed:
+         case vr::VREvent_DashboardThumbSelected:    // Sent to the overlay manager - data is overlay
+         case vr::VREvent_DashboardRequested:        // Sent to the overlay manager - data is overlay
+         case vr::VREvent_ResetDashboard:            // Send to the overlay manager
+         case vr::VREvent_RenderToast:               // Send to the dashboard to render a toast - data is the notification ID
+         case vr::VREvent_ImageLoaded:               // Sent to overlays when a SetOverlayRaw or SetOverlayFromFile call finishes loading
+         case vr::VREvent_ShowKeyboard:              // Sent to keyboard renderer in the dashboard to invoke it
+         case vr::VREvent_HideKeyboard:              // Sent to keyboard renderer in the dashboard to hide it
+         case vr::VREvent_OverlayGamepadFocusGained: // Sent to an overlay when IVROverlay::SetFocusOverlay is called on it
+         case vr::VREvent_OverlayGamepadFocusLost:   // Send to an overlay when it previously had focus and IVROverlay::SetFocusOverlay is called on something else
+         case vr::VREvent_OverlaySharedTextureChanged:
+         case vr::VREvent_DashboardGuideButtonDown:
+         case vr::VREvent_DashboardGuideButtonUp:
+         case vr::VREvent_ScreenshotTriggered:       // Screenshot button combo was pressed, Dashboard should request a screenshot
+         case vr::VREvent_ImageFailed:               // Sent to overlays when a SetOverlayRaw or SetOverlayfromFail fails to load
+         case vr::VREvent_DashboardOverlayCreated:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+	      // Screenshot API
+         case vr::VREvent_RequestScreenshot:             // Sent by vrclient application to compositor to take a screenshot
+         case vr::VREvent_ScreenshotTaken:               // Sent by compositor to the application that the screenshot has been taken
+         case vr::VREvent_ScreenshotFailed:              // Sent by compositor to the application that the screenshot failed to be taken
+         case vr::VREvent_SubmitScreenshotToDashboard:   // Sent by compositor to the dashboard that a completed screenshot was submitted
+         case vr::VREvent_ScreenshotProgressToDashboard: // Sent by compositor to the dashboard that a completed screenshot was submitted
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_Notification_Shown:
+         case vr::VREvent_Notification_Hidden:
          case vr::VREvent_Notification_BeginInteraction:
+         case vr::VREvent_Notification_Destroyed:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_Quit:
+         case vr::VREvent_ProcessQuit:
+            {
+            Event outEvent(AppClose);
+            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            }
+            break;
+         
+         case vr::VREvent_QuitAborted_UserPrompt: // data is process
+         case vr::VREvent_QuitAcknowledged:       // data is process
+         case vr::VREvent_DriverRequestedQuit:    // The driver has requested that SteamVR shut down
+            // TODO: Implement support for those callbacks.
+            break;
+            
          case vr::VREvent_ChaperoneDataHasChanged:
          case vr::VREvent_ChaperoneUniverseHasChanged:
+         case vr::VREvent_ChaperoneTempDataHasChanged:
+         case vr::VREvent_ChaperoneSettingsHaveChanged:
+         case vr::VREvent_SeatedZeroPoseReset:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_AudioSettingsHaveChanged:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_BackgroundSettingHasChanged:
+         case vr::VREvent_CameraSettingsHaveChanged:
+         case vr::VREvent_ReprojectionSettingHasChanged:
+         case vr::VREvent_ModelSkinSettingsHaveChanged:
+         case vr::VREvent_EnvironmentSettingsHaveChanged:
+         case vr::VREvent_PowerSettingsHaveChanged:
+            // TODO: Implement support for those callbacks.
+            break;
+            
          case vr::VREvent_StatusUpdate:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_MCImageUpdated:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_FirmwareUpdateStarted:
+         case vr::VREvent_FirmwareUpdateFinished:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_KeyboardClosed:
+         case vr::VREvent_KeyboardCharInput:
+         case vr::VREvent_KeyboardDone: // Sent when DONE button clicked on keyboard
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_ApplicationTransitionStarted:
+         case vr::VREvent_ApplicationTransitionAborted:
+         case vr::VREvent_ApplicationTransitionNewAppStarted:
+         case vr::VREvent_ApplicationListUpdated:
+         case vr::VREvent_ApplicationMimeTypeLoad:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_Compositor_MirrorWindowShown:
+         case vr::VREvent_Compositor_MirrorWindowHidden:
+         case vr::VREvent_Compositor_ChaperoneBoundsShown:
+         case vr::VREvent_Compositor_ChaperoneBoundsHidden:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_TrackedCamera_StartVideoStream:
+         case vr::VREvent_TrackedCamera_StopVideoStream:
+         case vr::VREvent_TrackedCamera_PauseVideoStream:
+         case vr::VREvent_TrackedCamera_ResumeVideoStream:
+         case vr::VREvent_TrackedCamera_EditingSurface:
+            // TODO: Implement support for those callbacks.
+            break;
+            
+         case vr::VREvent_PerformanceTest_EnableCapture:
+         case vr::VREvent_PerformanceTest_DisableCapture:
+         case vr::VREvent_PerformanceTest_FidelityLevel:
+            // TODO: Implement support for those callbacks.
+            break;
+            
          default:
             break;
          }
@@ -899,7 +1198,7 @@ namespace en
    return true;
    }
 
-   bool ViveHMD::debugHUD(DebugHUD mode)
+   bool ValveHMD::debugHUD(DebugHUD mode)
    {
    return false;
    }
@@ -1103,7 +1402,8 @@ namespace en
                                        matPose.m[1][0], matPose.m[1][1], -matPose.m[1][2], 0.0f,
                                        matPose.m[2][0], matPose.m[2][1], -matPose.m[2][2], 0.0f,
                                        0.0f,            0.0f,            0.0f,            1.0f );
-      return float4(position + mul(orientation, float4(eyeVector[static_cast<uint32>(eye)], 1.0f) )).xyz;
+      float4 vector = float4(eyeVector[static_cast<uint32>(eye)], 1.0f);
+      return float4(position + mul(orientation, vector)).xyz;
       }
 
    return float3(0.0f, 0.0f, 0.0f);
@@ -1199,6 +1499,9 @@ namespace en
         window.width != 0 &&
         window.height != 0 )
       {
+      // TODO: Set pipeline !
+      // TODO: Draw mesh !
+      
       Gpu.depth.test.off();
       Gpu.output.buffer.setDefaultWrite();
       Gpu.screen.view(uint32v4(0, 0, window.width, window.height));
@@ -1232,29 +1535,76 @@ namespace en
       }
 
    // Specify source textures
-   uint32 texId[2];
+#if defined(EN_MODULE_RENDERER_VULKAN)
+   vr::VulkanData_t textureDesc[2];
+#else
+   vr::Texture_t    textureDesc[2];
+#endif
    for(uint32 eye=0; eye<2; ++eye)
       {
       uint32 index = sharedRT ? 0 : static_cast<uint32>(eye);
    
-      // >>>>> OpenGL Specific code section - START
-      Ptr<en::gpu::TextureGL> tex = ptr_dynamic_cast<en::gpu::TextureGL, en::gpu::Texture>(swap[index][currentIndex]);
-      texId[eye] = tex->id;
-      // >>>>> OpenGL Specific code section - END
+   
+#if defined(EN_MODULE_RENDERER_DIRECT3D12)
+      TextureD3D12* tex = raw_reinterpret_cast<TextureD3D12>(&swap[index][currentIndex]);
+
+      textureDesc[eye].handle      = &tex->handle;
+      textureDesc[eye].eType       = vr::API_DirectX;
+      textureDesc[eye].eColorSpace = vr::ColorSpace_Linear;
+#endif
+
+#if defined(EN_MODULE_RENDERER_METAL)
+      // We pass IOSuface as OpenGL texture to VRCompositor.
+      // At the same time, we use it as Metal texture on the application side.
+      textureDesc[eye].handle      = &opengl[index][currentIndex];
+      textureDesc[eye].eType       = vr::API_OpenGL;
+      textureDesc[eye].eColorSpace = vr::ColorSpace_Linear;
+#endif
+
+#if defined(EN_MODULE_RENDERER_OPENGL)
+      TextureGL* tex = raw_reinterpret_cast<TextureGL>(&swap[index][currentIndex]);
+
+      textureDesc[eye].handle      = &tex->id;
+      textureDesc[eye].eType       = vr::API_OpenGL;
+      textureDesc[eye].eColorSpace = vr::ColorSpace_Linear;
+#endif
+
+#if defined(EN_MODULE_RENDERER_VULKAN)
+      TextureVK* tex = raw_reinterpret_cast<TextureVK>(&swap[index][currentIndex]);
+
+      textureDesc[eye].m_nImage          = tex->handle;
+      textureDesc[eye].m_pDevice         = &tex->gpu->device;
+      textureDesc[eye].m_pPhysicalDevice = &tex->gpu->handle;
+      textureDesc[eye].m_pInstance       = &tex->gpu->api->instance;
+   // TODO: ! Vulkan finish !
+	VkQueue_T *m_pQueue;
+	uint32_t m_nQueueFamilyIndex;
+      textureDesc[eye].m_nWidth          = tex->state.width;
+      textureDesc[eye].m_nHeight         = tex->state.height;
+      textureDesc[eye].m_nFormat         = TranslateTextureFormat[underlyingType(tex->state.format)];
+      textureDesc[eye].m_nSampleCount    = tex->state.samples;
+#endif
       }
 
+   vr::EVRSubmitFlags submitFlag = vr::Submit_Default;
+#if defined(EN_MODULE_RENDERER_VULKAN)
+   submitFlag = vr::Submit_VulkanTexture;
+#endif
+   
    // Submit to compositor
    if (compositor)
       {
       if (sharedRT)
          {
-         compositor->Submit(vr::Eye_Left,  vr::API_OpenGL, (void*)texId[0], &bounds[0]);
-         compositor->Submit(vr::Eye_Right, vr::API_OpenGL, (void*)texId[1], &bounds[1]);
+	//virtual EVRCompositorError Submit( EVREye eEye, const Texture_t *pTexture, const VRTextureBounds_t* pBounds = 0, EVRSubmitFlags nSubmitFlags = Submit_Default ) = 0;
+
+         compositor->Submit(vr::Eye_Left,  &textureDesc[0], &bounds[0], submitFlag);
+         compositor->Submit(vr::Eye_Right, &textureDesc[1], &bounds[1], submitFlag);
          }
       else
          {
-         compositor->Submit(vr::Eye_Left,  vr::API_OpenGL, (void*)texId[0], nullptr);
-         compositor->Submit(vr::Eye_Right, vr::API_OpenGL, (void*)texId[1], nullptr);
+         compositor->Submit(vr::Eye_Left,  &textureDesc[0], nullptr, submitFlag);
+         compositor->Submit(vr::Eye_Right, &textureDesc[1], nullptr, submitFlag);
          }
       }
    }
@@ -1516,18 +1866,7 @@ namespace en
    //# CONTEXT
    //##########################################################################
 
-   void InitOpenVR(void)
-   {
-   // Register OpenVR Head Mounted Display
-   Ptr<CommonInterface> input = ptr_dynamic_cast<CommonInterface, Interface>(en::Input);
-   if (vr::VR_IsHmdPresent())
-      input->hmds.push_back(Ptr<input::HMD>(new ValveHMD(0)));
-   }
 
-   void CloseOpenVR(void)
-   {
-   vr::VR_Shutdown();
-   }
 
    }
 }

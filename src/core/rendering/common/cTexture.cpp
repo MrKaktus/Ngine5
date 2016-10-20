@@ -548,7 +548,14 @@ namespace en
    
    Ptr<TextureView> CommonTexture::view() const
    {
-   return ptr_dynamic_cast<TextureView, CommonTextureView>(Ptr<CommonTextureView>(textureView));
+   // Should be implemented by specialization class.
+   // Texture cannot keep pointer to it's "default" view,
+   // as then default view would keep strong pointer to the
+   // texture, keeping it's refCount always +1 and preventing
+   // it from beeing released. Thus default view needs to
+   // always be created on the fly.
+   assert( 0 );
+   return Ptr<TextureView>(nullptr);
    }
 
    CommonTextureView::CommonTextureView(const TextureType _type,

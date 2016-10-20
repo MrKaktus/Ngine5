@@ -77,11 +77,12 @@
 #define EN_MODULE_OCULUS
 #endif
 
-/* 
+// Disable until Rendering abstraction is finished!
+/*
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 #define EN_MODULE_OPENVR
 #endif
- */
+*/
 
 #if defined(EN_PLATFORM_WINDOWS)
 #define EN_MODULE_REALSENSE

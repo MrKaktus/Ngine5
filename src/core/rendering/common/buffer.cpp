@@ -124,28 +124,29 @@ namespace en
    {
    return apiType;
    }
+
+   void* CommonBuffer::map(void)
+   {
+   // Should be implemented by specialization class.
+   assert( 0 );
+   return nullptr;
+   }
    
-//   void* CommonBuffer::content(void) const
-//   {
-//   // Should be implemented by given API
-//   assert(0);
-//   return nullptr;
-//   }
-      
-//   void* CommonBuffer::map(const DataAccess access)
-//   {
-//   // Should be implemented by given API
-//   assert(0);
-//   }
-//   
-//   bool CommonBuffer::unmap(void)
-//   {
-//   // Should be implemented by given API
-//   assert(0);
-//   }
+   void* CommonBuffer::map(const uint64 offset, const uint64 size)
+   {
+   // Should be implemented by specialization class.
+   assert( 0 );
+   return nullptr;
+   }
+   
+   void CommonBuffer::unmap(void)
+   {
+   // Should be implemented by specialization class.
+   assert( 0 );
+   }
       
 
-
+   
    CommonBufferView::CommonBufferView(const Format format, const uint32 offset, const uint32 length) :
       _format(format),
       _offset(offset),

@@ -77,14 +77,27 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
  
-   bool CommandBufferMTL::startRenderPass(const Ptr<RenderPass> pass)
+   bool CommandBufferMTL::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer> _framebuffer)
    {
    if (renderEncoder != nil)
       return false;
     
-   const Ptr<RenderPassMTL> temp = ptr_dynamic_cast<RenderPassMTL, RenderPass>(pass);
+   RenderPassMTL*  renderPass  = raw_reinterpret_cast<RenderPassMTL>(&pass);
+   FramebufferMTL* framebuffer = raw_reinterpret_cast<FramebufferMTL>(&_framebuffer);
    
-   renderEncoder = [handle renderCommandEncoderWithDescriptor:temp->desc];
+   // Patch Texture handles
+   for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
+      {
+      renderPass->desc.colorAttachments[i].texture        = framebuffer->color[i];
+      renderPass->desc.colorAttachments[i].resolveTexture = framebuffer->resolve[i];
+      }
+   renderPass->desc.depthAttachment.texture   = framebuffer->depthStencil[0];
+   renderPass->desc.stencilAttachment.texture = framebuffer->depthStencil[1];
+#if defined(EN_PLATFORM_IOS)
+   renderPass->desc.depthAttachment.resolveTexture = framebuffer->depthStencil[2];
+#endif
+
+   renderEncoder = [handle renderCommandEncoderWithDescriptor:renderPass->desc];
    return true;
    }
    
@@ -92,9 +105,14 @@ namespace en
    {
    if (renderEncoder == nil)
       return false;
-   [renderEncoder endEncoding];
-   [renderEncoder release];
-   renderEncoder = nullptr;
+      
+   @autoreleasepool
+      {
+      [renderEncoder endEncoding];
+      [renderEncoder release];
+      renderEncoder = nullptr;
+      }
+
    return true;
    }
    
@@ -160,7 +178,7 @@ namespace en
    @autoreleasepool
       {
       // Blit to Private buffer
-      id <MTLBlitCommandEncoder> blit = [[handle blitCommandEncoder] autorelease];
+      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
       [blit copyFromBuffer:source->handle
               sourceOffset:0
                   toBuffer:destination->handle
@@ -168,7 +186,7 @@ namespace en
                       size:destination->size];
 
       [blit endEncoding];
-      blit = nil;
+      //blit = nil;
       } // autoreleasepool
    
    }
@@ -373,7 +391,11 @@ namespace en
    // Don't wait for completion
    
    // Release buffer
+   @autoreleasepool
+      {
    [handle release];
+   handle = nil;
+      }
    }
 
    Ptr<CommandBuffer> MetalDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
@@ -386,9 +408,9 @@ namespace en
    // Multiple buffers can be created simultaneously for one queue
    // Buffers are executed in order in queue
    Ptr<CommandBufferMTL> buffer = new CommandBufferMTL(device);
-   
+
    buffer->handle = [queue commandBuffer];
-   
+
    return ptr_reinterpret_cast<CommandBuffer>(&buffer);
    }
    
