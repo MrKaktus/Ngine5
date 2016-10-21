@@ -26,59 +26,61 @@ namespace en
 {
    namespace gpu
    {
+   // 64 bytes  - Push Constants
+   // 16KB-64KB - UBO's backed ( Uniform, Storage )
+   // X GB      - Memory backed ( Storage, Texture, Image )
+   
+   enum class ResourceType : uint32
+      {
+      Sampler = 0, // Immutable Sampler ?
+      Texture    ,
+      Image      ,
+      Uniform    ,
+      Storage    ,
+      Count
+      };
+
+   struct ResourcesSet
+      {
+      ResourceType type;
+      uint32       count;
+      };
+      
+   static const D3D12_DESCRIPTOR_RANGE_TYPE TranslateResourceType[underlyingType(ResourceType::Count)] =
+      {
+      D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, // Sampler
+      D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture
+      D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // Image
+      D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Uniform
+      D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Storage
+      };
+
+   static const VkDescriptorType TranslateResourceType[underlyingType(ResourceType::Count)] =
+      {
+      VK_DESCRIPTOR_TYPE_SAMPLER,          // Sampler
+      VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,    // Texture
+      VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,    // Image
+      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,   // Uniform
+      VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,   // Storage
+      };
+   // Is using VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER introducing any performance regression on AMD or Intel?
+   // Or is it safe to use it instead of VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, as NVidia HW benefits from this?
+      
+   // VK_DESCRIPTOR_TYPE_SAMPLER = 0,                 //   Sampler
+   // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,  // ? Texture + Sampler (NVidia optimal)
+   // VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE = 2,           //   Texture
+   // VK_DESCRIPTOR_TYPE_STORAGE_IMAGE = 3,           //   Image   (write, atomics, no filtering)
+   // VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER = 4,    // x Buffer Texture backed by UBO memory - buffer texture is simply a way for the shader to directly access a large array of data, generally larger than uniform buffer objects allow.
+   // VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER = 5,    // x Buffer Texture backed by Storage memory (write, atomics)
+   // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6,          //   Uniform
+   // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER = 7,          //   Storage
+   // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,  // * Uniform (dynamic array size, specifcied on runtime)
+   // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,  //   Storage (dynamic array size, specifcied on runtime)
+   // VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,       // Render Pass Input Attachment for multi-sub-pass graph (Fragment Shader read of RT)
 
 
 
 
-
-//   {
-//   Ptr<SetLayout> result = nullptr;
-//   
-//   // 64 bytes  - Push Constants
-//   // 16KB-64KB - UBO's backed ( Uniform, Storage )
-//   // X GB      - Memory backed ( Storage, Texture, Image )
-//   
-//   // 6 pipeline stages (compute included)
-//   //
-//   
-//   VK_DESCRIPTOR_TYPE_SAMPLER
-//   
-//
-//   enum class ResourceType : uint32
-//      {
-//      Sampler = 0,
-//      Texture    ,
-//      Image      ,
-//      Uniform    ,
-//      Storage    ,
-//      Count
-//      }
-//   
-//   struct ResourcesSet
-//      {
-//      ResourceType type;
-//      uint32       count;
-//      };
-//   
-//   static const D3D12_DESCRIPTOR_RANGE_TYPE TranslateResourceType[underlyingType(ResourceType::Count)] =
-//      {
-//      D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, // Sampler
-//      D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture
-//      D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // Image
-//      D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Uniform
-//      D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Storage
-//      };
-//   
-//   ResourcesSet*
-//   
-//   // SetLayout:
-//   // N - Samplers           - stages: V, F
-//   // K - Immutable Samplers - stages: V
-//   // W - Textures           - stages: F
-//   // H - Images             - stages: V, F
-//   
-//   
-//
 //typedef enum D3D12_SHADER_VISIBILITY
 //{
 // D3D12_SHADER_VISIBILITY_ALL    = 0,
@@ -88,74 +90,98 @@ namespace en
 // D3D12_SHADER_VISIBILITY_GEOMETRY   = 4,
 // D3D12_SHADER_VISIBILITY_PIXEL  = 5
 //} D3D12_SHADER_VISIBILITY;
-//
-//
-//	typedef enum D3D12_DESCRIPTOR_RANGE_TYPE { 
-//	  D3D12_DESCRIPTOR_RANGE_TYPE_SRV, // SRV - Texture
-//	  D3D12_DESCRIPTOR_RANGE_TYPE_UAV, // UAV - Image
-//	  D3D12_DESCRIPTOR_RANGE_TYPE_CBV, // CBV - UBO, Storage
-//	  D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER
-//	} D3D12_DESCRIPTOR_RANGE_TYPE;
-//   
-//   
-//   VK_DESCRIPTOR_TYPE_SAMPLER = 0,                 //   Sampler
-//   VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,  // ? Texture + Sampler (NVidia optimal)
-//   VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE = 2,           //   Texture
-//   VK_DESCRIPTOR_TYPE_STORAGE_IMAGE = 3,           //   Image   (write, atomics, no filtering)
-//   VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER = 4,    // x Buffer Texture backed by UBO memory - buffer texture is simply a way for the shader to directly access a large array of data, generally larger than uniform buffer objects allow.
-//   VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER = 5,    // x Buffer Texture backed by Storage memory (write, atomics)
-//   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6,          //   Uniform
-//   VK_DESCRIPTOR_TYPE_STORAGE_BUFFER = 7,          //   Storage
-//   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,  // * Uniform (dynamic array size, specifcied on runtime)
-//   VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,  //   Storage (dynamic array size, specifcied on runtime)
-//   VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,       // Render Pass Input Attachment for multi-sub-pass graph (Fragment Shader read of RT) 
-//   
-//   // SetLayour - Single Range
-//   VkDescriptorSetLayoutBinding setBinding;
-//   setBinding.binding = i; // Binding the same as in Shader
-//   setBinding.descriptorType = ;// VkDescriptorType
-//   setBinding.descriptorCount = ; // uint32_t
+
+// VkShaderStageFlags
+
+
+   createLayout(const uint32 setsCount, const ResourceSet* set)
+   {
+   // Current assigned HLSL slot for each resource type
+   uint32 types = underlyingType(ResourceType::Count);   // TODO: Fix for CBV !!!!
+   uint32* slot = uint32[types];
+   for(uint32 i=0u; i<types; ++i)
+      slot[i] = 0u;
+      
+   D3D12_DESCRIPTOR_RANGE* rangeInfo = new D3D12_DESCRIPTOR_RANGE[setsCount];
+   for(uint32 i=0u; i<setsCount; ++i)
+      {
+      // Single Descriptors range
+      uint32 resourceType = underlyingType(set[i]->type);
+      rangeInfo[i]->RangeType          = TranslateResourceType[resourceType];
+      rangeInfo[i]->NumDescriptors     = set[i]->count;      // UINT - -1 or UINT_MAX to specify unbounded size (only last entry)
+      rangeInfo[i]->BaseShaderRegister = slot[resourceType]; // UINT - register in HLSL this resource maps to, for SRVs, 3 maps to ": register(t3);" in HLSL.
+      rangeInfo[i]->RegisterSpace      = 0u;                 // UINT - register space in which resources are bound
+
+      // UINT - offset in descriptors from the start of the root signature
+      // D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND - immediatelly follow previous one
+      rangeInfo[i]->OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+      // Increase index by amount of slots used
+      slot[resourceType] += set[i]->count;
+      }
+
+   // Descriptor Ranges Table
+   D3D12_ROOT_DESCRIPTOR_TABLE setInfo;
+   setInfo.NumDescriptorRanges = setsCount;
+   setInfo.pDescriptorRanges   = rangeInfo;
+   }
+
+   Ptr<SetLayout> createLayout(const uint32 setsCount, const ResourceSet* set)
+   {
+   Ptr<SetLayoutVK> result = nullptr;
+
+   // Current assigned HLSL slot for each resource type
+   uint32 types = underlyingType(ResourceType::Count);
+   uint32* slot = uint32[types];
+   for(uint32 i=0; i<types; ++i)
+      slot[i] = 0u;
+      
+   VkDescriptorSetLayoutBinding* rangeInfo = new VkDescriptorSetLayoutBinding[setsCount];
+   for(uint32 i=0; i<setsCount; ++i)
+      {
+      // Single Descriptors range
+      uint32 resourceType = underlyingType(set[i]->type);
+      rangeInfo[i]->binding            = slot[resourceType];
+      rangeInfo[i]->descriptorType     = TranslateResourceType[resourceType];
+      rangeInfo[i]->descriptorCount    = set[i]->count;
 //VkShaderStageFlags stageFlags;
-//   setBinding.pImmutableSamplers = nullptr; // const VkSampler*
-//
-//   // Table - Single Range
-//	// RegisterSpace -
-//   D3D12_DESCRIPTOR_RANGE rangeInfo;
-//   rangeInfo.RangeType = ; // D3D12_DESCRIPTOR_RANGE_TYPE
-//   rangeInfo.NumDescriptors     = 0; // UINT - -1 or UINT_MAX to specify unbounded size (only last entry)
-//   rangeInfo.BaseShaderRegister = 0; // UINT - register in HLSL resource maps to, for SRVs, 3 maps to ": register(t3);" in HLSL.
-//   rangeInfo.RegisterSpace      = 0; // UINT - register space in which resources are bound
-//   rangeInfo.OffsetInDescriptorsFromTableStart = 0; // UINT - offset in descriptors from the start of the root signature
-//                                                    // D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND - immediatelly follow previous one
-//
-//	
-//
+      rangeInfo[i]->pImmutableSamplers = nullptr; // const VkSampler*
+
+      // Increase index by amount of slots used
+      slot[resourceType] += set[i]->count;
+      }
+
+   // Descriptor Ranges Table
+   VkDescriptorSetLayoutCreateInfo setInfo;
+   setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+   setInfo.pNext        = nullptr;
+   setInfo.flags        = 0u;      // Reserved for future
+   setInfo.bindingCount = setsCount;
+   setInfo.pBindings    = rangeInfo;
+   
+   VkDescriptorSetLayout setLayout;
+      
+   Profile( gpu, vkCreateDescriptorSetLayout(gpu->device, &setInfo, nullptr, &setLayout) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      result = new SetLayoutVK(gpu, setLayout);
+      }
+      
+   return ptr_reinterpret_cast<SetLayout>(result);
+   }
+
+
+
+
+   
+//   ResourcesSet*
 //   
-//   // Vulkan - SetLayout
-//   VkDescriptorSetLayoutCreateInfo setInfo;
-//   setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-//   setInfo.pNext        = nullptr;
-//   setInfo.flags        = 0; // Reserved for future
-//   setInfo.bindingCount = 0;       // uint32
-//   setInfo.pBindings    = nullptr; // const VkDescriptorSetLayoutBinding*
-//
-//   // D3D12 - Descriptors Table
-//	D3D12_ROOT_DESCRIPTOR_TABLE setInfo;
-//   setInfo.NumDescriptorRanges = 0; // UINT
-//   setInfo.pDescriptorRanges   = nullptr; // const D3D12_DESCRIPTOR_RANGE *
-//
-//
-//
-//   VkDescriptorSetLayout setLayout;
-//      
-//   Profile( gpu, vkCreateDescriptorSetLayout(gpu->device, &setInfo, nullptr, &setLayout) )
-//   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
-//      {
-//      result = ptr_dynamic_cast<SetLayout, SetLayoutVK>(new SetLayoutVK(gpu, setLayout));
-//      }
-//      
-//   return result;
-//   }
+//   // SetLayout:
+//   // N - Samplers           - stages: V, F
+//   // K - Immutable Samplers - stages: V
+//   // W - Textures           - stages: F
+//   // H - Images             - stages: V, F
+//   
 //
 //   
 //   {
