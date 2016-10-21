@@ -32,6 +32,7 @@
 #include "core/rendering/shader.h"
 #include "core/rendering/heap.h"
 #include "core/rendering/commandBuffer.h"
+#include "core/rendering/layout.h"
 
 #include "utilities/Nversion.h"
 
@@ -233,6 +234,8 @@ namespace en
                                           const uint32 usedBuffers,
                                           const AttributeDesc* attributes,
                                           const BufferDesc* buffers) = 0;
+
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, const Resources* group) = 0;
 
 
 

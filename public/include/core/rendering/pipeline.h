@@ -31,6 +31,7 @@
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/blend.h"
 #include "core/rendering/shader.h"
+#include "core/rendering/layout.h"
 
 namespace en
 {
@@ -77,12 +78,6 @@ namespace en
    //    bool dualSourceBlending;              // Supports Dual-Source blending
    //    } support;
    //
-
-   class PipelineLayout : public SafeObject<PipelineLayout>
-      {
-      public:
-      virtual ~PipelineLayout() {};                              // Polymorphic deletes require a virtual base destructor
-      };
 
    // Handle for Pipeline State Object binding specification
    class Pipeline : public SafeObject<Pipeline>

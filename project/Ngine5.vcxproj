@@ -25,6 +25,7 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Blend.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12DepthStencil.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12InputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Layout.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Pipeline.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Raster.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Texture.cpp" />
@@ -79,6 +80,7 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkDevice.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkHeap.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkInputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkMultisampling.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkPipeline.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkRaster.cpp" />
@@ -175,6 +177,7 @@
     <ClInclude Include="..\public\include\core\rendering\gpu.h" />
     <ClInclude Include="..\public\include\core\rendering\heap.h" />
     <ClInclude Include="..\public\include\core\rendering\inputAssembler.h" />
+    <ClInclude Include="..\public\include\core\rendering\layout.h" />
     <ClInclude Include="..\public\include\core\rendering\multisampling.h" />
     <ClInclude Include="..\public\include\core\rendering\pipeline.h" />
     <ClInclude Include="..\public\include\core\rendering\program.h" />
@@ -290,6 +293,7 @@
     <ClInclude Include="..\src\core\rendering\d3d12\dx12DepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Device.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12InputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Layout.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Raster.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h" />
     <ClInclude Include="..\src\core\rendering\metal\metal.h" />
@@ -348,6 +352,7 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkDevice.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkHeap.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkLayout.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkMultisampling.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkPipeline.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkRaster.h" />

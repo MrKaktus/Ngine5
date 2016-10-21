@@ -50,6 +50,8 @@ namespace en
 
       virtual void init(void);
       virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, const Resources* group);
       };
    }
 }

@@ -119,58 +119,6 @@ namespace en
    #define DeclareFunction(function)                                             \
    PFN_##function function;
 
-
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/// TEMP START
-
-   class PipelineLayoutVK : public PipelineLayout
-      {
-      public:
-      VkPipelineLayout state;
-
-      PipelineLayoutVK();
-      };
-
-/// TEMP END
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    // TODO: Move it to Thread Pool Scheduler
    #define MaxSupportedWorkerThreads 64
    
@@ -307,6 +255,7 @@ namespace en
                                          const AttributeDesc* attributes,
                                          const BufferDesc* buffers);
 
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, const Resources* group);
 
 
       virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
