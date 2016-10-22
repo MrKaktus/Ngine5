@@ -21,6 +21,12 @@
 		85245FCB1DB45EBD004A903C /* osxSurface.h in Headers */ = {isa = PBXBuildFile; fileRef = 85245FCA1DB45EBD004A903C /* osxSurface.h */; };
 		85245FCD1DB47A83004A903C /* osxSurface.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85245FCC1DB47A83004A903C /* osxSurface.mm */; };
 		85245FCF1DB4A408004A903C /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85245FCE1DB4A408004A903C /* IOSurface.framework */; };
+		852B262E1DBA6408007D0C0F /* vkLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 852B262A1DBA6407007D0C0F /* vkLayout.cpp */; };
+		852B262F1DBA6408007D0C0F /* vkLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 852B262B1DBA6408007D0C0F /* vkLayout.h */; };
+		852B26301DBA6408007D0C0F /* vkShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 852B262C1DBA6408007D0C0F /* vkShader.cpp */; };
+		852B26311DBA6408007D0C0F /* vkShader.h in Headers */ = {isa = PBXBuildFile; fileRef = 852B262D1DBA6408007D0C0F /* vkShader.h */; };
+		852B26341DBA6421007D0C0F /* dx12Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 852B26321DBA6421007D0C0F /* dx12Layout.cpp */; };
+		852B26351DBA6421007D0C0F /* dx12Layout.h in Headers */ = {isa = PBXBuildFile; fileRef = 852B26331DBA6421007D0C0F /* dx12Layout.h */; };
 		856E9C941CB874B800875662 /* mtlPipeline.mm in Sources */ = {isa = PBXBuildFile; fileRef = 856E9C931CB874B800875662 /* mtlPipeline.mm */; };
 		856E9C961CB8753000875662 /* mtlPipeline.h in Headers */ = {isa = PBXBuildFile; fileRef = 856E9C951CB8753000875662 /* mtlPipeline.h */; };
 		856E9C971CB8C97200875662 /* mtlBlend.h in Headers */ = {isa = PBXBuildFile; fileRef = 859179CB1C3F66120051382A /* mtlBlend.h */; };
@@ -238,6 +244,12 @@
 		85245FCA1DB45EBD004A903C /* osxSurface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = osxSurface.h; sourceTree = "<group>"; };
 		85245FCC1DB47A83004A903C /* osxSurface.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxSurface.mm; sourceTree = "<group>"; };
 		85245FCE1DB4A408004A903C /* IOSurface.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOSurface.framework; path = System/Library/Frameworks/IOSurface.framework; sourceTree = SDKROOT; };
+		852B262A1DBA6407007D0C0F /* vkLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vkLayout.cpp; sourceTree = "<group>"; };
+		852B262B1DBA6408007D0C0F /* vkLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vkLayout.h; sourceTree = "<group>"; };
+		852B262C1DBA6408007D0C0F /* vkShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vkShader.cpp; sourceTree = "<group>"; };
+		852B262D1DBA6408007D0C0F /* vkShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vkShader.h; sourceTree = "<group>"; };
+		852B26321DBA6421007D0C0F /* dx12Layout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Layout.cpp; sourceTree = "<group>"; };
+		852B26331DBA6421007D0C0F /* dx12Layout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12Layout.h; sourceTree = "<group>"; };
 		85585EE61C0A32C3002EB348 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		8568754A1BF410E400D7FD2D /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		8568754C1BF411AD00D7FD2D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -656,6 +668,8 @@
 		859179B21C3F66120051382A /* d3d12 */ = {
 			isa = PBXGroup;
 			children = (
+				852B26321DBA6421007D0C0F /* dx12Layout.cpp */,
+				852B26331DBA6421007D0C0F /* dx12Layout.h */,
 				85E9CBA31D7486CD0029A9BE /* dx12Texture.cpp */,
 				859179B31C3F66120051382A /* dx12.h */,
 				859179B41C3F66120051382A /* dx12Blend.cpp */,
@@ -786,6 +800,10 @@
 		85917A121C3F66120051382A /* vulkan */ = {
 			isa = PBXGroup;
 			children = (
+				852B262A1DBA6407007D0C0F /* vkLayout.cpp */,
+				852B262B1DBA6408007D0C0F /* vkLayout.h */,
+				852B262C1DBA6408007D0C0F /* vkShader.cpp */,
+				852B262D1DBA6408007D0C0F /* vkShader.h */,
 				85E9CB991D7485A80029A9BE /* vkHeap.cpp */,
 				85E9CB9A1D7485A80029A9BE /* vkHeap.h */,
 				851A8EBA1CC5A4F600272F88 /* vkBuffer.h */,
@@ -1109,6 +1127,8 @@
 				85917C8C1C408C9F0051382A /* monetization in Headers */,
 				8508B68C1CF00B7800454423 /* mtlShader.h in Headers */,
 				856E9C971CB8C97200875662 /* mtlBlend.h in Headers */,
+				852B26351DBA6421007D0C0F /* dx12Layout.h in Headers */,
+				852B26311DBA6408007D0C0F /* vkShader.h in Headers */,
 				85917C8D1C408C9F0051382A /* Ngine.h in Headers */,
 				859A39C11CA78E1900CC4173 /* common.h in Headers */,
 				85917C8E1C408C9F0051382A /* platform in Headers */,
@@ -1125,6 +1145,7 @@
 				85917C921C408C9F0051382A /* threading in Headers */,
 				856E9C9B1CBC9B5200875662 /* mtlMultisampling.h in Headers */,
 				85245FCB1DB45EBD004A903C /* osxSurface.h in Headers */,
+				852B262F1DBA6408007D0C0F /* vkLayout.h in Headers */,
 				851A8E951CC539D800272F88 /* mtlBuffer.h in Headers */,
 				858398BA1D0B107B00431C85 /* vkCommandBuffer.h in Headers */,
 				85917C931C408C9F0051382A /* threading.h in Headers */,
@@ -1218,6 +1239,7 @@
 				85917A961C3F66F50051382A /* cTexture.cpp in Sources */,
 				85917A971C3F66F50051382A /* inputAssembler.cpp in Sources */,
 				85917A981C3F66F50051382A /* device.cpp in Sources */,
+				852B26301DBA6408007D0C0F /* vkShader.cpp in Sources */,
 				85917A991C3F66F50051382A /* dx12Blend.cpp in Sources */,
 				85917A9A1C3F66F50051382A /* dx12DepthStencil.cpp in Sources */,
 				85917A9B1C3F66F50051382A /* dx12InputAssembler.cpp in Sources */,
@@ -1260,6 +1282,7 @@
 				85917AB91C3F66F50051382A /* opengl31.cpp in Sources */,
 				85917ABA1C3F66F50051382A /* opengl32.cpp in Sources */,
 				85917ABB1C3F66F50051382A /* opengl33.cpp in Sources */,
+				852B26341DBA6421007D0C0F /* dx12Layout.cpp in Sources */,
 				85917ABC1C3F66F50051382A /* opengl40.cpp in Sources */,
 				85917ABD1C3F66F50051382A /* opengl41.cpp in Sources */,
 				85917ABE1C3F66F50051382A /* opengl42.cpp in Sources */,
@@ -1315,6 +1338,7 @@
 				85917AE91C3F66F60051382A /* hmd.cpp in Sources */,
 				85987A9C1D086DD90063BCFD /* mtlCommandBuffer.mm in Sources */,
 				85917AEA1C3F66F60051382A /* input.cpp in Sources */,
+				852B262E1DBA6408007D0C0F /* vkLayout.cpp in Sources */,
 				85917AEB1C3F66F60051382A /* winJoystick.cpp in Sources */,
 				85846D761CE6D1D000E06629 /* glBuffer.cpp in Sources */,
 				85917AEC1C3F66F60051382A /* oculus.cpp in Sources */,

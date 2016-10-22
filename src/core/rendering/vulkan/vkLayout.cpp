@@ -133,17 +133,60 @@ namespace en
    return ptr_reinterpret_cast<SetLayout>(&result);
    }
 
-   Ptr<PipelineLayout> VulkanDevice::createPipelineLayout(const uint32 sets, Ptr<SetLayout>* set)
+   Ptr<PipelineLayout> VulkanDevice::createPipelineLayout(const uint32 sets,
+                                                          const Ptr<SetLayout>* set,
+                                                          const uint32 immutableSamplers,
+                                                          const Ptr<Sampler>* sampler)
    {
    Ptr<PipelineLayoutVK> result = nullptr; 
 
+   // We gather all Immutable Samplers into additional Descriptor Set to match Direct3D12 behavior.
+   uint32 totalSets = sets;
+   if (immutableSamplers > 0)
+      totalSets++;
+      
    // Gather descriptor set layouts
-   VkDescriptorSetLayout* setsLayouts = new VkDescriptorSetLayout[sets];
+   VkDescriptorSetLayout* setsLayouts = new VkDescriptorSetLayout[totalSets];
    for(uint32 i=0; i<sets; ++i)
       {
       SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(&set[i]);
       setsLayouts[i] = ptr->handle;
       }
+      
+   // Create additional Descriptor Set for Immutable Samplers
+   {
+      // Vulkan requires already created samplers to be passed as immutable.
+      // D3D12 requires sampler states. We could emulate that by storing in
+      // each sampler object in D3D12 backend it's original SamplerState.
+      
+      // Gather Sampler handles
+      VkSampler* immutable = new VkSampler[immutableSamplers];
+      for(uint32 i=0; i<sets; ++i)
+         {
+         SamplerVK* ptr = raw_reinterpret_cast<SamplerVK>(&sampler[i]);
+         immutable[i] = ptr->handle;
+         }
+      
+      // Single Descriptors range
+      VkDescriptorSetLayoutBinding rangeInfo;
+      rangeInfo.binding            = ;
+      rangeInfo.descriptorType     = VK_DESCRIPTOR_TYPE_SAMPLER;
+      rangeInfo.descriptorCount    = immutableSamplers;
+//VkShaderStageFlags stageFlags;  // TODO: What about ShaderStages for Immutable Samplers ?
+      rangeInfo.pImmutableSamplers = immutable;
+
+      // Descriptor Range Table
+      VkDescriptorSetLayoutCreateInfo setInfo;
+      setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+      setInfo.pNext        = nullptr;
+      setInfo.flags        = 0u;      // Reserved for future
+      setInfo.bindingCount = 1u;
+      setInfo.pBindings    = &rangeInfo;
+   
+      // Create additional Set and store it immediately in the Sets array
+      Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setsLayouts[sets]) )
+      assert( lastResult[Scheduler.core()] == VK_SUCCESS );
+   }
 
    // TODO: Push Constants
 
@@ -153,9 +196,11 @@ namespace en
 //VkShaderStageFlags stageFlags;
 //uint32_t offset;
 //uint32_t size;
-//} VkPushConstantRange;
-   // TODO: Immutable Samplers (emulate Dx12 separate table as additional set)
+//} VkPushConstantRange;
 
+
+
+   
    VkPipelineLayoutCreateInfo layoutInfo;
    layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
    layoutInfo.pNext                  = nullptr;
