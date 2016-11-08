@@ -257,7 +257,8 @@ namespace en
       DXGI_FORMAT_R10G10B10A2_UNORM     // Float4_10_10_10_2_Norm 
       };
 
-   InputAssemblerD3D12::InputAssemblerD3D12(const DrawableType primitiveType,
+   InputAssemblerD3D12::InputAssemblerD3D12(
+      const DrawableType primitiveType,
       const uint32 controlPoints, 
       const uint32 usedAttributes, 
       const uint32 usedBuffers, 

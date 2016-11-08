@@ -140,6 +140,12 @@ namespace en
    [handle release];
    }
 
+   Ptr<Sampler> MetalDevice::createSampler(const SamplerState& state)
+   {
+   Ptr<SamplerMTL> sampler = new SamplerMTL(this, state);
+   return ptr_reinterpret_cast<Sampler>(&sampler);
+   };
+
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    void InitSamplers(const CommonDevice* gpu)
    {

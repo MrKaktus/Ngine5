@@ -29,9 +29,10 @@ namespace en
    // Static    - Fastest possible GPU read and write. There is no CPU access to this kind of memory,
    //             thus all resources need to be populated using Staging buffers. This is the only type
    //             of memory that allows textures creation. Buffers can be created as well.
-   // Streamed  - Fastest possible CPU read and write. Used to stream data to Static memory. Can be mapped.
+   // Streamed  - Fastest possible CPU read and write. Used to stream data to and from Static memory. Can be mapped.
    // Immediate - Fastest possible CPU write, with immediate upload to GPU memory if possible. Dedicated
    //             for fast changing key data like Push Constants and UBO's. Can be mapped as well.
+   //             This type of memory shouldn't be used to read data back from GPU.
    // Temporary - Fastest possible allocation, GPU read and write. Backup memory for temporary Render-Targets.
    //
    enum class MemoryUsage : uint32
@@ -41,6 +42,10 @@ namespace en
       Immediate   ,   // Data that ideally should be updated in the same frame (Uniform's, Push Constants)
       Temporary       // Use as a backup memory for intermediate Render Targets.
       };
+
+   // TODO: Change "Temporary" MemoryUsage interface to "Renderable". This will be dedicated memory type
+   //       for alocation of RenderTargets. It will also allow resources aliasing in the future.
+   //       (and on Vulkan will allow Temporary RT's backing, on Metal memoryless ones)
 
    class GpuDevice;
 

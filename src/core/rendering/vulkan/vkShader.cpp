@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Shader.
+ Module      : Vulkan Shader.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -15,9 +15,8 @@
 
 #include "core/rendering/vulkan/vkShader.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_MODULE_RENDERER_VULKAN)
 
-#include "core/defines.h"
 #include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/vulkan/vkDevice.h"
 #include "utilities/utilities.h" // For underlyingType()
@@ -41,6 +40,7 @@ namespace en
    Ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const string& source)
    {
    // VK_NV_glsl_shader - allows passing in GLSL instead of SPIR-V
+   //                     (we can compile GLSL to SPIRV offline)
 
    Ptr<ShaderVK> shader;
 
@@ -49,7 +49,8 @@ namespace en
    createInfo.pNext    = nullptr;
    createInfo.flags    = 0u; // Reserved for future use
    createInfo.codeSize = source.size();
-   createInfo.pCode    = (const uint32_t*)source.c_str();
+   createInfo.pCode    = (const uint32_t*)source.c_str();
+
    VkShaderModule handle;
    Profile( this, vkCreateShaderModule(device, &createInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)

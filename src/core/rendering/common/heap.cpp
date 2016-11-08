@@ -72,7 +72,7 @@ namespace en
            format == Attribute::u16 ||
            format == Attribute::u32 );
      
-   uint32 elementSize = TranslateAttributeSize[underlyingType(format)];
+   uint32 elementSize = AttributeSize[underlyingType(format)];
    uint32 size        = elements * elementSize;
    Ptr<Buffer> buffer = createBuffer(BufferType::Index, size);
    if (buffer)

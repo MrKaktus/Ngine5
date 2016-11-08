@@ -256,7 +256,7 @@ namespace en
    // Elements are assembled into Primitives.
    if (indexBuffer)
       {
-      Ptr<BufferMTL> index = ptr_dynamic_cast<BufferMTL, Buffer>(indexBuffer);
+      BufferMTL* index = raw_reinterpret_cast<BufferMTL>(&indexBuffer);
       
       assert( index->apiType == BufferType::Index );
       
@@ -313,12 +313,12 @@ namespace en
    assert( indirectBuffer );
    
    MTLPrimitiveType primitive = TranslateDrawableType[primitiveType];
-   Ptr<BufferMTL> indirect = ptr_dynamic_cast<BufferMTL, Buffer>(indirectBuffer);
+   BufferMTL* indirect = raw_reinterpret_cast<BufferMTL>(&indirectBuffer);
    assert( indirect->apiType == BufferType::Indirect );
    
    if (indexBuffer)
       {
-      Ptr<BufferMTL> index = ptr_dynamic_cast<BufferMTL, Buffer>(indexBuffer);
+      BufferMTL* index = raw_reinterpret_cast<BufferMTL>(&indexBuffer);
       assert( index->apiType == BufferType::Index );
       
       uint32 elementSize = 2;

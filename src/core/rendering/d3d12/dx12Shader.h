@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Shader.
+ Module      : D3D12 Shader.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,30 +13,31 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_VULKAN_SHADER
-#define ENG_CORE_RENDERING_VULKAN_SHADER
+#ifndef ENG_CORE_RENDERING_D3D12_SHADER
+#define ENG_CORE_RENDERING_D3D12_SHADER
 
-#include "core/rendering/vulkan/vulkan.h"
+#include "core/defines.h"
 
-#if defined(EN_MODULE_RENDERER_VULKAN)
+#if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
+#include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/shader.h"
 
 namespace en
 {
    namespace gpu
    {
-   class VulkanDevice;
+   class Direct3D12Device;
 
-   class ShaderVK : public Shader
+   class ShaderD3D12 : public Shader
       {
       public:
-      VulkanDevice*  gpu;
-      VkShaderModule handle;
+      Direct3D12Device*  gpu;
+      D3D12_SHADER_BYTECODE handle;
       ShaderStage    stage;
 
-      ShaderVK(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
-      virtual ~ShaderVK();
+      ShaderD3D12(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
+      virtual ~ShaderD3D12();
       };
 
    }

@@ -60,11 +60,11 @@ namespace en
       layer(nil),
       drawable(nil),
       framebuffer(nullptr),
-      firstFrame(true),
       CommonWindow()
    {
    _position = settings.position;
- 
+   _mode     = settings.mode;
+    
    id<MTLDevice> device = gpu->device;
    
    // Determine destination screen properties
@@ -72,7 +72,7 @@ namespace en
    uint32v2 resolution;
    if (settings.display)
       {
-      Ptr<DisplayMTL> ptr = ptr_dynamic_cast<DisplayMTL, Display>(settings.display);
+      DisplayMTL* ptr = raw_reinterpret_cast<DisplayMTL>(&settings.display);
       handle     = ptr->handle;
       resolution = ptr->_resolution;
       }
@@ -219,6 +219,9 @@ namespace en
    
    void WindowMTL::move(const uint32v2 position)
    {
+   if (_mode != WindowMode::Windowed)
+      return;
+      
    // Reposition window.
    // Position is from lower-left corner of the screen in OSX.
    // Both position and resolution are in points, not pixels.
@@ -234,6 +237,9 @@ namespace en
 
    void WindowMTL::resize(const uint32v2 size)
    {
+   if (_mode != WindowMode::Windowed)
+      return;
+      
    // Resize window.
    // Both position and resolution are in points, not pixels.
    Ptr<DisplayMTL> metalDisplay = ptr_reinterpret_cast<DisplayMTL>(&_display);
@@ -243,6 +249,8 @@ namespace en
    frame.size.width = size.width;
    frame.size.height = size.height;
    [window setFrame:[screen convertRectFromBacking:frame] display:YES animate:NO];
+   
+   // TODO: This should go in pair with Swap-Chain resizing/reinitialization!
    }
    
    void WindowMTL::active(void)
@@ -280,12 +288,9 @@ namespace en
 
       if (needNewSurface)
          {
-         //if (!firstFrame)
-         //   [framebuffer->handle release];
          drawable            = [layer nextDrawable];
          framebuffer->handle = drawable.texture;
          needNewSurface      = false;
-         //firstFrame          = false;
          }
 
       surfaceAcquire.unlock();

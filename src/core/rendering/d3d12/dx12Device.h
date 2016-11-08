@@ -30,6 +30,92 @@
 
 using namespace std;
 
+// gpu     - pointer to class storing pointer to called function.
+//           Should be VulkanDevice*, or VulkanGPU*.
+// command - Vulkan API function call to execute.
+//
+// Result of function call is stored per GPU, per Thread.
+//
+#ifdef EN_DEBUG
+   #ifdef EN_PROFILER_TRACE_GRAPHICS_API
+
+   #define Profile( _gpu, command )                                                 \
+           {                                                                        \
+           uint32 thread = Scheduler.core();                                        \
+           Log << "[" << setw(2) << thread << "] ";                                 \
+           Log << "D3D12 GPU " << setbase(16) << _gpu << ": " << #command << endl;  \
+           _gpu->lastResult[thread] = _gpu->device.command;                         \
+           if (en::gpu::IsError(_gpu->lastResult[thread]))                          \
+              assert( 0 );                                                          \
+           en::gpu::IsWarning(_gpu->lastResult[thread]);                            \
+           }
+
+   #define Profile( command )                                                       \
+           {                                                                        \
+           uint32 thread = Scheduler.core();                                        \
+           Log << "[" << setw(2) << thread << "] ";                                 \
+           Log << "D3D12 GPU 0xXXXXXXXX: " << #command << endl;                     \
+           HRESULT hr = command;                                                    \
+           assert( SUCCEEDED(hr) );                                                 \
+           }
+
+   #define ProfileNoRet( _gpu, command )                                            \
+           {                                                                        \
+           uint32 thread = Scheduler.core();                                        \
+           Log << "[" << setw(2) << thread << "] ";                                 \
+           Log << "D3D12 GPU " << setbase(16) << _gpu << ": " << #command << endl;  \
+           _gpu->device.command;                                                    \
+           }
+
+   #define ProfileNoRet( command )                                                  \
+           {                                                                        \
+           uint32 thread = Scheduler.core();                                        \
+           Log << "[" << setw(2) << thread << "] ";                                 \
+           Log << "D3D12 GPU 0xXXXXXXXX: " << #command << endl;                     \
+           command;                                                                 \
+           }
+   #else 
+
+   #define Profile( _gpu, command )                                    \
+           {                                                           \
+           uint32 thread = Scheduler.core();                           \
+           _gpu->lastResult[thread] = _gpu->device.command;            \
+           if (en::gpu::IsError(_gpu->lastResult[thread]))             \
+              assert( 0 );                                             \
+           en::gpu::IsWarning(_gpu->lastResult[thread]);               \
+           }
+
+   #define Profile( command )                                          \
+           {                                                           \
+           HRESULT hr = command;                                       \
+           assert( SUCCEEDED(hr) );                                    \
+           }
+
+   #define ProfileNoRet( _gpu, command )                               \
+           _gpu->device.command;
+
+   #define ProfileNoRet( command )                                     \
+           command;
+
+
+   #endif
+   
+#else // Release
+
+   #define Profile( _gpu, command )                                   \
+           _gpu->lastResult[Scheduler.core()] = _gpu->device.command;
+
+   #define Profile( command )                                         \
+           command;
+
+   #define ProfileNoRet( _gpu, command )                              \
+           _gpu->device.command;
+
+   #define ProfileNoRet( command )                                    \
+           command;
+
+#endif
+
 namespace en
 {
    namespace gpu
@@ -37,7 +123,9 @@ namespace en
    class Direct3D12Device : public CommonDevice
       {
       public:
-
+      HRESULT      lastResult[MaxSupportedWorkerThreads];
+      ID3D12Device device;
+      
       Direct3D12Device();
      ~Direct3D12Device();
 
@@ -49,7 +137,30 @@ namespace en
                                  const BufferDesc* buffers);
 
       virtual void init(void);
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+
+      virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
+
+      virtual Ptr<Sampler> createSampler(const SamplerState& state);
+      
+      virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
+
+      virtual Ptr<Shader>  createShader(const ShaderStage stage,
+                                        const string& source);
+
+
+
+
+      virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state);
+      
+      virtual Ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc);
+      
+      virtual Ptr<BlendState>         createBlendState(const BlendStateInfo& state,
+                                                       const uint32 attachments,
+                                                       const BlendAttachmentInfo* color);
+         
+      virtual Ptr<ViewportState>      create(const uint32 count,
+                                             const ViewportStateInfo* viewports,
+                                             const ScissorStateInfo* scissors);
       };
    }
 }

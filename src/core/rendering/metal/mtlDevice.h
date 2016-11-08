@@ -62,7 +62,6 @@ namespace en
       CAMetalLayer* layer;
       id <CAMetalDrawable> drawable;
       Ptr<TextureMTL> framebuffer;
-      bool          firstFrame;
       
       virtual bool movable(void);
       virtual void move(const uint32v2 position);
@@ -101,6 +100,8 @@ namespace en
       
       virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
 
+      virtual Ptr<Sampler> createSampler(const SamplerState& state);
+      
       virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
       
       virtual Ptr<Shader>  createShader(const ShaderStage stage,

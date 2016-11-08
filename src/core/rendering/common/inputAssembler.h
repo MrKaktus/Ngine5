@@ -22,7 +22,7 @@ namespace en
 {
    namespace gpu
    {
-   extern const uint8 TranslateAttributeSize[underlyingType(Attribute::Count)];
+   extern const uint8 AttributeSize[underlyingType(Attribute::Count)];
    }
 }
 

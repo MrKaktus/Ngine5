@@ -24,6 +24,7 @@
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/raster.h"
 #include "core/rendering/pipeline.h"
+#include "core/rendering/sampler.h"
 #include "core/rendering/texture.h"
 #include "core/rendering/surface.h"
 #include "core/rendering/renderPass.h"
@@ -199,10 +200,12 @@ namespace en
       // Create Heap from which GPU resources can be sub-allocated.
       virtual Ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;
       
+      virtual Ptr<Sampler> createSampler(const SamplerState& state);
+      
       // Buffers and Textures are allocated from the Heaps.
       
       // Create texture that can be shared between processes and API's through
-      // shared backing surface.
+      // shared backing surface. If not supported on given platform, returns nullptr.
       virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface) = 0;
       
       // TODO:

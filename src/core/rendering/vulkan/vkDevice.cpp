@@ -200,6 +200,8 @@ namespace en
       hWnd(nullptr),
       CommonWindow()
    {
+   _mode = settings.mode;
+   
    WNDCLASS  Window;      // Window class
    DWORD     Style;       // Window style
    DWORD     ExStyle;     // Window extended style
@@ -265,7 +267,6 @@ namespace en
       Style   = WS_POPUP;                               // Window style
       ExStyle = WS_EX_APPWINDOW | WS_EX_TOPMOST;        // Window extended style
       ShowCursor(FALSE);                                // Hide mouse
-      _fullscreen = true;
       }
    else
       {
@@ -309,7 +310,7 @@ namespace en
       assert( 0 );
       }
    
-   _display  = ptr_dynamic_cast<CommonDisplay, winDisplay>(selectedDisplay);
+   _display  = ptr_reinterpret_cast<CommonDisplay>(&selectedDisplay);
    _position = settings.position;
    _size     = selectedResolution;
  //_resolution will be set by child class implementing given Graphics API Swap-Chain
@@ -333,19 +334,50 @@ namespace en
 
    bool winWindow::movable(void)
    {
+   if (_mode == WindowMode::Windowed)
+      return true;
+      
    return false;
    }
    
    void winWindow::move(const uint32v2 position)
    {
+   if (_mode != WindowMode::Windowed)
+      return;
+      
+   SetWindowPos(hWnd, HWND_TOP, position.x, position.y, _size.x, _size.y, SWP_NOSIZE | SWP_NOZORDER);
+   // or MoveWindow();
    }
    
+   // TODO: This method should be called by specialization class implementation that will chage Swap-Chain !
    void winWindow::resize(const uint32v2 size)
    {
+   if (_mode != WindowMode::Windowed)
+      return;
+      
+   // New window size
+   WindowRect.left      = (long)0;      
+   WindowRect.right     = (long)size.width;
+   WindowRect.top       = (long)0;    
+   WindowRect.bottom    = (long)size.height;
+     
+   // Calculate window final size after taking into notice borders, etc.
+   Style   = WS_CLIPSIBLINGS |                       // \_Prevents from overdrawing
+             WS_CLIPCHILDREN |                       // / by other windows
+             WS_POPUP        |
+             WS_OVERLAPPEDWINDOW;                    // Window style
+   ExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;     // Window extended style
+      
+   AdjustWindowRectEx(&WindowRect, Style, FALSE, ExStyle);  // Calculates true size of window with bars and borders
+   
+   SetWindowPos(hWnd, HWND_TOP, _position.x, _position.y,
+                WindowRect.right, WindowRect.bottom,
+                SWP_NOMOVE | SWP_NOZORDER);
    }
    
    void winWindow::active(void)
    {
+   SetActiveWindow(hWnd);
    }
 #endif
 

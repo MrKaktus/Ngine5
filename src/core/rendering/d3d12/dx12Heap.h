@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Heap.
+ Module      : D3D12 Heap.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,37 +13,31 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_VULKAN_HEAP
-#define ENG_CORE_RENDERING_VULKAN_HEAP
+#ifndef ENG_CORE_RENDERING_D3D12_HEAP
+#define ENG_CORE_RENDERING_D3D12_HEAP
 
-#include "core/rendering/vulkan/vulkan.h"
+#include "core/defines.h"
 
-#if defined(EN_MODULE_RENDERER_VULKAN)
+#if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
+#include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/common/heap.h"
-#include "core/rendering/common/device.h"
 #include "core/utilities/basicAllocator.h"
 
 namespace en
 {
    namespace gpu
    {
-   class VulkanDevice;
-
-   class HeapVK : public CommonHeap
+   class HeapD3D12 : public CommonHeap
       {
-      public:
-      VulkanDevice*  gpu;
-      VkDeviceMemory handle;
-      uint32         memoryType;
-      Allocator*     allocator;    // Allocation algorithm used to place resources on the Heap
-      Nmutex         mapped;
-      
-      HeapVK(VulkanDevice* gpu, 
-             const VkDeviceMemory handle, 
-             const uint32 _memoryType, 
-             const MemoryUsage _usage,
-             const uint32 size);
+      Direct3D12Device* gpu;
+      ID3D12Heap*       handle;
+      Allocator*        allocator;    // Allocation algorithm used to place resources on the Heap
+
+      HeapD3D12(Direct3D12Device* gpu,
+                ID3D12Heap* handle,
+                const MemoryUsage usage,
+                const uint32 size);
 
       // Return parent device
       virtual Ptr<GpuDevice> device(void) const;
@@ -56,8 +50,9 @@ namespace en
       
       virtual Ptr<Texture> createTexture(const TextureState state);
 
-      virtual ~HeapVK();
+      virtual ~HeapD3D12();
       };
+      
    }
 }
 #endif

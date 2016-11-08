@@ -133,7 +133,7 @@ namespace en
    }
    
    CommonWindow::CommonWindow() :
-      _fullscreen(false),
+      _mode(WindowMode::Windowed),
       needNewSurface(true),
       Window()
    {
@@ -146,7 +146,7 @@ namespace en
 
    Ptr<Display> CommonWindow::display(void) const
    {
-   return ptr_dynamic_cast<Display, CommonDisplay>(_display);
+   return ptr_reinterpret_cast<Display>(&_display);
    }
 
    uint32v2 CommonWindow::position(void) const

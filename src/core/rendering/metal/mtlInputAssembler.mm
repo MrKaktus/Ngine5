@@ -117,7 +117,7 @@ namespace en
       };
 
    // Size of each attribute in memory taking into notice required padding (4bytes on Metal)
-   const uint8 TranslateAttributeSize[underlyingType(Attribute::Count)] =
+   const uint8 AttributeSize[underlyingType(Attribute::Count)] =
       {
       0,    // None           
       0,    // u8_norm                (unsupported)
@@ -390,7 +390,7 @@ namespace en
    //     assert( attribute[i].buffer < MaxInputAssemblerAttributesCount );
    //  
    //     // Calculate new offset in currently used buffer
-   //     uint32 attributeSize = TranslateAttributeSize[ attribute[i].type ];
+   //     uint32 attributeSize = AttributeSize[ attribute[i].type ];
    //     assert( attributeSize != 0 );
    //  
    //     state->desc.attributes[i].format      = TranslateAttributeType[ attribute[i].type ];

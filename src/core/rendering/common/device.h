@@ -53,7 +53,7 @@ namespace en
       uint32v2 _size;
       uint32v2 _resolution;
       Nmutex   surfaceAcquire;   // Window instance mutex.
-      bool     _fullscreen;
+      WindowMode _mode;          // Windowed / Borderless / Fullscreen
       bool     needNewSurface;
 
       CommonWindow();
@@ -69,7 +69,6 @@ namespace en
       virtual void present(void);
       
       virtual ~CommonWindow();
-
       };
 
    class CommonDevice : public GpuDevice

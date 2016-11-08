@@ -76,7 +76,7 @@ namespace en
       if (column[i] == Attribute::None)
          break;
          
-      size += TranslateAttributeSize[underlyingType(column[i])];
+      size += AttributeSize[underlyingType(column[i])];
       }
       
    return size;
@@ -110,7 +110,7 @@ namespace en
       attributes[i].format = attribute;
       attributes[i].buffer = 0;
       attributes[i].offset = offsetInElement;
-      offsetInElement += TranslateAttributeSize[underlyingType(attribute)];
+      offsetInElement += AttributeSize[underlyingType(attribute)];
       }
 
    BufferDesc* buffers = new BufferDesc[usedBuffers];

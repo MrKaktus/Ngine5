@@ -54,6 +54,12 @@ namespace en
    state.ConservativeRaster    = desc.enableConservativeRasterization ? D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON : D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
    }
 
+   Ptr<RasterState> Direct3D12Device::createRasterState(const RasterStateInfo& state)
+   {
+   Ptr<RasterStateD3D12> ptr = new RasterStateD3D12(state);
+   return ptr_reinterpret_cast<RasterState>(&ptr);
+   }
+   
    }
 }
 #endif

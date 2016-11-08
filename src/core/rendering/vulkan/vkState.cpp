@@ -13,22 +13,6 @@
 //   namespace vulkan
 //   {
 //   using namespace en::gpu;
-//
-//   enum LoadOperation
-//      {
-//      DontLoad           = 0,
-//      Load                  ,
-//      Clear                 ,
-//      LoadOperationsCount
-//      };
-//   
-//   enum StoreOperation
-//      {
-//      DontStore          = 0,
-//      Store                 ,
-//      ResolveMSAA           ,
-//      StoreOperationsCount
-//      };
 //   
 //   enum ColorMask
 //      {
@@ -1276,60 +1260,7 @@
 //      VkPipeline id;
 //      };
 //
-//
-//   Ptr<Pipeline> Create(const Ptr<StaticBlendState> blendState)
-//   {
-//   Ptr<Pipeline> result = nullptr;
-//
-//   ID3D12Device* device;
-//
-//   // Set Static Blend State
-//   Ptr<dxStaticBlendState> blend = ptr_dynamic_cast<dxStaticBlendState, StaticBlendState>(blendState);
-//
-//   D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
-//
-//   // TODO: Fill descriptor
-//
-//   ID3D12RootSignature           *pRootSignature;
-//   D3D12_SHADER_BYTECODE         VS;
-//   D3D12_SHADER_BYTECODE         PS;
-//   D3D12_SHADER_BYTECODE         DS;
-//   D3D12_SHADER_BYTECODE         HS;
-//   D3D12_SHADER_BYTECODE         GS;
-//   D3D12_STREAM_OUTPUT_DESC      StreamOutput;
-//   desc.BlendState             = blend->desc;
-//   UINT                               SampleMask;
-//   D3D12_RASTERIZER_DESC              RasterizerState;
-//   D3D12_DEPTH_STENCIL_DESC           DepthStencilState;
-//   D3D12_INPUT_LAYOUT_DESC            InputLayout;
-//   desc.IBStripCutValue        = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFFFFFF; // or D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF or D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED
-//   desc.PrimitiveTopologyType  = TranslateDrawableType[ /* input drawable type */ ];
-//   UINT                               NumRenderTargets;
-//   DXGI_FORMAT                        RTVFormats[8];
-//   DXGI_FORMAT                        DSVFormat;
-//   DXGI_SAMPLE_DESC                   SampleDesc;
-//   desc.NodeMask               = 0;  // Only use for multi-GPU
-//   D3D12_CACHED_PIPELINE_STATE        CachedPSO;
-//   desc.Flags                  = D3D12_PIPELINE_STATE_FLAG_NONE; // or D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG
-//
-//   // Create pipeline state object
-//   ID3D12PipelineState* pipeline;
-//   HRESULT ret = device->CreateGraphicsPipelineState( &desc, __uuidof(ID3D12PipelineState), (void**)&pipeline);
-//   if (ret == E_OK)
-//      {
-//      Ptr<dxPipeline> pso = new dxPipeline();
-//      pso->id = pipeline;
-//      result = ptr_dynamic_cast<Pipeline, dxPipeline>(pipeline);
-//      }
-////   else
-////      {
-////      E_OUTOFMEMORY
-////      }
-//
-//   return result;
-//   }
-//
-//
+
 //
 //
 //
@@ -1579,7 +1510,7 @@
 //      };
 //
 //   // Size of each attribute in memory taking into notice required padding
-//   static const uint8 TranslateAttributeSize[AttributeTypesCount] = 
+//   static const uint8 AttributeSize[AttributeTypesCount] =
 //      {
 //      0,    // None                      
 //      0,    // Half                   
@@ -1713,7 +1644,7 @@
 //   assert( attribute[i].buffer < MaxInputAssemblerAttributesCount );
 //
 //   // Calculate new offset in currently used buffer
-//   uint32 attributeSize = TranslateAttributeSize[ attribute[i].type ];
+//   uint32 attributeSize = AttributeSize[ attribute[i].type ];
 //   assert( attributeSize != 0 );
 //
 //   state->desc.attributes[i].format      = TranslateAttributeType[ attribute[i].type ];

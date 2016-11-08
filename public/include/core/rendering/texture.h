@@ -18,8 +18,6 @@
 
 #include "core/types.h"
 #include "core/utilities/TintrusivePointer.h"
-//#include "core/utilities/Tproxy.h"
-//#include "core/rendering/state.h"
 
 namespace en
 {
@@ -485,7 +483,7 @@ namespace en
       //virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0) = 0;  // Surface is: CubeMap face, 3D depth, Array layer or CubeMapArray face-layer
       //virtual bool     unmap(void) = 0;
       
-      
+      // read should be removed -> use Copy to Staging Buffer and read back from it!
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
       virtual Ptr<TextureView> view(void) const = 0;                  // Default view representing this texture
       

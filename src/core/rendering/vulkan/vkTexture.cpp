@@ -256,7 +256,7 @@ namespace en
    ProfileNoRet( gpu, vkDestroySampler(gpu->device, handle, nullptr) )
    }
 
-   Ptr<Sampler> VulkanDevice::create(const SamplerState& state)
+   Ptr<Sampler> VulkanDevice::createSampler(const SamplerState& state)
    {
    Ptr<SamplerVK> sampler = nullptr;
    

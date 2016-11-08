@@ -67,7 +67,8 @@ namespace en
                                           const ViewportStateInfo* viewports,
                                           const ScissorStateInfo* scissors)
    {
-   return ptr_dynamic_cast<ViewportState, ViewportStateMTL>(new ViewportStateMTL(count, viewports, scissors));
+   Ptr<ViewportStateMTL> ptr = new ViewportStateMTL(count, viewports, scissors);
+   return ptr_reinterpret_cast<ViewportState>(&ptr);
    }
    
    }

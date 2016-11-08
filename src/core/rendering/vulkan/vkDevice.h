@@ -278,23 +278,17 @@ namespace en
 
       virtual Ptr<Heap>   createHeap(const MemoryUsage usage, const uint32 size);
 
+      virtual Ptr<Sampler> createSampler(const SamplerState& state);
+      
       virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
 
       virtual Ptr<Shader>  createShader(const ShaderStage stage,
                                         const string& source);
 
-      virtual Ptr<Sampler>  create(const SamplerState& state);
+
 
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
-      virtual Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
-                                   const Ptr<ViewportState>  viewportState,
-                                   const Ptr<RasterState>    rasterState,
-                                   const Ptr<MultisamplingState> multisamplingState,
-                                   const Ptr<DepthStencilState> depthStencilState,
-                                   const Ptr<BlendState>     blendState,
-                                   const Ptr<Shader>         shader,
-                                   const Ptr<PipelineLayout> pipelineLayout);
 
       virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
                                          const uint32 controlPoints,
