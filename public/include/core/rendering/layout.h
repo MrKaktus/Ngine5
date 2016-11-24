@@ -26,6 +26,9 @@ namespace en
    {
    // 64 bytes  - Push Constants
    //
+   // Direct3D12 Root Signature:
+   // 256 bytes (64 DWORD's) for all entries (Sets pointers, resource handles, immediates)
+   //
    // Vulkan Push Constants:
    // 256 bytes - NVidia
    // 128 bytes - AMD, Intel, Qualcomm, ImgTec
@@ -40,9 +43,12 @@ namespace en
    // 16KB-64KB - UBO's backed ( Uniform, Storage )
    // X GB      - Memory backed ( Storage, Texture, Image )
    
+   // Direct3D12 has ShaderStage visibility set per Root Parameter (so one for whole resources Set),
+   // while Vulkan can specify this visibility on per Resource Group (Range) basis.
+
    enum class ResourceType : uint32
       {
-      Sampler = 0, // Immutable Sampler ?
+      Sampler = 0,
       Texture    ,
       Image      ,
       Uniform    ,
@@ -50,7 +56,7 @@ namespace en
       Count
       };
 
-   struct Resources
+   struct ResourceGroup
       {
       ResourceType type;
       uint32       count;
@@ -71,11 +77,11 @@ namespace en
       };
 
    // Set of handles to resources of different kind
-   class DescriptorsSet : public SafeObject<DescriptorsSet>
+   class DescriptorSet : public SafeObject<DescriptorSet>
       {
       public:
       // TODO: Methods to binding resources to it
-      virtual ~DescriptorsSet() {};
+      virtual ~DescriptorSet() {};
       };
 
    }

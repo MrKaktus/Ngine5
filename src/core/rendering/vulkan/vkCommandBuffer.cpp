@@ -101,31 +101,33 @@ namespace en
    // RENDER PASS
    //////////////////////////////////////////////////////////////////////////
    
-   
-   bool CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer>_framebuffer)
-   {
-   if (encoding)
-      return false;
-  
-   if (!started)
-      {
-      // In Metal API we need to create Render Command Encoder.
-      // In Vulkan API CommandBuffer needs to be started first,
-      // before encoding content to it. It only needs to be done
-      // once, and multiple RenderPasses can be encoded afterwards.
-      VkCommandBufferBeginInfo info;
-      info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-      info.pNext            = nullptr;
-      info.flags            = 0;
-      info.pInheritanceInfo = nullptr; // We don't support secondary Command Buffers for now
 
-      Profile( gpu, vkBeginCommandBuffer(handle, &info) )
-      
-      started = true;
-      }
-      
-   Ptr<RenderPassVK>  renderPass  = ptr_dynamic_cast<RenderPassVK, RenderPass>(pass);
-   Ptr<FramebufferVK> framebuffer = ptr_dynamic_cast<FramebufferVK, Framebuffer>(_framebuffer);
+   void CommandBufferVK::start(void)
+   {
+   assert( !started );
+
+   // In Metal API we need to create Render Command Encoder.
+   // In Vulkan API CommandBuffer needs to be started first,
+   // before encoding content to it. It only needs to be done
+   // once, and multiple RenderPasses can be encoded afterwards.
+   VkCommandBufferBeginInfo info;
+   info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+   info.pNext            = nullptr;
+   info.flags            = 0;
+   info.pInheritanceInfo = nullptr; // We don't support secondary Command Buffers for now
+
+   Profile( gpu, vkBeginCommandBuffer(handle, &info) )
+   
+   started = true;
+   }
+   
+   void CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer>_framebuffer)
+   {
+   assert( started );
+   assert( !encoding );
+    
+   RenderPassVK*  renderPass  = raw_reinterpret_cast<RenderPassVK>(&pass);
+   FramebufferVK* framebuffer = raw_reinterpret_cast<FramebufferVK>(&_framebuffer);
 
    // Begin encoding commands for this Render Pass
    VkRenderPassBeginInfo beginInfo;
@@ -140,19 +142,17 @@ namespace en
    ProfileNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )
    
    encoding = true;
-   return true;
    }
    
-   bool CommandBufferVK::endRenderPass(void)
+   void CommandBufferVK::endRenderPass(void)
    {
-   if (!encoding)
-      return false;
-   
+   assert( started );
+   assert( encoding );
+
    // End encoding commands for this Render Pass
    ProfileNoRet( gpu, vkCmdEndRenderPass(handle) )
     
    encoding = false;
-   return true;
    }
    
 
@@ -162,6 +162,7 @@ namespace en
 
    void CommandBufferVK::setVertexBuffers(const uint32 count, const uint32 firstSlot, const Ptr<Buffer>* buffers, const uint64* offsets) const
    {
+   assert( started );
    assert( count );
    assert( (firstSlot + count) <= gpu->properties.limits.maxVertexInputBindings );
 
@@ -193,9 +194,13 @@ namespace en
 
    void CommandBufferVK::setVertexBuffer(const uint32 slot, const Ptr<Buffer> buffer, const uint64 offset) const
    {
+   assert( started );
+   assert( buffer );
+   assert( slot < gpu->properties.limits.maxVertexInputBindings );
+
    ProfileNoRet( gpu, vkCmdBindVertexBuffers(handle, 
                                              slot, 1,
-                                             &ptr_dynamic_cast<BufferVK, Buffer>(buffer)->handle, 
+                                             &raw_reinterpret_cast<BufferVK>(&buffer)->handle, 
                                              static_cast<const VkDeviceSize*>(&offset)) )
    }
 
@@ -206,18 +211,29 @@ namespace en
 
    void CommandBufferVK::copy(Ptr<Buffer> source, Ptr<Buffer> buffer)
    {
+   assert( started );
+   assert( source );
+   assert( buffer );
+
+   BufferVK* src = raw_reinterpret_cast<BufferVK>(&source);
+   BufferVK* dst = raw_reinterpret_cast<BufferVK>(&buffer);
    // TODO:
    
-//   void vkCmdCopyBuffer(
-//    VkCommandBuffer                             commandBuffer,
-//    VkBuffer                                    srcBuffer,
-//    VkBuffer                                    dstBuffer,
-//    uint32_t                                    regionCount,
-//    const VkBufferCopy*                         pRegions);
+   VkBufferCopy region;
+   region.srcOffset = 0u;
+   region.dstOffset = 0u;
+   region.size      = src->size;
+
+   ProfileNoRet( gpu, vkCmdCopyBuffer(handle,
+                                      src->handle,
+                                      dst->handle,
+                                      1u,
+                                      &region) )
    }
    
    void CommandBufferVK::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
    {
+   assert( started );
    assert( transfer );
    assert( transfer->type() == BufferType::Transfer );
    assert( texture );
@@ -314,6 +330,24 @@ namespace en
 //    VkFilter                                    filter);
    
 
+   // PIPELINE COMMANDS
+   //////////////////////////////////////////////////////////////////////////
+
+
+   void CommandBufferVK::set(const Ptr<Pipeline> pipeline)
+   {
+   assert( started );
+   assert( pipeline );
+
+   PipelineVK* ptr = raw_reinterpret_cast<PipelineVK>(&pipeline);
+
+   VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+   if (!ptr->graphics)
+      bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+
+   ProfileNoRet( gpu, vkCmdBindPipeline(handle, bindPoint, ptr->handle) )
+   }
+
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 
@@ -326,6 +360,9 @@ namespace en
                               const sint32       firstVertex,
                               const uint32       firstInstance)
    {
+   assert( started );
+   assert( encoding );
+
    // Vulkan cannot dynamically change drawn primitive type
    // TODO: Should we remove primitiveType from parameters ?
    
@@ -375,6 +412,8 @@ namespace en
                               const Ptr<Buffer>  indexBuffer,
                               const uint32       firstElement)
    {
+   assert( started );
+   assert( encoding );
    assert( indirectBuffer );
    
    Ptr<BufferVK> indirect = ptr_dynamic_cast<BufferVK, Buffer>(indirectBuffer);

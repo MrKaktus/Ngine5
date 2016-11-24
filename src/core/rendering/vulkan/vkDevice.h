@@ -129,6 +129,7 @@ namespace en
       public:
       VkResult                         lastResult[MaxSupportedWorkerThreads];
       VulkanAPI*                       api;          // Vulkan API (for Vulkan Instance calls)
+      uint32                           index;        // This device number on the list
       VkDevice                         device;
       VkPhysicalDevice                 handle;
       VkPhysicalDeviceFeatures         features;
@@ -144,7 +145,8 @@ namespace en
       uint32                           globalExtensionsCount;
 
       VkAllocationCallbacks            defaultAllocCallbacks;
-      VkPipelineCache                  pipelineCache;
+      VkPipelineCache                  pipelineCache;          // Shared between the threads. Reuses PSO's between app runs (HDD storage used).
+      bool                             rebuildCache;           // Indicates if driver cache should be re-saved to disk
       uint64                           memoryRAM;
       uint64                           memoryDriver;
 
@@ -164,8 +166,9 @@ namespace en
       #include "core/rendering/vulkan/vulkan10.h"
 
       // Helper functions
-      void loadDeviceFunctionPointers(void);
-      void clearDeviceFunctionPointers(void);
+      void  loadDeviceFunctionPointers(void);
+      void  clearDeviceFunctionPointers(void);
+      void* loadPipelineCache(uint64& size);
 
       // CPU memory allocation for given GPU device control
       friend void* VKAPI_PTR defaultAlloc(
@@ -198,7 +201,7 @@ namespace en
           VkSystemAllocationScope                     allocationScope);
 
       public:
-      VulkanDevice(VulkanAPI* api, const VkPhysicalDevice handle);
+      VulkanDevice(VulkanAPI* api, const uint32 index, const VkPhysicalDevice handle);
      ~VulkanDevice();
 
       virtual void init(void);
@@ -235,18 +238,14 @@ namespace en
 
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
-      virtual Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
-                                   const Ptr<ViewportState>  viewportState,
-                                   const Ptr<RasterState>    rasterState,
-                                   const Ptr<MultisamplingState> multisamplingState,
-                                   const Ptr<DepthStencilState> depthStencilState,
-                                   const Ptr<BlendState>     blendState,
-                                   const Ptr<Shader>         shader,
-                                   const Ptr<PipelineLayout> pipelineLayout);
-
-      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                         const uint32 controlPoints,
-                                         const Ptr<Buffer> buffer);
+      //virtual Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
+      //                             const Ptr<ViewportState>  viewportState,
+      //                             const Ptr<RasterState>    rasterState,
+      //                             const Ptr<MultisamplingState> multisamplingState,
+      //                             const Ptr<DepthStencilState> depthStencilState,
+      //                             const Ptr<BlendState>     blendState,
+      //                             const Ptr<Shader>         shader,
+      //                             const Ptr<PipelineLayout> pipelineLayout);
 
       virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
                                          const uint32 controlPoints,
@@ -255,7 +254,14 @@ namespace en
                                          const AttributeDesc* attributes,
                                          const BufferDesc* buffers);
 
-      virtual Ptr<SetLayout> createSetLayout(const uint32 count, const Resources* group);
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
+                                             const ResourceGroup* group,
+                                             const ShaderStage stageMask);
+
+      virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
+                                                       const Ptr<SetLayout>* set,
+                                                       const uint32 immutableSamplers = 0u,
+                                                       const Ptr<Sampler>* sampler = nullptr);
 
 
       virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
@@ -327,6 +333,8 @@ namespace en
       virtual void move(const uint32v2 position);
       virtual void resize(const uint32v2 size);
       virtual void active(void);
+      virtual void transparent(const float opacity);
+      virtual void opaque(void);
 
       virtual ~winWindow();
       };
@@ -349,13 +357,8 @@ namespace en
                const uint32v2 selectedResolution,
                const WindowSettings& settings,
                       const string title);
-      
-      virtual bool movable(void);
-      virtual void move(const uint32v2 position);
+
       virtual void resize(const uint32v2 size);
-      virtual void active(void);
-      virtual void transparent(const float opacity);
-      virtual void opaque(void);
       virtual Ptr<Texture> surface(void);
       virtual void present(void);
       
@@ -427,7 +430,22 @@ namespace en
       DeclareFunction( vkCreateDevice )
       DeclareFunction( vkGetDeviceProcAddr )
       DeclareFunction( vkDestroyInstance )
+
+      // VK_KHR_surface
       DeclareFunction( vkGetPhysicalDeviceSurfaceSupportKHR )
+      DeclareFunction( vkGetPhysicalDeviceSurfaceCapabilitiesKHR )
+      DeclareFunction( vkGetPhysicalDeviceSurfaceFormatsKHR )
+      DeclareFunction( vkGetPhysicalDeviceSurfacePresentModesKHR )
+      DeclareFunction( vkDestroySurfaceKHR )
+
+      // VK_KHR_win32_surface
+      DeclareFunction( vkCreateWin32SurfaceKHR )
+      DeclareFunction( vkGetPhysicalDeviceWin32PresentationSupportKHR )
+
+      // VK_EXT_debug_report
+      DeclareFunction( vkCreateDebugReportCallbackEXT )
+      DeclareFunction( vkDestroyDebugReportCallbackEXT )
+      DeclareFunction( vkDebugReportMessageEXT )
 
       public:
       VulkanAPI(string appName);

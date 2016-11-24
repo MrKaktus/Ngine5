@@ -18,6 +18,7 @@
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/rendering/vulkan/vkDevice.h"
+#include "core/rendering/vulkan/vkSampler.h"
 
 namespace en
 {
@@ -87,11 +88,14 @@ namespace en
    }
 
 
-   Ptr<SetLayout> VulkanDevice::createSetLayout(const uint32 count, const Resources* group)
+   Ptr<SetLayout> VulkanDevice::createSetLayout(const uint32 count, 
+                                                const ResourceGroup* group,
+                                                const ShaderStage stageMask)
    {
    Ptr<SetLayoutVK> result = nullptr;
 
-   // Current assigned HLSL slot for each resource type
+   // Current assigned HLSL slot for each resource type 
+   // TODO: Are those slots numerated separately per each resource type or is this shared pool ?
    uint32 types = underlyingType(ResourceType::Count);
    uint32* slot = new uint32[types];
    for(uint32 i=0; i<types; ++i)
@@ -105,8 +109,8 @@ namespace en
       rangeInfo[i].binding            = slot[resourceType];
       rangeInfo[i].descriptorType     = TranslateResourceType[resourceType];
       rangeInfo[i].descriptorCount    = group[i].count;
-//VkShaderStageFlags stageFlags;
-      rangeInfo[i].pImmutableSamplers = nullptr; // const VkSampler*
+      rangeInfo[i].stageFlags         = underlyingType(stageMask); // ShaderStage enums match Vulkan enums.
+      rangeInfo[i].pImmutableSamplers = nullptr; 
 
       // Increase index by amount of slots used
       slot[resourceType] += group[i].count;
@@ -154,7 +158,8 @@ namespace en
       }
       
    // Create additional Descriptor Set for Immutable Samplers
-   {
+   if (immutableSamplers)
+      {
       // Vulkan requires already created samplers to be passed as immutable.
       // D3D12 requires sampler states. We could emulate that by storing in
       // each sampler object in D3D12 backend it's original SamplerState.
@@ -169,10 +174,10 @@ namespace en
       
       // Single Descriptors range
       VkDescriptorSetLayoutBinding rangeInfo;
-      rangeInfo.binding            = ;
+      rangeInfo.binding            = 0u; // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       rangeInfo.descriptorType     = VK_DESCRIPTOR_TYPE_SAMPLER;
       rangeInfo.descriptorCount    = immutableSamplers;
-//VkShaderStageFlags stageFlags;  // TODO: What about ShaderStages for Immutable Samplers ?
+      rangeInfo.stageFlags         = VK_SHADER_STAGE_ALL_GRAPHICS;  // TODO: What about ShaderStages for Immutable Samplers ?
       rangeInfo.pImmutableSamplers = immutable;
 
       // Descriptor Range Table
@@ -186,7 +191,7 @@ namespace en
       // Create additional Set and store it immediately in the Sets array
       Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setsLayouts[sets]) )
       assert( lastResult[Scheduler.core()] == VK_SUCCESS );
-   }
+      }
 
    // TODO: Push Constants
 
@@ -214,7 +219,7 @@ namespace en
    Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
-      result = new PipelineLayoutVK(gpu, layout));
+      result = new PipelineLayoutVK(this, layout);
       }
 
    delete [] setsLayouts;

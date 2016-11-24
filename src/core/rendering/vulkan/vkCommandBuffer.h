@@ -40,29 +40,43 @@ namespace en
       bool            started;
       bool            encoding;
       bool            commited;
-      
+
+      // Internal methods
+
       CommandBufferVK(VulkanDevice*         gpu,
                       const VkQueue         queue,
                       const QueueType       queueType,
                       const VkCommandBuffer handle,
                       const VkFence         fence);
+
+      void barrier(const Ptr<Texture> _texture, 
+                   const uint32v2 mipmaps, 
+                   const uint32v2 layers,
+                   const VkAccessFlags currentAccess,
+                   const VkAccessFlags newAccess,
+                   const VkImageLayout currentLayout,
+                   const VkImageLayout newLayout,
+                   const VkPipelineStageFlags afterStage,   // Transition after this stage
+                   const VkPipelineStageFlags beforeStage); // Transition before this stage
+
+      // Interface methods
                       
       virtual ~CommandBufferVK();
       
-      virtual void bind(const Ptr<RasterState> raster);
-      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
-      virtual void bind(const Ptr<DepthStencilState> depthStencil);
-      virtual void bind(const Ptr<BlendState> blend);
-      
-      virtual bool startRenderPass(const Ptr<RenderPass> pass, 
+      virtual void start(void);
+
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> buffer);
+         
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Texture> texture,
+                        const uint32 mipmap,
+                        const uint32 layer);
+
+      virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer);
 
       virtual void set(const Ptr<Pipeline> pipeline);
-      
-      // TEMP: Until Descriptor Tables abstraction is not done
-      virtual bool populate(Ptr<Buffer> buffer, const void* data);
-  
-
 
       virtual void setVertexBuffers(const uint32 count, 
                                     const uint32 firstSlot, 
@@ -72,14 +86,6 @@ namespace en
       virtual void setVertexBuffer(const uint32 slot, 
                                    const Ptr<Buffer> buffer, 
                                    const uint64 offset = 0u) const;
-
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> buffer);
-         
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Texture> texture,
-                        const uint32 mipmap,
-                        const uint32 layer);
                         
       virtual void draw(const DrawableType primitiveType,
                         const uint32       elements      = 1,   // Elements to process (they are assembled into Primitives)
@@ -96,7 +102,7 @@ namespace en
                         const uint32       firstElement = 0);   // First index to process in Index buffer (if specified)
 
 
-      virtual bool endRenderPass(void);
+      virtual void endRenderPass(void);
       virtual void commit(void);
       virtual void waitUntilCompleted(void);
       };

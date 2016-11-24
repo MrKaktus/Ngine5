@@ -33,8 +33,9 @@ namespace en
       public:
       VulkanDevice* gpu;
       VkPipeline    handle;
+      bool          graphics; // Graphics or Compute?
 
-      PipelineVK(VulkanDevice* gpu, VkPipeline handle);
+      PipelineVK(VulkanDevice* gpu, VkPipeline handle, bool _graphics);
       virtual ~PipelineVK();
       };
 

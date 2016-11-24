@@ -67,9 +67,7 @@ namespace en
       };
 #endif
 
-   Ptr<BufferVK> createBuffer(VulkanDevice* gpu, const BufferType type, const uint32 size);
-   Ptr<Buffer> createBufferAndPopulate(VulkanDevice* gpu, const BufferType type, const uint32 size, const void* data);
-
+   Ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size);
    }
 }
 #endif

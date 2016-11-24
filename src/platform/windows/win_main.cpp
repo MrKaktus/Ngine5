@@ -97,16 +97,15 @@ en::StorageContext.destroy();
 return 0;
 }
 
-// Entry point for windows applications
+// Entry point for Windows non-console applications
 int WINAPI WindowsMain( HINSTANCE hInstance,
                         HINSTANCE hPrevInstance,
                         LPSTR     lpCmdLine,
                         int       nCmdShow )
 {
-
- uint32 ret = ApplicationMainC(0,NULL);
+uint32 ret = ApplicationMainC(0, nullptr);
  //int ret = ApplicationMainW(hInstance,NULL,lpCmdLine,SW_SHOWNORMAL);
 
- return ret;
+return ret;
 }
 #endif

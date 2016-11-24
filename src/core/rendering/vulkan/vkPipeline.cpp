@@ -123,21 +123,22 @@ namespace en
    
    */
    
+   // This is wrong as ShaderStage is bitmask now, and not a consecutive list of values!!!
+   //const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
+   //   {
+   //   VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
+   //   VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
+   //   VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
+   //   VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
+   //   VK_SHADER_STAGE_FRAGMENT_BIT                ,  // Fragment   
+   //   VK_SHADER_STAGE_COMPUTE_BIT                    // Compute    
+   //   };
 
-   const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
-      {
-      VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
-      VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
-      VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
-      VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
-      VK_SHADER_STAGE_FRAGMENT_BIT                ,  // Fragment   
-      VK_SHADER_STAGE_COMPUTE_BIT                    // Compute    
-      };
 
-
-   PipelineVK::PipelineVK(VulkanDevice* _gpu, VkPipeline _handle) :
+   PipelineVK::PipelineVK(VulkanDevice* _gpu, VkPipeline _handle, bool _graphics) :
       gpu(_gpu),
-      handle(_handle)
+      handle(_handle),
+      graphics(_graphics)
    {
    }
 
@@ -185,7 +186,7 @@ namespace en
          shaderInfo[stage].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
          shaderInfo[stage].pNext  = nullptr;
          shaderInfo[stage].flags  = 0u; // Reserved for future use
-         shaderInfo[stage].stage  = TranslateShaderStage[underlyingType(shader->stage)];
+         shaderInfo[stage].stage  = static_cast<VkShaderStageFlagBits>(underlyingType(shader->stage));
          shaderInfo[stage].module = shader->handle;
          shaderInfo[stage].pName  = pipelineState.function[i].c_str();
          shaderInfo[stage].pSpecializationInfo = nullptr; // Engine is not supporting specialization for now. (const VkSpecializationInfo*)
@@ -211,7 +212,7 @@ namespace en
    pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == disabled
    pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Blending Disabled
    pipelineInfo.pDynamicState       = nullptr;        // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
-   pipelineInfo.layout              = layout->handle;
+   pipelineInfo.layout              = layout        ? layout->handle           : VK_NULL_HANDLE; // optional - nullptr == no resources are used except of optional input ones
    pipelineInfo.renderPass          = renderPass->handle;
    pipelineInfo.subpass             = 0u;             // TODO: For now engine is not supporting subpasses except default one.
    pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE; // Pipeline to derive from. (optional)
@@ -221,7 +222,7 @@ namespace en
    VkPipeline pipeline;
    Profile( this, vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineInfo, nullptr, &pipeline) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = new PipelineVK(this, pipeline);
+      result = new PipelineVK(this, pipeline, true);
 
    delete [] shaderInfo;
 

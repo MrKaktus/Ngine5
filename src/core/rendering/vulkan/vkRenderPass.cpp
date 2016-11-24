@@ -549,14 +549,14 @@ namespace en
    // Color attachment
    VkAttachmentReference attColor;
    attColor.attachment = surfaces;
-   attColor.layout     = ptr->resolve ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
+   attColor.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // ptr->resolve ?  : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+// Image layout need to be transtioned to VK_IMAGE_LAYOUT_PRESENT_SRC_KHR with barrier.
    // Optional Color Resolve
    VkAttachmentReference attResolve;
    if (resolve)
       {
       attResolve.attachment = surfaces;
-      attResolve.layout     = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+      attResolve.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; //VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
       surfaces++;
       }
       

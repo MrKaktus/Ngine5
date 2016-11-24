@@ -24,18 +24,22 @@ namespace en
 {
    namespace gpu
    {
-   // Pipeline shader stages
-   enum class ShaderStage : uint32
+   // Render pipeline shader stages (can be used as a bitmask)
+   enum class ShaderStage : uint8
         {
-        Vertex                    = 0,
-        Control                      ,
-        Evaluation                   ,
-        Geometry                     ,
-        Fragment                     ,
-        Compute                      ,
+        Vertex                    = 0x01,
+        Control                   = 0x02,
+        Evaluation                = 0x04,
+        Geometry                  = 0x08,
+        Fragment                  = 0x10,
         Count
         };
-      
+     
+   inline ShaderStage operator| (ShaderStage a, ShaderStage b)
+   {
+   return static_cast<ShaderStage>(underlyingType(a) | underlyingType(b));
+   }
+ 
    class Shader : public SafeObject<Shader>
       {
       public:

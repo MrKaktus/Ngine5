@@ -24,6 +24,7 @@
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/raster.h"
 #include "core/rendering/pipeline.h"
+#include "core/rendering/sampler.h"
 #include "core/rendering/texture.h"
 #include "core/rendering/surface.h"
 #include "core/rendering/renderPass.h"
@@ -235,9 +236,14 @@ namespace en
                                           const AttributeDesc* attributes,
                                           const BufferDesc* buffers) = 0;
 
-      virtual Ptr<SetLayout> createSetLayout(const uint32 count, const Resources* group) = 0;
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
+                                             const ResourceGroup* group,
+                                             const ShaderStage stageMask) = 0;
 
-
+      virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
+                                                       const Ptr<SetLayout>* set,
+                                                       const uint32 immutableSamplers = 0u,
+                                                       const Ptr<Sampler>* sampler = nullptr) = 0;
 
       // TODO: Those methods should be reworked to accept TextureView,
       //       and layer selection should be done through it.

@@ -85,8 +85,10 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkPipeline.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkRaster.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkRenderPass.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkSampler.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkShader.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkState.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkSynchronization.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkViewport.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vulkan.cpp" />
@@ -446,6 +448,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>"./../public/include/"; "./../src/"; "./../middleware/"; "C:/Program Files/Autodesk/FBX/FBX SDK/2015.1/include/"</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

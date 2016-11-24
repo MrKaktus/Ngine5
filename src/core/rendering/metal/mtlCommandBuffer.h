@@ -35,12 +35,9 @@ namespace en
       id <MTLRenderCommandEncoder> renderEncoder;
       bool commited;
       
-      virtual void bind(const Ptr<RasterState> raster);
-      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
-      virtual void bind(const Ptr<DepthStencilState> depthStencil);
-      virtual void bind(const Ptr<BlendState> blend);
-      
-      virtual bool startRenderPass(const Ptr<RenderPass> pass, 
+      virtual void start(void);
+
+      virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer);
                                    
       virtual void set(const Ptr<Pipeline> pipeline);
@@ -80,7 +77,7 @@ namespace en
                         const uint32       firstElement = 0);   // First index to process in Index buffer (if specified)
 
 
-      virtual bool endRenderPass(void);
+      virtual void endRenderPass(void);
       virtual void commit(void);
       virtual void waitUntilCompleted(void);
    

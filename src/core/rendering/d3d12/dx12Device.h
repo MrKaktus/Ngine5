@@ -49,9 +49,15 @@ namespace en
                                  const BufferDesc* buffers);
 
       virtual void init(void);
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
 
-      virtual Ptr<SetLayout> createSetLayout(const uint32 count, const Resources* group);
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
+                                             const ResourceGroup* group,
+                                             const ShaderStage stageMask);
+
+      virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
+                                                       const Ptr<SetLayout>* set,
+                                                       const uint32 immutableSamplers,
+                                                       const Ptr<Sampler>* sampler);
       };
    }
 }

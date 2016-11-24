@@ -125,12 +125,6 @@
    #define EN_MOBILE_GPU
 #endif
 
-// TODO: This should be moved to "platform.h" or similar init header
-// System specyfic includes
-#if defined(EN_PLATFORM_WINDOWS)
-   #include <windows.h>
-#endif
-
 #if defined(EN_PLATFORM_BLACKBERRY)
    #ifndef nullptr
       #define nullptr 0

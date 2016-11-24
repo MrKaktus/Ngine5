@@ -3,6 +3,7 @@
 #include "core/configuration.h"
 
 #if defined(EN_PLATFORM_WINDOWS)
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <objbase.h> 
 #include "platform/windows/win_events.h"  // Window events
@@ -480,7 +481,7 @@ namespace en
 
    uint32v2 WinMouse::virtualPosition(void) const
    {
-   LPPOINT winPos;
+   LPPOINT winPos = nullptr;
    // TODO: This should be set during processing events from Windows ( WM_MOUSEMOVE etc. )
    //       so GetCursorPos shouldn't be called here, nor updateDisplay.
    if (GetCursorPos(winPos) == TRUE)          

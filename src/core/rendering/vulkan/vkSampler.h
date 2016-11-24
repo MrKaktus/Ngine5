@@ -21,9 +21,19 @@
 
 namespace en
 {
-   namespace vulkan
+   namespace gpu
    {
+   class VulkanDevice;
 
+   class SamplerVK : public Sampler
+      {
+      public:
+      VulkanDevice* gpu;
+      VkSampler     handle;  // Vulkan Sampler ID
+   
+      SamplerVK(VulkanDevice* gpu, VkSampler handle);
+     ~SamplerVK();
+      };
    }
 }
 #endif

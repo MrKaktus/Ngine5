@@ -441,6 +441,7 @@ namespace en
 
    // Copy data from staging buffer to final texture
    Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   command->start();
    command->copy(staging, texture, 0u, 0u);
    command->commit();
    

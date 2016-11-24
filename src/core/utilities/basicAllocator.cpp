@@ -12,7 +12,15 @@
 #include "core/utilities/basicAllocator.h"
 
 namespace en
-{   
+{  
+   MemoryChunk::MemoryChunk() :
+      offset(0u),
+      size(0u),
+      prev(nullptr),
+      next(nullptr)
+   {
+   }
+
    BasicAllocator::BasicAllocator(uint64 _size) :
       size(_size),
       available(_size),
@@ -63,7 +71,11 @@ namespace en
          
    if (ptr->prev)
       ptr->prev->next = ptr->next;
-      
+
+   // If this is last free block, correct the head pointer      
+   if (ptr == freeHead)
+      freeHead = nullptr;
+
    delete ptr;
    }
    
@@ -78,6 +90,7 @@ namespace en
       {
       if (ptr->size >= requestedSize)
          {
+         // First offset at which we can place new allocation
          uint64 alignedOffset = roundUp(ptr->offset, requestedAlignment);
          uint64 endOffset     = ptr->offset + ptr->size;
          uint64 newEndOffset  = alignedOffset + requestedSize;
@@ -86,9 +99,9 @@ namespace en
             // Allocation can be performed, split free block
             uint64 baseOffset = ptr->offset;
             uint64 baseSize   = ptr->size;
-            
-            // New empty block in front of allocation
             bool reusedEntry = false;
+
+            // New empty block in front of allocation
             if (alignedOffset > baseOffset)
                {
                ptr->size = alignedOffset - baseOffset;
@@ -103,7 +116,7 @@ namespace en
                else
                   {
                   ptr->offset = newEndOffset;
-                  ptr->size   = alignedOffset - baseOffset;
+                  ptr->size   = endOffset - newEndOffset;
                   reusedEntry = true;
                   }
                }
@@ -113,6 +126,7 @@ namespace en
                remove(ptr);
               
             available -= requestedSize;
+            offset = alignedOffset;
             return true;
             }
          }
@@ -197,6 +211,9 @@ namespace en
          }
       else // Make sure those blocks don't overlapp
          assert( ptr->offset + ptr->size <= offset);
+
+      // Move to next block
+      ptr = ptr->next;
       }
    
    // If there is completly no empty space, list of blocks is empty.

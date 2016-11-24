@@ -20,7 +20,83 @@
 namespace en
 {
    namespace gpu
-   {   
+   {
+   // Size of each attribute in memory taking into notice required padding (4bytes on Metal)
+   const uint8 TranslateAttributeSize[underlyingType(Attribute::Count)] =
+      {
+      0,    // None           
+      1,    // u8_norm                
+      1,    // s8_norm                
+      1,    // u8                     
+      1,    // s8                     
+      2,    // u16_norm               
+      2,    // s16_norm               
+      2,    // u16                    
+      2,    // s16                    
+      2,    // f16                    
+      4,    // u32                   
+      4,    // s32                   
+      4,    // f32                   
+      8,    // u64                    
+      8,    // s64                    
+      8,    // f64                    
+      2,    // v2u8_norm              
+      2,    // v2s8_norm              
+      2,    // v2u8                   
+      2,    // v2s8                   
+      4,    // v2u16_norm            
+      4,    // v2s16_norm            
+      4,    // v2u16                 
+      4,    // v2s16                 
+      4,    // v2f16                 
+      8,    // v2u32                 
+      8,    // v2s32                 
+      8,    // v2f32                 
+      16,   // v2u64                  
+      16,   // v2s64                  
+      16,   // v2f64                  
+      3,    // v3u8_norm              
+      3,    // v3u8_srgb              
+      3,    // v3s8_norm              
+      3,    // v3u8                   
+      3,    // v3s8                   
+      6,    // v3u16_norm             
+      6,    // v3s16_norm             
+      6,    // v3u16                  
+      6,    // v3s16                  
+      6,    // v3f16                  
+      12,   // v3u32
+      12,   // v3s32
+      12,   // v3f32                  
+      24,   // v3u64                  
+      24,   // v3s64                  
+      24,   // v3f64                  
+      4,    // v4u8_norm             
+      4,    // v4s8_norm             
+      4,    // v4u8                  
+      4,    // v4s8                  
+      8,    // v4u16_norm            
+      8,    // v4s16_norm            
+      8,    // v4u16                 
+      8,    // v4s16                 
+      8,    // v4f16                 
+      16,   // v4u32                 
+      16,   // v4s32                 
+      16,   // v4f32                 
+      32,   // v4u64                  
+      32,   // v4s64                  
+      32,   // v4f64                  
+      4,    // v3f11_11_10            
+      4,    // v4u10_10_10_2_norm    
+      4,    // v4s10_10_10_2_norm    
+      4,    // v4u10_10_10_2          
+      4,    // v4s10_10_10_2          
+      4,    // v4u10_10_10_2_norm_rev 
+      4,    // v4s10_10_10_2_norm_rev 
+      4,    // v4u10_10_10_2_rev      
+      4,    // v4s10_10_10_2_rev      
+      };
+
    // Default Constructor, all Attributes default to None
    Formatting::Formatting()
    {

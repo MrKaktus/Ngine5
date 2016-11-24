@@ -40,7 +40,9 @@ namespace en
    {
    }
 
-   Ptr<SetLayout> Direct3D12Device::createSetLayout(const uint32 count, const Resources* group)
+   Ptr<SetLayout> Direct3D12Device::createSetLayout(const uint32 count, 
+                                                    const ResourceGroup* group,
+                                                    const ShaderStage stageMask)
    {
    Ptr<SetLayoutD3D12> result = new SetLayoutD3D12();
 
@@ -88,7 +90,10 @@ namespace en
    return ptr_reinterpret_cast<SetLayout>(&result);
    }
 
-   Ptr<PipelineLayout> Direct3D12Device::createPipelineLayout()
+   Ptr<PipelineLayout> Direct3D12Device::createPipelineLayout(const uint32 sets,
+                                                              const Ptr<SetLayout>* set,
+                                                              const uint32 immutableSamplers,
+                                                              const Ptr<Sampler>* sampler)
    {
    Ptr<PipelineLayoutD3D12> result = nullptr; 
 

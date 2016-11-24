@@ -20,8 +20,9 @@
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
-#include "core/rendering/common/texture.h"
 #include "core/rendering/sampler.h"
+#include "core/rendering/common/texture.h"
+#include "core/rendering/vulkan/vkHeap.h"
 
 namespace en
 {
@@ -38,23 +39,22 @@ namespace en
       {
       public:
       VulkanDevice* gpu;
-      VkImage       handle;     // Vulkan Image ID
-      VkImageView   viewHandle; // Vulkan default Image View ID
+      VkImage       handle;        // Vulkan Image ID
       VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
-      Ptr<Heap>     heap;       // Memory backing heap
-      uint64        offset;     // Offset in the heap
+      Ptr<HeapVK>   heap;          // Memory backing heap
+      uint64        offset;        // Offset in the heap
 
       TextureVK(VulkanDevice* gpu, const TextureState& state);
       TextureVK(VulkanDevice* gpu, const TextureState& state, const uint32 id);    // Create texture interface for texture that already exists
 
-      Ptr<TextureView> view(const TextureType type,
-                            const Format format,
-                            const uint32v2 mipmaps,         
-                            const uint32v2 layers) const;
-         
-      virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0);  // Surface is: CubeMap face, 3D depth slice, Array layer or CubeMapArray face-layer
-      virtual bool     unmap(void);
       virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
+
+      virtual Ptr<TextureView> view(void) const;
+      virtual Ptr<TextureView> view(const TextureType type,
+                                    const Format format,
+                                    const uint32v2 mipmaps,         
+                                    const uint32v2 layers) const;
+
 
       virtual ~TextureVK();
       };
@@ -76,19 +76,6 @@ namespace en
    
       virtual ~TextureViewVK();
       };
-      
-   class SamplerVK : public Sampler
-      {
-      public:
-      VulkanDevice* gpu;
-      VkSampler     handle;  // Vulkan Sampler ID
-   
-      SamplerVK(VulkanDevice* gpu, VkSampler handle);
-     ~SamplerVK();
-      };
-
-
-   class VulkanDevice;
 
    VkImageAspectFlags TranslateImageAspect(const Format format);
    Ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state);

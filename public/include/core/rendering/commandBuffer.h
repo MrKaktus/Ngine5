@@ -56,12 +56,9 @@ namespace en
    class CommandBuffer : public SafeObject<CommandBuffer>
       {
       public:
-      virtual void bind(const Ptr<RasterState> raster) = 0;
-      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor) = 0;
-      virtual void bind(const Ptr<DepthStencilState> depthStencil) = 0;
-      virtual void bind(const Ptr<BlendState> blend) = 0;
+      virtual void start(void) = 0;
 
-      virtual bool startRenderPass(const Ptr<RenderPass> pass, 
+      virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer) = 0;
 
       virtual void set(const Ptr<Pipeline> pipeline) = 0;
@@ -100,7 +97,7 @@ namespace en
                         const Ptr<Buffer>  indexBuffer  = Ptr<Buffer>(nullptr), // Optional Index buffer
                         const uint32       firstElement = 0) = 0;  // First index to process in Index buffer (if specified)
 
-      virtual bool endRenderPass(void) = 0;
+      virtual void endRenderPass(void) = 0;
       virtual void commit(void) = 0;
       virtual void waitUntilCompleted(void) = 0;
       

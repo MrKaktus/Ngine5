@@ -55,33 +55,22 @@ namespace en
    {
    }
 
-   void CommandBufferMTL::bind(const Ptr<RasterState> raster)
+   void CommandBufferMTL::start(void)
    {
-   
+   // In Vulkan app needs to explicitly state when it starts to
+   // encode commands to Command Buffer. In Metal we do that when
+   // we create command encoders used to encode commands to 
+   // Command Buffer.
    }
-   
- //void CommandBufferMTL::bind(const Ptr<ViewportScissorState> viewportScissor);
- 
-   void CommandBufferMTL::bind(const Ptr<DepthStencilState> depthStencil)
-   {
-   
-   }
-   
-   void CommandBufferMTL::bind(const Ptr<BlendState> blend)
-   {
-   
-   }
-
 
    // RENDER PASS
    //////////////////////////////////////////////////////////////////////////
    
  
-   bool CommandBufferMTL::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer> _framebuffer)
+   void CommandBufferMTL::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer> _framebuffer)
    {
-   if (renderEncoder != nil)
-      return false;
-    
+   assert( renderEncoder == nil );
+  
    RenderPassMTL*  renderPass  = raw_reinterpret_cast<RenderPassMTL>(&pass);
    FramebufferMTL* framebuffer = raw_reinterpret_cast<FramebufferMTL>(&_framebuffer);
    
@@ -98,22 +87,18 @@ namespace en
 #endif
 
    renderEncoder = [handle renderCommandEncoderWithDescriptor:renderPass->desc];
-   return true;
    }
    
-   bool CommandBufferMTL::endRenderPass(void)
+   void CommandBufferMTL::endRenderPass(void)
    {
-   if (renderEncoder == nil)
-      return false;
-      
+   assert( renderEncoder != nil );
+   
    @autoreleasepool
       {
       [renderEncoder endEncoding];
       [renderEncoder release];
       renderEncoder = nullptr;
       }
-
-   return true;
    }
    
 

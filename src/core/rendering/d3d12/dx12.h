@@ -23,6 +23,7 @@
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899120(v=vs.85).aspx
 
+#include <Windows.h>
 #include "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/um/D3d12.h"
 
 #endif

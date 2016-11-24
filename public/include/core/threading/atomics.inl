@@ -26,6 +26,8 @@
 #pragma pop_macro("aligned")
 #endif
 #ifdef EN_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#define NOGDI                  // <- TODO: To prevent overloading of SetLayout. This header ends in App space! This includes should be private !!
 #include <windows.h>
 #include <intrin.h>
 #endif

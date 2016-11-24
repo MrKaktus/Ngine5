@@ -198,6 +198,7 @@ namespace en
 
    // Copy data from staging buffer to final texture
    Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   command->start();
    command->copy(staging, defaults.enAxes);
    command->commit();
    

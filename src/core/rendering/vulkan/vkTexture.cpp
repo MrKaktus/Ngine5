@@ -193,105 +193,6 @@ namespace en
       //   VK_FORMAT_A8B8G8R8_SINT_PACK32      ,   // TextureFormat::RGBA_8_s   
 
 
-   // SAMPLER
-
-
-   // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
-   static const VkFilter TranslateSamplerFilter[underlyingType(SamplerFilter::Count)] = 
-      {
-      VK_FILTER_NEAREST, // Nearest
-      VK_FILTER_LINEAR   // Linear
-      };
-
-   // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
-   static const VkSamplerMipmapMode TranslateSamplerMipMapMode[underlyingType(SamplerMipMapMode::Count)] =
-      {
-      VK_SAMPLER_MIPMAP_MODE_NEAREST, // Nearest
-      VK_SAMPLER_MIPMAP_MODE_LINEAR   // Linear
-      };
-
-   // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
-   static const VkSamplerAddressMode TranslateSamplerAdressing[underlyingType(SamplerAdressing::Count)] = 
-      {
-      VK_SAMPLER_ADDRESS_MODE_REPEAT,               // Repeat
-      VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT,      // RepeatMirrored   
-      VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,        // ClampToEdge
-      VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,      // ClampToBorder
-      VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE  // MirrorClampToEdge
-      };
-
-   // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
-   static const VkCompareOp TranslateCompareOperation[underlyingType(CompareOperation::Count)] = 
-      {
-      VK_COMPARE_OP_NEVER,              // Never
-      VK_COMPARE_OP_LESS,               // Less
-      VK_COMPARE_OP_EQUAL,              // Equal
-      VK_COMPARE_OP_LESS_OR_EQUAL,      // LessOrEqual
-      VK_COMPARE_OP_GREATER,            // Greater
-      VK_COMPARE_OP_NOT_EQUAL,          // NotEqual
-      VK_COMPARE_OP_GREATER_OR_EQUAL,   // GreaterOrEqual
-      VK_COMPARE_OP_ALWAYS              // Always
-      };
-
-   static const VkBorderColor TranslateSamplerBorder[underlyingType(SamplerBorder::Count)] = 
-      {
-      VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK, // TransparentBlack
-      VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,      // OpaqueBlack
-      VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,      // OpaqueWhite
-      };
-
-   // TODO: 
-   // VK_BORDER_COLOR_INT_TRANSPARENT_BLACK
-   // VK_BORDER_COLOR_INT_OPAQUE_BLACK
-   // VK_BORDER_COLOR_INT_OPAQUE_WHITE
-
-   SamplerVK::SamplerVK(VulkanDevice* _gpu, VkSampler _handle) :
-      gpu(_gpu),
-      handle(_handle)
-   {
-   }
-  
-   SamplerVK::~SamplerVK()
-   {
-   ProfileNoRet( gpu, vkDestroySampler(gpu->device, handle, nullptr) )
-   }
-
-   Ptr<Sampler> VulkanDevice::create(const SamplerState& state)
-   {
-   Ptr<SamplerVK> sampler = nullptr;
-   
-   VkSamplerCreateInfo samplerInfo = {};
-   samplerInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-   samplerInfo.pNext                   = nullptr;
-   samplerInfo.flags                   = 0;                                                               // Reserved for future
-   samplerInfo.magFilter               = static_cast<VkFilter>(underlyingType(state.magnification));      // Optimisation: TranslateSamplerFilter[underlyingType(state.magnification)];
-   samplerInfo.minFilter               = static_cast<VkFilter>(underlyingType(state.minification));       // Optimisation: TranslateSamplerFilter[underlyingType(state.minification)];
-   samplerInfo.mipmapMode              = static_cast<VkSamplerMipmapMode>(underlyingType(state.mipmap));  // Optimisation: TranslateSamplerMipMapMode[underlyingType(state.mipmap)];
-   samplerInfo.addressModeU            = static_cast<VkSamplerAddressMode>(underlyingType(state.coordU)); // Optimisation: TranslateSamplerAdressing[underlyingType(state.coordU)];
-   samplerInfo.addressModeV            = static_cast<VkSamplerAddressMode>(underlyingType(state.coordV)); // Optimisation: TranslateSamplerAdressing[underlyingType(state.coordV)];
-   samplerInfo.addressModeW            = static_cast<VkSamplerAddressMode>(underlyingType(state.coordW)); // Optimisation: TranslateSamplerAdressing[underlyingType(state.coordW)];
-   samplerInfo.mipLodBias              = state.LodBias;
-   samplerInfo.anisotropyEnable        = (state.anisotropy < 1.0f) ? VK_FALSE : VK_TRUE;
-   samplerInfo.maxAnisotropy           = min(state.anisotropy, support.maxAnisotropy);                    // [1.0f - VkPhysicalDeviceLimits::maxSamplerAnisotropy]
-   samplerInfo.compareEnable           = state.compare == CompareOperation::Always ? VK_FALSE :  VK_TRUE;
-   samplerInfo.compareOp               = static_cast<VkCompareOp>(underlyingType(state.compare));         // Optimisation: TranslateCompareOperation[underlyingType(state.compare)];
-   samplerInfo.minLod                  = state.minLod;
-   samplerInfo.maxLod                  = state.maxLod;
-   samplerInfo.borderColor             = TranslateSamplerBorder[underlyingType(state.borderColor)];
-   samplerInfo.unnormalizedCoordinates = VK_FALSE;  // TODO: Unnormalized coordinates are not supported for now. (both supported by Vulkan & Metal)
-
-   VkSampler handle;
-   Profile( this, vkCreateSampler(device, &samplerInfo, nullptr, &handle) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      sampler = new SamplerVK(this, handle);
-
-   return ptr_reinterpret_cast<Sampler>(&sampler);
-   };
-
-
-   // TEXTURE
-
-
    // Binding order:
    //
    // Pipeline <- Image View <- Image <- Memory
@@ -565,7 +466,7 @@ namespace en
    // Query additional info about Format required for this Texture to validate it
    VkImageFormatProperties formatInfo;
 
-   Profile( gpu, vkGetPhysicalDeviceImageFormatProperties(gpu->handle, 
+   Profile( gpu->api, vkGetPhysicalDeviceImageFormatProperties(gpu->handle, 
       textureInfo.format,
       textureInfo.imageType,
       textureInfo.tiling,
@@ -590,37 +491,11 @@ namespace en
       {
       texture = new TextureVK(gpu, state);
       texture->handle = handle;
+      // texture->heap is assigned higher in call hierarchy
 
       // Query image requirements and validate if it can be created on this device
       ProfileNoRet( gpu, vkGetImageMemoryRequirements(gpu->device, handle, &texture->memoryRequirements) )
       assert( texture->memoryRequirements.size <= formatInfo.maxResourceSize );
-
-      // Default view is not swizzling anything
-      VkComponentMapping components = {};
-      components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-      components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-      components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-      components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-      // Create default Texture View that will be used to access it
-      VkImageViewCreateInfo viewInfo = {};
-      viewInfo.sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-      viewInfo.pNext      = nullptr;
-      viewInfo.flags      = 0; // Reserved
-      viewInfo.image      = texture->handle;
-      viewInfo.viewType   = TranslateViewType[underlyingType(state.type)];
-      viewInfo.format     = textureInfo.format;
-      viewInfo.components = components;  // Note: Set for clarity. It should default to 0's which corresponds to no swizzling.
-
-      // Default view is representing whole resource
-      viewInfo.subresourceRange.aspectMask     = TranslateImageAspect(state.format);
-      viewInfo.subresourceRange.baseMipLevel   = 0;
-      viewInfo.subresourceRange.levelCount     = state.mipmaps;
-      viewInfo.subresourceRange.baseArrayLayer = 0;
-      viewInfo.subresourceRange.layerCount     = state.layers;
-
-      Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &texture->viewHandle) )
-      assert( !gpu->lastResult[threadId] );
       }
 
    return texture;
@@ -628,6 +503,7 @@ namespace en
 
    TextureVK::TextureVK(VulkanDevice* _gpu, const TextureState& state) :
       gpu(_gpu),
+      handle(VK_NULL_HANDLE),
       heap(nullptr),
       offset(0u),
       CommonTexture(state)
@@ -636,14 +512,82 @@ namespace en
 
    TextureVK::~TextureVK()
    {
-   ProfileNoRet( gpu, vkDestroyImageView(gpu->device, viewHandle, nullptr) )
    ProfileNoRet( gpu, vkDestroyImage(gpu->device, handle, nullptr) )
-   
-   // Deallocate from the Heap (let Heap allocator know that memory region is available again)
-   raw_reinterpret_cast<HeapVK>(&heap)->allocator->deallocate(offset, memoryRequirements.size);
-   heap = nullptr;
+   handle = VK_NULL_HANDLE;
+
+   // Textures backed with Swap-Chain surfaces have no backing heap.
+   if (heap)
+      {
+      // Deallocate from the Heap (let Heap allocator know that memory region is available again)
+      heap->allocator->deallocate(offset, memoryRequirements.size);
+      heap = nullptr;
+      }
    }
  
+   bool TextureVK::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
+   {
+   // Check if specified mipmap and layer are correct
+   if (state.mipmaps <= mipmap)
+      return false;
+   if (state.type == TextureType::Texture3D)
+      {
+      if (state.depth <= surface)
+         return false;
+      }
+   else
+   if (state.type == TextureType::TextureCubeMap)
+      {
+      if (surface >= 6)
+         return false;
+      }
+   else
+      if (state.layers <= surface)
+         return false;
+
+   // TODO: Read back texture content !!!
+   return false;
+   }
+
+   Ptr<TextureView> TextureVK::view(void) const
+   {
+   Ptr<TextureViewVK> result = nullptr;
+   
+   // Default view is not swizzling anything
+   VkComponentMapping components = {};
+   components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+   components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+   components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+   components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+   // Create default Texture View that will be used to access it
+   VkImageViewCreateInfo viewInfo = {};
+   viewInfo.sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+   viewInfo.pNext      = nullptr;
+   viewInfo.flags      = 0; // Reserved
+   viewInfo.image      = handle;
+   viewInfo.viewType   = TranslateViewType[underlyingType(state.type)];
+   viewInfo.format     = TranslateTextureFormat[underlyingType(state.format)];
+   viewInfo.components = components;  // Note: Set for clarity. It should default to 0's which corresponds to no swizzling.
+
+   // Default view is representing whole resource
+   viewInfo.subresourceRange.aspectMask     = TranslateImageAspect(state.format);
+   viewInfo.subresourceRange.baseMipLevel   = 0;
+   viewInfo.subresourceRange.levelCount     = state.mipmaps;
+   viewInfo.subresourceRange.baseArrayLayer = 0;
+   viewInfo.subresourceRange.layerCount     = state.layers;
+
+   VkImageView viewHandle = VK_NULL_HANDLE;
+
+   Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      Ptr<TextureVK> parent((TextureVK*)this);
+      result = new TextureViewVK(parent, viewHandle, state.type, state.format, uint32v2(0, state.mipmaps), uint32v2(0, state.layers));
+      }
+
+   return ptr_reinterpret_cast<TextureView>(&result);
+   }
+
    Ptr<TextureView> TextureVK::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
@@ -675,7 +619,7 @@ namespace en
    viewInfo.subresourceRange.baseArrayLayer = _layers.base;
    viewInfo.subresourceRange.layerCount     = _layers.count;
 
-   VkImageView viewHandle;
+   VkImageView viewHandle = VK_NULL_HANDLE;
 
    Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)

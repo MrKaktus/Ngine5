@@ -17,6 +17,7 @@
 #include "core/defines.h"
 
 #if defined(EN_PLATFORM_WINDOWS)
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>  
 #include <GL/gl.h>                  // OpenGL
 #include "opengl/include/glext.h"   // OpenGL Extensions 

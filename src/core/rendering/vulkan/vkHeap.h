@@ -48,15 +48,6 @@ namespace en
       // Return parent device
       virtual Ptr<GpuDevice> device(void) const;
 
-      // Create formatted Vertex buffer that can be bound to InputAssembler.
-      virtual Ptr<Buffer> createBuffer(const uint32 elements,
-                                       const Formatting& formatting,
-                                       const uint32 step = 0u);
-        
-      // Create formatted Index buffer that can be bound to InputAssembler.
-      virtual Ptr<Buffer> createBuffer(const uint32 elements,
-                                       const Attribute format);
-
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
