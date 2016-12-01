@@ -8,6 +8,7 @@
 
 */
 
+#include <assert.h>
 #include <math.h>
 #include <string.h>
 #include "core/types.h"
@@ -107,19 +108,19 @@ namespace en
    
    float4 float4x4::row(uint8 r)
    {
-   r %= 4;
+   assert( r < 4 );
    return float4(m[r], m[r+4], m[r+8], m[r+12]);
    }
    
    float4 float4x4::column(uint8 c)
    {
-   c %= 4;
+   assert( c < 4 );
    return float4(m[c*4], m[c*4+1], m[c*4+2], m[c*4+3]);
    }
    
    void float4x4::column(uint8 c, float4 f4)
    {
-   c %= 4;
+   assert( c < 4 );
    m[c*4]   = f4.x;
    m[c*4+1] = f4.y;
    m[c*4+2] = f4.z;
@@ -128,7 +129,7 @@ namespace en
    
    void float4x4::column(uint8 c, float3 f3)
    {
-   c %= 4;
+   assert( c < 4 );
    m[c*4]   = f3.x;
    m[c*4+1] = f3.y;
    m[c*4+2] = f3.z;

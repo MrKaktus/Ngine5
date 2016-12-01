@@ -51,6 +51,14 @@ namespace en
    this->z = z;
    this->w = w;
    }
+
+   void float4::operator= (float4 b)
+   {
+   x = b.x;
+   y = b.y;
+   z = b.z;
+   w = b.w;
+   }
    
    void float4::operator-= (float4 b)
    {

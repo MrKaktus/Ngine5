@@ -124,7 +124,13 @@ namespace en
       {
       public:
       HRESULT      lastResult[MaxSupportedWorkerThreads];
-      ID3D12Device device;
+      ID3D12Device         device;
+      
+      // We treat rendering destinations as fixed state that is rebinded with every RenderPass change.
+      ID3D12DescriptorHeap* heapRTV; // Global heaps for current RenderPass (there can be only one)
+      ID3D12DescriptorHeap* heapDSV;
+      D3D12_CPU_DESCRIPTOR_HANDLE handleRTV[8];
+      D3D12_CPU_DESCRIPTOR_HANDLE handleDSV;
       
       Direct3D12Device();
      ~Direct3D12Device();
@@ -144,9 +150,16 @@ namespace en
       
       virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
 
+      // TODO:
       virtual Ptr<Shader>  createShader(const ShaderStage stage,
                                         const string& source);
 
+      virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
+                                                         const uint32 samples = 1u);
+
+      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
+                                                                       const Format stencilFormat = Format::Unsupported,
+                                                                       const uint32 samples = 1u);
 
 
 

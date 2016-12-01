@@ -29,7 +29,8 @@ namespace en
       float4(float3 f3, float w = 1.0f);                   
       float4(double3 d3, float w = 1.0f);                    
       float4(const float x, const float y = 0.0f, const float z = 0.0f, const float w = 1.0f);      
-      
+
+      void operator=  (float4 b);
       void operator-= (float4 b);      
       void operator+= (float4 b);         
       

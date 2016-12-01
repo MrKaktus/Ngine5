@@ -124,8 +124,11 @@ namespace en
       started = true;
       }
       
-   Ptr<RenderPassVK>  renderPass  = ptr_dynamic_cast<RenderPassVK, RenderPass>(pass);
-   Ptr<FramebufferVK> framebuffer = ptr_dynamic_cast<FramebufferVK, Framebuffer>(_framebuffer);
+   assert( pass );
+   assert( _framebuffer );
+   
+   RenderPassVK*  renderPass  = raw_reinterpret_cast<RenderPassVK>(&pass);
+   FramebufferVK* framebuffer = raw_reinterpret_cast<FramebufferVK>(&_framebuffer);
 
    // Begin encoding commands for this Render Pass
    VkRenderPassBeginInfo beginInfo;

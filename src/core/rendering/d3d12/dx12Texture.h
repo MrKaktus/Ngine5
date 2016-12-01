@@ -64,7 +64,10 @@ namespace en
       public:
       Ptr<TextureD3D12> texture;            // Parent texture
       D3D12_SHADER_RESOURCE_VIEW_DESC desc; // View descriptor
-
+      TextureType viewType;                 // TODO: view type cannot be different for RTV ???
+      uint32v2 viewMipmaps;                 // Cache mipmaps and layers range, if View of other
+      uint32v2 viewLayers;                  // underlying type will be needed.
+         
       TextureViewD3D12(Ptr<TextureD3D12> parent);
 
       Ptr<Texture> parent(void) const;

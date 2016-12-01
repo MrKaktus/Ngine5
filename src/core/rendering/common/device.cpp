@@ -327,8 +327,11 @@ namespace en
    PipelineState::PipelineState(GpuDevice* device)
    {
    // Create default Pipeline State
-   // Application still needs to be set those:
-   // 
+   // (created states are already specialized for given underlying API)
+   //
+   // Application still needs to set those:
+   //
+   // renderPass
    // inputAssembler
    // viewportState
    // shader[5]

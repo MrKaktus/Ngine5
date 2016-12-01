@@ -33,7 +33,7 @@ namespace en
       {
       public:
       Direct3D12Device*  gpu;
-      D3D12_SHADER_BYTECODE handle;
+      D3D12_SHADER_BYTECODE state;
       ShaderStage    stage;
 
       ShaderD3D12(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);

@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Render Pass.
+ Module      : D3D12 Render Pass.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,29 +13,55 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_VULKAN_RENDER_PASS
-#define ENG_CORE_RENDERING_VULKAN_RENDER_PASS
+#ifndef ENG_CORE_RENDERING_D3D12_RENDER_PASS
+#define ENG_CORE_RENDERING_D3D12_RENDER_PASS
 
-#include "core/rendering/vulkan/vulkan.h"
+#include "core/defines.h"
 
-#if defined(EN_MODULE_RENDERER_VULKAN)
+#if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 #include "core/rendering/renderPass.h"
-#include "core/rendering/vulkan/vkDevice.h"
-#include "core/rendering/vulkan/vkTexture.h"
+#include "core/rendering/d3d12/dxDevice.h"
+#include "core/rendering/d3d12/dxTexture.h"
 
 namespace en
 {
    namespace gpu
    {
-   class ColorAttachmentVK : public ColorAttachment
+   struct ColorState
+      {
+      float4         clearValue;
+      DXGI_FORMAT    format;     // Attachment and optional Resolve format (they must match)
+      uint32         samples;
+      LoadOperation  loadOp;
+      StoreOperation storeOp;
+      bool           resolve;
+      };
+      
+   struct DepthState
+      {
+      DXGI_FORMAT    format;        // Shared DepthStencil, Depth or Stencil
+      uint32         samples;
+      D3D12_CLEAR_FLAGS clearFlags;
+      StoreOperation storeOp;
+      StoreOperation stencilStoreOp;
+      float          clearDepth;
+      uint32         clearStencil;
+      
+      DepthState();
+      };
+      
+   class ColorAttachmentD3D12 : public ColorAttachment
       {
       public:
-      VkAttachmentDescription state[2];   // Attachment and optional Resolve
-      VkClearValue            clearValue;
-      bool                    resolve;
+      float4         clearValue;
+      DXGI_FORMAT    format;     // Attachment and optional Resolve format (they must match)
+      uint32         samples;
+      LoadOperation  loadOp;
+      StoreOperation storeOp;
+      bool           resolve;
 
-      ColorAttachmentVK(const Format format, const uint32 samples);
+      ColorAttachmentD3D12(const Format format, const uint32 samples);
 
       virtual void onLoad(const LoadOperation load,
          const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -46,19 +72,17 @@ namespace en
          
       virtual void onStore(const StoreOperation store);
 
-      virtual ~ColorAttachmentVK();
+      virtual ~ColorAttachmentD3D12();
       };
 
-   class DepthStencilAttachmentVK : public DepthStencilAttachment
+   class DepthStencilAttachmentD3D12 : public DepthStencilAttachment
       {
       public:
-      VkAttachmentDescription state;        // Shared DepthStencil, Depth or Stencil
-      float                   clearDepth;
-      uint32                  clearStencil;
+      DepthState state;
 
-      DepthStencilAttachmentVK(const Format depthFormat, 
-                               const Format stencilFormat = Format::Unsupported,
-                               const uint32 samples = 1u);
+      DepthStencilAttachmentD3D12(const Format depthFormat,
+                                  const Format stencilFormat = Format::Unsupported,
+                                  const uint32 samples = 1u);
 
       virtual void onLoad(const LoadOperation loadDepthStencil,
                           const float  clearDepth = 1.0f,
@@ -72,44 +96,44 @@ namespace en
 
       virtual void onStencilStore(const StoreOperation storeStencil);
 
-      virtual ~DepthStencilAttachmentVK();
+      virtual ~DepthStencilAttachmentD3D12();
       };
 
-   class FramebufferVK : public Framebuffer
+   class FramebufferD3D12 : public Framebuffer
       {
       public:
-      VulkanDevice* gpu;
-      VkFramebuffer handle;
-      uint32v2      resolution;
-      uint32        layers;
+      // Keep handles to resources, so that they won't be released
+      // when their views are used by RenderPass.
+      Ptr<TextureViewD3D12> colorHandle[8];
+      Ptr<TextureViewD3D12> resolveHandle[8];
+      Ptr<TextureViewD3D12> depthHandle;
       
-      FramebufferVK(VulkanDevice* gpu,
-                    const VkFramebuffer handle,
-                    const uint32v2 resolution,
-                    const uint32 layers);
-                    
-      virtual ~FramebufferVK();
+      D3D12_RENDER_TARGET_VIEW_DESC colorDesc[8];
+      D3D12_DEPTH_STENCIL_VIEW_DESC depthDesc;
+      uint32v2 resolution;
+      uint32   layers;
+      
+      FramebufferD3D12(const uint32v2 resolution,
+                       const uint32 layers);
+         
+      virtual ~FramebufferD3D12();
       };
 
-   class RenderPassVK : public RenderPass
+   class RenderPassD3D12 : public RenderPass
       {
       public:
-      VulkanDevice* gpu;
-      VkRenderPass  handle;
-      uint32        usedAttachments;  // Bitmask
-      uint32        surfaces;
-      VkClearValue* clearValues;   // Array of clear values per attachment
-      bool          resolve;
-      bool          depthStencil;
+      ColorState  colorState[8];
+      DepthState  depthState;
+      uint32      usedAttachments;  // Bitmask
+      bool        resolve;
+      bool        depthStencil;
       
-      RenderPassVK(VulkanDevice* gpu, 
-                   const VkRenderPass handle, 
-                   const uint32 usedAttachments, 
-                   const uint32 surfaces,
-                   const bool   _resolve,
-                   const bool   _depthStencil);
+      RenderPassD3D12(const uint32 usedAttachments,
+                      const uint32 surfaces,
+                      const bool   _resolve,
+                      const bool   _depthStencil);
 
-      virtual ~RenderPassVK();
+      virtual ~RenderPassD3D12();
 
       virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
                                                  const uint32   layers,
@@ -133,6 +157,7 @@ namespace en
                                                  const Ptr<TextureView> depthStencil = nullptr,
                                                  const Ptr<TextureView> stencil      = nullptr);
       };
+
    }
 }
 #endif

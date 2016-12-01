@@ -42,7 +42,7 @@ namespace en
       D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH    , // Patches
       };
     
-   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, VkPipeline _handle) :
+   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, const ID3D12PipelineState* _handle) :
       gpu(_gpu),
       handle(_handle)
    {
@@ -50,7 +50,9 @@ namespace en
 
    PipelineD3D12::~PipelineD3D12()
    {
-
+   assert( handle );
+   handle->Release();
+   handle = nullptr;
    }
 
    Ptr<Pipeline> Direct3D12Device::createPipeline(const PipelineState& pipelineState)
@@ -61,79 +63,96 @@ namespace en
    assert( pipelineState.inputAssembler );
  
    // Cast to D3D12 states
-   const Ptr<RenderPassD3D12>         renderPass     = ptr_reinterpret_cast<RenderPassD3D12>(&pipelineState.renderPass);
-   const Ptr<InputAssemblerD3D12>     input          = ptr_reinterpret_cast<InputAssemblerD3D12>(&pipelineState.inputAssembler);
-   const Ptr<ViewportStateD3D12>      viewport       = ptr_reinterpret_cast<ViewportStateD3D12>(&pipelineState.viewportState);
-   const Ptr<RasterStateD3D12>        raster         = ptr_reinterpret_cast<RasterStateD3D12>(&pipelineState.rasterState);
-   const Ptr<MultisamplingStateD3D12> multisampling  = ptr_reinterpret_cast<MultisamplingStateD3D12>(&pipelineState.multisamplingState);
-   const Ptr<DepthStencilStateD3D12>  depthStencil   = ptr_reinterpret_cast<DepthStencilStateD3D12>(&pipelineState.depthStencilState);
-   const Ptr<BlendStateD3D12>         blend          = ptr_reinterpret_cast<BlendStateD3D12>(&pipelineState.blendState);
+   const RenderPassD3D12*         renderPass     = raw_reinterpret_cast<RenderPassD3D12>(&pipelineState.renderPass);
+   const InputAssemblerD3D12*     input          = raw_reinterpret_cast<InputAssemblerD3D12>(&pipelineState.inputAssembler);
 
-   const Ptr<PipelineLayoutD3D12>     layout         = ptr_reinterpret_cast<PipelineLayoutD3D12>(&pipelineState.pipelineLayout);
+   // TODO: Looks like Viewport State is dynamic -> write it into PipelineD3D12 object to set up on bind !!!!
+   //const ViewportStateD3D12*      viewport       = raw_reinterpret_cast<ViewportStateD3D12>(&pipelineState.viewportState);
 
+   const RasterStateD3D12*        raster         = pipelineState.rasterState ? raw_reinterpret_cast<RasterStateD3D12>(&pipelineState.rasterState)
+                                                                             : raw_reinterpret_cast<RasterStateD3D12>(&defaultState.rasterState);
 
-   assert( blend );
+   const MultisamplingStateD3D12* multisampling  = pipelineState.multisamplingState ? raw_reinterpret_cast<MultisamplingStateD3D12>(&pipelineState.multisamplingState)
+                                                                                    : raw_reinterpret_cast<MultisamplingStateD3D12>(&defaultState.multisamplingState);
+      
+   const DepthStencilStateD3D12*  depthStencil   = pipelineState.depthStencilState ? raw_reinterpret_cast<DepthStencilStateD3D12>(&pipelineState.depthStencilState)
+                                                                                   : raw_reinterpret_cast<DepthStencilStateD3D12>(&defaultState.depthStencilState);
+
+   const BlendStateD3D12*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateD3D12>(&pipelineState.blendState)
+                                                                            : raw_reinterpret_cast<BlendStateD3D12>(&defaultState.blendState);
+
+   const PipelineLayoutD3D12*     layout         = raw_reinterpret_cast<PipelineLayoutD3D12>(&pipelineState.pipelineLayout);
+
+   // At this point, those states should be set by app or device (Direct3D12 doesn't allow null states)
    assert( raster );
-   assert( depthStencil );
-   assert( input );
    assert( multisampling );
+   assert( depthStencil );
+   assert( blend );
 
-   // Instead of StreamOut, use UAV's
-   D3D12_STREAM_OUTPUT_DESC streamOut;
-   // const D3D12_SO_DECLARATION_ENTRY *pSODeclaration;
-   // UINT                             NumEntries;
-   // const UINT                       *pBufferStrides;
-   // UINT                             NumStrides;
-   // UINT                             RasterizedStream;
+   D3D12_SHADER_BYTECODE noShader;
+   noShader.pShaderBytecode = nullptr;
+   noShader.BytecodeLength  = 0u;
 
-   D3D12_CACHED_PIPELINE_STATE cache;
-   cache.pCachedBlob           = nullptr;
-   cache.CachedBlobSizeInBytes = 0u;
-  
+   // Pipeline descriptor
    D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
-  ID3D12RootSignature                *pRootSignature;
-  D3D12_SHADER_BYTECODE              VS;
-  D3D12_SHADER_BYTECODE              PS;
-  D3D12_SHADER_BYTECODE              DS;
-  D3D12_SHADER_BYTECODE              HS;
-  D3D12_SHADER_BYTECODE              GS;
-  D3D12_STREAM_OUTPUT_DESC           StreamOutput;
+  ID3D12RootSignature                *pRootSignature;  // TODO: <--- Layout cast
+  
+   desc.VS                    = pipelineState.shader[0] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[0])->state : noShader;
+   desc.PS                    = pipelineState.shader[4] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[4])->state : noShader;
+   desc.DS                    = pipelineState.shader[2] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[2])->state : noShader;
+   desc.HS                    = pipelineState.shader[1] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[1])->state : noShader;
+   desc.GS                    = pipelineState.shader[3] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[3])->state : noShader;
+   
+   // StreamOut is currently unsupported
+   desc.StreamOutput.pSODeclaration   = nullptr;
+   desc.StreamOutput.NumEntries       = 0u;
+   desc.StreamOutput.pBufferStrides   = nullptr;
+   desc.StreamOutput.NumStrides       = 0u;
+   desc.StreamOutput.RasterizedStream = 0u;
+   
+   // Patch BlendingState
+   desc.BlendState.AlphaToCoverageEnable = multisampling->alphaToCoverage;
+   
    desc.BlendState            = blend->desc;
-  UINT                               SampleMask;
+   desc.SampleMask            = blend->enabledSamples; // Determines for which MSAA samples, blend will be applied, for all enabled RT.
    desc.RasterizerState       = raster->state;
    desc.DepthStencilState     = depthStencil->state;
    desc.InputLayout           = input->state;
    desc.IBStripCutValue       = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFFFFFF;
                              // What happens if IBO uses u16 indexes?
-                             // Do we need to distinguich u16 and u32 types?
+                             // Do we need to distinguish u16 and u32 types?
                              // D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF;
    desc.PrimitiveTopologyType = TranslateDrawableTopology[underlyingType(input->primitive)];
-   
-  UINT                               NumRenderTargets;
-  DXGI_FORMAT                        RTVFormats[8];
-  DXGI_FORMAT                        DSVFormat;
-  
+   desc.NumRenderTargets      = renderPass->NumRenderTargets;
+   for(uint32 i=0; i<8; ++i)
+      desc.RTVFormats[i]      = renderPass->RTVFormats[i];
+   desc.DSVFormat             = renderPass->DSVFormat;
    desc.SampleDesc            = multisampling->state;
    desc.NodeMask              = 0u; // Only use for multi-GPU
-   desc.CachedPSO             = cache;
+   desc.CachedPSO.pCachedBlob           = nullptr;
+   desc.CachedPSO.CachedBlobSizeInBytes = 0u;
    desc.Flags                 = D3D12_PIPELINE_STATE_FLAG_NONE;
 
    // Create pipeline state object
    ID3D12PipelineState* pipeline;
    Profile( this, CreateGraphicsPipelineState(&desc, __uuidof(ID3D12PipelineState), (void**)&pipeline) )
    if (SUCCEDED(lastResult[Scheduler.core()]))
+      {
       result = new PipelineD3D12(pipeline);
+      
+      // Pass-Through - Dynamic, set on CommandBuffer
+      result->blendColor[0] = blend->blendColor.r;
+      result->blendColor[1] = blend->blendColor.g;
+      result->blendColor[2] = blend->blendColor.b;
+      result->blendColor[3] = blend->blendColor.a;
+      
+      // TODO: Set on Bind to Command Buffer !!!!!
+      // command->OMSetBlendFactor(blendColor);
+      }
 
    return ptr_reinterpret_cast<Pipeline>(&result);
    }
 
-
-
-
-
-
-
-   // TODO: Finish all the stuff
    }
 }
 #endif

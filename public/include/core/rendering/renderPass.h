@@ -58,8 +58,9 @@ namespace en
       // On tiled renderers we can specify additional actions
       // that should be performed when render target is rebind. 
       // We can use the same actions on immediate renderers.
-      // By default content of color attachment is cleared to
-      // r=0.0f g=0.0f b=0.0f a=1.0f.
+      // By default content of color attachment is not changed.
+      // If attachment should be cleared it needs to be explicitly
+      // stated by calling onLoad method with proper parameters.
       virtual void onLoad(const LoadOperation load,
                           const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f)) = 0;
       virtual void onLoad(const LoadOperation load,
@@ -79,10 +80,12 @@ namespace en
       virtual ~ColorAttachment() {};                  // Polymorphic deletes require a virtual base destructor
       };
 
+   // If you don't want to use Depth, nor Stencil surfaces, just
+   // don't assign this object at all at Render Pass creation time.
    class DepthStencilAttachment : public SafeObject<DepthStencilAttachment>
       {
       public:
-      // By default depth and stencil are cleared on load to 1.0f, and 0.
+      // By default content of depth and stencil is not changed.
       virtual void onLoad(const LoadOperation loadDepthStencil,
                           const float  clearDepth = 1.0f,
                           const uint32 clearStencil = 0u) = 0;
@@ -90,10 +93,6 @@ namespace en
       // Specify store operation, and Depth resolve method if it's supported by the GPU.
       virtual void onStore(const StoreOperation storeDepthStencil,
                            const DepthResolve resolveMode = DepthResolve::Sample0) = 0;
-      
-      // Specify destination and method for depth resolve (if it's supported by the GPU)
-      //virtual bool resolve(const Ptr<TextureView> destination,
-       //                    const DepthResolve mode = DepthResolve::Sample0) = 0;
          
       // Custom load and store actions can be specifid for Stencil.
       // (no matter if it's shared DepthStencil attachment, or

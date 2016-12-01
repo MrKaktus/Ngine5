@@ -62,7 +62,7 @@ namespace en
    state[AttColor].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
    state[AttColor].format         = TranslateTextureFormat[underlyingType(format)];
    state[AttColor].samples        = static_cast<VkSampleCountFlagBits>(samples);
-   state[AttColor].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+   state[AttColor].loadOp         = VK_ATTACHMENT_LOAD_OP_LOAD;
    state[AttColor].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
    state[AttColor].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
    state[AttColor].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
@@ -161,7 +161,7 @@ namespace en
    //
 
 
-   // If you don't want to use DEpth, nor Stencil surfaces, just don't assign
+   // If you don't want to use Depth, nor Stencil surfaces, just don't assign
    // this object at all at Render Pass creation time.
    DepthStencilAttachmentVK::DepthStencilAttachmentVK(const Format depthFormat, 
                                                       const Format stencilFormat,
@@ -184,7 +184,7 @@ namespace en
    state.format         = depthFormat != Format::Unsupported ? TranslateTextureFormat[underlyingType(depthFormat)] :
                                                                TranslateTextureFormat[underlyingType(stencilFormat)];
    state.samples        = static_cast<VkSampleCountFlagBits>(samples);
-   state.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;   // If this is Stencil only format, it's ignored
+   state.loadOp         = VK_ATTACHMENT_LOAD_OP_LOAD;    // If this is Stencil only format, it's ignored
    state.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;  // If this is Stencil only format, it's ignored
    state.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_LOAD;    // If this is Depth only format, it's ignored
    state.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;  // If this is Depth only format, it's ignored
@@ -285,13 +285,6 @@ namespace en
    delete [] clearValues;
    ProfileNoRet( gpu, vkDestroyRenderPass(gpu->device, handle, nullptr) )
    }
-
-
-
-
-
-
-
 
    Ptr<Framebuffer> RenderPassVK::createFramebuffer(const uint32v2 resolution,
                                                     const uint32   layers,
@@ -518,17 +511,16 @@ namespace en
 
    Ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Format format, const uint32 samples)
    {
-   // TODO: Layers is unused!
-   Ptr<ColorAttachmentVK> ptr(new ColorAttachmentVK(format, samples));
-   return ptr_reinterpret_cast<ColorAttachment>(&ptr);
+   Ptr<ColorAttachmentVK> result = new ColorAttachmentVK(format, samples);
+   return ptr_reinterpret_cast<ColorAttachment>(&result);
    }
 
    Ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(const Format depthFormat, 
                                                                           const Format stencilFormat,
                                                                           const uint32 samples)
    {
-   // TODO: Layers is unused!
-   return ptr_reinterpret_cast<DepthStencilAttachment>(&Ptr<DepthStencilAttachmentVK>(new DepthStencilAttachmentVK(depthFormat, stencilFormat, samples)));
+   Ptr<DepthStencilAttachmentVK> result = new DepthStencilAttachmentVK(depthFormat, stencilFormat, samples);
+   return ptr_reinterpret_cast<DepthStencilAttachment>(&result);
    }
    
    // Creates render pass which's output goes to window framebuffer.

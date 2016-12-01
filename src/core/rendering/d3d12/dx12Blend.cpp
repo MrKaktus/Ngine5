@@ -84,8 +84,10 @@ namespace en
                                     const uint32 attachments, 
                                     const BlendAttachmentInfo* color)
    {
-   blendColor = state.blendColor;
-
+   // Pass-Through to Pipeline State Object
+   blendColor     = state.blendColor;
+   enabledSamples = state.enabledSamples;
+   
    // To create default descriptor: desc = CD3D12_BLEND_DESC(CD3D12_DEFAULT)
 
    desc.AlphaToCoverageEnable  = false; // Unspecified, patch during Pipeline creation from Multisample State

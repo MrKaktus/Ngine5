@@ -30,7 +30,8 @@ namespace en
    class BlendStateD3D12 : public BlendState
       {
       public:
-      float4 blendColor;
+      float4 blendColor;     // Dynamic - Set on CommandBuffer
+      uint32 enabledSamples; // Static  - Set in PSO
       D3D12_BLEND_DESC desc;
 
       BlendStateD3D12(const BlendStateInfo& state,

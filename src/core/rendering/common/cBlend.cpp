@@ -54,7 +54,8 @@ namespace en
    namespace gpu
    {
    BlendStateInfo::BlendStateInfo() :
-      blendColor(0.0f, 0.0f, 0.0f, 0.0f)
+      blendColor(0.0f, 0.0f, 0.0f, 0.0f),
+      enabledSamples(0xFFFFFFFF)
    {
    };
 

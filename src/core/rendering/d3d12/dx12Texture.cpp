@@ -243,13 +243,20 @@ namespace en
    {
    TextureViewD3D12* view = new TextureViewD3D12(Ptr<TextureD3D12>(this));
    
+   // Cache mipmaps and layers range, if View
+   // of other underlying type will be needed.
+   view->viewType    = _type;
+   view->viewMipmaps = _mipmaps;
+   view->viewLayers  = _layers;
+   
    // View descriptor
    view->desc.Format                  = TranslateTextureFormat[underlyingType(state.format)];
-   view->desc.ViewDimension           = TranslateTextureType[underlyingType(state.type)];
+   view->desc.ViewDimension           = TranslateTextureType[underlyingType(_type)];
    view->desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
    // Emulate special Formats by using component swizzling
    // (destination formats are already substituted in the array)
+   // TODO: This won't work for Render Targets !!!!
    if ( (state.format == Format::BGRA_8_sn) ||
         (state.format == Format::BGRA_8_u)  ||
         (state.format == Format::BGRA_8_s)  ||
@@ -278,14 +285,14 @@ namespace en
       }
 
    // Fill out the descriptor depending on type of the view that is created
-   if (state.type == TextureType::Texture1D)
+   if (_type == TextureType::Texture1D)
       {
       view->desc.Texture1D.MostDetailedMip     = (UINT)_mipmap.base;
       view->desc.Texture1D.MipLevels           = (UINT)_mipmap.count;
       view->desc.Texture1D.ResourceMinLODClamp = (FLOAT)0.0f;
       }
    else
-   if (state.type == TextureType::Texture1DArray)
+   if (_type == TextureType::Texture1DArray)
       {
       view->desc.Texture1DArray.MostDetailedMip     = (UINT)_mipmap.base;
       view->desc.Texture1DArray.MipLevels           = (UINT)_mipmap.count;
@@ -294,7 +301,7 @@ namespace en
       view->desc.Texture1DArray.ResourceMinLODClamp = (FLOAT)0.0f;
       }
    else
-   if (state.type == TextureType::Texture2D)
+   if (_type == TextureType::Texture2D)
       {
       view->desc.Texture2D.MostDetailedMip     = (UINT)_mipmap.base;
       view->desc.Texture2D.MipLevels           = (UINT)_mipmap.count;
@@ -302,7 +309,7 @@ namespace en
       view->desc.Texture2D.ResourceMinLODClamp = (FLOAT)0.0f;
       }
    else
-   if (state.type == TextureType::Texture2DArray)
+   if (_type == TextureType::Texture2DArray)
       {
       view->desc.Texture2DArray.MostDetailedMip     = (UINT)_mipmap.base;
       view->desc.Texture2DArray.MipLevels           = (UINT)_mipmap.count;
@@ -311,29 +318,29 @@ namespace en
       view->desc.Texture2DArray.PlaneSlice          = (UINT)0u;        // TODO: What is this ????
       view->desc.Texture2DArray.ResourceMinLODClamp = (FLOAT)0.0f;
       }
-   // state.type == TextureType::Texture2DMultisample - Nothing else need to be specified?
+   // _type == TextureType::Texture2DMultisample - Nothing else need to be specified?
    else
-   if (state.type == TextureType::Texture2DMultisampleArray)
+   if (_type == TextureType::Texture2DMultisampleArray)
       {
       view->desc.Texture2DMSArray.FirstArraySlice = (UINT)_layers.base;
       view->desc.Texture2DMSArray.ArraySize       = (UINT)_layers.count;
       }
    else
-   if (state.type == TextureType::Texture3D)
+   if (_type == TextureType::Texture3D)
       {
       view->desc.Texture3D.MostDetailedMip        = (UINT)_mipmap.base;
       view->desc.Texture3D.MipLevels              = (UINT)_mipmap.count;
       view->desc.Texture3D.ResourceMinLODClamp    = (FLOAT)0.0f;
       }
    else
-   if (state.type == TextureType::TextureCubeMap)
+   if (_type == TextureType::TextureCubeMap)
       {
       view->desc.TextureCube.MostDetailedMip      = (UINT)_mipmap.base;
       view->desc.TextureCube.MipLevels            = (UINT)_mipmap.count;
       view->desc.TextureCube.ResourceMinLODClamp  = (FLOAT)0.0f;
       }
    else
-   if (state.type == TextureType::TextureCubeMapArray)
+   if (_type == TextureType::TextureCubeMapArray)
       {
       view->desc.TextureCubeArray.MostDetailedMip     = (UINT)_mipmap.base;
       view->desc.TextureCubeArray.MipLevels           = (UINT)_mipmap.count;

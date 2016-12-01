@@ -41,6 +41,7 @@ namespace en
    struct BlendStateInfo
       {
       float4 blendColor;
+      uint32 enabledSamples; // Masks which samples in MSAA RT's should be affected by blending operation.
 
       BlendStateInfo();
       };

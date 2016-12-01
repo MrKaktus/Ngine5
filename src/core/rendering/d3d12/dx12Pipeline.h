@@ -33,9 +33,10 @@ namespace en
       {
       public:
       Direct3D12Device* gpu;
-      VkPipeline    handle;
-
-      PipelineD3D12(VulkanDevice* gpu, VkPipeline handle);
+      ID3D12PipelineState* handle;
+      FLOAT blendColor[4];  // Dynamic - Set on CommandBuffer
+      
+      PipelineD3D12(VulkanDevice* gpu, const ID3D12PipelineState* handle);
       virtual ~PipelineD3D12();
       };
 
