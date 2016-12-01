@@ -236,6 +236,8 @@
 		85E9CBA11D7486AC0029A9BE /* heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CB9F1D7486AC0029A9BE /* heap.cpp */; };
 		85E9CBA21D7486AC0029A9BE /* heap.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E9CBA01D7486AC0029A9BE /* heap.h */; };
 		85E9CBA41D7486CD0029A9BE /* dx12Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CBA31D7486CD0029A9BE /* dx12Texture.cpp */; };
+		85FB829D1DD2A1C700A7BFA7 /* dx12RenderPass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85FB829B1DD2A1C700A7BFA7 /* dx12RenderPass.cpp */; };
+		85FB829E1DD2A1C700A7BFA7 /* dx12RenderPass.h in Headers */ = {isa = PBXBuildFile; fileRef = 85FB829C1DD2A1C700A7BFA7 /* dx12RenderPass.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -547,6 +549,8 @@
 		85E9CB9F1D7486AC0029A9BE /* heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heap.cpp; sourceTree = "<group>"; };
 		85E9CBA01D7486AC0029A9BE /* heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heap.h; sourceTree = "<group>"; };
 		85E9CBA31D7486CD0029A9BE /* dx12Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Texture.cpp; sourceTree = "<group>"; };
+		85FB829B1DD2A1C700A7BFA7 /* dx12RenderPass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12RenderPass.cpp; sourceTree = "<group>"; };
+		85FB829C1DD2A1C700A7BFA7 /* dx12RenderPass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12RenderPass.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -705,6 +709,8 @@
 				859179BC1C3F66120051382A /* dx12Raster.h */,
 				85987A991D06414D0063BCFD /* dx12Pipeline.cpp */,
 				858B46231DD1889B0053E275 /* dx12Pipeline.h */,
+				85FB829B1DD2A1C700A7BFA7 /* dx12RenderPass.cpp */,
+				85FB829C1DD2A1C700A7BFA7 /* dx12RenderPass.h */,
 				852B26371DBFAF96007D0C0F /* dx12Sampler.h */,
 				852B26361DBFAF96007D0C0F /* dx12Sampler.cpp */,
 				8574DD4D1DC2D08F0097629E /* dx12Texture.h */,
@@ -1185,6 +1191,7 @@
 				85E9CB9D1D7485A80029A9BE /* vkHeap.h in Headers */,
 				851A8EBB1CC5A4F600272F88 /* vkBuffer.h in Headers */,
 				85245FC91DB4404F004A903C /* mtlInternal.h in Headers */,
+				85FB829E1DD2A1C700A7BFA7 /* dx12RenderPass.h in Headers */,
 				85917C941C408C9F0051382A /* utilities in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1310,6 +1317,7 @@
 				85917AB51C3F66F50051382A /* opengl15.cpp in Sources */,
 				8598FD861CF1523600F97D1D /* osxStrings.mm in Sources */,
 				85917AB61C3F66F50051382A /* opengl20.cpp in Sources */,
+				85FB829D1DD2A1C700A7BFA7 /* dx12RenderPass.cpp in Sources */,
 				85917AB71C3F66F50051382A /* opengl21.cpp in Sources */,
 				85917AB81C3F66F50051382A /* opengl30.cpp in Sources */,
 				85917AB91C3F66F50051382A /* opengl31.cpp in Sources */,
