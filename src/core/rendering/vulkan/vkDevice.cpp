@@ -1045,6 +1045,8 @@ namespace en
    deviceVK->memoryDriver -= size;
    }
 
+   // TODO: Currently max is 16MB. This should be configurable through config file.
+   #define PipelineCacheMaximumSize 16*1024*1024
 
 
    VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysicalDevice _handle) :
@@ -1056,6 +1058,7 @@ namespace en
       queueFamilyIndices(nullptr),
       globalExtension(nullptr),
       globalExtensionsCount(0),
+      pipelineCache(VK_NULL_HANDLE),
       rebuildCache(true),
       memoryRAM(0),
       memoryDriver(0),
@@ -1403,8 +1406,6 @@ namespace en
    init();
    }
 
-   // TODO: Currently max is 16MB. This should be configurable through config file.
-   #define PipelineCacheMaximumSize 16*1024*1024
 
    void* VulkanDevice::loadPipelineCache(uint64& size)
    {

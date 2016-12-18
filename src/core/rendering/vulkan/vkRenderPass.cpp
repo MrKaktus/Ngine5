@@ -405,6 +405,8 @@ namespace en
    // Check if there is depth / depth-stencil / stencil destination
    if (surfaces == 2)
       {
+      assert( _depthStencil || _stencil );
+
       if (_depthStencil)
          views[index] = raw_reinterpret_cast<TextureViewVK>(&_depthStencil)->handle;
       else
@@ -549,14 +551,14 @@ namespace en
    // Color attachment
    VkAttachmentReference attColor;
    attColor.attachment = surfaces;
-   attColor.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // ptr->resolve ?  : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-// Image layout need to be transtioned to VK_IMAGE_LAYOUT_PRESENT_SRC_KHR with barrier.
+   attColor.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
+
    // Optional Color Resolve
    VkAttachmentReference attResolve;
    if (resolve)
       {
       attResolve.attachment = surfaces;
-      attResolve.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; //VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+      attResolve.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
       surfaces++;
       }
       
@@ -565,7 +567,7 @@ namespace en
    if (depthStencil)
       {
       attDepthStencil.attachment = surfaces;
-      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL; // Why Read-Only? What about write?
       surfaces++;
       }
 
