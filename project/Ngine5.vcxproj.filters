@@ -606,6 +606,27 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkShader.cpp">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Buffer.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Device.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Heap.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Multisampling.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12RenderPass.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Sampler.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Shader.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1243,6 +1264,30 @@
     </ClInclude>
     <ClInclude Include="..\public\include\core\rendering\surface.h">
       <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Buffer.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Heap.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Multisampling.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Pipeline.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12RenderPass.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Sampler.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Shader.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Texture.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
