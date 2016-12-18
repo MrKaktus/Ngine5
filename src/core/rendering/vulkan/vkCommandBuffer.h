@@ -22,6 +22,7 @@
 
 #include "core/rendering/device.h"
 #include "core/rendering/commandBuffer.h"
+#include "core/rendering/vulkan/vkSynchronization.h"
 
 namespace en
 {
@@ -32,14 +33,15 @@ namespace en
    class CommandBufferVK : public CommandBuffer
       {
       public:
-      VulkanDevice*   gpu;       // Vulkan Device (for Device function calls)
-      VkQueue         queue;
-      QueueType       queueType;
-      VkCommandBuffer handle;
-      VkFence         fence;     // Completion notification
-      bool            started;
-      bool            encoding;
-      bool            commited;
+      VulkanDevice*    gpu;       // Vulkan Device (for Device function calls)
+      VkQueue          queue;
+      QueueType        queueType;
+      VkCommandBuffer  handle;
+      Ptr<SemaphoreVK> semaphore; // Execution order synchronization    
+      VkFence          fence;     // Completion notification
+      bool             started;
+      bool             encoding;
+      bool             commited;
 
       // Internal methods
 
@@ -63,7 +65,7 @@ namespace en
                       
       virtual ~CommandBufferVK();
       
-      virtual void start(void);
+      virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr);
 
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Buffer> buffer);
@@ -103,7 +105,14 @@ namespace en
 
 
       virtual void endRenderPass(void);
-      virtual void commit(void);
+
+      virtual void barrier(const Ptr<Texture>  texture, 
+                           const uint32v2      mipmaps, 
+                           const uint32v2      layers,
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess);
+
+      virtual void commit(const Ptr<Semaphore> signalSemaphore = nullptr);
       virtual void waitUntilCompleted(void);
       };
    }

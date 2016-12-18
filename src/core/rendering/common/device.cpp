@@ -176,18 +176,18 @@ namespace en
    assert( 0 );
    }
    
-   Ptr<Texture> CommonWindow::surface(void)
-   {
-   // Should be implemented by specialization class.
-   assert( 0 );
-   return Ptr<Texture>(nullptr);
-   }
-   
-   void CommonWindow::present(void)
-   {
-   // Should be implemented by specialization class.
-   assert( 0 );
-   }
+   //Ptr<Texture> CommonWindow::surface(void)
+   //{
+   //// Should be implemented by specialization class.
+   //assert( 0 );
+   //return Ptr<Texture>(nullptr);
+   //}
+   //
+   //void CommonWindow::present(void)
+   //{
+   //// Should be implemented by specialization class.
+   //assert( 0 );
+   //}
 
 
    CommonDevice::CommonDevice() :

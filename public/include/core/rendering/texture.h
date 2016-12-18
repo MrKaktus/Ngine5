@@ -422,6 +422,11 @@ namespace en
       Sparse              = 0x0100,  // Texture is partially backed with memory
       };
 
+   inline TextureUsage operator| (TextureUsage a, TextureUsage b)
+   {
+   return static_cast<TextureUsage>(underlyingType(a) | underlyingType(b));
+   }
+
    // Texture face
    enum TextureFace
       {

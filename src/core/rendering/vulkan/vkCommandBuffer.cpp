@@ -33,6 +33,7 @@ namespace en
       queue(_queue),
       queueType(type),
       handle(_handle),
+      semaphore(nullptr),
       fence(_fence),
       started(false),
       encoding(false),
@@ -102,9 +103,12 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
 
-   void CommandBufferVK::start(void)
+   void CommandBufferVK::start(const Ptr<Semaphore> waitForSemaphore)
    {
    assert( !started );
+
+   if (waitForSemaphore)
+      semaphore = ptr_reinterpret_cast<SemaphoreVK>(&waitForSemaphore);
 
    // In Metal API we need to create Render Command Encoder.
    // In Vulkan API CommandBuffer needs to be started first,
@@ -348,6 +352,7 @@ namespace en
    ProfileNoRet( gpu, vkCmdBindPipeline(handle, bindPoint, ptr->handle) )
    }
 
+
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 
@@ -462,71 +467,12 @@ namespace en
       }
    }
    
-   
-   // SEMAPHORES
+
+   // FINISHING
    //////////////////////////////////////////////////////////////////////////
 
 
-   // It's currently just a handle to synchronize command buffers execution.
-   // Similar to MTLFence in Metal, but works between CB's submissions.
-   class SemaphoreVK
-      {
-      public:
-      VulkanDevice* gpu;
-      VkSemaphore   handle;
-      
-      SemaphoreVK(VulkanDevice* _gpu);
-     ~SemaphoreVK();
-      };
-   
-   SemaphoreVK::SemaphoreVK(VulkanDevice* _gpu) :
-      gpu(_gpu)
-   {
-   VkSemaphoreCreateInfo info;
-   info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-   info.pNext = nullptr;
-   info.flags = 0u;       // VkSemaphoreCreateFlags - reserved.
-
-   Profile( gpu, vkCreateSemaphore(gpu->device, &info, nullptr, &handle) )
-   }
-
-   SemaphoreVK::~SemaphoreVK()
-   {
-   ProfileNoRet( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
-   }
-   
-   
-
-
-
-   //enum class PipelineStage : uint32
-   //   {
-   //   // TODO: Do we mimic Vulkan Pipeline Stages granularity ?
-   //   Count
-   //   };
-   //
-   //static const VkPipelineStageFlagBits TranslatePipelineStage[underlyingType(PipelineStage::Count)] =
-   //   {
-   //   VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT                    ,
-   //   VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT                  ,
-   //   VK_PIPELINE_STAGE_VERTEX_INPUT_BIT                   ,
-   //   VK_PIPELINE_STAGE_VERTEX_SHADER_BIT                  ,
-   //   VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT    ,
-   //   VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT ,
-   //   VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT                ,
-   //   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT                ,
-   //   VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT           ,
-   //   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT            ,
-   //   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT        ,
-   //   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT                 ,
-   //   VK_PIPELINE_STAGE_TRANSFER_BIT                       ,
-   //   VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT                 ,
-   //   VK_PIPELINE_STAGE_HOST_BIT                           ,
-   //   VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT                   ,
-   //   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT                   ,
-   //   };
-   
-   void CommandBufferVK::commit(void)
+   void CommandBufferVK::commit(const Ptr<Semaphore> signalSemaphore)
    {
    assert( started );
    assert( !encoding );
@@ -535,28 +481,16 @@ namespace en
    // Finish Command Buffer encoding.
    Profile( gpu, vkEndCommandBuffer(handle) )
    
-
-   
- 
-   //
-   uint32 waitEvents = 0u;
-   VkPipelineStageFlags* waitFlags = nullptr;
-
-   // TODO: Add support for waiting for previous job to be finished through use of Semaphores.
-   //       Point out for which Pipeline Stages we wait for. One Stage for One Semaphore.
-   // if (waitEvents)
-   //    {
-   //    waitFlags = new VkPipelineStageFlags[waitEvents];
-   //    for(uint32 i=0; i<waitEvents; ++i)
-   //       {
-   //       waitFlags[i] = 0u;
-   //       for(uint32 j=0; j<waitStagesInEvent[i]; ++j)
-   //          waitFlags[i] |= TranslatePipelineStage[  waitStageInEvent[i][j]  ];
-   //       }
-   //    }
-   
-   uint32 signalEvents = 0u;
-
+   VkSubmitInfo submitInfo;
+   submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+   submitInfo.pNext                = nullptr;
+   submitInfo.waitSemaphoreCount   = 0u;      
+   submitInfo.pWaitSemaphores      = nullptr;   // Which semaphores we wait for. One Semaphore for one Pipeline Stage of other queue executing CommandBuffer.
+   submitInfo.pWaitDstStageMask    = nullptr;   // Pipeline stages at which each corresponding semaphore wait will occur (until pointed stage is done).
+   submitInfo.commandBufferCount   = 1u;
+   submitInfo.pCommandBuffers      = &handle;
+   submitInfo.signalSemaphoreCount = 0u;        // Amount of Semaphores we want to signal when this batch of job is done (more than one so we can unblock several queues at the same time).
+   submitInfo.pSignalSemaphores    = nullptr;   
 
    // Example:
    //
@@ -570,17 +504,26 @@ namespace en
    // Wait for previous job to finish before starting this one.
    // waitEvents   = 1;
    // waitFlags[0] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-   
-   VkSubmitInfo submitInfo;
-   submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-   submitInfo.pNext                = nullptr;
-   submitInfo.waitSemaphoreCount   = waitEvents;     // 
-   submitInfo.pWaitSemaphores      = nullptr;        // TODO: const VkSemaphore* - Which semaphores we wait for. One Semaphore for one Pipeline Stage of other queue executing CommandBuffer.
-   submitInfo.pWaitDstStageMask    = waitFlags;      // pipeline stages at which each corresponding semaphore wait will occur (until this stage is done)
-   submitInfo.commandBufferCount   = 1u;
-   submitInfo.pCommandBuffers      = &handle;
-   submitInfo.signalSemaphoreCount = signalEvents;   // Amount of Semaphores we want to signal when this batch of job is done (more than one so we can unblock several queues at the same time)
-   submitInfo.pSignalSemaphores    = nullptr;        // TODO: const VkSemaphore* signalHandles
+
+   // Wait for completion of previous Command Buffer synced with starting semaphore.
+   VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+   if (semaphore)
+      {
+      submitInfo.waitSemaphoreCount = 1u;
+      submitInfo.pWaitSemaphores    = &semaphore->handle;
+      submitInfo.pWaitDstStageMask  = &waitFlags;
+      }
+
+   // Signal semaphore for future synchronization.
+   if (signalSemaphore)
+      {
+      SemaphoreVK* signal = raw_reinterpret_cast<SemaphoreVK>(&signalSemaphore);
+
+      submitInfo.signalSemaphoreCount = 1u;   
+      submitInfo.pSignalSemaphores    = &signal->handle;        
+      }
+
+
 
    // Fence is optional. TODO: Analyze this.
    
@@ -589,10 +532,6 @@ namespace en
    // Internal fence will be signaled when this work is done.
    Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) )
 
-   // TODO: Is ending command buffer equivalent to commiting it for execution ?
-   
-   // TODO: Commit to execution
-   
    commited = true;
    }
     
@@ -607,22 +546,35 @@ namespace en
       Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << endl;   // TODO: File / line doesn't make sense as it will always point this method!
       }
 
+
+
    // TODO:
+
+   // v1.0.36 p97
    //
-   // " The memory dependency defined by signaling a fence and waiting on the host
-   //   does not guarantee that the results of memory accesses will be visible to
-   //   the host, or that the memory is available. To provide that guarantee, the
-   //   application must insert a memory barrier between the device writes and the
-   //   end of the submission that will signal the fence, with dstAccessMask having
-   //   the VK_ACCESS_HOST_READ_BIT bit set, with dstStageMask having the
-   //   VK_PIPELINE_STAGE_HOST_BIT bit set, and with the appropriate srcStageMask
-   //   and srcAccessMask members set to guarantee completion of the writes. 
+   // " Note
+   //   Signaling a fence and waiting on the host does not guarantee that the results of memory accesses will be visible
+   //   to the host. To provide that guarantee, the application must insert a memory barrier between the device writes
+   //   and the end of the submission that will signal the fence, with dstAccessMask having the VK_ACCESS_HOST_
+   //   READ_BIT bit set, with dstStageMask having the VK_PIPELINE_STAGE_HOST_BIT bit set, and with the
+   //   appropriate srcStageMask and srcAccessMask members set to guarantee completion of the writes. If the
+   //   memory was allocated without the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT set, then vkInval
+   //   idateMappedMemoryRanges must be called after the fence is signaled in order to ensure the writes are
+   //   visible to the host, as described in Host Access to Device Memory Objects. "
    //
-   //   If the memory was allocated without the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT 
-   //   set, then vkInvalidateMappedMemoryRanges must be called after the fence is
-   //   signaled in order to ensure the writes are visible to the host, as described
-   //   in Host Access to Device Memory Objects. "
-   //
+
+   // v1.0.36 p219
+   // 
+   // " vkInvalidateMappedMemoryRanges must be used to guarantee that device writes to non-coherent memory are
+   //   visible to the host. It must be called after command buffers that execute and flush (via memory barriers) the device writes
+   //   have completed, and before the host will read or write any of those locations. If a range of non-coherent memory is
+   //   written by the host and then invalidated without first being flushed, its contents are undefined.
+   //   
+   //   Note
+   //   Mapping non-coherent memory does not implicitly invalidate the mapped memory, and device writes that have
+   //   not been invalidated must be made visible before the host reads or overwrites them. "
+   // 
+
    }
    
    Ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
@@ -649,7 +601,7 @@ namespace en
    Profile( this, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
 
    // Create Fence that will be signaled when the Command Buffer execution is finished.
-   VkFence fence;
+   VkFence fence = VK_NULL_HANDLE;
    
    VkFenceCreateInfo fenceInfo;
    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;

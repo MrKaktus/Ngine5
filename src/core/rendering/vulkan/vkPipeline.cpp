@@ -219,7 +219,7 @@ namespace en
    pipelineInfo.basePipelineIndex   = -1;
 
    // Create pipeline state object
-   VkPipeline pipeline;
+   VkPipeline pipeline = VK_NULL_HANDLE;
    Profile( this, vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineInfo, nullptr, &pipeline) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       result = new PipelineVK(this, pipeline, true);

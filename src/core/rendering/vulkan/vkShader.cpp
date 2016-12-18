@@ -51,7 +51,7 @@ namespace en
    createInfo.codeSize = source.size();
    createInfo.pCode    = (const uint32_t*)source.c_str();
 
-   VkShaderModule handle;
+   VkShaderModule handle = VK_NULL_HANDLE;
    Profile( this, vkCreateShaderModule(device, &createInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       shader = new ShaderVK(this, handle, stage);

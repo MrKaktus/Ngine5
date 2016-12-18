@@ -31,6 +31,7 @@
 #include "core/rendering/pipeline.h"
 #include "core/rendering/renderPass.h"
 #include "core/rendering/pipeline.h"
+#include "core/rendering/synchronization.h"
 
 namespace en
 {
@@ -56,7 +57,7 @@ namespace en
    class CommandBuffer : public SafeObject<CommandBuffer>
       {
       public:
-      virtual void start(void) = 0;
+      virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr) = 0;
 
       virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer) = 0;
@@ -98,7 +99,17 @@ namespace en
                         const uint32       firstElement = 0) = 0;  // First index to process in Index buffer (if specified)
 
       virtual void endRenderPass(void) = 0;
-      virtual void commit(void) = 0;
+
+      // Optimize the way texture is internally stored in memory,
+      // by describing the way it was used in the past, and the 
+      // way it will be used now.
+      virtual void barrier(const Ptr<Texture>  texture, 
+                           const uint32v2      mipmaps, 
+                           const uint32v2      layers,
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess) = 0;
+
+      virtual void commit(const Ptr<Semaphore> signalSemaphore = nullptr) = 0;
       virtual void waitUntilCompleted(void) = 0;
       
       virtual ~CommandBuffer() {};                        // Polymorphic deletes require a virtual base destructor

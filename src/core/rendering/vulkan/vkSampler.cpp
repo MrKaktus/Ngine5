@@ -107,7 +107,7 @@ namespace en
    samplerInfo.borderColor             = TranslateSamplerBorder[underlyingType(state.borderColor)];
    samplerInfo.unnormalizedCoordinates = VK_FALSE;  // TODO: Unnormalized coordinates are not supported for now. (both supported by Vulkan & Metal)
 
-   VkSampler handle;
+   VkSampler handle = VK_NULL_HANDLE;
    Profile( this, vkCreateSampler(device, &samplerInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       sampler = new SamplerVK(this, handle);

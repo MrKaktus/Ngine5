@@ -24,6 +24,7 @@
 
 #include "core/utilities/memory.h"
 #include "core/rendering/vulkan/vkTexture.h"
+#include "core/rendering/vulkan/vkSynchronization.h"
 
 #if defined(EN_PLATFORM_WINDOWS)
 #include "platform/windows/win_events.h"
@@ -553,7 +554,7 @@ namespace en
    
    // Swap-Chain images need to support usage as Color Attachment.
    VkImageUsageFlags swapChainUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-   if (!checkBits(swapChainCapabilities.supportedUsageFlags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+   if (!checkBitmask(swapChainCapabilities.supportedUsageFlags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
       {
       Log << "ERROR: Swap-Chain is not supporting mandatory color attachment usage!\n";
       assert( 0 );
@@ -568,7 +569,7 @@ namespace en
 
    // By default we don't want any transformation to take place
    VkSurfaceTransformFlagBitsKHR swapChainTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-   if (!checkBits(swapChainCapabilities.supportedTransforms, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR))
+   if (!checkBitmask(swapChainCapabilities.supportedTransforms, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR))
       {
       // If we need to apply a transform, use current one in the system
       swapChainTransform = swapChainCapabilities.currentTransform;
@@ -741,7 +742,7 @@ namespace en
    assert( 0 );
    }
 
-   Ptr<Texture> WindowVK::surface(void)
+   Ptr<Texture> WindowVK::surface(const Ptr<Semaphore> signalSemaphore)
    {
    if (needNewSurface)
       {
@@ -751,29 +752,66 @@ namespace en
          {
          uint32 thread = Scheduler.core();
 
+         // v1.0.38 p663
+         //
+         // " The vkCmdWaitEvents or vkCmdPipelineBarrier used to transition the image away from VK_IMAGE_
+         //   LAYOUT_PRESENT_SRC_KHR layout must have dstStageMask and dstAccessMask parameters set based on the
+         //   next use of the image. The application must use implicit ordering guarantees and execution dependencies to prevent the
+         //   image transition from occurring before the semaphore passed to vkAcquireNextImageKHR has signaled. "
+         //
+         // v1.0.36 p648
+         //
+         // " After acquiring a
+         //   presentable image and before modifying it, the application must use a synchronization primitive to ensure that the
+         //   presentation engine has finished reading from the image. The application can then transition the image’s layout, 
+         //   ... "
+         //
+         // " Note
+         //   This allows the platform to handle situations which require out-of-order return of images after presentation. At the
+         //   same time, it allows the application to generate command buffers referencing all of the images in the swapchain
+         //   at initialization time, rather than in its main loop. "
+         //
+         // " . . . must be transitioned away from this layout after calling vkAcquireNextImageKHR.  "
+         //
+         // Pseudocode:
+         //
+         // window->surface(postSemaphore);
+         // command->start(postSemaphore);
+         //
+         // // Transition Swap-Chain surface from presentation layout to rendering destination
+         // command->barrier(swapChainTexture[swapChainCurrentImageIndex], 
+         //                  uint32v2(0,1),  // First mipmap
+         //                  uint32v2(0,1)); // First layer
+         //                  0u, // Current Access
+         //                  VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // New Access
+         //                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,          // Current Layout
+         //                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, // New Layout
+         //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,     // Transition after this stage
+         //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);    // Transition before this stage
+         //
+         SemaphoreVK* signal = raw_reinterpret_cast<SemaphoreVK>(&signalSemaphore);
+
          // Acquire one of the Swap-Chain surfaces for rendering
-         Profile( gpu, vkAcquireNextImageKHR(gpu->device, swapChain, UINT64_MAX /* wait time in nanoseconds */, 
-                                             VK_NULL_HANDLE, /* semaphore to wait for presentation engine to finish reading from it*/
-                                             presentationFence, &swapChainCurrentImageIndex) )
+         Profile( gpu, vkAcquireNextImageKHR(gpu->device, 
+                                             swapChain, 
+                                             UINT64_MAX,     // wait time in nanoseconds
+                                             signal->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
+                                             VK_NULL_HANDLE, // presentationFence, <- Don't actively wait for now.
+                                             &swapChainCurrentImageIndex) )
          
          // Ensure that engine is recreating Swap-Chain on window resize
          assert( gpu->lastResult[thread] != VK_ERROR_OUT_OF_DATE_KHR );
 
-         // Active wait for presentation engine to finish reading from Swap-Chain surface to display panel
-         gpu->lastResult[thread] = VK_NOT_READY;
-         while(gpu->lastResult[thread] != VK_SUCCESS)
-            {
-            Profile( gpu, vkGetFenceStatus(gpu->device, presentationFence) )
-            }
+         //// Active wait for presentation engine to finish reading from Swap-Chain surface to display panel
+         //gpu->lastResult[thread] = VK_NOT_READY;
+         //while(gpu->lastResult[thread] != VK_SUCCESS)
+         //   {
+         //   Profile( gpu, vkGetFenceStatus(gpu->device, presentationFence) )
+         //   }
 
-         // Reset fence for reuse
-         Profile( gpu, vkResetFences(gpu->device, 1u, &presentationFence) )
+         //// Reset fence for reuse
+         //Profile( gpu, vkResetFences(gpu->device, 1u, &presentationFence) )
 
-         // TODO: Transition image to valid layout before use!         
-         // before modifying it, the application must use a synchronization primitive to ensure that the
-         // presentation engine has finished reading from the image. The application can then transition the image’s layout, queue
-         // rendering commands to it, etc.
-         
          needNewSurface = false;
          }
 
@@ -794,20 +832,34 @@ namespace en
 
 
    // Presents current surface, after all work encoded on given Commnad Buffer is done
-   void WindowVK::present() // const Ptr<CommandBuffer> command ? <- pass command buffer in ??
+   void WindowVK::present(const Ptr<Semaphore> waitForSemaphore) // const Ptr<CommandBuffer> command ? <- pass command buffer in ??
    {
    surfaceAcquire.lock();
    if (!needNewSurface)
       {
-      TextureVK* framebuffer = raw_reinterpret_cast<TextureVK>(&swapChainTexture[swapChainCurrentImageIndex]);
-
-
-      //// This should be done on Command Buffer submitted to Present Queue
-      //transitionTexture(swapChainTexture[swapChainCurrentImageIndex], 
+      // v1.0.36 p662
+      //
+      // " When transitioning the image to VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, there is no need to delay subsequent
+      //   processing, or perform any visibility operations (as vkQueuePresentKHR performs automatic visibility
+      //   operations). To achieve this, the dstAccessMask member of the VkImageMemoryBarrier should be set
+      //   to 0, and the dstStageMask parameter should be set to VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_
+      //   BIT "
+      // 
+      // Pseudocode:
+      //
+      // command->barrier(swapChainTexture[swapChainCurrentImageIndex], 
       //                  uint32v2(0,1),  // First mipmap
       //                  uint32v2(0,1)); // First layer
-
-      //// TODO: Transition texture before and after !
+      //                  VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // Current Access
+      //                  0u,
+      //                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, // Current Layout
+      //                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,          // New Layout
+      //                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,     // Transition after this stage
+      //                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);    // Transition before this stage
+      // 
+      // Ptr<Semaphore> waitForSemaphore = gpu->createSemaphore();
+      // command->commit(waitForSemaphore);
+      // window->present(preSemaphore); // Wait on semaphore
 
       VkDisplayPresentInfoKHR displayInfo;
       displayInfo.sType      = VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR;
@@ -819,79 +871,23 @@ namespace en
       VkPresentInfoKHR info;
       info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
       info.pNext              = _fullscreen ? &displayInfo : nullptr;     // If using VK_KHR_display_swapchain, pass additional information.
-
-// TODO: !!!!!
-      info.waitSemaphoreCount = 0u; // 1;
-      info.pWaitSemaphores    = nullptr; // At least one Semaphore, indicating that rendering to presentation surface is done (if not used waitUntilComplete).
-// const VkSemaphore*       
-
-      info.swapchainCount     = 1;               // Can present Swap-Chains of multiple windows at the same time (then we pass array of those and their surface id's).
+      info.waitSemaphoreCount = 0u;      
+      info.pWaitSemaphores    = nullptr;         // At least one Semaphore, indicating that rendering to presentation surface is done (if not used waitUntilComplete).
+      info.swapchainCount     = 1u;              // Can present Swap-Chains of multiple windows at the same time (then we pass array of those and their surface id's).
       info.pSwapchains        = &swapChain;      
       info.pImageIndices      = &swapChainCurrentImageIndex;
       info.pResults           = nullptr;         // Results per Swap-Chain. We present only one so general function call result is enough.
-      
+
+      if (waitForSemaphore)
+         {
+         SemaphoreVK* wait = raw_reinterpret_cast<SemaphoreVK>(&waitForSemaphore);
+         
+         info.waitSemaphoreCount = 1u;
+         info.pWaitSemaphores    = &wait->handle;
+         }
+
       Profile( gpu, vkQueuePresentKHR(presentQueue, &info) )
       needNewSurface = true;
-//
-//      // Transition Swap-Chain surface from presentation layout to rendering destination
-//      VkImageMemoryBarrier barrier;
-//      barrier.sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-//      barrier.pNext               = nullptr;
-//      barrier.srcAccessMask       = 0;
-//      barrier.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-//      barrier.oldLayout           = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-//      barrier.newLayout           = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-//      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
-//      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-//      barrier.image               = framebuffer->handle; 
-//      barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-//      barrier.subresourceRange.baseMipLevel   = 0u;
-//      barrier.subresourceRange.levelCount     = 1u;
-//      barrier.subresourceRange.baseArrayLayer = 0u;
-//      barrier.subresourceRange.layerCount     = 1u;
-//      
-//      ProfileNoRet( gpu, vkCmdPipelineBarrier(handle,
-//                                              VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // After this stage start barrier
-//                                              VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // Before this stage finish barrier
-//                                              0u,             // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
-//                                              0u, nullptr,    // Memory barriers
-//                                              0u, nullptr,    // Buffer memory barriers
-//                                              1u, &barrier) ) // Image memory barriers
-//      
-//srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-//• srcAccessMask = 0
-//• dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-//• dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACH
-//MENT_WRITE_BIT.
-//• oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-//• newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-//
-//
-
-// TODO: Transition to VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-//
-// Page 87 in Spec.
-//
-//VkImageMemoryBarrier
-//could use:
-//• srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-//• dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-
-
-
-
-// When transitioning the image to VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, there is no need to delay subsequent
-// processing, or perform any visibility operations (as vkQueuePresentKHR performs automatic visibility
-// operations). To achieve this, the dstAccessMask member of the VkImageMemoryBarrier should be set
-// to 0, and the dstStageMask parameter should be set to VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_
-// BIT
-
-// The vkCmdWaitEvents or vkCmdPipelineBarrier used to transition the image away from VK_IMAGE_
-// LAYOUT_PRESENT_SRC_KHR layout must have dstStageMask and dstAccessMask parameters set based on the
-// next use of the image. The application must use implicit ordering guarantees and execution dependencies to prevent the
-// image transition from occurring before the semaphore passed to vkAcquireNextImageKHR has signaled.
-
-
 
 
 
@@ -2162,7 +2158,7 @@ namespace en
          assert( EnumDisplaySettingsEx(Device.DeviceName, ENUM_CURRENT_SETTINGS, &DispMode, 0u) );
  
          // Verify that proper values were returned by query
-         assert( checkBits(DispMode.dmFields, (DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT)) );
+         assert( checkBitmask(DispMode.dmFields, (DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT)) );
 
          desktopPosition.x   = DispMode.dmPosition.x;
          desktopPosition.y   = DispMode.dmPosition.y;
@@ -2183,7 +2179,7 @@ namespace en
          while(EnumDisplaySettingsEx(Device.DeviceName, modeId, &DispMode, 0u))
             {
             // Verify that proper values were returned by query
-            assert( checkBits(DispMode.dmFields, DM_PELSWIDTH | DM_PELSHEIGHT) );
+            assert( checkBitmask(DispMode.dmFields, DM_PELSWIDTH | DM_PELSHEIGHT) );
             
             currentDisplay->modeResolution[modeId].x = DispMode.dmPelsWidth;
             currentDisplay->modeResolution[modeId].y = DispMode.dmPelsHeight;

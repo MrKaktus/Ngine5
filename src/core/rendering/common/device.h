@@ -65,8 +65,8 @@ namespace en
       
       virtual void transparent(const float opacity); // TODO: Do we really want that here? (Transp. should be enabled on window creation time, and queried later)
       virtual void opaque(void);
-      virtual Ptr<Texture> surface(void); // App should query for current surface each time it wants to reference it
-      virtual void present(void);
+      //virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr); // App should query for current surface each time it wants to reference it
+      //virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr);
       
       virtual ~CommonWindow();
 

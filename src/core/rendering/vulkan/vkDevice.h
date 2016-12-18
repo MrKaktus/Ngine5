@@ -278,7 +278,7 @@ namespace en
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil);
 
-
+      virtual Ptr<Semaphore> createSemaphore(void);
          
 
         
@@ -359,8 +359,8 @@ namespace en
                       const string title);
 
       virtual void resize(const uint32v2 size);
-      virtual Ptr<Texture> surface(void);
-      virtual void present(void);
+      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr);
+      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr);
       
       virtual ~WindowVK();
       };

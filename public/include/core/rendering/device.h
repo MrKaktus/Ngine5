@@ -34,7 +34,7 @@
 #include "core/rendering/heap.h"
 #include "core/rendering/commandBuffer.h"
 #include "core/rendering/layout.h"
-
+#include "core/rendering/synchronization.h"
 #include "utilities/Nversion.h"
 
 
@@ -167,8 +167,10 @@ namespace en
       virtual void active(void) = 0;
       virtual void transparent(const float opacity) = 0;
       virtual void opaque(void) = 0;
-      virtual Ptr<Texture> surface(void) = 0;         // App should query for current surface each time it wants to reference it
-      virtual void present(void) = 0;                 // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
+      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr) = 0; // Signal when Swap-Chain surface is presented, and can be reused
+      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr) = 0;        // Wait for rendering to Swap-Chain surface being done
+                                                                                        
+      //virtual void present(void) = 0;                 // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
       
       virtual ~Window() {};                               // Polymorphic deletes require a virtual base destructor
       };
@@ -278,6 +280,7 @@ namespace en
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil) = 0;
 
+      virtual Ptr<Semaphore> createSemaphore(void) = 0;
 
       
 

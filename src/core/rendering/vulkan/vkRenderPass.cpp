@@ -364,7 +364,7 @@ namespace en
    framebufferInfo.layers          = layers;
 
    // Create framebuffer object
-   VkFramebuffer framebuffer;
+   VkFramebuffer framebuffer = VK_NULL_HANDLE;
    Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, layers));
@@ -429,7 +429,7 @@ namespace en
    framebufferInfo.layers          = 1u;
 
    // Create framebuffer object
-   VkFramebuffer framebuffer;
+   VkFramebuffer framebuffer = VK_NULL_HANDLE;
    Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, 1u));
@@ -503,7 +503,7 @@ namespace en
    framebufferInfo.layers          = 1u;
 
    // Create framebuffer object
-   VkFramebuffer framebuffer;
+   VkFramebuffer framebuffer = VK_NULL_HANDLE;
    Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, 1u));
@@ -616,7 +616,7 @@ namespace en
    passInfo.pDependencies   = nullptr;
 
    // Create renderpass object
-   VkRenderPass renderpass;
+   VkRenderPass renderpass = VK_NULL_HANDLE;
    Profile( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
@@ -781,7 +781,7 @@ namespace en
    passInfo.pDependencies   = nullptr;
 
    // Create renderpass object
-   VkRenderPass renderpass;
+   VkRenderPass renderpass = VK_NULL_HANDLE;
    Profile( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {

@@ -1265,6 +1265,12 @@
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Layout.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\synchronization.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkSynchronization.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">

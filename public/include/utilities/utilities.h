@@ -40,7 +40,7 @@ namespace en
 
    // Bit query
    #define checkBit(number, bit)  (number & (1 << bit))
-   #define checkBits(number, bitMask)  (number & bitMask)
+   #define checkBitmask(number, bitMask)  ((number & bitMask) == bitMask)
    #define getBit(number, bit)    (number & (1 << bit))
    #define bitChanged(previous, current, bit) (checkBit(current, bit) != checkBit(previous, bit))
    #define bitsChanged(previous, current, bitMask) ((current & bitMask) != (previous & bitMask))

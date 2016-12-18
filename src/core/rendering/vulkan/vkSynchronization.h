@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Shader.
+ Module      : Vulkan Synchronization.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,14 +13,14 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_VULKAN_SHADER
-#define ENG_CORE_RENDERING_VULKAN_SHADER
+#ifndef ENG_CORE_RENDERING_VULKAN_SYNCHRONIZATION
+#define ENG_CORE_RENDERING_VULKAN_SYNCHRONIZATION
 
 #include "core/rendering/vulkan/vulkan.h"
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
-#include "core/rendering/shader.h"
+#include "core/rendering/synchronization.h"
 
 namespace en
 {
@@ -28,15 +28,18 @@ namespace en
    {
    class VulkanDevice;
 
-   class ShaderVK : public Shader
+
+
+   // It's currently just a handle to synchronize command buffers execution.
+   // Similar to MTLFence in Metal, but works between CB's submissions.
+   class SemaphoreVK : public Semaphore
       {
       public:
-      VulkanDevice*  gpu;
-      VkShaderModule handle;
-      ShaderStage    stage;
-
-      ShaderVK(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
-      virtual ~ShaderVK();
+      VulkanDevice* gpu;
+      VkSemaphore   handle;
+      
+      SemaphoreVK(VulkanDevice* _gpu);
+     ~SemaphoreVK();
       };
 
    }

@@ -229,7 +229,7 @@ namespace en
       bufferInfo.pQueueFamilyIndices   = nullptr;
       }
       
-   VkBuffer handle;
+   VkBuffer handle = VK_NULL_HANDLE;
    VulkanDevice* gpu = heap->gpu;
    Profile( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)

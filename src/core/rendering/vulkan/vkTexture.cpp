@@ -337,7 +337,7 @@ namespace en
       textureInfo.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
    // Multiple Views
-   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::MultipleViews)))
+   if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::MultipleViews)))
       {
       // If app will create different Views from this texture, we
       // assume that those Views can map different texel Formats.
@@ -351,7 +351,7 @@ namespace en
       }
 
    // Sparse Textures
-   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Sparse)))
+   if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::Sparse)))
       {
       textureInfo.flags |= VK_IMAGE_CREATE_SPARSE_BINDING_BIT;
 
@@ -375,7 +375,7 @@ namespace en
    bool isMemoryless    = false;
 
    // Streamed or Static
-   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Streamed)))
+   if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::Streamed)))
       {
       // TODO: Optimize it to specify Source/Destination only.
       textureInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT; // Streaming Source? (stream from GPU, GPU generated content?)
@@ -392,30 +392,30 @@ namespace en
    else
       {
       // Read only textures need to be populated first using blit
-      if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
+      if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
          textureInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
       properties |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
       }
 
-   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
+   if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
       {
       textureInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
       canBeMemoryless = false;
       }
 
-   if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::Atomic)))
+   if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::Atomic)))
       {
       textureInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
       canBeMemoryless = false;
       }
 
    // Render Target Attachment
-   if ( checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetRead)) ||
-        checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)) )
+   if ( checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetRead)) ||
+        checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)) )
       {
       // Destination for Render Operations
-      if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
+      if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
          {
          if ( TextureFormatIsDepth(state.format)   ||
               TextureFormatIsStencil(state.format) ||
@@ -428,7 +428,7 @@ namespace en
          }
       
       // Can be sourced in next Post Process Pass
-      if (checkBits(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetRead)))
+      if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetRead)))
          {
          textureInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
          }
@@ -485,7 +485,8 @@ namespace en
    assert( textureInfo.samples & formatInfo.sampleCounts );
    // There is no way to validate against formatInfo.maxResourceSize until texture is created.
 
-   VkImage handle;
+   VkImage handle = VK_NULL_HANDLE;
+
    Profile( gpu, vkCreateImage(gpu->device, &textureInfo, nullptr, &handle) )
    if (gpu->lastResult[threadId] == VK_SUCCESS)  
       {

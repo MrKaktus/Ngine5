@@ -190,6 +190,7 @@
     <ClInclude Include="..\public\include\core\rendering\shader.h" />
     <ClInclude Include="..\public\include\core\rendering\state.h" />
     <ClInclude Include="..\public\include\core\rendering\surface.h" />
+    <ClInclude Include="..\public\include\core\rendering\synchronization.h" />
     <ClInclude Include="..\public\include\core\rendering\texture.h" />
     <ClInclude Include="..\public\include\core\rendering\viewport.h" />
     <ClInclude Include="..\public\include\core\storage.h" />
@@ -361,6 +362,7 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkRenderPass.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkSampler.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkShader.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkSynchronization.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkTexture.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkViewport.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan.h" />

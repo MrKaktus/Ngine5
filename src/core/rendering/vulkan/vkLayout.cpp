@@ -124,7 +124,7 @@ namespace en
    setInfo.bindingCount = count;
    setInfo.pBindings    = rangeInfo;
    
-   VkDescriptorSetLayout setLayout;
+   VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
       
    Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setLayout) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
@@ -215,7 +215,7 @@ namespace en
    layoutInfo.pushConstantRangeCount = 0;       // uint32_t
    layoutInfo.pPushConstantRanges    = nullptr; // const VkPushConstantRange*
 
-   VkPipelineLayout layout;
+   VkPipelineLayout layout = VK_NULL_HANDLE;
    Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
