@@ -674,7 +674,7 @@ namespace en
    return ptr_reinterpret_cast<Display>(&api->_display[index]);
    }
 
-   Ptr<Window> MetalDevice::create(const WindowSettings& settings, const string title)
+   Ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const string title)
    {
    Ptr<WindowMTL> ptr = new WindowMTL(this, settings, title);
    return ptr_reinterpret_cast<Window>(&ptr);

@@ -212,8 +212,8 @@ namespace en
 
       virtual Ptr<Display> display(uint32 index) const;
 
-      virtual Ptr<Window> create(const WindowSettings& settings, 
-                                 const string title);
+      virtual Ptr<Window> createWindow(const WindowSettings& settings, 
+                                       const string title);
 
 
 

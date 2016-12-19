@@ -369,6 +369,8 @@ namespace en
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, layers));
       
+   delete [] views;
+
    return ptr_reinterpret_cast<Framebuffer>(&result);
    }
    
@@ -436,6 +438,8 @@ namespace en
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, 1u));
       
+   delete [] views;
+
    return ptr_reinterpret_cast<Framebuffer>(&result);
    }
       
@@ -510,6 +514,8 @@ namespace en
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, 1u));
       
+   delete [] views;
+
    return ptr_reinterpret_cast<Framebuffer>(&result);
    }
    

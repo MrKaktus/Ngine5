@@ -171,9 +171,6 @@
     <ClCompile Include="..\src\core\rendering\api.cpp">
       <Filter>Source Files\core\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\buffer.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\depthStencil.cpp">
       <Filter>Source Files\core\rendering</Filter>
     </ClCompile>
@@ -617,6 +614,9 @@
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\vulkan\vkSynchronization.cpp">
       <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\ogl_buffer.cpp">
+      <Filter>Source Files\core\rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

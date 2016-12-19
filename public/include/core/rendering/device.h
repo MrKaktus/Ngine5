@@ -197,8 +197,8 @@ namespace en
       virtual Ptr<Display> display(uint32 id) const = 0;  // Return N'th display handle
 
 
-      virtual Ptr<Window> create(const WindowSettings& settings,  
-                                 const string title) = 0; // Create window
+      virtual Ptr<Window> createWindow(const WindowSettings& settings,  
+                                       const string title) = 0; // Create window
                
       // Create Heap from which GPU resources can be sub-allocated.
       virtual Ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;

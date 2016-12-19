@@ -896,7 +896,7 @@ namespace en
    surfaceAcquire.unlock();
    }
 
-   Ptr<Window> VulkanDevice::create(const WindowSettings& settings, const string title)
+   Ptr<Window> VulkanDevice::createWindow(const WindowSettings& settings, const string title)
    {
    // Select destination display
    Ptr<CommonDisplay> display;

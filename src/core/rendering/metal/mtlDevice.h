@@ -96,8 +96,8 @@ namespace en
       uint32 displays(void) const;            // Screens count the device can render to
       Ptr<Display> display(uint32 id) const;  // Return N'th screen handle
       
-      Ptr<Window> create(const WindowSettings& settings,
-                        const string title); // Create window
+      Ptr<Window> createWindow(const WindowSettings& settings,
+                               const string title); // Create window
       
       virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
 

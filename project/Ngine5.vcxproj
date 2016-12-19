@@ -15,7 +15,7 @@
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
     <ClCompile Include="..\src\core\rendering\api.cpp" />
-    <ClCompile Include="..\src\core\rendering\buffer.cpp" />
+    <ClCompile Include="..\src\core\rendering\ogl_buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cTexture.cpp" />
