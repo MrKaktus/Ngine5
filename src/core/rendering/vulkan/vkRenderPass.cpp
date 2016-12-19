@@ -542,7 +542,7 @@ namespace en
    
    assert( swapChainSurface );
 
-   uint32 surfaces = 1u;
+   uint32 surfaces = 0u;
    bool   resolve  = false;
    uint32 usedAttachments = 1u;
 
@@ -552,6 +552,7 @@ namespace en
    VkAttachmentReference attColor;
    attColor.attachment = surfaces;
    attColor.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
+   surfaces++;
 
    // Optional Color Resolve
    VkAttachmentReference attResolve;
@@ -610,6 +611,7 @@ namespace en
    VkRenderPassCreateInfo passInfo;
    passInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
    passInfo.pNext           = nullptr;
+   passInfo.flags           = 0u;
    passInfo.attachmentCount = surfaces;
    passInfo.pAttachments    = attachment;
    passInfo.subpassCount    = 1;

@@ -51,10 +51,23 @@ extern void initHalfs(void);
 // Entry point for console applications
 int ConsoleMain(int argc, const char **argv)
 {
-// Hide console window in release build
+// Hide console window in Release build
 #ifndef EN_DEBUG
 HWND hWnd = GetConsoleWindow();
 ShowWindow( hWnd, SW_HIDE );
+#else
+// Show console window in Debug build, and make it bigger
+HWND hWnd = GetConsoleWindow();
+
+system("mode con cols=160 lines=50");
+
+//ShowWindow( hWnd, SW_HIDE );
+//
+//BOOL WINAPI SetConsoleWindowInfo(
+//  _In_  HANDLE hConsoleOutput,
+//  _In_  BOOL bAbsolute,
+//  _In_  const SMALL_RECT *lpConsoleWindow
+//);
 #endif
 
 // Init Math
