@@ -530,7 +530,7 @@ namespace en
    // Submit single batch of work to the queue.
    // Each batch can consist of multiple command buffers.
    // Internal fence will be signaled when this work is done.
-   Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) )
+   Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) )   // Don't pass Fence until it is properly destroyed at the end !  // fence
 
    commited = true;
    }

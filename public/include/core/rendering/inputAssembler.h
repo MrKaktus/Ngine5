@@ -44,26 +44,6 @@ namespace en
       public:
       virtual ~InputAssembler() {};              // Polymorphic deletes require a virtual base destructor
       };
-   
-   
-   
-   
-   
-   
-   
-   //struct InputAssemblerSettings
-   //   {
-   //   Attribute       format[MaxInputAssemblerAttributesCount]; // Format of each Input Attribute
-   //   Ptr<BufferView> buffer[MaxInputAssemblerAttributesCount]; // Source buffer of each Vertex Attribute 
-   //                                                             // (if several attributes share the same buffer, 
-   //                                                             //  their order in buffer needs to match order in this array)
-   //   InputAssemblerSettings();
-   //   };
-
-      // Creates InputAssembler description from combining attributes from several input buffers.
-      // Each input buffer needs to have specified internal formatting.
-      // virtual Ptr<InputAssembler> GpuDevice::create(const InputAssemblerSettings& attributes) = 0;
-   
    }
 }
 #endif
