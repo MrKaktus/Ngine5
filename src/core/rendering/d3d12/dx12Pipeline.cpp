@@ -66,9 +66,6 @@ namespace en
    const RenderPassD3D12*         renderPass     = raw_reinterpret_cast<RenderPassD3D12>(&pipelineState.renderPass);
    const InputAssemblerD3D12*     input          = raw_reinterpret_cast<InputAssemblerD3D12>(&pipelineState.inputAssembler);
 
-   // TODO: Looks like Viewport State is dynamic -> write it into PipelineD3D12 object to set up on bind !!!!
-   //const ViewportStateD3D12*      viewport       = raw_reinterpret_cast<ViewportStateD3D12>(&pipelineState.viewportState);
-
    const RasterStateD3D12*        raster         = pipelineState.rasterState ? raw_reinterpret_cast<RasterStateD3D12>(&pipelineState.rasterState)
                                                                              : raw_reinterpret_cast<RasterStateD3D12>(&defaultState.rasterState);
 
@@ -110,9 +107,6 @@ namespace en
    desc.StreamOutput.NumStrides       = 0u;
    desc.StreamOutput.RasterizedStream = 0u;
    
-   // Patch BlendingState
-   desc.BlendState.AlphaToCoverageEnable = multisampling->alphaToCoverage;
-   
    desc.BlendState            = blend->desc;
    desc.SampleMask            = blend->enabledSamples; // Determines for which MSAA samples, blend will be applied, for all enabled RT.
    desc.RasterizerState       = raster->state;
@@ -133,9 +127,17 @@ namespace en
    desc.CachedPSO.CachedBlobSizeInBytes = 0u;
    desc.Flags                 = D3D12_PIPELINE_STATE_FLAG_NONE;
 
+   // Patch BlendingState
+   desc.BlendState.AlphaToCoverageEnable      = multisampling->alphaToCoverage;
+   
+   // Patch RasterizerState
+   desc.RasterizerState.MultisampleEnable     = multisampling->state.Count > 1 ? TRUE : FALSE;
+   desc.RasterizerState.AntialiasedLineEnable = FALSE; // Currently unsupported (See dx12Raster.cpp).
+   desc.RasterizerState.ForcedSampleCount     = 0u;    // Currently unsupported (See dx12Raster.cpp).
+
    // Create pipeline state object
    ID3D12PipelineState* pipeline;
-   Profile( this, CreateGraphicsPipelineState(&desc, __uuidof(ID3D12PipelineState), (void**)&pipeline) )
+   Profile( this, CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline)) ) // __uuidof(ID3D12PipelineState), reinterpret_cast<void**>(&pipeline)
    if (SUCCEDED(lastResult[Scheduler.core()]))
       {
       result = new PipelineD3D12(pipeline);
@@ -146,8 +148,16 @@ namespace en
       result->blendColor[2] = blend->blendColor.b;
       result->blendColor[3] = blend->blendColor.a;
       
+      // Viewport State is dynamic 
+      const ViewportStateD3D12* viewport = raw_reinterpret_cast<ViewportStateD3D12>(&pipelineState.viewportState);
+      memcpy(&result->viewport[0], &viewport->viewport[0], viewport->count * sizeof(D3D12_VIEWPORT));
+      memcpy(&result->scissor[0],  &viewport->scissor[0],  viewport->count * sizeof(D3D12_RECT));
+      result->viewportsCount = viewport->count;
+      
       // TODO: Set on Bind to Command Buffer !!!!!
       // command->OMSetBlendFactor(blendColor);
+      // command->RSSetViewports(viewportsCount, &viewport[0]);
+      // command->RSSetScissorRects(viewportsCount, &scissor[0]);
       }
 
    return ptr_reinterpret_cast<Pipeline>(&result);

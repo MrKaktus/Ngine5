@@ -43,6 +43,7 @@ namespace en
       Temporary       // Use as a backup memory for intermediate Render Targets.
       };
 
+   // TODO: Change "Streamed" memory type to two types, one for upload one for download from dedicated memory.
    // TODO: Change "Temporary" MemoryUsage interface to "Renderable". This will be dedicated memory type
    //       for alocation of RenderTargets. It will also allow resources aliasing in the future.
    //       (and on Vulkan will allow Temporary RT's backing, on Metal memoryless ones)

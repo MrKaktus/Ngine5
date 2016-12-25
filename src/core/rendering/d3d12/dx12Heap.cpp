@@ -125,7 +125,7 @@ namespace en
 
    ID3D12Heap* handle;
 
-	Profile( this, CreateHeap(&desc, __uuidof(ID3D12Heap), IID_PPV_ARGS(&handle)) )
+	Profile( this, CreateHeap(&desc, IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12Heap), reinterpret_cast<void**>(&handle)
    if ( SUCCEDED(lastResult[Scheduler.core()]) )
       result = new HeapD3D12(this, handle, usage, roundedSize);
    

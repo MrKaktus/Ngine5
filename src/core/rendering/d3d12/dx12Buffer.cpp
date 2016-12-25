@@ -120,9 +120,8 @@ namespace en
                                       reinterpret_cast<UINT64>(offset),
                                       &desc,
 	                                   initState,
-	                                   nullptr,                        // Clear value - currently not supported
-                                      __uuidof(ID3D12Resource),
-                                      IID_PPV_ARGS(&bufferHandle)) )
+	                                   nullptr,                       // Clear value - currently not supported
+                                      IID_PPV_ARGS(&bufferHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&bufferHandle)
       
    if ( SUCCEDED(gpu->lastResult[Scheduler.core()]) )
       result = new BufferD3D12(Ptr<Heap>(this),

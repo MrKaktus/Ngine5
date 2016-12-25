@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Command Buffer.
+ Module      : D3D12 Command Buffer.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,41 +13,30 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_VULKAN_COMMAND_BUFFER
-#define ENG_CORE_RENDERING_VULKAN_COMMAND_BUFFER
+#ifndef ENG_CORE_RENDERING_D3D12_COMMAND_BUFFER
+#define ENG_CORE_RENDERING_D3D12_COMMAND_BUFFER
 
-#include "core/rendering/vulkan/vulkan.h"
+#include "core/defines.h"
 
-#if defined(EN_MODULE_RENDERER_VULKAN)
+#if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
-#include "core/rendering/device.h"
+#include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/commandBuffer.h"
 
 namespace en
 {
    namespace gpu
    {
-   class VulkanDevice;
-
-   class CommandBufferVK : public CommandBuffer
+   class CommandBufferD3D12 : public CommandBuffer
       {
       public:
-      VulkanDevice*   gpu;       // Vulkan Device (for Device function calls)
-      VkQueue         queue;
-      QueueType       queueType;
-      VkCommandBuffer handle;
-      VkFence         fence;     // Completion notification
+      Direct3D12Device* gpu;     // GPU owning this Command Buffer (for temporary staging buffers creation)
+      ID3D12CommandQueue* queue;
+      ID3D12CommandList* handle;
+      ID3D12Fence*    fence;
       bool            started;
       bool            encoding;
       bool            commited;
-      
-      CommandBufferVK(VulkanDevice*         gpu,
-                      const VkQueue         queue,
-                      const QueueType       queueType,
-                      const VkCommandBuffer handle,
-                      const VkFence         fence);
-                      
-      virtual ~CommandBufferVK();
       
       virtual void bind(const Ptr<RasterState> raster);
       //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
@@ -56,12 +45,10 @@ namespace en
       
       virtual bool startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer);
-
+                                   
       virtual void setPipeline(const Ptr<Pipeline> pipeline);
       
-      // TEMP: Until Descriptor Tables abstraction is not done
-      virtual bool populate(Ptr<Buffer> buffer, const void* data);
-  
+
 
 
       virtual void setVertexBuffers(const uint32 count, 
@@ -75,12 +62,12 @@ namespace en
 
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Buffer> buffer);
-         
+                        
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,
                         const uint32 mipmap,
                         const uint32 layer);
-                        
+         
       virtual void draw(const DrawableType primitiveType,
                         const uint32       elements      = 1,   // Elements to process (they are assembled into Primitives)
                         const Ptr<Buffer>  indexBuffer   = nullptr, // Optional Index buffer
@@ -99,6 +86,9 @@ namespace en
       virtual bool endRenderPass(void);
       virtual void commit(void);
       virtual void waitUntilCompleted(void);
+   
+      CommandBufferD3D12(const id<MTLDevice> _device);
+      virtual ~CommandBufferMTL();
       };
    }
 }

@@ -164,26 +164,39 @@ namespace en
 
 
    // Copies content of source buffer to destination buffer
-   void CommandBufferMTL::copy(Ptr<Buffer> transfer, Ptr<Buffer> buffer)
+   void CommandBufferMTL::copy(Ptr<Buffer> source, Ptr<Buffer> destination)
    {
-   assert( transfer );
-   assert( transfer->type() == BufferType::Transfer );
-   assert( buffer );
+   assert( source );
+   assert( destination );
+   assert( source->length() <= destination->length() );
 
-   BufferMTL* source      = raw_reinterpret_cast<BufferMTL>(&transfer);
-   BufferMTL* destination = raw_reinterpret_cast<BufferMTL>(&buffer);
-
-   assert( source->size >= destination->size );
+   copy(source, destination, source->length(), 0u, 0u);
+   }
+   
+   void CommandBufferMTL::copy(Ptr<Buffer> source,
+      Ptr<Buffer> destination,
+      uint64 size,
+      uint64 srcOffset,
+      uint64 dstOffset)
+   {
+   assert( source );
+   assert( source->type() == BufferType::Transfer );
+   assert( destination );
+   assert( (srcOffset + size) <= source->length() );
+   assert( (dstOffset + size) <= destination->length() );
+   
+   BufferMTL* src = raw_reinterpret_cast<BufferMTL>(&source);
+   BufferMTL* dst = raw_reinterpret_cast<BufferMTL>(&destination);
 
    @autoreleasepool
       {
       // Blit to Private buffer
       id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
-      [blit copyFromBuffer:source->handle
-              sourceOffset:0
-                  toBuffer:destination->handle
-         destinationOffset:0
-                      size:destination->size];
+      [blit copyFromBuffer:src->handle
+              sourceOffset:srcOffset
+                  toBuffer:dst->handle
+         destinationOffset:dstOffset
+                      size:size];
 
       [blit endEncoding];
       //blit = nil;

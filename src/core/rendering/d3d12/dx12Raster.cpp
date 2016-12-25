@@ -48,9 +48,11 @@ namespace en
    state.DepthBiasClamp        = desc.depthBiasClamp; 
    state.SlopeScaledDepthBias  = desc.depthBiasSlopeFactor;
    state.DepthClipEnable       = desc.enableDepthClamp ? FALSE : TRUE; // Enable Clamping by disabling Clipping.
-   // BOOL MultisampleEnable;
-   // BOOL AntialiasedLineEnable;
-   // UINT ForcedSampleCount;
+   state.MultisampleEnable     = FALSE; // Set by Multisampling state.
+   state.AntialiasedLineEnable = FALSE; // Should be set by Multisampling state (currently unsupported by engine)
+   state.ForcedSampleCount     = 0u;    // Render MSAA without MSAA target, for e.g. for:
+                                        // https://developer.nvidia.com/content/basics-gpu-voxelization
+                                        // (currently unsupported by engine)
    state.ConservativeRaster    = desc.enableConservativeRasterization ? D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON : D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
    }
 

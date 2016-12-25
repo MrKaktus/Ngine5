@@ -28,11 +28,44 @@
 namespace en
 {
    namespace gpu
-   {
-
+   { 
    Direct3D12Device::Direct3D12Device()
    {
    // TODO: Everything else . . . .
+
+
+
+   // All threads starts with Fence values == 0, first Fences will have ID 1
+   memset(&fenceCurrentValue[0], 0, sizeof(fenceCurrentValue));
+
+   // QUEUES
+   
+   // TODO: Is there a way to query amount of available queues of each type?
+   uint32 types = underlyingType(QueueType::Count);
+   for(uint32 type=0; type<types; ++type)
+      {
+      D3D12_COMMAND_QUEUE_DESC desc;
+      desc.Type     = TranslateQueueType[type];
+      desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL; // In [0..100] range 100 == D3D12_COMMAND_QUEUE_PRIORITY_HIGH
+      desc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;       // Can use D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT
+      desc.NodeMask = 0u;                                  // No Multi-GPU support.
+     
+      Profile( this, CreateCommandQueue(&desc, IID_PPV_ARGS(&queue[type])) )
+
+      queuesCount[type] = 1;
+
+
+      // TODO: Each thread should create it's own CommandAllocators
+      uint32 thread = 0;
+      
+      // " A given allocator can be associated with no more than one
+      //   currently recording command list at a time, . . . "
+      //
+      Profile( this, CreateCommandAllocator(TranslateQueueType[type],
+                                            IID_PPV_ARGS(&commandAllocator[thread][type])) )
+      }
+
+
    
    
    // RENDER PASS
@@ -67,13 +100,13 @@ namespace en
    desc.NodeMask       = 0u;                              // TODO: Set bit to current GPU index
 
    // Allocate global Color Attachment descriptors heap
-   Profile( this, CreateDescriptorHeap(&desc, __uuidof(ID3D12DescriptorHeap), IID_PPV_ARGS(&heapRTV)) )
+   Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heapRTV)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&heapRTV)
 
    desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
    desc.NumDescriptors = 1;
    
    // Allocate global Depth-Stencil Attachment descriptor heap
-   Profile( this, CreateDescriptorHeap(&desc, __uuidof(ID3D12DescriptorHeap), IID_PPV_ARGS(&heapDSV)) )
+   Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heapDSV)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&heapDSV)
 
 
    // TODO: Everything else . . . .

@@ -43,7 +43,7 @@ namespace en
       virtual bool startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer);
                                    
-      virtual void set(const Ptr<Pipeline> pipeline);
+      virtual void setPipeline(const Ptr<Pipeline> pipeline);
       
 
 
@@ -58,7 +58,13 @@ namespace en
                                    const uint64 offset = 0u) const;
 
       virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> buffer);
+                        Ptr<Buffer> destintion);
+         
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> destination,
+                        uint64 size,
+                        uint64 srcOffset = 0u,
+                        uint64 dstOffset = 0u);
                         
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,

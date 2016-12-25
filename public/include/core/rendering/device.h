@@ -200,7 +200,7 @@ namespace en
       // Create Heap from which GPU resources can be sub-allocated.
       virtual Ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;
       
-      virtual Ptr<Sampler> createSampler(const SamplerState& state);
+      virtual Ptr<Sampler> createSampler(const SamplerState& state) = 0;
       
       // Buffers and Textures are allocated from the Heaps.
       

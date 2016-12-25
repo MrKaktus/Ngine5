@@ -23,9 +23,10 @@ namespace en
 {
    namespace gpu
    { 
-   ViewportStateD3D12::ViewportStateD3D12(const uint32 count, 
+   ViewportStateD3D12::ViewportStateD3D12(const uint32 _count,
                                           const ViewportStateInfo* viewports,
-                                          const ScissorStateInfo* scissors)
+                                          const ScissorStateInfo* scissors) :
+      count(_count)
    {
    // TopLeftX = viewports[0].rect.x;
    // TopLeftY = viewports[0].rect.y;

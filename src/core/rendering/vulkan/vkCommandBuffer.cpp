@@ -563,7 +563,7 @@ namespace en
    void CommandBufferVK::waitUntilCompleted(void)
    {
    // Wait maximum 1 second, then assume GPU hang.
-   uint64 gpuWatchDog = 1000000000;
+   uint64 gpuWatchDog = 1000000000; // TODO: This should be configurable global
    
    Profile( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
    if (gpu->lastResult[Scheduler.core()] == VK_TIMEOUT)

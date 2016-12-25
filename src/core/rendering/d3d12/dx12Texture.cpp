@@ -472,8 +472,7 @@ namespace en
                                       &desc,
 	                                   initState,
 	                                   nullptr,                        // Clear value - currently not supported
-                                      __uuidof(ID3D12Resource),
-                                      IID_PPV_ARGS(&textureHandle)) )
+                                      IID_PPV_ARGS(&textureHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&textureHandle)
       
    if ( SUCCEDED(gpu->lastResult[Scheduler.core()]) )
       result = new TextureD3D12(Ptr<Heap>(this),

@@ -184,7 +184,7 @@ namespace en
 
 
 
-   void CommandBufferMTL::set(const Ptr<Pipeline> pipeline)
+   void CommandBufferMTL::setPipeline(const Ptr<Pipeline> pipeline)
    {
    Ptr<PipelineMTL> ptr = ptr_dynamic_cast<PipelineMTL, Pipeline>(pipeline);
    

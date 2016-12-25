@@ -38,7 +38,8 @@ namespace en
       public:
       D3D12_VIEWPORT viewport[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
       D3D12_RECT     scissor[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-
+      uint32 count;  // Count of enabled states from the beginning of the array
+      
       ViewportStateD3D12(const uint32 count, 
                          const ViewportStateInfo* viewports,
                          const ScissorStateInfo* scissors);

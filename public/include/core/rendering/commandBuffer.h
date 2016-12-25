@@ -64,7 +64,7 @@ namespace en
       virtual bool startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer) = 0;
 
-      virtual void set(const Ptr<Pipeline> pipeline) = 0;
+      virtual void setPipeline(const Ptr<Pipeline> pipeline) = 0;
       
       // Assigns Vertex Buffers to specified input attachment slots.
       // Optionally starting offsets in those buffers can be specified.
@@ -81,6 +81,12 @@ namespace en
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Buffer> buffer) = 0;
          
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> destination,
+                        uint64 size,
+                        uint64 srcOffset = 0u,
+                        uint64 dstOffset = 0u) = 0;
+      
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,
                         const uint32 mipmap,

@@ -34,7 +34,12 @@ namespace en
       public:
       Direct3D12Device* gpu;
       ID3D12PipelineState* handle;
-      FLOAT blendColor[4];  // Dynamic - Set on CommandBuffer
+      
+      // Dynamic - Set on CommandBuffer
+      FLOAT blendColor[4];
+      D3D12_VIEWPORT viewport[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+      D3D12_RECT     scissor[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+      uint32 viewportsCount;  // Count of enabled states from the beginning of the array
       
       PipelineD3D12(VulkanDevice* gpu, const ID3D12PipelineState* handle);
       virtual ~PipelineD3D12();

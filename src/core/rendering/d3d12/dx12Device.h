@@ -120,11 +120,30 @@ namespace en
 {
    namespace gpu
    {
+   // TODO: Direct3D12 Compute queue is not supporting transfer operations!
+   //       Correct the description in public headers, and asserts in all 3 API's!
+   
+   const D3D12_COMMAND_LIST_TYPE TranslateQueueType[underlyingType(QueueType::Count)]
+      {
+      D3D12_COMMAND_LIST_TYPE_DIRECT ,  // Universal
+      D3D12_COMMAND_LIST_TYPE_COMPUTE,  // Compute
+      D3D12_COMMAND_LIST_TYPE_COPY   ,  // Transfer
+      D3D12_COMMAND_LIST_TYPE_COPY   ,  // SparseTransfer
+      };
+      
+   // Bundles/Secondary Command Buffers are not supported currently.
+   // - D3D12_COMMAND_LIST_TYPE_BUNDLE
+
    class Direct3D12Device : public CommonDevice
       {
       public:
-      HRESULT      lastResult[MaxSupportedWorkerThreads];
-      ID3D12Device         device;
+      HRESULT                          lastResult[MaxSupportedWorkerThreads];
+      ID3D12Device                     device;
+      uint32                           queuesCount[underlyingType(QueueType::Count)];
+      ID3D12CommandQueue*              queue[underlyingType(QueueType::Count)];
+      volatile ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];
+      uint32                           fenceCurrentValue[MaxSupportedWorkerThreads]; // Pool of values signaled by Fences
+      HANDLE                           fenceSignalingEvent[MaxSupportedWorkerThreads]; // Event used to signal Fence completion on CPU side
       
       // We treat rendering destinations as fixed state that is rebinded with every RenderPass change.
       ID3D12DescriptorHeap* heapRTV; // Global heaps for current RenderPass (there can be only one)
