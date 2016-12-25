@@ -20,7 +20,7 @@
 using namespace std;
 
 #include "core/rendering/device.h"
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 #include "utilities/Nversion.h"
 #include "threading/mutex.h"
 
@@ -95,7 +95,7 @@ namespace en
          bitset<underlyingType(Format::Count)> rendering;    // Texel Formats - Rendering support
             
          // Input Assembler
-         uint8       maxInputAssemblerAttributesCount;  // Maximum number of input attributes
+         uint8       maxInputLayoutAttributesCount;  // Maximum number of input attributes
 
          // Texture
          uint32      maxTextureSize;                    // Maximum 2D/1D texture image dimension
@@ -156,15 +156,15 @@ namespace en
          
       virtual void init(void);
 
-      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                     const uint32 controlPoints = 0u);
 
-      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                     const uint32 controlPoints,
                                                     const Ptr<Buffer> buffer);
          
       // Needs to be Declared and Defined to allow calls to it from itself
-      //virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      //virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
       //                                              const uint32 controlPoints,
       //                                              const uint32 usedAttributes,
       //                                              const uint32 usedBuffers,

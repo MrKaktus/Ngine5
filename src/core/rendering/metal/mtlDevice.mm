@@ -621,7 +621,7 @@ namespace en
    // TODO: Finish
      
    // Input Assembler
-   support.maxInputAssemblerAttributesCount = 31;
+   support.maxInputLayoutAttributesCount = 31;
 
    // Texture
 //   support.maxTextureSize;                    // Maximum 2D/1D texture image dimension

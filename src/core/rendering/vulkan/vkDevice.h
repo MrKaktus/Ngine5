@@ -26,7 +26,7 @@
 
 
 
-#include "core/rendering/vulkan/vkInputAssembler.h"
+#include "core/rendering/vulkan/vkInputLayout.h"
 #include "core/rendering/vulkan/vkBlend.h"
 #include "core/rendering/vulkan/vkRaster.h"
 #include "core/rendering/vulkan/vkMultisampling.h"
@@ -243,7 +243,7 @@ namespace en
 
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
-      //virtual Ptr<Pipeline> create(const Ptr<InputAssembler> inputAssembler,
+      //virtual Ptr<Pipeline> create(const Ptr<InputLayout> inputAssembler,
       //                             const Ptr<ViewportState>  viewportState,
       //                             const Ptr<RasterState>    rasterState,
       //                             const Ptr<MultisamplingState> multisamplingState,
@@ -252,7 +252,7 @@ namespace en
       //                             const Ptr<Shader>         shader,
       //                             const Ptr<PipelineLayout> pipelineLayout);
 
-      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                     const uint32 controlPoints,
                                                     const uint32 usedAttributes,
                                                     const uint32 usedBuffers,

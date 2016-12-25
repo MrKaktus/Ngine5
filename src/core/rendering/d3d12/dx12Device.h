@@ -22,7 +22,7 @@
 
 #include "core/rendering/common/device.h"
 
-#include "core/rendering/d3d12/dx12InputAssembler.h"
+#include "core/rendering/d3d12/dx12InputLayout.h"
 #include "core/rendering/d3d12/dx12Blend.h"
 #include "core/rendering/d3d12/dx12Raster.h"
 #include "core/rendering/d3d12/dx12Viewport.h"
@@ -41,7 +41,7 @@ namespace en
       Direct3D12Device();
      ~Direct3D12Device();
 
-      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                     const uint32 controlPoints,
                                                     const uint32 usedAttributes,
                                                     const uint32 usedBuffers,

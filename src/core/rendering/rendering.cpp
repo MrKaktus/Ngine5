@@ -248,7 +248,7 @@ namespace en
    extensions.clear();
 
    // Input Assembler
-   maxInputAssemblerAttributesCount = 0;
+   maxInputLayoutAttributesCount = 0;
 
    // Texture
    maxTextureSize                 = 0;

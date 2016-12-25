@@ -13,7 +13,7 @@
 
 */
 
-#include "core/rendering/d3d12/dx12InputAssembler.h"
+#include "core/rendering/d3d12/dx12InputLayout.h"
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
@@ -257,7 +257,7 @@ namespace en
       DXGI_FORMAT_R10G10B10A2_UNORM     // Float4_10_10_10_2_Norm 
       };
 
-   InputAssemblerD3D12::InputAssemblerD3D12(const DrawableType primitiveType,
+   InputLayoutD3D12::InputLayoutD3D12(const DrawableType primitiveType,
       const uint32 controlPoints, 
       const uint32 usedAttributes, 
       const uint32 usedBuffers, 
@@ -285,21 +285,21 @@ namespace en
       }
    }
 
-   InputAssemblerD3D12::~InputAssemblerD3D12()
+   InputLayoutD3D12::~InputLayoutD3D12()
    {
    delete [] state.pInputElementDescs;
    }
 
-   Ptr<InputAssembler> Direct3D12Device::createInputLayout(const DrawableType primitiveType,
+   Ptr<InputLayout> Direct3D12Device::createInputLayout(const DrawableType primitiveType,
                                                            const uint32 controlPoints,
                                                            const uint32 usedAttributes,
                                                            const uint32 usedBuffers,
                                                            const AttributeDesc* attributes,
                                                            const BufferDesc* buffers)
    {
-   Ptr<InputAssemblerD3D12> input = Ptr<InputAssemblerD3D12>(new InputAssemblerD3D12(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+   Ptr<InputLayoutD3D12> input = Ptr<InputLayoutD3D12>(new InputLayoutD3D12(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
-   return ptr_reinterpret_cast<InputAssembler>(&input);
+   return ptr_reinterpret_cast<InputLayout>(&input);
    }
 
    }

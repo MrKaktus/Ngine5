@@ -20,7 +20,7 @@
 #include "core/log/log.h"
 
 //#include "core/rendering/d3d12/dx12Pipeline.h"
-#include "core/rendering/d3d12/dx12InputAssembler.h"
+#include "core/rendering/d3d12/dx12InputLayout.h"
 //#include "core/rendering/d3d12/dx12RenderPass.h"
 #include "core/rendering/d3d12/dx12Blend.h"
 //#include "core/rendering/d3d12/dx12Multisampling.h"

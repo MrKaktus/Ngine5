@@ -13,7 +13,6 @@
 
 */
 
-
 #ifndef ENG_CORE_RENDERING_PIPELINE
 #define ENG_CORE_RENDERING_PIPELINE
 
@@ -24,7 +23,7 @@
 // For PipelineState 
 #include <string>
 #include "core/rendering/renderPass.h"
-#include "core/rendering/inputAssembler.h"
+#include "core/rendering/inputLayout.h"
 #include "core/rendering/viewport.h"
 #include "core/rendering/raster.h"
 #include "core/rendering/multisampling.h"
@@ -92,7 +91,7 @@ namespace en
    struct PipelineState
       {
       Ptr<RenderPass>         renderPass;
-      Ptr<InputAssembler>     inputAssembler;
+      Ptr<InputLayout>        inputAssembler;
       Ptr<ViewportState>      viewportState;
       Ptr<RasterState>        rasterState;
       Ptr<MultisamplingState> multisamplingState;

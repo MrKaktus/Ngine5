@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : D3D12 Input Assembler.
+ Module      : D3D12 Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,36 +13,36 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_D3D12_INPUT_ASSEMBLER
-#define ENG_CORE_RENDERING_D3D12_INPUT_ASSEMBLER
+#ifndef ENG_CORE_RENDERING_D3D12_INPUT_LAYOUT
+#define ENG_CORE_RENDERING_D3D12_INPUT_LAYOUT
 
 #include "core/defines.h"
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 #include "core/rendering/d3d12/dx12.h"
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 #include "core/rendering/state.h"
 
 namespace en
 {
    namespace gpu
    {
-   class InputAssemblerD3D12 : public InputAssembler
+   class InputLayoutD3D12 : public InputLayout
       {
       public:
       D3D12_INPUT_LAYOUT_DESC state;
       DrawableType primitive;
       uint32 points;
 
-      InputAssemblerD3D12(const DrawableType primitiveType,
+      InputLayoutD3D12(const DrawableType primitiveType,
                           const uint32 controlPoints, 
                           const uint32 usedAttributes, 
                           const uint32 usedBuffers, 
                           const AttributeDesc* attributes,  
                           const BufferDesc* buffers);
 
-      virtual ~InputAssemblerD3D12();
+      virtual ~InputLayoutD3D12();
       };
 
    }

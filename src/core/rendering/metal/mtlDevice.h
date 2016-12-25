@@ -111,7 +111,7 @@ namespace en
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
                                         const uint32 parentQueue = 0u);
 
-      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                     const uint32 controlPoints,
                                                     const uint32 usedAttributes,
                                                     const uint32 usedBuffers,

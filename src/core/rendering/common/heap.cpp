@@ -14,7 +14,7 @@
  */
 
 #include "core/rendering/common/buffer.h"
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 #include "core/rendering/common/heap.h"
 
 namespace en

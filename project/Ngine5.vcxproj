@@ -21,10 +21,10 @@
     <ClCompile Include="..\src\core\rendering\common\cTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\common\device.cpp" />
     <ClCompile Include="..\src\core\rendering\common\heap.cpp" />
-    <ClCompile Include="..\src\core\rendering\common\inputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\inputLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Blend.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12DepthStencil.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12InputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12InputLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Layout.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Pipeline.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Raster.cpp" />
@@ -45,7 +45,7 @@
     <ClCompile Include="..\src\core\rendering\opengl\glBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glBuffer.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glDevice.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\glInputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\opengl\glInputLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glState.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\opengl.cpp" />
@@ -79,7 +79,7 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkDepthStencil.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkDevice.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkHeap.cpp" />
-    <ClCompile Include="..\src\core\rendering\vulkan\vkInputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkInputLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkMultisampling.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkPipeline.cpp" />
@@ -178,7 +178,7 @@
     <ClInclude Include="..\public\include\core\rendering\framebuffer.h" />
     <ClInclude Include="..\public\include\core\rendering\gpu.h" />
     <ClInclude Include="..\public\include\core\rendering\heap.h" />
-    <ClInclude Include="..\public\include\core\rendering\inputAssembler.h" />
+    <ClInclude Include="..\public\include\core\rendering\inputLayout.h" />
     <ClInclude Include="..\public\include\core\rendering\layout.h" />
     <ClInclude Include="..\public\include\core\rendering\multisampling.h" />
     <ClInclude Include="..\public\include\core\rendering\pipeline.h" />
@@ -287,7 +287,7 @@
     <ClInclude Include="..\src\core\rendering\common\buffer.h" />
     <ClInclude Include="..\src\core\rendering\common\device.h" />
     <ClInclude Include="..\src\core\rendering\common\heap.h" />
-    <ClInclude Include="..\src\core\rendering\common\inputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\common\inputLayout.h" />
     <ClInclude Include="..\src\core\rendering\common\sampler.h" />
     <ClInclude Include="..\src\core\rendering\common\texture.h" />
     <ClInclude Include="..\src\core\rendering\context.h" />
@@ -295,7 +295,7 @@
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Blend.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12DepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Device.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12InputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12InputLayout.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Layout.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Raster.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h" />
@@ -307,7 +307,7 @@
     <ClInclude Include="..\src\core\rendering\metal\mtlDepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlDevice.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlHeap.h" />
-    <ClInclude Include="..\src\core\rendering\metal\mtlInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlInputLayout.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlMultisampling.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlPipeline.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlRaster.h" />
@@ -328,7 +328,7 @@
     <ClInclude Include="..\src\core\rendering\opengl\glBuffer.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glCache.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glDevice.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\opengl\glInputLayout.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glState.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glTexture.h" />
     <ClInclude Include="..\src\core\rendering\opengl\opengl.h" />
@@ -354,7 +354,7 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkDepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkDevice.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkHeap.h" />
-    <ClInclude Include="..\src\core\rendering\vulkan\vkInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkInputLayout.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkLayout.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkMultisampling.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkPipeline.h" />
@@ -395,7 +395,7 @@
     <None Include="..\src\core\rendering\metal\mtlDepthStencil.mm" />
     <None Include="..\src\core\rendering\metal\mtlDevice.mm" />
     <None Include="..\src\core\rendering\metal\mtlHeap.mm" />
-    <None Include="..\src\core\rendering\metal\mtlInputAssembler.mm" />
+    <None Include="..\src\core\rendering\metal\mtlInputLayout.mm" />
     <None Include="..\src\core\rendering\metal\mtlMultisampling.mm" />
     <None Include="..\src\core\rendering\metal\mtlPipeline.mm" />
     <None Include="..\src\core\rendering\metal\mtlRaster.mm" />

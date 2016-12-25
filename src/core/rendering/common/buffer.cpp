@@ -17,7 +17,7 @@
 
 #include "core/rendering/common/device.h"
 #include "core/rendering/common/buffer.h"
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 
 namespace en
 {

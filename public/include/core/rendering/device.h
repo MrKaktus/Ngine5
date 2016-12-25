@@ -19,7 +19,7 @@
 #include <string>
 #include "core/utilities/TintrusivePointer.h" 
 
-#include "core/rendering/inputAssembler.h"
+#include "core/rendering/inputLayout.h"
 #include "core/rendering/blend.h"
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/raster.h"
@@ -226,17 +226,17 @@ namespace en
 
 
       // Creates empty input layout for Programmable Vertex Fetch.
-      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                     const uint32 controlPoints = 0u) = 0;
 
-      // Creates InputAssembler description based on single Vertex buffer.
+      // Creates InputLayout description based on single Vertex buffer.
       // Buffer needs to have specified internal formatting.
-      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                     const uint32 controlPoints,
                                                     const Ptr<Buffer> buffer) = 0;
 
       // Specialized function for creation of any type of InputAssember description.
-      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                     const uint32 controlPoints,
                                                     const uint32 usedAttributes,
                                                     const uint32 usedBuffers,
@@ -358,12 +358,12 @@ extern Ptr<gpu::GraphicAPI> Graphics;
 
 
 //      // Create Buffer formatted for storing array of structures (AOS). Each element of array is a tightly 
-//      // packed structure containing up to MaxInputAssemblerAttributesCount of variables. Each such variable 
+//      // packed structure containing up to MaxInputLayoutAttributesCount of variables. Each such variable 
 //      // can be treated as a column and each element as a row in data array. 
 //      // Each column has it's specified format, and can be a scalar or vector containing up to 4 channels. 
 //      // Elements creating array can be used to store for e.g. Vertices, Control Points, or other data.
-//      // When assigned to InputAssembler as one of the buffers for processing, optional update rate can be 
-//      // specified to describe how often InputAssembler should switch to next element. By default it's set  
+//      // When assigned to InputLayout as one of the buffers for processing, optional update rate can be 
+//      // specified to describe how often InputLayout should switch to next element. By default it's set  
 //      // to 0 which means buffer will be iterated on per vertex rate. If value is greater, it describes 
 //      // by how many Draw Instances each structured element is shared, before Input Assembler should 
 //      // proceed to next one. 

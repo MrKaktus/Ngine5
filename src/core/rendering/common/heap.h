@@ -32,12 +32,12 @@ namespace en
 
       virtual uint32 size(void) const;
 
-      // Create formatted Vertex buffer that can be bound to InputAssembler.
+      // Create formatted Vertex buffer that can be bound to InputLayout.
       virtual Ptr<Buffer> createBuffer(const uint32 elements,
                                        const Formatting& formatting,
                                        const uint32 step = 0u);
         
-      // Create formatted Index buffer that can be bound to InputAssembler.
+      // Create formatted Index buffer that can be bound to InputLayout.
       virtual Ptr<Buffer> createBuffer(const uint32 elements,
                                        const Attribute format);
 

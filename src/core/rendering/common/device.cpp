@@ -198,7 +198,7 @@ namespace en
    support.rendering.reset();
       
    // Input Assembler
-   support.maxInputAssemblerAttributesCount = 0;
+   support.maxInputLayoutAttributesCount = 0;
 
    // Texture
    support.maxTextureSize                   = 0;
@@ -269,7 +269,7 @@ namespace en
    delete defaultState;
    }
    
-   //Ptr<InputAssembler> CommonDevice::createInputLayout(const DrawableType primitiveType,
+   //Ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType,
    //                                                    const uint32 controlPoints,
    //                                                    const uint32 usedAttributes,
    //                                                    const uint32 usedBuffers,
@@ -278,7 +278,7 @@ namespace en
    //{
    //// Should be implemented by API
    //assert(0);
-   //return Ptr<InputAssembler>(nullptr);
+   //return Ptr<InputLayout>(nullptr);
    //}
    
 

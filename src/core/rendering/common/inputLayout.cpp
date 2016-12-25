@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Input Assembler.
+ Module      : Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -15,7 +15,7 @@
 
 #include "core/rendering/common/device.h"
 #include "core/rendering/common/buffer.h"
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 
 namespace en
 {
@@ -139,15 +139,15 @@ namespace en
    column[15] = col15;
    
    // This shouldn't be neccessary, all attributes should default to None 
-   if (MaxInputAssemblerAttributesCount > 16)
-      for(uint32 i=16; i<MaxInputAssemblerAttributesCount; ++i)
+   if (MaxInputLayoutAttributesCount > 16)
+      for(uint32 i=16; i<MaxInputLayoutAttributesCount; ++i)
          column[i] = Attribute::None;
    }
 
    uint32 Formatting::elementSize(void) const
    {
    uint32 size = 0;
-   for(uint32 i=0; i<MaxInputAssemblerAttributesCount; ++i)
+   for(uint32 i=0; i<MaxInputLayoutAttributesCount; ++i)
       {
       if (column[i] == Attribute::None)
          break;
@@ -162,12 +162,12 @@ namespace en
    {
    }
 
-   Ptr<InputAssembler> CommonDevice::createInputLayout(const DrawableType primitiveType, const uint32 controlPoints)
+   Ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType, const uint32 controlPoints)
    {
    return ((GpuDevice*)this)->createInputLayout(primitiveType, controlPoints, 0u, 0u, nullptr, nullptr);
    }
 
-   Ptr<InputAssembler> CommonDevice::createInputLayout(const DrawableType primitiveType, const uint32 controlPoints, const Ptr<Buffer> buffer)
+   Ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType, const uint32 controlPoints, const Ptr<Buffer> buffer)
    {
    assert( buffer );
    
@@ -175,7 +175,7 @@ namespace en
    
    // Compute amount of used attributes
    uint32 usedAttributes = 0;
-   for(; usedAttributes<support.maxInputAssemblerAttributesCount; ++usedAttributes)
+   for(; usedAttributes<support.maxInputLayoutAttributesCount; ++usedAttributes)
       if (common->formatting.column[usedAttributes] == Attribute::None)
          break;
 
@@ -202,7 +202,7 @@ namespace en
       buffers[i].stepRate    = common->step;
       }
 
-   Ptr<InputAssembler> inputAssembler = ((GpuDevice*)this)->createInputLayout(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
+   Ptr<InputLayout> inputAssembler = ((GpuDevice*)this)->createInputLayout(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
 
    // Free temporary buffers
    delete [] attributes;

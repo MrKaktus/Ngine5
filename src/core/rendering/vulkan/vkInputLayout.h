@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Input Assembler.
+ Module      : Vulkan Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,35 +13,35 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_VULKAN_INPUT_ASSEMBLER
-#define ENG_CORE_RENDERING_VULKAN_INPUT_ASSEMBLER
+#ifndef ENG_CORE_RENDERING_VULKAN_INPUT_LAYOUT
+#define ENG_CORE_RENDERING_VULKAN_INPUT_LAYOUT
 
 #include "core/rendering/vulkan/vulkan.h"
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 #include "core/rendering/state.h"
 
 namespace en
 {
    namespace gpu
    {
-   class InputAssemblerVK : public InputAssembler
+   class InputLayoutVK : public InputLayout
       {
       public:
       VkPipelineVertexInputStateCreateInfo   state;
       VkPipelineInputAssemblyStateCreateInfo statePrimitive;
       VkPipelineTessellationStateCreateInfo  stateTessellator;
 
-      InputAssemblerVK(const DrawableType primitiveType,
+      InputLayoutVK(const DrawableType primitiveType,
                        const uint32 controlPoints, 
                        const uint32 usedAttributes, 
                        const uint32 usedBuffers, 
                        const AttributeDesc* attributes,  
                        const BufferDesc* buffers);
 
-      virtual ~InputAssemblerVK() {};
+      virtual ~InputLayoutVK() {};
       };
 
    }

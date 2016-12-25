@@ -18,7 +18,7 @@
 #if defined(EN_MODULE_RENDERER_OPENGL)
 
 #include "core/rendering/opengl/glBuffer.h"
-#include "core/rendering/opengl/glInputAssembler.h"
+#include "core/rendering/opengl/glInputLayout.h"
 #include "core/rendering/opengl/glDevice.h"
 
 namespace en

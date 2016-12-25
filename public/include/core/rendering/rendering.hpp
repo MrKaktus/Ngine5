@@ -169,10 +169,10 @@ namespace en
           
 // <<<<< -- NEW RENDERING INTERFACE - BEGIN
 
-          struct IInputAssembler
+          struct IInputLayout
              {
-             //Ptr<en::gpu::InputAssembler> Create(Attribute& attributes[MaxInputAssemblerAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-             //                                    Ptr<Buffer>    buffer[MaxInputAssemblerAttributesCount]);  // Array of buffer handles that will be used
+             //Ptr<en::gpu::InputLayout> Create(Attribute& attributes[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
+             //                                    Ptr<Buffer>    buffer[MaxInputLayoutAttributesCount]);  // Array of buffer handles that will be used
              };
 
 // <<<<< -- NEW RENDERING INTERFACE - END

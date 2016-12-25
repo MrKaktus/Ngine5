@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Input Assembler.
+ Module      : Vulkan Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,7 +13,7 @@
 
 */
 
-#include "core/rendering/vulkan/vkInputAssembler.h"
+#include "core/rendering/vulkan/vkInputLayout.h"
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
@@ -424,7 +424,7 @@ namespace en
    // - array of buffer settings descriptions
 
 
-// GpuContext.support.maxInputAssemblerAttributesCount;
+// GpuContext.support.maxInputLayoutAttributesCount;
 
 
 
@@ -447,8 +447,8 @@ namespace en
    // Offsets and strides will be calculated based on these buffers.
 
 
-   //Ptr<InputAssembler> Interface::IInputAssembler::Create(Attribute&  attribute[MaxInputAssemblerAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-   //                                                       Ptr<Buffer> buffer[MaxInputAssemblerAttributesCount])      // Array of buffer handles that will be used
+   //Ptr<InputLayout> Interface::IInputLayout::Create(Attribute&  attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
+   //                                                       Ptr<Buffer> buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
    //{
    //}
 
@@ -459,7 +459,7 @@ namespace en
    //   };
 
 
-   InputAssemblerVK::InputAssemblerVK(const DrawableType primitiveType,
+   InputLayoutVK::InputLayoutVK(const DrawableType primitiveType,
                                       const uint32 controlPoints, 
                                       const uint32 usedAttributes, 
                                       const uint32 usedBuffers, 
@@ -523,20 +523,20 @@ namespace en
    }
    
    // Implemented by CommonDevice
-   // Ptr<InputAssembler> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+   // Ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
    //                                                     const uint32 controlPoints,
    //                                                     const Ptr<Buffer> buffer)
       
-   Ptr<InputAssembler> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+   Ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
                                                        const uint32 controlPoints,
                                                        const uint32 usedAttributes,
                                                        const uint32 usedBuffers,
                                                        const AttributeDesc* attributes,
                                                        const BufferDesc* buffers)
    {
-   Ptr<InputAssemblerVK> input = Ptr<InputAssemblerVK>(new InputAssemblerVK(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+   Ptr<InputLayoutVK> input = Ptr<InputLayoutVK>(new InputLayoutVK(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
-   return ptr_dynamic_cast<InputAssembler, InputAssemblerVK>(input);
+   return ptr_dynamic_cast<InputLayout, InputLayoutVK>(input);
    }
 
    }

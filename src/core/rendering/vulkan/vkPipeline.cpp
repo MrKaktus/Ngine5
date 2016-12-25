@@ -157,7 +157,7 @@ namespace en
 
    // Cast to Vulkan states
    const Ptr<RenderPassVK>         renderPass     = ptr_reinterpret_cast<RenderPassVK>(&pipelineState.renderPass);
-   const Ptr<InputAssemblerVK>     input          = ptr_reinterpret_cast<InputAssemblerVK>(&pipelineState.inputAssembler);
+   const Ptr<InputLayoutVK>     input          = ptr_reinterpret_cast<InputLayoutVK>(&pipelineState.inputAssembler);
    const Ptr<ViewportStateVK>      viewport       = ptr_reinterpret_cast<ViewportStateVK>(&pipelineState.viewportState);
    const Ptr<RasterStateVK>        raster         = ptr_reinterpret_cast<RasterStateVK>(&pipelineState.rasterState);
    const Ptr<MultisamplingStateVK> multisampling  = ptr_reinterpret_cast<MultisamplingStateVK>(&pipelineState.multisamplingState); 
