@@ -53,7 +53,8 @@ namespace en
    DepthStencilStateVK::DepthStencilStateVK(const DepthStencilStateInfo& desc)
    {
    state.sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-   state.pNext                 = nullptr;
+   state.pNext                 = nullptr; 
+   state.flags                 = 0u;
    state.depthTestEnable       = desc.enableDepthTest   ? VK_TRUE : VK_FALSE;
    state.depthWriteEnable      = desc.enableDepthWrite  ? VK_TRUE : VK_FALSE;
    state.depthCompareOp        = TranslateCompareFunction[desc.depthFunction];

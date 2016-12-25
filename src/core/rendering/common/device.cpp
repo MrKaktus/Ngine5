@@ -269,17 +269,17 @@ namespace en
    delete defaultState;
    }
    
-   Ptr<InputAssembler> CommonDevice::create(const DrawableType primitiveType,
-                                            const uint32 controlPoints,
-                                            const uint32 usedAttributes,
-                                            const uint32 usedBuffers,
-                                            const AttributeDesc* attributes,
-                                            const BufferDesc* buffers)
-   {
-   // Should be implemented by API
-   assert(0);
-   return Ptr<InputAssembler>(nullptr);
-   }
+   //Ptr<InputAssembler> CommonDevice::createInputLayout(const DrawableType primitiveType,
+   //                                                    const uint32 controlPoints,
+   //                                                    const uint32 usedAttributes,
+   //                                                    const uint32 usedBuffers,
+   //                                                    const AttributeDesc* attributes,
+   //                                                    const BufferDesc* buffers)
+   //{
+   //// Should be implemented by API
+   //assert(0);
+   //return Ptr<InputAssembler>(nullptr);
+   //}
    
 
    // INFO: Descriptor is used when we want to be able to override any field with pur custom settings, but overall we want to use default ones
@@ -329,11 +329,11 @@ namespace en
    // Create default Pipeline State
    // Application still needs to be set those:
    // 
-   // inputAssembler
    // viewportState
    // shader[5]
-   // pipelineLayout
    //
+   inputAssembler     = device->createInputLayout(TriangleStripes);
+
    RasterStateInfo defaultRasterState;
    rasterState        = device->createRasterState(defaultRasterState);
    multisamplingState = device->createMultisamplingState(1u, false, false);
@@ -345,13 +345,17 @@ namespace en
    BlendAttachmentInfo defaultBlendAttachmentState;
    blendState         = device->createBlendState(defaultBlendState, 1u, &defaultBlendAttachmentState);
 
+   pipelineLayout     = device->createPipelineLayout(0u, nullptr);
+
    for(uint32 i=0; i<5; ++i)
       function[i] = string("main");
    }
 
    PipelineState CommonDevice::defaultPipelineState(void)
    {
-   return *defaultState;
+   // Create copy of Pipeline State so that app can modify 
+   // some of the states without affecting shared default ones.
+   return PipelineState(*raw_reinterpret_cast<PipelineState>(&defaultState));
    }
 
 

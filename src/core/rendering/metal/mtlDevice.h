@@ -111,12 +111,12 @@ namespace en
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
                                         const uint32 parentQueue = 0u);
 
-      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
-                                          const uint32 controlPoints,
-                                          const uint32 usedAttributes,
-                                          const uint32 usedBuffers,
-                                          const AttributeDesc* attributes,
-                                          const BufferDesc* buffers);
+      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints,
+                                                    const uint32 usedAttributes,
+                                                    const uint32 usedBuffers,
+                                                    const AttributeDesc* attributes,
+                                                    const BufferDesc* buffers);
 
 
 
@@ -156,9 +156,9 @@ namespace en
                                                        const uint32 attachments,
                                                        const BlendAttachmentInfo* color);
       
-      virtual Ptr<ViewportState>      create(const uint32 count,
-                                             const ViewportStateInfo* viewports,
-                                             const ScissorStateInfo* scissors);
+      virtual Ptr<ViewportState>      createViewportState(const uint32 count,
+                                                          const ViewportStateInfo* viewports,
+                                                          const ScissorStateInfo* scissors);
          
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
       };

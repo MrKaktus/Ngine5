@@ -119,9 +119,6 @@ namespace en
    #define DeclareFunction(function)                                             \
    PFN_##function function;
 
-   // TODO: Move it to Thread Pool Scheduler
-   #define MaxSupportedWorkerThreads 64
-   
    class VulkanAPI;
 
    class VulkanDevice : public CommonDevice
@@ -149,6 +146,16 @@ namespace en
       bool                             rebuildCache;           // Indicates if driver cache should be re-saved to disk
       uint64                           memoryRAM;
       uint64                           memoryDriver;
+
+
+      // Command Buffers Management
+      //----------------------------
+
+      uint32             commandBuffersExecuting[MaxSupportedWorkerThreads];
+      Ptr<CommandBuffer> commandBuffers[MaxSupportedWorkerThreads][MaxCommandBuffersExecuting];
+
+      void addCommandBufferToQueue(Ptr<CommandBuffer> command);
+      void clearCommandBuffersQueue(void);
 
       // Memory Management
       //-------------------
@@ -206,8 +213,6 @@ namespace en
 
       virtual void init(void);
 
-
-
       virtual uint32 displays(void) const;
 
       virtual Ptr<Display> display(uint32 index) const;
@@ -247,12 +252,12 @@ namespace en
       //                             const Ptr<Shader>         shader,
       //                             const Ptr<PipelineLayout> pipelineLayout);
 
-      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                         const uint32 controlPoints,
-                                         const uint32 usedAttributes,
-                                         const uint32 usedBuffers,
-                                         const AttributeDesc* attributes,
-                                         const BufferDesc* buffers);
+      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints,
+                                                    const uint32 usedAttributes,
+                                                    const uint32 usedBuffers,
+                                                    const AttributeDesc* attributes,
+                                                    const BufferDesc* buffers);
 
       virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
                                              const ResourceGroup* group,
@@ -294,9 +299,9 @@ namespace en
                                                        const uint32 attachments,
                                                        const BlendAttachmentInfo* color);
 
-      virtual Ptr<ViewportState>      create(const uint32 count,
-                                             const ViewportStateInfo* viewports,
-                                             const ScissorStateInfo* scissors);
+      virtual Ptr<ViewportState>      createViewportState(const uint32 count,
+                                                          const ViewportStateInfo* viewports,
+                                                          const ScissorStateInfo* scissors);
       };
 
 

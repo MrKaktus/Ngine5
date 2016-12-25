@@ -213,20 +213,32 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::copy(Ptr<Buffer> source, Ptr<Buffer> buffer)
+   void CommandBufferVK::copy(Ptr<Buffer> source, Ptr<Buffer> destination)
    {
    assert( started );
    assert( source );
-   assert( buffer );
+   assert( destination );
+
+   copy(source, destination, source->length());
+   }
+   
+   void CommandBufferVK::copy(Ptr<Buffer> source,
+      Ptr<Buffer> destination,
+      uint64 size,
+      uint64 srcOffset,
+      uint64 dstOffset)
+   {
+   assert( started );
+   assert( source );
+   assert( destination );
 
    BufferVK* src = raw_reinterpret_cast<BufferVK>(&source);
-   BufferVK* dst = raw_reinterpret_cast<BufferVK>(&buffer);
-   // TODO:
-   
+   BufferVK* dst = raw_reinterpret_cast<BufferVK>(&destination);
+
    VkBufferCopy region;
-   region.srcOffset = 0u;
-   region.dstOffset = 0u;
-   region.size      = src->size;
+   region.srcOffset = srcOffset;
+   region.dstOffset = dstOffset;
+   region.size      = size;
 
    ProfileNoRet( gpu, vkCmdCopyBuffer(handle,
                                       src->handle,
@@ -234,7 +246,7 @@ namespace en
                                       1u,
                                       &region) )
    }
-   
+
    void CommandBufferVK::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
    {
    assert( started );
@@ -523,16 +535,26 @@ namespace en
       submitInfo.pSignalSemaphores    = &signal->handle;        
       }
 
-
-
-   // Fence is optional. TODO: Analyze this.
-   
    // Submit single batch of work to the queue.
    // Each batch can consist of multiple command buffers.
    // Internal fence will be signaled when this work is done.
-   Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) )   // Don't pass Fence until it is properly destroyed at the end !  // fence
+   Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) ) 
+
+   // Try to clear any CommandBuffers that are no longer executing.
+   gpu->clearCommandBuffersQueue();
+
+   // Add this CommandBuffer to device's array of CB's in flight.
+   // This will ensure that CommandBuffer won't be destroyed until
+   // fence is not signaled.
+   gpu->addCommandBufferToQueue(Ptr<CommandBuffer>(this));
 
    commited = true;
+   }
+
+   bool CommandBufferVK::isCompleted(void)
+   {
+   Profile( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u) )
+   return gpu->lastResult[Scheduler.core()] == VK_SUCCESS ? true : false;
    }
     
    void CommandBufferVK::waitUntilCompleted(void)
@@ -574,7 +596,6 @@ namespace en
    //   Mapping non-coherent memory does not implicitly invalidate the mapped memory, and device writes that have
    //   not been invalidated must be made visible before the host reads or overwrites them. "
    // 
-
    }
    
    Ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
@@ -615,6 +636,42 @@ namespace en
    ProfileNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
    return ptr_dynamic_cast<CommandBuffer, CommandBufferVK>(Ptr<CommandBufferVK>(new CommandBufferVK(this, queue, type, handle, fence)));
+   }
+
+   void VulkanDevice::addCommandBufferToQueue(Ptr<CommandBuffer> command)
+   {
+   uint32 thread    = Scheduler.core();
+   uint32 executing = commandBuffersExecuting[thread];
+
+   assert( executing < MaxCommandBuffersExecuting );
+
+   commandBuffers[thread][executing] = command;
+   commandBuffersExecuting[thread]++;
+   }
+
+   // TODO: Add wait for all CB's completion on Device destruction !
+   void VulkanDevice::clearCommandBuffersQueue(void)
+   {
+   // Iterate over list of Command Buffers submitted for execution by this thread.
+   uint32 thread    = Scheduler.core();
+   uint32 executing = commandBuffersExecuting[thread];
+   for(uint32 i=0; i<executing; ++i)
+      {
+      CommandBufferVK* command = raw_reinterpret_cast<CommandBufferVK>(&commandBuffers[thread][i]);
+      if (command->isCompleted())
+         {
+         // Safely release Command Buffer object
+         commandBuffers[thread][i] = nullptr;
+         if (i < (executing - 1))
+            {
+            commandBuffers[thread][i] = commandBuffers[thread][executing - 1];
+            commandBuffers[thread][executing - 1] = nullptr;
+            }
+
+         executing--;
+         commandBuffersExecuting[thread]--;
+         }
+      }
    }
 
    }

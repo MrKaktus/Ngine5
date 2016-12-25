@@ -150,7 +150,9 @@ namespace en
       totalSets++;
       
    // Gather descriptor set layouts
-   VkDescriptorSetLayout* setsLayouts = new VkDescriptorSetLayout[totalSets];
+   VkDescriptorSetLayout* setsLayouts = nullptr;
+   if (totalSets)
+      setsLayouts = new VkDescriptorSetLayout[totalSets];
    for(uint32 i=0; i<sets; ++i)
       {
       SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(&set[i]);
@@ -210,7 +212,7 @@ namespace en
    layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
    layoutInfo.pNext                  = nullptr;
    layoutInfo.flags                  = 0u;      // Reserved for future
-   layoutInfo.setLayoutCount         = sets;
+   layoutInfo.setLayoutCount         = totalSets;
    layoutInfo.pSetLayouts            = setsLayouts;
    layoutInfo.pushConstantRangeCount = 0;       // uint32_t
    layoutInfo.pPushConstantRanges    = nullptr; // const VkPushConstantRange*

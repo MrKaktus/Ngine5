@@ -224,19 +224,24 @@ namespace en
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
                                                      const uint32 parentQueue = 0u) = 0;
 
+
+      // Creates empty input layout for Programmable Vertex Fetch.
+      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints = 0u) = 0;
+
       // Creates InputAssembler description based on single Vertex buffer.
       // Buffer needs to have specified internal formatting.
-      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                         const uint32 controlPoints,
-                                         const Ptr<Buffer> buffer) = 0;
+      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints,
+                                                    const Ptr<Buffer> buffer) = 0;
 
       // Specialized function for creation of any type of InputAssember description.
-      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
-                                          const uint32 controlPoints,
-                                          const uint32 usedAttributes,
-                                          const uint32 usedBuffers,
-                                          const AttributeDesc* attributes,
-                                          const BufferDesc* buffers) = 0;
+      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints,
+                                                    const uint32 usedAttributes,
+                                                    const uint32 usedBuffers,
+                                                    const AttributeDesc* attributes,
+                                                    const BufferDesc* buffers) = 0;
 
       virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
                                              const ResourceGroup* group,
@@ -289,7 +294,7 @@ namespace en
 
 
 
-
+ 
       virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state) = 0;
 
       virtual Ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
@@ -302,12 +307,16 @@ namespace en
                                                        const uint32 attachments,
                                                        const BlendAttachmentInfo* color) = 0;
       
-      virtual Ptr<ViewportState>      create(const uint32 count,
-                                             const ViewportStateInfo* viewports,
-                                             const ScissorStateInfo* scissors) = 0;
-
+      virtual Ptr<ViewportState>      createViewportState(const uint32 count,
+                                                          const ViewportStateInfo* viewports,
+                                                          const ScissorStateInfo* scissors) = 0;
+ 
       // Returns default Pipeline state helper structure, that can be easily
-      // modified and passed to Pipeline object creation call.
+      // modified and passed to Pipeline object creation call. All states are
+      // set to their defaults. Input Layout is set to TrnagleStripes, and no
+      // input attributes are specified. Pipeline Layout also assumes no 
+      // resources are used.
+      // App still needs to set Viewport State and assign Shaders.
       virtual PipelineState defaultPipelineState(void) = 0;
 
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState) = 0;

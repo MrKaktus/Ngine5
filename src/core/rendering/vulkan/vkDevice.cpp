@@ -1485,6 +1485,14 @@ namespace en
    {
    // TODO: Populate API capabilities
 
+
+   for(uint32 i=0; i<MaxSupportedWorkerThreads; i++)
+      {
+      commandBuffersExecuting[i] = 0u;
+      for(uint32 j=0; j<MaxCommandBuffersExecuting; j++)      
+         commandBuffers[i][j] = nullptr;
+      }
+
    initMemoryManager();
    CommonDevice::init();
    }

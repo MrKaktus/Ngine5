@@ -24,6 +24,10 @@ using namespace std;
 #include "utilities/Nversion.h"
 #include "threading/mutex.h"
 
+// TODO: Move it to Thread Pool Scheduler
+#define MaxSupportedWorkerThreads 64
+#define MaxCommandBuffersExecuting 32
+
 namespace en
 {
    namespace gpu
@@ -109,7 +113,7 @@ namespace en
          uint32      maxColorAttachments;               // Maximum number of color renderable textures
          
          
-         
+      // TODO: Add support.maxViewports , support.maxScissors
 
 //         uint32      maxFramebufferColorAttachments; // Number of Framebuffer Color attachments
 //         uint32      maxRenderTargets;               // Maximum supported Render Targets count            
@@ -152,16 +156,20 @@ namespace en
          
       virtual void init(void);
 
-      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                         const uint32 controlPoints,
-                                         const Ptr<Buffer> buffer);
+      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints = 0u);
+
+      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints,
+                                                    const Ptr<Buffer> buffer);
          
-      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                         const uint32 controlPoints,
-                                         const uint32 usedAttributes,
-                                         const uint32 usedBuffers,
-                                         const AttributeDesc* attributes,
-                                         const BufferDesc* buffers);
+      // Needs to be Declared and Defined to allow calls to it from itself
+      //virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+      //                                              const uint32 controlPoints,
+      //                                              const uint32 usedAttributes,
+      //                                              const uint32 usedBuffers,
+      //                                              const AttributeDesc* attributes,
+      //                                              const BufferDesc* buffers);
          
       virtual PipelineState defaultPipelineState(void);
 

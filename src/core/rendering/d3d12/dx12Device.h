@@ -41,12 +41,12 @@ namespace en
       Direct3D12Device();
      ~Direct3D12Device();
 
-      Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                 const uint32 controlPoints,
-                                 const uint32 usedAttributes,
-                                 const uint32 usedBuffers,
-                                 const AttributeDesc* attributes,
-                                 const BufferDesc* buffers);
+      virtual Ptr<InputAssembler> createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints,
+                                                    const uint32 usedAttributes,
+                                                    const uint32 usedBuffers,
+                                                    const AttributeDesc* attributes,
+                                                    const BufferDesc* buffers);
 
       virtual void init(void);
 

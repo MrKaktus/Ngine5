@@ -61,6 +61,8 @@ namespace en
                    const VkPipelineStageFlags afterStage,   // Transition after this stage
                    const VkPipelineStageFlags beforeStage); // Transition before this stage
 
+      bool isCompleted(void);
+
       // Interface methods
                       
       virtual ~CommandBufferVK();
@@ -69,6 +71,12 @@ namespace en
 
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Buffer> buffer);
+
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> destination,
+                        uint64 size,
+                        uint64 srcOffset = 0u,
+                        uint64 dstOffset = 0u);
          
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,

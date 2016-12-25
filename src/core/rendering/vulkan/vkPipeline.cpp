@@ -153,7 +153,8 @@ namespace en
 
    // Input Assembler State is Required
    assert( pipelineState.inputAssembler );
- 
+   assert( pipelineState.rasterState );
+
    // Cast to Vulkan states
    const Ptr<RenderPassVK>         renderPass     = ptr_reinterpret_cast<RenderPassVK>(&pipelineState.renderPass);
    const Ptr<InputAssemblerVK>     input          = ptr_reinterpret_cast<InputAssemblerVK>(&pipelineState.inputAssembler);
@@ -193,26 +194,41 @@ namespace en
          stage++;
          }
 
+   // TODO: Cleanup:
+   // Empty, dummy layout
+   VkPipelineLayoutCreateInfo layoutInfo;
+   layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+   layoutInfo.pNext                  = nullptr;
+   layoutInfo.flags                  = 0u;    
+   layoutInfo.setLayoutCount         = 0u;
+   layoutInfo.pSetLayouts            = nullptr;
+   layoutInfo.pushConstantRangeCount = 0;       
+   layoutInfo.pPushConstantRanges    = nullptr;
+
+   VkPipelineLayout layoutHandle = VK_NULL_HANDLE;
+   Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layoutHandle) )
+
+
    // Pipeline state
    VkGraphicsPipelineCreateInfo pipelineInfo;
    pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
    pipelineInfo.pNext               = nullptr;
    pipelineInfo.flags               = 0;
 #ifdef EN_DEBUG
-   pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
+//   pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
 #endif
    pipelineInfo.stageCount          = stages;
    pipelineInfo.pStages             = shaderInfo;
-   pipelineInfo.pVertexInputState   = (input->state.vertexAttributeDescriptionCount > 0) ? &input->state : VK_NULL_HANDLE; // optional - nullptr == Use Programmable Vertex Fetch
+   pipelineInfo.pVertexInputState   = &input->state;
    pipelineInfo.pInputAssemblyState = &input->statePrimitive;
-   pipelineInfo.pTessellationState  = (input->stateTessellator.patchControlPoints > 0) ?  &input->stateTessellator : VK_NULL_HANDLE; // optional - nullptr == Tessellation Disabled
-   pipelineInfo.pViewportState      = viewport      ? &viewport->state         : VK_NULL_HANDLE;
-   pipelineInfo.pRasterizationState = raster        ? &raster->state           : VK_NULL_HANDLE;
-   pipelineInfo.pMultisampleState   = multisampling ? &multisampling->state    : VK_NULL_HANDLE; // optional - nullptr == Multisampling Disabled
-   pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == disabled
-   pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Blending Disabled
+   pipelineInfo.pTessellationState  = (input->stateTessellator.patchControlPoints > 0) ?  &input->stateTessellator : VK_NULL_HANDLE; // optional - nullptr == Tessellation is Disabled
+   pipelineInfo.pViewportState      = viewport      ? &viewport->state         : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled
+   pipelineInfo.pRasterizationState = &raster->state;
+   pipelineInfo.pMultisampleState   = multisampling ? &multisampling->state    : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled
+   pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled (or subpass has no Depth-Stencil Attachments)
+   pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled (or subpass has no Color Attachments)
    pipelineInfo.pDynamicState       = nullptr;        // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
-   pipelineInfo.layout              = layout        ? layout->handle           : VK_NULL_HANDLE; // optional - nullptr == no resources are used except of optional input ones
+   pipelineInfo.layout              = layout->handle;
    pipelineInfo.renderPass          = renderPass->handle;
    pipelineInfo.subpass             = 0u;             // TODO: For now engine is not supporting subpasses except default one.
    pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE; // Pipeline to derive from. (optional)
@@ -220,7 +236,7 @@ namespace en
 
    // Create pipeline state object
    VkPipeline pipeline = VK_NULL_HANDLE;
-   Profile( this, vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineInfo, nullptr, &pipeline) )
+   Profile( this, vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) )  // pipelineCache
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       result = new PipelineVK(this, pipeline, true);
 

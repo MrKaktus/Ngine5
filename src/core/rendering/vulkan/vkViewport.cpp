@@ -38,15 +38,16 @@ namespace en
    // Set state
    state.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
    state.pNext         = nullptr;
+   state.flags         = 0u;
    state.viewportCount = count;
    state.pViewports    = viewport;
    state.scissorCount  = count;
    state.pScissors     = scissor;
    }
 
-   Ptr<ViewportState> VulkanDevice::create(const uint32 count,
-                                           const ViewportStateInfo* viewports,
-                                           const ScissorStateInfo* scissors)
+   Ptr<ViewportState> VulkanDevice::createViewportState(const uint32 count,
+                                                        const ViewportStateInfo* viewports,
+                                                        const ScissorStateInfo* scissors)
    {
    return ptr_dynamic_cast<ViewportState, ViewportStateVK>(Ptr<ViewportStateVK>(new ViewportStateVK(count, viewports, scissors)));
    }

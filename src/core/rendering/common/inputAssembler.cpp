@@ -162,7 +162,12 @@ namespace en
    {
    }
 
-   Ptr<InputAssembler> CommonDevice::create(const DrawableType primitiveType, const uint32 controlPoints, const Ptr<Buffer> buffer)
+   Ptr<InputAssembler> CommonDevice::createInputLayout(const DrawableType primitiveType, const uint32 controlPoints)
+   {
+   return ((GpuDevice*)this)->createInputLayout(primitiveType, controlPoints, 0u, 0u, nullptr, nullptr);
+   }
+
+   Ptr<InputAssembler> CommonDevice::createInputLayout(const DrawableType primitiveType, const uint32 controlPoints, const Ptr<Buffer> buffer)
    {
    assert( buffer );
    
@@ -197,7 +202,7 @@ namespace en
       buffers[i].stepRate    = common->step;
       }
 
-   Ptr<InputAssembler> inputAssembler = create(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
+   Ptr<InputAssembler> inputAssembler = ((GpuDevice*)this)->createInputLayout(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
 
    // Free temporary buffers
    delete [] attributes;

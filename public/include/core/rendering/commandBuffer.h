@@ -80,6 +80,12 @@ namespace en
                         Ptr<Buffer> buffer) = 0;
          
       virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> destination,
+                        uint64 size,
+                        uint64 srcOffset = 0u,
+                        uint64 dstOffset = 0u) = 0;
+
+      virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,
                         const uint32 mipmap,
                         const uint32 layer) = 0;

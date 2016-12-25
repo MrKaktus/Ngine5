@@ -469,6 +469,7 @@ namespace en
    // Describe Primitive Type stored in incoming buffers
    statePrimitive.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
    statePrimitive.pNext                  = nullptr;
+   statePrimitive.flags                  = 0u;
    statePrimitive.topology               = TranslateDrawableType[primitiveType];
    statePrimitive.primitiveRestartEnable = VK_FALSE;
    //
@@ -485,16 +486,18 @@ namespace en
    // Optional: Describe Tessellation Incoming Patch size
    stateTessellator.sType                = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
    stateTessellator.pNext                = nullptr;
-   stateTessellator.patchControlPoints   = (primitiveType == Patches) ? controlPoints : 0;
+   stateTessellator.flags                = 0u;
+   stateTessellator.patchControlPoints   = (primitiveType == Patches) ? controlPoints : 0u;
 
    // Optional: Describe Attributes mappings
    state.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
    state.pNext                           = nullptr;
+   state.flags                           = 0u;
    state.vertexBindingDescriptionCount   = usedBuffers;
-   state.pVertexBindingDescriptions      = new VkVertexInputBindingDescription[usedBuffers];
+   state.pVertexBindingDescriptions      = usedBuffers ? new VkVertexInputBindingDescription[usedBuffers] : nullptr;
    state.vertexAttributeDescriptionCount = usedAttributes;
-   state.pVertexAttributeDescriptions    = new VkVertexInputAttributeDescription[usedAttributes];
-   
+   state.pVertexAttributeDescriptions    = usedAttributes ? new VkVertexInputAttributeDescription[usedAttributes] : nullptr;
+
    for(uint32 i=0; i<usedBuffers; ++i)
       {
       VkVertexInputBindingDescription* desc = (VkVertexInputBindingDescription*)(&state.pVertexBindingDescriptions[i]);
@@ -520,16 +523,16 @@ namespace en
    }
    
    // Implemented by CommonDevice
-   // Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
-   //                                          const uint32 controlPoints,
-   //                                          const Ptr<Buffer> buffer)
+   // Ptr<InputAssembler> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+   //                                                     const uint32 controlPoints,
+   //                                                     const Ptr<Buffer> buffer)
       
-   Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
-                                            const uint32 controlPoints,
-                                            const uint32 usedAttributes,
-                                            const uint32 usedBuffers,
-                                            const AttributeDesc* attributes,
-                                            const BufferDesc* buffers)
+   Ptr<InputAssembler> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+                                                       const uint32 controlPoints,
+                                                       const uint32 usedAttributes,
+                                                       const uint32 usedBuffers,
+                                                       const AttributeDesc* attributes,
+                                                       const BufferDesc* buffers)
    {
    Ptr<InputAssemblerVK> input = Ptr<InputAssemblerVK>(new InputAssemblerVK(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 

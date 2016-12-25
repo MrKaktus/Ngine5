@@ -299,12 +299,12 @@ namespace en
    [desc release];
    }
 
-   Ptr<InputAssembler> MetalDevice::create(const DrawableType primitiveType,
-                                           const uint32 controlPoints,
-                                           const uint32 usedAttributes,
-                                           const uint32 usedBuffers,
-                                           const AttributeDesc* attributes,
-                                           const BufferDesc* buffers)
+   Ptr<InputAssembler> MetalDevice::createInputLayout(const DrawableType primitiveType,
+                                                      const uint32 controlPoints,
+                                                      const uint32 usedAttributes,
+                                                      const uint32 usedBuffers,
+                                                      const AttributeDesc* attributes,
+                                                      const BufferDesc* buffers)
    {
    Ptr<InputAssemblerMTL> input = Ptr<InputAssemblerMTL>(new InputAssemblerMTL(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
