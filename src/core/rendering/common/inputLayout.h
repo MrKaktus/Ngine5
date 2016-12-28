@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Common Input Assembler.
+ Module      : Common Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,10 +13,10 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_COMMON_INPUT_ASSEMBLER
-#define ENG_CORE_RENDERING_COMMON_INPUT_ASSEMBLER
+#ifndef ENG_CORE_RENDERING_COMMON_INPUT_LAYOUT
+#define ENG_CORE_RENDERING_COMMON_INPUT_LAYOUT
 
-#include "core/rendering/inputAssembler.h"
+#include "core/rendering/inputLayout.h"
 
 namespace en
 {

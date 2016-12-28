@@ -36,6 +36,8 @@ namespace en
       uint64       size;
       MemoryChunk* prev;
       MemoryChunk* next;
+
+      MemoryChunk();
       };
 
    // Simple allocator algorithm (used for example by GPU Heaps)

@@ -31,6 +31,7 @@
 #include "core/rendering/pipeline.h"
 #include "core/rendering/renderPass.h"
 #include "core/rendering/pipeline.h"
+#include "core/rendering/synchronization.h"
 
 namespace en
 {
@@ -56,12 +57,9 @@ namespace en
    class CommandBuffer : public SafeObject<CommandBuffer>
       {
       public:
-      virtual void bind(const Ptr<RasterState> raster) = 0;
-      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor) = 0;
-      virtual void bind(const Ptr<DepthStencilState> depthStencil) = 0;
-      virtual void bind(const Ptr<BlendState> blend) = 0;
+      virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr) = 0;
 
-      virtual bool startRenderPass(const Ptr<RenderPass> pass, 
+      virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer) = 0;
 
       virtual void setPipeline(const Ptr<Pipeline> pipeline) = 0;
@@ -86,7 +84,7 @@ namespace en
                         uint64 size,
                         uint64 srcOffset = 0u,
                         uint64 dstOffset = 0u) = 0;
-      
+
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,
                         const uint32 mipmap,
@@ -106,8 +104,18 @@ namespace en
                         const Ptr<Buffer>  indexBuffer  = Ptr<Buffer>(nullptr), // Optional Index buffer
                         const uint32       firstElement = 0) = 0;  // First index to process in Index buffer (if specified)
 
-      virtual bool endRenderPass(void) = 0;
-      virtual void commit(void) = 0;
+      virtual void endRenderPass(void) = 0;
+
+      // Optimize the way texture is internally stored in memory,
+      // by describing the way it was used in the past, and the 
+      // way it will be used now.
+      virtual void barrier(const Ptr<Texture>  texture, 
+                           const uint32v2      mipmaps, 
+                           const uint32v2      layers,
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess) = 0;
+
+      virtual void commit(const Ptr<Semaphore> signalSemaphore = nullptr) = 0;
       virtual void waitUntilCompleted(void) = 0;
       
       virtual ~CommandBuffer() {};                        // Polymorphic deletes require a virtual base destructor

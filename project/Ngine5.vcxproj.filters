@@ -171,9 +171,6 @@
     <ClCompile Include="..\src\core\rendering\api.cpp">
       <Filter>Source Files\core\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\buffer.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\depthStencil.cpp">
       <Filter>Source Files\core\rendering</Filter>
     </ClCompile>
@@ -210,16 +207,10 @@
     <ClCompile Include="..\src\core\rendering\common\cTexture.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\common\inputAssembler.cpp">
-      <Filter>Source Files\core\rendering\common</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Blend.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\d3d12\dx12DepthStencil.cpp">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12InputAssembler.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Raster.cpp">
@@ -322,9 +313,6 @@
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\vulkan\vkDevice.cpp">
-      <Filter>Source Files\core\rendering\vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\vulkan\vkInputAssembler.cpp">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\vulkan\vkMultisampling.cpp">
@@ -573,9 +561,6 @@
     <ClCompile Include="..\src\core\rendering\opengl\glDevice.cpp">
       <Filter>Source Files\core\rendering\opengl</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\glInputAssembler.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
@@ -606,26 +591,32 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkShader.cpp">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Buffer.cpp">
+    <ClCompile Include="..\src\core\rendering\vulkan\vkLayout.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Layout.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Device.cpp">
+    <ClCompile Include="..\src\core\rendering\vulkan\vkSampler.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkSynchronization.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\ogl_buffer.cpp">
+      <Filter>Source Files\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\inputLayout.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkInputLayout.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12InputLayout.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Heap.cpp">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Multisampling.cpp">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12RenderPass.cpp">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Sampler.cpp">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Shader.cpp">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
+    <ClCompile Include="..\src\core\rendering\opengl\glInputLayout.cpp">
+      <Filter>Source Files\core\rendering\opengl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -710,9 +701,6 @@
     <ClInclude Include="..\public\include\core\rendering\gpu.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\include\core\rendering\inputAssembler.h">
-      <Filter>Header Files\core\rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\core\rendering\multisampling.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
@@ -749,17 +737,11 @@
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Device.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12InputAssembler.h">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Raster.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\common\inputAssembler.h">
-      <Filter>Source Files\core\rendering\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\common\sampler.h">
       <Filter>Source Files\core\rendering\common</Filter>
@@ -771,9 +753,6 @@
       <Filter>Source Files\core\rendering\metal</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\metal\mtlDepthStencil.h">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\metal\mtlInputAssembler.h">
       <Filter>Source Files\core\rendering\metal</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\metal\mtlSampler.h">
@@ -873,9 +852,6 @@
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\vulkan\vkDevice.h">
-      <Filter>Source Files\core\rendering\vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\vulkan\vkInputAssembler.h">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\vulkan\vkMultisampling.h">
@@ -1208,9 +1184,6 @@
     <ClInclude Include="..\src\core\rendering\opengl\glDevice.h">
       <Filter>Source Files\core\rendering\opengl</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\glInputAssembler.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\core\rendering\common\buffer.h">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClInclude>
@@ -1265,29 +1238,38 @@
     <ClInclude Include="..\public\include\core\rendering\surface.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Buffer.h">
+    <ClInclude Include="..\src\core\rendering\vulkan\vkLayout.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\layout.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Layout.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Heap.h">
+    <ClInclude Include="..\public\include\core\rendering\synchronization.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkSynchronization.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\inputLayout.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\inputLayout.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkInputLayout.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12InputLayout.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Multisampling.h">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
+    <ClInclude Include="..\src\core\rendering\metal\mtlInputLayout.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Pipeline.h">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12RenderPass.h">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Sampler.h">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Shader.h">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Texture.h">
-      <Filter>Source Files\core\rendering\d3d12</Filter>
+    <ClInclude Include="..\src\core\rendering\opengl\glInputLayout.h">
+      <Filter>Source Files\core\rendering\opengl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1310,9 +1292,6 @@
       <Filter>Source Files\core\rendering\metal</Filter>
     </None>
     <None Include="..\src\core\rendering\metal\mtlDevice.mm">
-      <Filter>Source Files\core\rendering\metal</Filter>
-    </None>
-    <None Include="..\src\core\rendering\metal\mtlInputAssembler.mm">
       <Filter>Source Files\core\rendering\metal</Filter>
     </None>
     <None Include="..\src\core\rendering\metal\mtlRenderPass.mm">
@@ -1355,6 +1334,9 @@
       <Filter>Source Files\core\rendering\metal</Filter>
     </None>
     <None Include="..\src\core\rendering\metal\mtlShader.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlInputLayout.mm">
       <Filter>Source Files\core\rendering\metal</Filter>
     </None>
   </ItemGroup>

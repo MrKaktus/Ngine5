@@ -19,7 +19,7 @@
 #include <string>
 #include "core/utilities/TintrusivePointer.h" 
 
-#include "core/rendering/inputAssembler.h"
+#include "core/rendering/inputLayout.h"
 #include "core/rendering/blend.h"
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/raster.h"
@@ -33,7 +33,8 @@
 #include "core/rendering/shader.h"
 #include "core/rendering/heap.h"
 #include "core/rendering/commandBuffer.h"
-
+#include "core/rendering/layout.h"
+#include "core/rendering/synchronization.h"
 #include "utilities/Nversion.h"
 
 
@@ -166,8 +167,10 @@ namespace en
       virtual void active(void) = 0;
       virtual void transparent(const float opacity) = 0;
       virtual void opaque(void) = 0;
-      virtual Ptr<Texture> surface(void) = 0;         // App should query for current surface each time it wants to reference it
-      virtual void present(void) = 0;                 // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
+      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr) = 0; // Signal when Swap-Chain surface is presented, and can be reused
+      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr) = 0;        // Wait for rendering to Swap-Chain surface being done
+                                                                                        
+      //virtual void present(void) = 0;                 // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
       
       virtual ~Window() {};                               // Polymorphic deletes require a virtual base destructor
       };
@@ -194,8 +197,8 @@ namespace en
       virtual Ptr<Display> display(uint32 id) const = 0;  // Return N'th display handle
 
 
-      virtual Ptr<Window> create(const WindowSettings& settings,  
-                                 const string title) = 0; // Create window
+      virtual Ptr<Window> createWindow(const WindowSettings& settings,  
+                                       const string title) = 0; // Create window
                
       // Create Heap from which GPU resources can be sub-allocated.
       virtual Ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;
@@ -223,21 +226,33 @@ namespace en
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
                                                      const uint32 parentQueue = 0u) = 0;
 
-      // Creates InputAssembler description based on single Vertex buffer.
+
+      // Creates empty input layout for Programmable Vertex Fetch.
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const uint32 controlPoints = 0u) = 0;
+
+      // Creates InputLayout description based on single Vertex buffer.
       // Buffer needs to have specified internal formatting.
-      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                         const uint32 controlPoints,
-                                         const Ptr<Buffer> buffer) = 0;
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const uint32 controlPoints,
+                                                 const Ptr<Buffer> buffer) = 0;
 
       // Specialized function for creation of any type of InputAssember description.
-      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
-                                          const uint32 controlPoints,
-                                          const uint32 usedAttributes,
-                                          const uint32 usedBuffers,
-                                          const AttributeDesc* attributes,
-                                          const BufferDesc* buffers) = 0;
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const uint32 controlPoints,
+                                                 const uint32 usedAttributes,
+                                                 const uint32 usedBuffers,
+                                                 const AttributeDesc* attributes,
+                                                 const BufferDesc* buffers) = 0;
 
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
+                                             const ResourceGroup* group,
+                                             const ShaderStage stageMask) = 0;
 
+      virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
+                                                       const Ptr<SetLayout>* set,
+                                                       const uint32 immutableSamplers = 0u,
+                                                       const Ptr<Sampler>* sampler = nullptr) = 0;
 
       // TODO: Those methods should be reworked to accept TextureView,
       //       and layer selection should be done through it.
@@ -272,6 +287,7 @@ namespace en
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil) = 0;
 
+      virtual Ptr<Semaphore> createSemaphore(void) = 0;
 
       
 
@@ -280,7 +296,7 @@ namespace en
 
 
 
-
+ 
       virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state) = 0;
 
       virtual Ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
@@ -293,12 +309,16 @@ namespace en
                                                        const uint32 attachments,
                                                        const BlendAttachmentInfo* color) = 0;
       
-      virtual Ptr<ViewportState>      create(const uint32 count,
-                                             const ViewportStateInfo* viewports,
-                                             const ScissorStateInfo* scissors) = 0;
-
+      virtual Ptr<ViewportState>      createViewportState(const uint32 count,
+                                                          const ViewportStateInfo* viewports,
+                                                          const ScissorStateInfo* scissors) = 0;
+ 
       // Returns default Pipeline state helper structure, that can be easily
-      // modified and passed to Pipeline object creation call.
+      // modified and passed to Pipeline object creation call. All states are
+      // set to their defaults. Input Layout is set to TrnagleStripes, and no
+      // input attributes are specified. Pipeline Layout also assumes no 
+      // resources are used.
+      // App still needs to set Viewport State and assign Shaders.
       virtual PipelineState defaultPipelineState(void) = 0;
 
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState) = 0;
@@ -340,12 +360,12 @@ extern Ptr<gpu::GraphicAPI> Graphics;
 
 
 //      // Create Buffer formatted for storing array of structures (AOS). Each element of array is a tightly 
-//      // packed structure containing up to MaxInputAssemblerAttributesCount of variables. Each such variable 
+//      // packed structure containing up to MaxInputLayoutAttributesCount of variables. Each such variable 
 //      // can be treated as a column and each element as a row in data array. 
 //      // Each column has it's specified format, and can be a scalar or vector containing up to 4 channels. 
 //      // Elements creating array can be used to store for e.g. Vertices, Control Points, or other data.
-//      // When assigned to InputAssembler as one of the buffers for processing, optional update rate can be 
-//      // specified to describe how often InputAssembler should switch to next element. By default it's set  
+//      // When assigned to InputLayout as one of the buffers for processing, optional update rate can be 
+//      // specified to describe how often InputLayout should switch to next element. By default it's set  
 //      // to 0 which means buffer will be iterated on per vertex rate. If value is greater, it describes 
 //      // by how many Draw Instances each structured element is shared, before Input Assembler should 
 //      // proceed to next one. 

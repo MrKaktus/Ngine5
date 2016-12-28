@@ -15,25 +15,19 @@
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
     <ClCompile Include="..\src\core\rendering\api.cpp" />
-    <ClCompile Include="..\src\core\rendering\buffer.cpp" />
+    <ClCompile Include="..\src\core\rendering\ogl_buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\common\device.cpp" />
     <ClCompile Include="..\src\core\rendering\common\heap.cpp" />
-    <ClCompile Include="..\src\core\rendering\common\inputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\inputLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Blend.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12DepthStencil.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Device.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Heap.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12InputAssembler.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Multisampling.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12InputLayout.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Layout.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Pipeline.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Raster.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12RenderPass.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Sampler.cpp" />
-    <ClCompile Include="..\src\core\rendering\d3d12\dx12Shader.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Texture.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Viewport.cpp" />
     <ClCompile Include="..\src\core\rendering\depthStencil.cpp" />
@@ -51,7 +45,7 @@
     <ClCompile Include="..\src\core\rendering\opengl\glBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glBuffer.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glDevice.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\glInputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\opengl\glInputLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glState.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\glTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\opengl\opengl.cpp" />
@@ -85,13 +79,16 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkDepthStencil.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkDevice.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkHeap.cpp" />
-    <ClCompile Include="..\src\core\rendering\vulkan\vkInputAssembler.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkInputLayout.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkLayout.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkMultisampling.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkPipeline.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkRaster.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkRenderPass.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkSampler.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkShader.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkState.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkSynchronization.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkViewport.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vulkan.cpp" />
@@ -181,7 +178,8 @@
     <ClInclude Include="..\public\include\core\rendering\framebuffer.h" />
     <ClInclude Include="..\public\include\core\rendering\gpu.h" />
     <ClInclude Include="..\public\include\core\rendering\heap.h" />
-    <ClInclude Include="..\public\include\core\rendering\inputAssembler.h" />
+    <ClInclude Include="..\public\include\core\rendering\inputLayout.h" />
+    <ClInclude Include="..\public\include\core\rendering\layout.h" />
     <ClInclude Include="..\public\include\core\rendering\multisampling.h" />
     <ClInclude Include="..\public\include\core\rendering\pipeline.h" />
     <ClInclude Include="..\public\include\core\rendering\program.h" />
@@ -192,6 +190,7 @@
     <ClInclude Include="..\public\include\core\rendering\shader.h" />
     <ClInclude Include="..\public\include\core\rendering\state.h" />
     <ClInclude Include="..\public\include\core\rendering\surface.h" />
+    <ClInclude Include="..\public\include\core\rendering\synchronization.h" />
     <ClInclude Include="..\public\include\core\rendering\texture.h" />
     <ClInclude Include="..\public\include\core\rendering\viewport.h" />
     <ClInclude Include="..\public\include\core\storage.h" />
@@ -288,24 +287,17 @@
     <ClInclude Include="..\src\core\rendering\common\buffer.h" />
     <ClInclude Include="..\src\core\rendering\common\device.h" />
     <ClInclude Include="..\src\core\rendering\common\heap.h" />
-    <ClInclude Include="..\src\core\rendering\common\inputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\common\inputLayout.h" />
     <ClInclude Include="..\src\core\rendering\common\sampler.h" />
     <ClInclude Include="..\src\core\rendering\common\texture.h" />
     <ClInclude Include="..\src\core\rendering\context.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Blend.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Buffer.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12DepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Device.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Heap.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12InputAssembler.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Multisampling.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Pipeline.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12InputLayout.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Layout.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Raster.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12RenderPass.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Sampler.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Shader.h" />
-    <ClInclude Include="..\src\core\rendering\d3d12\dx12Texture.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h" />
     <ClInclude Include="..\src\core\rendering\metal\metal.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlAPI.h" />
@@ -315,7 +307,7 @@
     <ClInclude Include="..\src\core\rendering\metal\mtlDepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlDevice.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlHeap.h" />
-    <ClInclude Include="..\src\core\rendering\metal\mtlInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlInputLayout.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlMultisampling.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlPipeline.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlRaster.h" />
@@ -336,7 +328,7 @@
     <ClInclude Include="..\src\core\rendering\opengl\glBuffer.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glCache.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glDevice.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\opengl\glInputLayout.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glState.h" />
     <ClInclude Include="..\src\core\rendering\opengl\glTexture.h" />
     <ClInclude Include="..\src\core\rendering\opengl\opengl.h" />
@@ -362,13 +354,15 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkDepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkDevice.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkHeap.h" />
-    <ClInclude Include="..\src\core\rendering\vulkan\vkInputAssembler.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkInputLayout.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkLayout.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkMultisampling.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkPipeline.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkRaster.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkRenderPass.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkSampler.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkShader.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkSynchronization.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkTexture.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkViewport.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan.h" />
@@ -401,7 +395,7 @@
     <None Include="..\src\core\rendering\metal\mtlDepthStencil.mm" />
     <None Include="..\src\core\rendering\metal\mtlDevice.mm" />
     <None Include="..\src\core\rendering\metal\mtlHeap.mm" />
-    <None Include="..\src\core\rendering\metal\mtlInputAssembler.mm" />
+    <None Include="..\src\core\rendering\metal\mtlInputLayout.mm" />
     <None Include="..\src\core\rendering\metal\mtlMultisampling.mm" />
     <None Include="..\src\core\rendering\metal\mtlPipeline.mm" />
     <None Include="..\src\core\rendering\metal\mtlRaster.mm" />
@@ -456,6 +450,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>"./../public/include/"; "./../src/"; "./../middleware/"; "C:/Program Files/Autodesk/FBX/FBX SDK/2015.1/include/"</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

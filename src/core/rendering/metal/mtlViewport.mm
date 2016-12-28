@@ -63,9 +63,9 @@ namespace en
    }
    
       
-   Ptr<ViewportState> MetalDevice::create(const uint32 count,
-                                          const ViewportStateInfo* viewports,
-                                          const ScissorStateInfo* scissors)
+   Ptr<ViewportState> MetalDevice::createViewportState(const uint32 count,
+                                                       const ViewportStateInfo* viewports,
+                                                       const ScissorStateInfo* scissors)
    {
    Ptr<ViewportStateMTL> ptr = new ViewportStateMTL(count, viewports, scissors);
    return ptr_reinterpret_cast<ViewportState>(&ptr);

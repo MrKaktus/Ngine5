@@ -13,7 +13,6 @@
 
 */
 
-
 #ifndef ENG_CORE_RENDERING_PIPELINE
 #define ENG_CORE_RENDERING_PIPELINE
 
@@ -24,13 +23,14 @@
 // For PipelineState 
 #include <string>
 #include "core/rendering/renderPass.h"
-#include "core/rendering/inputAssembler.h"
+#include "core/rendering/inputLayout.h"
 #include "core/rendering/viewport.h"
 #include "core/rendering/raster.h"
 #include "core/rendering/multisampling.h"
 #include "core/rendering/depthStencil.h"
 #include "core/rendering/blend.h"
 #include "core/rendering/shader.h"
+#include "core/rendering/layout.h"
 
 namespace en
 {
@@ -78,12 +78,6 @@ namespace en
    //    } support;
    //
 
-   class PipelineLayout : public SafeObject<PipelineLayout>
-      {
-      public:
-      virtual ~PipelineLayout() {};                              // Polymorphic deletes require a virtual base destructor
-      };
-
    // Handle for Pipeline State Object binding specification
    class Pipeline : public SafeObject<Pipeline>
       {
@@ -97,7 +91,7 @@ namespace en
    struct PipelineState
       {
       Ptr<RenderPass>         renderPass;
-      Ptr<InputAssembler>     inputAssembler;
+      Ptr<InputLayout>        inputAssembler;
       Ptr<ViewportState>      viewportState;
       Ptr<RasterState>        rasterState;
       Ptr<MultisamplingState> multisamplingState;

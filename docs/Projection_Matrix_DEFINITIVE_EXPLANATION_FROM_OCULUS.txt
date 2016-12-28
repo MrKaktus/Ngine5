@@ -1,0 +1,162 @@
+
+
+typedef enum ovrProjectionModifier_
+{
+    /// Use for generating a default projection matrix that is:
+    /// * Right-handed.
+    /// * Near depth values stored in the depth buffer are smaller than far depth values.
+    /// * Both near and far are explicitly defined.
+    /// * With a clipping range that is (0 to w).
+    ovrProjection_None = 0x00,
+
+    /// Enable if using left-handed transformations in your application.
+    ovrProjection_LeftHanded = 0x01,
+
+    /// After the projection transform is applied, far values stored in the depth buffer will be less than closer depth values.
+    /// NOTE: Enable only if the application is using a floating-point depth buffer for proper precision.
+    ovrProjection_FarLessThanNear = 0x02,
+
+    /// When this flag is used, the zfar value pushed into ovrMatrix4f_Projection() will be ignored
+    /// NOTE: Enable only if ovrProjection_FarLessThanNear is also enabled where the far clipping plane will be pushed to infinity.
+    ovrProjection_FarClipAtInfinity = 0x04,
+
+    /// Enable if the application is rendering with OpenGL and expects a projection matrix with a clipping range of (-w to w).
+    /// Ignore this flag if your application already handles the conversion from D3D range (0 to w) to OpenGL.
+    ovrProjection_ClipRangeOpenGL = 0x08,
+} ovrProjectionModifier;
+
+
+
+/// Used to generate projection from ovrEyeDesc::Fov.
+///
+/// \param[in] fov Specifies the ovrFovPort to use.
+/// \param[in] znear Distance to near Z limit.
+/// \param[in] zfar Distance to far Z limit.
+/// \param[in] projectionModFlags A combination of the ovrProjectionModifier flags.
+///
+/// \return Returns the calculated projection matrix.
+/// 
+/// \see ovrProjectionModifier
+///
+OVR_PUBLIC_FUNCTION(ovrMatrix4f) ovrMatrix4f_Projection(ovrFovPort fov, float znear, float zfar, unsigned int projectionModFlags);
+
+
+// Used to generate projection from ovrEyeDesc::Fov
+OVR_PUBLIC_FUNCTION(ovrMatrix4f) ovrMatrix4f_Projection(
+    ovrFovPort fov, float znear, float zfar, unsigned int projectionModFlags)
+{
+    bool leftHanded     = (projectionModFlags & ovrProjection_LeftHanded) > 0;
+    bool flipZ          = (projectionModFlags & ovrProjection_FarLessThanNear) > 0;
+    bool farAtInfinity  = (projectionModFlags & ovrProjection_FarClipAtInfinity) > 0;
+    bool isOpenGL       = (projectionModFlags & ovrProjection_ClipRangeOpenGL) > 0;
+
+    // TODO: Pass in correct eye to CreateProjection if we want to support canted displays from CAPI
+    return OVR::CreateProjection(leftHanded , isOpenGL, fov, OVR::StereoEye_Center, znear, zfar, flipZ, farAtInfinity);
+}
+
+
+
+
+
+
+struct ScaleAndOffset2D
+{
+    Vector2f Scale;
+    Vector2f Offset;
+
+    ScaleAndOffset2D(float sx = 0.0f, float sy = 0.0f, float ox = 0.0f, float oy = 0.0f)
+        : Scale(sx, sy), Offset(ox, oy)
+    { }
+};
+
+ScaleAndOffset2D CreateNDCScaleAndOffsetFromFov ( FovPort tanHalfFov )
+{
+    float projXScale = 2.0f / ( tanHalfFov.LeftTan + tanHalfFov.RightTan );
+    float projXOffset = ( tanHalfFov.LeftTan - tanHalfFov.RightTan ) * projXScale * 0.5f;
+    float projYScale = 2.0f / ( tanHalfFov.UpTan + tanHalfFov.DownTan );
+    float projYOffset = ( tanHalfFov.UpTan - tanHalfFov.DownTan ) * projYScale * 0.5f;
+
+    ScaleAndOffset2D result;
+    result.Scale    = Vector2f(projXScale, projYScale);
+    result.Offset   = Vector2f(projXOffset, projYOffset);
+    // Hey - why is that Y.Offset negated?
+    // It's because a projection matrix transforms from world coords with Y=up,
+    // whereas this is from NDC which is Y=down.
+
+    return result;
+}
+
+Matrix4f CreateProjection( bool leftHanded, bool isOpenGL, FovPort tanHalfFov, StereoEye /*eye*/, 
+                           float zNear /*= 0.01f*/, float zFar /*= 10000.0f*/,
+                           bool flipZ /*= false*/, bool farAtInfinity /*= false*/)
+{
+    if(!flipZ && farAtInfinity)
+    {
+        //OVR_ASSERT_M(false, "Cannot push Far Clip to Infinity when Z-order is not flipped"); Assertion disabled because this code no longer has access to LibOVRKernel assertion functionality.
+        farAtInfinity = false;
+    }
+
+    // A projection matrix is very like a scaling from NDC, so we can start with that.
+    ScaleAndOffset2D scaleAndOffset = CreateNDCScaleAndOffsetFromFov ( tanHalfFov );
+
+    float handednessScale = leftHanded ? 1.0f : -1.0f;
+
+    Matrix4f projection;
+    // Produces X result, mapping clip edges to [-w,+w]
+    projection.M[0][0] = scaleAndOffset.Scale.x;
+    projection.M[0][1] = 0.0f;
+    projection.M[0][2] = handednessScale * scaleAndOffset.Offset.x;
+    projection.M[0][3] = 0.0f;
+
+    // Produces Y result, mapping clip edges to [-w,+w]
+    // Hey - why is that YOffset negated?
+    // It's because a projection matrix transforms from world coords with Y=up,
+    // whereas this is derived from an NDC scaling, which is Y=down.
+    projection.M[1][0] = 0.0f;
+    projection.M[1][1] = scaleAndOffset.Scale.y;
+    projection.M[1][2] = handednessScale * -scaleAndOffset.Offset.y;
+    projection.M[1][3] = 0.0f;
+
+    // Produces Z-buffer result - app needs to fill this in with whatever Z range it wants.
+    // We'll just use some defaults for now.
+    projection.M[2][0] = 0.0f;
+    projection.M[2][1] = 0.0f;
+
+    if (farAtInfinity)
+    {
+        if (isOpenGL)
+        {
+            // It's not clear this makes sense for OpenGL - you don't get the same precision benefits you do in D3D.
+            projection.M[2][2] = -handednessScale;
+            projection.M[2][3] = 2.0f * zNear;
+        }
+        else
+        {
+            projection.M[2][2] = 0.0f;
+            projection.M[2][3] = zNear;
+        }
+    }
+    else
+    {
+        if (isOpenGL)
+        {
+            // Clip range is [-w,+w], so 0 is at the middle of the range.
+            projection.M[2][2] = -handednessScale * (flipZ ? -1.0f : 1.0f) * (zNear + zFar) / (zNear - zFar);
+            projection.M[2][3] =                    2.0f * ((flipZ ? -zFar : zFar) * zNear) / (zNear - zFar);
+        }
+        else
+        {
+            // Clip range is [0,+w], so 0 is at the start of the range.
+            projection.M[2][2] = -handednessScale * (flipZ ? -zNear : zFar)                 / (zNear - zFar);
+            projection.M[2][3] =                           ((flipZ ? -zFar : zFar) * zNear) / (zNear - zFar);
+        }
+    }
+
+    // Produces W result (= Z in)
+    projection.M[3][0] = 0.0f;
+    projection.M[3][1] = 0.0f;
+    projection.M[3][2] = handednessScale;
+    projection.M[3][3] = 0.0f;
+
+    return projection;
+}

@@ -596,6 +596,7 @@ namespace en
 
       // Copy data from staging buffer to final texture
       Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      command->start();
       command->copy(stagingVertex, model->mesh[eye].geometry.buffer);
       command->copy(stagingIndex, model->mesh[eye].elements.buffer);
       command->commit();
@@ -714,6 +715,7 @@ namespace en
 
    // Copy data from staging buffer to final buffers
    Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   command->start();
    command->copy(stagingVertex, model->mesh[0u].geometry.buffer);
    command->copy(stagingIndex, model->mesh[0u].elements.buffer);
    command->commit();
@@ -763,6 +765,7 @@ namespace en
 
       // Copy data from staging buffer to final texture
       Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      command->start();
       command->copy(stagingTexture, texture, 0u, 0u);
       command->commit();
       command->waitUntilCompleted();

@@ -26,7 +26,6 @@
       DeclareFunction( vkEnumeratePhysicalDevices )
       DeclareFunction( vkGetPhysicalDeviceFeatures )
       DeclareFunction( vkGetPhysicalDeviceFormatProperties )
-      DeclareFunction( vkGetPhysicalDeviceImageFormatProperties )
       DeclareFunction( vkGetPhysicalDeviceProperties )
       DeclareFunction( vkGetPhysicalDeviceQueueFamilyProperties )
       DeclareFunction( vkGetPhysicalDeviceMemoryProperties )                
@@ -159,12 +158,7 @@
 
       // Windowing System Interface - KHRONOS extension
       
-      // VK_KHR_surface
-      // vkGetPhysicalDeviceSurfaceSupportKHR - Interface function 
-      DeclareFunction( vkGetPhysicalDeviceSurfaceCapabilitiesKHR )
-      DeclareFunction( vkGetPhysicalDeviceSurfaceFormatsKHR )
-      DeclareFunction( vkGetPhysicalDeviceSurfacePresentModesKHR )
-      DeclareFunction( vkDestroySurfaceKHR )
+      // VK_KHR_surface - Interface extension
       
       // VK_KHR_swapchain 
       DeclareFunction( vkCreateSwapchainKHR )
@@ -193,10 +187,8 @@
       // VK_KHR_mir_surface
       // VK_KHR_android_surface
       
-      // VK_KHR_win32_surface
-      DeclareFunction( vkCreateWin32SurfaceKHR )
-      DeclareFunction( vkGetPhysicalDeviceWin32PresentationSupportKHR )
-      
+      // VK_KHR_win32_surface - Interface extension
+
       // Extensions
       
       // VK_EXT_debug_report

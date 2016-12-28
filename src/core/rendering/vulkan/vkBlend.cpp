@@ -85,6 +85,7 @@ namespace en
    {
    state.sType             = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
    state.pNext             = nullptr;
+   state.flags             = 0u;
    state.logicOpEnable     = VK_FALSE;          // Logic Operations are not supported
    state.logicOp           = VK_LOGIC_OP_NO_OP; // TranslateLogicOperation[color[0].logic];
    state.attachmentCount   = min(attachments, MaxColorAttachmentsCount);

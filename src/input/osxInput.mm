@@ -724,35 +724,35 @@ namespace en
             
             // CapsLock
             if (bitsChanged(newStateFlags, stateFlags, NSAlphaShiftKeyMask))
-               ptr->keyLock[0] = checkBits(newStateFlags, NSAlphaShiftKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+               ptr->keyLock[0] = checkBitmask(newStateFlags, NSAlphaShiftKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Shift
             if (bitsChanged(newStateFlags, stateFlags, NSShiftKeyMask))
-               ptr->keyLock[1] = checkBits(newStateFlags, NSShiftKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+               ptr->keyLock[1] = checkBitmask(newStateFlags, NSShiftKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Ctrl
             if (bitsChanged(newStateFlags, stateFlags, NSControlKeyMask))
-               ptr->keyLock[2] = checkBits(newStateFlags, NSControlKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+               ptr->keyLock[2] = checkBitmask(newStateFlags, NSControlKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Alt / Option
             if (bitsChanged(newStateFlags, stateFlags, NSAlternateKeyMask))
-               ptr->keyLock[3] = checkBits(newStateFlags, NSAlternateKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+               ptr->keyLock[3] = checkBitmask(newStateFlags, NSAlternateKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Windows / Command
             if (bitsChanged(newStateFlags, stateFlags, NSCommandKeyMask))
-               ptr->keyLock[4] = checkBits(newStateFlags, NSCommandKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+               ptr->keyLock[4] = checkBitmask(newStateFlags, NSCommandKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // NumPad
             if (bitsChanged(newStateFlags, stateFlags, NSNumericPadKeyMask))
-               ptr->keyLock[5] = checkBits(newStateFlags, NSNumericPadKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+               ptr->keyLock[5] = checkBitmask(newStateFlags, NSNumericPadKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             //
             if (bitsChanged(newStateFlags, stateFlags, NSHelpKeyMask))
-               ptr->keyLock[6] = checkBits(newStateFlags, NSHelpKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+               ptr->keyLock[6] = checkBitmask(newStateFlags, NSHelpKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Fn
             if (bitsChanged(newStateFlags, stateFlags, NSFunctionKeyMask))
-               ptr->keyLock[7] = checkBits(newStateFlags, NSFunctionKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+               ptr->keyLock[7] = checkBitmask(newStateFlags, NSFunctionKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             
             // TODO: Should keyPressed / keyReleased event be spawned ? Or will there be separate event from OSX for that ?
             

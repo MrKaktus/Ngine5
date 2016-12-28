@@ -156,14 +156,14 @@ namespace en
    // Attribute::v4u10_10_10_2_cf_rev
    // Attribute::v4s10_10_10_2_cf_rev
 
-   #define MaxInputAssemblerAttributesCount 32
+   #define MaxInputLayoutAttributesCount 32
    
    // Layout of attributes in Input Assembler. 
    // Can be also used to specify Buffer formatting.
    class Formatting
       {
       public:
-      Attribute column[MaxInputAssemblerAttributesCount]; // Format of each data column
+      Attribute column[MaxInputLayoutAttributesCount]; // Format of each data column
       
       // Create data formatting layout by passing at least one data column format
       Formatting();

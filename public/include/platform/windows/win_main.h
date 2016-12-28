@@ -15,9 +15,12 @@
 #ifndef EN_PLATFORM_WINDOWS_MAIN
 #define EN_PLATFORM_WINDOWS_MAIN
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_WINDOWS)
 #include "core/defines.h"
 #include "core/log/log.h"
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 // Handle of user console application main
 extern "C" int ApplicationMainC(int argc, const char* argv[]);

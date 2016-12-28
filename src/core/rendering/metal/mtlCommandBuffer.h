@@ -35,12 +35,9 @@ namespace en
       id <MTLRenderCommandEncoder> renderEncoder;
       bool commited;
       
-      virtual void bind(const Ptr<RasterState> raster);
-      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
-      virtual void bind(const Ptr<DepthStencilState> depthStencil);
-      virtual void bind(const Ptr<BlendState> blend);
-      
-      virtual bool startRenderPass(const Ptr<RenderPass> pass, 
+      virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr);
+
+      virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer);
                                    
       virtual void setPipeline(const Ptr<Pipeline> pipeline);
@@ -86,8 +83,19 @@ namespace en
                         const uint32       firstElement = 0);   // First index to process in Index buffer (if specified)
 
 
-      virtual bool endRenderPass(void);
-      virtual void commit(void);
+      virtual void endRenderPass(void);
+      
+      // Optimize the way texture is internally stored in memory,
+      // by describing the way it was used in the past, and the 
+      // way it will be used now.
+      virtual void barrier(const Ptr<Texture>  texture, 
+                           const uint32v2      mipmaps, 
+                           const uint32v2      layers,
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess);
+
+      virtual void commit(const Ptr<Semaphore> signalSemaphore = nullptr);
+      
       virtual void waitUntilCompleted(void);
    
       CommandBufferMTL(const id<MTLDevice> _device);

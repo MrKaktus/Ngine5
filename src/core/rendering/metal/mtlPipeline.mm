@@ -20,7 +20,7 @@
 #include "core/log/log.h"
 #include "utilities/osxStrings.h"
 
-#include "core/rendering/metal/mtlInputAssembler.h"
+#include "core/rendering/metal/mtlInputLayout.h"
 #include "core/rendering/metal/mtlRenderPass.h"
 #include "core/rendering/metal/mtlBlend.h"
 #include "core/rendering/metal/mtlMultisampling.h"
@@ -81,7 +81,7 @@ namespace en
    
    // Cast to Metal states
    const Ptr<RenderPassMTL>     pass     = ptr_reinterpret_cast<RenderPassMTL>(&pipelineState.renderPass);
-   const Ptr<InputAssemblerMTL> input    = ptr_reinterpret_cast<InputAssemblerMTL>(&pipelineState.inputAssembler);
+   const Ptr<InputLayoutMTL> input    = ptr_reinterpret_cast<InputLayoutMTL>(&pipelineState.inputAssembler);
    const Ptr<BlendStateMTL>     blend    = ptr_reinterpret_cast<BlendStateMTL>(&pipelineState.blendState);
 
    // Extract entry point functions from shader libraries

@@ -22,10 +22,7 @@
 
 #include <string>
 #include "core/rendering/metal/metal.h"
-#include "core/rendering/common/device.h"
-#include "core/rendering/common/inputAssembler.h"
 
-#include "core/rendering/inputAssembler.h"
 #include "core/rendering/blend.h"
 #include "core/rendering/raster.h"
 #include "core/rendering/multisampling.h"
@@ -34,6 +31,10 @@
 #include "core/rendering/pipeline.h"
 #include "core/rendering/renderPass.h"
 #include "core/rendering/metal/mtlTexture.h"
+
+#include "core/rendering/common/device.h"
+#include "core/rendering/common/inputLayout.h"
+
 
 #import <AppKit/AppKit.h>
 
@@ -69,8 +70,8 @@ namespace en
       virtual void active(void);
       virtual void transparent(const float opacity);
       virtual void opaque(void);
-      virtual Ptr<Texture> surface(void);
-      virtual void present(void);
+      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr);
+      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr);
       
       WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title); //id<MTLDevice> device
       virtual ~WindowMTL();
@@ -95,8 +96,8 @@ namespace en
       uint32 displays(void) const;            // Screens count the device can render to
       Ptr<Display> display(uint32 id) const;  // Return N'th screen handle
       
-      Ptr<Window> create(const WindowSettings& settings,
-                        const string title); // Create window
+      Ptr<Window> createWindow(const WindowSettings& settings,
+                               const string title); // Create window
       
       virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
 
@@ -112,13 +113,21 @@ namespace en
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
                                         const uint32 parentQueue = 0u);
 
-      virtual Ptr<InputAssembler>  create(const DrawableType primitiveType,
-                                          const uint32 controlPoints,
-                                          const uint32 usedAttributes,
-                                          const uint32 usedBuffers,
-                                          const AttributeDesc* attributes,
-                                          const BufferDesc* buffers);
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const uint32 controlPoints,
+                                                 const uint32 usedAttributes,
+                                                 const uint32 usedBuffers,
+                                                 const AttributeDesc* attributes,
+                                                 const BufferDesc* buffers);
 
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
+                                             const ResourceGroup* group,
+                                             const ShaderStage stageMask);
+
+      virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
+                                                       const Ptr<SetLayout>* set,
+                                                       const uint32 immutableSamplers = 0u,
+                                                       const Ptr<Sampler>* sampler = nullptr);
 
 
 
@@ -135,6 +144,11 @@ namespace en
       virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil);
+
+
+      virtual Ptr<Semaphore> createSemaphore(void);
+
+      
 
 
 
@@ -157,9 +171,9 @@ namespace en
                                                        const uint32 attachments,
                                                        const BlendAttachmentInfo* color);
       
-      virtual Ptr<ViewportState>      create(const uint32 count,
-                                             const ViewportStateInfo* viewports,
-                                             const ScissorStateInfo* scissors);
+      virtual Ptr<ViewportState>      createViewportState(const uint32 count,
+                                                          const ViewportStateInfo* viewports,
+                                                          const ScissorStateInfo* scissors);
          
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
       };

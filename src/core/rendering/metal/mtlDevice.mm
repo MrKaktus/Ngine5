@@ -280,8 +280,12 @@ namespace en
    [window setOpaque:YES];
    }
    
-   Ptr<Texture> WindowMTL::surface(void)
+   Ptr<Texture> WindowMTL::surface(const Ptr<Semaphore> signalSemaphore)
    {
+   // signalSemaphore is ignored, as Metal API waits for presentation
+   // engine to finish reading from given surface before returning it
+   // in drawable.
+   
    if (needNewSurface)
       {
       surfaceAcquire.lock();
@@ -299,8 +303,10 @@ namespace en
    return ptr_reinterpret_cast<Texture>(&framebuffer);
    }
    
-   void WindowMTL::present(void)
+   void WindowMTL::present(const Ptr<Semaphore> waitForSemaphore)
    {
+   // Does Metal ensure that CommandBuffers on Queue will be executed ?
+   
    if (!needNewSurface)
       {
       [drawable present];
@@ -626,7 +632,7 @@ namespace en
    // TODO: Finish
      
    // Input Assembler
-   support.maxInputAssemblerAttributesCount = 31;
+   support.maxInputLayoutAttributesCount = 31;
 
    // Texture
 //   support.maxTextureSize;                    // Maximum 2D/1D texture image dimension
@@ -679,7 +685,7 @@ namespace en
    return ptr_reinterpret_cast<Display>(&api->_display[index]);
    }
 
-   Ptr<Window> MetalDevice::create(const WindowSettings& settings, const string title)
+   Ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const string title)
    {
    Ptr<WindowMTL> ptr = new WindowMTL(this, settings, title);
    return ptr_reinterpret_cast<Window>(&ptr);

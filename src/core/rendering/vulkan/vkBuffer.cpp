@@ -42,9 +42,6 @@ namespace en
    heap = nullptr;
    }
 
-
-
-
    // Only one continous memory range can be mapped for each heap at the same time.
    // Thus to update multiple objects, create separate heaps with staging buffers
    // for each of them.
@@ -172,20 +169,30 @@ namespace en
       case BufferType::Indirect:
          bufferUsage = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
          break;
+
+      case BufferType::Transfer:
+         break;
             
       default:
          assert( 0 );
          break;
       };
       
-   // If buffer is created on Heaps designated to data transfer, mark that
-   if (heap->_usage == MemoryUsage::Streamed ||
-       heap->_usage == MemoryUsage::Immediate)
+   // Buffers in VRAM needs to be populated first
+   if (heap->_usage == MemoryUsage::Static)
+      bufferUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+   // Buffers on Streamed Heaps can be used to transfer data in both ways
+   if (heap->_usage == MemoryUsage::Streamed)
       {
       // TODO: Optimize it so that transfer direction is specified
       bufferUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
       bufferUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
       }
+
+   // Buffers created on Immediate Heaps should be used only to upload data to GPU VRAM
+   if (heap->_usage == MemoryUsage::Immediate)
+      bufferUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
    // Need to be set to enable buffer views (linear textures?):
    //
@@ -222,7 +229,7 @@ namespace en
       bufferInfo.pQueueFamilyIndices   = nullptr;
       }
       
-   VkBuffer handle;
+   VkBuffer handle = VK_NULL_HANDLE;
    VulkanDevice* gpu = heap->gpu;
    Profile( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)

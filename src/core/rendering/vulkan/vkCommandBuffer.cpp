@@ -33,6 +33,7 @@ namespace en
       queue(_queue),
       queueType(type),
       handle(_handle),
+      semaphore(nullptr),
       fence(_fence),
       started(false),
       encoding(false),
@@ -101,32 +102,34 @@ namespace en
    // RENDER PASS
    //////////////////////////////////////////////////////////////////////////
    
-   
-   bool CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer>_framebuffer)
-   {
-   if (encoding)
-      return false;
-  
-   if (!started)
-      {
-      // In Metal API we need to create Render Command Encoder.
-      // In Vulkan API CommandBuffer needs to be started first,
-      // before encoding content to it. It only needs to be done
-      // once, and multiple RenderPasses can be encoded afterwards.
-      VkCommandBufferBeginInfo info;
-      info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-      info.pNext            = nullptr;
-      info.flags            = 0;
-      info.pInheritanceInfo = nullptr; // We don't support secondary Command Buffers for now
 
-      Profile( gpu, vkBeginCommandBuffer(handle, &info) )
-      
-      started = true;
-      }
-      
-   assert( pass );
-   assert( _framebuffer );
+   void CommandBufferVK::start(const Ptr<Semaphore> waitForSemaphore)
+   {
+   assert( !started );
+
+   if (waitForSemaphore)
+      semaphore = ptr_reinterpret_cast<SemaphoreVK>(&waitForSemaphore);
+
+   // In Metal API we need to create Render Command Encoder.
+   // In Vulkan API CommandBuffer needs to be started first,
+   // before encoding content to it. It only needs to be done
+   // once, and multiple RenderPasses can be encoded afterwards.
+   VkCommandBufferBeginInfo info;
+   info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+   info.pNext            = nullptr;
+   info.flags            = 0;
+   info.pInheritanceInfo = nullptr; // We don't support secondary Command Buffers for now
+
+   Profile( gpu, vkBeginCommandBuffer(handle, &info) )
    
+   started = true;
+   }
+   
+   void CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer>_framebuffer)
+   {
+   assert( started );
+   assert( !encoding );
+    
    RenderPassVK*  renderPass  = raw_reinterpret_cast<RenderPassVK>(&pass);
    FramebufferVK* framebuffer = raw_reinterpret_cast<FramebufferVK>(&_framebuffer);
 
@@ -143,19 +146,17 @@ namespace en
    ProfileNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )
    
    encoding = true;
-   return true;
    }
    
-   bool CommandBufferVK::endRenderPass(void)
+   void CommandBufferVK::endRenderPass(void)
    {
-   if (!encoding)
-      return false;
-   
+   assert( started );
+   assert( encoding );
+
    // End encoding commands for this Render Pass
    ProfileNoRet( gpu, vkCmdEndRenderPass(handle) )
     
    encoding = false;
-   return true;
    }
    
 
@@ -165,6 +166,7 @@ namespace en
 
    void CommandBufferVK::setVertexBuffers(const uint32 count, const uint32 firstSlot, const Ptr<Buffer>* buffers, const uint64* offsets) const
    {
+   assert( started );
    assert( count );
    assert( (firstSlot + count) <= gpu->properties.limits.maxVertexInputBindings );
 
@@ -196,9 +198,13 @@ namespace en
 
    void CommandBufferVK::setVertexBuffer(const uint32 slot, const Ptr<Buffer> buffer, const uint64 offset) const
    {
+   assert( started );
+   assert( buffer );
+   assert( slot < gpu->properties.limits.maxVertexInputBindings );
+
    ProfileNoRet( gpu, vkCmdBindVertexBuffers(handle, 
                                              slot, 1,
-                                             &ptr_dynamic_cast<BufferVK, Buffer>(buffer)->handle, 
+                                             &raw_reinterpret_cast<BufferVK>(&buffer)->handle, 
                                              static_cast<const VkDeviceSize*>(&offset)) )
    }
 
@@ -207,20 +213,43 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::copy(Ptr<Buffer> source, Ptr<Buffer> buffer)
+   void CommandBufferVK::copy(Ptr<Buffer> source, Ptr<Buffer> destination)
    {
-   // TODO:
-   
-//   void vkCmdCopyBuffer(
-//    VkCommandBuffer                             commandBuffer,
-//    VkBuffer                                    srcBuffer,
-//    VkBuffer                                    dstBuffer,
-//    uint32_t                                    regionCount,
-//    const VkBufferCopy*                         pRegions);
+   assert( started );
+   assert( source );
+   assert( destination );
+
+   copy(source, destination, source->length());
    }
    
+   void CommandBufferVK::copy(Ptr<Buffer> source,
+      Ptr<Buffer> destination,
+      uint64 size,
+      uint64 srcOffset,
+      uint64 dstOffset)
+   {
+   assert( started );
+   assert( source );
+   assert( destination );
+
+   BufferVK* src = raw_reinterpret_cast<BufferVK>(&source);
+   BufferVK* dst = raw_reinterpret_cast<BufferVK>(&destination);
+
+   VkBufferCopy region;
+   region.srcOffset = srcOffset;
+   region.dstOffset = dstOffset;
+   region.size      = size;
+
+   ProfileNoRet( gpu, vkCmdCopyBuffer(handle,
+                                      src->handle,
+                                      dst->handle,
+                                      1u,
+                                      &region) )
+   }
+
    void CommandBufferVK::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
    {
+   assert( started );
    assert( transfer );
    assert( transfer->type() == BufferType::Transfer );
    assert( texture );
@@ -317,6 +346,25 @@ namespace en
 //    VkFilter                                    filter);
    
 
+   // PIPELINE COMMANDS
+   //////////////////////////////////////////////////////////////////////////
+
+
+   void CommandBufferVK::set(const Ptr<Pipeline> pipeline)
+   {
+   assert( started );
+   assert( pipeline );
+
+   PipelineVK* ptr = raw_reinterpret_cast<PipelineVK>(&pipeline);
+
+   VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+   if (!ptr->graphics)
+      bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+
+   ProfileNoRet( gpu, vkCmdBindPipeline(handle, bindPoint, ptr->handle) )
+   }
+
+
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 
@@ -329,6 +377,9 @@ namespace en
                               const sint32       firstVertex,
                               const uint32       firstInstance)
    {
+   assert( started );
+   assert( encoding );
+
    // Vulkan cannot dynamically change drawn primitive type
    // TODO: Should we remove primitiveType from parameters ?
    
@@ -378,6 +429,8 @@ namespace en
                               const Ptr<Buffer>  indexBuffer,
                               const uint32       firstElement)
    {
+   assert( started );
+   assert( encoding );
    assert( indirectBuffer );
    
    Ptr<BufferVK> indirect = ptr_dynamic_cast<BufferVK, Buffer>(indirectBuffer);
@@ -426,71 +479,12 @@ namespace en
       }
    }
    
-   
-   // SEMAPHORES
+
+   // FINISHING
    //////////////////////////////////////////////////////////////////////////
 
 
-   // It's currently just a handle to synchronize command buffers execution.
-   // Similar to MTLFence in Metal, but works between CB's submissions.
-   class SemaphoreVK
-      {
-      public:
-      VulkanDevice* gpu;
-      VkSemaphore   handle;
-      
-      SemaphoreVK(VulkanDevice* _gpu);
-     ~SemaphoreVK();
-      };
-   
-   SemaphoreVK::SemaphoreVK(VulkanDevice* _gpu) :
-      gpu(_gpu)
-   {
-   VkSemaphoreCreateInfo info;
-   info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-   info.pNext = nullptr;
-   info.flags = 0u;       // VkSemaphoreCreateFlags - reserved.
-
-   Profile( gpu, vkCreateSemaphore(gpu->device, &info, nullptr, &handle) )
-   }
-
-   SemaphoreVK::~SemaphoreVK()
-   {
-   ProfileNoRet( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
-   }
-   
-   
-
-
-
-   //enum class PipelineStage : uint32
-   //   {
-   //   // TODO: Do we mimic Vulkan Pipeline Stages granularity ?
-   //   Count
-   //   };
-   //
-   //static const VkPipelineStageFlagBits TranslatePipelineStage[underlyingType(PipelineStage::Count)] =
-   //   {
-   //   VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT                    ,
-   //   VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT                  ,
-   //   VK_PIPELINE_STAGE_VERTEX_INPUT_BIT                   ,
-   //   VK_PIPELINE_STAGE_VERTEX_SHADER_BIT                  ,
-   //   VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT    ,
-   //   VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT ,
-   //   VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT                ,
-   //   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT                ,
-   //   VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT           ,
-   //   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT            ,
-   //   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT        ,
-   //   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT                 ,
-   //   VK_PIPELINE_STAGE_TRANSFER_BIT                       ,
-   //   VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT                 ,
-   //   VK_PIPELINE_STAGE_HOST_BIT                           ,
-   //   VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT                   ,
-   //   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT                   ,
-   //   };
-   
-   void CommandBufferVK::commit(void)
+   void CommandBufferVK::commit(const Ptr<Semaphore> signalSemaphore)
    {
    assert( started );
    assert( !encoding );
@@ -499,28 +493,16 @@ namespace en
    // Finish Command Buffer encoding.
    Profile( gpu, vkEndCommandBuffer(handle) )
    
-
-   
- 
-   //
-   uint32 waitEvents = 0u;
-   VkPipelineStageFlags* waitFlags = nullptr;
-
-   // TODO: Add support for waiting for previous job to be finished through use of Semaphores.
-   //       Point out for which Pipeline Stages we wait for. One Stage for One Semaphore.
-   // if (waitEvents)
-   //    {
-   //    waitFlags = new VkPipelineStageFlags[waitEvents];
-   //    for(uint32 i=0; i<waitEvents; ++i)
-   //       {
-   //       waitFlags[i] = 0u;
-   //       for(uint32 j=0; j<waitStagesInEvent[i]; ++j)
-   //          waitFlags[i] |= TranslatePipelineStage[  waitStageInEvent[i][j]  ];
-   //       }
-   //    }
-   
-   uint32 signalEvents = 0u;
-
+   VkSubmitInfo submitInfo;
+   submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+   submitInfo.pNext                = nullptr;
+   submitInfo.waitSemaphoreCount   = 0u;      
+   submitInfo.pWaitSemaphores      = nullptr;   // Which semaphores we wait for. One Semaphore for one Pipeline Stage of other queue executing CommandBuffer.
+   submitInfo.pWaitDstStageMask    = nullptr;   // Pipeline stages at which each corresponding semaphore wait will occur (until pointed stage is done).
+   submitInfo.commandBufferCount   = 1u;
+   submitInfo.pCommandBuffers      = &handle;
+   submitInfo.signalSemaphoreCount = 0u;        // Amount of Semaphores we want to signal when this batch of job is done (more than one so we can unblock several queues at the same time).
+   submitInfo.pSignalSemaphores    = nullptr;   
 
    // Example:
    //
@@ -534,30 +516,45 @@ namespace en
    // Wait for previous job to finish before starting this one.
    // waitEvents   = 1;
    // waitFlags[0] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-   
-   VkSubmitInfo submitInfo;
-   submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-   submitInfo.pNext                = nullptr;
-   submitInfo.waitSemaphoreCount   = waitEvents;     // 
-   submitInfo.pWaitSemaphores      = nullptr;        // TODO: const VkSemaphore* - Which semaphores we wait for. One Semaphore for one Pipeline Stage of other queue executing CommandBuffer.
-   submitInfo.pWaitDstStageMask    = waitFlags;      // pipeline stages at which each corresponding semaphore wait will occur (until this stage is done)
-   submitInfo.commandBufferCount   = 1u;
-   submitInfo.pCommandBuffers      = &handle;
-   submitInfo.signalSemaphoreCount = signalEvents;   // Amount of Semaphores we want to signal when this batch of job is done (more than one so we can unblock several queues at the same time)
-   submitInfo.pSignalSemaphores    = nullptr;        // TODO: const VkSemaphore* signalHandles
 
-   // Fence is optional. TODO: Analyze this.
-   
+   // Wait for completion of previous Command Buffer synced with starting semaphore.
+   VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+   if (semaphore)
+      {
+      submitInfo.waitSemaphoreCount = 1u;
+      submitInfo.pWaitSemaphores    = &semaphore->handle;
+      submitInfo.pWaitDstStageMask  = &waitFlags;
+      }
+
+   // Signal semaphore for future synchronization.
+   if (signalSemaphore)
+      {
+      SemaphoreVK* signal = raw_reinterpret_cast<SemaphoreVK>(&signalSemaphore);
+
+      submitInfo.signalSemaphoreCount = 1u;   
+      submitInfo.pSignalSemaphores    = &signal->handle;        
+      }
+
    // Submit single batch of work to the queue.
    // Each batch can consist of multiple command buffers.
    // Internal fence will be signaled when this work is done.
-   Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) )
+   Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) ) 
 
-   // TODO: Is ending command buffer equivalent to commiting it for execution ?
-   
-   // TODO: Commit to execution
-   
+   // Try to clear any CommandBuffers that are no longer executing.
+   gpu->clearCommandBuffersQueue();
+
+   // Add this CommandBuffer to device's array of CB's in flight.
+   // This will ensure that CommandBuffer won't be destroyed until
+   // fence is not signaled.
+   gpu->addCommandBufferToQueue(Ptr<CommandBuffer>(this));
+
    commited = true;
+   }
+
+   bool CommandBufferVK::isCompleted(void)
+   {
+   Profile( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u) )
+   return gpu->lastResult[Scheduler.core()] == VK_SUCCESS ? true : false;
    }
     
    void CommandBufferVK::waitUntilCompleted(void)
@@ -571,22 +568,34 @@ namespace en
       Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << endl;   // TODO: File / line doesn't make sense as it will always point this method!
       }
 
+
+
    // TODO:
+
+   // v1.0.36 p97
    //
-   // " The memory dependency defined by signaling a fence and waiting on the host
-   //   does not guarantee that the results of memory accesses will be visible to
-   //   the host, or that the memory is available. To provide that guarantee, the
-   //   application must insert a memory barrier between the device writes and the
-   //   end of the submission that will signal the fence, with dstAccessMask having
-   //   the VK_ACCESS_HOST_READ_BIT bit set, with dstStageMask having the
-   //   VK_PIPELINE_STAGE_HOST_BIT bit set, and with the appropriate srcStageMask
-   //   and srcAccessMask members set to guarantee completion of the writes. 
+   // " Note
+   //   Signaling a fence and waiting on the host does not guarantee that the results of memory accesses will be visible
+   //   to the host. To provide that guarantee, the application must insert a memory barrier between the device writes
+   //   and the end of the submission that will signal the fence, with dstAccessMask having the VK_ACCESS_HOST_
+   //   READ_BIT bit set, with dstStageMask having the VK_PIPELINE_STAGE_HOST_BIT bit set, and with the
+   //   appropriate srcStageMask and srcAccessMask members set to guarantee completion of the writes. If the
+   //   memory was allocated without the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT set, then vkInval
+   //   idateMappedMemoryRanges must be called after the fence is signaled in order to ensure the writes are
+   //   visible to the host, as described in Host Access to Device Memory Objects. "
    //
-   //   If the memory was allocated without the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT 
-   //   set, then vkInvalidateMappedMemoryRanges must be called after the fence is
-   //   signaled in order to ensure the writes are visible to the host, as described
-   //   in Host Access to Device Memory Objects. "
-   //
+
+   // v1.0.36 p219
+   // 
+   // " vkInvalidateMappedMemoryRanges must be used to guarantee that device writes to non-coherent memory are
+   //   visible to the host. It must be called after command buffers that execute and flush (via memory barriers) the device writes
+   //   have completed, and before the host will read or write any of those locations. If a range of non-coherent memory is
+   //   written by the host and then invalidated without first being flushed, its contents are undefined.
+   //   
+   //   Note
+   //   Mapping non-coherent memory does not implicitly invalidate the mapped memory, and device writes that have
+   //   not been invalidated must be made visible before the host reads or overwrites them. "
+   // 
    }
    
    Ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
@@ -613,7 +622,7 @@ namespace en
    Profile( this, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
 
    // Create Fence that will be signaled when the Command Buffer execution is finished.
-   VkFence fence;
+   VkFence fence = VK_NULL_HANDLE;
    
    VkFenceCreateInfo fenceInfo;
    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -627,6 +636,42 @@ namespace en
    ProfileNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
    return ptr_dynamic_cast<CommandBuffer, CommandBufferVK>(Ptr<CommandBufferVK>(new CommandBufferVK(this, queue, type, handle, fence)));
+   }
+
+   void VulkanDevice::addCommandBufferToQueue(Ptr<CommandBuffer> command)
+   {
+   uint32 thread    = Scheduler.core();
+   uint32 executing = commandBuffersExecuting[thread];
+
+   assert( executing < MaxCommandBuffersExecuting );
+
+   commandBuffers[thread][executing] = command;
+   commandBuffersExecuting[thread]++;
+   }
+
+   // TODO: Add wait for all CB's completion on Device destruction !
+   void VulkanDevice::clearCommandBuffersQueue(void)
+   {
+   // Iterate over list of Command Buffers submitted for execution by this thread.
+   uint32 thread    = Scheduler.core();
+   uint32 executing = commandBuffersExecuting[thread];
+   for(uint32 i=0; i<executing; ++i)
+      {
+      CommandBufferVK* command = raw_reinterpret_cast<CommandBufferVK>(&commandBuffers[thread][i]);
+      if (command->isCompleted())
+         {
+         // Safely release Command Buffer object
+         commandBuffers[thread][i] = nullptr;
+         if (i < (executing - 1))
+            {
+            commandBuffers[thread][i] = commandBuffers[thread][executing - 1];
+            commandBuffers[thread][executing - 1] = nullptr;
+            }
+
+         executing--;
+         commandBuffersExecuting[thread]--;
+         }
+      }
    }
 
    }

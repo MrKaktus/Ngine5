@@ -5,7 +5,7 @@
 //
 //#include "vulkan/vulkan.h"
 //
-//#define MaxInputAssemblerAttributesCount 16
+//#define MaxInputLayoutAttributesCount 16
 //#define MaxColorAttachmentsCount         8
 //
 //namespace en
@@ -1358,7 +1358,7 @@
 //
 //   struct BufferSettings
 //      {
-//      AttributeType attribute[MaxInputAssemblerAttributesCount]; // Describes each element in the buffer
+//      AttributeType attribute[MaxInputLayoutAttributesCount]; // Describes each element in the buffer
 //      BufferType type;        // Buffer type
 //      union {                 // Vertex buffer can store geometry vertices
 //            uint32 vertices;  // or like Index buffer "elements" of some 
@@ -1388,7 +1388,7 @@
 //      type(type),
 //      buffer(buffer)
 //   {
-//   assert( buffer < MaxInputAssemblerAttributesCount );
+//   assert( buffer < MaxInputLayoutAttributesCount );
 //   }
 //
 //
@@ -1578,39 +1578,39 @@
 //      };
 //
 //
-//class InputAssembler
+//class InputLayout
 //   {
 //   };
 //
-//class mtlInputAssembler : public InputAssembler
+//class mtlInputLayout : public InputLayout
 //   {
 //   private:
 //   MTLVertexDescriptor* desc;
 //
 //   public:
-//   mtlInputAssembler();
-//  ~mtlInputAssembler();
+//   mtlInputLayout();
+//  ~mtlInputLayout();
 //   };
 //
 //
-//mtlInputAssembler::mtlInputAssembler() :
+//mtlInputLayout::mtlInputLayout() :
 //   desc([[MTLVertexDescriptor alloc] autorelease])
 //{
 //}
 //
-//mtlInputAssembler::~mtlInputAssembler()
+//mtlInputLayout::~mtlInputLayout()
 //{
 //[desc release];
 //}
 //
-//Ptr<InputAssembler> Create(AttributeInfo& attribute[MaxInputAssemblerAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-//                           Ptr<Buffer>    buffer[MaxInputAssemblerAttributesCount])      // Array of buffer handles that will be used
+//Ptr<InputLayout> Create(AttributeInfo& attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
+//                           Ptr<Buffer>    buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
 //{
-//Ptr<mtlInputAssembler> state = new mtlInputAssembler();
+//Ptr<mtlInputLayout> state = new mtlInputLayout();
 //
 //// Create array describing buffers used by Vertex Fetch.
 //uint32 buffers = 0;
-//for(; buffers<MaxInputAssemblerAttributesCount; ++buffers)
+//for(; buffers<MaxInputLayoutAttributesCount; ++buffers)
 //   {
 //   // Passed array of buffers need to be tightly packed
 //   if (!buffer[buffers])
@@ -1636,12 +1636,12 @@
 //   }
 //
 //// Describe attributes and their connection with input buffers
-//uint32 offset[MaxInputAssemblerAttributesCount];
-//memset(&offset, 0, sizeof(uint32) * MaxInputAssemblerAttributesCount);
+//uint32 offset[MaxInputLayoutAttributesCount];
+//memset(&offset, 0, sizeof(uint32) * MaxInputLayoutAttributesCount);
 //
-//for(uint32 i=0; i<MaxInputAssemblerAttributesCount; ++i)
+//for(uint32 i=0; i<MaxInputLayoutAttributesCount; ++i)
 //   {
-//   assert( attribute[i].buffer < MaxInputAssemblerAttributesCount );
+//   assert( attribute[i].buffer < MaxInputLayoutAttributesCount );
 //
 //   // Calculate new offset in currently used buffer
 //   uint32 attributeSize = AttributeSize[ attribute[i].type ];
@@ -1656,7 +1656,7 @@
 //   offset[ attribute[i].buffer ] += attributeSize;
 //   }
 //
-//return ptr_dynamic_cast<InputAssembler, mtlInputAssembler>(state);
+//return ptr_dynamic_cast<InputLayout, mtlInputLayout>(state);
 //}
 //
 //
@@ -2959,7 +2959,7 @@
 //
 //
 //
-//   Ptr<Pipeline> Create(const Ptr<InputAssembler> inputState,
+//   Ptr<Pipeline> Create(const Ptr<InputLayout> inputState,
 //                        const Ptr<StaticBlendState> blendState)
 //   {
 //   Ptr<Pipeline> result = nullptr;
@@ -2973,7 +2973,7 @@
 //
 //
 //   // Input Assembler
-//   Ptr<mtlInputAssembler> input = ptr_dynamic_cast<mtlInputAssembler, InputAssembler>(inputState);
+//   Ptr<mtlInputLayout> input = ptr_dynamic_cast<mtlInputLayout, InputLayout>(inputState);
 //   [desc vertexDescriptor: input->desc];
 //
 //

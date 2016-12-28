@@ -39,8 +39,6 @@ namespace en
       Ptr<SharedSurfaceOSX> ioSurface;   // Texture object may own backing, but this backing may be in form of shared IOSurface
       bool                  ownsBacking; // Is this texture container the owner of backing surface (no for Swap-Chain surfaces)
       
-      virtual bool read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
-
       TextureMTL(const id memory,
                  const TextureState& state);
          
@@ -52,6 +50,8 @@ namespace en
       TextureMTL(const id<MTLDevice> device,
                  const Ptr<SharedSurface> backingSurface);
       
+      virtual bool read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
+
       virtual Ptr<TextureView> view(void) const;
       virtual Ptr<TextureView> view(const TextureType type,
                                     const Format format,

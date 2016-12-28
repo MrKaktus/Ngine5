@@ -28,16 +28,19 @@ namespace en
    #define  M_PI 3.141592653589793238462643383279
 #endif
 
-   // Bit manipulation
+   // Bit manipulation 
    #define setBit(number, bit)    number |= (1 << bit)
    #define clearBit(number, bit)  number &= ~(1 << bit)
    #define changeBit(number, bit) number ^= (1 << bit)
+
+   // Bitmask manipulation (some defines are longer than just using bit operators, but they are declared for readability of code, and prevention of typos)
+   #define setBitmask(number, bitmask)    number |= bitmask
    #define clearBitmask(number, bitmask)  number &= ~bitmask
    #define copyBitmask(destination, source, bitmask)  destination = (destination & ~bitmask) | (source & bitmask)
 
    // Bit query
    #define checkBit(number, bit)  (number & (1 << bit))
-   #define checkBits(number, bitMask)  (number & bitMask)
+   #define checkBitmask(number, bitMask)  ((number & bitMask) == bitMask)
    #define getBit(number, bit)    (number & (1 << bit))
    #define bitChanged(previous, current, bit) (checkBit(current, bit) != checkBit(previous, bit))
    #define bitsChanged(previous, current, bitMask) ((current & bitMask) != (previous & bitMask))

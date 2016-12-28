@@ -42,7 +42,7 @@ namespace en
    // VK_NV_glsl_shader - allows passing in GLSL instead of SPIR-V
    //                     (we can compile GLSL to SPIRV offline)
 
-   Ptr<ShaderVK> shader;
+   Ptr<ShaderVK> shader = nullptr;
 
    VkShaderModuleCreateInfo createInfo;
    createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -51,10 +51,13 @@ namespace en
    createInfo.codeSize = source.size();
    createInfo.pCode    = (const uint32_t*)source.c_str();
 
-   VkShaderModule handle;
+   VkShaderModule handle = VK_NULL_HANDLE;
    Profile( this, vkCreateShaderModule(device, &createInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       shader = new ShaderVK(this, handle, stage);
+
+
+   // TODO: Verify initial compilation with VK_EXT_debug_report
 
    return ptr_reinterpret_cast<Shader>(&shader);
    }

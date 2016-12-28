@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : OpenGL Input Assembler.
+ Module      : OpenGL Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,15 +13,15 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_OPENGL_INPUT_ASSEMBLER
-#define ENG_CORE_RENDERING_OPENGL_INPUT_ASSEMBLER
+#ifndef ENG_CORE_RENDERING_OPENGL_INPUT_LAYOUT
+#define ENG_CORE_RENDERING_OPENGL_INPUT_LAYOUT
 
 #include "core/defines.h"
 
 #if defined(EN_MODULE_RENDERER_OPENGL)
 
 #include "core/rendering/opengl/opengl.h"
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 
 #include "utilities/Nversion.h"
 
@@ -43,20 +43,20 @@ namespace en
    extern const AttributeTranslation TranslateAttribute[underlyingType(Attribute::Count)];
    extern const Nversion AttributeVersion[underlyingType(Attribute::Count)];
    
-   class InputAssemblerGL : public InputAssembler
+   class InputLayoutGL : public InputLayout
       {
       public:
       uint16 vao;
       DrawableType primitive;
 
-      InputAssemblerGL(const DrawableType primitiveType,
+      InputLayoutGL(const DrawableType primitiveType,
                        const uint32 controlPoints,
                        const uint32 usedAttributes,
                        const uint32 usedBuffers,
                        const AttributeDesc* attributes,
                        const BufferDesc* buffers);
 
-      virtual ~InputAssemblerGL();
+      virtual ~InputLayoutGL();
       };
    }
 }

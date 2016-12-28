@@ -126,12 +126,13 @@ namespace en
                                                  const Ptr<TextureView> stencil      = nullptr);
       
       // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
-      // window Swap-Chain surface.
+      // window Swap-Chain surface. Depth-Stencil can still be nullptr, but that need to be 
+      // explicitly stated by the application (to prevent ambiguous call).
       virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
                                                  const Ptr<TextureView> temporaryMSAA,
                                                  const Ptr<TextureView> swapChainSurface,
-                                                 const Ptr<TextureView> depthStencil = nullptr,
-                                                 const Ptr<TextureView> stencil      = nullptr);
+                                                 const Ptr<TextureView> depthStencil,
+                                                 const Ptr<TextureView> stencil);
       };
    }
 }

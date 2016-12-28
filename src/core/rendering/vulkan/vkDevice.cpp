@@ -18,8 +18,13 @@
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/log/log.h"
+
+#include "core/storage.h"   // For Pipeline Cache handling
+#include "utilities/strings.h"
+
 #include "core/utilities/memory.h"
 #include "core/rendering/vulkan/vkTexture.h"
+#include "core/rendering/vulkan/vkSynchronization.h"
 
 #if defined(EN_PLATFORM_WINDOWS)
 #include "platform/windows/win_events.h"
@@ -83,7 +88,8 @@ namespace en
 
    #define LoadDeviceFunction(function)                                          \
    {                                                                             \
-   Ptr<VulkanAPI> api = ptr_dynamic_cast<VulkanAPI, GraphicAPI>(Graphics);       \
+   /* We don't need to do this. api is already declared in Device.               \ 
+   VulkanAPI* api = raw_reinterpret_cast<VulkanAPI>(&Graphics); */               \
    function = (PFN_##function) api->vkGetDeviceProcAddr(device, #function);      \
    if (function == nullptr)                                                      \
       {                                                                          \
@@ -377,16 +383,30 @@ namespace en
    
    void winWindow::active(void)
    {
+   ShowWindow(hWnd, SW_SHOW);
+   SetForegroundWindow(hWnd);
+   SetFocus(hWnd);
    SetActiveWindow(hWnd);
+   }
+
+   void winWindow::transparent(const float opacity)
+   {
+   // TODO: Finish !
+   }
+   
+   void winWindow::opaque(void)
+   {
+   // TODO: Finish !
    }
 #endif
 
-   WindowVK::WindowVK(VulkanDevice* gpu,
+   WindowVK::WindowVK(VulkanDevice* _gpu,
                       const Ptr<CommonDisplay> selectedDisplay,
                       const uint32v2 selectedResolution,
                       const WindowSettings& settings,
                       const string title) :
 #if defined(EN_PLATFORM_WINDOWS)
+      gpu(_gpu),
       // Create native OS window or assert.
       winWindow(ptr_dynamic_cast<winDisplay, CommonDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
@@ -413,9 +433,8 @@ namespace en
    winCreateInfo.hinstance = AppInstance; // HINSTANCE
    winCreateInfo.hwnd      = hWnd;        // HWND
 
-   Ptr<VulkanAPI> api = ptr_reinterpret_cast<VulkanAPI>(&en::Graphics);
-
-   Profile( gpu, vkCreateWin32SurfaceKHR(api->instance,
+   VulkanAPI* api = raw_reinterpret_cast<VulkanAPI>(&en::Graphics);
+   Profile( api, vkCreateWin32SurfaceKHR(api->instance,
                                          &winCreateInfo, nullptr, &swapChainSurface) )
 #else
    // TODO: Implement OS Specific part for other platforms.
@@ -423,8 +442,8 @@ namespace en
 #endif
 
    // Query capabilities of Swap-Chain surface for this device
-   Profile( gpu, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->handle, swapChainSurface, &swapChainCapabilities) )
-   if (gpu->lastResult[0] != VK_SUCCESS)  // TODO FIXME! Assumes Thread 0 !
+   Profile( api, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->handle, swapChainSurface, &swapChainCapabilities) )
+   if (api->lastResult[0] != VK_SUCCESS)  // TODO FIXME! Assumes Thread 0 !
       {
       string info;
       info += "ERROR: Vulkan error:\n";
@@ -471,8 +490,8 @@ namespace en
       
    // Query count of available Pixel Formats supported by this device, and matching destination Window
    uint32 formats = 0;
-   Profile( gpu, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, nullptr) )
-   if ( (gpu->lastResult[0] != VK_SUCCESS) ||   // TODO FIXME! Assumes Thread 0 !
+   Profile( api, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, nullptr) )
+   if ( (api->lastResult[0] != VK_SUCCESS) ||   // TODO FIXME! Assumes Thread 0 !
         (formats == 0) )
       {
       string info;
@@ -485,8 +504,8 @@ namespace en
 
    // Query types of all available device Pixel Formats for that surface
    VkSurfaceFormatKHR* deviceFormats = new VkSurfaceFormatKHR[formats];
-   Profile( gpu, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, &deviceFormats[0]) )
-   if (gpu->lastResult[0] != VK_SUCCESS)   // TODO FIXME! Assumes Thread 0 !
+   Profile( api, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, &deviceFormats[0]) )
+   if (api->lastResult[0] != VK_SUCCESS)   // TODO FIXME! Assumes Thread 0 !
       {
       delete [] deviceFormats;
       
@@ -563,7 +582,7 @@ namespace en
    
    // Swap-Chain images need to support usage as Color Attachment.
    VkImageUsageFlags swapChainUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-   if (!checkBits(swapChainCapabilities.supportedUsageFlags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+   if (!checkBitmask(swapChainCapabilities.supportedUsageFlags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
       {
       Log << "ERROR: Swap-Chain is not supporting mandatory color attachment usage!\n";
       assert( 0 );
@@ -578,7 +597,7 @@ namespace en
 
    // By default we don't want any transformation to take place
    VkSurfaceTransformFlagBitsKHR swapChainTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-   if (!checkBits(swapChainCapabilities.supportedTransforms, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR))
+   if (!checkBitmask(swapChainCapabilities.supportedTransforms, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR))
       {
       // If we need to apply a transform, use current one in the system
       swapChainTransform = swapChainCapabilities.currentTransform;
@@ -591,8 +610,8 @@ namespace en
    VkPresentModeKHR* presentationMode = nullptr;
    
    // Query device Presentation Modes count
-   Profile( gpu, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, nullptr) )
-   if ( (gpu->lastResult[0] != VK_SUCCESS) ||    // TODO FIXME! Assumes Thread 0 !
+   Profile( api, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, nullptr) )
+   if ( (api->lastResult[0] != VK_SUCCESS) ||    // TODO FIXME! Assumes Thread 0 !
         (modes == 0) )
       {
       string info;
@@ -605,8 +624,8 @@ namespace en
 
    // Query device Presentation Modes details
    presentationMode = new VkPresentModeKHR[modes];
-   Profile( gpu, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, &presentationMode[0]) )
-   if (gpu->lastResult[0] != VK_SUCCESS)   // TODO FIXME! Assumes Thread 0 !
+   Profile( api, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, &presentationMode[0]) )
+   if (api->lastResult[0] != VK_SUCCESS)   // TODO FIXME! Assumes Thread 0 !
       {
       delete [] presentationMode;
       
@@ -731,18 +750,27 @@ namespace en
 
    // Detach swap-chain surfaces from texture containers
    // TODO: Do we need to present/release currently acquired surface first ?
-   for(uint32 i=0; i<swapChainImages; ++i)
-      ptr_reinterpret_cast<TextureVK>(&swapChainTexture[i])->handle = VK_NULL_HANDLE;
+   //for(uint32 i=0; i<swapChainImages; ++i)
+   //   ptr_reinterpret_cast<TextureVK>(&swapChainTexture[i])->handle = VK_NULL_HANDLE;
  
    // TODO: Do we release swap-chain surfaces in any particular way?
 
+   // Release Swap-Chain surfaces attached to Swap-Chain textures in their descriptors.
    delete [] swapChainTexture;
 
-   ProfileNoRet( gpu, vkDestroySurfaceKHR(ptr_reinterpret_cast<VulkanAPI>(&en::Graphics)->instance,
+   VulkanAPI* api = raw_reinterpret_cast<VulkanAPI>(&en::Graphics);
+
+   ProfileNoRet( api, vkDestroySurfaceKHR(api->instance,
                                           swapChainSurface, nullptr) )
    }
    
-   Ptr<Texture> WindowVK::surface(void)
+   void WindowVK::resize(const uint32v2 size)
+   {
+   // TODO: Finish !
+   assert( 0 );
+   }
+
+   Ptr<Texture> WindowVK::surface(const Ptr<Semaphore> signalSemaphore)
    {
    if (needNewSurface)
       {
@@ -752,29 +780,66 @@ namespace en
          {
          uint32 thread = Scheduler.core();
 
+         // v1.0.38 p663
+         //
+         // " The vkCmdWaitEvents or vkCmdPipelineBarrier used to transition the image away from VK_IMAGE_
+         //   LAYOUT_PRESENT_SRC_KHR layout must have dstStageMask and dstAccessMask parameters set based on the
+         //   next use of the image. The application must use implicit ordering guarantees and execution dependencies to prevent the
+         //   image transition from occurring before the semaphore passed to vkAcquireNextImageKHR has signaled. "
+         //
+         // v1.0.36 p648
+         //
+         // " After acquiring a
+         //   presentable image and before modifying it, the application must use a synchronization primitive to ensure that the
+         //   presentation engine has finished reading from the image. The application can then transition the image’s layout, 
+         //   ... "
+         //
+         // " Note
+         //   This allows the platform to handle situations which require out-of-order return of images after presentation. At the
+         //   same time, it allows the application to generate command buffers referencing all of the images in the swapchain
+         //   at initialization time, rather than in its main loop. "
+         //
+         // " . . . must be transitioned away from this layout after calling vkAcquireNextImageKHR.  "
+         //
+         // Pseudocode:
+         //
+         // window->surface(postSemaphore);
+         // command->start(postSemaphore);
+         //
+         // // Transition Swap-Chain surface from presentation layout to rendering destination
+         // command->barrier(swapChainTexture[swapChainCurrentImageIndex], 
+         //                  uint32v2(0,1),  // First mipmap
+         //                  uint32v2(0,1)); // First layer
+         //                  0u, // Current Access
+         //                  VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // New Access
+         //                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,          // Current Layout
+         //                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, // New Layout
+         //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,     // Transition after this stage
+         //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);    // Transition before this stage
+         //
+         SemaphoreVK* signal = raw_reinterpret_cast<SemaphoreVK>(&signalSemaphore);
+
          // Acquire one of the Swap-Chain surfaces for rendering
-         Profile( gpu, vkAcquireNextImageKHR(gpu->device, swapChain, UINT64_MAX /* wait time in nanoseconds */, 
-                                             VK_NULL_HANDLE, /* semaphore to wait for presentation engine to finish reading from it*/
-                                             presentationFence, &swapChainCurrentImageIndex) )
+         Profile( gpu, vkAcquireNextImageKHR(gpu->device, 
+                                             swapChain, 
+                                             UINT64_MAX,     // wait time in nanoseconds
+                                             signal->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
+                                             VK_NULL_HANDLE, // presentationFence, <- Don't actively wait for now.
+                                             &swapChainCurrentImageIndex) )
          
          // Ensure that engine is recreating Swap-Chain on window resize
          assert( gpu->lastResult[thread] != VK_ERROR_OUT_OF_DATE_KHR );
 
-         // Active wait for presentation engine to finish reading from Swap-Chain surface to display panel
-         gpu->lastResult[thread] = VK_NOT_READY;
-         while(gpu->lastResult[thread] != VK_SUCCESS)
-            {
-            Profile( gpu, vkGetFenceStatus(gpu->device, presentationFence) )
-            }
+         //// Active wait for presentation engine to finish reading from Swap-Chain surface to display panel
+         //gpu->lastResult[thread] = VK_NOT_READY;
+         //while(gpu->lastResult[thread] != VK_SUCCESS)
+         //   {
+         //   Profile( gpu, vkGetFenceStatus(gpu->device, presentationFence) )
+         //   }
 
-         // Reset fence for reuse
-         Profile( gpu, vkResetFences(gpu->device, 1u, &presentationFence) )
+         //// Reset fence for reuse
+         //Profile( gpu, vkResetFences(gpu->device, 1u, &presentationFence) )
 
-         // TODO: Transition image to valid layout before use!         
-         // before modifying it, the application must use a synchronization primitive to ensure that the
-         // presentation engine has finished reading from the image. The application can then transition the image’s layout, queue
-         // rendering commands to it, etc.
-         
          needNewSurface = false;
          }
 
@@ -784,11 +849,46 @@ namespace en
    return swapChainTexture[swapChainCurrentImageIndex];
    }
 
-   void WindowVK::present(void)
+   // Data needed to transition to present :
+   //
+   // command buffer handle
+   // const Ptr<Texture> _texture, 
+   // barrier.srcAccessMask 
+   // barrier.oldLayout     
+   // VkPipelineStageFlags afterStage;  // Transition after this stage
+   // VkPipelineStageFlags beforeStage; // Transition before this stage
+
+
+   // Presents current surface, after all work encoded on given Commnad Buffer is done
+   void WindowVK::present(const Ptr<Semaphore> waitForSemaphore) // const Ptr<CommandBuffer> command ? <- pass command buffer in ??
    {
    surfaceAcquire.lock();
    if (!needNewSurface)
       {
+      // v1.0.36 p662
+      //
+      // " When transitioning the image to VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, there is no need to delay subsequent
+      //   processing, or perform any visibility operations (as vkQueuePresentKHR performs automatic visibility
+      //   operations). To achieve this, the dstAccessMask member of the VkImageMemoryBarrier should be set
+      //   to 0, and the dstStageMask parameter should be set to VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_
+      //   BIT "
+      // 
+      // Pseudocode:
+      //
+      // command->barrier(swapChainTexture[swapChainCurrentImageIndex], 
+      //                  uint32v2(0,1),  // First mipmap
+      //                  uint32v2(0,1)); // First layer
+      //                  VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // Current Access
+      //                  0u,
+      //                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, // Current Layout
+      //                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,          // New Layout
+      //                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,     // Transition after this stage
+      //                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);    // Transition before this stage
+      // 
+      // Ptr<Semaphore> waitForSemaphore = gpu->createSemaphore();
+      // command->commit(waitForSemaphore);
+      // window->present(preSemaphore); // Wait on semaphore
+
       VkDisplayPresentInfoKHR displayInfo;
       displayInfo.sType      = VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR;
       displayInfo.pNext      = nullptr;
@@ -799,22 +899,32 @@ namespace en
       VkPresentInfoKHR info;
       info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
       info.pNext              = _fullscreen ? &displayInfo : nullptr;     // If using VK_KHR_display_swapchain, pass additional information.
-      info.waitSemaphoreCount = 1;
-       const VkSemaphore*       pWaitSemaphores; // At least one Semaphore, indicating that rendering to presentation surface is done (if not used waitUntilComplete).
-      info.swapchainCount     = 1;               // Can present Swap-Chains of multiple windows at the same time (then we pass array of those and their surface id's).
+      info.waitSemaphoreCount = 0u;      
+      info.pWaitSemaphores    = nullptr;         // At least one Semaphore, indicating that rendering to presentation surface is done (if not used waitUntilComplete).
+      info.swapchainCount     = 1u;              // Can present Swap-Chains of multiple windows at the same time (then we pass array of those and their surface id's).
       info.pSwapchains        = &swapChain;      
       info.pImageIndices      = &swapChainCurrentImageIndex;
       info.pResults           = nullptr;         // Results per Swap-Chain. We present only one so general function call result is enough.
-      
+
+      if (waitForSemaphore)
+         {
+         SemaphoreVK* wait = raw_reinterpret_cast<SemaphoreVK>(&waitForSemaphore);
+         
+         info.waitSemaphoreCount = 1u;
+         info.pWaitSemaphores    = &wait->handle;
+         }
+
       Profile( gpu, vkQueuePresentKHR(presentQueue, &info) )
       needNewSurface = true;
+
+
 
       // TODO: Measure here Window rendering time (average between present calls) ?
       }
    surfaceAcquire.unlock();
    }
 
-   Ptr<Window> VulkanDevice::create(const WindowSettings& settings, const string title)
+   Ptr<Window> VulkanDevice::createWindow(const WindowSettings& settings, const string title)
    {
    // Select destination display
    Ptr<CommonDisplay> display;
@@ -963,16 +1073,21 @@ namespace en
    deviceVK->memoryDriver -= size;
    }
 
+   // TODO: Currently max is 16MB. This should be configurable through config file.
+   #define PipelineCacheMaximumSize 16*1024*1024
 
 
-   VulkanDevice::VulkanDevice(VulkanAPI* _api, const VkPhysicalDevice _handle) :
+   VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysicalDevice _handle) :
       api(_api),
+      index(_index),
       handle(_handle),
       queueFamily(nullptr),
       queueFamiliesCount(0),
       queueFamilyIndices(nullptr),
       globalExtension(nullptr),
       globalExtensionsCount(0),
+      pipelineCache(VK_NULL_HANDLE),
+      rebuildCache(true),
       memoryRAM(0),
       memoryDriver(0),
       CommonDevice()
@@ -1066,42 +1181,42 @@ namespace en
       // If that's not true in the future, then below, each range of Queues in given Family, will need
       // to be mapped to range of Queues in given Type. If such situation will occur, assertions below
       // will fire at runtime.
-      if (flags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
+      if (flags == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
          {
          assert( queuesCount[underlyingType(QueueType::Universal)] == 0 );
          queuesCount[underlyingType(QueueType::Universal)] = queueFamily[family].queueCount;
          queueTypeToFamily[underlyingType(QueueType::Universal)] = family;
          }
       else
-      if (flags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
+      if (flags == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
          {
          assert( queuesCount[underlyingType(QueueType::Universal)] == 0 );
          queuesCount[underlyingType(QueueType::Universal)] = queueFamily[family].queueCount;
          queueTypeToFamily[underlyingType(QueueType::Universal)] = family;
          }
       else
-      if (flags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
+      if (flags == (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
          {
          assert( queuesCount[underlyingType(QueueType::Compute)] == 0 );
          queuesCount[underlyingType(QueueType::Compute)] = queueFamily[family].queueCount;
          queueTypeToFamily[underlyingType(QueueType::Compute)] = family;
          }
       else
-      if (flags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
+      if (flags == (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
          {
          assert( queuesCount[underlyingType(QueueType::Compute)] == 0 );
          queuesCount[underlyingType(QueueType::Compute)] = queueFamily[family].queueCount;
          queueTypeToFamily[underlyingType(QueueType::Compute)] = family;
          }
       else
-      if (flags & (VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
+      if (flags == (VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
          {
          assert( queuesCount[underlyingType(QueueType::SparseTransfer)] == 0 );
          queuesCount[underlyingType(QueueType::SparseTransfer)] = queueFamily[family].queueCount;
          queueTypeToFamily[underlyingType(QueueType::SparseTransfer)] = family;
          }
       else
-      if (flags & (VK_QUEUE_TRANSFER_BIT))
+      if (flags == (VK_QUEUE_TRANSFER_BIT))
          {
          assert( queuesCount[underlyingType(QueueType::Transfer)] == 0 );
          queuesCount[underlyingType(QueueType::Transfer)] = queueFamily[family].queueCount;
@@ -1187,15 +1302,48 @@ namespace en
       queueFamilyInfo[i].pQueuePriorities   = priorities;
       }
 
-   // Enable all available device extensions
+   // Specify Vulkan Extensions to initialize
+   //-----------------------------------------
+
+   uint32 enabledExtensionsCount = 0;
    char** extensionPtrs = nullptr;
-   if (globalExtensionsCount > 0)
+   extensionPtrs = new char*[globalExtensionsCount];
+   
+   // Adding Windowing System Interface extensions to the list
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+#if defined(EN_PLATFORM_ANDROID)
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
+#endif
+#if defined(EN_PLATFORM_LINUX)
+   // TODO: Pick one on Linux (as usual it's complete mess)
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_MIR_SURFACE_EXTENSION_NAME;
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
+#endif
+#if defined(EN_PLATFORM_WINDOWS)
+   //extensionPtrs[enabledExtensionsCount++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+#endif
+
+   // TODO: Add here loading list of needed extensions from some config file.
+   //       (generated automatically by the engine/editor based on features
+   //        used by the app).
+
+   // Verify selected extensions are available
+   for(uint32 i=0; i<enabledExtensionsCount; ++i)
       {
-      extensionPtrs = new char*[globalExtensionsCount];
-      for(uint32 i=0; i<globalExtensionsCount; ++i)
-         extensionPtrs[i] = &globalExtension[i].extensionName[0];
+      bool found = false;
+      for(uint32 j=0; j<globalExtensionsCount; ++j)
+         if (strcmp(extensionPtrs[i], globalExtension[j].extensionName) == 0 )
+            found = true;
+         
+      if (!found)
+         {
+         Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!" << endl;
+         assert( 0 );
+         }
       }
-      
+
    // Create Vulkan Device
    //----------------------
 
@@ -1208,7 +1356,7 @@ namespace en
    deviceInfo.pQueueCreateInfos         = queueFamilyInfo;
    deviceInfo.enabledLayerCount         = 0;                     // Deprecated, ignored.
    deviceInfo.ppEnabledLayerNames       = nullptr;               // Deprecated, ignored.
-   deviceInfo.enabledExtensionCount     = globalExtensionsCount;
+   deviceInfo.enabledExtensionCount     = enabledExtensionsCount;
    deviceInfo.ppEnabledExtensionNames   = reinterpret_cast<const char*const*>(extensionPtrs);
    deviceInfo.pEnabledFeatures          = nullptr;
 
@@ -1263,28 +1411,163 @@ namespace en
    // Profile( vkResetCommandPool(VkDevice device, commandPool[thread][type], VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT) )
 
 
+   // Pipeline Cache
+   //---------------
 
+   // Try to load cache from disk
+   uint64 cacheSize = 0u;
+   void*  cacheData = loadPipelineCache(cacheSize);
 
+   // Create runtime Pipeline cache, and reuse previous data if possible
+   VkPipelineCacheCreateInfo cacheInfo;
+   cacheInfo.sType           = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+   cacheInfo.pNext           = nullptr;
+   cacheInfo.flags           = 0u;
+   cacheInfo.initialDataSize = cacheSize; // Cache size will never be greater than 4GB
+   cacheInfo.pInitialData    = cacheData;
 
+   Profile( this, vkCreatePipelineCache(device, &cacheInfo, nullptr, &pipelineCache) )
 
-   // Create Pipeline Cache
-
-   // TODO: VkPipelineCache  pipelineCache;
-
-
+   // Release temporary buffer
+   delete [] cacheData;
 
    init();
+   }
+
+
+   void* VulkanDevice::loadPipelineCache(uint64& size)
+   {
+   using namespace en::storage;
+
+   // Pipeline cache header
+   aligned(1) 
+   struct PipelineCacheHeader
+      {
+      uint32 headerSize;
+      VkPipelineCacheHeaderVersion version;
+      uint32 vendorID;
+      uint32 deviceID;
+      uint32 cacheUUID[4];
+      };
+   aligndefault
+
+   // Try to reuse pipeline cache from disk. 
+   // It is assumed that devices are always enumerated in the same order.
+   Nfile* file = nullptr;
+   string filename = string("gpu") + stringFrom(index) + string("pipelineCache.data");
+   if (!Storage.open(filename, &file))
+      return nullptr;
+
+   // Verify that cache file is not corrupted
+   uint64 diskCacheSize = file->size();
+   if (diskCacheSize < sizeof(PipelineCacheHeader))
+      {
+      delete file;
+      return nullptr;
+      }
+
+   // Size of cache copy on disk shouldn't exceed the limit
+   if (diskCacheSize > PipelineCacheMaximumSize)
+      {
+      delete file;
+      return nullptr;
+      }
+
+   // Read header of cache stored on disk
+   PipelineCacheHeader diskHeader;
+   file->read(0u, sizeof(PipelineCacheHeader), &diskHeader);
+
+   // Read size of driver cache in RAM (should be at least size of a header)
+   uint64 cacheSize = 0u;
+   Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), nullptr) )
+   if (cacheSize < sizeof(PipelineCacheHeader))
+      {
+      delete file;
+      return nullptr;
+      }
+
+   // Read driver cache header
+   PipelineCacheHeader driverHeader;
+   uint64 headerSize = sizeof(PipelineCacheHeader);
+   Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&headerSize), &driverHeader) )
+
+   // Ensure that both headers match. This means that cache stored on 
+   // disk is still valid (headers won't match after drivers update, GPU change, etc.).
+   if (memcmp(&diskHeader, &driverHeader, sizeof(PipelineCacheHeader)) != 0u)
+      {
+      delete file;
+      return nullptr;
+      }
+
+   // Load previously cached pipeline state objects from disk
+   uint8* cacheData = new uint8[diskCacheSize];
+   file->read(&cacheData);
+   delete file;
+
+   size = diskCacheSize;
+   rebuildCache = false;
+   return cacheData;
    }
 
    void VulkanDevice::init()
    {
    // TODO: Populate API capabilities
+
+
+   for(uint32 i=0; i<MaxSupportedWorkerThreads; i++)
+      {
+      commandBuffersExecuting[i] = 0u;
+      for(uint32 j=0; j<MaxCommandBuffersExecuting; j++)      
+         commandBuffers[i][j] = nullptr;
+      }
+
+   initMemoryManager();
+   CommonDevice::init();
    }
 
    VulkanDevice::~VulkanDevice()
    {
    Profile( this, vkDeviceWaitIdle(device) )
    
+   // If requested recreate pipeline cache on disk
+   if (rebuildCache)
+      {
+      using namespace en::storage;
+
+      // Save cache to disk (at app end):
+      // - if marked for recreation of HDD cache
+      //   - retrieve current cache size
+      //   - retrieve cache dat
+      //   - delete cache on HDD
+      //   - store it as new cache on HDD
+
+      // Read size of driver cache
+      uint64 cacheSize = 0u;
+      Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), nullptr) )
+      
+      // Try to reuse Pipeline objects from the previous application run (read from drivers cache on the disk).
+      if (cacheSize > 0u)
+         {
+         // Size of cache copy on disk shouldn't exceed the limit
+         if (cacheSize > PipelineCacheMaximumSize)
+            cacheSize = PipelineCacheMaximumSize;
+
+         uint8* cacheData = new uint8[cacheSize];
+         Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), cacheData) )
+
+         Nfile* file = nullptr;
+         string filename = string("gpu") + stringFrom(index) + string("pipelineCache.data");
+         if (Storage.open(filename, &file, FileAccess::Write))
+            {
+            file->write(cacheSize, cacheData);
+            delete file;
+            }
+
+         delete [] cacheData;
+         }
+      }
+
+   ProfileNoRet( this, vkDestroyPipelineCache(device, pipelineCache, nullptr) )
 
    // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
    uint32 thread = Scheduler.core();
@@ -1321,7 +1604,6 @@ namespace en
    LoadDeviceFunction( vkDestroyInstance )
    LoadDeviceFunction( vkGetPhysicalDeviceFeatures )
    LoadDeviceFunction( vkGetPhysicalDeviceFormatProperties )
-   LoadDeviceFunction( vkGetPhysicalDeviceImageFormatProperties )
    LoadDeviceFunction( vkGetPhysicalDeviceProperties )
    LoadDeviceFunction( vkGetPhysicalDeviceQueueFamilyProperties )
    LoadDeviceFunction( vkGetPhysicalDeviceMemoryProperties )
@@ -1450,11 +1732,43 @@ namespace en
    LoadDeviceFunction( vkCmdEndRenderPass )
    LoadDeviceFunction( vkCmdExecuteCommands )
 
+   // VK_KHR_surface - Interface extension
+
+   // VK_KHR_swapchain
    LoadDeviceFunction( vkCreateSwapchainKHR )
    LoadDeviceFunction( vkDestroySwapchainKHR )
    LoadDeviceFunction( vkGetSwapchainImagesKHR )
    LoadDeviceFunction( vkAcquireNextImageKHR )
    LoadDeviceFunction( vkQueuePresentKHR )
+
+   // VK_KHR_swapchain 
+   LoadDeviceFunction( vkCreateSwapchainKHR )
+   LoadDeviceFunction( vkDestroySwapchainKHR )
+   LoadDeviceFunction( vkGetSwapchainImagesKHR )
+   LoadDeviceFunction( vkAcquireNextImageKHR )
+   LoadDeviceFunction( vkQueuePresentKHR )
+      
+   // VK_KHR_display
+   LoadDeviceFunction( vkGetPhysicalDeviceDisplayPropertiesKHR )
+   LoadDeviceFunction( vkGetPhysicalDeviceDisplayPlanePropertiesKHR )
+   LoadDeviceFunction( vkGetDisplayPlaneSupportedDisplaysKHR )
+   LoadDeviceFunction( vkGetDisplayModePropertiesKHR )
+   LoadDeviceFunction( vkCreateDisplayModeKHR )
+   LoadDeviceFunction( vkGetDisplayPlaneCapabilitiesKHR )
+   LoadDeviceFunction( vkCreateDisplayPlaneSurfaceKHR )
+      
+   // VK_KHR_display_swapchain
+   LoadDeviceFunction( vkCreateSharedSwapchainsKHR )
+      
+   // Windowing System Interface - OS Specyific extension
+   
+   // VK_KHR_xlib_surface
+   // VK_KHR_xcb_surface
+   // VK_KHR_wayland_surface
+   // VK_KHR_mir_surface
+   // VK_KHR_android_surface
+      
+   // VK_KHR_win32_surface - Interface extension
    }
 
    void VulkanDevice::clearDeviceFunctionPointers(void)
@@ -1466,7 +1780,6 @@ namespace en
    vkEnumeratePhysicalDevices                     = nullptr;
    vkGetPhysicalDeviceFeatures                    = nullptr;
    vkGetPhysicalDeviceFormatProperties            = nullptr;
-   vkGetPhysicalDeviceImageFormatProperties       = nullptr;
    vkGetPhysicalDeviceProperties                  = nullptr;
    vkGetPhysicalDeviceQueueFamilyProperties       = nullptr;
    vkGetPhysicalDeviceMemoryProperties            = nullptr;
@@ -1849,7 +2162,8 @@ namespace en
    Device.cb = sizeof(Device);
 
    // Calculate amount of available displays
-   while(EnumDisplayDevices(nullptr, displaysCount, &Device, EDD_GET_DEVICE_INTERFACE_NAME))
+   uint32 index = 0;
+   while(EnumDisplayDevices(nullptr, index++, &Device, EDD_GET_DEVICE_INTERFACE_NAME))
       if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
          displaysCount++;
 
@@ -1881,7 +2195,7 @@ namespace en
          assert( EnumDisplaySettingsEx(Device.DeviceName, ENUM_CURRENT_SETTINGS, &DispMode, 0u) );
  
          // Verify that proper values were returned by query
-         assert( checkBits(DispMode.dmFields, (DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT)) );
+         assert( checkBitmask(DispMode.dmFields, (DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT)) );
 
          desktopPosition.x   = DispMode.dmPosition.x;
          desktopPosition.y   = DispMode.dmPosition.y;
@@ -1890,7 +2204,7 @@ namespace en
             
          // Calculate amount of available display modes (count only modes supported by display and no rotation ones)
          uint32 modesCount = 0;
-         while(EnumDisplaySettingsEx(Device.DeviceName, ENUM_REGISTRY_SETTINGS, &DispMode, 0u))
+         while(EnumDisplaySettingsEx(Device.DeviceName, modesCount, &DispMode, 0u))
             modesCount++;
 
          Ptr<winDisplay> currentDisplay = new winDisplay();
@@ -1902,7 +2216,7 @@ namespace en
          while(EnumDisplaySettingsEx(Device.DeviceName, modeId, &DispMode, 0u))
             {
             // Verify that proper values were returned by query
-            assert( checkBits(DispMode.dmFields, DM_PELSWIDTH & DM_PELSHEIGHT) );
+            assert( checkBitmask(DispMode.dmFields, DM_PELSWIDTH | DM_PELSHEIGHT) );
             
             currentDisplay->modeResolution[modeId].x = DispMode.dmPelsWidth;
             currentDisplay->modeResolution[modeId].y = DispMode.dmPelsHeight;
@@ -2047,6 +2361,9 @@ namespace en
    extensionPtrs = new char*[globalExtensionsCount];
    
    // Adding Windowing System Interface extensions to the list
+#if defined(EN_DEBUG)
+   extensionPtrs[enabledExtensionsCount++] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME; 
+#endif
    extensionPtrs[enabledExtensionsCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
 #if defined(EN_PLATFORM_ANDROID)
    extensionPtrs[enabledExtensionsCount++] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
@@ -2076,7 +2393,7 @@ namespace en
          
       if (!found)
          {
-         Log << "ERROR: Requested Vulkan extension %s is not supported on this system!" << extensionPtrs[i] << endl;
+         Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!" << endl;
          assert( 0 );
          }
       }
@@ -2088,12 +2405,41 @@ namespace en
    char** layersPtrs = nullptr;
    
 #if defined(EN_DEBUG)
-   // In debug mode enable additional layers for debugging,
-   // profiling and other purposes (currently all available).
-   enabledLayersCount = layersCount;
+   if (layersCount > 0)
+      {
+      Log << "Available Vulkan Layers:\n";
+      for(uint32 i=0; i<layersCount; ++i)  
+         Log << "  " << layer[i].properties.layerName << endl;
+      }
+
+   // TODO: Read list of requested layers to enable from config file
+
+   // Cannot enable more layers than all currently available
    layersPtrs = new char*[layersCount];
-   for(uint32 i=0; i<layersCount; ++i)  
-      layersPtrs[i] = &layer[i].properties.layerName[0];
+
+   // Temporary WA to manually select layers to load
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_api_dump";
+   layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_core_validation";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_image";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_object_tracker";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_parameter_validation";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_screenshot";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_swapchain";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_GOOGLE_threading";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_GOOGLE_unique_objects";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_vktrace";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_NV_optimus";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_RENDERDOC_Capture";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_VALVE_steam_overlay";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_standard_validation";
+
+
+   //// In debug mode enable additional layers for debugging,
+   //// profiling and other purposes (currently all available).
+   //enabledLayersCount = layersCount;
+   //layersPtrs = new char*[layersCount];
+   //for(uint32 i=0; i<layersCount; ++i)  
+   //   layersPtrs[i] = &layer[i].properties.layerName[0];
 
    // Debug: Use below to activate all available layers and their extensions:
    //
@@ -2129,7 +2475,7 @@ namespace en
    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
    appInfo.pEngineName        = "Ngine";
    appInfo.engineVersion      = VK_MAKE_VERSION(5, 0, 0);
-   appInfo.apiVersion         = VK_API_VERSION;
+   appInfo.apiVersion         = VK_API_VERSION_1_0;
    
    VkInstanceCreateInfo instInfo;
    instInfo.sType                     = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -2163,8 +2509,76 @@ namespace en
    // Create interfaces for all available physical devices
    device = new Ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
-      device[i] = new VulkanDevice(this, deviceHandle[i]);
+      device[i] = new VulkanDevice(this, i, deviceHandle[i]);
  
+   // Register debug callbacks
+   //--------------------------
+
+   // TODO: !!!!
+
+#if defined(EN_DEBUG)
+
+//typedef enum VkDebugReportObjectTypeEXT {
+//VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT = 0,
+//VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT = 1,
+//VK_DEBUG_REPORT_OBJECT_TYPE_PHYSICAL_DEVICE_EXT = 2,
+//VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT = 3,
+//VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT = 4,
+//VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT = 5,
+//VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT = 6,
+//VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT = 7,
+//VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT = 8,
+//VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT = 9,
+//VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT = 10,
+//VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT = 11,
+//VK_DEBUG_REPORT_OBJECT_TYPE_QUERY_POOL_EXT = 12,
+//VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_VIEW_EXT = 13,
+//VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT = 14,
+//VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT = 15,
+//VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_CACHE_EXT = 16,
+//VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT = 17,
+//VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT = 18,
+//VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT = 19,
+//VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT = 20,
+//VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT = 21,
+//VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT = 22,
+//VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT = 23,
+//VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT = 24,
+//VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_POOL_EXT = 25,
+//VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT = 26,
+//VK_DEBUG_REPORT_OBJECT_TYPE_SWAPCHAIN_KHR_EXT = 27,
+//VK_DEBUG_REPORT_OBJECT_TYPE_DEBUG_REPORT_EXT = 28,
+//} VkDebugReportObjectTypeEXT;
+//
+//typedef VkBool32 (VKAPI_PTR *PFN_vkDebugReportCallbackEXT)(
+//VkDebugReportFlagsEXT flags,
+//VkDebugReportObjectTypeEXT objectType,
+//uint64_t object,
+//size_t location,
+//int32_t messageCode,
+//const char* pLayerPrefix,
+//const char* pMessage,
+//void* pUserData);
+
+
+   //// Can register separate callbacks for each report type
+   //VkDebugReportCallbackCreateInfoEXT debugInfo;
+   //debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+   //debugInfo.pNext = nullptr;
+   //debugInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT   |
+   //                  VK_DEBUG_REPORT_WARNING_BIT_EXT |
+   //                  VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+
+//pedef enum VkDebugReportFlagBitsEXT {
+//VK_DEBUG_REPORT_INFORMATION_BIT_EXT = 0x00000001,
+//VK_DEBUG_REPORT_DEBUG_BIT_EXT =
+//PFN_vkDebugReportCallbackEXT pfnCallback;
+//void* pUserData;
+
+   //Profile( this, vkCreateDebugReportCallbackEXT(instance, &debugInfo, nullptr, VkDebugReportCallbackEXT* pCallback) )
+#endif
+
+
    delete [] deviceHandle;
    }
 
@@ -2215,7 +2629,21 @@ namespace en
    LoadInstanceFunction( vkGetDeviceProcAddr )
    LoadInstanceFunction( vkDestroyInstance )
    
+   // VK_KHR_surface
    LoadInstanceFunction( vkGetPhysicalDeviceSurfaceSupportKHR )
+   LoadInstanceFunction( vkGetPhysicalDeviceSurfaceCapabilitiesKHR )
+   LoadInstanceFunction( vkGetPhysicalDeviceSurfaceFormatsKHR )
+   LoadInstanceFunction( vkGetPhysicalDeviceSurfacePresentModesKHR )
+   LoadInstanceFunction( vkDestroySurfaceKHR )
+
+   // VK_KHR_win32_surface
+   LoadInstanceFunction( vkCreateWin32SurfaceKHR )
+   LoadInstanceFunction( vkGetPhysicalDeviceWin32PresentationSupportKHR )
+
+   // VK_EXT_debug_report
+   LoadInstanceFunction( vkCreateDebugReportCallbackEXT )
+   LoadInstanceFunction( vkDestroyDebugReportCallbackEXT )
+   LoadInstanceFunction( vkDebugReportMessageEXT )
    }
 
    void VulkanAPI::clearInterfaceFunctionPointers(void)

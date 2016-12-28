@@ -22,7 +22,7 @@
 
 #include "core/rendering/common/device.h"
 
-#include "core/rendering/d3d12/dx12InputAssembler.h"
+#include "core/rendering/d3d12/dx12InputLayout.h"
 #include "core/rendering/d3d12/dx12Blend.h"
 #include "core/rendering/d3d12/dx12Raster.h"
 #include "core/rendering/d3d12/dx12Viewport.h"
@@ -154,12 +154,12 @@ namespace en
       Direct3D12Device();
      ~Direct3D12Device();
 
-      Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                 const uint32 controlPoints,
-                                 const uint32 usedAttributes,
-                                 const uint32 usedBuffers,
-                                 const AttributeDesc* attributes,
-                                 const BufferDesc* buffers);
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const uint32 controlPoints,
+                                                 const uint32 usedAttributes,
+                                                 const uint32 usedBuffers,
+                                                 const AttributeDesc* attributes,
+                                                 const BufferDesc* buffers);
 
       virtual void init(void);
 
@@ -193,6 +193,15 @@ namespace en
       virtual Ptr<ViewportState>      create(const uint32 count,
                                              const ViewportStateInfo* viewports,
                                              const ScissorStateInfo* scissors);
+
+      virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
+                                             const ResourceGroup* group,
+                                             const ShaderStage stageMask);
+
+      virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
+                                                       const Ptr<SetLayout>* set,
+                                                       const uint32 immutableSamplers,
+                                                       const Ptr<Sampler>* sampler);
       };
    }
 }

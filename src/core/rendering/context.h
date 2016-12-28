@@ -663,7 +663,7 @@
 //                                                          
 //                 // Implementation dependent  
 //
-//                 uint8       maxInputAssemblerAttributesCount;
+//                 uint8       maxInputLayoutAttributesCount;
 //
 //
 //                 // Texture

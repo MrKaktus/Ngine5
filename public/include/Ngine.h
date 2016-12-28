@@ -29,7 +29,7 @@
 #include "core/utilities/TintrusivePointer.h"
 
 #ifdef EN_PLATFORM_OSX
-#include "platform/osx/osx_callbacks.h"
+//#include "platform/osx/osx_callbacks.h"
 #include "platform/osx/osx_init.h"
 #include "platform/osx/osx_main.h"
 #endif
@@ -55,8 +55,8 @@
 #include "platform/blackberry/bb_main.h"
 
 #include "platform/windows/win_init.h"
-#include "platform/windows/win_main.h"
-#include "platform/windows/win_events.h"
+//#include "platform/windows/win_main.h"
+//#include "platform/windows/win_events.h"
 
 #include "audio/audio.h"         // Public interface - TODO: Finish!
 
@@ -82,4 +82,5 @@
 #endif
 #include "audio/audio.h"
 #include "utilities/random.h"
+
 #endif

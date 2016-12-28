@@ -14,7 +14,7 @@
  */
 
 #include "core/rendering/common/buffer.h"
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 #include "core/rendering/common/heap.h"
 
 namespace en
@@ -55,7 +55,7 @@ namespace en
    Ptr<Buffer> buffer = createBuffer(BufferType::Vertex, size);
    if (buffer)
       {
-      Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer);
+      CommonBuffer* common = raw_reinterpret_cast<CommonBuffer>(&buffer);
       
       common->formatting = formatting;
       common->elements   = elements;
@@ -77,7 +77,7 @@ namespace en
    Ptr<Buffer> buffer = createBuffer(BufferType::Index, size);
    if (buffer)
       {
-      Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer);
+      CommonBuffer* common = raw_reinterpret_cast<CommonBuffer>(&buffer);
       
       common->formatting.column[0] = format;
       common->elements = elements;

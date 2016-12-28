@@ -20,9 +20,13 @@
 using namespace std;
 
 #include "core/rendering/device.h"
-#include "core/rendering/common/inputAssembler.h"
+#include "core/rendering/common/inputLayout.h"
 #include "utilities/Nversion.h"
 #include "threading/mutex.h"
+
+// TODO: Move it to Thread Pool Scheduler
+#define MaxSupportedWorkerThreads 64
+#define MaxCommandBuffersExecuting 32
 
 namespace en
 {
@@ -65,8 +69,8 @@ namespace en
       
       virtual void transparent(const float opacity); // TODO: Do we really want that here? (Transp. should be enabled on window creation time, and queried later)
       virtual void opaque(void);
-      virtual Ptr<Texture> surface(void); // App should query for current surface each time it wants to reference it
-      virtual void present(void);
+      //virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr); // App should query for current surface each time it wants to reference it
+      //virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr);
       
       virtual ~CommonWindow();
       };
@@ -90,7 +94,7 @@ namespace en
          bitset<underlyingType(Format::Count)> rendering;    // Texel Formats - Rendering support
             
          // Input Assembler
-         uint8       maxInputAssemblerAttributesCount;  // Maximum number of input attributes
+         uint8       maxInputLayoutAttributesCount;  // Maximum number of input attributes
 
          // Texture
          uint32      maxTextureSize;                    // Maximum 2D/1D texture image dimension
@@ -108,7 +112,7 @@ namespace en
          uint32      maxColorAttachments;               // Maximum number of color renderable textures
          
          
-         
+      // TODO: Add support.maxViewports , support.maxScissors
 
 //         uint32      maxFramebufferColorAttachments; // Number of Framebuffer Color attachments
 //         uint32      maxRenderTargets;               // Maximum supported Render Targets count            
@@ -151,16 +155,20 @@ namespace en
          
       virtual void init(void);
 
-      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                         const uint32 controlPoints,
-                                         const Ptr<Buffer> buffer);
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const uint32 controlPoints = 0u);
+
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const uint32 controlPoints,
+                                                 const Ptr<Buffer> buffer);
          
-      virtual Ptr<InputAssembler> create(const DrawableType primitiveType,
-                                         const uint32 controlPoints,
-                                         const uint32 usedAttributes,
-                                         const uint32 usedBuffers,
-                                         const AttributeDesc* attributes,
-                                         const BufferDesc* buffers);
+      // Needs to be Declared and Defined to allow calls to it from itself
+      //virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+      //                                              const uint32 controlPoints,
+      //                                              const uint32 usedAttributes,
+      //                                              const uint32 usedBuffers,
+      //                                              const AttributeDesc* attributes,
+      //                                              const BufferDesc* buffers);
          
       virtual PipelineState defaultPipelineState(void);
 

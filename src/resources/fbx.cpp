@@ -951,6 +951,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
    // Copy data from staging buffer to final texture
    Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   command->start();
    command->copy(staging, vbo);
    command->commit();
    
@@ -1041,6 +1042,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
    // Copy data from staging buffer to final texture
    command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   command->start();
    command->copy(staging, vbo);
    command->commit();
    

@@ -20,7 +20,7 @@
 
 #include "core/rendering/opengl/glBuffer.h"
 #include "core/rendering/opengl/glTexture.h"
-#include "core/rendering/opengl/glInputAssembler.h"
+#include "core/rendering/opengl/glInputLayout.h"
 #include "core/rendering/opengl/gl33Sampler.h"
 #include "core/rendering/device.h"
 

@@ -227,6 +227,7 @@ return returnValue;
 // 
 //   Ptr<RenderPass> pass = gpu->create(attachment, depthStencil); //window->surface()
 //
+//   command->start();
 //   command->startRenderPass(pass);
 //
 //   // TODO: Draw here

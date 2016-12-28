@@ -285,7 +285,7 @@ namespace en
    Ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
    {
    // Create buffer descriptor
-   Ptr<BufferVK> buffer = gpu::createBuffer(gpu, type, size);
+   Ptr<BufferVK> buffer = gpu::createBuffer(this, type, size);
    if (!buffer)
       return Ptr<Buffer>(nullptr);
 
@@ -310,7 +310,7 @@ namespace en
       }
 
    Profile( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
-   buffer->heap   = this;
+   buffer->heap   = Ptr<HeapVK>(this);
    buffer->offset = offset;
    
    return ptr_reinterpret_cast<Buffer>(&buffer);
@@ -348,7 +348,7 @@ namespace en
       }
 
    Profile( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )
-   texture->heap   = this;
+   texture->heap   = Ptr<HeapVK>(this);
    texture->offset = offset;
    
    return ptr_reinterpret_cast<Texture>(&texture);
@@ -429,7 +429,9 @@ namespace en
                }
 
       // For each memory usage there need to be at least one memory type.
-      assert( index > 0u );
+      // The only exception is Temporary memory usage, which is optional.
+      if (usage < 3)
+         assert( index > 0u );
       
       // Set final count of Vulkan Memory Type indexes stored in array.
       memoryTypePerUsageCount[usage] = index;

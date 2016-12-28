@@ -166,7 +166,7 @@ namespace en
       {
 #ifdef EN_OPENGL_DESKTOP
       // Input Assembler
-      GpuContext.support.maxInputAssemblerAttributesCount = 16;
+      GpuContext.support.maxInputLayoutAttributesCount = 16;
 
       // Pipeline State - Misc
       Profile( glGetIntegerv(GL_MAX_DRAW_BUFFERS,        (GLint*)&GpuContext.support.maxRenderTargets) );  // Maximum supported Render Targets count  

@@ -12,8 +12,7 @@
 
 #include "input/oculus.h"
 
-#if defined(EN_PLATFORM_WINDOWS)
-#if OCULUS_VR
+#if defined(EN_MODULE_OCULUS)
 
 #include "core/log/log.h"
 #include "core/rendering/opengl/opengl.h"   // For OpenGL integration
@@ -730,5 +729,4 @@ namespace en
 
    }
 }
-#endif
 #endif

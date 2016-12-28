@@ -74,11 +74,11 @@
 #endif
 
 // Disable until Oculus is piped through using new Rendering frontend.
-/*
-#if defined(EN_PLATFORM_WINDOWS)
-#define EN_MODULE_OCULUS
-#endif
-*/
+
+//#if defined(EN_PLATFORM_WINDOWS)
+//#define EN_MODULE_OCULUS
+//#endif
+
 
 // Disable until Rendering abstraction is finished!
 /*
@@ -123,12 +123,6 @@
 #elif defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_IOS)
    #define EN_OPENGL_MOBILE
    #define EN_MOBILE_GPU
-#endif
-
-// TODO: This should be moved to "platform.h" or similar init header
-// System specyfic includes
-#if defined(EN_PLATFORM_WINDOWS)
-   #include <windows.h>
 #endif
 
 #if defined(EN_PLATFORM_BLACKBERRY)

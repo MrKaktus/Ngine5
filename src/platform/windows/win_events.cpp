@@ -24,6 +24,7 @@
 //#include "core/utilities/TintrusivePointer.h"
 //#include "utilities/utilities.h"
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h> 
 #include <windowsx.h> // For GET_X_PARAM, GET_Y_PARAM which fix multiple monitor issues.
 

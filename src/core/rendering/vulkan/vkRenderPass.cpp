@@ -357,11 +357,13 @@ namespace en
    framebufferInfo.layers          = layers;
 
    // Create framebuffer object
-   VkFramebuffer framebuffer;
+   VkFramebuffer framebuffer = VK_NULL_HANDLE;
    Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, layers));
       
+   delete [] views;
+
    return ptr_reinterpret_cast<Framebuffer>(&result);
    }
    
@@ -398,6 +400,8 @@ namespace en
    // Check if there is depth / depth-stencil / stencil destination
    if (surfaces == 2)
       {
+      assert( _depthStencil || _stencil );
+
       if (_depthStencil)
          views[index] = raw_reinterpret_cast<TextureViewVK>(&_depthStencil)->handle;
       else
@@ -422,11 +426,13 @@ namespace en
    framebufferInfo.layers          = 1u;
 
    // Create framebuffer object
-   VkFramebuffer framebuffer;
+   VkFramebuffer framebuffer = VK_NULL_HANDLE;
    Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, 1u));
       
+   delete [] views;
+
    return ptr_reinterpret_cast<Framebuffer>(&result);
    }
       
@@ -496,11 +502,13 @@ namespace en
    framebufferInfo.layers          = 1u;
 
    // Create framebuffer object
-   VkFramebuffer framebuffer;
+   VkFramebuffer framebuffer = VK_NULL_HANDLE;
    Profile( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = Ptr<FramebufferVK>(new FramebufferVK(gpu, framebuffer, resolution, 1u));
       
+   delete [] views;
+
    return ptr_reinterpret_cast<Framebuffer>(&result);
    }
    
@@ -532,7 +540,7 @@ namespace en
    
    assert( swapChainSurface );
 
-   uint32 surfaces = 1u;
+   uint32 surfaces = 0u;
    bool   resolve  = false;
    uint32 usedAttachments = 1u;
 
@@ -541,14 +549,15 @@ namespace en
    // Color attachment
    VkAttachmentReference attColor;
    attColor.attachment = surfaces;
-   attColor.layout     = ptr->resolve ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+   attColor.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
+   surfaces++;
 
    // Optional Color Resolve
    VkAttachmentReference attResolve;
    if (resolve)
       {
       attResolve.attachment = surfaces;
-      attResolve.layout     = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+      attResolve.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
       surfaces++;
       }
       
@@ -557,7 +566,7 @@ namespace en
    if (depthStencil)
       {
       attDepthStencil.attachment = surfaces;
-      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL; // Why Read-Only? What about write?
       surfaces++;
       }
 
@@ -600,6 +609,7 @@ namespace en
    VkRenderPassCreateInfo passInfo;
    passInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
    passInfo.pNext           = nullptr;
+   passInfo.flags           = 0u;
    passInfo.attachmentCount = surfaces;
    passInfo.pAttachments    = attachment;
    passInfo.subpassCount    = 1;
@@ -608,7 +618,7 @@ namespace en
    passInfo.pDependencies   = nullptr;
 
    // Create renderpass object
-   VkRenderPass renderpass;
+   VkRenderPass renderpass = VK_NULL_HANDLE;
    Profile( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
@@ -773,7 +783,7 @@ namespace en
    passInfo.pDependencies   = nullptr;
 
    // Create renderpass object
-   VkRenderPass renderpass;
+   VkRenderPass renderpass = VK_NULL_HANDLE;
    Profile( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {

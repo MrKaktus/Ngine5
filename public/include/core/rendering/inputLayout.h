@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Input Assembler.
+ Module      : Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,8 +13,8 @@
 
 */
 
-#ifndef ENG_CORE_RENDERING_INPUT_ASSEMBLER
-#define ENG_CORE_RENDERING_INPUT_ASSEMBLER
+#ifndef ENG_CORE_RENDERING_INPUT_LAYOUT
+#define ENG_CORE_RENDERING_INPUT_LAYOUT
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -39,31 +39,11 @@ namespace en
       };                  // (1+) means after how many Instances it should be updated
 
    // Handle for Input Assembler binding specification
-   class InputAssembler : public SafeObject<InputAssembler>
+   class InputLayout : public SafeObject<InputLayout>
       {
       public:
-      virtual ~InputAssembler() {};              // Polymorphic deletes require a virtual base destructor
+      virtual ~InputLayout() {};              // Polymorphic deletes require a virtual base destructor
       };
-   
-   
-   
-   
-   
-   
-   
-   //struct InputAssemblerSettings
-   //   {
-   //   Attribute       format[MaxInputAssemblerAttributesCount]; // Format of each Input Attribute
-   //   Ptr<BufferView> buffer[MaxInputAssemblerAttributesCount]; // Source buffer of each Vertex Attribute 
-   //                                                             // (if several attributes share the same buffer, 
-   //                                                             //  their order in buffer needs to match order in this array)
-   //   InputAssemblerSettings();
-   //   };
-
-      // Creates InputAssembler description from combining attributes from several input buffers.
-      // Each input buffer needs to have specified internal formatting.
-      // virtual Ptr<InputAssembler> GpuDevice::create(const InputAssemblerSettings& attributes) = 0;
-   
    }
 }
 #endif

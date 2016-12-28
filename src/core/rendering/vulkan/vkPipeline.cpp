@@ -20,204 +20,13 @@
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/rendering/vulkan/vkShader.h"
 #include "core/rendering/vulkan/vkRenderPass.h"
+#include "core/rendering/vulkan/vkLayout.h"
 #include "core/rendering/state.h"
 
 namespace en
 {
    namespace gpu
    {
-
-
-
-
-
-//   {
-//   Ptr<SetLayout> result = nullptr;
-//   
-//   // 64 bytes  - Push Constants
-//   // 16KB-64KB - UBO's backed ( Uniform, Storage )
-//   // X GB      - Memory backed ( Storage, Texture, Image )
-//   
-//   // 6 pipeline stages (compute included)
-//   //
-//   
-//   VK_DESCRIPTOR_TYPE_SAMPLER
-//   
-//
-//   enum class ResourceType : uint32
-//      {
-//      Sampler = 0,
-//      Texture    ,
-//      Image      ,
-//      Uniform    ,
-//      Storage    ,
-//      Count
-//      }
-//   
-//   struct ResourcesSet
-//      {
-//      ResourceType type;
-//      uint32       count;
-//      };
-//   
-//   static const D3D12_DESCRIPTOR_RANGE_TYPE TranslateResourceType[underlyingType(ResourceType::Count)] =
-//      {
-//      D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, // Sampler
-//      D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture
-//      D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // Image
-//      D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Uniform
-//      D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Storage
-//      };
-//   
-//   ResourcesSet*
-//   
-//   // SetLayout:
-//   // N - Samplers           - stages: V, F
-//   // K - Immutable Samplers - stages: V
-//   // W - Textures           - stages: F
-//   // H - Images             - stages: V, F
-//   
-//   
-//
-//typedef enum D3D12_SHADER_VISIBILITY
-//{
-// D3D12_SHADER_VISIBILITY_ALL    = 0,
-// D3D12_SHADER_VISIBILITY_VERTEX = 1,
-// D3D12_SHADER_VISIBILITY_HULL   = 2,
-// D3D12_SHADER_VISIBILITY_DOMAIN = 3,
-// D3D12_SHADER_VISIBILITY_GEOMETRY   = 4,
-// D3D12_SHADER_VISIBILITY_PIXEL  = 5
-//} D3D12_SHADER_VISIBILITY;
-//
-//
-//	typedef enum D3D12_DESCRIPTOR_RANGE_TYPE { 
-//	  D3D12_DESCRIPTOR_RANGE_TYPE_SRV, // SRV - Texture
-//	  D3D12_DESCRIPTOR_RANGE_TYPE_UAV, // UAV - Image
-//	  D3D12_DESCRIPTOR_RANGE_TYPE_CBV, // CBV - UBO, Storage
-//	  D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER
-//	} D3D12_DESCRIPTOR_RANGE_TYPE;
-//   
-//   
-//   VK_DESCRIPTOR_TYPE_SAMPLER = 0,                 //   Sampler
-//   VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,  // ? Texture + Sampler (NVidia optimal)
-//   VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE = 2,           //   Texture
-//   VK_DESCRIPTOR_TYPE_STORAGE_IMAGE = 3,           //   Image   (write, atomics, no filtering)
-//   VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER = 4,    // x Buffer Texture backed by UBO memory - buffer texture is simply a way for the shader to directly access a large array of data, generally larger than uniform buffer objects allow.
-//   VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER = 5,    // x Buffer Texture backed by Storage memory (write, atomics)
-//   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6,          //   Uniform
-//   VK_DESCRIPTOR_TYPE_STORAGE_BUFFER = 7,          //   Storage
-//   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,  // * Uniform (dynamic array size, specifcied on runtime)
-//   VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,  //   Storage (dynamic array size, specifcied on runtime)
-//   VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,       // Render Pass Input Attachment for multi-sub-pass graph (Fragment Shader read of RT) 
-//   
-//   // SetLayour - Single Range
-//   VkDescriptorSetLayoutBinding setBinding;
-//   setBinding.binding = i; // Binding the same as in Shader
-//   setBinding.descriptorType = ;// VkDescriptorType
-//   setBinding.descriptorCount = ; // uint32_t
-//VkShaderStageFlags stageFlags;
-//   setBinding.pImmutableSamplers = nullptr; // const VkSampler*
-//
-//   // Table - Single Range
-//	// RegisterSpace -
-//   D3D12_DESCRIPTOR_RANGE rangeInfo;
-//   rangeInfo.RangeType = ; // D3D12_DESCRIPTOR_RANGE_TYPE
-//   rangeInfo.NumDescriptors     = 0; // UINT - -1 or UINT_MAX to specify unbounded size (only last entry)
-//   rangeInfo.BaseShaderRegister = 0; // UINT - register in HLSL resource maps to, for SRVs, 3 maps to ": register(t3);" in HLSL.
-//   rangeInfo.RegisterSpace      = 0; // UINT - register space in which resources are bound
-//   rangeInfo.OffsetInDescriptorsFromTableStart = 0; // UINT - offset in descriptors from the start of the root signature
-//                                                    // D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND - immediatelly follow previous one
-//
-//	
-//
-//   
-//   // Vulkan - SetLayout
-//   VkDescriptorSetLayoutCreateInfo setInfo;
-//   setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-//   setInfo.pNext        = nullptr;
-//   setInfo.flags        = 0; // Reserved for future
-//   setInfo.bindingCount = 0;       // uint32
-//   setInfo.pBindings    = nullptr; // const VkDescriptorSetLayoutBinding*
-//
-//   // D3D12 - Descriptors Table
-//	D3D12_ROOT_DESCRIPTOR_TABLE setInfo;
-//   setInfo.NumDescriptorRanges = 0; // UINT
-//   setInfo.pDescriptorRanges   = nullptr; // const D3D12_DESCRIPTOR_RANGE *
-//
-//
-//
-//   VkDescriptorSetLayout setLayout;
-//      
-//   Profile( gpu, vkCreateDescriptorSetLayout(gpu->device, &setInfo, nullptr, &setLayout) )
-//   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
-//      {
-//      result = ptr_dynamic_cast<SetLayout, SetLayoutVK>(new SetLayoutVK(gpu, setLayout));
-//      }
-//      
-//   return result;
-//   }
-//
-//   
-//   {
-//   Ptr<Layout> result = nullptr;
-//   
-//   uint32 descriptorSets = 0; // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers
-//   
-//   
-//	typedef struct {
-//	    VkShaderStageFlags                          stageFlags;
-//	    uint32_t                                    offset;
-//	    uint32_t                                    size; // <= VkPhysicalDeviceLimits::maxPushConstantsSize - offset
-//	} VkPushConstantRange;
-//   
-//   // total accessible to any given shader stage across all elements of pSetLayouts:
-//   
-//   // VK_DESCRIPTOR_TYPE_SAMPLER
-//   // VK_DESCRIPTOR_ TYPE_COMBINED_IMAGE_SAMPLER
-//   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers
-//   
-//   // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-//   // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
-//   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorUniformBuffers
-//   
-//   // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-//   // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC
-//   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorStorageBuffers
-//   
-//   // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-//   // VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
-//   // VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
-//   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSampledImages
-//   
-//   // VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-//   // VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-//   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorStorageImages
-//  
-//   VkPipelineLayoutCreateInfo layoutInfo;
-//   layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-//   layoutInfo.pNext                  = nullptr;
-//   layoutInfo.flags                  = 0;
-//   layoutInfo.setLayoutCount         = descriptorSets;
-//   layoutInfo.pSetLayouts            = nullptr; // const VkDescriptorSetLayout*
-//   layoutInfo.pushConstantRangeCount = 0;       // uint32_t
-//   layoutInfo.pPushConstantRanges    = nullptr; // const VkPushConstantRange*
-//
-//   VkPipelineLayout layout;
-//   Profile( gpu, vkCreatePipelineLayout(gpu->device, &layoutInfo, nullptr, &layout) )
-//   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
-//      {
-//      result = ptr_dynamic_cast<Layout, LayoutVK>(new LayoutVK(gpu, layout));
-//      }
-//      
-//   return result;
-//   }
-
-
-
-
-
-
-
 
 
 
@@ -314,21 +123,22 @@ namespace en
    
    */
    
+   // This is wrong as ShaderStage is bitmask now, and not a consecutive list of values!!!
+   //const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
+   //   {
+   //   VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
+   //   VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
+   //   VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
+   //   VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
+   //   VK_SHADER_STAGE_FRAGMENT_BIT                ,  // Fragment   
+   //   VK_SHADER_STAGE_COMPUTE_BIT                    // Compute    
+   //   };
 
-   const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
-      {
-      VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
-      VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
-      VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
-      VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
-      VK_SHADER_STAGE_FRAGMENT_BIT                ,  // Fragment   
-      VK_SHADER_STAGE_COMPUTE_BIT                    // Compute    
-      };
 
-
-   PipelineVK::PipelineVK(VulkanDevice* _gpu, VkPipeline _handle) :
+   PipelineVK::PipelineVK(VulkanDevice* _gpu, VkPipeline _handle, bool _graphics) :
       gpu(_gpu),
-      handle(_handle)
+      handle(_handle),
+      graphics(_graphics)
    {
    }
 
@@ -343,10 +153,11 @@ namespace en
 
    // Input Assembler State is Required
    assert( pipelineState.inputAssembler );
- 
+   assert( pipelineState.rasterState );
+
    // Cast to Vulkan states
    const Ptr<RenderPassVK>         renderPass     = ptr_reinterpret_cast<RenderPassVK>(&pipelineState.renderPass);
-   const Ptr<InputAssemblerVK>     input          = ptr_reinterpret_cast<InputAssemblerVK>(&pipelineState.inputAssembler);
+   const Ptr<InputLayoutVK>     input          = ptr_reinterpret_cast<InputLayoutVK>(&pipelineState.inputAssembler);
    const Ptr<ViewportStateVK>      viewport       = ptr_reinterpret_cast<ViewportStateVK>(&pipelineState.viewportState);
    const Ptr<RasterStateVK>        raster         = ptr_reinterpret_cast<RasterStateVK>(&pipelineState.rasterState);
    const Ptr<MultisamplingStateVK> multisampling  = ptr_reinterpret_cast<MultisamplingStateVK>(&pipelineState.multisamplingState); 
@@ -376,12 +187,27 @@ namespace en
          shaderInfo[stage].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
          shaderInfo[stage].pNext  = nullptr;
          shaderInfo[stage].flags  = 0u; // Reserved for future use
-         shaderInfo[stage].stage  = TranslateShaderStage[underlyingType(shader->stage)];
+         shaderInfo[stage].stage  = static_cast<VkShaderStageFlagBits>(underlyingType(shader->stage));
          shaderInfo[stage].module = shader->handle;
          shaderInfo[stage].pName  = pipelineState.function[i].c_str();
          shaderInfo[stage].pSpecializationInfo = nullptr; // Engine is not supporting specialization for now. (const VkSpecializationInfo*)
          stage++;
          }
+
+   // TODO: Cleanup:
+   // Empty, dummy layout
+   VkPipelineLayoutCreateInfo layoutInfo;
+   layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+   layoutInfo.pNext                  = nullptr;
+   layoutInfo.flags                  = 0u;    
+   layoutInfo.setLayoutCount         = 0u;
+   layoutInfo.pSetLayouts            = nullptr;
+   layoutInfo.pushConstantRangeCount = 0;       
+   layoutInfo.pPushConstantRanges    = nullptr;
+
+   VkPipelineLayout layoutHandle = VK_NULL_HANDLE;
+   Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layoutHandle) )
+
 
    // Pipeline state
    VkGraphicsPipelineCreateInfo pipelineInfo;
@@ -389,30 +215,30 @@ namespace en
    pipelineInfo.pNext               = nullptr;
    pipelineInfo.flags               = 0;
 #ifdef EN_DEBUG
-   pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
+//   pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
 #endif
    pipelineInfo.stageCount          = stages;
    pipelineInfo.pStages             = shaderInfo;
-   pipelineInfo.pVertexInputState   = (input->state.vertexAttributeDescriptionCount > 0) ? &input->state : VK_NULL_HANDLE; // optional - nullptr == Use Programmable Vertex Fetch
+   pipelineInfo.pVertexInputState   = &input->state;
    pipelineInfo.pInputAssemblyState = &input->statePrimitive;
-   pipelineInfo.pTessellationState  = (input->stateTessellator.patchControlPoints > 0) ?  &input->stateTessellator : VK_NULL_HANDLE; // optional - nullptr == Tessellation Disabled
-   pipelineInfo.pViewportState      = viewport      ? &viewport->state         : VK_NULL_HANDLE;
-   pipelineInfo.pRasterizationState = raster        ? &raster->state           : VK_NULL_HANDLE;
-   pipelineInfo.pMultisampleState   = multisampling ? &multisampling->state    : VK_NULL_HANDLE; // optional - nullptr == Multisampling Disabled
-   pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == disabled
-   pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Blending Disabled
+   pipelineInfo.pTessellationState  = (input->stateTessellator.patchControlPoints > 0) ?  &input->stateTessellator : VK_NULL_HANDLE; // optional - nullptr == Tessellation is Disabled
+   pipelineInfo.pViewportState      = viewport      ? &viewport->state         : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled
+   pipelineInfo.pRasterizationState = &raster->state;
+   pipelineInfo.pMultisampleState   = multisampling ? &multisampling->state    : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled
+   pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled (or subpass has no Depth-Stencil Attachments)
+   pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled (or subpass has no Color Attachments)
    pipelineInfo.pDynamicState       = nullptr;        // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
-   pipelineInfo.layout              = layout->state;
+   pipelineInfo.layout              = layout->handle;
    pipelineInfo.renderPass          = renderPass->handle;
    pipelineInfo.subpass             = 0u;             // TODO: For now engine is not supporting subpasses except default one.
    pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE; // Pipeline to derive from. (optional)
    pipelineInfo.basePipelineIndex   = -1;
 
    // Create pipeline state object
-   VkPipeline pipeline;
-   Profile( this, vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineInfo, nullptr, &pipeline) )
+   VkPipeline pipeline = VK_NULL_HANDLE;
+   Profile( this, vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) )  // pipelineCache
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = new PipelineVK(this, pipeline);
+      result = new PipelineVK(this, pipeline, true);
 
    delete [] shaderInfo;
 

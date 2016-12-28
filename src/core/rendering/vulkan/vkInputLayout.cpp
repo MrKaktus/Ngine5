@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Vulkan Input Assembler.
+ Module      : Vulkan Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,7 +13,7 @@
 
 */
 
-#include "core/rendering/vulkan/vkInputAssembler.h"
+#include "core/rendering/vulkan/vkInputLayout.h"
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
@@ -149,6 +149,84 @@ namespace en
      // VK_FORMAT_A2B10G10R10_SSCALED_PACK32 ,   // VertexFormat::RGBA_10_10_10_2_scf
      // VK_FORMAT_A2R10G10B10_USCALED_PACK32 ,   // VertexFormat::BGRA_10_10_10_2_ucf
      // VK_FORMAT_A2R10G10B10_SSCALED_PACK32 ,   // VertexFormat::BGRA_10_10_10_2_scf
+
+   // Size of each attribute in memory taking into notice required padding
+   const uint8 AttributeSize[underlyingType(Attribute::Count)] =
+      {
+      0,    // None           
+      1,    // u8_norm                
+      1,    // s8_norm                
+      1,    // u8                     
+      1,    // s8                     
+      2,    // u16_norm               
+      2,    // s16_norm               
+      2,    // u16                    
+      2,    // s16                    
+      2,    // f16                    
+      4,    // u32                   
+      4,    // s32                   
+      4,    // f32                   
+      8,    // u64                    
+      8,    // s64                    
+      8,    // f64                    
+      2,    // v2u8_norm              
+      2,    // v2s8_norm              
+      2,    // v2u8                   
+      2,    // v2s8                   
+      4,    // v2u16_norm            
+      4,    // v2s16_norm            
+      4,    // v2u16                 
+      4,    // v2s16                 
+      4,    // v2f16                 
+      8,    // v2u32                 
+      8,    // v2s32                 
+      8,    // v2f32                 
+      16,   // v2u64                  
+      16,   // v2s64                  
+      16,   // v2f64                  
+      3,    // v3u8_norm              
+      3,    // v3u8_srgb              
+      3,    // v3s8_norm              
+      3,    // v3u8                   
+      3,    // v3s8                   
+      6,    // v3u16_norm             
+      6,    // v3s16_norm             
+      6,    // v3u16                  
+      6,    // v3s16                  
+      6,    // v3f16                  
+      12,   // v3u32
+      12,   // v3s32
+      12,   // v3f32                  
+      24,   // v3u64                  
+      24,   // v3s64                  
+      24,   // v3f64                  
+      4,    // v4u8_norm             
+      4,    // v4s8_norm             
+      4,    // v4u8                  
+      4,    // v4s8                  
+      8,    // v4u16_norm            
+      8,    // v4s16_norm            
+      8,    // v4u16                 
+      8,    // v4s16                 
+      8,    // v4f16                 
+      16,   // v4u32                 
+      16,   // v4s32                 
+      16,   // v4f32                 
+      32,   // v4u64                  
+      32,   // v4s64                  
+      32,   // v4f64                  
+      4,    // v3f11_11_10            
+      4,    // v4u10_10_10_2_norm    
+      4,    // v4s10_10_10_2_norm    
+      4,    // v4u10_10_10_2          
+      4,    // v4s10_10_10_2          
+      4,    // v4u10_10_10_2_norm_rev 
+      4,    // v4s10_10_10_2_norm_rev 
+      4,    // v4u10_10_10_2_rev      
+      4,    // v4s10_10_10_2_rev      
+      };
+
+
 
 
 
@@ -424,7 +502,7 @@ namespace en
    // - array of buffer settings descriptions
 
 
-// GpuContext.support.maxInputAssemblerAttributesCount;
+// GpuContext.support.maxInputLayoutAttributesCount;
 
 
 
@@ -447,8 +525,8 @@ namespace en
    // Offsets and strides will be calculated based on these buffers.
 
 
-   //Ptr<InputAssembler> Interface::IInputAssembler::Create(Attribute&  attribute[MaxInputAssemblerAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-   //                                                       Ptr<Buffer> buffer[MaxInputAssemblerAttributesCount])      // Array of buffer handles that will be used
+   //Ptr<InputLayout> Interface::IInputLayout::Create(Attribute&  attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
+   //                                                       Ptr<Buffer> buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
    //{
    //}
 
@@ -459,7 +537,7 @@ namespace en
    //   };
 
 
-   InputAssemblerVK::InputAssemblerVK(const DrawableType primitiveType,
+   InputLayoutVK::InputLayoutVK(const DrawableType primitiveType,
                                       const uint32 controlPoints, 
                                       const uint32 usedAttributes, 
                                       const uint32 usedBuffers, 
@@ -469,6 +547,7 @@ namespace en
    // Describe Primitive Type stored in incoming buffers
    statePrimitive.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
    statePrimitive.pNext                  = nullptr;
+   statePrimitive.flags                  = 0u;
    statePrimitive.topology               = TranslateDrawableType[primitiveType];
    statePrimitive.primitiveRestartEnable = VK_FALSE;
    //
@@ -485,16 +564,18 @@ namespace en
    // Optional: Describe Tessellation Incoming Patch size
    stateTessellator.sType                = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
    stateTessellator.pNext                = nullptr;
-   stateTessellator.patchControlPoints   = (primitiveType == Patches) ? controlPoints : 0;
+   stateTessellator.flags                = 0u;
+   stateTessellator.patchControlPoints   = (primitiveType == Patches) ? controlPoints : 0u;
 
    // Optional: Describe Attributes mappings
    state.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
    state.pNext                           = nullptr;
+   state.flags                           = 0u;
    state.vertexBindingDescriptionCount   = usedBuffers;
-   state.pVertexBindingDescriptions      = new VkVertexInputBindingDescription[usedBuffers];
+   state.pVertexBindingDescriptions      = usedBuffers ? new VkVertexInputBindingDescription[usedBuffers] : nullptr;
    state.vertexAttributeDescriptionCount = usedAttributes;
-   state.pVertexAttributeDescriptions    = new VkVertexInputAttributeDescription[usedAttributes];
-   
+   state.pVertexAttributeDescriptions    = usedAttributes ? new VkVertexInputAttributeDescription[usedAttributes] : nullptr;
+
    for(uint32 i=0; i<usedBuffers; ++i)
       {
       VkVertexInputBindingDescription* desc = (VkVertexInputBindingDescription*)(&state.pVertexBindingDescriptions[i]);
@@ -520,20 +601,20 @@ namespace en
    }
    
    // Implemented by CommonDevice
-   // Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
-   //                                          const uint32 controlPoints,
-   //                                          const Ptr<Buffer> buffer)
+   // Ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+   //                                                  const uint32 controlPoints,
+   //                                                  const Ptr<Buffer> buffer)
       
-   Ptr<InputAssembler> VulkanDevice::create(const DrawableType primitiveType,
-                                            const uint32 controlPoints,
-                                            const uint32 usedAttributes,
-                                            const uint32 usedBuffers,
-                                            const AttributeDesc* attributes,
-                                            const BufferDesc* buffers)
+   Ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+                                                    const uint32 controlPoints,
+                                                    const uint32 usedAttributes,
+                                                    const uint32 usedBuffers,
+                                                    const AttributeDesc* attributes,
+                                                    const BufferDesc* buffers)
    {
-   Ptr<InputAssemblerVK> input = Ptr<InputAssemblerVK>(new InputAssemblerVK(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+   Ptr<InputLayoutVK> input = Ptr<InputLayoutVK>(new InputLayoutVK(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
-   return ptr_dynamic_cast<InputAssembler, InputAssemblerVK>(input);
+   return ptr_dynamic_cast<InputLayout, InputLayoutVK>(input);
    }
 
    }

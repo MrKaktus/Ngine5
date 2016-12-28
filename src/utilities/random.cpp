@@ -13,8 +13,13 @@
 #include "core/types.h"
 #include "utilities/random.h"
 
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
 #include "time.h"
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #endif
 
 // Generates random number in range [0,max-1]
@@ -22,13 +27,13 @@ uint32 random(uint32 max)
 {
 uint32 result = 0;
 
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
 struct timespec now;
 clock_gettime(CLOCK_MONOTONIC, &now);
 result = ((uint32)now.tv_sec * 1000000000LL + now.tv_nsec) % max;
 #endif
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_WINDOWS)
 result = GetTickCount() % max;
 #endif
 

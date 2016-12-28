@@ -2,7 +2,7 @@
 
  Ngine v5.0
  
- Module      : Metal Input Assembler.
+ Module      : Metal Input Layout.
  Requirements: none
  Description : Rendering context supports window
                creation and management of graphics
@@ -13,7 +13,7 @@
 
 */
 
-#include "core/rendering/metal/mtlInputAssembler.h"
+#include "core/rendering/metal/mtlInputLayout.h"
 
 #if defined(EN_MODULE_RENDERER_METAL)
 
@@ -263,7 +263,7 @@ namespace en
    uint32 elementSize; // Size of single element (row size)
    
 
-   InputAssemblerMTL::InputAssemblerMTL(const DrawableType primitiveType,
+   InputLayoutMTL::InputLayoutMTL(const DrawableType primitiveType,
                                         const uint32 controlPoints, 
                                         const uint32 usedAttributes, 
                                         const uint32 usedBuffers, 
@@ -294,25 +294,25 @@ namespace en
       }
    }
    
-   InputAssemblerMTL::~InputAssemblerMTL()
+   InputLayoutMTL::~InputLayoutMTL()
    {
    [desc release];
    }
 
-   Ptr<InputAssembler> MetalDevice::create(const DrawableType primitiveType,
-                                           const uint32 controlPoints,
-                                           const uint32 usedAttributes,
-                                           const uint32 usedBuffers,
-                                           const AttributeDesc* attributes,
-                                           const BufferDesc* buffers)
+   Ptr<InputLayout> MetalDevice::createInputLayout(const DrawableType primitiveType,
+                                                   const uint32 controlPoints,
+                                                   const uint32 usedAttributes,
+                                                   const uint32 usedBuffers,
+                                                   const AttributeDesc* attributes,
+                                                   const BufferDesc* buffers)
    {
-   Ptr<InputAssemblerMTL> input = Ptr<InputAssemblerMTL>(new InputAssemblerMTL(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+   Ptr<InputLayoutMTL> input = Ptr<InputLayoutMTL>(new InputLayoutMTL(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
-   return ptr_dynamic_cast<InputAssembler, InputAssemblerMTL>(input);
+   return ptr_dynamic_cast<InputLayout, InputLayoutMTL>(input);
    }
 
 
-//   Ptr<InputAssembler> MetalDevice::create(Ptr<BufferView> buffer)
+//   Ptr<InputLayout> MetalDevice::create(Ptr<BufferView> buffer)
 //   {
 //   AttributeDesc* attributes = new AttributeDesc[buffer->attributes];
 //   
@@ -320,27 +320,27 @@ namespace en
 //   buffers.elementSize = buffer->elementSize;
 //   buffers.stepRate = 0;
 //
-//   Ptr<InputAssemblerMTL> input = nullptr;
+//   Ptr<InputLayoutMTL> input = nullptr;
 //   
-//   input = new InputAssemblerMTL(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
+//   input = new InputLayoutMTL(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
 //   
 //   delete [] attributes;
 //   
-//   return ptr_dynamic_cast<InputAssember, InputAssemblerMTL>(input);
+//   return ptr_dynamic_cast<InputAssember, InputLayoutMTL>(input);
 //   }
 //
-//   Ptr<InputAssembler> MetalDevice::create(InputAssemblerSettings& attributes)
+//   Ptr<InputLayout> MetalDevice::create(InputLayoutSettings& attributes)
 //   {
-//   Ptr<InputAssemblerMTL> input = nullptr;
+//   Ptr<InputLayoutMTL> input = nullptr;
 //   
-//   input = new InputAssemblerMTL(primitiveType, controlPoints,
+//   input = new InputLayoutMTL(primitiveType, controlPoints,
 // 
 //                                        const uint32 usedAttributes, 
 //                                        const uint32 usedBuffers, 
 //                                        const AttributeDesc* attributes,  
 //                                        const BufferDesc* buffers
 //   
-//   return ptr_dynamic_cast<InputAssember, InputAssemblerMTL>(input);
+//   return ptr_dynamic_cast<InputAssember, InputLayoutMTL>(input);
 //   }
 
 
@@ -348,14 +348,14 @@ namespace en
 
 
 
-   //  Ptr<InputAssembler> Create(AttributeInfo& attribute[MaxInputAssemblerAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-   //                             Ptr<Buffer>    buffer[MaxInputAssemblerAttributesCount])      // Array of buffer handles that will be used
+   //  Ptr<InputLayout> Create(AttributeInfo& attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
+   //                             Ptr<Buffer>    buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
    //  {
-   //  Ptr<InputAssemblerMTL> state = new InputAssemblerMTL();
+   //  Ptr<InputLayoutMTL> state = new InputLayoutMTL();
    //  
    //  // Create array describing buffers used by Vertex Fetch.
    //  uint32 buffers = 0;
-   //  for(; buffers<MaxInputAssemblerAttributesCount; ++buffers)
+   //  for(; buffers<MaxInputLayoutAttributesCount; ++buffers)
    //     {
    //     // Passed array of buffers need to be tightly packed
    //     if (!buffer[buffers])
@@ -382,12 +382,12 @@ namespace en
    //     }
    //  
    //  // Describe attributes and their connection with input buffers
-   //  uint32 offset[MaxInputAssemblerAttributesCount];
-   //  memset(&offset, 0, sizeof(uint32) * MaxInputAssemblerAttributesCount);
+   //  uint32 offset[MaxInputLayoutAttributesCount];
+   //  memset(&offset, 0, sizeof(uint32) * MaxInputLayoutAttributesCount);
    //  
-   //  for(uint32 i=0; i<MaxInputAssemblerAttributesCount; ++i)
+   //  for(uint32 i=0; i<MaxInputLayoutAttributesCount; ++i)
    //     {
-   //     assert( attribute[i].buffer < MaxInputAssemblerAttributesCount );
+   //     assert( attribute[i].buffer < MaxInputLayoutAttributesCount );
    //  
    //     // Calculate new offset in currently used buffer
    //     uint32 attributeSize = AttributeSize[ attribute[i].type ];
@@ -405,7 +405,7 @@ namespace en
    //     offset[ attribute[i].buffer ] += attributeSize;
    //     }
    //  
-   //  return ptr_dynamic_cast<InputAssembler, InputAssemblerMTL>(state);
+   //  return ptr_dynamic_cast<InputLayout, InputLayoutMTL>(state);
    //  }
 
    }

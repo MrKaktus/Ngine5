@@ -33,6 +33,7 @@ static mach_timebase_info_data_t timebase = { 0, 0 };
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
