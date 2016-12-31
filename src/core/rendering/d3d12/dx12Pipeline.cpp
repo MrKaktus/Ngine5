@@ -17,12 +17,12 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
-#include "core/rendering/d3d12/dx12InputAssembler.h"
+#include "core/rendering/d3d12/dx12InputLayout.h"
 #include "core/rendering/d3d12/dx12RenderPass.h"
 #include "core/rendering/d3d12/dx12Blend.h"
 #include "core/rendering/d3d12/dx12Multisampling.h"
 #include "core/rendering/d3d12/dx12Shader.h"
-
+#include "core/rendering/d3d12/dx12Layout.h"
 #include "core/rendering/d3d12/dx12Device.h"
 
 namespace en
@@ -42,7 +42,7 @@ namespace en
       D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH    , // Patches
       };
     
-   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, const ID3D12PipelineState* _handle) :
+   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, ID3D12PipelineState* _handle) :
       gpu(_gpu),
       handle(_handle)
    {
@@ -51,7 +51,7 @@ namespace en
    PipelineD3D12::~PipelineD3D12()
    {
    assert( handle );
-   handle->Release();
+   ProfileCom(  handle->Release() )
    handle = nullptr;
    }
 
@@ -59,26 +59,41 @@ namespace en
    {
    Ptr<PipelineD3D12> result = nullptr;
 
-   // Input Assembler State is Required
-   assert( pipelineState.inputAssembler );
- 
+   // Pipeline object is always created against Render Pass, and app responsibility is to
+   // provide missing states (ViewportState, Shaders).
+   assert( pipelineState.renderPass );
+   assert( pipelineState.viewportState );
+
    // Cast to D3D12 states
    const RenderPassD3D12*         renderPass     = raw_reinterpret_cast<RenderPassD3D12>(&pipelineState.renderPass);
-   const InputAssemblerD3D12*     input          = raw_reinterpret_cast<InputAssemblerD3D12>(&pipelineState.inputAssembler);
+
+   const InputLayoutD3D12*        input          = pipelineState.inputLayout ? raw_reinterpret_cast<InputLayoutD3D12>(&pipelineState.inputLayout)
+                                                                             : raw_reinterpret_cast<InputLayoutD3D12>(&defaultState->inputLayout);
+
+   const ViewportStateD3D12*      viewport       = raw_reinterpret_cast<ViewportStateD3D12>(&pipelineState.viewportState);
 
    const RasterStateD3D12*        raster         = pipelineState.rasterState ? raw_reinterpret_cast<RasterStateD3D12>(&pipelineState.rasterState)
-                                                                             : raw_reinterpret_cast<RasterStateD3D12>(&defaultState.rasterState);
+                                                                             : raw_reinterpret_cast<RasterStateD3D12>(&defaultState->rasterState);
 
    const MultisamplingStateD3D12* multisampling  = pipelineState.multisamplingState ? raw_reinterpret_cast<MultisamplingStateD3D12>(&pipelineState.multisamplingState)
-                                                                                    : raw_reinterpret_cast<MultisamplingStateD3D12>(&defaultState.multisamplingState);
+                                                                                    : raw_reinterpret_cast<MultisamplingStateD3D12>(&defaultState->multisamplingState);
       
    const DepthStencilStateD3D12*  depthStencil   = pipelineState.depthStencilState ? raw_reinterpret_cast<DepthStencilStateD3D12>(&pipelineState.depthStencilState)
-                                                                                   : raw_reinterpret_cast<DepthStencilStateD3D12>(&defaultState.depthStencilState);
+                                                                                   : raw_reinterpret_cast<DepthStencilStateD3D12>(&defaultState->depthStencilState);
 
    const BlendStateD3D12*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateD3D12>(&pipelineState.blendState)
-                                                                            : raw_reinterpret_cast<BlendStateD3D12>(&defaultState.blendState);
+                                                                            : raw_reinterpret_cast<BlendStateD3D12>(&defaultState->blendState);
 
-   const PipelineLayoutD3D12*     layout         = raw_reinterpret_cast<PipelineLayoutD3D12>(&pipelineState.pipelineLayout);
+   const PipelineLayoutD3D12*     layout         = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutD3D12>(&pipelineState.pipelineLayout) 
+                                                                                : raw_reinterpret_cast<PipelineLayoutD3D12>(&defaultState->pipelineLayout);
+
+   // Count amount of shader stages in use
+   uint32 stages = 0;
+   for(uint32 i=0; i<5; ++i)
+      if (pipelineState.shader[i])
+         stages++;
+
+   assert( stages > 0 );
 
    // At this point, those states should be set by app or device (Direct3D12 doesn't allow null states)
    assert( raster );
@@ -92,7 +107,7 @@ namespace en
 
    // Pipeline descriptor
    D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
-  ID3D12RootSignature                *pRootSignature;  // TODO: <--- Layout cast
+   ID3D12RootSignature                *pRootSignature;  // TODO: <--- Layout cast
   
    desc.VS                    = pipelineState.shader[0] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[0])->state : noShader;
    desc.PS                    = pipelineState.shader[4] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[4])->state : noShader;
@@ -117,10 +132,12 @@ namespace en
                              // Do we need to distinguish u16 and u32 types?
                              // D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF;
    desc.PrimitiveTopologyType = TranslateDrawableTopology[underlyingType(input->primitive)];
-   desc.NumRenderTargets      = renderPass->NumRenderTargets;
-   for(uint32 i=0; i<8; ++i)
-      desc.RTVFormats[i]      = renderPass->RTVFormats[i];
-   desc.DSVFormat             = renderPass->DSVFormat;
+   desc.NumRenderTargets      = 0;
+   if (highestBit(renderPass->usedAttachments, desc.NumRenderTargets))
+      desc.NumRenderTargets++;
+   for(uint32 i=0; i<desc.NumRenderTargets; ++i)
+      desc.RTVFormats[i]      = renderPass->colorState[i].format;
+   desc.DSVFormat             = renderPass->depthState.format;
    desc.SampleDesc            = multisampling->state;
    desc.NodeMask              = 0u; // Only use for multi-GPU
    desc.CachedPSO.pCachedBlob           = nullptr;
@@ -138,9 +155,9 @@ namespace en
    // Create pipeline state object
    ID3D12PipelineState* pipeline;
    Profile( this, CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline)) ) // __uuidof(ID3D12PipelineState), reinterpret_cast<void**>(&pipeline)
-   if (SUCCEDED(lastResult[Scheduler.core()]))
+   if (SUCCEEDED(lastResult[Scheduler.core()]))
       {
-      result = new PipelineD3D12(pipeline);
+      result = new PipelineD3D12(this, pipeline);
       
       // Pass-Through - Dynamic, set on CommandBuffer
       result->blendColor[0] = blend->blendColor.r;

@@ -36,7 +36,7 @@ namespace en
       D3D12_SHADER_BYTECODE state;
       ShaderStage    stage;
 
-      ShaderD3D12(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
+      //ShaderD3D12(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
       virtual ~ShaderD3D12();
       };
 

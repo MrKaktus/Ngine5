@@ -21,8 +21,8 @@
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 #include "core/rendering/renderPass.h"
-#include "core/rendering/d3d12/dxDevice.h"
-#include "core/rendering/d3d12/dxTexture.h"
+#include "core/rendering/d3d12/dx12.h"
+#include "core/rendering/d3d12/dx12Texture.h"
 
 namespace en
 {
@@ -36,6 +36,9 @@ namespace en
       LoadOperation  loadOp;
       StoreOperation storeOp;
       bool           resolve;
+
+      ColorState();
+      ColorState(const DXGI_FORMAT format, const uint32 samples);
       };
       
    struct DepthState
@@ -49,17 +52,13 @@ namespace en
       uint32         clearStencil;
       
       DepthState();
+      DepthState(const uint32 samples);
       };
       
    class ColorAttachmentD3D12 : public ColorAttachment
       {
       public:
-      float4         clearValue;
-      DXGI_FORMAT    format;     // Attachment and optional Resolve format (they must match)
-      uint32         samples;
-      LoadOperation  loadOp;
-      StoreOperation storeOp;
-      bool           resolve;
+      ColorState state;
 
       ColorAttachmentD3D12(const Format format, const uint32 samples);
 
@@ -129,7 +128,6 @@ namespace en
       bool        depthStencil;
       
       RenderPassD3D12(const uint32 usedAttachments,
-                      const uint32 surfaces,
                       const bool   _resolve,
                       const bool   _depthStencil);
 

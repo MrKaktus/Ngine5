@@ -294,7 +294,7 @@ namespace en
 
    PipelineState::PipelineState() :
       renderPass(nullptr),
-      inputAssembler(nullptr),
+      inputLayout(nullptr),
       viewportState(nullptr),
       rasterState(nullptr),
       multisamplingState(nullptr),
@@ -308,7 +308,7 @@ namespace en
 
    PipelineState::PipelineState(const PipelineState& src) :
       renderPass(src.renderPass),
-      inputAssembler(src.inputAssembler),
+      inputLayout(src.inputLayout),
       viewportState(src.viewportState),
       rasterState(src.rasterState),
       multisamplingState(src.multisamplingState),
@@ -332,7 +332,7 @@ namespace en
    // viewportState
    // shader[5]
    //
-   inputAssembler     = device->createInputLayout(TriangleStripes);
+   inputLayout        = device->createInputLayout(TriangleStripes);
 
    RasterStateInfo defaultRasterState;
    rasterState        = device->createRasterState(defaultRasterState);

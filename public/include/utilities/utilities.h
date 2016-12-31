@@ -46,7 +46,10 @@ namespace en
    #define bitsChanged(previous, current, bitMask) ((current & bitMask) != (previous & bitMask))
 
    uint32 bitsCount(uint32 number);
- 
+
+   // Returns position of first set MSB, or false if in is 0
+   bool highestBit(uint32 in, uint32& number);
+
    // Checks if given value is in range
    template<typename T>
    bool inRange(T value, T min, T max)

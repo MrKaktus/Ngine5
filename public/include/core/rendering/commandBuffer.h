@@ -77,7 +77,7 @@ namespace en
                                    const uint64 offset = 0u) const = 0;
 
       virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> buffer) = 0;
+                        Ptr<Buffer> destination) = 0;
          
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Buffer> destination,

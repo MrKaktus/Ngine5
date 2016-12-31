@@ -325,7 +325,7 @@ namespace en
    winWindow::~winWindow()
    {
    // Reset to old display settings
-   if (_fullscreen)
+   if (_mode == WindowMode::Fullscreen)
       {
       ChangeDisplaySettings(nullptr, 0);
       ShowCursor(TRUE);
@@ -360,7 +360,11 @@ namespace en
    {
    if (_mode != WindowMode::Windowed)
       return;
-      
+     
+   DWORD Style;       // Window style
+   DWORD ExStyle;     // Window extended style
+   RECT  WindowRect;  // Window rectangle
+ 
    // New window size
    WindowRect.left      = (long)0;      
    WindowRect.right     = (long)size.width;
@@ -898,7 +902,7 @@ namespace en
                                                                           // new image arrives from presentation engine.
       VkPresentInfoKHR info;
       info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-      info.pNext              = _fullscreen ? &displayInfo : nullptr;     // If using VK_KHR_display_swapchain, pass additional information.
+      info.pNext              = _mode == WindowMode::Fullscreen ? &displayInfo : nullptr; // If using VK_KHR_display_swapchain, pass additional information.
       info.waitSemaphoreCount = 0u;      
       info.pWaitSemaphores    = nullptr;         // At least one Semaphore, indicating that rendering to presentation surface is done (if not used waitUntilComplete).
       info.swapchainCount     = 1u;              // Can present Swap-Chains of multiple windows at the same time (then we pass array of those and their surface id's).

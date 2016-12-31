@@ -66,24 +66,36 @@ namespace en
    {
    Ptr<PipelineMTL> pipeline = nullptr;
 
-   // Required States
+   // Pipeline object is always created against Render Pass, and app responsibility is to
+   // provide missing states (ViewportState, Shaders).
    assert( pipelineState.renderPass );
-   assert( pipelineState.inputAssembler );
-   assert( pipelineState.blendState );
    assert( pipelineState.viewportState );
-   assert( pipelineState.shader[0] );
-   
-   // Fragment Shader is optional if rasterization is disabled
-   const Ptr<RasterStateMTL> rasterizer = ptr_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState);
-   assert( pipelineState.shader[4] ||
-           (!pipelineState.shader[4] && pipelineState.rasterState &&
-            !ptr_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState)->enableRasterization) );
-   
-   // Cast to Metal states
-   const Ptr<RenderPassMTL>     pass     = ptr_reinterpret_cast<RenderPassMTL>(&pipelineState.renderPass);
-   const Ptr<InputLayoutMTL> input    = ptr_reinterpret_cast<InputLayoutMTL>(&pipelineState.inputAssembler);
-   const Ptr<BlendStateMTL>     blend    = ptr_reinterpret_cast<BlendStateMTL>(&pipelineState.blendState);
 
+   // Cast to D3D12 states
+   const RenderPassMTL*         renderPass     = raw_reinterpret_cast<RenderPassMTL>(&pipelineState.renderPass);
+
+   const InputLayoutMTL*        input          = pipelineState.inputLayout ? raw_reinterpret_cast<InputLayoutMTL>(&pipelineState.inputLayout)
+                                                                           : raw_reinterpret_cast<InputLayoutMTL>(&defaultState->inputLayout);
+
+   const MultisamplingStateMTL* multisampling  = pipelineState.multisamplingState ? raw_reinterpret_cast<MultisamplingStateMTL>(&pipelineState.multisamplingState)
+                                                                                  : raw_reinterpret_cast<MultisamplingStateMTL>(&defaultState->multisamplingState);
+      
+   const BlendStateMTL*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateMTL>(&pipelineState.blendState)
+                                                                          : raw_reinterpret_cast<BlendStateMTL>(&defaultState->blendState);
+
+   const PipelineLayoutMTL*     layout         = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutMTL>(&pipelineState.pipelineLayout) 
+                                                                              : raw_reinterpret_cast<PipelineLayoutMTL>(&defaultState->pipelineLayout);
+
+   // Minimum Vertex Shader is required (Tessellation and Geometry Shaders are not supported by Metal)
+   assert( pipelineState.shader[0] );
+   assert( pipelineState.shader[1] == nullptr );
+   assert( pipelineState.shader[2] == nullptr );
+   assert( pipelineState.shader[3] == nullptr );
+		    
+   // Fragment Shader is optional if rasterization is disabled
+   assert( pipelineState.shader[4] ||
+           (!pipelineState.shader[4] && !raster->enableRasterization) );
+   
    // Extract entry point functions from shader libraries
    // TODO: This may not be optimal?
    NSError* error = nil;
@@ -118,7 +130,7 @@ namespace en
    pipeDesc.sampleCount                  = 1;
    pipeDesc.alphaToCoverageEnabled       = NO;
    pipeDesc.alphaToOneEnabled            = NO;
-   pipeDesc.rasterizationEnabled         = YES;
+   pipeDesc.rasterizationEnabled         = rasterizer->enableRasterization; // Optional Rasterization State
    for(uint32 i=0; i<8; ++i)                                  // TODO: Change 8 to support.maxColorAttachments
       pipeDesc.colorAttachments[i]       = blend->blendInfo[i];  // Copy descriptors
    pipeDesc.depthAttachmentPixelFormat   = MTLPixelFormatInvalid;
@@ -127,32 +139,24 @@ namespace en
     
    // Required Pipeline State depending from Render Pass
    for(uint32 i=0; i<8; ++i)                                  // TODO: Change 8 to support.maxColorAttachments
-      pipeDesc.colorAttachments[i].pixelFormat = TranslateTextureFormat[underlyingType(pass->format[i])];
+      pipeDesc.colorAttachments[i].pixelFormat = TranslateTextureFormat[underlyingType(renderPass->format[i])];
 
    // Optional Multisample State
-   if (pipelineState.multisamplingState)
+   if (multisampling != raw_reinterpret_cast<MultisamplingStateMTL>(&defaultState->multisamplingState))
       {
-      const Ptr<MultisamplingStateMTL> multisampling = ptr_reinterpret_cast<MultisamplingStateMTL>(&pipelineState.multisamplingState);
-
       pipeDesc.sampleCount               = multisampling->samples;
       pipeDesc.alphaToCoverageEnabled    = multisampling->alphaToCoverage;
       pipeDesc.alphaToOneEnabled         = multisampling->alphaToOne;
       }
-      
-   // Optional Rasterization State
-   if (pipelineState.rasterState)
-      {
-      pipeDesc.rasterizationEnabled      = rasterizer->enableRasterization;
-      }
-   
+ 
    // Optional Pipeline State depending from Render Pass
-   if (pass->desc.depthAttachment.texture)
-      pipeDesc.depthAttachmentPixelFormat   = TranslateTextureFormat[underlyingType(pass->format[8])];
-   if (pass->desc.stencilAttachment.texture)
-      pipeDesc.stencilAttachmentPixelFormat = TranslateTextureFormat[underlyingType(pass->format[9])];
+   if (renderPass->desc.depthAttachment.texture)
+      pipeDesc.depthAttachmentPixelFormat   = TranslateTextureFormat[underlyingType(renderPass->format[8])];
+   if (renderPass->desc.stencilAttachment.texture)
+      pipeDesc.stencilAttachmentPixelFormat = TranslateTextureFormat[underlyingType(renderPass->format[9])];
       
    // TODO: !! This is stored now in Framebuffer !
-   if (pass->desc.renderTargetArrayLength > 0) // Metal 1.0 for OSX - Default is unspecified, but needs to be set, when layered rendering is performed.
+   if (renderPass->desc.renderTargetArrayLength > 0) // Metal 1.0 for OSX - Default is unspecified, but needs to be set, when layered rendering is performed.
       pipeDesc.inputPrimitiveTopology       = TranslateDrawableTopology[input->primitive];
 
    // Create Pipeline

@@ -314,7 +314,7 @@ namespace en
    LPDIRECTINPUTDEVICE8 handle;
    HRESULT hr;
 
-   Ptr<WinInterface> input = ptr_dynamic_cast<WinInterface, Interface>(en::Input);
+   WinInterface* input = raw_reinterpret_cast<WinInterface>(&en::Input);
 
    // Try to obtain interface to enumerated joystick. 
    // If it fails, it is possible that user unplugged it during enumeration.
@@ -372,13 +372,6 @@ namespace en
    mouses.push_back(Ptr<Mouse>(new WinMouse()));
    count[underlyingType(IO::Mouse)]++;
 
-   // Create DirectInput device
-   HRESULT hr;
-   if (SUCCEEDED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&directInput, NULL))) 
-      {
-      // Register joysticks
-      hr = directInput->EnumDevices(DI8DEVCLASS_GAMECTRL, initJoystick, NULL, DIEDFL_ATTACHEDONLY);
-      }
    }
    
    WinInterface::~WinInterface()
@@ -394,6 +387,19 @@ namespace en
 #if defined(EN_MODULE_OPENVR)
    CloseOpenVR();
 #endif
+   }
+
+   void WinInterface::init(void)
+   {
+   CommonInterface::init();
+
+   // Create DirectInput device
+   HRESULT hr;
+   if (SUCCEEDED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&directInput, NULL))) 
+      {
+      // Register joysticks
+      hr = directInput->EnumDevices(DI8DEVCLASS_GAMECTRL, initJoystick, NULL, DIEDFL_ATTACHEDONLY);
+      }
    }
 
    void WinInterface::update()

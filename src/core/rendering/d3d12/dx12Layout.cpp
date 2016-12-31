@@ -147,6 +147,57 @@ namespace en
    return ptr_reinterpret_cast<PipelineLayout>(&result);
    }
 
+
+
+
+
+// Descriptors:
+
+//   class DescriptorsD3D12
+//      {
+//      ID3D12DescriptorHeap* handle;
+//      
+//      DescriptorsD3D12();
+//      }
+//
+//   DescriptorsD3D12::DescriptorsD3D12() :
+//      handle(nullptr)
+//   {
+//   }
+//   
+//   DescriptorsD3D12::~DescriptorsD3D12()
+//   {
+//   assert( handle );
+//   ProfileCom( handle->Release() )
+//   handle = nullptr;
+//   }
+//   
+//
+//   Ptr<Descriptors> Direct3D12Device::createDescriptors(const uint32 count)
+//   {
+//   Ptr<DescriptorsD3D12> result = nullptr;
+//   
+//   // Other types:
+//   // D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+//   // D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
+//   // D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+//   // D3D12_DESCRIPTOR_HEAP_TYPE_DSV
+//  
+//   D3D12_DESCRIPTOR_HEAP_DESC desc;
+//   desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+//   desc.NumDescriptors = count;
+//   desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // None for RTV and DSV (otherwise D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE)
+//   desc.NodeMask       = 0u;                              // TODO: Set bit to current GPU index
+//
+//   ID3D12DescriptorHeap* handle = nullptr;
+//   Profile( this, CreateDescriptorHeap(&desc, __uuidof(ID3D12DescriptorHeap), IID_PPV_ARGS(&handle)) )
+//   if (SUCCEEDED(lastResult[Scheduler.core()]))
+//      result = new DescriptorD3D12(handle);
+//      
+//   return ptr_reinterpret_cast<Descriptors>(&result);
+//   }
+//
+
    }
 }
 #endif

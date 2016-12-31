@@ -28,7 +28,7 @@ namespace en
    
    MultisamplingStateD3D12::MultisamplingStateD3D12(const uint32 _samples,
                                                     const bool enableAlphaToCoverage,
-                                                    const bool enableAlphaToOne)
+                                                    const bool enableAlphaToOne) :
       alphaToCoverage(enableAlphaToCoverage),
       alphaToOne(enableAlphaToOne)
    {
@@ -37,7 +37,7 @@ namespace en
    // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476218(v=vs.85).aspx
    // Quality level can be also used to enable CSAA.
    state.Count   = min(static_cast<uint32>(nextPowerOfTwo(_samples)), static_cast<uint32>(MaxSamples));
-   state.Quality = D3D11_STANDARD_MULTISAMPLE_PATTERN;
+   state.Quality = D3D12_STANDARD_MULTISAMPLE_PATTERN;
    }
    
    Ptr<MultisamplingState> Direct3D12Device::createMultisamplingState(const uint32 samples,

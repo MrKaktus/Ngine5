@@ -754,7 +754,7 @@ namespace en
 //   barrier.Transition.StateBefore = texture->currentState;
 //   barrier.Transition.StateAfter  = 0; // TODO: D3D12_RESOURCE_STATES
 //
-//   ProfileNoRet( handle->ResourceBarrier(1, barrier) )
+//   ProfileComNoRet( handle->ResourceBarrier(1, barrier) )
 //   }
 //
 //   CommandBufferD3D12::transitionTexture(const Ptr<Texture> _texture, 
@@ -791,7 +791,7 @@ namespace en
 //         barrier[index].Transition.StateAfter  = 0; // TODO: D3D12_RESOURCE_STATES
 //         }
 //
-//   ProfileNoRet( handle->ResourceBarrier(barriers, barrier) )
+//   ProfileComNoRet( handle->ResourceBarrier(barriers, barrier) )
 //
 //   delete [] barrier;
 //   }

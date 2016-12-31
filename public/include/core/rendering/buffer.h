@@ -197,7 +197,7 @@ namespace en
    class Buffer : public SafeObject<Buffer>
       {
       public:
-      virtual uint32 length(void) const = 0;
+      virtual uint64 length(void) const = 0;
       virtual BufferType type(void) const = 0;
       
       // Buffers created on heaps with "Streamed" and "Immediate" memory usage, can be mapped
@@ -219,8 +219,8 @@ namespace en
    class BufferView : public SafeObject<BufferView>
       {
       public:
-      virtual uint32 offset(void) const = 0;
-      virtual uint32 length(void) const = 0;
+      virtual uint64 offset(void) const = 0;
+      virtual uint64 length(void) const = 0;
       virtual Format format(void) const = 0;
       virtual ~BufferView() {};       // Polymorphic deletes require a virtual base destructor
       };

@@ -28,8 +28,11 @@ namespace en
 {
    namespace gpu
    {
+   class Direct3D12Device;
+
    class HeapD3D12 : public CommonHeap
       {
+      public:
       Direct3D12Device* gpu;
       ID3D12Heap*       handle;
       Allocator*        allocator;    // Allocation algorithm used to place resources on the Heap

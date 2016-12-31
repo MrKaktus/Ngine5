@@ -20,23 +20,26 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
-#include "core/rendering/d3d12/dx12.h"
-#include "core/rendering/common/texture.h"
 #include "core/rendering/sampler.h"
+#include "core/rendering/common/texture.h"
+#include "core/rendering/d3d12/dx12.h"
+#include "core/rendering/d3d12/dx12Heap.h"
 
 namespace en
 {
    namespace gpu
    {
+   extern const DXGI_FORMAT TranslateTextureFormat[underlyingType(Format::Count)];
+
    class TextureD3D12 : public CommonTexture
       {
       public:
       ID3D12Resource*   handle;      // Vulkan Image ID
-      Ptr<Heap>         heap;        // Memory backing heap
+      Ptr<HeapD3D12>    heap;        // Memory backing heap
       uint64            offset;      // Offset in the heap
       uint64            textureSize; // Texture total size in memory (all mips and layers)
       
-      TextureD3D12(Ptr<Heap>         heap,
+      TextureD3D12(Ptr<HeapD3D12>    heap,
                    ID3D12Resource*   handle,
                    uint64            offset,
                    uint64            size,
@@ -64,11 +67,12 @@ namespace en
       public:
       Ptr<TextureD3D12> texture;            // Parent texture
       D3D12_SHADER_RESOURCE_VIEW_DESC desc; // View descriptor
-      TextureType viewType;                 // TODO: view type cannot be different for RTV ???
-      uint32v2 viewMipmaps;                 // Cache mipmaps and layers range, if View of other
-      uint32v2 viewLayers;                  // underlying type will be needed.
-         
-      TextureViewD3D12(Ptr<TextureD3D12> parent);
+
+      TextureViewD3D12(Ptr<TextureD3D12> parent,
+                       const TextureType _type,
+                       const Format _format,
+                       const uint32v2 _mipmaps,
+                       const uint32v2 _layers);
 
       Ptr<Texture> parent(void) const;
    

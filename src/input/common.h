@@ -89,6 +89,7 @@ namespace en
       virtual void update(void);                                 // Gets actual input state, call function handling cached events
          
       CommonInterface();
+      virtual void init(void);
       virtual ~CommonInterface();
       };
    }

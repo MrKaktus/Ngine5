@@ -17,6 +17,8 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
+#include "core/rendering/d3d12/dx12Device.h"  // Profile
+
 namespace en
 {
    namespace gpu
@@ -38,8 +40,8 @@ namespace en
       DXGI_FORMAT_R32_SINT                ,   // Format::R_32_s
       DXGI_FORMAT_R32_FLOAT               ,   // Format::R_32_f
       DXGI_FORMAT_R8G8_UNORM              ,   // Format::RG_8
-      DXGI_FORMAT_UNKNOWN,                ,   // Format::RG_8_sRGB              (unsupported)
-      DXGI_FORMAT_R8G8_SNORM,             ,   // Format::RG_8_sn
+      DXGI_FORMAT_UNKNOWN                 ,   // Format::RG_8_sRGB              (unsupported)
+      DXGI_FORMAT_R8G8_SNORM              ,   // Format::RG_8_sn
       DXGI_FORMAT_R8G8_UINT               ,   // Format::RG_8_u
       DXGI_FORMAT_R8G8_SINT               ,   // Format::RG_8_s
       DXGI_FORMAT_R16G16_UNORM            ,   // Format::RG_16
@@ -140,43 +142,43 @@ namespace en
       DXGI_FORMAT_UNKNOWN                 ,   // Format::PVRTC_RGBA_2
       DXGI_FORMAT_UNKNOWN                 ,   // Format::PVRTC_RGBA_2_sRGB
       DXGI_FORMAT_UNKNOWN                 ,   // Format::PVRTC_RGBA_4
-      DXGI_FORMAT_UNKNOWN                 ,   // Format::PVRTC_RGBA_4_sRGB
-      DXGI_FORMAT_ASTC_4X4_UNORM          ,   // Format::ASTC_4x4
-      DXGI_FORMAT_ASTC_5x4_UNORM          ,   // Format::ASTC_5x4
-      DXGI_FORMAT_ASTC_5x5_UNORM          ,   // Format::ASTC_5x5
-      DXGI_FORMAT_ASTC_6x5_UNORM          ,   // Format::ASTC_6x5
-      DXGI_FORMAT_ASTC_6x6_UNORM          ,   // Format::ASTC_6x6
-      DXGI_FORMAT_ASTC_8x5_UNORM          ,   // Format::ASTC_8x5
-      DXGI_FORMAT_ASTC_8x6_UNORM          ,   // Format::ASTC_8x6
-      DXGI_FORMAT_ASTC_8x8_UNORM          ,   // Format::ASTC_8x8
-      DXGI_FORMAT_ASTC_10x5_UNORM         ,   // Format::ASTC_10x5
-      DXGI_FORMAT_ASTC_10x6_UNORM         ,   // Format::ASTC_10x6
-      DXGI_FORMAT_ASTC_10x8_UNORM         ,   // Format::ASTC_10x8
-      DXGI_FORMAT_ASTC_10x10_UNORM        ,   // Format::ASTC_10x10
-      DXGI_FORMAT_ASTC_12x10_UNORM        ,   // Format::ASTC_12x10
-      DXGI_FORMAT_ASTC_12x12_UNORM        ,   // Format::ASTC_12x12
-      DXGI_FORMAT_ASTC_4x4_UNORM_SRGB     ,   // Format::ASTC_4x4_sRGB
-      DXGI_FORMAT_ASTC_5x4_UNORM_SRGB     ,   // Format::ASTC_5x4_sRGB
-      DXGI_FORMAT_ASTC_5x5_UNORM_SRGB     ,   // Format::ASTC_5x5_sRGB
-      DXGI_FORMAT_ASTC_6x5_UNORM_SRGB     ,   // Format::ASTC_6x5_sRGB
-      DXGI_FORMAT_ASTC_6x6_UNORM_SRGB     ,   // Format::ASTC_6x6_sRGB
-      DXGI_FORMAT_ASTC_8x5_UNORM_SRGB     ,   // Format::ASTC_8x5_sRGB
-      DXGI_FORMAT_ASTC_8x6_UNORM_SRGB     ,   // Format::ASTC_8x6_sRGB
-      DXGI_FORMAT_ASTC_8x8_UNORM_SRGB     ,   // Format::ASTC_8x8_sRGB
-      DXGI_FORMAT_ASTC_10x5_UNORM_SRGB    ,   // Format::ASTC_10x5_sRGB
-      DXGI_FORMAT_ASTC_10x6_UNORM_SRGB    ,   // Format::ASTC_10x6_sRGB
-      DXGI_FORMAT_ASTC_10x8_UNORM_SRGB    ,   // Format::ASTC_10x8_sRGB
-      DXGI_FORMAT_ASTC_10x10_UNORM_SRGB   ,   // Format::ASTC_10x10_sRGB
-      DXGI_FORMAT_ASTC_12x10_UNORM_SRGB   ,   // Format::ASTC_12x10_sRGB
-      DXGI_FORMAT_ASTC_12x12_UNORM_SRGB   ,   // Format::ASTC_12x12_sRGB
-      };
+      DXGI_FORMAT_UNKNOWN                 ,   // Format::PVRTC_RGBA_4_sRGB            WA for missing DXGI enums:
+      (DXGI_FORMAT)134                    ,   // Format::ASTC_4x4                     DXGI_FORMAT_ASTC_4X4_UNORM        
+      (DXGI_FORMAT)138                    ,   // Format::ASTC_5x4                     DXGI_FORMAT_ASTC_5X4_UNORM        
+      (DXGI_FORMAT)142                    ,   // Format::ASTC_5x5                     DXGI_FORMAT_ASTC_5X5_UNORM        
+      (DXGI_FORMAT)146                    ,   // Format::ASTC_6x5                     DXGI_FORMAT_ASTC_6X5_UNORM        
+      (DXGI_FORMAT)150                    ,   // Format::ASTC_6x6                     DXGI_FORMAT_ASTC_6X6_UNORM        
+      (DXGI_FORMAT)154                    ,   // Format::ASTC_8x5                     DXGI_FORMAT_ASTC_8X5_UNORM        
+      (DXGI_FORMAT)158                    ,   // Format::ASTC_8x6                     DXGI_FORMAT_ASTC_8X6_UNORM        
+      (DXGI_FORMAT)162                    ,   // Format::ASTC_8x8                     DXGI_FORMAT_ASTC_8X8_UNORM        
+      (DXGI_FORMAT)166                    ,   // Format::ASTC_10x5                    DXGI_FORMAT_ASTC_10X5_UNORM       
+      (DXGI_FORMAT)170                    ,   // Format::ASTC_10x6                    DXGI_FORMAT_ASTC_10X6_UNORM       
+      (DXGI_FORMAT)174                    ,   // Format::ASTC_10x8                    DXGI_FORMAT_ASTC_10X8_UNORM       
+      (DXGI_FORMAT)178                    ,   // Format::ASTC_10x10                   DXGI_FORMAT_ASTC_10X10_UNORM      
+      (DXGI_FORMAT)182                    ,   // Format::ASTC_12x10                   DXGI_FORMAT_ASTC_12X10_UNORM      
+      (DXGI_FORMAT)186                    ,   // Format::ASTC_12x12                   DXGI_FORMAT_ASTC_12X12_UNORM      
+      (DXGI_FORMAT)135                    ,   // Format::ASTC_4x4_sRGB                DXGI_FORMAT_ASTC_4X4_UNORM_SRGB   
+      (DXGI_FORMAT)139                    ,   // Format::ASTC_5x4_sRGB                DXGI_FORMAT_ASTC_5X4_UNORM_SRGB   
+      (DXGI_FORMAT)143                    ,   // Format::ASTC_5x5_sRGB                DXGI_FORMAT_ASTC_5X5_UNORM_SRGB   
+      (DXGI_FORMAT)147                    ,   // Format::ASTC_6x5_sRGB                DXGI_FORMAT_ASTC_6X5_UNORM_SRGB   
+      (DXGI_FORMAT)151                    ,   // Format::ASTC_6x6_sRGB                DXGI_FORMAT_ASTC_6X6_UNORM_SRGB   
+      (DXGI_FORMAT)155                    ,   // Format::ASTC_8x5_sRGB                DXGI_FORMAT_ASTC_8X5_UNORM_SRGB   
+      (DXGI_FORMAT)159                    ,   // Format::ASTC_8x6_sRGB                DXGI_FORMAT_ASTC_8X6_UNORM_SRGB   
+      (DXGI_FORMAT)163                    ,   // Format::ASTC_8x8_sRGB                DXGI_FORMAT_ASTC_8X8_UNORM_SRGB   
+      (DXGI_FORMAT)167                    ,   // Format::ASTC_10x5_sRGB               DXGI_FORMAT_ASTC_10X5_UNORM_SRGB  
+      (DXGI_FORMAT)171                    ,   // Format::ASTC_10x6_sRGB               DXGI_FORMAT_ASTC_10X6_UNORM_SRGB  
+      (DXGI_FORMAT)175                    ,   // Format::ASTC_10x8_sRGB               DXGI_FORMAT_ASTC_10X8_UNORM_SRGB  
+      (DXGI_FORMAT)179                    ,   // Format::ASTC_10x10_sRGB              DXGI_FORMAT_ASTC_10X10_UNORM_SRGB 
+      (DXGI_FORMAT)183                    ,   // Format::ASTC_12x10_sRGB              DXGI_FORMAT_ASTC_12X10_UNORM_SRGB 
+      (DXGI_FORMAT)187                    ,   // Format::ASTC_12x12_sRGB              DXGI_FORMAT_ASTC_12X12_UNORM_SRGB 
+      };                 
 
    // TODO: Is D3D12 supporting single Stencil 8 bit attachment format - Format::S_8 ?
    //       Can BGR_8_sRGB emulated with DXGI_FORMAT_B8G8R8X8_UNORM_SRGB ?
    //       Can BGR_8 emulated with DXGI_FORMAT_B8G8R8X8_UNORM ?
    //       Can DXGI_FORMAT_B8G8R8X8_TYPELESS be used to emulate Format::BGR_8_sn BGR_8_u BGR_8_s ?
    
-   static const D3D12_SRV_DIMENSION TranslateTextureDimension[underlyingType(TextureType::Count)] =
+   static const D3D12_RESOURCE_DIMENSION TranslateTextureDimension[underlyingType(TextureType::Count)] =
       {
       D3D12_RESOURCE_DIMENSION_TEXTURE1D,     // Texture1D
       D3D12_RESOURCE_DIMENSION_TEXTURE1D,     // Texture1DArray
@@ -204,7 +206,7 @@ namespace en
       };
 
 
-   TextureD3D12::TextureD3D12(Ptr<Heap> _heap,
+   TextureD3D12::TextureD3D12(Ptr<HeapD3D12> _heap,
                               ID3D12Resource* _handle,
                               uint64 _offset,
                               uint64 _size,
@@ -227,27 +229,27 @@ namespace en
    TextureD3D12::~TextureD3D12()
    {
    assert( handle );
-   handle->Release();
+   ProfileCom( handle->Release() )
    handle = nullptr;
    
    // Deallocate from the Heap (let Heap allocator know that memory region is available again)
-   raw_reinterpret_cast<HeapD3D12>(&heap)->allocator->deallocate(offset, textureSize);
+   heap->allocator->deallocate(offset, textureSize);
    heap = nullptr;
    }
    
    // Texture View ?
-   Ptr<TextureView> TextureD3D12::createView(const TextureType _type,
+   Ptr<TextureView> TextureD3D12::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
       const uint32v2 _layers) const
    {
-   TextureViewD3D12* view = new TextureViewD3D12(Ptr<TextureD3D12>(this));
+   TextureViewD3D12* view = new TextureViewD3D12(Ptr<TextureD3D12>((TextureD3D12*)this), _type, _format, _mipmaps, _layers);
    
-   // Cache mipmaps and layers range, if View
-   // of other underlying type will be needed.
-   view->viewType    = _type;
-   view->viewMipmaps = _mipmaps;
-   view->viewLayers  = _layers;
+   //// Cache mipmaps and layers range, if View
+   //// of other underlying type will be needed.
+   //view->viewType = _type;
+   //view->mipmaps  = _mipmaps;
+   //view->layers   = _layers;
    
    // View descriptor
    view->desc.Format                  = TranslateTextureFormat[underlyingType(state.format)];
@@ -287,15 +289,15 @@ namespace en
    // Fill out the descriptor depending on type of the view that is created
    if (_type == TextureType::Texture1D)
       {
-      view->desc.Texture1D.MostDetailedMip     = (UINT)_mipmap.base;
-      view->desc.Texture1D.MipLevels           = (UINT)_mipmap.count;
+      view->desc.Texture1D.MostDetailedMip     = (UINT)_mipmaps.base;
+      view->desc.Texture1D.MipLevels           = (UINT)_mipmaps.count;
       view->desc.Texture1D.ResourceMinLODClamp = (FLOAT)0.0f;
       }
    else
    if (_type == TextureType::Texture1DArray)
       {
-      view->desc.Texture1DArray.MostDetailedMip     = (UINT)_mipmap.base;
-      view->desc.Texture1DArray.MipLevels           = (UINT)_mipmap.count;
+      view->desc.Texture1DArray.MostDetailedMip     = (UINT)_mipmaps.base;
+      view->desc.Texture1DArray.MipLevels           = (UINT)_mipmaps.count;
       view->desc.Texture1DArray.FirstArraySlice     = (UINT)_layers.base;
       view->desc.Texture1DArray.ArraySize           = (UINT)_layers.count;
       view->desc.Texture1DArray.ResourceMinLODClamp = (FLOAT)0.0f;
@@ -303,16 +305,16 @@ namespace en
    else
    if (_type == TextureType::Texture2D)
       {
-      view->desc.Texture2D.MostDetailedMip     = (UINT)_mipmap.base;
-      view->desc.Texture2D.MipLevels           = (UINT)_mipmap.count;
+      view->desc.Texture2D.MostDetailedMip     = (UINT)_mipmaps.base;
+      view->desc.Texture2D.MipLevels           = (UINT)_mipmaps.count;
       view->desc.Texture2D.PlaneSlice          = (UINT)_layers.base;   // TODO: What is this ????
       view->desc.Texture2D.ResourceMinLODClamp = (FLOAT)0.0f;
       }
    else
    if (_type == TextureType::Texture2DArray)
       {
-      view->desc.Texture2DArray.MostDetailedMip     = (UINT)_mipmap.base;
-      view->desc.Texture2DArray.MipLevels           = (UINT)_mipmap.count;
+      view->desc.Texture2DArray.MostDetailedMip     = (UINT)_mipmaps.base;
+      view->desc.Texture2DArray.MipLevels           = (UINT)_mipmaps.count;
       view->desc.Texture2DArray.FirstArraySlice     = (UINT)_layers.base;
       view->desc.Texture2DArray.ArraySize           = (UINT)_layers.count;
       view->desc.Texture2DArray.PlaneSlice          = (UINT)0u;        // TODO: What is this ????
@@ -328,22 +330,22 @@ namespace en
    else
    if (_type == TextureType::Texture3D)
       {
-      view->desc.Texture3D.MostDetailedMip        = (UINT)_mipmap.base;
-      view->desc.Texture3D.MipLevels              = (UINT)_mipmap.count;
+      view->desc.Texture3D.MostDetailedMip        = (UINT)_mipmaps.base;
+      view->desc.Texture3D.MipLevels              = (UINT)_mipmaps.count;
       view->desc.Texture3D.ResourceMinLODClamp    = (FLOAT)0.0f;
       }
    else
    if (_type == TextureType::TextureCubeMap)
       {
-      view->desc.TextureCube.MostDetailedMip      = (UINT)_mipmap.base;
-      view->desc.TextureCube.MipLevels            = (UINT)_mipmap.count;
+      view->desc.TextureCube.MostDetailedMip      = (UINT)_mipmaps.base;
+      view->desc.TextureCube.MipLevels            = (UINT)_mipmaps.count;
       view->desc.TextureCube.ResourceMinLODClamp  = (FLOAT)0.0f;
       }
    else
    if (_type == TextureType::TextureCubeMapArray)
       {
-      view->desc.TextureCubeArray.MostDetailedMip     = (UINT)_mipmap.base;
-      view->desc.TextureCubeArray.MipLevels           = (UINT)_mipmap.count;
+      view->desc.TextureCubeArray.MostDetailedMip     = (UINT)_mipmaps.base;
+      view->desc.TextureCubeArray.MipLevels           = (UINT)_mipmaps.count;
       view->desc.TextureCubeArray.First2DArrayFace    = (UINT)_layers.base;
       view->desc.TextureCubeArray.NumCubes            = (UINT)_layers.count / 6u;
       view->desc.TextureCubeArray.ResourceMinLODClamp = (FLOAT)0.0f;
@@ -385,7 +387,7 @@ namespace en
    desc.MipLevels          = static_cast<UINT16>(state.mipmaps);
    desc.Format             = TranslateTextureFormat[underlyingType(state.format)];
    desc.SampleDesc.Count   = static_cast<UINT>(state.samples);
-   desc.SampleDesc.Quality = state.samples > 0u ? D3D11_STANDARD_MULTISAMPLE_PATTERN : (UINT)0u;
+   desc.SampleDesc.Quality = state.samples > 0u ? D3D12_STANDARD_MULTISAMPLE_PATTERN : (UINT)0u;
    desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
    desc.Flags              = D3D12_RESOURCE_FLAG_NONE;
 
@@ -403,7 +405,7 @@ namespace en
    if (TextureFormatIsDepthStencil(state.format) ||
        TextureFormatIsDepth(state.format)        ||
        TextureFormatIsStencil(state.format))
-      desc.Format |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+      desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
       
    // TODO: GPU possible internal optimizations:
    //
@@ -427,8 +429,8 @@ namespace en
    // Find memory region in the Heap where this texture can be placed.
    // If allocation succeeded, texture is mapped to given offset.
    uint64 offset = 0;
-   if (!allocator->allocate(reinterpret_cast<uint64>(allocInfo.SizeInBytes),
-                            reinterpret_cast<uint64>(allocInfo.Alignment),
+   if (!allocator->allocate(static_cast<uint64>(allocInfo.SizeInBytes),
+                            static_cast<uint64>(allocInfo.Alignment),
                             offset))
       {
       return Ptr<Texture>(nullptr);
@@ -468,25 +470,31 @@ namespace en
 	ID3D12Resource* textureHandle = nullptr;
 	
 	Profile( gpu, CreatePlacedResource(handle,
-                                      reinterpret_cast<UINT64>(offset),
+                                      static_cast<UINT64>(offset),
                                       &desc,
-	                                   initState,
-	                                   nullptr,                        // Clear value - currently not supported
+                                      initState,
+                                      nullptr,                        // Clear value - currently not supported
                                       IID_PPV_ARGS(&textureHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&textureHandle)
       
-   if ( SUCCEDED(gpu->lastResult[Scheduler.core()]) )
-      result = new TextureD3D12(Ptr<Heap>(this),
+   if ( SUCCEEDED(gpu->lastResult[Scheduler.core()]) )
+      result = new TextureD3D12(Ptr<HeapD3D12>(this),
                                 textureHandle,
                                 offset,
-                                reinterpret_cast<uint64>(allocInfo.SizeInBytes),
+                                static_cast<uint64>(allocInfo.SizeInBytes),
                                 state);
 
    return ptr_reinterpret_cast<Texture>(&result);
    }
 
-   TextureViewD3D12::TextureViewD3D12(Ptr<TextureD3D12> _parent)
-      texture(_parent)
+   TextureViewD3D12::TextureViewD3D12(Ptr<TextureD3D12> parent,
+         const TextureType _type,
+         const Format _format,
+         const uint32v2 _mipmaps,
+         const uint32v2 _layers) :
+      texture(parent),
+      CommonTextureView(_type, _format, _mipmaps, _layers)
    {
+   // desc needs to be set after construction
    }
 
    TextureViewD3D12::~TextureViewD3D12()

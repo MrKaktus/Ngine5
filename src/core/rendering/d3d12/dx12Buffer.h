@@ -20,8 +20,9 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
-#include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/common/buffer.h"
+#include "core/rendering/d3d12/dx12.h"
+#include "core/rendering/d3d12/dx12Heap.h"
 
 namespace en
 {
@@ -31,15 +32,15 @@ namespace en
       {
       public:
       ID3D12Resource* handle;
-      Ptr<HeapVK>   heap;       // Memory backing heap
-      uint64        offset;     // Offset in the heap
-      D3D12_RANGE   range;      // Mapped range
+      Ptr<HeapD3D12>  heap;       // Memory backing heap
+      uint64          offset;     // Offset in the heap
+      D3D12_RANGE     range;      // Mapped range
       
-      BufferD3D12(Ptr<Heap> heap,
-                  const ID3D12Resource* handle,
+      BufferD3D12(Ptr<HeapD3D12> heap,
+                  ID3D12Resource* handle,
                   const BufferType type,
-                  count uint64 offset,
-                  const uint32 size);
+                  const uint64 offset,
+                  const uint64 size);
          
       virtual ~BufferD3D12();
       

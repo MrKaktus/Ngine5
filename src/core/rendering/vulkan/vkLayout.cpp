@@ -229,7 +229,6 @@ namespace en
    return ptr_reinterpret_cast<PipelineLayout>(&result);
    }
 
-
   // PipelineLayout:
   // - constants
   // - Descriptors Set/Table Layout

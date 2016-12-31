@@ -41,7 +41,7 @@ namespace en
       D3D12_RECT     scissor[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
       uint32 viewportsCount;  // Count of enabled states from the beginning of the array
       
-      PipelineD3D12(VulkanDevice* gpu, const ID3D12PipelineState* handle);
+      PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle);
       virtual ~PipelineD3D12();
       };
 

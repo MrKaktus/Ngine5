@@ -151,20 +151,35 @@ namespace en
    {
    Ptr<PipelineVK> result = nullptr;
 
-   // Input Assembler State is Required
-   assert( pipelineState.inputAssembler );
-   assert( pipelineState.rasterState );
+   // Pipeline object is always created against Render Pass, and app responsibility is to
+   // provide missing states (ViewportState, Shaders).
+   assert( pipelineState.renderPass );
+   assert( pipelineState.viewportState );
 
    // Cast to Vulkan states
-   const Ptr<RenderPassVK>         renderPass     = ptr_reinterpret_cast<RenderPassVK>(&pipelineState.renderPass);
-   const Ptr<InputLayoutVK>     input          = ptr_reinterpret_cast<InputLayoutVK>(&pipelineState.inputAssembler);
-   const Ptr<ViewportStateVK>      viewport       = ptr_reinterpret_cast<ViewportStateVK>(&pipelineState.viewportState);
-   const Ptr<RasterStateVK>        raster         = ptr_reinterpret_cast<RasterStateVK>(&pipelineState.rasterState);
-   const Ptr<MultisamplingStateVK> multisampling  = ptr_reinterpret_cast<MultisamplingStateVK>(&pipelineState.multisamplingState); 
-   const Ptr<DepthStencilStateVK>  depthStencil   = ptr_reinterpret_cast<DepthStencilStateVK>(&pipelineState.depthStencilState);
-   const Ptr<BlendStateVK>         blend          = ptr_reinterpret_cast<BlendStateVK>(&pipelineState.blendState);
+   const RenderPassVK*         renderPass     = raw_reinterpret_cast<RenderPassVK>(&pipelineState.renderPass);
 
-   const Ptr<PipelineLayoutVK>     layout         = ptr_reinterpret_cast<PipelineLayoutVK>(&pipelineState.pipelineLayout);
+   const InputLayoutVK*        input          = pipelineState.inputLayout ? raw_reinterpret_cast<InputLayoutVK>(&pipelineState.inputLayout)
+                                                                          : raw_reinterpret_cast<InputLayoutVK>(&defaultState->inputLayout);
+
+   const ViewportStateVK*      viewport       = raw_reinterpret_cast<ViewportStateVK>(&pipelineState.viewportState);
+
+   const RasterStateVK*        raster         = pipelineState.rasterState ? raw_reinterpret_cast<RasterStateVK>(&pipelineState.rasterState)
+                                                                          : raw_reinterpret_cast<RasterStateVK>(&defaultState->rasterState);
+
+   const MultisamplingStateVK* multisampling  = pipelineState.multisamplingState ? raw_reinterpret_cast<MultisamplingStateVK>(&pipelineState.multisamplingState)
+                                                                                 : raw_reinterpret_cast<MultisamplingStateVK>(&defaultState->multisamplingState);
+      
+   const DepthStencilStateVK*  depthStencil   = pipelineState.depthStencilState ? raw_reinterpret_cast<DepthStencilStateVK>(&pipelineState.depthStencilState)
+                                                                                : raw_reinterpret_cast<DepthStencilStateVK>(&defaultState->depthStencilState);
+
+   const BlendStateVK*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateVK>(&pipelineState.blendState)
+                                                                         : raw_reinterpret_cast<BlendStateVK>(&defaultState->blendState);
+
+   const PipelineLayoutVK*     layout         = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutVK>(&pipelineState.pipelineLayout) 
+                                                                             : raw_reinterpret_cast<PipelineLayoutVK>(&defaultState->pipelineLayout);
+
+
 
    // Patch States
 
@@ -175,6 +190,8 @@ namespace en
    for(uint32 i=0; i<5; ++i)
       if (pipelineState.shader[i])
          stages++;
+
+   assert( stages > 0 );
 
    // Create shader stages descriptions
    VkPipelineShaderStageCreateInfo* shaderInfo = new VkPipelineShaderStageCreateInfo[stages];
@@ -194,19 +211,6 @@ namespace en
          stage++;
          }
 
-   // TODO: Cleanup:
-   // Empty, dummy layout
-   VkPipelineLayoutCreateInfo layoutInfo;
-   layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-   layoutInfo.pNext                  = nullptr;
-   layoutInfo.flags                  = 0u;    
-   layoutInfo.setLayoutCount         = 0u;
-   layoutInfo.pSetLayouts            = nullptr;
-   layoutInfo.pushConstantRangeCount = 0;       
-   layoutInfo.pPushConstantRanges    = nullptr;
-
-   VkPipelineLayout layoutHandle = VK_NULL_HANDLE;
-   Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layoutHandle) )
 
 
    // Pipeline state

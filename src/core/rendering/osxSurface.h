@@ -16,7 +16,10 @@
 #ifndef ENG_CORE_RENDERING_OSX_SHARED_SURFACE
 #define ENG_CORE_RENDERING_OSX_SHARED_SURFACE
 
+#include "core/defines.h"
 #include "core/rendering/surface.h"
+
+#if defined(EN_PLATFORM_OSX)
 
 #pragma push_macro("aligned")
 #undef aligned
@@ -56,5 +59,6 @@ namespace en
       };
    }
 }
+#endif
 
 #endif

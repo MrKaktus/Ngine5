@@ -15,6 +15,15 @@
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
     <ClCompile Include="..\src\core\rendering\api.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Buffer.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12CommandBuffer.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Device.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Heap.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Multisampling.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12RenderPass.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Sampler.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Shader.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Synchronization.cpp" />
     <ClCompile Include="..\src\core\rendering\ogl_buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cBlend.cpp" />
@@ -293,11 +302,21 @@
     <ClInclude Include="..\src\core\rendering\context.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Blend.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Buffer.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12CommandBuffer.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12DepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Device.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Heap.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12InputLayout.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Layout.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Multisampling.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Pipeline.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Raster.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12RenderPass.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Sampler.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Shader.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Synchronization.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Texture.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h" />
     <ClInclude Include="..\src\core\rendering\metal\metal.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlAPI.h" />
@@ -308,6 +327,8 @@
     <ClInclude Include="..\src\core\rendering\metal\mtlDevice.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlHeap.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlInputLayout.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlInternal.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlLayout.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlMultisampling.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlPipeline.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlRaster.h" />
@@ -348,6 +369,7 @@
     <ClInclude Include="..\src\core\rendering\opengl\opengl43.h" />
     <ClInclude Include="..\src\core\rendering\opengl\opengl44.h" />
     <ClInclude Include="..\src\core\rendering\opengl\opengl45.h" />
+    <ClInclude Include="..\src\core\rendering\osxSurface.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkBlend.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkBuffer.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkCommandBuffer.h" />
@@ -396,14 +418,17 @@
     <None Include="..\src\core\rendering\metal\mtlDevice.mm" />
     <None Include="..\src\core\rendering\metal\mtlHeap.mm" />
     <None Include="..\src\core\rendering\metal\mtlInputLayout.mm" />
+    <None Include="..\src\core\rendering\metal\mtlLayout.mm" />
     <None Include="..\src\core\rendering\metal\mtlMultisampling.mm" />
     <None Include="..\src\core\rendering\metal\mtlPipeline.mm" />
     <None Include="..\src\core\rendering\metal\mtlRaster.mm" />
     <None Include="..\src\core\rendering\metal\mtlRenderPass.mm" />
     <None Include="..\src\core\rendering\metal\mtlSampler.mm" />
     <None Include="..\src\core\rendering\metal\mtlShader.mm" />
+    <None Include="..\src\core\rendering\metal\mtlSynchronization.mm" />
     <None Include="..\src\core\rendering\metal\mtlTexture.mm" />
     <None Include="..\src\core\rendering\metal\mtlViewport.mm" />
+    <None Include="..\src\core\rendering\osxSurface.mm" />
     <None Include="..\src\input\osxInput.mm" />
     <None Include="..\src\platform\osx\osx_callbacks.mm" />
     <None Include="..\src\platform\osx\osx_main.mm" />
@@ -412,6 +437,7 @@
     <ProjectGuid>{F61E4BF3-8B99-4C06-8297-45627D38D88B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Ngine5</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -449,7 +475,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>"./../public/include/"; "./../src/"; "./../middleware/"; "C:/Program Files/Autodesk/FBX/FBX SDK/2015.1/include/"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./../public/include/;./../src/;./../middleware/;C:/Program Files/Autodesk/FBX/FBX SDK/2015.1/include/;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -457,8 +483,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.8\contrib\vstudio\vc11\x86\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win32;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.8\contrib\vstudio\vc11\x86\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win32;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32;$(WindowsSDK_LibraryPath_x86);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
     </Lib>
     <BuildLog>
       <Path>.\..\build\win32\$(Configuration)\$(MSBuildProjectName).log</Path>

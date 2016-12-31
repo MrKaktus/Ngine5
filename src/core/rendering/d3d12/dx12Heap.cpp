@@ -40,7 +40,7 @@ namespace en
    HeapD3D12::~HeapD3D12()
    {
    assert( handle );
-   handle->Release();
+   ProfileCom( handle->Release() )
    handle = nullptr;
    gpu = nullptr;
    
@@ -125,8 +125,8 @@ namespace en
 
    ID3D12Heap* handle;
 
-	Profile( this, CreateHeap(&desc, IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12Heap), reinterpret_cast<void**>(&handle)
-   if ( SUCCEDED(lastResult[Scheduler.core()]) )
+   Profile( this, CreateHeap(&desc, IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12Heap), reinterpret_cast<void**>(&handle)
+   if ( SUCCEEDED(lastResult[Scheduler.core()]) )
       result = new HeapD3D12(this, handle, usage, roundedSize);
    
    return ptr_reinterpret_cast<Heap>(&result);

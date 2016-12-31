@@ -23,11 +23,11 @@ namespace en
 {
    namespace gpu
    {
-   BufferD3D12::BufferD3D12(Ptr<Heap> _heap,
-                            const ID3D12Resource* _handle,
+   BufferD3D12::BufferD3D12(Ptr<HeapD3D12> _heap,
+                            ID3D12Resource* _handle,
                             const BufferType _type,
-                            count uint64 _offset,
-                            const uint32 _size) :
+                            const uint64 _offset,
+                            const uint64 _size) :
       heap(_heap),
       handle(_handle),
       offset(_offset),
@@ -38,7 +38,7 @@ namespace en
    BufferD3D12::~BufferD3D12()
    {
    assert( handle );
-   handle->Release();
+   ProfileCom( handle->Release() )
    handle = nullptr;
    
    // Deallocate from the Heap (let Heap allocator know that memory region is available again)
@@ -51,7 +51,7 @@ namespace en
    return map(0u, size);
    }
 
-   void* BufferMTL::map(const uint64 _offset, const uint64 _size)
+   void* BufferD3D12::map(const uint64 _offset, const uint64 _size)
    {
    assert( _offset + _size <= size );
    
@@ -59,25 +59,28 @@ namespace en
    assert( heap->_usage == MemoryUsage::Streamed ||
            heap->_usage == MemoryUsage::Immediate );
       
+   // TODO: SIZE_T is 32bit -> settings.maxBufferSize < 4GB !!!
+   assert( _offset + _size <= 0xFFFFFFFF );
+
    // Mapped range
-   range.Begin = _offset;
-   range.End   = _offset + _size;
+   range.Begin = static_cast<SIZE_T>(_offset); 
+   range.End   = static_cast<SIZE_T>(_offset + _size);
 
    void* pointer = nullptr;
-   Profile( handle->Map(0, &range, &pointer) )
+   ProfileCom( handle->Map(0, &range, &pointer) )
    
    return pointer;
    }
    
    void BufferD3D12::unmap(void)
    {
-   handle->Unmap(0, &range);
+   ProfileComNoRet( handle->Unmap(0, &range) )
    }
    
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   Ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
+   Ptr<Buffer> HeapD3D12::createBuffer(const BufferType type, const uint32 size)
    {
    Ptr<BufferD3D12> result = nullptr;
    
@@ -102,8 +105,8 @@ namespace en
    // Find memory region in the Heap where this texture can be placed.
    // If allocation succeeded, texture is mapped to given offset.
    uint64 offset = 0;
-   if (!allocator->allocate(reinterpret_cast<uint64>(allocInfo.SizeInBytes),
-                            reinterpret_cast<uint64>(allocInfo.Alignment),
+   if (!allocator->allocate(static_cast<uint64>(allocInfo.SizeInBytes),
+                            static_cast<uint64>(allocInfo.Alignment),
                             offset))
       {
       return Ptr<Buffer>(nullptr);
@@ -114,20 +117,21 @@ namespace en
                                      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
                                      D3D12_RESOURCE_STATE_COPY_DEST;
    
-	ID3D12Resource* bufferHandle = nullptr;
-	
-	Profile( gpu, CreatePlacedResource(handle,
-                                      reinterpret_cast<UINT64>(offset),
+   ID3D12Resource* bufferHandle = nullptr;
+
+   Profile( gpu, CreatePlacedResource(handle,
+                                      static_cast<UINT64>(offset),
                                       &desc,
-	                                   initState,
-	                                   nullptr,                       // Clear value - currently not supported
+                                      initState,
+                                      nullptr,                       // Clear value - currently not supported
                                       IID_PPV_ARGS(&bufferHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&bufferHandle)
       
-   if ( SUCCEDED(gpu->lastResult[Scheduler.core()]) )
-      result = new BufferD3D12(Ptr<Heap>(this),
+   if ( SUCCEEDED(gpu->lastResult[Scheduler.core()]) )
+      result = new BufferD3D12(Ptr<HeapD3D12>(this),
                                bufferHandle,
+                               type,
                                offset,
-                               reinterpret_cast<uint64>(allocInfo.SizeInBytes) );
+                               static_cast<uint64>(allocInfo.SizeInBytes) );
 
    return ptr_reinterpret_cast<Buffer>(&result);
    }

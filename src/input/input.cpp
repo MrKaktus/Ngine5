@@ -169,6 +169,7 @@ namespace en
    return true;
    #elif defined(EN_PLATFORM_WINDOWS)
    Input = ptr_dynamic_cast<Interface, WinInterface>(Ptr<WinInterface>(new WinInterface()));
+   raw_reinterpret_cast<CommonInterface>(&Input)->init(); // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
    return true;
    #else
    // How did we ended up here?
@@ -260,7 +261,10 @@ namespace en
    // Clear callbacks array
    for(uint32 i=0; i<InputEventsCount; ++i)
       callback[i] = &en::state::HandleEventByState;
+   }
 
+   void CommonInterface::init(void)
+   {
    // Init all engine input modules
 #if defined(EN_MODULE_OCULUS)
    InitOculusSDK();

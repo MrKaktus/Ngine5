@@ -20,8 +20,8 @@
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
-#include "core/rendering/vulkan/vkHeap.h"
 #include "core/rendering/common/buffer.h"
+#include "core/rendering/vulkan/vkHeap.h"
 
 namespace en
 {

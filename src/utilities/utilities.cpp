@@ -36,6 +36,25 @@ namespace en
    return (((number + (number >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
    }
 
+   // Returns position of first set MSB, or false if in is 0
+   bool highestBit(uint32 in, uint32& number)
+   {
+   if (in == 0)
+      return false;
+
+   uint32 index = 0;
+   while(in != 0)
+      {
+      if (in == 1)
+         break;
+      in = in >> 1;
+      index++;
+      }
+
+   number = index;
+   return true;
+   }
+
    // Returns true for 0's.
    // See more at: http://www.exploringbinary.com/ten-ways-to-check-if-an-integer-is-a-power-of-two-in-c/
    bool powerOfTwo(uint8 in)

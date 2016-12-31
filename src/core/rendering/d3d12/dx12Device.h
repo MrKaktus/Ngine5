@@ -28,13 +28,27 @@
 #include "core/rendering/d3d12/dx12Viewport.h"
 #include "core/rendering/d3d12/dx12DepthStencil.h"
 
+#include "threading/scheduler.h" // For Profile
+
 using namespace std;
 
+#ifdef EN_DEBUG
+namespace en
+{
+   namespace gpu
+   {
+   extern bool IsError(const HRESULT result);
+   extern bool IsWarning(const HRESULT result);
+   }
+}
+#endif
+//
 // gpu     - pointer to class storing pointer to called function.
 //           Should be VulkanDevice*, or VulkanGPU*.
 // command - Vulkan API function call to execute.
 //
 // Result of function call is stored per GPU, per Thread.
+// threading/scheduler.h needs to be included.
 //
 #ifdef EN_DEBUG
    #ifdef EN_PROFILER_TRACE_GRAPHICS_API
@@ -44,7 +58,7 @@ using namespace std;
            uint32 thread = Scheduler.core();                                        \
            Log << "[" << setw(2) << thread << "] ";                                 \
            Log << "D3D12 GPU " << setbase(16) << _gpu << ": " << #command << endl;  \
-           _gpu->lastResult[thread] = _gpu->device.command;                         \
+           _gpu->lastResult[thread] = _gpu->device->command;                        \
            if (en::gpu::IsError(_gpu->lastResult[thread]))                          \
               assert( 0 );                                                          \
            en::gpu::IsWarning(_gpu->lastResult[thread]);                            \
@@ -64,7 +78,7 @@ using namespace std;
            uint32 thread = Scheduler.core();                                        \
            Log << "[" << setw(2) << thread << "] ";                                 \
            Log << "D3D12 GPU " << setbase(16) << _gpu << ": " << #command << endl;  \
-           _gpu->device.command;                                                    \
+           _gpu->device->command;                                                   \
            }
 
    #define ProfileNoRet( command )                                                  \
@@ -79,22 +93,22 @@ using namespace std;
    #define Profile( _gpu, command )                                    \
            {                                                           \
            uint32 thread = Scheduler.core();                           \
-           _gpu->lastResult[thread] = _gpu->device.command;            \
+           _gpu->lastResult[thread] = _gpu->device->command;           \
            if (en::gpu::IsError(_gpu->lastResult[thread]))             \
               assert( 0 );                                             \
            en::gpu::IsWarning(_gpu->lastResult[thread]);               \
            }
 
-   #define Profile( command )                                          \
+   #define ProfileCom( command )                                       \
            {                                                           \
            HRESULT hr = command;                                       \
            assert( SUCCEEDED(hr) );                                    \
            }
 
    #define ProfileNoRet( _gpu, command )                               \
-           _gpu->device.command;
+           _gpu->device->command;
 
-   #define ProfileNoRet( command )                                     \
+   #define ProfileComNoRet( command )                                  \
            command;
 
 
@@ -137,13 +151,13 @@ namespace en
    class Direct3D12Device : public CommonDevice
       {
       public:
-      HRESULT                          lastResult[MaxSupportedWorkerThreads];
-      ID3D12Device                     device;
-      uint32                           queuesCount[underlyingType(QueueType::Count)];
-      ID3D12CommandQueue*              queue[underlyingType(QueueType::Count)];
-      volatile ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];
-      uint32                           fenceCurrentValue[MaxSupportedWorkerThreads]; // Pool of values signaled by Fences
-      HANDLE                           fenceSignalingEvent[MaxSupportedWorkerThreads]; // Event used to signal Fence completion on CPU side
+      HRESULT                 lastResult[MaxSupportedWorkerThreads];
+      ID3D12Device*           device;
+      uint32                  queuesCount[underlyingType(QueueType::Count)];
+      ID3D12CommandQueue*     queue[underlyingType(QueueType::Count)];
+      ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];
+      uint32                  fenceCurrentValue[MaxSupportedWorkerThreads]; // Pool of values signaled by Fences
+      HANDLE                  fenceSignalingEvent[MaxSupportedWorkerThreads]; // Event used to signal Fence completion on CPU side
       
       // We treat rendering destinations as fixed state that is rebinded with every RenderPass change.
       ID3D12DescriptorHeap* heapRTV; // Global heaps for current RenderPass (there can be only one)
@@ -154,20 +168,29 @@ namespace en
       Direct3D12Device();
      ~Direct3D12Device();
 
-      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                 const uint32 controlPoints,
-                                                 const uint32 usedAttributes,
-                                                 const uint32 usedBuffers,
-                                                 const AttributeDesc* attributes,
-                                                 const BufferDesc* buffers);
+
 
       virtual void init(void);
+
+      // Creates Command Buffer from the given Command Queue of given type.
+      // When this buffer is commited for execution it will execute on that queue.
+      virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
+                                                     const uint32 parentQueue = 0u);
 
       virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
 
       virtual Ptr<Sampler> createSampler(const SamplerState& state);
       
       virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
+
+      virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
+
+      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const uint32 controlPoints,
+                                                 const uint32 usedAttributes,
+                                                 const uint32 usedBuffers,
+                                                 const AttributeDesc* attributes,
+                                                 const BufferDesc* buffers);
 
       // TODO:
       virtual Ptr<Shader>  createShader(const ShaderStage stage,
@@ -182,17 +205,8 @@ namespace en
 
 
 
-      virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state);
-      
-      virtual Ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc);
-      
-      virtual Ptr<BlendState>         createBlendState(const BlendStateInfo& state,
-                                                       const uint32 attachments,
-                                                       const BlendAttachmentInfo* color);
+
          
-      virtual Ptr<ViewportState>      create(const uint32 count,
-                                             const ViewportStateInfo* viewports,
-                                             const ScissorStateInfo* scissors);
 
       virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
                                              const ResourceGroup* group,
@@ -202,6 +216,26 @@ namespace en
                                                        const Ptr<SetLayout>* set,
                                                        const uint32 immutableSamplers,
                                                        const Ptr<Sampler>* sampler);
+
+
+
+
+      virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state);
+
+      virtual Ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
+                                                               const bool enableAlphaToCoverage,
+                                                               const bool enableAlphaToOne);
+
+      virtual Ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc);
+      
+      virtual Ptr<BlendState>         createBlendState(const BlendStateInfo& state,
+                                                       const uint32 attachments,
+                                                       const BlendAttachmentInfo* color);
+
+      virtual Ptr<ViewportState> createViewportState(const uint32 count,
+                                                     const ViewportStateInfo* viewports,
+                                                     const ScissorStateInfo* scissors);
+
       };
    }
 }

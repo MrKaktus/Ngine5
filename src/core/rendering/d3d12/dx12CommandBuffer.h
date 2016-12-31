@@ -27,6 +27,8 @@ namespace en
 {
    namespace gpu
    {
+   class Direct3D12Device;
+
    class CommandBufferD3D12 : public CommandBuffer
       {
       public:
@@ -38,12 +40,30 @@ namespace en
       bool            encoding;
       bool            commited;
       
-      virtual void bind(const Ptr<RasterState> raster);
-      //virtual void bind(const Ptr<ViewportScissorState> viewportScissor);
-      virtual void bind(const Ptr<DepthStencilState> depthStencil);
-      virtual void bind(const Ptr<BlendState> blend);
-      
-      virtual bool startRenderPass(const Ptr<RenderPass> pass, 
+      // Internal 
+
+      CommandBufferD3D12(Direct3D12Device* _gpu, ID3D12CommandQueue* _queue, ID3D12CommandList* _handle);
+      virtual ~CommandBufferD3D12();
+
+      // Interface
+
+      virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr);
+
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> destination);
+
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Buffer> destination,
+                        uint64 size,
+                        uint64 srcOffset = 0u,
+                        uint64 dstOffset = 0u);
+         
+      virtual void copy(Ptr<Buffer> source,
+                        Ptr<Texture> texture,
+                        const uint32 mipmap,
+                        const uint32 layer);
+
+      virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer);
                                    
       virtual void setPipeline(const Ptr<Pipeline> pipeline);
@@ -60,14 +80,6 @@ namespace en
                                    const Ptr<Buffer> buffer, 
                                    const uint64 offset = 0u) const;
 
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> buffer);
-                        
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Texture> texture,
-                        const uint32 mipmap,
-                        const uint32 layer);
-         
       virtual void draw(const DrawableType primitiveType,
                         const uint32       elements      = 1,   // Elements to process (they are assembled into Primitives)
                         const Ptr<Buffer>  indexBuffer   = nullptr, // Optional Index buffer
@@ -83,12 +95,17 @@ namespace en
                         const uint32       firstElement = 0);   // First index to process in Index buffer (if specified)
 
 
-      virtual bool endRenderPass(void);
-      virtual void commit(void);
+      virtual void endRenderPass(void);
+
+      virtual void barrier(const Ptr<Texture>  texture, 
+                           const uint32v2      mipmaps, 
+                           const uint32v2      layers,
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess);
+
+      virtual void commit(const Ptr<Semaphore> signalSemaphore = nullptr);
       virtual void waitUntilCompleted(void);
    
-      CommandBufferD3D12(const id<MTLDevice> _device);
-      virtual ~CommandBufferMTL();
       };
    }
 }

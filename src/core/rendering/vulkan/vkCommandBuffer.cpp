@@ -28,7 +28,11 @@ namespace en
    namespace gpu
    {
 
-   CommandBufferVK::CommandBufferVK(VulkanDevice* _gpu, const VkQueue _queue, const QueueType type, const VkCommandBuffer _handle, const VkFence _fence) :
+   CommandBufferVK::CommandBufferVK(VulkanDevice* _gpu, 
+         const VkQueue _queue, 
+         const QueueType type, 
+         const VkCommandBuffer _handle, 
+         const VkFence _fence) :
       gpu(_gpu),
       queue(_queue),
       queueType(type),
@@ -125,11 +129,14 @@ namespace en
    started = true;
    }
    
-   void CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer>_framebuffer)
+   void CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer> _framebuffer)
    {
    assert( started );
    assert( !encoding );
-    
+
+   assert( pass );
+   assert( _framebuffer );
+
    RenderPassVK*  renderPass  = raw_reinterpret_cast<RenderPassVK>(&pass);
    FramebufferVK* framebuffer = raw_reinterpret_cast<FramebufferVK>(&_framebuffer);
 
@@ -267,6 +274,8 @@ namespace en
    layersInfo.baseArrayLayer = layer;
    layersInfo.layerCount     = 1u;
    
+   assert( source->size < 0xFFFFFFFF );
+
    VkBufferImageCopy regionInfo;
    regionInfo.bufferOffset      = 0u;
    regionInfo.bufferRowLength   = source->size;
@@ -350,7 +359,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::set(const Ptr<Pipeline> pipeline)
+   void CommandBufferVK::setPipeline(const Ptr<Pipeline> pipeline)
    {
    assert( started );
    assert( pipeline );
@@ -433,12 +442,12 @@ namespace en
    assert( encoding );
    assert( indirectBuffer );
    
-   Ptr<BufferVK> indirect = ptr_dynamic_cast<BufferVK, Buffer>(indirectBuffer);
+   BufferVK* indirect = raw_reinterpret_cast<BufferVK>(&indirectBuffer);
    assert( indirect->apiType == BufferType::Indirect );
    
    if (indexBuffer)
       {
-      Ptr<BufferVK> index = ptr_dynamic_cast<BufferVK, Buffer>(indexBuffer);
+      BufferVK* index = raw_reinterpret_cast<BufferVK>(&indexBuffer);
       assert( index->apiType == BufferType::Index );
       
       uint32 elementSize = 2;

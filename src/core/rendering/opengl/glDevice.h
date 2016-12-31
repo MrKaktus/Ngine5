@@ -23,7 +23,7 @@
 #include "core/rendering/opengl/opengl.h"
 #include "core/rendering/common/device.h"
 
-#include "core/rendering/inputAssembler.h"
+#include "core/rendering/inputLayout.h"
 #include "core/rendering/blend.h"
 #include "core/rendering/raster.h"
 #include "core/rendering/multisampling.h"

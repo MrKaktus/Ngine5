@@ -72,6 +72,7 @@ namespace en
       void update(void);                             // Gets actual input state, call function handling cached events
       
       WinInterface();
+      virtual void init(void);
       virtual ~WinInterface();                       // Polymorphic deletes require a virtual base destructor
       };
    }

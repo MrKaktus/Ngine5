@@ -26,6 +26,11 @@
 #pragma pop_macro("aligned")
 #endif
 #ifdef EN_PLATFORM_WINDOWS
+// Need to compile with Windows 10 SDK to prevent:
+// c:\program files (x86)\windows kits\10\include\10.0.10240.0\um\ole2.h(39): fatal error C1083: Cannot open include file: 'coml2api.h': No such file or directory
+// See more at:
+// https://naughter.wordpress.com/2015/05/24/changes-in-the-windows-10-sdk-compared-to-windows-8-1-part-two/
+//
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI                  // <- TODO: To prevent overloading of SetLayout. This header ends in App space! This includes should be private !!
 #include <windows.h>

@@ -126,13 +126,13 @@ namespace en
       buffers[i].stepRate    = common->step;
       }
 
-   Ptr<InputLayout> inputAssembler = ((GpuDevice*)this)->createInputLayout(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
+   Ptr<InputLayout> inputLayout = ((GpuDevice*)this)->createInputLayout(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
 
    // Free temporary buffers
    delete [] attributes;
    delete [] buffers;
 
-   return inputAssembler;
+   return inputLayout;
    }
 
    }

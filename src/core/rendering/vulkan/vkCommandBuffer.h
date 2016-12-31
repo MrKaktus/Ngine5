@@ -70,7 +70,7 @@ namespace en
       virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr);
 
       virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> buffer);
+                        Ptr<Buffer> destination);
 
       virtual void copy(Ptr<Buffer> source,
                         Ptr<Buffer> destination,
@@ -86,7 +86,7 @@ namespace en
       virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer);
 
-      virtual void set(const Ptr<Pipeline> pipeline);
+      virtual void setPipeline(const Ptr<Pipeline> pipeline);
 
       virtual void setVertexBuffers(const uint32 count, 
                                     const uint32 firstSlot, 

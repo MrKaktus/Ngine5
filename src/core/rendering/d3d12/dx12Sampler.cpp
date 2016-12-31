@@ -17,6 +17,8 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
+#include "core/rendering/d3d12/dx12Device.h"
+
 namespace en
 {
    namespace gpu

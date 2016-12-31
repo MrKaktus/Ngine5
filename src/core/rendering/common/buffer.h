@@ -28,13 +28,13 @@ namespace en
       Formatting formatting;
       uint32     elements;
       uint32     step;
-      uint32     size;
+      uint64     size;
       BufferType apiType;
       uint64     mappedOffset;
       uint64     mappedSize;
       
-      CommonBuffer(const BufferType type, uint32 length);
-      virtual uint32 length(void) const;
+      CommonBuffer(const BufferType type, uint64 length);
+      virtual uint64 length(void) const;
       virtual BufferType type(void) const;
 
       // Returns pointer to buffers memory. This function can be only called on Transfer buffers.
@@ -51,12 +51,12 @@ namespace en
       {
       public:
       Format _format;
-      uint32 _offset;
-      uint32 _length;
+      uint64 _offset;
+      uint64 _length;
 
-      CommonBufferView(const Format format, const uint32 offset, const uint32 length);
-      virtual uint32 offset(void) const;
-      virtual uint32 length(void) const;
+      CommonBufferView(const Format format, const uint64 offset, const uint64 length);
+      virtual uint64 offset(void) const;
+      virtual uint64 length(void) const;
       virtual Format format(void) const;
       
       virtual ~CommonBufferView() {};

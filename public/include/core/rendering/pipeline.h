@@ -91,7 +91,7 @@ namespace en
    struct PipelineState
       {
       Ptr<RenderPass>         renderPass;
-      Ptr<InputLayout>        inputAssembler;
+      Ptr<InputLayout>        inputLayout;
       Ptr<ViewportState>      viewportState;
       Ptr<RasterState>        rasterState;
       Ptr<MultisamplingState> multisamplingState;

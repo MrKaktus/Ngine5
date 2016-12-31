@@ -100,7 +100,7 @@ namespace en
       };
    #endif
       
-   CommonBuffer::CommonBuffer(const BufferType type, uint32 length) :
+   CommonBuffer::CommonBuffer(const BufferType type, uint64 length) :
       formatting(),
       elements(0u),
       step(0u),
@@ -115,7 +115,7 @@ namespace en
    {
    }
    
-   uint32 CommonBuffer::length(void) const
+   uint64 CommonBuffer::length(void) const
    {
    return size;
    }
@@ -147,19 +147,19 @@ namespace en
       
 
    
-   CommonBufferView::CommonBufferView(const Format format, const uint32 offset, const uint32 length) :
+   CommonBufferView::CommonBufferView(const Format format, const uint64 offset, const uint64 length) :
       _format(format),
       _offset(offset),
       _length(length)
    {
    }
 
-   uint32 CommonBufferView::offset(void) const
+   uint64 CommonBufferView::offset(void) const
    {
    return _offset;
    }
 
-   uint32 CommonBufferView::length(void) const
+   uint64 CommonBufferView::length(void) const
    {
    return _length;
    }
