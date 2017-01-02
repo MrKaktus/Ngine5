@@ -27,12 +27,12 @@ namespace en
 {
    namespace gpu
    {
-   //class VulkanDevice;
+   //class MetalDevice;
 
    class SetLayoutMTL : public SetLayout
       {
       public:
-      //VulkanDevice* gpu;
+      //MetalDevice* gpu;
       //VkDescriptorSetLayout handle;
 
       SetLayoutMTL(/*VulkanDevice* gpu, VkDescriptorSetLayout layout*/);
@@ -42,10 +42,10 @@ namespace en
    class PipelineLayoutMTL : public PipelineLayout
       {
       public:
-      //VulkanDevice* gpu;
+      //MetalDevice* gpu;
       //VkPipelineLayout handle;
 
-      PipelineLayoutMTL(/*VulkanDevice* gpu, VkPipelineLayout handle*/);
+      PipelineLayoutMTL(/*MetalDevice* gpu, VkPipelineLayout handle*/);
       virtual ~PipelineLayoutMTL();
       };
    }

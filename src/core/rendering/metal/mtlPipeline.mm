@@ -26,6 +26,7 @@
 #include "core/rendering/metal/mtlMultisampling.h"
 #include "core/rendering/metal/mtlShader.h"
 #include "core/rendering/metal/mtlTexture.h"
+#include "core/rendering/metal/mtlLayout.h"
 
 #include "core/rendering/metal/mtlCommandBuffer.h"   // for CommandBuffer::set(Pipeline)
 
@@ -77,13 +78,16 @@ namespace en
    const InputLayoutMTL*        input          = pipelineState.inputLayout ? raw_reinterpret_cast<InputLayoutMTL>(&pipelineState.inputLayout)
                                                                            : raw_reinterpret_cast<InputLayoutMTL>(&defaultState->inputLayout);
 
+   const RasterStateMTL*        raster         = pipelineState.rasterState ? raw_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState)
+                                                                           : raw_reinterpret_cast<RasterStateMTL>(&defaultState->rasterState);
+
    const MultisamplingStateMTL* multisampling  = pipelineState.multisamplingState ? raw_reinterpret_cast<MultisamplingStateMTL>(&pipelineState.multisamplingState)
                                                                                   : raw_reinterpret_cast<MultisamplingStateMTL>(&defaultState->multisamplingState);
       
    const BlendStateMTL*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateMTL>(&pipelineState.blendState)
                                                                           : raw_reinterpret_cast<BlendStateMTL>(&defaultState->blendState);
 
-   const PipelineLayoutMTL*     layout         = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutMTL>(&pipelineState.pipelineLayout) 
+   const PipelineLayoutMTL*     layout         = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutMTL>(&pipelineState.pipelineLayout)
                                                                               : raw_reinterpret_cast<PipelineLayoutMTL>(&defaultState->pipelineLayout);
 
    // Minimum Vertex Shader is required (Tessellation and Geometry Shaders are not supported by Metal)
@@ -130,7 +134,7 @@ namespace en
    pipeDesc.sampleCount                  = 1;
    pipeDesc.alphaToCoverageEnabled       = NO;
    pipeDesc.alphaToOneEnabled            = NO;
-   pipeDesc.rasterizationEnabled         = rasterizer->enableRasterization; // Optional Rasterization State
+   pipeDesc.rasterizationEnabled         = raster->enableRasterization; // Optional Rasterization State
    for(uint32 i=0; i<8; ++i)                                  // TODO: Change 8 to support.maxColorAttachments
       pipeDesc.colorAttachments[i]       = blend->blendInfo[i];  // Copy descriptors
    pipeDesc.depthAttachmentPixelFormat   = MTLPixelFormatInvalid;
