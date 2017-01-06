@@ -5,9 +5,17 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
@@ -446,7 +454,20 @@
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
@@ -459,7 +480,13 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -468,6 +495,15 @@
     <IntDir>$(SolutionDir)\..\build\win32\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)dbg</TargetName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>$(ProjectName)dbg</TargetName>
+    <IntDir>$(SolutionDir)\..\build\win64\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)\..\bin\win64\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)\..\bin\win64\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)\..\build\win64\$(Configuration)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
@@ -475,7 +511,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./../public/include/;./../src/;./../middleware/;C:/Program Files/Autodesk/FBX/FBX SDK/2015.1/include/;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./../public/include/;./../src/;./../middleware/zlib-1.2.10/;./../middleware/;C:/Program Files/Autodesk/FBX/FBX SDK/2015.1/include/;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
@@ -484,10 +520,38 @@
     </Link>
     <Lib>
       <AdditionalDependencies>opengl32.lib;zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.8\contrib\vstudio\vc11\x86\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win32;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32;$(WindowsSDK_LibraryPath_x86);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x86\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\Win32\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win32;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win32;$(WindowsSDK_LibraryPath_x86);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
     </Lib>
     <BuildLog>
       <Path>.\..\build\win32\$(Configuration)\$(MSBuildProjectName).log</Path>
+    </BuildLog>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <PostBuildEvent>
+      <Command>Ngine_post_build_debug.bat</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./../public/include/;./../src/;./../middleware/zlib-1.2.10/;./../middleware/;C:/Program Files/Autodesk/FBX/FBX SDK/2015.1/include/;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x64\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\x64\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win64;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;$(WindowsSDK_LibraryPath_x86);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
+    </Lib>
+    <BuildLog>
+      <Path>.\..\build\win64\$(Configuration)\$(MSBuildProjectName).log</Path>
     </BuildLog>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -512,6 +576,31 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./../public/include/;./../src/;./../middleware/zlib-1.2.10/;./../middleware/;C:/Program Files/Autodesk/FBX/FBX SDK/2015.1/include/;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <BuildLog>
+      <Path>.\..\build\win64\$(Configuration)\$(MSBuildProjectName).log</Path>
+    </BuildLog>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x64\ZlibDllRelease;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015;.\..\middleware\openvr-1.0.3\lib\win64;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\release;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;$(WindowsSDK_LibraryPath_x86);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

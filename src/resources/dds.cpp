@@ -17,10 +17,7 @@
 
 #include "core/rendering/device.h"
 
-#if defined(EN_PLATFORM_WINDOWS)
-#include "zlib-1.2.8/zlib.h"
-#endif
-#if defined(EN_PLATFORM_OSX)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 #include "zlib.h"
 #endif
 using namespace en::gpu;

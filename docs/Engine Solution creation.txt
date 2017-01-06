@@ -1,4 +1,4 @@
-
+﻿
 WINDOWS:
 ========
 
@@ -77,6 +77,26 @@ Comment out lines, so that Win8+ SDK functions won't be used.
 //#define IOWIN32_USING_WINRT_API 1
 //#endif
 //#endif
+
+
+ZLIB 1.2.10 on Win10 Config:
+
+x86:
+
+Configuration Properties
+  Linker
+    Advanced
+      Image Has Safe Exception Handlers: No (/SAFESEH:NO)
+
+x64:
+
+Configuration Properties
+  Build Events
+    Pre-Build Event
+      Command Line                     : cd ..\..\..\contrib\masmx64
+bld_ml64.bat
+
+
 
 
 

@@ -117,15 +117,15 @@ namespace en
 #else // Release
 
    #define Profile( _gpu, command )                                   \
-           _gpu->lastResult[Scheduler.core()] = _gpu->device.command;
+           _gpu->lastResult[Scheduler.core()] = _gpu->device->command;
 
-   #define Profile( command )                                         \
+   #define ProfileCom( command )                                      \
            command;
 
    #define ProfileNoRet( _gpu, command )                              \
-           _gpu->device.command;
+           _gpu->device->command;
 
-   #define ProfileNoRet( command )                                    \
+   #define ProfileComNoRet( command )                                 \
            command;
 
 #endif

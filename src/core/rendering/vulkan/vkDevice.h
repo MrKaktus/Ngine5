@@ -93,7 +93,7 @@ namespace en
 #else // Release
 
    #define Profile( _gpu, command )                                   \
-           lastResult[Scheduler.core()] = _gpu->command;
+           _gpu->lastResult[Scheduler.core()] = _gpu->command;
 
    #define ProfileNoRet( _gpu, command )                              \
            _gpu->command;

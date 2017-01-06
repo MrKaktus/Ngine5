@@ -6,6 +6,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <objbase.h> 
+#include <InitGuid.h> // Include to avoid linking error on x64 architecture: error LNK2001: unresolved external symbol IID_IDirectInput8W
 #include "platform/windows/win_events.h"  // Window events
 
 #include "input/winInput.h"
@@ -394,7 +395,7 @@ namespace en
    CommonInterface::init();
 
    // Create DirectInput device
-   HRESULT hr;
+   HRESULT hr;       
    if (SUCCEEDED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&directInput, NULL))) 
       {
       // Register joysticks

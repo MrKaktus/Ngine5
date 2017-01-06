@@ -16,6 +16,7 @@
 
 #include "input/common.h"
 #define DIRECTINPUT_VERSION 0x0800
+//#include <dinput8.h>  <- Not found ???
 #include <dinput.h>
 
 namespace en
