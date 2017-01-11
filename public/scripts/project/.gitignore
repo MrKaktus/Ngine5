@@ -1,0 +1,24 @@
+bin/
+build/
+project/vs2015/ENGINE_PROJECT_NAME.v14.suo
+project/vs2015/ENGINE_PROJECT_NAME.sdf
+project/vs2015/ENGINE_PROJECT_NAME.VC.db
+project/vs2015/ENGINE_PROJECT_NAME.VC.opendb
+project/vs2015/ENGINE_PROJECT_NAME.opensdf
+project/vs2015/ENGINE_PROJECT_NAME.vcxproj.filters
+project/vs2017/ENGINE_PROJECT_NAME.v15.suo
+project/vs2017/ENGINE_PROJECT_NAME.sdf
+project/vs2017/ENGINE_PROJECT_NAME.VC.db
+project/vs2017/ENGINE_PROJECT_NAME.VC.opendb
+project/vs2017/ENGINE_PROJECT_NAME.opensdf
+project/vs2017/ENGINE_PROJECT_NAME.vcxproj.filters
+._*
+
+# Because you should always regenerate project files, those one are discarded as well
+project/vs2015/ENGINE_PROJECT_NAME.sln
+project/vs2015/ENGINE_PROJECT_NAME.vcxproj
+project/vs2015/ENGINE_PROJECT_NAME.vcxproj.user
+project/vs2017/ENGINE_PROJECT_NAME.sln
+project/vs2017/ENGINE_PROJECT_NAME.vcxproj
+project/vs2017/ENGINE_PROJECT_NAME.vcxproj.user
+project/macOS/
