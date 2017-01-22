@@ -19,15 +19,7 @@
 #include <string>
 using namespace std;
 
-#ifdef EN_PLATFORM_ANDROID
-// for native asset manager
-#include <sys/types.h>
-#include <android/configuration.h>
-#include <android/asset_manager.h>
-#include <android/asset_manager_jni.h>
-#include <android/storage_manager.h>
-#include <android/obb.h>
-#endif
+#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
@@ -40,77 +32,53 @@ namespace en
       ReadWrite
       };
 
-   class Nfile
-         {
-         private:
-#if defined(EN_PLATFORM_ANDROID)
-         AAsset*  handle;    // File handle
-         uint32   filesize;  // File size      TODO: Migrate to 64bit
-#endif
-#if defined(EN_PLATFORM_BLACKBERRY)
-         FILE*    handle;    // File handle
-         uint64   filesize;  // File size
-#endif
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-         fstream* handle;    // File stream handle
-         uint64   filesize;  // File size
-#endif
+   class File : public SafeObject<File>
+      {
+      public:
+      virtual uint64 size(void) = 0;                 // File size in bytes
+      virtual bool   read(void* buffer) = 0;         // Reads whole file to specified buffer
+      virtual bool   read(const uint64 offset,
+                          const uint64 size,
+                          void* buffer,
+                          uint64* readBytes = nullptr) = 0; // Reads part of file
+         
+      // TODO: Temp, file should be read in blocks to memory, and then parsed!
+      virtual uint32 read(const uint64 offset,
+                          const uint32 maxSize,
+                          string& word) = 0;         // Read zero terminated word, but not exceed maxSize chars. Return word length.
+      virtual uint32 readWord(const uint64 offset,
+                              const uint32 maxSize,
+                              string& word) = 0;
+      virtual uint32 readLine(const uint64 offset,
+                              const uint32 maxSize,
+                              string& line) = 0;
+         
+      virtual bool   write(const uint64 size,
+                           void* buffer) = 0;        // Writes block of data to file
+      virtual bool   write(const uint64 offset,
+                           const uint64 size,
+                           void* buffer) = 0;        // Writes to file at specified location
 
-         public:
-#if defined(EN_PLATFORM_ANDROID)
-         Nfile(AAsset* handle);
-#endif
-#if defined(EN_PLATFORM_BLACKBERRY)
-         Nfile(FILE* handle);
-#endif
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-         Nfile(fstream* handle);
-#endif
-        ~Nfile();
+      virtual ~File() {};                            // Polymorphic deletes require a virtual base destructor
+      };
 
-#if defined(EN_PLATFORM_ANDROID)
-         uint32 size(void);                     // Returns file size   
-#endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-         uint64 size(void);                     // Returns file size   
-#endif                      
-         bool   read(void* buffer);             // Reads whole file to specified buffer
-#if defined(EN_PLATFORM_ANDROID)
-         bool   read(const uint32 offset, 
-                     const uint32 size, 
-                     void* buffer);             // Reads part of file
-#endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-         bool   read(const uint64 offset, 
-                     const uint32 size, 
-                     void* buffer);             // Reads part of file
-#endif
-         uint32 read(const uint64 offset,
-                     const uint32 maxSize,
-                     string& word);             // Read zero terminated word, but not exceed maxSize chars. Return word length.
-         uint32 readWord(const uint64 offset, 
-                         const uint32 maxSize, 
-                         string& word);         // Reads string until whitespace is found
-         uint32 readLine(const uint64 offset, 
-                         const uint32 maxSize, 
-                         string& line);         // Reads string to the end of line 
+   class Interface : public SafeObject<Interface>
+      {
+      public:
+      static bool create(void);                       // Creates instance of this class (OS specific) and assigns it to "Storage".
 
-         bool   write(const uint32 size, 
-                      void* buffer);            // Writes block of data to file
-         bool   write(const uint64 offset, 
-                      const uint32 size, 
-                      void* buffer);            // Writes to file at specified location
-         };
+      virtual bool exist(const string& filename) = 0; // Check if file exist
+      virtual Ptr<File> open(const string& filename,
+                             const FileAccess mode = Read) = 0;  // Opens file
+         
+      virtual uint64 read(const string& filename,
+                          string& dst) = 0;          // Convenience method for reading whole file as string
 
-   struct Interface
-          {
-          bool open(const string& filename, Nfile** file, FileAccess mode = Read);  // Opens file
-          uint32 read(const string& filename, string& dst);                         // Read file to string
-          bool exist(const string& filename); // Check if file exist
-          };
+      virtual ~Interface() {};                       // Polymorphic deletes require a virtual base destructor
+      };
    }
 
-extern storage::Interface Storage;
+extern Ptr<storage::Interface> Storage;
 }
 
 #endif

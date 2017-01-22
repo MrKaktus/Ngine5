@@ -293,7 +293,7 @@ namespace en
       if (needNewSurface)
          {
          drawable            = [layer nextDrawable];
-         framebuffer->handle = drawable.texture;
+         framebuffer->handle = [drawable.texture retain];
          needNewSurface      = false;
          }
 
@@ -310,6 +310,13 @@ namespace en
    if (!needNewSurface)
       {
       [drawable present];
+      
+      // Auto-release pool to ensure that Metal ARC will flush garbage collector
+      @autoreleasepool
+         {
+         [framebuffer->handle release];
+         [drawable release];
+         }
       needNewSurface = true;
       }
    }
@@ -415,7 +422,7 @@ namespace en
 
    // Create commands queue
    // Metal queue is something like "universal" or "synchronous" queue in comparison to "3d / compute / dma" queues in Vulkan
-   queue = [[device newCommandQueue] autorelease];
+   queue = [device newCommandQueue];
    }
 
    MetalDevice::~MetalDevice() 

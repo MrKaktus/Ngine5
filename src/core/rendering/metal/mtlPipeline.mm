@@ -59,7 +59,11 @@ namespace en
    
    PipelineMTL::~PipelineMTL()
    {
-   [handle release];
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [handle release];
+      }
    depthStencil = nullptr;
    }
  
@@ -121,7 +125,13 @@ namespace en
       if (error)
          {
          Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
-         [functionVertex release];
+         
+         // Auto-release pool to ensure that Metal ARC will flush garbage collector
+         @autoreleasepool
+            {
+            [functionVertex release];
+            }
+            
          return Ptr<Pipeline>(nullptr);
          }
       }
@@ -166,8 +176,13 @@ namespace en
    // Create Pipeline
    error = nullptr;
    pipeline = new PipelineMTL(device, pipeDesc, &error);
-   [pipeDesc release];
-
+   
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [pipeDesc release];
+      }
+      
 //typedef NS_ENUM(NSUInteger, MTLCompilerError) {
 //    MTLCompilerErrorNoError = 0,
 //    MTLCompilerErrorFatalError = 1,

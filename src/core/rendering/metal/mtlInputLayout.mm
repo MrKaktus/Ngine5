@@ -296,7 +296,11 @@ namespace en
    
    InputLayoutMTL::~InputLayoutMTL()
    {
-   [desc release];
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [desc release];
+      }
    }
 
    Ptr<InputLayout> MetalDevice::createInputLayout(const DrawableType primitiveType,

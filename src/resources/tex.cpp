@@ -83,14 +83,17 @@ namespace en
    using namespace en::gpu;
 
    // Open image file 
-   Nfile* file = nullptr;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return nullptr;
          }
+      }
  
    // Read file signature
    Header_v1 header;
@@ -98,19 +101,19 @@ namespace en
    if ( header.signature != 0x58455445 )
       {
       Log << "ERROR: TEX file header signature is incorrect!\n";
-      delete file;
+      file = nullptr;
       return nullptr;
       }
    if ( header.version != 1 )
       {
       Log << "ERROR: TEX file header version is not supported!\n";
-      delete file;
+      file = nullptr;
       return nullptr;
       }
    if ( header.filesize != file->size() )
       {
       Log << "ERROR: TEX file size mismatch!\n";
-      delete file;
+      file = nullptr;
       return nullptr;
       }
    assert( header.textures );
@@ -155,7 +158,7 @@ namespace en
          if (!staging)
             {
             Log << "ERROR: Cannot create staging buffer!\n";
-            delete file;
+            file = nullptr;
             return nullptr;
             }
 

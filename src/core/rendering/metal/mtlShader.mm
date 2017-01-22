@@ -34,7 +34,11 @@ namespace en
    
    ShaderMTL::~ShaderMTL()
    {
-   [library release];
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [library release];
+      }
    }
    
    Ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const string& source)

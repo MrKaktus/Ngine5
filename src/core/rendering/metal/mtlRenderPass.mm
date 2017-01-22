@@ -75,7 +75,13 @@ namespace en
 
    ColorAttachmentMTL::~ColorAttachmentMTL()
    {
-   [desc release];
+#ifndef APPLE_ARC
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [desc release];
+      }
+#endif
    }
 
    void ColorAttachmentMTL::onLoad(const LoadOperation load, const float4 clearColor)
@@ -148,8 +154,14 @@ namespace en
 
    DepthStencilAttachmentMTL::~DepthStencilAttachmentMTL()
    {
-   [descDepth release];
-   [descStencil release];
+#ifndef APPLE_ARC
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [descDepth release];
+      [descStencil release];
+      }
+#endif
    }
    
    void DepthStencilAttachmentMTL::onLoad(const LoadOperation loadDepthStencil,
@@ -236,14 +248,24 @@ namespace en
    
    FramebufferMTL::~FramebufferMTL()
    {
-   for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
       {
-      [color[i] release];
-      [resolve[i] release];
-      }
+      for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
+         {
+#ifndef APPLE_ARC
+         [color[i] release];
+         [resolve[i] release];
+#endif
+         }
       
-   for(uint32 i=0; i<3; ++i)
-      [depthStencil[i] release];
+      for(uint32 i=0; i<3; ++i)
+         {
+#ifndef APPLE_ARC
+         [depthStencil[i] release];
+#endif
+         }
+      }
       
 //   for(uint32 i=0; i<(MaxColorAttachmentsCount*2+3); ++i)
 //      views[i] = nullptr;
@@ -262,7 +284,13 @@ namespace en
 
    RenderPassMTL::~RenderPassMTL()
    {
-   [desc release];
+#ifndef APPLE_ARC
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [desc release];
+      }
+#endif
    }
 
    Ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,

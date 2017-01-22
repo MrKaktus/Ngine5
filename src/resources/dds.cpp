@@ -589,21 +589,24 @@ namespace en
 
    uint64 offset = 0;
 
-   // Open file 
-   Nfile* file = nullptr;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   // Open file
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return Ptr<gpu::Texture>(nullptr);
          }
+      }
  
    // Verify minimum file size
    if (file->size() < 128)
       {
       Log << "ERROR: DDS file size is incorrect, file corrupted!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -613,7 +616,7 @@ namespace en
    if (signature != 0x20534444)
       {
       Log << "ERROR: DDS file header signature is incorrect!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }   
 
@@ -624,7 +627,7 @@ namespace en
    if (headerSize != 124)
       {
       Log << "ERROR: DDS file header size is incorrect!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -642,7 +645,7 @@ namespace en
          if (file->size() < 148)
             {
             Log << "ERROR: DDS file size is incorrect, file corrupted!\n";
-            delete file;
+            file = nullptr;
             return Ptr<gpu::Texture>(nullptr);
             }
 
@@ -656,7 +659,7 @@ namespace en
    if (!DetermineTextureType(header, (supportArrays ? &header10 : nullptr), type))
       {
       Log << "ERROR: DDS texture type unsupported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -665,7 +668,7 @@ namespace en
    if (!DetectTextureFormat(header, (supportArrays ? &header10 : nullptr), format))
       {
       Log << "ERROR: DDS texture format unsupported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -699,7 +702,7 @@ namespace en
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -719,7 +722,7 @@ namespace en
             if (!staging)
                {
                Log << "ERROR: Cannot create staging buffer!\n";
-               delete file;
+               file = nullptr;
                return texture;
                }
 
@@ -756,7 +759,7 @@ namespace en
          }
       }	
 
-   delete file;
+   file = nullptr;
    return texture;
    }
 

@@ -259,14 +259,17 @@ namespace en
    using namespace en::storage;
 
    // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return false;
          }
+      }
  
    // Read file signature
    Header signature;
@@ -275,7 +278,7 @@ namespace en
         signature.eof       != 0x0A1A0A0D )
       {
       Log << "ERROR: PNG file header signature is incorrect!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -286,7 +289,7 @@ namespace en
         header.signature != 0x52444849 )
       {
       Log << "ERROR: PNG file IHDR signature is incorrect!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -294,7 +297,7 @@ namespace en
    if (header.compression != 0)
       {
       Log << "ERROR: This PNG compression method is not supported!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -302,7 +305,7 @@ namespace en
    if (header.filter != 0)
       {
       Log << "ERROR: This PNG filtering method is not supported!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -310,7 +313,7 @@ namespace en
    if (header.interlace != 0)
       {
       Log << "ERROR: Interlaced PNG files are not supported!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -348,7 +351,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported texture format!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -473,7 +476,7 @@ namespace en
         // Seek to next chunk
         offset += (length + 4);
         };
-   delete file;
+   file = nullptr;
 
    // Create zlib stream structure
    z_stream stream;
@@ -996,14 +999,17 @@ namespace en
       return ResourcesContext.textures[filename];
 
    // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return Ptr<gpu::Texture>(nullptr);
          }
+      }
  
    // Read file signature
    Header signature;
@@ -1012,7 +1018,7 @@ namespace en
         signature.eof       != 0x0A1A0A0D )
       {
       Log << "ERROR: PNG file header signature is incorrect!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -1023,7 +1029,7 @@ namespace en
         header.signature != 0x52444849 )
       {
       Log << "ERROR: PNG file IHDR signature is incorrect!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -1031,7 +1037,7 @@ namespace en
    if (header.compression != 0)
       {
       Log << "ERROR: This PNG compression method is not supported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -1039,7 +1045,7 @@ namespace en
    if (header.filter != 0)
       {
       Log << "ERROR: This PNG filtering method is not supported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -1047,7 +1053,7 @@ namespace en
    if (header.interlace != 0)
       {
       Log << "ERROR: Interlaced PNG files are not supported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -1085,7 +1091,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported texture format!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -1190,7 +1196,7 @@ namespace en
         // Seek to next chunk
         offset += (length + 4);
         };
-   delete file;
+   file = nullptr;
 
 
 #ifdef EN_PROFILE
@@ -1243,7 +1249,7 @@ namespace en
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
-      delete file;
+      file = nullptr;
       return texture;
       }
    

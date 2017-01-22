@@ -73,23 +73,26 @@ namespace en
    {
    using namespace en::storage;
 
-   // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   // Open image file
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return false;
          }
-   
+      }
+      
    // Check file header signature
    uint16 signature;
    file->read(0,2,&signature);
    if (signature != 0x4D42)
       {
       Log << "ERROR: BMP file header signature incorrect!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
    
@@ -99,7 +102,7 @@ namespace en
    if (file->size() != header.size)
       {
       Log << "ERROR: BMP file header incorrect!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
    
@@ -115,7 +118,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported DIB header!\n";
-      delete file;
+      file = nullptr;
       return false;
       }    
    
@@ -123,7 +126,7 @@ namespace en
    if (DIBHeader.compression != None)
       {
       Log << "ERROR: Compressed BMP files are not supported!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
    
@@ -139,7 +142,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
    
@@ -179,7 +182,7 @@ namespace en
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -221,15 +224,18 @@ namespace en
    if (ResourcesContext.textures.find(filename) != ResourcesContext.textures.end())
       return ResourcesContext.textures[filename];
 
-   // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   // Open image file
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return Ptr<gpu::Texture>(nullptr);
          }
+      }
    
    // Check file header signature
    uint16 signature;
@@ -237,7 +243,7 @@ namespace en
    if (signature != 0x4D42)
       {
       Log << "ERROR: BMP file header signature incorrect!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
    
@@ -247,7 +253,7 @@ namespace en
    if (file->size() != header.size)
       {
       Log << "ERROR: BMP file header incorrect!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
    
@@ -263,7 +269,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported DIB header!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }    
    
@@ -271,7 +277,7 @@ namespace en
    if (DIBHeader.compression != None)
       {
       Log << "ERROR: Compressed BMP files are not supported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
    
@@ -287,7 +293,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
    
@@ -312,7 +318,7 @@ namespace en
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
-      delete file;
+      file = nullptr;
       return texture;
       }
       
@@ -321,7 +327,7 @@ namespace en
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
-      delete file;
+      file = nullptr;
       return texture;
       }
 
@@ -367,14 +373,17 @@ namespace en
    using namespace en::storage;
 
    // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return gpu::TextureState();
          }
+      }
    
    // Check file header signature
    uint16 signature;
@@ -382,7 +391,7 @@ namespace en
    if (signature != 0x4D42)
       {
       Log << "ERROR: BMP file header signature incorrect!\n";
-      delete file;
+      file = nullptr;
       return gpu::TextureState();
       }
    
@@ -392,7 +401,7 @@ namespace en
    if (file->size() != header.size)
       {
       Log << "ERROR: BMP file header incorrect!\n";
-      delete file;
+      file = nullptr;
       return gpu::TextureState();
       }
    
@@ -408,7 +417,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported DIB header!\n";
-      delete file;
+      file = nullptr;
       return gpu::TextureState();
       }    
    
@@ -416,7 +425,7 @@ namespace en
    if (DIBHeader.compression != None)
       {
       Log << "ERROR: Compressed BMP files are not supported!\n";
-      delete file;
+      file = nullptr;
       return gpu::TextureState();
       }
    
@@ -432,7 +441,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      delete file;
+      file = nullptr;
       return en::gpu::TextureState();
       }
    
@@ -445,7 +454,7 @@ namespace en
    //   settings.type = gpu::TextureType::Texture2DRectangle;
    
    // Texture can be decompressed
-   delete file;
+   file = nullptr;
    return settings;
    }
 
@@ -459,10 +468,13 @@ namespace en
      return false;
    
    // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          return false;
+      }
    
    // Read file header
    Header header;
@@ -503,14 +515,17 @@ namespace en
       return false;
 
    // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file, en::storage::Write))
-      if (!Storage.open(en::ResourcesContext.path.screenshots + filename, &file, en::storage::Write))
+   Ptr<File> file = Storage->open(filename, en::storage::Write);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
+      if (!file)
          {
          Log << en::ResourcesContext.path.screenshots + filename << endl;
          Log << "ERROR: Cannot create such file!\n";
          return false;
          }
+      }
   
    uint32 headersSize = sizeof(Header) + sizeof(DIBHeaderOS2);
    uint32 dataSize    = texture->size();
@@ -561,14 +576,17 @@ namespace en
       return false;
 
    // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file, en::storage::Write))
-      if (!Storage.open(en::ResourcesContext.path.screenshots + filename, &file, en::storage::Write))
+   Ptr<File> file = Storage->open(filename, en::storage::Write);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
+      if (!file)
          {
          Log << en::ResourcesContext.path.screenshots + filename << endl;
          Log << "ERROR: Cannot create such file!\n";
          return false;
          }
+      }
   
    uint32 headersSize = sizeof(Header) + sizeof(DIBHeaderOS2);
    uint32 dataSize    = width * height * 3;

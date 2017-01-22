@@ -57,15 +57,18 @@ namespace en
    using namespace en::storage;
    using namespace en::gpu;
 
-   // Open image file 
-   Nfile* file = nullptr;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   // Open image file
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return Ptr<gpu::Texture>();
          }
+      }
    
    // Read file header
    char header[11];
@@ -74,13 +77,13 @@ namespace en
    if (!file->read(0, 10, &header))
       {
       Log << "ERROR: Not HDR file!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>();
       }
    if (strcmp(radiance, header) != 0)
       {
       Log << "ERROR: HDR file header signature incorrect!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>();
       }
 
@@ -171,7 +174,7 @@ namespace en
       {
       Log << "ERROR: Cannot read HDR file to memory!\n";
       deallocate<uint8>(raw);
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>();
       }
 

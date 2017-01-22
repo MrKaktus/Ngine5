@@ -785,7 +785,11 @@ namespace en
             break;
          }
 
-      [event release];
+      // Auto-release pool to ensure that ARC will flush garbage collector
+      @autoreleasepool
+         {
+         [event release];
+         }
 
    } while(event != nil);
    

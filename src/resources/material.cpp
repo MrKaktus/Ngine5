@@ -29,15 +29,18 @@ namespace en
    if (ResourcesContext.materials.find(filename) != ResourcesContext.materials.end())
       return ResourcesContext.materials[filename];
 
-   // Open MATERIAL file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.materials + filename, &file))
+   // Open MATERIAL file
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.materials + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.materials + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return en::resource::Material();
          }
+      }
 
    // Allocate temporary buffer for file content
    uint64 size = file->size();
@@ -55,7 +58,7 @@ namespace en
       Log << "ERROR: Cannot read whole material file!\n";
       return en::resource::Material();
       }    
-   delete file;
+   file = nullptr;
    
    // Create parser to quickly process text from file
    Nparser text(buffer, size);

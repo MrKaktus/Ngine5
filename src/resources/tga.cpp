@@ -62,13 +62,16 @@ namespace en
    using namespace en::storage;
 
   // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << "ERROR: There is no such file " << filename.c_str() << "!\n";
          return false;
          }
+      }
   
    // Read file header
    Header header;
@@ -79,7 +82,7 @@ namespace en
        header.format != RGB_RLE )
       {
       Log << "ERROR: This TGA file format is not supported!\n";
-      delete file;
+      file = nullptr;
       return false;
       }      
   
@@ -87,7 +90,7 @@ namespace en
    if (header.palette != 0)
       {
       Log << "ERROR: Paletted TGA files are not supported!\n";
-      delete file;
+      file = nullptr;
       return false;
       }   
           
@@ -109,7 +112,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -119,7 +122,7 @@ namespace en
        dst->type() != gpu::TextureType::Texture2DMultisampleArray &&
        dst->type() != gpu::TextureType::TextureCubeMapArray)
       {
-      delete file;
+      file = nullptr;
       return false;
       }
    if ( (dst->layers() < layer) ||
@@ -127,7 +130,7 @@ namespace en
         (dst->height() != textureState.height) ||
         (dst->format() != textureState.format) )
       {
-      delete file;
+      file = nullptr;
       return false;
       }
 
@@ -140,7 +143,7 @@ namespace en
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
-      delete file;
+      file = nullptr;
       return false;
       }
       
@@ -219,7 +222,7 @@ namespace en
    command = nullptr;
    staging = nullptr;
  
-   delete file;
+   file = nullptr;
    return true;
    }
 
@@ -232,13 +235,16 @@ namespace en
       return ResourcesContext.textures[filename];
 
    // Open image file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << "ERROR: There is no such file " << filename.c_str() << "!\n";
          return Ptr<gpu::Texture>(nullptr);
          }
+      }
   
    // Read file header
    Header header;
@@ -249,7 +255,7 @@ namespace en
        header.format != RGB_RLE )
       {
       Log << "ERROR: This TGA file format is not supported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }      
   
@@ -257,7 +263,7 @@ namespace en
    if (header.palette != 0)
       {
       Log << "ERROR: Paletted TGA files are not supported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }   
           
@@ -279,7 +285,7 @@ namespace en
    else
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>(nullptr);
       }
 
@@ -292,7 +298,7 @@ namespace en
    if (!texture)
       {
       Log << "ERROR: Cannot create texture object!\n";
-      delete file;
+      file = nullptr;
       return texture;
       }
 
@@ -301,7 +307,7 @@ namespace en
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
-      delete file;
+      file = nullptr;
       return texture;
       }
       
@@ -387,7 +393,7 @@ namespace en
    // Update list of loaded textures
    ResourcesContext.textures.insert(pair<string, Ptr<en::gpu::Texture> >(filename, texture));
   
-   delete file;
+   file = nullptr;
    return texture;
    }
   

@@ -15,7 +15,7 @@
 #include "core/defines.h"
 #include "input/input.h"
 
-#include "core/storage/context.h"
+#include "core/storage/storage.h"
 #include "core/config/context.h"
 #include "core/log/context.h"
 #include "core/rendering/context.h"
@@ -47,7 +47,7 @@
    using namespace en;
 
    // Init modules in proper order
-   StorageContext.create();
+   Storage::create();
    ConfigContext.create();
    LogContext.create();
    SystemContext.create();

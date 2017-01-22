@@ -48,8 +48,8 @@ namespace en
    string filename = EN_CFG_CONFIGURATION_FILE;
 
    // Open config file 
-   Nfile* file = NULL;
-   if (!Storage.open(filepath + filename, &file))
+   Ptr<File> file = Storage->open(filepath + filename);
+   if (!file)
       return false;
 
    // Config file should have max 1MB size
@@ -65,7 +65,7 @@ namespace en
    // Read file to buffer and close file
    if (!file->read(buffer))
       return false;   
-   delete file;
+   file = nullptr;
    
    // Create parser to quickly process text from file
    Nparser text(buffer, size);

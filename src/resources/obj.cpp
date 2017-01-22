@@ -114,15 +114,18 @@ namespace en
    if (ResourcesContext.models.find(name) != ResourcesContext.models.end())
       return ResourcesContext.models[name];
         
-   // Open model file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(ResourcesContext.path.models + filename, &file))
+   // Open model file
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.models + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.models + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return Ptr<en::resource::Model>(NULL);
          }
+      }
    
    // Allocate temporary buffer for file content ( 4GB max size! )
    uint64 size = file->size();
@@ -140,7 +143,7 @@ namespace en
       Log << "ERROR: Cannot read whole obj file!\n";
       return Ptr<en::resource::Model>(NULL);
       }    
-   delete file;
+   file = nullptr;
    
 
    // Step 1 - Parsing the file

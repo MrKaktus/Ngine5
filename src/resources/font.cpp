@@ -158,14 +158,17 @@ namespace en
    {
    using namespace en::storage;
 
-   // Open .fnt file 
-   Nfile* file = nullptr;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.fonts + filename, &file))
+   // Open .fnt file
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.fonts + filename);
+      if (!file)
          {
          Log << string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
          return Ptr<en::resource::Font>(nullptr);
          }
+      }
 
    // Allocate temporary buffer for file content
    uint64 size = file->size();
@@ -183,7 +186,7 @@ namespace en
       Log << "ERROR: Cannot read whole font file!\n";
       return Ptr<en::resource::Font>(nullptr);
       }    
-   delete file;
+   file = nullptr;
 
    // Create new font
    Ptr<FontImp> font = new FontImp();

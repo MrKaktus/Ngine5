@@ -20,7 +20,7 @@ namespace en
 extern void initHalfs(void);
 }
 
-#include "core/storage/context.h"
+#include "core/storage/storage.h"
 #include "core/config/context.h"
 #include "core/log/context.h"
 #include "core/rendering/context.h"
@@ -74,7 +74,7 @@ system("mode con cols=160 lines=50");
 en::initHalfs();
 
 // Init modules in proper order
-en::StorageContext.create();
+en::storage::Storage::create();
 en::ConfigContext.create();
 en::LogContext.create();
 en::SystemContext.create();

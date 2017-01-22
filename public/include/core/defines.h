@@ -131,4 +131,11 @@
    #endif
 #endif
 
+#if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+   // Enable Automatic Reference Counting, as Metal is leaking without it
+   #if __has_feature(objc_arc)
+      #define APPLE_ARC
+   #endif
+#endif
+
 #endif

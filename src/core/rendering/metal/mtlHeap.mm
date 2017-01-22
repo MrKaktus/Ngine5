@@ -34,7 +34,11 @@ namespace en
       
    HeapMTL::~HeapMTL()
    {
-   [handle release];
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [handle release];
+      }
    }
 #endif
 #if defined(EN_PLATFORM_OSX)

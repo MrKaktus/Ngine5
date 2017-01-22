@@ -80,7 +80,13 @@ namespace en
    reference.x = desc.stencil[0].reference;
    reference.y = desc.stencil[1].reference;
 
-   [descriptor release];
+#ifndef APPLE_ARC
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [descriptor release];
+      }
+#endif
    }
 
    DepthStencilStateMTL::~DepthStencilStateMTL()

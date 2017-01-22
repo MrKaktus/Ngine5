@@ -30,14 +30,17 @@ namespace en
    //   return ResourcesContext.materials[name];
 
    // Open MTL file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.materials + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.materials + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.materials + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return false; //en::resource::Material();
          }
+      }
 
    // Allocate temporary buffer for file content ( 4GB max size! )
    uint64 size = file->size();
@@ -55,7 +58,7 @@ namespace en
       Log << "ERROR: Cannot read whole mtl file!\n";
       return false; //en::resource::Material();
       }    
-   delete file;
+   file = nullptr;
    
    // Create parser to quickly process text from file
    Nparser text(buffer, size);

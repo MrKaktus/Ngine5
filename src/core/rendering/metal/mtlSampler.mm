@@ -122,7 +122,13 @@ namespace en
    samplerInfo.normalizedCoordinates = TRUE;     // TODO: Unnormalized coordinates are not supported for now (both supported by Vulkan & Metal)
 
    handle = [gpu->device newSamplerStateWithDescriptor:samplerInfo];       // or getDevice()
-   [samplerInfo release];
+#ifndef APPLE_ARC
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [samplerInfo release];
+      }
+#endif
 
    // Metal vs OpenGL/Vulkan diff:
    //
@@ -137,7 +143,13 @@ namespace en
 
    SamplerMTL::~SamplerMTL()
    {
-   [handle release];
+#ifndef APPLE_ARC
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [handle release];
+      }
+#endif
    }
 
    Ptr<Sampler> MetalDevice::createSampler(const SamplerState& state)

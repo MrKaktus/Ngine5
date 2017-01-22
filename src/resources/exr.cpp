@@ -177,15 +177,18 @@ namespace en
    {
    using namespace en::storage;
 
-   // Open image file 
-   Nfile* file = nullptr;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.textures + filename, &file))
+   // Open image file
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.textures + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
          return Ptr<gpu::Texture>();
          }
+      }
    
    // Read file header
    Header header;
@@ -193,7 +196,7 @@ namespace en
    if (header.signature != 0x01312F76)
       {
       Log << "ERROR: EXR file header signature incorrect!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>();
       }
    
@@ -201,7 +204,7 @@ namespace en
    if (header.multiPart)
       {
       Log << "ERROR: EXR multi-part files are not supported!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>();
       }
 
@@ -223,7 +226,7 @@ namespace en
    if (singlePartType != ScanLineImage)
       {
       Log << "ERROR: Engine supports only scan lined EXR images!\n";
-      delete file;
+      file = nullptr;
       return Ptr<gpu::Texture>();
       }
 
@@ -240,7 +243,7 @@ namespace en
              {
              // Read “name”  
              string name;   
-             uint32 length = file->read(offset, maxChars, name); 
+             uint32 length = file->read(offset, maxChars, name);
              offset += (length + 1);
              if (length == 0)
                 break;
@@ -646,7 +649,7 @@ namespace en
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
-         delete file;
+         file = nullptr;
          return texture;
          }
 

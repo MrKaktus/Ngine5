@@ -15,7 +15,7 @@
 #include "core/defines.h"
 #include "core/types.h"
 
-#include "core/storage/context.h"
+#include "core/storage/storage.h"
 #include "core/config/context.h"
 #include "core/log/context.h"
 #include "core/rendering/context.h"
@@ -64,7 +64,7 @@ namespace en
    ANativeActivity* activity = (ANativeActivity*)in;
 
    // Init modules in proper order
-   StorageContext.create(activity->assetManager);
+   Storage::create(activity->assetManager);
    ConfigContext.create();
    LogContext.create();
    SystemContext.create();

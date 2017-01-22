@@ -98,6 +98,7 @@ namespace en
    {
    assert( renderEncoder != nil );
    
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
    @autoreleasepool
       {
       [renderEncoder endEncoding];
@@ -395,11 +396,11 @@ namespace en
       
    // Don't wait for completion
    
-   // Release buffer
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
    @autoreleasepool
       {
-   [handle release];
-   handle = nil;
+      [handle release];
+      handle = nil;
       }
    }
 
@@ -414,7 +415,8 @@ namespace en
    // Buffers are executed in order in queue
    Ptr<CommandBufferMTL> buffer = new CommandBufferMTL(device);
 
-   buffer->handle = [queue commandBuffer];
+   // Acquired Command Buffer is autoreleased.
+   buffer->handle = [queue commandBufferWithUnretainedReferences];
 
    return ptr_reinterpret_cast<CommandBuffer>(&buffer);
    }

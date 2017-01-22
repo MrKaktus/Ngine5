@@ -88,7 +88,13 @@ namespace en
 
    BlendStateMTL::~BlendStateMTL()
    {
-   [blendInfo release];
+#ifndef APPLE_ARC
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [blendInfo release];
+      }
+#endif
    }
    
    Ptr<BlendState> MetalDevice::createBlendState(const BlendStateInfo& state,

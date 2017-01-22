@@ -57,15 +57,18 @@ namespace en
       return Ptr<audio::Sample>(ResourcesContext.sounds[filename]);
 
    // Open audio file 
-   Nfile* file = NULL;
-   if (!Storage.open(filename, &file))
-      if (!Storage.open(en::ResourcesContext.path.sounds + filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
+      {
+      file = Storage->open(en::ResourcesContext.path.sounds + filename);
+      if (!file)
          {
          Log << en::ResourcesContext.path.sounds + filename << endl;
          Log << "ERROR: There is no such file!\n";
-         delete file;
+         file = nullptr;
          return Ptr<audio::Sample>(NULL);
          }
+      }
    
    // Read and check file header
    Header header;
@@ -75,7 +78,7 @@ namespace en
         (header.format != 0x45564157) )        // 'WAVE' in Big Endian
       {
       Log << "ERROR: Incorrect WAV file header!\n";
-      delete file;
+      file = nullptr;
       return Ptr<audio::Sample>(NULL);
       }
 
@@ -86,14 +89,14 @@ namespace en
         (fmt.byteRate != (fmt.sampleRate * fmt.channels * fmt.bps/8)) )
       {
       Log << "ERROR: WAV file has corrupted FMT chunk!\n";
-      delete file;
+      file = nullptr;
       return Ptr<audio::Sample>(NULL);
       }  
    if ( (fmt.size != 16) ||
         (fmt.format != 1) )
       {
       Log << "ERROR: Not supported WAV compression format!\n";
-      delete file;
+      file = nullptr;
       return Ptr<audio::Sample>(NULL);
       }  
 
@@ -102,13 +105,13 @@ namespace en
         (fmt.bps != 16) )
       {
       Log << "ERROR: Unsupported Bits Per Sample ratio!\n";
-      delete file;
+      file = nullptr;
       return Ptr<audio::Sample>(NULL);
       }
    if (fmt.channels > 2)
       {
       Log << "ERROR: Unsupported audio channells count!\n";
-      delete file;
+      file = nullptr;
       return Ptr<audio::Sample>(NULL);
       }
 
@@ -137,7 +140,7 @@ namespace en
       Log << "ERROR: Cannot create sample in SoundCard!\n";
 
    delete [] buffer;
-   delete file;
+   file = nullptr;
    return sample;
    }
 

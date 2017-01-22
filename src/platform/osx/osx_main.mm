@@ -29,7 +29,7 @@ namespace en
 extern void initHalfs(void);
 }
 
-#include "core/storage/context.h"
+#include "core/storage/storage.h"
 #include "core/config/context.h"
 #include "core/log/context.h"
 //#include "core/rendering/context.h"
@@ -80,16 +80,12 @@ int ConsoleMain(int argc, const char* argv[])
    en::initHalfs();
       
    // Init modules in proper order
-   en::StorageContext.create();
+   en::storage::Interface::create();
    en::ConfigContext.create();
    en::LogContext.create();
    en::SystemContext.create();
    en::SchedulerContext.create();
 
-   // Old graphic API init
-   //en::GpuContext.create();
-
-   // New graphic API init
    en::gpu::GraphicAPI::create();
 
    en::AudioContext.create();  // TODO: Figure out why it locks
@@ -187,7 +183,7 @@ en::SchedulerContext.destroy();
 en::SystemContext.destroy();
 en::LogContext.destroy();
 en::ConfigContext.destroy();
-en::StorageContext.destroy();
+en::Storage = nullptr;
 return returnValue;
 }
 

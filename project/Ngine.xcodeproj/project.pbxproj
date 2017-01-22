@@ -25,6 +25,7 @@
 		85245FCF1DB4A408004A903C /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85245FCE1DB4A408004A903C /* IOSurface.framework */; };
 		852B26381DBFAF96007D0C0F /* dx12Sampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 852B26361DBFAF96007D0C0F /* dx12Sampler.cpp */; };
 		852B26391DBFAF96007D0C0F /* dx12Sampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 852B26371DBFAF96007D0C0F /* dx12Sampler.h */; };
+		852CFDF81E2CA589002F0946 /* libfbxsdk.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 852CFDF71E2CA589002F0946 /* libfbxsdk.dylib */; };
 		852D997E1DC79D4000DEB6F4 /* dx12Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 852D997C1DC79D4000DEB6F4 /* dx12Heap.cpp */; };
 		852D997F1DC79D4000DEB6F4 /* dx12Heap.h in Headers */ = {isa = PBXBuildFile; fileRef = 852D997D1DC79D4000DEB6F4 /* dx12Heap.h */; };
 		85484E041DCD4C8A00BEDD54 /* dx12Multisampling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85484E021DCD4C8A00BEDD54 /* dx12Multisampling.cpp */; };
@@ -247,6 +248,7 @@
 		859A39CB1CA7AF6200CC4173 /* winInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859A39CA1CA7AF6200CC4173 /* winInput.cpp */; };
 		859A39CD1CA7AF7C00CC4173 /* winInput.h in Headers */ = {isa = PBXBuildFile; fileRef = 859A39CC1CA7AF7C00CC4173 /* winInput.h */; };
 		85B17C271CA4E9D800D88AF5 /* osxInput.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85B17C261CA4E9D800D88AF5 /* osxInput.mm */; };
+		85C15E371E2DE313005C69C6 /* osxStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 85C15E361E2DE313005C69C6 /* osxStorage.h */; };
 		85CDB0941C62D023001A1FA1 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85917A5A1C3F66120051382A /* AppDelegate.mm */; };
 		85E070891CAC9B4600F11A41 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E070881CAC9B4600F11A41 /* CoreGraphics.framework */; };
 		85E9CB9C1D7485A80029A9BE /* vkHeap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CB991D7485A80029A9BE /* vkHeap.cpp */; };
@@ -255,6 +257,13 @@
 		85E9CBA11D7486AC0029A9BE /* heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CB9F1D7486AC0029A9BE /* heap.cpp */; };
 		85E9CBA21D7486AC0029A9BE /* heap.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E9CBA01D7486AC0029A9BE /* heap.h */; };
 		85E9CBA41D7486CD0029A9BE /* dx12Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CBA31D7486CD0029A9BE /* dx12Texture.cpp */; };
+		85F115971E2F21130098520E /* andStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 85F115961E2F21130098520E /* andStorage.h */; };
+		85F115991E2F21B00098520E /* andStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85F115981E2F21B00098520E /* andStorage.cpp */; };
+		85F1159E1E3190700098520E /* bbStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 85F1159D1E3190700098520E /* bbStorage.h */; };
+		85F115A01E3192F20098520E /* bbStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85F1159F1E3192F20098520E /* bbStorage.cpp */; };
+		85F115A31E3197E50098520E /* winStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85F115A11E3197E50098520E /* winStorage.cpp */; };
+		85F115A41E3197E50098520E /* winStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 85F115A21E3197E50098520E /* winStorage.h */; };
+		85F115A61E31BFC20098520E /* storage.h in Headers */ = {isa = PBXBuildFile; fileRef = 85F115A51E31BFC20098520E /* storage.h */; };
 		85FB829D1DD2A1C700A7BFA7 /* dx12RenderPass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85FB829B1DD2A1C700A7BFA7 /* dx12RenderPass.cpp */; };
 		85FB829E1DD2A1C700A7BFA7 /* dx12RenderPass.h in Headers */ = {isa = PBXBuildFile; fileRef = 85FB829C1DD2A1C700A7BFA7 /* dx12RenderPass.h */; };
 /* End PBXBuildFile section */
@@ -278,6 +287,7 @@
 		85245FCE1DB4A408004A903C /* IOSurface.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOSurface.framework; path = System/Library/Frameworks/IOSurface.framework; sourceTree = SDKROOT; };
 		852B26361DBFAF96007D0C0F /* dx12Sampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Sampler.cpp; sourceTree = "<group>"; };
 		852B26371DBFAF96007D0C0F /* dx12Sampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12Sampler.h; sourceTree = "<group>"; };
+		852CFDF71E2CA589002F0946 /* libfbxsdk.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfbxsdk.dylib; path = "../../../../../Applications/Autodesk/FBX SDK/2015.1/lib/clang/release/libfbxsdk.dylib"; sourceTree = "<group>"; };
 		852D997C1DC79D4000DEB6F4 /* dx12Heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Heap.cpp; sourceTree = "<group>"; };
 		852D997D1DC79D4000DEB6F4 /* dx12Heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12Heap.h; sourceTree = "<group>"; };
 		85484E021DCD4C8A00BEDD54 /* dx12Multisampling.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Multisampling.cpp; sourceTree = "<group>"; };
@@ -468,7 +478,6 @@
 		85917A2A1C3F66120051382A /* vkRenderPass.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vkRenderPass.cpp; sourceTree = "<group>"; };
 		85917A2C1C3F66120051382A /* rendering.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = rendering.cpp; sourceTree = "<group>"; };
 		85917A2D1C3F66120051382A /* context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = context.h; sourceTree = "<group>"; };
-		85917A2F1C3F66120051382A /* context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = context.h; sourceTree = "<group>"; };
 		85917A301C3F66120051382A /* storage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = storage.cpp; sourceTree = "<group>"; };
 		85917A321C3F66120051382A /* double3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = double3.cpp; sourceTree = "<group>"; };
 		85917A331C3F66120051382A /* double4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = double4.cpp; sourceTree = "<group>"; };
@@ -574,6 +583,7 @@
 		859A39CA1CA7AF6200CC4173 /* winInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = winInput.cpp; sourceTree = "<group>"; };
 		859A39CC1CA7AF7C00CC4173 /* winInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = winInput.h; sourceTree = "<group>"; };
 		85B17C261CA4E9D800D88AF5 /* osxInput.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxInput.mm; sourceTree = "<group>"; };
+		85C15E361E2DE313005C69C6 /* osxStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = osxStorage.h; sourceTree = "<group>"; };
 		85DDD1151C50644B007E707D /* mtlAPI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mtlAPI.h; sourceTree = "<group>"; };
 		85E070861CAC99BB00F11A41 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		85E070881CAC9B4600F11A41 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -583,6 +593,13 @@
 		85E9CB9F1D7486AC0029A9BE /* heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heap.cpp; sourceTree = "<group>"; };
 		85E9CBA01D7486AC0029A9BE /* heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heap.h; sourceTree = "<group>"; };
 		85E9CBA31D7486CD0029A9BE /* dx12Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Texture.cpp; sourceTree = "<group>"; };
+		85F115961E2F21130098520E /* andStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = andStorage.h; sourceTree = "<group>"; };
+		85F115981E2F21B00098520E /* andStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = andStorage.cpp; sourceTree = "<group>"; };
+		85F1159D1E3190700098520E /* bbStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbStorage.h; sourceTree = "<group>"; };
+		85F1159F1E3192F20098520E /* bbStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bbStorage.cpp; sourceTree = "<group>"; };
+		85F115A11E3197E50098520E /* winStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = winStorage.cpp; sourceTree = "<group>"; };
+		85F115A21E3197E50098520E /* winStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = winStorage.h; sourceTree = "<group>"; };
+		85F115A51E31BFC20098520E /* storage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = storage.h; sourceTree = "<group>"; };
 		85FB829B1DD2A1C700A7BFA7 /* dx12RenderPass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12RenderPass.cpp; sourceTree = "<group>"; };
 		85FB829C1DD2A1C700A7BFA7 /* dx12RenderPass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12RenderPass.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -592,6 +609,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				852CFDF81E2CA589002F0946 /* libfbxsdk.dylib in Frameworks */,
 				85245FCF1DB4A408004A903C /* IOSurface.framework in Frameworks */,
 				85245FB81DB3EA89004A903C /* libopenvr_api.dylib in Frameworks */,
 				85E070891CAC9B4600F11A41 /* CoreGraphics.framework in Frameworks */,
@@ -610,6 +628,7 @@
 		85245FB61DB3EA89004A903C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				852CFDF71E2CA589002F0946 /* libfbxsdk.dylib */,
 				85245FCE1DB4A408004A903C /* IOSurface.framework */,
 				85245FB71DB3EA89004A903C /* libopenvr_api.dylib */,
 			);
@@ -924,9 +943,16 @@
 		85917A2E1C3F66120051382A /* storage */ = {
 			isa = PBXGroup;
 			children = (
-				85917A2F1C3F66120051382A /* context.h */,
+				85F115A51E31BFC20098520E /* storage.h */,
 				85917A301C3F66120051382A /* storage.cpp */,
+				85F115961E2F21130098520E /* andStorage.h */,
+				85F115981E2F21B00098520E /* andStorage.cpp */,
+				85F1159D1E3190700098520E /* bbStorage.h */,
+				85F1159F1E3192F20098520E /* bbStorage.cpp */,
+				85C15E361E2DE313005C69C6 /* osxStorage.h */,
 				8508B68D1CF133E300454423 /* osxStorage.mm */,
+				85F115A21E3197E50098520E /* winStorage.h */,
+				85F115A11E3197E50098520E /* winStorage.cpp */,
 			);
 			path = storage;
 			sourceTree = "<group>";
@@ -1212,8 +1238,10 @@
 				85756B8B1E108A3500C8F3DB /* glCache.h in Headers */,
 				85846D7C1CE7814D00E06629 /* glDevice.h in Headers */,
 				85917C8C1C408C9F0051382A /* monetization in Headers */,
+				85F115A41E3197E50098520E /* winStorage.h in Headers */,
 				858B46241DD1889B0053E275 /* dx12Pipeline.h in Headers */,
 				8508B68C1CF00B7800454423 /* mtlShader.h in Headers */,
+				85F115A61E31BFC20098520E /* storage.h in Headers */,
 				852D997F1DC79D4000DEB6F4 /* dx12Heap.h in Headers */,
 				856E9C971CB8C97200875662 /* mtlBlend.h in Headers */,
 				85756B741E1089E600C8F3DB /* mtlInputLayout.h in Headers */,
@@ -1233,12 +1261,15 @@
 				85917C901C408C9F0051382A /* resources in Headers */,
 				859A39CD1CA7AF7C00CC4173 /* winInput.h in Headers */,
 				85917C911C408C9F0051382A /* scene in Headers */,
+				85F115971E2F21130098520E /* andStorage.h in Headers */,
 				85E9CB9E1D7485A80029A9BE /* vkRenderPass.h in Headers */,
+				85C15E371E2DE313005C69C6 /* osxStorage.h in Headers */,
 				85E9CBA21D7486AC0029A9BE /* heap.h in Headers */,
 				85484E051DCD4C8A00BEDD54 /* dx12Multisampling.h in Headers */,
 				85917C921C408C9F0051382A /* threading in Headers */,
 				85756B7E1E108A0A00C8F3DB /* vkInputLayout.h in Headers */,
 				85756B6F1E1089D000C8F3DB /* dx12InputLayout.h in Headers */,
+				85F1159E1E3190700098520E /* bbStorage.h in Headers */,
 				856E9C9B1CBC9B5200875662 /* mtlMultisampling.h in Headers */,
 				85245FCB1DB45EBD004A903C /* osxSurface.h in Headers */,
 				85756B931E108CB400C8F3DB /* mtlLayout.h in Headers */,
@@ -1339,6 +1370,7 @@
 				85917A951C3F66F50051382A /* cBlend.cpp in Sources */,
 				85917A961C3F66F50051382A /* cTexture.cpp in Sources */,
 				85917A981C3F66F50051382A /* device.cpp in Sources */,
+				85F115A31E3197E50098520E /* winStorage.cpp in Sources */,
 				85917A991C3F66F50051382A /* dx12Blend.cpp in Sources */,
 				85917A9A1C3F66F50051382A /* dx12DepthStencil.cpp in Sources */,
 				85917A9C1C3F66F50051382A /* dx12Raster.cpp in Sources */,
@@ -1452,6 +1484,7 @@
 				85917AEC1C3F66F60051382A /* oculus.cpp in Sources */,
 				85917AED1C3F66F60051382A /* vive.cpp in Sources */,
 				85917AEE1C3F66F60051382A /* monetization.cpp in Sources */,
+				85F115991E2F21B00098520E /* andStorage.cpp in Sources */,
 				859A39C71CA7AC7A00CC4173 /* bbInput.cpp in Sources */,
 				85756B6E1E1089D000C8F3DB /* dx12InputLayout.cpp in Sources */,
 				85917AEF1C3F66F60051382A /* and_events.cpp in Sources */,
@@ -1463,6 +1496,7 @@
 				85917AF31C3F66F60051382A /* osx_callbacks.mm in Sources */,
 				85917AF41C3F66F60051382A /* system.cpp in Sources */,
 				85987A9A1D06414D0063BCFD /* dx12Pipeline.cpp in Sources */,
+				85F115A01E3192F20098520E /* bbStorage.cpp in Sources */,
 				85917AF51C3F66F60051382A /* win_events.cpp in Sources */,
 				85917AF61C3F66F60051382A /* win_main.cpp in Sources */,
 				85917AF71C3F66F60051382A /* stereo.cpp in Sources */,

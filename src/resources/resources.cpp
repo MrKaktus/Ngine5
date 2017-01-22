@@ -134,12 +134,12 @@ namespace en
    // Create default program for materials
    string vsCode, fsCode;
 #ifdef EN_OPENGL_DESKTOP
-   en::Storage.read(string("resources/engine/shaders/default.glsl.1.10.vs"), vsCode);
-   en::Storage.read(string("resources/engine/shaders/default.glsl.1.10.fs"), fsCode);
+   en::Storage->read(string("resources/engine/shaders/default.glsl.1.10.vs"), vsCode);
+   en::Storage->read(string("resources/engine/shaders/default.glsl.1.10.fs"), fsCode);
 #endif
 #ifdef EN_OPENGL_MOBILE
-   en::Storage.read(string("resources/engine/shaders/default.essl.1.00.vs"), vsCode);
-   en::Storage.read(string("resources/engine/shaders/default.essl.1.00.fs"), fsCode);
+   en::Storage->read(string("resources/engine/shaders/default.essl.1.00.vs"), vsCode);
+   en::Storage->read(string("resources/engine/shaders/default.essl.1.00.fs"), fsCode);
 #endif
 
    //vector<gpu::Shader> shaders(2, Shader(nullptr));
