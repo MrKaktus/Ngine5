@@ -1,26 +1,6 @@
 #include "Ngine.h"
 using namespace en;
 
-/*
-Things that still need to be set manually:
-
-Solution:
-
-Common Properties
-  Startup Project : Current selection
-
-Project (per target, here for win64):
-
-Configuration Properties
-  General
-    Output Directory:       $(SolutionDir)\..\..\bin\win64\$(Configuration)\
-    Intermediate Directory: $(SolutionDir)\..\..\build\win64\$(Configuration)\
-    Build Log File:         .\..\..\build\win64\$(Configuration)\$(MSBuildProjectName).log
-
-Remove ALL_BUILD and INSTALL projects from Solution.
-
-*/
-
 void sample_ClearScreen(const char* title);
 
 int main(int argc, const char* argv[])
