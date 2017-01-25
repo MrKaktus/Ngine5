@@ -189,4 +189,6 @@ namespace en
    }
 
    }
+   
+Ptr<storage::Interface> Storage = nullptr;
 }

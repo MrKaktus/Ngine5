@@ -45,7 +45,7 @@ namespace en
                               string& line);
 
       CommonFile();
-      virtual ~CommonFile();
+      virtual ~CommonFile() {};
       };
       
    class CommonInterface : public Interface
