@@ -1457,23 +1457,23 @@ namespace en
 
    // Try to reuse pipeline cache from disk. 
    // It is assumed that devices are always enumerated in the same order.
-   Nfile* file = nullptr;
    string filename = string("gpu") + stringFrom(index) + string("pipelineCache.data");
-   if (!Storage.open(filename, &file))
+   Ptr<File> file = Storage->open(filename);
+   if (!file)
       return nullptr;
 
    // Verify that cache file is not corrupted
    uint64 diskCacheSize = file->size();
    if (diskCacheSize < sizeof(PipelineCacheHeader))
       {
-      delete file;
+      file = nullptr;
       return nullptr;
       }
 
    // Size of cache copy on disk shouldn't exceed the limit
    if (diskCacheSize > PipelineCacheMaximumSize)
       {
-      delete file;
+      file = nullptr;
       return nullptr;
       }
 
@@ -1486,7 +1486,7 @@ namespace en
    Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), nullptr) )
    if (cacheSize < sizeof(PipelineCacheHeader))
       {
-      delete file;
+      file = nullptr;
       return nullptr;
       }
 
@@ -1499,14 +1499,14 @@ namespace en
    // disk is still valid (headers won't match after drivers update, GPU change, etc.).
    if (memcmp(&diskHeader, &driverHeader, sizeof(PipelineCacheHeader)) != 0u)
       {
-      delete file;
+      file = nullptr;
       return nullptr;
       }
 
    // Load previously cached pipeline state objects from disk
    uint8* cacheData = new uint8[diskCacheSize];
    file->read(&cacheData);
-   delete file;
+   file = nullptr;
 
    size = diskCacheSize;
    rebuildCache = false;
@@ -1559,12 +1559,12 @@ namespace en
          uint8* cacheData = new uint8[cacheSize];
          Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), cacheData) )
 
-         Nfile* file = nullptr;
          string filename = string("gpu") + stringFrom(index) + string("pipelineCache.data");
-         if (Storage.open(filename, &file, FileAccess::Write))
+         Ptr<File> file = Storage->open(filename, FileAccess::Write);
+         if (file)
             {
             file->write(cacheSize, cacheData);
-            delete file;
+            file = nullptr;
             }
 
          delete [] cacheData;

@@ -109,7 +109,10 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkViewport.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vulkan.cpp" />
+    <ClCompile Include="..\src\core\storage\andStorage.cpp" />
+    <ClCompile Include="..\src\core\storage\bbStorage.cpp" />
     <ClCompile Include="..\src\core\storage\storage.cpp" />
+    <ClCompile Include="..\src\core\storage\winStorage.cpp" />
     <ClCompile Include="..\src\core\types\double3.cpp" />
     <ClCompile Include="..\src\core\types\double4.cpp" />
     <ClCompile Include="..\src\core\types\float2.cpp" />
@@ -397,7 +400,12 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkViewport.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan10.h" />
+    <ClInclude Include="..\src\core\storage\andStorage.h" />
+    <ClInclude Include="..\src\core\storage\bbStorage.h" />
     <ClInclude Include="..\src\core\storage\context.h" />
+    <ClInclude Include="..\src\core\storage\osxStorage.h" />
+    <ClInclude Include="..\src\core\storage\storage.h" />
+    <ClInclude Include="..\src\core\storage\winStorage.h" />
     <ClInclude Include="..\src\core\utilities\basicAllocator.h" />
     <ClInclude Include="..\src\input\andInput.h" />
     <ClInclude Include="..\src\input\bbInput.h" />
@@ -437,6 +445,7 @@
     <None Include="..\src\core\rendering\metal\mtlTexture.mm" />
     <None Include="..\src\core\rendering\metal\mtlViewport.mm" />
     <None Include="..\src\core\rendering\osxSurface.mm" />
+    <None Include="..\src\core\storage\osxStorage.mm" />
     <None Include="..\src\input\osxInput.mm" />
     <None Include="..\src\platform\osx\osx_callbacks.mm" />
     <None Include="..\src\platform\osx\osx_main.mm" />

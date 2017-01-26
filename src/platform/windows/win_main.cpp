@@ -23,7 +23,7 @@ extern void initHalfs(void);
 #include "core/storage/storage.h"
 #include "core/config/context.h"
 #include "core/log/context.h"
-#include "core/rendering/context.h"
+#include "core/rendering/device.h"
 #include "audio/context.h"
 #include "platform/context.h"
 #include "threading/context.h"
@@ -74,7 +74,7 @@ system("mode con cols=160 lines=50");
 en::initHalfs();
 
 // Init modules in proper order
-en::storage::Storage::create();
+en::storage::Interface::create();
 en::ConfigContext.create();
 en::LogContext.create();
 en::SystemContext.create();
@@ -106,7 +106,7 @@ en::SchedulerContext.destroy();
 en::SystemContext.destroy();
 en::LogContext.destroy();
 en::ConfigContext.destroy();
-en::StorageContext.destroy();
+en::Storage = nullptr;
 return 0;
 }
 

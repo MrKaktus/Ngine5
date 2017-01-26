@@ -13,7 +13,7 @@
 #ifndef ENG_CORE_STORAGE_WINDOWS
 #define ENG_CORE_STORAGE_WINDOWS
 
-#include "core/storage.h"
+#include "core/storage/storage.h"
 
 #if defined(EN_PLATFORM_WINDOWS)
 namespace en

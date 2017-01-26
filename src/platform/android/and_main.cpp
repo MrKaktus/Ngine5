@@ -64,7 +64,7 @@ namespace en
    ANativeActivity* activity = (ANativeActivity*)in;
 
    // Init modules in proper order
-   Storage::create(activity->assetManager);
+   en::storage::Interface::create(activity->assetManager);
    ConfigContext.create();
    LogContext.create();
    SystemContext.create();
@@ -85,6 +85,7 @@ namespace en
    //// will return here. This will allow sheduler 
    //// destructor to close rest of worker threads.
    //enScheduler.start(new MainTask(0, 0));
+   en::Storage = nullptr;
    return NULL;
    }
 

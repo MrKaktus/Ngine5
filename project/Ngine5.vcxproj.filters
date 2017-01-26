@@ -645,6 +645,15 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Synchronization.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\storage\andStorage.cpp">
+      <Filter>Source Files\core\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\storage\bbStorage.cpp">
+      <Filter>Source Files\core\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\storage\winStorage.cpp">
+      <Filter>Source Files\core\storage</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1337,6 +1346,21 @@
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Synchronization.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\storage\andStorage.h">
+      <Filter>Source Files\core\storage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\storage\bbStorage.h">
+      <Filter>Source Files\core\storage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\storage\osxStorage.h">
+      <Filter>Source Files\core\storage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\storage\storage.h">
+      <Filter>Source Files\core\storage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\storage\winStorage.h">
+      <Filter>Source Files\core\storage</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">
@@ -1413,6 +1437,9 @@
     </None>
     <None Include="..\src\core\rendering\osxSurface.mm">
       <Filter>Source Files\core\rendering</Filter>
+    </None>
+    <None Include="..\src\core\storage\osxStorage.mm">
+      <Filter>Source Files\core\storage</Filter>
     </None>
   </ItemGroup>
 </Project>

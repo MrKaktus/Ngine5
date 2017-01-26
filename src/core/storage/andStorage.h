@@ -13,7 +13,7 @@
 #ifndef ENG_CORE_STORAGE_ANDROID
 #define ENG_CORE_STORAGE_ANDROID
 
-#include "core/storage.h"
+#include "core/storage/storage.h"
 
 #if defined(EN_PLATFORM_ANDROID)
 namespace en

@@ -47,7 +47,7 @@
    using namespace en;
 
    // Init modules in proper order
-   Storage::create();
+   en::storage::Interface::create();
    ConfigContext.create();
    LogContext.create();
    SystemContext.create();
@@ -84,7 +84,7 @@
    SystemContext.destroy();
    LogContext.destroy();
    ConfigContext.destroy();
-   StorageContext.destroy();
+   Storage = nullptr;
 
    return result;
    }
