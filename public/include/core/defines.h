@@ -94,6 +94,7 @@
 // Rendering backend modules
 
 /* 
+// Removed opengl32.lib; from linking
 #if defined(EN_PLATFORM_WINDOWS) 
 #define EN_MODULE_RENDERER_OPENGL
 #endif

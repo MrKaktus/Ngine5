@@ -12,6 +12,7 @@ Set-Location -Path $projectDirectory
 # Patching: ENGINE_PROJECT_NAME.sln
 ########################################################
 
+
 # Find ALL_BUILD and INSTALL projects and remove them from solution.
 #
 # Algorithm steps:
@@ -64,8 +65,10 @@ $array | Set-Content '.\ENGINE_PROJECT_NAME.sln'
 (Get-Content '.\ENGINE_PROJECT_NAME.sln') | Select-String -pattern "$guid_all_build" -notmatch | Set-Content '.\ENGINE_PROJECT_NAME.sln'
 (Get-Content '.\ENGINE_PROJECT_NAME.sln') | Select-String -pattern "$guid_install" -notmatch | Set-Content '.\ENGINE_PROJECT_NAME.sln'
 
+
 # Patching: ENGINE_PROJECT_NAME.vcxproj
 ########################################################
+
 
 $beforeBuildDebug="ENGINE_PROJECT_NAME\\project\\vs2015\\Debug\\</OutDir>"
 $afterBuildDebug="ENGINE_PROJECT_NAME\bin\win64\Debug\</OutDir>"
@@ -110,3 +113,31 @@ $beforeCMakeRelease="CMAKE_INTDIR=`"Release`";"
 
 $beforeCMakeReleaseSec="CMAKE_INTDIR=\\`"Release\\`";"
 (Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeCMakeReleaseSec", "" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+
+# Generating: ENGINE_PROJECT_NAME.vcxproj.user
+########################################################
+
+$user_settings=@"
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Debug|Win32'">
+    <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Release|Win32'">
+    <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Debug|x64'">
+    <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Release|x64'">
+    <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>
+"@
+
+$user_settings | Set-Content 'ENGINE_PROJECT_NAME.vcxproj.user'

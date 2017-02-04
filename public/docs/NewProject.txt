@@ -1,0 +1,104 @@
+
+Creating Project:
+=================
+
+In terminal run:
+
+> Engine/public/scripts/newProject.cmd ProjectName
+
+Where "ProjectName" is the name you want to use for your project.
+This script will generate directory structure and all other files
+required to easily write project on both Windows and macOS.
+
+Project will be located in:
+
+Engine
+Projects
+> "ProjectName"
+  > bin
+  > build
+  > project
+  > resources  - all intermediate resources used during development
+    > fonts
+    > models
+    > shaders
+    > textures
+  > src        - whole source code of project (.c/.cpp/.mm/.h/.hpp/.inc files will be automatically picked up)
+
+Generating IDE Project Files:
+=============================
+
+Double click on one of files:
+
+ProjectName/project/generateProjectForVisualStudio2015.bat
+ProjectName/project/generateProjectForVisualStudio2017.bat
+ProjectName/project/generateProjectForXcode.command
+
+To generate Visual Studio 2015 or Visual Studio 2017 Solutions, or on macOS currently used Xcode Workspace.
+
+Renaming Project:
+=================
+
+[[[ TODO ]]]
+
+Moving Project:
+===============
+
+[[[ TODO ]]]
+
+Attaching Project to Engine:
+============================
+
+[[[ TODO ]]]
+
+
+How generator works:
+====================
+
+Step 1 - Initial preparation
+----------------------------
+
+On Windows:
+- newProject.cmd 
+  runs -> newProject.ps1
+  - generates directory structure
+  - copies files from:
+    Engine\public\scripts\project 
+    into proper locations in created directory structure
+  - replaces ENGINE_PROJECT_NAME string with "ProjectName" provided by user in all files
+  
+On macOS:
+
+[[[ TODO ]]]
+
+
+This is one time step, performed only once on one of the two systems, but generating files,
+that are compatible with both of them, and alowing second step to be performed multiple times
+on both Windows and macOS.
+
+Step 2 - CMake IDE Projects Generation
+--------------------------------------
+
+- single CMake file shared by both Windows and MacOS (customized for both Visual Studio and Xcode)
+- above script is executed by:
+
+On Windows:
+
+- ProjectName/project/generateProjectForVisualStudio2015.bat
+- ProjectName/project/generateProjectForVisualStudio2017.bat
+  runs -> patchProject.ps1
+
+On MacOS:
+
+- ProjectName/project/generateProjectForXcode.command
+
+  [[[ TODO ]]]
+
+After CMake finishes generation of IDE Project files, scripts above spawns OS specific scripts that
+clean up IDE Projects from any CMake references.
+
+
+Step 3 - Building Project by IDE and sync with Engine
+-----------------------------------------------------
+
+[[[ TODO ]]]

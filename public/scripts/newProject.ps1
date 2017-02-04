@@ -115,6 +115,10 @@ New-Item -ItemType directory -Path $projectName\bin | Out-Null
 New-Item -ItemType directory -Path $projectName\build | Out-Null
 New-Item -ItemType directory -Path $projectName\project | Out-Null
 New-Item -ItemType directory -Path $projectName\resources | Out-Null
+New-Item -ItemType directory -Path $projectName\resources\fonts | Out-Null
+New-Item -ItemType directory -Path $projectName\resources\models | Out-Null
+New-Item -ItemType directory -Path $projectName\resources\shaders | Out-Null
+New-Item -ItemType directory -Path $projectName\resources\textures | Out-Null
 New-Item -ItemType directory -Path $projectName\src | Out-Null
 
 Set-Location -Path $projectName
