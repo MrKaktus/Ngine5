@@ -11,6 +11,7 @@
 
 #include "input/winInput.h"
 #include "input/winJoystick.h"
+#include "core/rendering/device.h"
 
 #if OCULUS_VR
 #include "input/oculus.h"

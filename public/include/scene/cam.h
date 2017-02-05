@@ -15,6 +15,7 @@
 
 #include "input/input.h"
 #include "scene/entity.h"
+#include "core/rendering/device.h"
 
 using namespace en::gpu;
 

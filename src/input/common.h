@@ -12,7 +12,7 @@
 #define ENG_INPUT_COMMON_INTERFACE
 
 #include "input/input.h"
-#include "core/rendering/common/device.h"
+#include "core/rendering/common/display.h"
 using namespace en::gpu;
 
 #include <vector>

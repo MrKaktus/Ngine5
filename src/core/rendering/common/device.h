@@ -31,50 +31,7 @@ using namespace std;
 namespace en
 {
    namespace gpu
-   {
-   class CommonDisplay : public Display
-      {
-      public:
-      uint32v2  _position;          // Upper-Left corner position on virtual desktop
-      uint32v2  _resolution;        // Native resolution
-      uint32v2  observedResolution; // Display resolution when app started
-      uint32v2* modeResolution;     // Resolutions of display modes supported by this display
-      uint32    modesCount;         // Count of display modes supported by this display (from the list of modes supported by the driver)
-
-      CommonDisplay();
-
-      virtual uint32v2 position(void);    // Position on Virtual Desktop
-      virtual uint32v2 resolution(void);  // Native resolution
-
-      virtual ~CommonDisplay();
-      };
-      
-   class CommonWindow : public Window
-      {
-      public:
-      Ptr<CommonDisplay> _display;
-      uint32v2 _position;
-      uint32v2 _size;
-      uint32v2 _resolution;
-      Nmutex   surfaceAcquire;   // Window instance mutex.
-      WindowMode _mode;          // Windowed / Borderless / Fullscreen
-      bool     needNewSurface;
-
-      CommonWindow();
-      
-      virtual Ptr<Display> display(void) const;   // Display on which window's center point is currently located
-      virtual uint32v2 position(void) const;
-      virtual uint32v2 size(void) const;
-      virtual uint32v2 resolution(void) const;
-      
-      virtual void transparent(const float opacity); // TODO: Do we really want that here? (Transp. should be enabled on window creation time, and queried later)
-      virtual void opaque(void);
-      //virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr); // App should query for current surface each time it wants to reference it
-      //virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr);
-      
-      virtual ~CommonWindow();
-      };
-
+   {      
    class CommonDevice : public GpuDevice
       {
       public:

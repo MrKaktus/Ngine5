@@ -157,6 +157,9 @@
     <Filter Include="Header Files\platform\osx">
       <UniqueIdentifier>{8b4bc4be-b8c1-40e0-abd1-ee93129b4d12}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\core\rendering\windows">
+      <UniqueIdentifier>{20a185bd-c3e0-4575-a6dc-33ae42ea7173}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio\audio.cpp">
@@ -653,6 +656,21 @@
     </ClCompile>
     <ClCompile Include="..\src\core\storage\winStorage.cpp">
       <Filter>Source Files\core\storage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\windows\winWindow.cpp">
+      <Filter>Source Files\core\rendering\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\windows\winDisplay.cpp">
+      <Filter>Source Files\core\rendering\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\vulkan\vkWindow.cpp">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\window.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\display.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1360,6 +1378,27 @@
     </ClInclude>
     <ClInclude Include="..\src\core\storage\winStorage.h">
       <Filter>Source Files\core\storage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\windows\winWindow.h">
+      <Filter>Source Files\core\rendering\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\windows\winDisplay.h">
+      <Filter>Source Files\core\rendering\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\window.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\common\display.h">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\display.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\rendering\window.h">
+      <Filter>Header Files\core\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkWindow.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

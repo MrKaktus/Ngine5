@@ -16,7 +16,9 @@
 #include "core/defines.h"
 #include "core/types.h"
 
-#include "core/rendering/device.h"   // Mouse - position on current screen
+#include "core/rendering/display.h"
+
+//#include "core/rendering/device.h"   // Mouse - position on current screen
 using namespace en::gpu;
 
 #include "input/keyboard.h"

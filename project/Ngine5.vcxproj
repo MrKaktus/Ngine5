@@ -23,6 +23,8 @@
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
     <ClCompile Include="..\src\core\rendering\api.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\display.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\window.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12CommandBuffer.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Device.cpp" />
@@ -108,7 +110,10 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkSynchronization.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkViewport.cpp" />
+    <ClCompile Include="..\src\core\rendering\vulkan\vkWindow.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vulkan.cpp" />
+    <ClCompile Include="..\src\core\rendering\windows\winDisplay.cpp" />
+    <ClCompile Include="..\src\core\rendering\windows\winWindow.cpp" />
     <ClCompile Include="..\src\core\storage\andStorage.cpp" />
     <ClCompile Include="..\src\core\storage\bbStorage.cpp" />
     <ClCompile Include="..\src\core\storage\storage.cpp" />
@@ -195,6 +200,7 @@
     <ClInclude Include="..\public\include\core\rendering\commandBuffer.h" />
     <ClInclude Include="..\public\include\core\rendering\depthStencil.h" />
     <ClInclude Include="..\public\include\core\rendering\device.h" />
+    <ClInclude Include="..\public\include\core\rendering\display.h" />
     <ClInclude Include="..\public\include\core\rendering\framebuffer.h" />
     <ClInclude Include="..\public\include\core\rendering\gpu.h" />
     <ClInclude Include="..\public\include\core\rendering\heap.h" />
@@ -213,6 +219,7 @@
     <ClInclude Include="..\public\include\core\rendering\synchronization.h" />
     <ClInclude Include="..\public\include\core\rendering\texture.h" />
     <ClInclude Include="..\public\include\core\rendering\viewport.h" />
+    <ClInclude Include="..\public\include\core\rendering\window.h" />
     <ClInclude Include="..\public\include\core\storage.h" />
     <ClInclude Include="..\public\include\core\threading\atomics.h" />
     <ClInclude Include="..\public\include\core\types.h" />
@@ -306,10 +313,12 @@
     <ClInclude Include="..\src\core\log\context.h" />
     <ClInclude Include="..\src\core\rendering\common\buffer.h" />
     <ClInclude Include="..\src\core\rendering\common\device.h" />
+    <ClInclude Include="..\src\core\rendering\common\display.h" />
     <ClInclude Include="..\src\core\rendering\common\heap.h" />
     <ClInclude Include="..\src\core\rendering\common\inputLayout.h" />
     <ClInclude Include="..\src\core\rendering\common\sampler.h" />
     <ClInclude Include="..\src\core\rendering\common\texture.h" />
+    <ClInclude Include="..\src\core\rendering\common\window.h" />
     <ClInclude Include="..\src\core\rendering\context.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Blend.h" />
@@ -398,8 +407,11 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkSynchronization.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkTexture.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkViewport.h" />
+    <ClInclude Include="..\src\core\rendering\vulkan\vkWindow.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan10.h" />
+    <ClInclude Include="..\src\core\rendering\windows\winDisplay.h" />
+    <ClInclude Include="..\src\core\rendering\windows\winWindow.h" />
     <ClInclude Include="..\src\core\storage\andStorage.h" />
     <ClInclude Include="..\src\core\storage\bbStorage.h" />
     <ClInclude Include="..\src\core\storage\context.h" />

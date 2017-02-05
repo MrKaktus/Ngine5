@@ -22,6 +22,7 @@
 
 #include <string>
 #include "core/rendering/common/device.h"
+#include "core/rendering/common/display.h"
 #include "core/rendering/sampler.h"
 
 
@@ -296,79 +297,6 @@ namespace en
                                                           const ViewportStateInfo* viewports,
                                                           const ScissorStateInfo* scissors);
       };
-
-
-
-
-
-
-
-
-   class winDisplay : public CommonDisplay
-      {
-      public:
-      uint32    index;              // Index of this display on Windows displays list
-      bool      resolutionChanged;  // Flag if app changed display resolution (allows restoration of original resolution on exit)
-      
-      winDisplay();
-     ~winDisplay();
-      };
-     
-   // TODO: This should be moved to platform specific section
-#if defined(EN_PLATFORM_WINDOWS)
-   class winWindow : public CommonWindow
-      {
-      public:
-      HINSTANCE AppInstance; // Application handle (helper handle)
-      HWND hWnd;             // Window handle
-
-      winWindow(const Ptr<winDisplay> selectedDisplay,
-                const uint32v2 selectedResolution,
-                const WindowSettings& settings,
-                const string title);
-
-      virtual bool movable(void);
-      virtual void move(const uint32v2 position);
-      virtual void resize(const uint32v2 size);
-      virtual void active(void);
-      virtual void transparent(const float opacity);
-      virtual void opaque(void);
-
-      virtual ~winWindow();
-      };
-#endif
-
-   class WindowVK : public winWindow
-      {
-      public:
-      VulkanDevice*  gpu;
-      VkSurfaceKHR   swapChainSurface; 
-      VkSwapchainKHR swapChain;
-      Ptr<Texture>*  swapChainTexture;
-      uint32         swapChainImages;
-      uint32         swapChainCurrentImageIndex;
-      VkQueue        presentQueue;
-      VkFence        presentationFence;
-
-      WindowVK(VulkanDevice* gpu,
-               const Ptr<CommonDisplay> selectedDisplay,
-               const uint32v2 selectedResolution,
-               const WindowSettings& settings,
-                      const string title);
-
-      virtual void resize(const uint32v2 size);
-      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr);
-      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr);
-      
-      virtual ~WindowVK();
-      };
-
-
-
-
-
-
-
 
 
 
