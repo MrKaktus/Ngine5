@@ -11,11 +11,10 @@
 */
 
 #include "core/storage/osxStorage.h"
+#include "core/storage/osxStorageFile.h"
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
-#undef aligned
-#include <Foundation/Foundation.h>  // NSBundle
 #include <fstream>
 using namespace std;
 
@@ -25,6 +24,54 @@ namespace en
 {
    namespace storage
    {
+#ifdef APPLE_WAY
+   OSXFile::OSXFile(NSData* _handle) :
+      handle(_handle),
+      CommonFile()
+   {
+   assert( handle );
+   fileSize = [handle length];
+   }
+
+   OSXFile::~OSXFile()
+   {
+   assert( handle );
+   [handle release];
+   handle = nil;
+   }
+
+   bool OSXFile::read(const uint64 offset, const uint64 _size, void* buffer, uint64* readBytes)
+   {
+   assert( handle );
+   assert( offset + _size <= fileSize );
+   
+   [handle getBytes:buffer range:NSMakeRange(offset, _size)];
+
+   return true;
+   }
+  
+   // You should not write into your app bundle, and instead use one of the following folders to store files, which can be obtained using NSSearchPathForDirectoriesInDomains:
+   //
+   // - Document folder (NSDocumentDirectory).
+   // - Application Support folder (NSApplicationSupportDirectory).
+   // - Caches folder (NSCachesDirectory).
+
+   bool OSXFile::write(const uint64 _size, void* buffer)
+   {
+   assert( handle );
+
+   return true;
+   }
+   
+   bool OSXFile::write(const uint64 offset, const uint64 _size, void* buffer)
+   {
+   assert( handle );
+
+   return true;
+   }
+   
+#else
+
    OSXFile::OSXFile(fstream* _handle) :
       handle(_handle),
       CommonFile()
@@ -92,7 +139,7 @@ namespace en
       return false;
    return true;
    }
-    
+#endif
     
     
     
@@ -116,11 +163,11 @@ namespace en
       ext  = filename.substr(pos + 1, filename.length() - pos - 1);
       }
   
-   // Read file from sandbox to memory
+   // Find final path to resource in bundle
    NSString* NSname = [NSString stringWithUTF8String: name.c_str()];
    NSString* NSext  = [NSString stringWithUTF8String: ext.c_str()];
    return [[NSBundle mainBundle] pathForResource:NSname ofType:NSext];
-   
+ 
    //NSURL* url = [[NSBundle mainBundle] URLForResource:stringTo_NSString(filename) withExtension:@"obj"];
    }
 
@@ -197,9 +244,31 @@ namespace en
    Ptr<OSXFile> result = nullptr;
    
    NSString* path = fileInBundleByName(filename);
-   
-   // TODO: Open file!
 
+   if (path)
+      {
+      // Maps file content to virtual adress space
+      NSError* error = nil;
+      NSData* data = [NSData dataWithContentsOfFile:path
+                                            options:NSMappedRead
+                                              error:&error];
+
+      // Alternative approach #1:
+      //
+      // Gets actual handle to file
+      // NSFileHandle *handle = [NSFileHandle fileHandleForReadingAtPath:path];
+      // NSData *fileData = [handle readDataOfLength:];
+      // [handle closeFile];
+      //
+      // Alternative approach #2:
+      //
+      // Read file from sandbox to memory
+      //NSData* data = [NSData dataWithContentsOfFile:path];
+   
+      if ([data length] > 0)
+         result = new OSXFile(data);
+      }
+      
    return raw_reinterpret_cast<File>(&result);
    }
 

@@ -16,30 +16,19 @@
 #include "core/storage/storage.h"
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
+
+// Use Appe NS calls
+#define APPLE_WAY
+
+//#ifdef APPLE_WAY
+//#undef aligned
+//#include <Foundation/Foundation.h>  // NSBundle
+//#endif
+
 namespace en
 {
    namespace storage
-   {
-   class OSXFile : public CommonFile
-      {
-      public:
-      fstream* handle;    // File stream handle
-      
-      virtual bool   read(const uint64 offset,
-                          const uint64 size,
-                          void* buffer,
-                          uint64* readBytes = nullptr); // Reads part of file
-         
-      virtual bool   write(const uint64 size,
-                           void* buffer);            // Writes block of data to file
-      virtual bool   write(const uint64 offset,
-                           const uint64 size,
-                           void* buffer);            // Writes to file at specified location
-
-      OSXFile(fstream* handle);
-      virtual ~OSXFile();
-      };
-      
+   {      
    class OSXInterface : public CommonInterface
       {
       public:

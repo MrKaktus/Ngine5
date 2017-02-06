@@ -10,7 +10,7 @@
 
 #include "utilities/utilities.h"
 #include "input/osxInput.h"
-#include "core/rendering/metal/mtlDevice.h" // Mouse - OSX Screen reference
+#include "core/rendering/metal/mtlDisplay.h" // Mouse - OSX Screen reference
 
 
 // Common

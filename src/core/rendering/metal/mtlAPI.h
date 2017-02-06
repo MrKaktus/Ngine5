@@ -22,6 +22,7 @@
 
 #include <string>
 #include "core/rendering/common/device.h"
+#include "core/rendering/common/display.h"
 
 using namespace std;
 

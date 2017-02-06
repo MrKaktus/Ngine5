@@ -45,39 +45,6 @@ namespace en
 {
    namespace gpu
    {
-   class DisplayMTL : public CommonDisplay
-      {
-      public:
-      NSScreen* handle;     // Pointer to screen in [NSScreen screens] array
-      
-      DisplayMTL();
-     ~DisplayMTL();
-      };
-     
-   class MetalDevice;
-   
-   class WindowMTL : public CommonWindow
-      {
-      public:
-      NSWindow*     window;
-      CAMetalLayer* layer;
-      id <CAMetalDrawable> drawable;
-      Ptr<TextureMTL> framebuffer;
-      
-      virtual bool movable(void);
-      virtual void move(const uint32v2 position);
-      virtual void resize(const uint32v2 size);
-      virtual void active(void);
-      virtual void transparent(const float opacity);
-      virtual void opaque(void);
-      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr);
-      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr);
-      
-      WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title); //id<MTLDevice> device
-      virtual ~WindowMTL();
-      };
-   
-
    class MetalDevice : public CommonDevice
       {
       public:
