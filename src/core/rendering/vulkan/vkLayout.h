@@ -47,6 +47,31 @@ namespace en
       PipelineLayoutVK(VulkanDevice* gpu, VkPipelineLayout handle);
       virtual ~PipelineLayoutVK();
       };
+
+   class DescriptorsVK : public Descriptors
+      {
+      public:
+      VulkanDevice*    gpu;
+      VkDescriptorPool handle;
+      
+      virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout);
+      virtual bool allocate(const uint32 count,
+                            const Ptr<SetLayout>* layouts,
+                            Ptr<DescriptorSet>* sets);
+         
+      DescriptorsVK(VulkanDevice* gpu, VkDescriptorPool handle);
+      virtual ~DescriptorsVK();
+      };
+
+   class DescriptorSetVK : public DescriptorSet
+      {
+      public:
+      Ptr<DescriptorsVK> parent; // Reference to Descriptors Pool
+      VkDescriptorSet    handle;
+      
+      DescriptorSetVK(Ptr<DescriptorsVK> parent, VkDescriptorSet handle);
+      virtual ~DescriptorSetVK();
+      };
    }
 }
 #endif

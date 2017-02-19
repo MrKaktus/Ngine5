@@ -128,8 +128,8 @@ createGitIgnore
 Set-Location -Path project
 createXcodeGenerator
 createVS2015Generator
-(Get-Content '.\..\..\..\Engine\public\scripts\project\patchProject.ps1') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'patchProject.ps1'
 createVS2017Generator
+(Get-Content '.\..\..\..\Engine\public\scripts\project\patchProject.ps1') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'patchProject.ps1'
 Set-Location -Path ..
 
 Set-Location -Path src

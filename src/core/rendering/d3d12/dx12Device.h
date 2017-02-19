@@ -64,7 +64,7 @@ namespace en
            en::gpu::IsWarning(_gpu->lastResult[thread]);                            \
            }
 
-   #define Profile( command )                                                       \
+   #define ProfileCom( command )                                                       \
            {                                                                        \
            uint32 thread = Scheduler.core();                                        \
            Log << "[" << setw(2) << thread << "] ";                                 \
@@ -81,7 +81,7 @@ namespace en
            _gpu->device->command;                                                   \
            }
 
-   #define ProfileNoRet( command )                                                  \
+   #define ProfileComNoRet( command )                                                  \
            {                                                                        \
            uint32 thread = Scheduler.core();                                        \
            Log << "[" << setw(2) << thread << "] ";                                 \

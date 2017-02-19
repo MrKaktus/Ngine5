@@ -83,6 +83,18 @@ namespace en
       // TODO: Methods to binding resources to it
       virtual ~DescriptorSet() {};
       };
+      
+   // Range of Descriptors that can be allocated to create Descriptor sets
+   class Descriptors : public SafeObject<Descriptors>
+      {
+      public:
+      virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout) = 0;
+      virtual bool allocate(const uint32 count,
+                            const Ptr<SetLayout>* layouts,
+                            Ptr<DescriptorSet>* sets) = 0;
+
+      virtual ~Descriptors() {};
+      };
 
    }
 }
