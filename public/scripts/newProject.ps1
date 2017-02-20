@@ -59,13 +59,17 @@ Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForXcode.comm
 function createVS2015Generator
 {
 Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2015.bat' -destination .
-(Get-Content '.\..\..\..\Engine\public\scripts\project\postBuild.bat') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'postBuild.bat'
 }
 
 function createVS2017Generator
 {
 Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2017.bat' -destination .
+}
+
+function createSharedScripts
+{
 (Get-Content '.\..\..\..\Engine\public\scripts\project\postBuild.bat') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'postBuild.bat'
+(Get-Content '.\..\..\..\Engine\public\scripts\project\patchProject.ps1') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'patchProject.ps1'
 }
 
 function createSourceFiles
@@ -129,7 +133,7 @@ Set-Location -Path project
 createXcodeGenerator
 createVS2015Generator
 createVS2017Generator
-(Get-Content '.\..\..\..\Engine\public\scripts\project\patchProject.ps1') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'patchProject.ps1'
+createSharedScripts
 Set-Location -Path ..
 
 Set-Location -Path src

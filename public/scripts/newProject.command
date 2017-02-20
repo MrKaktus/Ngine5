@@ -1,5 +1,7 @@
 #!/bin/bash
 
+projectName=$1
+
 function createMakefile
 {
 #
@@ -9,14 +11,12 @@ function createMakefile
 # `$ - Windows escape characters
 # \$ - macOS escape characters
 #
-cp ./../../Engine/public/scripts/project/CMakeLists.txt ./
-sed -i 's/ENGINE_PROJECT_NAME/$projectName/g' CMakeLists.txt
+sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../Engine/public/scripts/project/CMakeLists.txt > ./CMakeLists.txt
 }
 
 function createGitIgnore
 {
-cp ./../../Engine/public/scripts/project/.gitignore ./
-sed -i 's/ENGINE_PROJECT_NAME/$projectName/g' .gitignore
+sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../Engine/public/scripts/project/.gitignore > ./.gitignore
 }
 
 function createXcodeGenerator
@@ -27,15 +27,17 @@ cp ./../../../Engine/public/scripts/project/generateProjectForXcode.command ./
 function createVS2015Generator
 {
 cp ./../../../Engine/public/scripts/project/generateProjectForVisualStudio2015.bat ./
-cp ./../../../Engine/public/scripts/project/postBuild.bat ./
-sed -i 's/ENGINE_PROJECT_NAME/$projectName/g' postBuild.bat
 }
 
 function createVS2017Generator
 {
 cp ./../../../Engine/public/scripts/project/generateProjectForVisualStudio2017.bat ./
-cp ./../../../Engine/public/scripts/project/postBuild.bat ./
-sed -i 's/ENGINE_PROJECT_NAME/$projectName/g' postBuild.bat
+}
+
+function createSharedScripts
+{
+sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../../Engine/public/scripts/project/postBuild.bat > ./postBuild.bat
+sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../../Engine/public/scripts/project/patchProject.ps1 > ./patchProject.ps1
 }
 
 function createSourceFiles
@@ -70,9 +72,8 @@ if [ -z "$1" ]; then
 fi
 
 # Determine project destination 
-PROJECTS_PATH="./../../../../Projects/"
-if [ $2 ]
-then
+PROJECTS_PATH="./../../../Projects/"
+if [ $2 ]; then
 PROJECTS_PATH=$2
 # TODO: Calculate relative path from project custom path to the Engine directory and take it into notice when generating CMake and other scripts !!!
 fi
@@ -97,7 +98,6 @@ if [ -d "$1" ]; then
 fi
 
 # Start proper project setup
-projectName=$1
 mkdir $projectName
 mkdir $projectName/bin
 mkdir $projectName/build
@@ -117,8 +117,7 @@ cd project
 createXcodeGenerator
 createVS2015Generator
 createVS2017Generator
-cp ./../../../Engine/public/scripts/project/patchProject.ps1 ./
-sed -i 's/ENGINE_PROJECT_NAME/$projectName/g' patchProject.ps1
+createSharedScripts
 cd ./../
 
 cd src

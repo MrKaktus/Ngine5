@@ -9,4 +9,5 @@ mkdir macOS
 cd macOS
 
 # Generate Xcode project 
+PATH="/Applications/CMake.app/Contents/bin":"$PATH"
 cmake -G Xcode ./../../
