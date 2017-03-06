@@ -23,7 +23,7 @@
 namespace en
 {
    namespace gpu
-   {   
+   {
    static const VkDescriptorType TranslateResourceType[underlyingType(ResourceType::Count)] =
       {
       VK_DESCRIPTOR_TYPE_SAMPLER,          // Sampler
@@ -284,7 +284,7 @@ namespace en
 //   // total accessible to any given shader stage across all elements of pSetLayouts:
 //   
 //   // VK_DESCRIPTOR_TYPE_SAMPLER
-//   // VK_DESCRIPTOR_ TYPE_COMBINED_IMAGE_SAMPLER
+//   // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
 //   // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers
 //   
 //   // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
@@ -313,9 +313,153 @@ namespace en
 
 
 
+   // TODO: Creation and binding of Descriptors move to vkDescriptor.cpp
+   //
+   // VkDescriptorPool
+   // VkDescriptorSet   -> matches VkDescriptorSetLayout
+   //
 
 
 
+
+
+   // DESCRIPTOR SET
+   //////////////////////////////////////////////////////////////////////////
+
+
+   DescriptorSetVK::DescriptorSetVK(Ptr<DescriptorsVK> _parent, VkDescriptorSet _handle) :
+      parent(_parent),
+      handle(_handle)
+   {
+   }
+
+   DescriptorSetVK::~DescriptorSetVK()
+   {
+   Profile( gpu, vkFreeDescriptorSets(gpu->device, parent->handle, 1u, &handle) )
+   parent = nullptr;
+   }
+   
+   
+   // DESCRIPTOR POOL
+   //////////////////////////////////////////////////////////////////////////
+
+
+   DescriptorsVK::DescriptorsVK(VulkanDevice* _gpu, VkDescriptorPool _handle) :
+      gpu(_gpu),
+      handle(_handle)
+   {
+   }
+
+   DescriptorsVK::~DescriptorsVK()
+   {
+   ProfileNoRet( gpu, vkDestroyDescriptorPool(gpu->device, handle, nullptr) )
+   }
+
+   Ptr<DescriptorSet> DescriptorsVK::allocate(const Ptr<SetLayout> layout)
+   {
+   Ptr<DescriptorSetVK> result = nullptr;
+
+   VkDescriptorSetAllocateInfo allocInfo;
+   allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+   allocInfo.pNext              = nullptr;
+   allocInfo.descriptorPool     = handle;
+   allocInfo.descriptorSetCount = 1u;
+   allocInfo.pSetLayouts        = raw_reinterpret_cast<SetLayoutVK>(layout)->handle;
+
+   VkDescriptorSet set = VK_NULL_HANDLE;
+
+   Profile( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, &set) )
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      result = new DescriptorSetVK(this, set);
+
+   return ptr_reinterpret_cast<DescriptorSet>(&result);
+   }
+   
+   bool DescriptorsVK::allocate(const uint32 count, const Ptr<SetLayout>* layouts, Ptr<DescriptorSet>* sets)
+   {
+   bool result = false;
+   
+   // This is the place where Objectiveness of Rendering Abstraction is unwanted for a first time.
+   
+   // Pack layouts
+   VkDescriptorSet*       handle = new VkDescriptorSet[count];
+   VkDescriptorSetLayout* layout = new VkDescriptorSetLayout[count];
+   assert( handle );
+   assert( layout );
+   for(uint32 i=0; i<count; ++i)
+      {
+      SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(layouts[i]);
+      layout[i] = ptr->handle;
+      handle[i] = VK_NULL_HANDLE;
+      }
+   
+   VkDescriptorSetAllocateInfo allocInfo;
+   allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+   allocInfo.pNext              = nullptr;
+   allocInfo.descriptorPool     = handle;
+   allocInfo.descriptorSetCount = count;
+   allocInfo.pSetLayouts        = layout;
+
+   Profile( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, &handle) )
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      // Unpack results
+      for(uint32 i=0; i<count; ++i)
+         {
+         Ptr<DescriptorSetVK> ptr = new DescriptorSetVK(this, handle[i]);
+         sets[i] = raw_reinterpret_cast<DescriptorSet>(&ptr);
+         }
+         
+      result = true;
+      }
+
+   delete [] handle;
+   delete [] layout;
+   
+   return result;
+   }
+
+   //void DescriptorsVK::free(void)
+   //{
+   // This would break dependency with child DescriptorSets
+   // vkResetDescriptorPool
+   //}
+
+
+   // DEVICE
+   //////////////////////////////////////////////////////////////////////////
+
+
+   Ptr<Descriptors> VulkanDevice::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
+   {
+   Ptr<DescriptorsVK> result = nullptr;
+   
+   uint32 resourceTypesCount = underlyingType(ResourceType::Count);
+   
+   VkDescriptorPoolSize ranges[resourceTypesCount];
+   for(uint32 i=0; i<resourceTypesCount; ++i)
+      {
+      ranges[i].type            = TranslateResourceType[i];
+      ranges[i].descriptorCount = count[i];
+      }
+      
+   VkDescriptorPoolCreateInfo poolInfo;
+   poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+   poolInfo.pNext         = nullptr;
+   poolInfo.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT; // Allow freeing and re-allocation of descriptor sets. May lead to Pool fragmentation.
+   poolInfo.maxSets       = maxSets;
+   poolInfo.poolSizeCount = resourceTypesCount;
+   poolInfo.pPoolSizes    = &ranges[0];
+
+   VkDescriptorPool handle = VK_NULL_HANDLE;
+   Profile( gpu, vkCreateDescriptorPool(gpu->device, &poolInfo, nullptr, &handle) )
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      result = new DescriptorsVK(this, handle);
+      }
+
+   return ptr_reinterpret_cast<Descriptors>(&result);
+   }
 
    }
 }

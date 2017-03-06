@@ -14,13 +14,14 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 # MacOS
 if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
 
-   FILE(GLOB_RECURSE $SourceFiles
+   FILE(GLOB_RECURSE SourceFiles
       "./src/*.cpp"
       "./src/*.mm")
 
-   add_executable(ENGINE_PROJECT_NAME ${SourceFiles})
+   add_executable(ENGINE_PROJECT_NAME EXCLUDE_FROM_ALL ${SourceFiles})
 
-   include_directories(../../Engine/Ngine5/bin/macOS/$<CONFIG>/usr/local/include/Ngine/)
+   #include_directories(../../Engine/bin/macOS/$<CONFIG>/usr/local/include/Ngine/)
+   include_directories(../../Engine/public/include/)
 
    SET(CMAKE_FIND_LIBRARY_PREFIXES "lib")
    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".a" ".dylib" ".framework")
@@ -28,8 +29,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
    # https://cmake.org/Wiki/CMake/Tutorials/Exporting_and_Importing_Targets
    #
    add_library(Ngine STATIC IMPORTED)
-   set_property(TARGET Ngine PROPERTY IMPORTED_LOCATION_RELEASE /Volumes/FAT32_SHARE/Engine/Ngine5/bin/macOS/Release/libNgine.a)
-   set_property(TARGET Ngine PROPERTY IMPORTED_LOCATION_DEBUG   /Volumes/FAT32_SHARE/Engine/Ngine5/bin/macOS/Debug/libNgine.a)
+   set_property(TARGET Ngine PROPERTY IMPORTED_LOCATION_RELEASE /Volumes/FAT32_SHARE/Engine/bin/macOS/Release/libNgine.a)
+   set_property(TARGET Ngine PROPERTY IMPORTED_LOCATION_DEBUG   /Volumes/FAT32_SHARE/Engine/bin/macOS/Debug/libNgine.a)
 
    find_package(ZLIB REQUIRED)
    if (NOT ZLIB_FOUND)

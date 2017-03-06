@@ -33,7 +33,7 @@ namespace en
       D3D12_ROOT_DESCRIPTOR_TABLE table;
 
       SetLayoutD3D12() {};
-      virtual ~SetLayoutD3D12() {};
+      virtual ~SetLayoutD3D12();
       };
 
    class PipelineLayoutD3D12 : public PipelineLayout
@@ -41,8 +41,33 @@ namespace en
       public:
       ID3D12RootSignature* handle;
 
-      PipelineLayoutD3D12();
+      PipelineLayoutD3D12(ID3D12RootSignature* handle);
       virtual ~PipelineLayoutD3D12();
+      };
+
+   class DescriptorsD3D12 : public Descriptors
+      {
+      public:
+      ID3D12DescriptorHeap* handle;
+      ID3D12DescriptorHeap* handleSamplers;
+      
+      virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout);
+      virtual bool allocate(const uint32 count,
+                            const Ptr<SetLayout>* layouts,
+                            Ptr<DescriptorSet>* sets);
+         
+      DescriptorsD3D12(ID3D12DescriptorHeap* handle, ID3D12DescriptorHeap* handleSamplers);
+      virtual ~DescriptorsD3D12();
+      };
+
+   class DescriptorSetD3D12 : public DescriptorSet
+      {
+      public:
+      Ptr<DescriptorsD3D12> parent; // Reference to Descriptors Pool
+      //VkDescriptorSet       handle;
+      
+      DescriptorSetD3D12(Ptr<DescriptorsD3D12> parent, VkDescriptorSet handle);
+      virtual ~DescriptorSetD3D12();
       };
    }
 }
