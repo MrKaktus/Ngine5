@@ -288,6 +288,7 @@ namespace en
          [drawable release];
          }
       needNewSurface = true;
+	  _frame++;
       }
    }
 

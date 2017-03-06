@@ -21,6 +21,7 @@
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 #include "core/rendering/common/device.h"
+#include "core/rendering/common/display.h"
 
 #include "core/rendering/d3d12/dx12InputLayout.h"
 #include "core/rendering/d3d12/dx12Blend.h"
@@ -148,10 +149,15 @@ namespace en
    // Bundles/Secondary Command Buffers are not supported currently.
    // - D3D12_COMMAND_LIST_TYPE_BUNDLE
 
+   class Direct3DAPI;
+
    class Direct3D12Device : public CommonDevice
       {
       public:
       HRESULT                 lastResult[MaxSupportedWorkerThreads];
+      Direct3DAPI*            api;      // Direct3D API 
+      uint32                  index;    // This device number on the list
+      IDXGIAdapter1*          adapter;  // HW Adapter, physical GPU from which this D3D12 GPU was created
       ID3D12Device*           device;
       uint32                  queuesCount[underlyingType(QueueType::Count)];
       ID3D12CommandQueue*     queue[underlyingType(QueueType::Count)];
@@ -159,18 +165,33 @@ namespace en
       uint32                  fenceCurrentValue[MaxSupportedWorkerThreads]; // Pool of values signaled by Fences
       HANDLE                  fenceSignalingEvent[MaxSupportedWorkerThreads]; // Event used to signal Fence completion on CPU side
       
+	//// Synchronization objects.
+	//UINT m_frameIndex;
+	//HANDLE m_fenceEvent;
+	//ComPtr<ID3D12Fence> m_fence;
+	//UINT64 m_fenceValue;
+
       // We treat rendering destinations as fixed state that is rebinded with every RenderPass change.
       ID3D12DescriptorHeap* heapRTV; // Global heaps for current RenderPass (there can be only one)
       ID3D12DescriptorHeap* heapDSV;
       D3D12_CPU_DESCRIPTOR_HANDLE handleRTV[8];
       D3D12_CPU_DESCRIPTOR_HANDLE handleDSV;
       
-      Direct3D12Device();
+      Direct3D12Device(Direct3DAPI* api, const uint32 index, IDXGIAdapter1* adapter);
      ~Direct3D12Device();
 
 
 
       virtual void init(void);
+
+      virtual uint32 displays(void) const;
+
+      virtual Ptr<Display> display(uint32 index) const;
+
+      virtual Ptr<Window> createWindow(const WindowSettings& settings, 
+                                       const string title);
+
+      virtual uint32 queues(const QueueType type) const;
 
       // Creates Command Buffer from the given Command Queue of given type.
       // When this buffer is commited for execution it will execute on that queue.
@@ -203,7 +224,14 @@ namespace en
                                                                        const Format stencilFormat = Format::Unsupported,
                                                                        const uint32 samples = 1u);
 
+      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
 
+      virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
+                                               const Ptr<ColorAttachment>* color,
+                                               const Ptr<DepthStencilAttachment> depthStencil);
+
+      virtual Ptr<Semaphore> createSemaphore(void);
 
 
          
@@ -236,6 +264,37 @@ namespace en
                                                      const ViewportStateInfo* viewports,
                                                      const ScissorStateInfo* scissors);
 
+      };
+
+
+   // Direct3D API Interface
+   class Direct3DAPI : public GraphicAPI
+      {
+      public:
+      HRESULT                lastResult[MaxSupportedWorkerThreads];
+
+      ID3D12Debug*           debugController;
+      IDXGIFactory5*         factory;         // Application Direct3D API Factory
+      Ptr<Direct3D12Device>* device;          // Physical Device Interfaces
+      uint32                 devicesCount;
+
+      // API Independent, OS Dependent - Windowing System
+      Ptr<CommonDisplay>*    displayArray;
+      Ptr<CommonDisplay>     virtualDisplay;
+      uint32                 displaysCount;
+      uint32                 displayPrimary;
+
+      public:
+      Direct3DAPI(string appName);
+      virtual ~Direct3DAPI();
+
+      // TODO: Those could be moved to CommonGraphicAPI
+      virtual uint32 devices(void) const;
+      virtual Ptr<GpuDevice> primaryDevice(void) const;
+
+      virtual uint32 displays(void) const;
+      virtual Ptr<Display> primaryDisplay(void) const;
+      virtual Ptr<Display> display(uint32 index) const;
       };
    }
 }

@@ -38,7 +38,7 @@
 #include <windows.h>
 
 #include <d3d12.h>
-#include <dxgi1_4.h>
+#include <dxgi1_5.h>   // v1.5 introduces support for VRR (Variable Refresh Rate)
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 

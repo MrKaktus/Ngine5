@@ -547,8 +547,7 @@ namespace en
 
       Profile( gpu, vkQueuePresentKHR(presentQueue, &info) )
       needNewSurface = true;
-
-
+      _frame++;
 
       // TODO: Measure here Window rendering time (average between present calls) ?
       }

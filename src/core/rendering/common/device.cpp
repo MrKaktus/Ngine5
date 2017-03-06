@@ -285,6 +285,9 @@ namespace en
    Graphics = ptr_dynamic_cast<GraphicAPI, MetalAPI>(Ptr<MetalAPI>(new MetalAPI()));
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
+
+   // TODO: API Selection based on config file / terminal parameters
+
    // Graphics = ptr_dynamic_cast<GraphicAPI, Direct3DAPI>(Ptr<Direct3DAPI>(new Direct3DAPI()));
    // Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLAPI>(Ptr<OpenGLAPI>(new OpenGLAPI()));
    Graphics = ptr_dynamic_cast<GraphicAPI, VulkanAPI>(Ptr<VulkanAPI>(new VulkanAPI("Ngine5.0")));      // TODO: Propagate application name !

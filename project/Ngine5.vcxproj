@@ -34,6 +34,7 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Sampler.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Shader.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Synchronization.cpp" />
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Window.cpp" />
     <ClCompile Include="..\src\core\rendering\ogl_buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cBlend.cpp" />
@@ -338,6 +339,7 @@
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Synchronization.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Texture.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Viewport.h" />
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Window.h" />
     <ClInclude Include="..\src\core\rendering\metal\metal.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlAPI.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlBlend.h" />
@@ -345,6 +347,7 @@
     <ClInclude Include="..\src\core\rendering\metal\mtlCommandBuffer.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlDepthStencil.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlDevice.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlDisplay.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlHeap.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlInputLayout.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlInternal.h" />
@@ -357,6 +360,7 @@
     <ClInclude Include="..\src\core\rendering\metal\mtlShader.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlTexture.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlViewport.h" />
+    <ClInclude Include="..\src\core\rendering\metal\mtlWindow.h" />
     <ClInclude Include="..\src\core\rendering\opengl\extensions.h" />
     <ClInclude Include="..\src\core\rendering\opengl\gl30Framebuffer.h" />
     <ClInclude Include="..\src\core\rendering\opengl\gl31Framebuffer.h" />
@@ -444,6 +448,7 @@
     <None Include="..\src\core\rendering\metal\mtlCommandBuffer.mm" />
     <None Include="..\src\core\rendering\metal\mtlDepthStencil.mm" />
     <None Include="..\src\core\rendering\metal\mtlDevice.mm" />
+    <None Include="..\src\core\rendering\metal\mtlDisplay.mm" />
     <None Include="..\src\core\rendering\metal\mtlHeap.mm" />
     <None Include="..\src\core\rendering\metal\mtlInputLayout.mm" />
     <None Include="..\src\core\rendering\metal\mtlLayout.mm" />
@@ -456,6 +461,7 @@
     <None Include="..\src\core\rendering\metal\mtlSynchronization.mm" />
     <None Include="..\src\core\rendering\metal\mtlTexture.mm" />
     <None Include="..\src\core\rendering\metal\mtlViewport.mm" />
+    <None Include="..\src\core\rendering\metal\mtlWindow.mm" />
     <None Include="..\src\core\rendering\osxSurface.mm" />
     <None Include="..\src\core\storage\osxStorage.mm" />
     <None Include="..\src\input\osxInput.mm" />

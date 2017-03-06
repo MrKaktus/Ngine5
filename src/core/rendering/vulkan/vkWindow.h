@@ -61,7 +61,7 @@ namespace en
                const Ptr<CommonDisplay> selectedDisplay,
                const uint32v2 selectedResolution,
                const WindowSettings& settings,
-                      const string title);
+               const string title);
 
       virtual void resize(const uint32v2 size);
       virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr);

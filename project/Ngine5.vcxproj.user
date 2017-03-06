@@ -6,8 +6,8 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommand>$(SolutionDir)..\..\..\..\Projects\GameVR\bin\Win32\Debug\GameVR.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\..\..\Projects\GameVR\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>$(SolutionDir)..\..\..\..\Projects\Samples\bin\win64\Debug\Samples.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\..\..\Projects\Samples\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

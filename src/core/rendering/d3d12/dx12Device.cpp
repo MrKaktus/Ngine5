@@ -108,17 +108,32 @@ namespace en
    return false;
    }
 
-   Direct3D12Device::Direct3D12Device()
+   Direct3D12Device::Direct3D12Device(Direct3DAPI* _api, const uint32 _index, IDXGIAdapter1* _adapter) :
+      api(_api),
+      index(_index),
+      adapter(_adapter),
+      device(nullptr)
    {
-   // TODO: Everything else . . . .
+   for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
+      lastResult[i] = 0;
 
+   // Way to find HW Adapter from which given D3D12 Device was created (DXGI 1.4+):
+   // LUID luid = ID3D12Device::GetAdapterLuid();
+   // IDXGIAdapter* adapter = nullptr;
+   // HRESULT IDXGIFactory4::EnumAdapterByLuid(luid, IID_PPV_ARGS(adapter)); // __uuidof(IDXGIAdapter), reinterpret_cast<void**>(&adapter)
 
+   // Try to create device with 12.1 feature level, if not supported fallback to 12.0
+   if (SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1, _uuidof(ID3D12Device), nullptr)))
+      ProfileCom( D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)) ) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
+   else
+      ProfileCom( D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)) ) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
 
    // All threads starts with Fence values == 0, first Fences will have ID 1
    memset(&fenceCurrentValue[0], 0, sizeof(fenceCurrentValue));
 
-   // QUEUES
-   
+   // COMMAND QUEUES
+   // ==============
+
    // TODO: Is there a way to query amount of available queues of each type?
    uint32 types = underlyingType(QueueType::Count);
    for(uint32 type=0; type<types; ++type)
@@ -129,7 +144,7 @@ namespace en
       desc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;       // Can use D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT
       desc.NodeMask = 0u;                                  // No Multi-GPU support.
      
-      Profile( this, CreateCommandQueue(&desc, IID_PPV_ARGS(&queue[type])) )
+      Profile( this, CreateCommandQueue(&desc, IID_PPV_ARGS(&queue[type])) ) // __uuidof(ID3D12CommandQueue), reinterpret_cast<void**>(&queue[type])
 
       queuesCount[type] = 1;
 
@@ -141,7 +156,7 @@ namespace en
       //   currently recording command list at a time, . . . "
       //
       Profile( this, CreateCommandAllocator(TranslateQueueType[type],
-                                            IID_PPV_ARGS(&commandAllocator[thread][type])) )
+                                            IID_PPV_ARGS(&commandAllocator[thread][type])) ) // __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&commandAllocator[thread][type])
       }
 
 
@@ -163,7 +178,7 @@ namespace en
    // Currently it's done by simply allocating small Descriptor Heaps matching
    // maximum amount of RTV's and DSV's. Thus each change of RenderPass requires
    // rebinding of destination resources views to those Descriptors. It's not
-   // perfect solution, but it shouldn't impart performance as RenderPass changes
+   // perfect solution, but it shouldn't impact performance as RenderPass changes
    // are rare during the frame.
    //
    // Alternative solution would be to allocate bigger Heaps, and cache RTV and DSV
@@ -203,11 +218,60 @@ namespace en
 
    // TODO: Everything else . . . .
 
+
+   init();
    }
 
    Direct3D12Device::~Direct3D12Device()
    {
    // TODO: Everything else . . . .
+
+   // Destroy Command Queues and Allocators
+   for(uint32 type=0; type<underlyingType(QueueType::Count); ++type)
+      {
+      // TODO: Each thread should destroy it's own CommandAllocators
+      uint32 thread = 0;
+
+      commandAllocator[thread][type]->Release();
+      commandAllocator[thread][type] = nullptr;
+
+      queue[type]->Release();
+      queue[type] = nullptr;
+      }
+
+   // Destroy device
+   device->Release();
+   device = nullptr;
+
+   // Destroy adapter
+   adapter->Release();
+   adapter = nullptr;
+   }
+
+   void Direct3D12Device::init()
+   {
+   // TODO: Populate API capabilities
+
+   CommonDevice::init();
+   }
+
+   uint32 Direct3D12Device::displays(void) const
+   {
+   // TODO: Currently all Direct3D12 devices share all available displays
+   return api->displaysCount;
+   }
+   
+   Ptr<Display> Direct3D12Device::display(uint32 index) const
+   {
+   // TODO: Currently all Direct3D12 devices share all available displays
+   assert( api->displaysCount > index );
+   
+   return ptr_reinterpret_cast<Display>(&api->displayArray[index]);
+   }
+
+   uint32 Direct3D12Device::queues(const QueueType type) const
+   {
+   return queuesCount[underlyingType(type)];
    }
 
    Ptr<Texture> Direct3D12Device::createSharedTexture(Ptr<SharedSurface> backingSurface)
@@ -218,6 +282,113 @@ namespace en
    return Ptr<Texture>(nullptr);
    }
    
+
+
+
+   // DIRECT3D API 
+   //////////////////////////////////////////////////////////////////////////
+
+
+   Direct3DAPI::Direct3DAPI(string appName) :
+      debugController(nullptr),
+      factory(nullptr),
+      device(nullptr),
+      devicesCount(0),
+      displayArray(nullptr),
+      virtualDisplay(nullptr),
+      displaysCount(0),
+      displayPrimary(0)
+   {
+   for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
+      lastResult[i] = 0;
+
+   UINT dxgiFactoryFlags = 0;
+
+#if defined(EN_DEBUG)
+   // Enable the debug layer (requires the Graphics Tools "optional feature").
+   // NOTE: Enabling the debug layer after device creation will invalidate the active device.
+   if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) // __uuidof(ID3D12Debug), reinterpret_cast<void**>(&debugController)
+      {
+      debugController->EnableDebugLayer();
+
+      // Enable additional debug layers.
+      dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+      }
+#endif
+
+   // Factory handles all physical GPU's (adapters)
+   ProfileCom( CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)) ) // __uuidof(IDXGIFactory5), reinterpret_cast<void**>(&factory)
+
+   // Create Direct3D12 Devices
+   //---------------------------
+
+   // Enumerate available physical devices (with and without video output)
+   IDXGIAdapter1* deviceHandle = nullptr;
+   while(factory->EnumAdapters1(devicesCount, &deviceHandle) != DXGI_ERROR_NOT_FOUND) 
+      ++devicesCount;
+
+   // Create interfaces for all available physical devices
+   device = new Ptr<Direct3D12Device>[devicesCount];
+   for(uint32 i=0; i<devicesCount; ++i)
+      {
+      deviceHandle = nullptr;
+      assert( factory->EnumAdapters1(i, &deviceHandle) != DXGI_ERROR_NOT_FOUND );
+
+      device[i] = new Direct3D12Device(this, i, deviceHandle);
+      }
+   }
+
+   Direct3DAPI::~Direct3DAPI()
+   {
+   // Destroy Direct3D Devices
+   for(uint32 i=0; i<devicesCount; ++i)
+      device[i] = nullptr;
+   delete [] device;
+
+   // Release Direct3D factory
+   ProfileCom( factory->Release() )
+   factory = nullptr;
+
+   // Release Debug Controller
+   if (debugController)
+      {
+      ProfileCom( debugController->Release() )
+      debugController = nullptr;
+      }
+
+   // Windows OS - Windowing System (API Independent)
+   virtualDisplay = nullptr;
+   for(uint32 i=0; i<displaysCount; ++i)
+      displayArray[i] = nullptr;
+   delete [] displayArray;
+   }
+
+   uint32 Direct3DAPI::devices(void) const
+   {
+   return devicesCount;
+   }
+
+   Ptr<GpuDevice> Direct3DAPI::primaryDevice(void) const
+   {
+   return ptr_reinterpret_cast<GpuDevice>(&device[0]);
+   }
+
+   uint32 Direct3DAPI::displays(void) const
+   {
+   return displaysCount;
+   }
+
+   Ptr<Display> Direct3DAPI::primaryDisplay(void) const
+   {
+   return ptr_reinterpret_cast<Display>(&displayArray[0]);
+   }
+
+   Ptr<Display> Direct3DAPI::display(uint32 index) const
+   {
+   assert( index < displaysCount );
+   return ptr_reinterpret_cast<Display>(&displayArray[index]);  
+   }
+
    }
 }
 #endif

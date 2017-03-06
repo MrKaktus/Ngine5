@@ -62,7 +62,8 @@ namespace en
       virtual uint32v2 position(void) const = 0;
       virtual uint32v2 size(void) const = 0;          // Size in displays native resolution pixels
       virtual uint32v2 resolution(void) const = 0;    // Resolution of backing image
-      
+      virtual uint32   frame(void) const = 0;         // Frames count. Increased after each present call, starts from 0.
+
       virtual bool movable(void) = 0;
       virtual void move(const uint32v2 position) = 0;
       virtual void resize(const uint32v2 size) = 0;

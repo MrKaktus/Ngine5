@@ -31,6 +31,7 @@ namespace en
 
    CommonWindow::CommonWindow() :
       _mode(WindowMode::Windowed),
+      _frame(0u),
       needNewSurface(true),
       Window()
    {
@@ -59,6 +60,11 @@ namespace en
    uint32v2 CommonWindow::resolution(void) const
    {
    return _resolution;
+   }
+
+   uint32 CommonWindow::frame(void) const
+   {
+   return _frame;
    }
 
    void CommonWindow::transparent(const float opacity)

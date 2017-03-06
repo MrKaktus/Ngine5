@@ -33,6 +33,7 @@ namespace en
       uint32v2 _resolution;
       Nmutex   surfaceAcquire;   // Window instance mutex.
       WindowMode _mode;          // Windowed / Borderless / Fullscreen
+      uint32   _frame;           // Frame counter, increased after each present
       bool     needNewSurface;
 
       CommonWindow();
@@ -41,6 +42,7 @@ namespace en
       virtual uint32v2 position(void) const;
       virtual uint32v2 size(void) const;
       virtual uint32v2 resolution(void) const;
+      virtual uint32   frame(void) const;
       
       virtual void transparent(const float opacity); // TODO: Do we really want that here? (Transp. should be enabled on window creation time, and queried later)
       virtual void opaque(void);

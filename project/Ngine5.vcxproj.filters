@@ -672,6 +672,9 @@
     <ClCompile Include="..\src\core\rendering\common\display.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\rendering\d3d12\dx12Window.cpp">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1400,6 +1403,15 @@
     <ClInclude Include="..\src\core\rendering\vulkan\vkWindow.h">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlDisplay.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\metal\mtlWindow.h">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Window.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">
@@ -1479,6 +1491,12 @@
     </None>
     <None Include="..\src\core\storage\osxStorage.mm">
       <Filter>Source Files\core\storage</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlDisplay.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\core\rendering\metal\mtlWindow.mm">
+      <Filter>Source Files\core\rendering\metal</Filter>
     </None>
   </ItemGroup>
 </Project>

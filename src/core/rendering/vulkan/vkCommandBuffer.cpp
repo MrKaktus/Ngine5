@@ -562,8 +562,24 @@ namespace en
 
    bool CommandBufferVK::isCompleted(void)
    {
-   Profile( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u) )
-   return gpu->lastResult[Scheduler.core()] == VK_SUCCESS ? true : false;
+   // Unrolled "Profile" macro, to prevent outputting of false Warning messages.
+   uint32 thread = Scheduler.core();
+#ifdef EN_DEBUG
+   #ifdef EN_PROFILER_TRACE_GRAPHICS_API
+   Log << "[" << setw(2) << thread << "] ";
+   Log << "Vulkan GPU " << setbase(16) << gpu << ": vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u)" << endl;
+   gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
+   if (en::gpu::IsError(gpu->lastResult[thread]))
+      assert( 0 );
+   #else 
+   gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
+   if (en::gpu::IsError(gpu->lastResult[thread]))
+      assert( 0 );
+   #endif
+#else 
+   gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
+#endif
+   return gpu->lastResult[thread] == VK_SUCCESS ? true : false;
    }
     
    void CommandBufferVK::waitUntilCompleted(void)

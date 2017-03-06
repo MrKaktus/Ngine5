@@ -375,11 +375,12 @@ namespace en
 
       public:
       VulkanAPI(string appName);
-     ~VulkanAPI();
+      virtual ~VulkanAPI();
 
       void loadInterfaceFunctionPointers(void);
       void clearInterfaceFunctionPointers(void);
 
+      // TODO: Those could be moved to CommonGraphicAPI
       virtual uint32 devices(void) const;
       virtual Ptr<GpuDevice> primaryDevice(void) const;
 

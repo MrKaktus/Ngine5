@@ -420,7 +420,9 @@ namespace en
       const Ptr<TextureView> depthStencil,
       const Ptr<TextureView> stencil)
    {
+
    // TODO: Finish!
+
    return Ptr<Framebuffer>(nullptr);
    }
    
@@ -432,7 +434,9 @@ namespace en
       const Ptr<TextureView> depthStencil,
       const Ptr<TextureView> stencil)
    {
+
    // TODO: Finish!
+
    return Ptr<Framebuffer>(nullptr);
    }
 
@@ -454,6 +458,38 @@ namespace en
    Ptr<DepthStencilAttachmentD3D12> result = new DepthStencilAttachmentD3D12(depthFormat, stencilFormat, samples);
    return ptr_reinterpret_cast<DepthStencilAttachment>(&result);
    }
+
+
+
+   // Creates render pass which's output goes to window framebuffer.
+   // Swap-Chain surface may be destination of MSAA resolve operation.
+   Ptr<RenderPass> Direct3D12Device::createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
+                                                      const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   Ptr<RenderPassD3D12> result = nullptr;
+   
+   assert( swapChainSurface );
+
+   // TODO: Finish!
+
+   return ptr_reinterpret_cast<RenderPass>(&result);
+   }
+
+
+   Ptr<RenderPass> Direct3D12Device::createRenderPass(const uint32 attachments,
+                                                      const Ptr<ColorAttachment>* color,
+                                                      const Ptr<DepthStencilAttachment> depthStencil)
+   {
+   Ptr<RenderPassD3D12> result = nullptr;
+   
+   assert( attachments < support.maxColorAttachments );
+
+   // TODO: Finish!
+
+   return ptr_reinterpret_cast<RenderPass>(&result);
+   }
+
+
 
    }
 
