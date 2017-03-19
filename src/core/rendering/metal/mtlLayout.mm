@@ -26,7 +26,7 @@ namespace en
    {
    Ptr<SetLayout> MetalDevice::createSetLayout(const uint32 count,
                                                const ResourceGroup* group,
-                                               const ShaderStage stageMask)
+                                               const ShaderStages stageMask)
    {
    // TODO: Finish / Emulate !
    return Ptr<SetLayout>(nullptr);
@@ -35,7 +35,8 @@ namespace en
    Ptr<PipelineLayout> MetalDevice::createPipelineLayout(const uint32 sets,
                                                          const Ptr<SetLayout>* set,
                                                          const uint32 immutableSamplers,
-                                                         const Ptr<Sampler>* sampler)
+                                                         const Ptr<Sampler>* sampler,
+                                                         const ShaderStages stageMask)
    {
    // TODO: Finish / Emulate !
    return Ptr<PipelineLayout>(nullptr);

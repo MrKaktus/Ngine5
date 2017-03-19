@@ -184,14 +184,30 @@ namespace en
                                                  const AttributeDesc* attributes,
                                                  const BufferDesc* buffers) = 0;
 
+      // TODO: API differences:
+      // - D3D12  - allows picking only one stage (or all) to access this Descriptor Set
+      //          - it is specified once per whole Descriptor Set (per Root Parameter)
+      // - Vulkan - allows picking several stages to access this Descriptor Set
+      //          - it is specified separately for each Resources Group
+      //
+      // Creates layout of DescriptorSet. Can describe several different
+      // groups of resources. Access by specific shader stage, to all
+      // this resources can be specified (by default all shader stages
+      // can access those resources). If there is a need to specify
+      // access for few but not all shader stages, just duplicate this
+      // layout with different access, and bind the same DescriptorSet
+      // to it.
+      //
+      // TODO: Could this be done on the D3D12/Metal backend side instead?
       virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
                                              const ResourceGroup* group,
-                                             const ShaderStage stageMask) = 0;
+                                             const ShaderStages stagesMask = ShaderStages::All) = 0;
 
       virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
                                                        const Ptr<SetLayout>* set,
                                                        const uint32 immutableSamplers = 0u,
-                                                       const Ptr<Sampler>* sampler = nullptr) = 0;
+                                                       const Ptr<Sampler>* sampler = nullptr,
+                                                       const ShaderStages stagesMask = ShaderStages::All) = 0;
 
       // TODO: Those methods should be reworked to accept TextureView,
       //       and layer selection should be done through it.

@@ -132,7 +132,8 @@ namespace en
 
    // Metal vs OpenGL/Vulkan diff:
    //
-   // - mipLodBias
+   // - mipLodBias   <------ It's not a bug but a feature. Like in ES2, its programmable set on sample call in shader
+   //                        Section 5.10.3 in MetalSL document.
    // - borderColor / Type
    //
    // Metal & Vulkan:

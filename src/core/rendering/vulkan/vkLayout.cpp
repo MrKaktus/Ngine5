@@ -52,15 +52,6 @@ namespace en
 
 
 
-//typedef enum D3D12_SHADER_VISIBILITY
-//{
-// D3D12_SHADER_VISIBILITY_ALL    = 0,
-// D3D12_SHADER_VISIBILITY_VERTEX = 1,
-// D3D12_SHADER_VISIBILITY_HULL   = 2,
-// D3D12_SHADER_VISIBILITY_DOMAIN = 3,
-// D3D12_SHADER_VISIBILITY_GEOMETRY   = 4,
-// D3D12_SHADER_VISIBILITY_PIXEL  = 5
-//} D3D12_SHADER_VISIBILITY;
 
 // VkShaderStageFlags
 
@@ -88,146 +79,6 @@ namespace en
    }
 
 
-   Ptr<SetLayout> VulkanDevice::createSetLayout(const uint32 count, 
-                                                const ResourceGroup* group,
-                                                const ShaderStage stageMask)
-   {
-   Ptr<SetLayoutVK> result = nullptr;
-
-   // Current assigned HLSL slot for each resource type 
-   // TODO: Are those slots numerated separately per each resource type or is this shared pool ?
-   uint32 types = underlyingType(ResourceType::Count);
-   uint32* slot = new uint32[types];
-   for(uint32 i=0; i<types; ++i)
-      slot[i] = 0u;
-      
-   VkDescriptorSetLayoutBinding* rangeInfo = new VkDescriptorSetLayoutBinding[count];
-   for(uint32 i=0; i<count; ++i)
-      {
-      // Single Descriptors range
-      uint32 resourceType = underlyingType(group[i].type);
-      rangeInfo[i].binding            = slot[resourceType];
-      rangeInfo[i].descriptorType     = TranslateResourceType[resourceType];
-      rangeInfo[i].descriptorCount    = group[i].count;
-      rangeInfo[i].stageFlags         = underlyingType(stageMask); // ShaderStage enums match Vulkan enums.
-      rangeInfo[i].pImmutableSamplers = nullptr; 
-
-      // Increase index by amount of slots used
-      slot[resourceType] += group[i].count;
-      }
-
-   // Descriptor Ranges Table
-   VkDescriptorSetLayoutCreateInfo setInfo;
-   setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-   setInfo.pNext        = nullptr;
-   setInfo.flags        = 0u;      // Reserved for future
-   setInfo.bindingCount = count;
-   setInfo.pBindings    = rangeInfo;
-   
-   VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
-      
-   Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setLayout) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      {
-      result = new SetLayoutVK(this, setLayout);
-      }
-    
-   delete [] slot;
-  
-   return ptr_reinterpret_cast<SetLayout>(&result);
-   }
-
-   Ptr<PipelineLayout> VulkanDevice::createPipelineLayout(const uint32 sets,
-                                                          const Ptr<SetLayout>* set,
-                                                          const uint32 immutableSamplers,
-                                                          const Ptr<Sampler>* sampler)
-   {
-   Ptr<PipelineLayoutVK> result = nullptr; 
-
-   // We gather all Immutable Samplers into additional Descriptor Set to match Direct3D12 behavior.
-   uint32 totalSets = sets;
-   if (immutableSamplers > 0)
-      totalSets++;
-      
-   // Gather descriptor set layouts
-   VkDescriptorSetLayout* setsLayouts = nullptr;
-   if (totalSets)
-      setsLayouts = new VkDescriptorSetLayout[totalSets];
-   for(uint32 i=0; i<sets; ++i)
-      {
-      SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(&set[i]);
-      setsLayouts[i] = ptr->handle;
-      }
-      
-   // Create additional Descriptor Set for Immutable Samplers
-   if (immutableSamplers)
-      {
-      // Vulkan requires already created samplers to be passed as immutable.
-      // D3D12 requires sampler states. We could emulate that by storing in
-      // each sampler object in D3D12 backend it's original SamplerState.
-      
-      // Gather Sampler handles
-      VkSampler* immutable = new VkSampler[immutableSamplers];
-      for(uint32 i=0; i<sets; ++i)
-         {
-         SamplerVK* ptr = raw_reinterpret_cast<SamplerVK>(&sampler[i]);
-         immutable[i] = ptr->handle;
-         }
-      
-      // Single Descriptors range
-      VkDescriptorSetLayoutBinding rangeInfo;
-      rangeInfo.binding            = 0u; // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      rangeInfo.descriptorType     = VK_DESCRIPTOR_TYPE_SAMPLER;
-      rangeInfo.descriptorCount    = immutableSamplers;
-      rangeInfo.stageFlags         = VK_SHADER_STAGE_ALL_GRAPHICS;  // TODO: What about ShaderStages for Immutable Samplers ?
-      rangeInfo.pImmutableSamplers = immutable;
-
-      // Descriptor Range Table
-      VkDescriptorSetLayoutCreateInfo setInfo;
-      setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-      setInfo.pNext        = nullptr;
-      setInfo.flags        = 0u;      // Reserved for future
-      setInfo.bindingCount = 1u;
-      setInfo.pBindings    = &rangeInfo;
-   
-      // Create additional Set and store it immediately in the Sets array
-      Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setsLayouts[sets]) )
-      assert( lastResult[Scheduler.core()] == VK_SUCCESS );
-      }
-
-   // TODO: Push Constants
-
-
-
-//typedef struct VkPushConstantRange {
-//VkShaderStageFlags stageFlags;
-//uint32_t offset;
-//uint32_t size;
-//} VkPushConstantRange;
-
-
-
-   
-   VkPipelineLayoutCreateInfo layoutInfo;
-   layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-   layoutInfo.pNext                  = nullptr;
-   layoutInfo.flags                  = 0u;      // Reserved for future
-   layoutInfo.setLayoutCount         = totalSets;
-   layoutInfo.pSetLayouts            = setsLayouts;
-   layoutInfo.pushConstantRangeCount = 0;       // uint32_t
-   layoutInfo.pPushConstantRanges    = nullptr; // const VkPushConstantRange*
-
-   VkPipelineLayout layout = VK_NULL_HANDLE;
-   Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      {
-      result = new PipelineLayoutVK(this, layout);
-      }
-
-   delete [] setsLayouts;
-
-   return ptr_reinterpret_cast<PipelineLayout>(&result);
-   }
 
   // PipelineLayout:
   // - constants
@@ -364,7 +215,7 @@ namespace en
    allocInfo.pNext              = nullptr;
    allocInfo.descriptorPool     = handle;
    allocInfo.descriptorSetCount = 1u;
-   allocInfo.pSetLayouts        = raw_reinterpret_cast<SetLayoutVK>(layout)->handle;
+   allocInfo.pSetLayouts        = &raw_reinterpret_cast<SetLayoutVK>(layout)->handle;
 
    VkDescriptorSet set = VK_NULL_HANDLE;
 
@@ -429,6 +280,153 @@ namespace en
    // DEVICE
    //////////////////////////////////////////////////////////////////////////
 
+      
+   Ptr<SetLayout> VulkanDevice::createSetLayout(const uint32 count, 
+                                                const ResourceGroup* group,
+                                                const ShaderStages stageMask)
+   {
+   assert( count );
+   assert( group );
+   
+   Ptr<SetLayoutVK> result = nullptr;
+
+   // Current assigned HLSL slot for each resource type 
+   // TODO: Are those slots numerated separately per each resource type or is this shared pool ?
+   //       See this: https://msdn.microsoft.com/en-us/library/windows/desktop/dn899207(v=vs.85).aspx
+   uint32 types = underlyingType(ResourceType::Count);
+   uint32* slot = new uint32[types];
+   for(uint32 i=0; i<types; ++i)
+      slot[i] = 0u;
+      
+   VkDescriptorSetLayoutBinding* rangeInfo = new VkDescriptorSetLayoutBinding[count];
+   for(uint32 i=0; i<count; ++i)
+      {
+      // Single Descriptors range
+      uint32 resourceType = underlyingType(group[i].type);
+      rangeInfo[i].binding            = slot[resourceType];
+      rangeInfo[i].descriptorType     = TranslateResourceType[resourceType];
+      rangeInfo[i].descriptorCount    = group[i].count;
+      rangeInfo[i].stageFlags         = static_cast<VkShaderStageFlagBits>(underlyingType(stageMask));
+      rangeInfo[i].pImmutableSamplers = nullptr; 
+
+      // Increase index by amount of slots used
+      slot[resourceType] += group[i].count;
+      }
+
+   // Descriptor Ranges Table
+   VkDescriptorSetLayoutCreateInfo setInfo;
+   setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+   setInfo.pNext        = nullptr;
+   setInfo.flags        = 0u;      // Reserved for future
+   setInfo.bindingCount = count;
+   setInfo.pBindings    = rangeInfo;
+   
+   VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
+      
+   Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setLayout) )
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      result = new SetLayoutVK(this, setLayout);
+      }
+    
+   delete [] slot;
+  
+   return ptr_reinterpret_cast<SetLayout>(&result);
+   }
+
+   Ptr<PipelineLayout> VulkanDevice::createPipelineLayout(const uint32 sets,
+                                                          const Ptr<SetLayout>* set,
+                                                          const uint32 immutableSamplers,
+                                                          const Ptr<Sampler>* sampler,
+                                                          const ShaderStages stageMask)
+   {
+   Ptr<PipelineLayoutVK> result = nullptr; 
+
+   // We gather all Immutable Samplers into additional Descriptor Set to match Direct3D12 behavior.
+   uint32 totalSets = sets;
+   if (immutableSamplers > 0)
+      totalSets++;
+      
+   // Gather descriptor set layouts
+   VkDescriptorSetLayout* setsLayouts = nullptr;
+   if (totalSets)
+      setsLayouts = new VkDescriptorSetLayout[totalSets];
+   for(uint32 i=0; i<sets; ++i)
+      {
+      SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(&set[i]);
+      setsLayouts[i] = ptr->handle;
+      }
+      
+   // Create additional Descriptor Set for Immutable Samplers
+   if (immutableSamplers)
+      {
+      // Vulkan requires already created samplers to be passed as immutable.
+      // D3D12 requires sampler states. We could emulate that by storing in
+      // each sampler object in D3D12 backend it's original SamplerState.
+      
+      // Gather Sampler handles
+      VkSampler* immutable = new VkSampler[immutableSamplers];
+      for(uint32 i=0; i<sets; ++i)
+         {
+         SamplerVK* ptr = raw_reinterpret_cast<SamplerVK>(&sampler[i]);
+         immutable[i] = ptr->handle;
+         }
+      
+      // Single Descriptors range
+      VkDescriptorSetLayoutBinding rangeInfo;
+      rangeInfo.binding            = 0u; // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      rangeInfo.descriptorType     = VK_DESCRIPTOR_TYPE_SAMPLER;
+      rangeInfo.descriptorCount    = immutableSamplers;
+      rangeInfo.stageFlags         = static_cast<VkShaderStageFlagBits>(underlyingType(stageMask));
+      rangeInfo.pImmutableSamplers = immutable;
+
+      // Descriptor Range Table
+      VkDescriptorSetLayoutCreateInfo setInfo;
+      setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+      setInfo.pNext        = nullptr;
+      setInfo.flags        = 0u;      // Reserved for future
+      setInfo.bindingCount = 1u;
+      setInfo.pBindings    = &rangeInfo;
+   
+      // Create additional Set and store it immediately in the Sets array
+      // TODO: Keep pointer of this set in the layout as well! Otherwise we will leak it!!!!!!!!!!!!!!!!!!!!!!!!
+      Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setsLayouts[sets]) )
+      assert( lastResult[Scheduler.core()] == VK_SUCCESS );
+      }
+
+   // TODO: Push Constants
+
+
+
+//typedef struct VkPushConstantRange {
+//VkShaderStageFlags stageFlags;
+//uint32_t offset;
+//uint32_t size;
+//} VkPushConstantRange;
+
+
+
+   
+   VkPipelineLayoutCreateInfo layoutInfo;
+   layoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+   layoutInfo.pNext                  = nullptr;
+   layoutInfo.flags                  = 0u;      // Reserved for future
+   layoutInfo.setLayoutCount         = totalSets;
+   layoutInfo.pSetLayouts            = setsLayouts;
+   layoutInfo.pushConstantRangeCount = 0;       // uint32_t
+   layoutInfo.pPushConstantRanges    = nullptr; // const VkPushConstantRange*
+
+   VkPipelineLayout layout = VK_NULL_HANDLE;
+   Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout) )
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      {
+      result = new PipelineLayoutVK(this, layout);
+      }
+
+   delete [] setsLayouts;
+
+   return ptr_reinterpret_cast<PipelineLayout>(&result);
+   }
 
    Ptr<Descriptors> VulkanDevice::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
    {

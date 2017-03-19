@@ -95,6 +95,13 @@ namespace en
       D3D12_COMPARISON_FUNC_ALWAYS              // Always
       };
 
+   static const D3D12_STATIC_BORDER_COLOR TranslateStaticSamplerBorder[underlyingType(SamplerBorder::Count)] =
+      {
+      D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK, // TransparentBlack
+      D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,      // OpaqueBlack
+      D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE       // OpaqueWhite
+      };
+  
    static const float4 TranslateSamplerBorder[underlyingType(SamplerBorder::Count)] =
       {
       float4(0.0f, 0.0f, 0.0f, 0.0f), // TransparentBlack
@@ -102,8 +109,9 @@ namespace en
       float4(1.0f, 1.0f, 1.0f, 1.0f)  // OpaqueWhite
       };
 
-   SamplerD3D12::SamplerD3D12(D3D12_SAMPLER_DESC _state) :
-      state(_state)
+   SamplerD3D12::SamplerD3D12(D3D12_SAMPLER_DESC _state, D3D12_STATIC_BORDER_COLOR _border) :
+      state(_state),
+      border(_border)
    {
    }
   
@@ -152,7 +160,7 @@ namespace en
    // In Direct3D12 Samplers are created directly on Descriptor Heaps.
    // Therefore sampler descriptor is cached, until it will be bound
    // to Descriptor through Sampler creation call.
-   Ptr<SamplerD3D12> sampler = new SamplerD3D12(samplerInfo);
+   Ptr<SamplerD3D12> sampler = new SamplerD3D12(samplerInfo, TranslateStaticSamplerBorder[underlyingType(state.borderColor)]);
    return ptr_reinterpret_cast<Sampler>(&sampler);
    };
 

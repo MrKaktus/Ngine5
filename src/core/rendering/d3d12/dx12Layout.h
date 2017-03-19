@@ -31,7 +31,9 @@ namespace en
       {
       public:
       D3D12_ROOT_DESCRIPTOR_TABLE table;
-
+    //D3D12_ROOT_DESCRIPTOR_TABLE1 table; // v1.1
+      D3D12_SHADER_VISIBILITY visibility;
+      
       SetLayoutD3D12() {};
       virtual ~SetLayoutD3D12();
       };

@@ -123,17 +123,19 @@ namespace en
    
    */
    
-   // This is wrong as ShaderStage is bitmask now, and not a consecutive list of values!!!
-   //const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
-   //   {
-   //   VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
-   //   VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
-   //   VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
-   //   VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
-   //   VK_SHADER_STAGE_FRAGMENT_BIT                ,  // Fragment   
-   //   VK_SHADER_STAGE_COMPUTE_BIT                    // Compute    
-   //   };
-
+   
+   
+   // This translation table consist also Compute Shader !
+   // TODO: Should single shader stage enum also support Compute?
+   const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
+      {
+      VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
+      VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
+      VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
+      VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
+      VK_SHADER_STAGE_FRAGMENT_BIT                ,  // Fragment   
+      VK_SHADER_STAGE_COMPUTE_BIT                    // Compute    
+      };
 
    PipelineVK::PipelineVK(VulkanDevice* _gpu, VkPipeline _handle, bool _graphics) :
       gpu(_gpu),
@@ -209,6 +211,10 @@ namespace en
          shaderInfo[stage].pName  = pipelineState.function[i].c_str();
          shaderInfo[stage].pSpecializationInfo = nullptr; // Engine is not supporting specialization for now. (const VkSpecializationInfo*)
          stage++;
+         
+         // Early out
+         if (stage == stages)
+            break;
          }
 
 

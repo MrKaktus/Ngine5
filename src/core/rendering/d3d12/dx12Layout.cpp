@@ -103,51 +103,113 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
+   // Optimisation: This table is not needed. Frontend type can be directly cast to D3D12 type.
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/dn879482(v=vs.85).aspx
+   const D3D12_SHADER_VISIBILITY TranslateShaderStage[underlyingType(ShaderStage::Count)] =
+      {
+      D3D12_SHADER_VISIBILITY_ALL                 ,  // All
+      D3D12_SHADER_VISIBILITY_VERTEX              ,  // Vertex
+      D3D12_SHADER_VISIBILITY_HULL                ,  // Control
+      D3D12_SHADER_VISIBILITY_DOMAIN              ,  // Evaluation
+      D3D12_SHADER_VISIBILITY_GEOMETRY            ,  // Geometry
+      D3D12_SHADER_VISIBILITY_PIXEL                  // Fragment
+      };
+         
    Ptr<SetLayout> Direct3D12Device::createSetLayout(const uint32 count, 
                                                     const ResourceGroup* group,
-                                                    const ShaderStage stageMask)
+                                                    const ShaderStages stageMask)
    {
+   assert( count );
+   assert( group );
+
    Ptr<SetLayoutD3D12> result = new SetLayoutD3D12();
 
    // Current assigned HLSL slot for each resource type
-   uint32 types = underlyingType(ResourceType::Count);   // TODO: Fix for CBV !!!!
+   // TODO: Are those slots numerated separately per each resource type or is this shared pool ?
+   //       See this: https://msdn.microsoft.com/en-us/library/windows/desktop/dn899207(v=vs.85).aspx
+   uint32 types = underlyingType(ResourceType::Count) - 1;   // Uniform and Storage buffers are both handled as CBV
    uint32* slot = new uint32[types];
    for(uint32 i=0u; i<types; ++i)
       slot[i] = 0u;
       
    D3D12_DESCRIPTOR_RANGE* rangeInfo = new D3D12_DESCRIPTOR_RANGE[count];
+ //D3D12_DESCRIPTOR_RANGE1* rangeInfo = new D3D12_DESCRIPTOR_RANGE1[count]; // v1.1
    for(uint32 i=0u; i<count; ++i)
       {
       // Single Descriptors range
       uint32 resourceType = underlyingType(group[i].type);
       rangeInfo[i].RangeType          = TranslateResourceType[resourceType];
       rangeInfo[i].NumDescriptors     = group[i].count;     // UINT - -1 or UINT_MAX to specify unbounded size (only last entry)
-      rangeInfo[i].BaseShaderRegister = slot[resourceType]; // UINT - register in HLSL this resource maps to, for SRVs, 3 maps to ": register(t3);" in HLSL.
-      rangeInfo[i].RegisterSpace      = 0u;                 // UINT - register space in which resources are bound
 
-      // RootSignature 1.1 new feature:
-      // D3D12_ROOT_DESCRIPTOR_TABLE1:
-      // D3D12_DESCRIPTOR_RANGE1:
-      // rangeInfo[i]->Flags;  // D3D12_DESCRIPTOR_RANGE_FLAGS 
+      // Storage buffers share register pool with Uniform buffers (as CBV)
+      if (group[i].type == ResourceType::Storage)
+         resourceType--;
+
+      // Register Slots are assigned in order of Resource Group declarations.
+      // Register Space is set during Root Signature creation, in order in
+      // which Descriptor Sets are assigned to Pipeline Layout.
+      rangeInfo[i].BaseShaderRegister = slot[resourceType];
+      rangeInfo[i].RegisterSpace      = 0u;                 // To be patched.
+
+      // Increase index by amount of slots used
+      slot[resourceType] += group[i].count;
+
+      // RootSignature 1.0:
       //
-      // D3D12_DESCRIPTOR_RANGE_FLAG_NONE                              
+      // - Assumes Descriptors and Data are both Volatile
+      //
+      // RootSignature 1.1 new feature:
+      // (see for details: https://msdn.microsoft.com/en-us/library/windows/desktop/mt709473(v=vs.85).aspx )
+      //
+      //rangeInfo[i].Flags              = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;  // Descriptors Static, all Data static at execute (except UAV's)
+      //
       // D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE              
-      // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE                     
-      // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE  
-      // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC                       
+      // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE                     // Data changes on the fly (UAV's)
+      // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE  // Data changes when not executing
+      // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC                       // Data never changes
 
       // UINT - offset in descriptors from the start of the root signature
       // D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND - immediatelly follow previous one
       rangeInfo[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-      // Increase index by amount of slots used
-      slot[resourceType] += group[i].count;
       }
 
    // Descriptor Ranges Table
    result->table.NumDescriptorRanges = count;
    result->table.pDescriptorRanges   = rangeInfo;
 
+   // Shader visibility
+   //
+   // D3D12 is not supporting visibility selection for multiple shaders
+   // stages, except of all of them. Therefore in case that more than
+   // one (but not all) shader stages are selected, we emulate this
+   // behavior by falling back to "All" option.
+   result->visibility = D3D12_SHADER_VISIBILITY_ALL;
+   switch(underlyingType(stageMask))
+      {
+      case ShaderStages::Vertex:
+         result->visibility = D3D12_SHADER_VISIBILITY_VERTEX;
+         break;
+
+      case ShaderStages::Control:
+         result->visibility = D3D12_SHADER_VISIBILITY_HULL;
+         break;
+         
+      case ShaderStages::Evaluation:
+         result->visibility = D3D12_SHADER_VISIBILITY_DOMAIN;
+         break;
+         
+      case ShaderStages::Geometry:
+         result->visibility = D3D12_SHADER_VISIBILITY_GEOMETRY;
+         break;
+         
+      case ShaderStages::Fragment:
+         result->visibility = D3D12_SHADER_VISIBILITY_PIXEL;
+         break;
+         
+      default:
+         break;
+      };
+      
    delete [] slot;
 
    return ptr_reinterpret_cast<SetLayout>(&result);
@@ -156,120 +218,154 @@ namespace en
    Ptr<PipelineLayout> Direct3D12Device::createPipelineLayout(const uint32 sets,
                                                               const Ptr<SetLayout>* set,
                                                               const uint32 immutableSamplers,
-                                                              const Ptr<Sampler>* sampler)
+                                                              const Ptr<Sampler>* sampler,
+                                                              const ShaderStages stageMask)
    {
    Ptr<PipelineLayoutD3D12> result = nullptr; 
 
-  // Root Signature 1.1:
-  // https://msdn.microsoft.com/en-us/library/windows/desktop/mt709473(v=vs.85).aspx
-  // Specifies when descriptors are static, and when their data is static. And when they are volatile.
+   // Root Signature 1.1:
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/mt709473(v=vs.85).aspx
+   // Specifies when descriptors are static, and when their data is static. And when they are volatile.
 
+   bool allStages = false;
+   bool stageUsesDescriptors[5] = { false, false, false, false, false };
 
-//typedef enum D3D12_ROOT_PARAMETER_TYPE { 
-//  D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE  = 0,
-//  D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS   = ( D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE + 1 ),
-//  D3D12_ROOT_PARAMETER_TYPE_CBV               = ( D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS + 1 ),
-//  D3D12_ROOT_PARAMETER_TYPE_SRV               = ( D3D12_ROOT_PARAMETER_TYPE_CBV + 1 ),
-//  D3D12_ROOT_PARAMETER_TYPE_UAV               = ( D3D12_ROOT_PARAMETER_TYPE_SRV + 1 )
-//} D3D12_ROOT_PARAMETER_TYPE;
-
-
-//   D3D12_ROOT_PARAMETER param;
-//   param.ParameterType =  ; // D3D12_ROOT_PARAMETER_TYPE
-//  union {
-//    D3D12_ROOT_DESCRIPTOR_TABLE DescriptorTable;
-//    D3D12_ROOT_CONSTANTS        Constants;
-//    D3D12_ROOT_DESCRIPTOR       Descriptor;
-//  };
-//  D3D12_SHADER_VISIBILITY   ShaderVisibility;
-//   
-//   D3D12_ROOT_PARAMETER1 param1_1;
-//   param.ParameterType =  ; // D3D12_ROOT_PARAMETER_TYPE
-//  union {
-//    D3D12_ROOT_DESCRIPTOR_TABLE1 DescriptorTable;
-//    D3D12_ROOT_CONSTANTS         Constants;
-//    D3D12_ROOT_DESCRIPTOR1       Descriptor;
-//  };
-//  D3D12_SHADER_VISIBILITY   ShaderVisibility;
-
-
-//D3D12_ROOT_SIGNATURE_DESC1 rootDesc1_1;
-//  UINT                            NumParameters;
-//  const D3D12_ROOT_PARAMETER1     *pParameters;
-//  UINT                            NumStaticSamplers;
-//  const D3D12_STATIC_SAMPLER_DESC *pStaticSamplers;
-//  D3D12_ROOT_SIGNATURE_FLAGS      Flags;
-
-D3D12_SAMPLER_DESC {
-  D3D12_FILTER               Filter;
-  D3D12_TEXTURE_ADDRESS_MODE AddressU;
-  D3D12_TEXTURE_ADDRESS_MODE AddressV;
-  D3D12_TEXTURE_ADDRESS_MODE AddressW;
-  FLOAT                      MipLODBias;
-  UINT                       MaxAnisotropy;
-  D3D12_COMPARISON_FUNC      ComparisonFunc;
-  FLOAT                      BorderColor[4];
-  FLOAT                      MinLOD;
-  FLOAT                      MaxLOD;
-
-D3D12_STATIC_BORDER_COLOR { 
-  D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK  = 0,
-  D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK       = ( D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK + 1 ),
-  D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE       = ( D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK + 1 )
-  
-D3D12_STATIC_SAMPLER_DESC
-  D3D12_FILTER               Filter;
-  D3D12_TEXTURE_ADDRESS_MODE AddressU;
-  D3D12_TEXTURE_ADDRESS_MODE AddressV;
-  D3D12_TEXTURE_ADDRESS_MODE AddressW;
-  FLOAT                      MipLODBias;
-  UINT                       MaxAnisotropy;
-  D3D12_COMPARISON_FUNC      ComparisonFunc;
-  D3D12_STATIC_BORDER_COLOR  BorderColor;
-  FLOAT                      MinLOD;
-  FLOAT                      MaxLOD;
-  UINT                       ShaderRegister;
-  UINT                       RegisterSpace;
-  D3D12_SHADER_VISIBILITY    ShaderVisibility;
-
-
-   // Gather immutable sampler states
+   // Gather immutable sampler states.
    D3D12_STATIC_SAMPLER_DESC* samplers = nullptr;
    if (immutableSamplers)
       {
-      sampler = new D3D12_STATIC_SAMPLER_DESC[immutableSamplers];
+      // D3D12 is not supporting visibility selection for multiple shaders
+      // stages, except of all of them. Therefore in case that more than
+      // one (but not all) shader stages are selected, we emulate this
+      // behavior by falling back to "All" option.
+      D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL;
+      switch(underlyingType(stageMask))
+         {
+         case ShaderStages::Vertex:
+            visibility = D3D12_SHADER_VISIBILITY_VERTEX;
+            stageUsesDescriptors[0] = true;
+            break;
+
+         case ShaderStages::Control:
+            visibility = D3D12_SHADER_VISIBILITY_HULL;
+            stageUsesDescriptors[1] = true;
+            break;
+            
+         case ShaderStages::Evaluation:
+            visibility = D3D12_SHADER_VISIBILITY_DOMAIN;
+            stageUsesDescriptors[2] = true;
+            break;
+            
+         case ShaderStages::Geometry:
+            visibility = D3D12_SHADER_VISIBILITY_GEOMETRY;
+            stageUsesDescriptors[3] = true;
+            break;
+            
+         case ShaderStages::Fragment:
+            visibility = D3D12_SHADER_VISIBILITY_PIXEL;
+            stageUsesDescriptors[4] = true;
+            break;
+            
+         default:
+            allStages = true;
+            break;
+         };
+         
+      samplers = new D3D12_STATIC_SAMPLER_DESC[immutableSamplers];
       for(uint32 i=0; i<immutableSamplers; ++i)
          {
-         SamplerD3D12* ptr =
-         samplers[i] = ptr->handle;
+         SamplerD3D12* ptr = raw_reinterpret_cast<SamplerD3D12>(&sampler);
+
+         // While Vulkan uses the same descriptor for dynamic Samplers and
+         // immutable Samplers, D3D12 uses two separate structures for those.
+         // D3D12_SAMPLER_DESC        - dynamic Sampler
+         // D3D12_STATIC_SAMPLER_DESC - immutable Sampler
+         // So we need to copy data from one to another :/. Alternative would
+         // be to introduce separate immutable sampler objects on API level,
+         // but that sounds awkward.
+         //
+         samplers[i].Filter           = ptr->state.Filter;
+         samplers[i].AddressU         = ptr->state.AddressU;
+         samplers[i].AddressV         = ptr->state.AddressV;
+         samplers[i].AddressW         = ptr->state.AddressW;
+         samplers[i].MipLODBias       = ptr->state.MipLODBias;
+         samplers[i].MaxAnisotropy    = ptr->state.MaxAnisotropy;
+         samplers[i].ComparisonFunc   = ptr->state.ComparisonFunc;
+         samplers[i].BorderColor      = ptr->border;
+         samplers[i].MinLOD           = ptr->state.MinLOD;
+         samplers[i].MaxLOD           = ptr->state.MaxLOD;
+         samplers[i].ShaderRegister   = i; // All Immutable Samplers are enumerated in the order they are provided
+         samplers[i].RegisterSpace    = // UINT
+         samplers[i].ShaderVisibility = visibility;
          }
       }
-      
-   D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc;
+   
+   // Gather Descriptor Tables
+   D3D12_ROOT_PARAMETER* tables = nullptr;
+ //D3D12_ROOT_PARAMETER1* tables = nullptr; // v1.1
+   if (sets)
+      {
+
+      tables = new D3D12_ROOT_PARAMETER[sets];
+    //tables = new D3D12_ROOT_PARAMETER1[sets]; // v1.1
+      for(uint32 i=0; i<sets; ++i)
+         {
+         SetLayoutD3D12* ptr = raw_reinterpret_cast<SetLayoutD3D12>(&set[i]);
+         
+         tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+         tables[i].DescriptorTable  = ptr->table;
+         tables[i].ShaderVisibility = ptr->visibility;
+
+         // Patch Descriptor Table spaces
+         // HLSL Register Space matches SPIRV Set indexing
+         uint32 ranges = ptr->table.NumDescriptorRanges;
+         for(uint32 j=0; i<ranges; ++j)
+            ptr->table.pDescriptorRanges[j].RegisterSpace = i;
+
+       //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+       //tables[i].Constants        = //D3D12_ROOT_CONSTANTS;
+
+       //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_CBV;
+       //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_SRV;
+       //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_UAV;
+       //tables[i].Descriptor       = //D3D12_ROOT_DESCRIPTOR;
+       //   UINT ShaderRegister;
+       //   UINT RegisterSpace;
+            
+         // Record shader stages that refer to any descriptors
+         if (ptr->visibility == D3D12_SHADER_VISIBILITY_ALL)
+            allStages = true;
+         else
+            stageUsesDescriptors[static_cast<uint32>(ptr->visibility) - 1] = true;
+         }
+      }
+
+
+   D3D12_ROOT_SIGNATURE_DESC desc;
+ //D3D12_ROOT_SIGNATURE_DESC1 desc; // v1.1
    desc.NumParameters     = sets;
-//  const D3D12_ROOT_PARAMETER      *pParameters;
+   desc.pParameters       = tables;
    desc.NumStaticSamplers = immutableSamplers;
    desc.pStaticSamplers   = samplers;
    desc.Flags             = D3D12_ROOT_SIGNATURE_FLAG_NONE;
    
-   // Don't use this flag to get minimum optimization on Programmable Vertex Fetch shaders
+   // Don't use this flag to get small optimization on Programmable Vertex Fetch shaders
    desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
+   if (!allStages)
+      {
+      // Optimize pipeline layout by preventin wiring down descriptors
+      // to stages that never access them in any way. It will also deny
+      // access to all shader stages in "default" Root Signature.
+      if (!stageUsesDescriptors[0]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[1]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[2]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[3]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[4]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+      }
 
-  D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS      = 0x2,
-  D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS        = 0x4,
-  D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS      = 0x8,
-  D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS    = 0x10,
-  D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS       = 0x20,
-  D3D12_ROOT_SIGNATURE_FLAG_ALLOW_STREAM_OUTPUT
-  
-   // Deny access to all shader stages in "default" Root Signature if no resources are needed
-   //
-   // desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS   |
-   //               D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS     |
-   //               D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS   |
-   //               D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-   //               D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+   // TODO: Add support for StreamOut
+   // D3D12_ROOT_SIGNATURE_FLAG_ALLOW_STREAM_OUTPUT
   
    // Serialize Root Signature
    ID3DBlob* signature = nullptr;
@@ -288,6 +384,7 @@ D3D12_STATIC_SAMPLER_DESC
    if (SUCCEEDED(lastResult[Scheduler.core()]))
       result = new PipelineLayoutD3D12(handle);
 
+   delete [] tables;
    delete [] samplers;
    
    return ptr_reinterpret_cast<PipelineLayout>(&result);

@@ -238,12 +238,13 @@ namespace en
 
       virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
                                              const ResourceGroup* group,
-                                             const ShaderStage stageMask);
+                                             const ShaderStages stagesMask = ShaderStages::All);
 
       virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
                                                        const Ptr<SetLayout>* set,
-                                                       const uint32 immutableSamplers,
-                                                       const Ptr<Sampler>* sampler);
+                                                       const uint32 immutableSamplers = 0u,
+                                                       const Ptr<Sampler>* sampler = nullptr,
+                                                       const ShaderStages stagesMask = ShaderStages::All);
 
 
 

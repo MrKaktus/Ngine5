@@ -43,9 +43,33 @@ namespace en
    // 16KB-64KB - UBO's backed ( Uniform, Storage )
    // X GB      - Memory backed ( Storage, Texture, Image )
    
-   // Direct3D12 has ShaderStage visibility set per Root Parameter (so one for whole resources Set),
+   // Direct3D12 has ShaderStage visibility set per Root Parameter (so one for whole resource Set),
    // while Vulkan can specify this visibility on per Resource Group (Range) basis.
+   // Vulkan can also specify mask of Shader stages, while D3D12 only one stage, or all.
+   // HLSL refers to resources through virtual "stages", while SPIRV through Sets (that cannot be merged).
 
+   // To emulate Vulkan Descriptors in D3D12:
+   // - several Descriptor Tables need to be created, each visible for separate stage, if multi-stage visible
+   // - all those Tables need to refer to the same resources, and have the same Register Ranges,
+   //   but Register Ranges cannot overlapp in Register Space (and Register Space would need to be shared,
+   //   to match reflection of Vulkan "set" adressing).
+   // - this would introduce resources aliasing, and require shader be compiled with D3D10_SHADER_RESOURCES_MAY_ALIAS
+   // - this also introduces waste of Descriptor Slots, and Descriptor Set slots in Root Signature
+   //
+   // Because of the above, better alternative is to:
+   // - Always declare multi-stage sets as visible to All in D3D12, or
+   // - completly disallow multi-stage visibility from frontend API (limit to single stage or all like in D3D12).
+
+
+
+   // Layout rules:
+   // - Layout entries are set in priority order:
+   //   - Push Constants
+   //   - Direct resources
+   //   - Descriptor Sets
+   //     - Sets are numerated from 0, in order in which they are declared in Layout
+   //     - Descriptors inside given Set, are numerated from 0, per resource-type, in order in which they are bound
+   
    enum class ResourceType : uint32
       {
       Sampler = 0,
