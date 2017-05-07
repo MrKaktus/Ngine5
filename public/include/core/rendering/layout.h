@@ -19,6 +19,8 @@
 #include "core/defines.h"
 #include "core/types.h"
 #include "core/utilities/TintrusivePointer.h"
+#include "core/rendering/buffer.h"
+#include "core/rendering/sampler.h"
 
 namespace en
 {
@@ -33,12 +35,23 @@ namespace en
    // 256 bytes - NVidia
    // 128 bytes - AMD, Intel, Qualcomm, ImgTec
    //
-   // Vulkan max uniform Buffer range:
+   // Vulkan maxUniformBufferRange:
    //
-   // 16KB  - ARM
+   // 16KB  - ARM 
    // 64KB  - NVidia, Tegra, Qualcomm
-   // 128MB - PowerVR
+   // 128MB - PowerVR, Intel
    // 4GB   - AMD, Intel
+   //
+   // Vulkan maxStorageBufferRange: (128MB-4GB)
+   // 
+   // 128MB - Adreno, ARM Mali-T880, PowerVR Rouge
+   //   1GB - Intel
+   //   2GB - NVidia
+   //   4GB - AMD
+   //
+   // Quallcom - Adreno
+   // ARM      - Mali
+   // PowerVR  - Rogue
    //
    // 16KB-64KB - UBO's backed ( Uniform, Storage )
    // X GB      - Memory backed ( Storage, Texture, Image )
@@ -76,6 +89,7 @@ namespace en
       Texture    ,
       Image      ,
       Uniform    ,
+   // Formatted  ,   // Could be introduced to support Texel Buffers
       Storage    ,
       Count
       };
@@ -100,22 +114,25 @@ namespace en
       virtual ~PipelineLayout() {};                              // Polymorphic deletes require a virtual base destructor
       };
 
-   // Set of handles to resources of different kind
+   // Set of Descriptors, handles to resources of different kind
    class DescriptorSet : public SafeObject<DescriptorSet>
       {
       public:
-      // TODO: Methods to binding resources to it
+      virtual void setBuffer(const uint32 slot, const Ptr<Buffer> buffer) = 0;
+      virtual void setSampler(const uint32 slot, const Ptr<Sampler> sampler) = 0;
+      virtual void setTextureView(const uint32 slot, const Ptr<TextureView> view) = 0;
+
       virtual ~DescriptorSet() {};
       };
       
-   // Range of Descriptors that can be allocated to create Descriptor sets
+   // Range of Descriptors that can be used, to allocated from it set of Descriptors
    class Descriptors : public SafeObject<Descriptors>
       {
       public:
       virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout) = 0;
       virtual bool allocate(const uint32 count,
                             const Ptr<SetLayout>* layouts,
-                            Ptr<DescriptorSet>* sets) = 0;
+                            Ptr<DescriptorSet>** sets) = 0; 
 
       virtual ~Descriptors() {};
       };

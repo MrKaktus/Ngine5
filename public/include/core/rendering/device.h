@@ -209,6 +209,10 @@ namespace en
                                                        const Ptr<Sampler>* sampler = nullptr,
                                                        const ShaderStages stagesMask = ShaderStages::All) = 0;
 
+      virtual Ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
+                                                     const uint32 (&count)[underlyingType(ResourceType::Count)]) = 0;
+ 
+
       // TODO: Those methods should be reworked to accept TextureView,
       //       and layer selection should be done through it.
 

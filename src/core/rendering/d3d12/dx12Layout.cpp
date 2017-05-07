@@ -18,6 +18,12 @@
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 #include "core/rendering/d3d12/dx12Device.h"
+#include "core/rendering/d3d12/dx12CommandBuffer.h"
+#include "core/rendering/d3d12/dx12Buffer.h"
+#include "core/rendering/d3d12/dx12Sampler.h"
+#include "core/rendering/d3d12/dx12Texture.h"
+#include "core/utilities/basicAllocator.h"
+#include "core/utilities/memory.h"
 
 namespace en
 {
@@ -29,11 +35,36 @@ namespace en
       D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture
       D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // Image
       D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Uniform
-      D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Storage
+      D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // Storage
       };
 
-   PipelineLayoutD3D12::PipelineLayoutD3D12(ID3D12RootSignature* handle) :
-      handle(_handle)
+
+
+
+   // SET LAYOUT
+   //////////////////////////////////////////////////////////////////////////
+
+
+   SetLayoutD3D12::SetLayoutD3D12() :
+      type(nullptr),
+      tablesCount(0)
+   {
+   }
+
+   SetLayoutD3D12::~SetLayoutD3D12()
+   {
+   delete [] type;
+   }
+
+
+   // PIPELINE LAYOUT
+   //////////////////////////////////////////////////////////////////////////
+
+
+   PipelineLayoutD3D12::PipelineLayoutD3D12(ID3D12RootSignature* _handle, const uint32 _sets, uint32* _setBindingIndex) :
+      handle(_handle),
+      sets(_sets),
+      setBindingIndex(_setBindingIndex)
    {
    }
 
@@ -42,78 +73,357 @@ namespace en
    assert( handle );
    ProfileCom( handle->Release() )
    handle = nullptr;
+
+   if (setBindingIndex)
+      delete [] setBindingIndex;
    }
 
 
+   // DESCRIPTOR SET
+   //////////////////////////////////////////////////////////////////////////
 
+   DescriptorSetD3D12::DescriptorSetD3D12(Direct3D12Device* _gpu, Ptr<DescriptorsD3D12> _parent, const uint64* _offsets, const uint32* _slots, RangeMapping* const _mappings, uint32 _mappingsCount) :
+      gpu(_gpu),
+      parent(_parent),
+      mappings(_mappings),
+      mappingsCount(_mappingsCount)
+   {
+   for(uint32 i=0; i<2; ++i)
+      {
+      offset[i] = _offsets[i];
+      slots[i]  = _slots[i];
+      }
+   }
 
+   DescriptorSetD3D12::~DescriptorSetD3D12()
+   {
+   // Deallocate sub-allocated ranges from parent DescriptorHeap
+   for(uint32 i=0; i<2; ++i)
+      if (slots[i])
+         parent->allocator[i]->deallocate(offset[i], slots[i]);
 
+   // Free mappings array
+   deallocate<RangeMapping>(mappings);
 
+   parent = nullptr;
+   gpu    = nullptr;
+   }
 
+   bool DescriptorSetD3D12::translateSlot(const uint32 slot, uint32& heapSlot)
+   {
+   bool found = false;
+   for(uint32 i=0; i<mappingsCount; ++i)
+      if (mappings[i].layoutOffset <= slot &&
+          (mappings[i].layoutOffset + mappings[i].elements) > slot)
+         {
+         uint32 offset = slot - mappings[i].layoutOffset;
+         heapSlot = mappings[i].heapOffset + offset;
+         found = true;
+         break;
+         }
 
+   return found;
+   }
 
-	
+   void DescriptorSetD3D12::setBuffer(const uint32 slot, const Ptr<Buffer> _buffer)
+   {
+   assert( _buffer );
 
+   // Convert slot in DescriptorSet to slot in Heap
+   uint32 heapSlot = 0;
+   if (!translateSlot(slot, heapSlot))
+      return;
+
+   BufferD3D12* buffer = raw_reinterpret_cast<BufferD3D12>(&_buffer);
+
+   // TODO: In future expose true BufferViews, allowing mapping ranges into descriptor
+   D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
+   desc.BufferLocation = buffer->handle->GetGPUVirtualAddress();
+   desc.SizeInBytes    = static_cast<UINT>(buffer->size);
+
+   ProfileNoRet( gpu, CreateConstantBufferView(&desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
+   }
+
+   void DescriptorSetD3D12::setSampler(const uint32 slot, const Ptr<Sampler> _sampler)
+   {
+   assert( _sampler );
+
+   // Convert slot in DescriptorSet to slot in Heap
+   uint32 heapSlot = 0;
+   if (!translateSlot(slot, heapSlot))
+      return;
+
+   // Sampler objects are created in D3D12 by encoding their state directly 
+   // into Descriptor in DescriptorSet's backing DescriptorPool (Heap)
+   SamplerD3D12* sampler = raw_reinterpret_cast<SamplerD3D12>(&_sampler);
+   ProfileNoRet( gpu, CreateSampler(&sampler->state, parent->pointerToSamplerDescriptorOnCPU(heapSlot)) )
+   }
+
+   void DescriptorSetD3D12::setTextureView(const uint32 slot, const Ptr<TextureView> _view)
+   {
+   assert( _view );
+
+   // Convert slot in DescriptorSet to slot in Heap
+   uint32 heapSlot = 0;
+   if (!translateSlot(slot, heapSlot))
+      return;
+
+   // Views are created in D3D12 by encoding them directly into 
+   // Descriptor in DescriptorSet's backing DescriptorPool (Heap)
+   TextureViewD3D12* view = raw_reinterpret_cast<TextureViewD3D12>(&_view);
+   ProfileNoRet( gpu, CreateShaderResourceView(view->texture->handle, &view->desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
+   }
 
    // DESCRIPTOR POOL
    //////////////////////////////////////////////////////////////////////////
 
 
-   DescriptorsD3D12::DescriptorsD3D12(ID3D12DescriptorHeap* _handle, ID3D12DescriptorHeap* _handleSamplers) :
-      handle(_handle),
-      handleSamplers(_handleSamplers)
+   DescriptorsD3D12::DescriptorsD3D12(Direct3D12Device* _gpu) :
+      gpu(_gpu)
    {
+   assert( gpu );
+   descriptorSize        = gpu->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+   samplerDescriptorSize = gpu->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
    }
    
    DescriptorsD3D12::~DescriptorsD3D12()
    {
-   assert( handle || handleSamplers );
-   
-   if (handle)
+   assert( handle[0] || handle[1] );
+
+   for(uint32 i=0; i<2; ++i)
       {
-      ProfileCom( handle->Release() )
-      handle = nullptr;
+      if (handle[i])
+         {
+         ProfileCom( handle[i]->Release() )
+         handle[i] = nullptr;
+         }
+
+      if (allocator[i])
+         delete allocator[i];
       }
-   if (handleSamplers)
-      {
-      ProfileCom( handleSamplers->Release() )
-      handleSamplers = nullptr;
-      }
+
+   gpu = nullptr;
    }
-   
-   Ptr<DescriptorSet> DescriptorsD3D12::allocate(const Ptr<SetLayout> layout)
+
+   // D3D12_CPU_DESCRIPTOR_HANDLE is 64bit pointer on CPU memory, where descriptor is located in the CPU copy of the Descriptors Heap
+   D3D12_CPU_DESCRIPTOR_HANDLE DescriptorsD3D12::pointerToDescriptorOnCPU(uint32 index)
+   {
+   assert( handle[0] );
+   D3D12_CPU_DESCRIPTOR_HANDLE firstHandle = handle[0]->GetCPUDescriptorHandleForHeapStart();
+   firstHandle.ptr += (descriptorSize * index); 
+   return firstHandle;
+   }
+
+   D3D12_GPU_DESCRIPTOR_HANDLE DescriptorsD3D12::pointerToDescriptorOnGPU(uint32 index)
+   {
+   assert( handle[0] );
+   D3D12_GPU_DESCRIPTOR_HANDLE firstHandle = handle[0]->GetGPUDescriptorHandleForHeapStart();
+   firstHandle.ptr += (descriptorSize * index);
+   return firstHandle;
+   }
+
+   D3D12_CPU_DESCRIPTOR_HANDLE DescriptorsD3D12::pointerToSamplerDescriptorOnCPU(uint32 index)
+   {
+   assert( handle[1] );
+   D3D12_CPU_DESCRIPTOR_HANDLE firstHandle = handle[1]->GetCPUDescriptorHandleForHeapStart();
+   firstHandle.ptr += (samplerDescriptorSize * index);
+   return firstHandle;
+   }
+
+   D3D12_GPU_DESCRIPTOR_HANDLE DescriptorsD3D12::pointerToSamplerDescriptorOnGPU(uint32 index)
+   {
+   assert( handle[1] );
+   D3D12_GPU_DESCRIPTOR_HANDLE firstHandle = handle[1]->GetGPUDescriptorHandleForHeapStart();
+   firstHandle.ptr += (samplerDescriptorSize * index);
+   return firstHandle;
+   }
+
+   Ptr<DescriptorSet> DescriptorsD3D12::allocate(const Ptr<SetLayout> _layout)
    {
    Ptr<DescriptorSetD3D12> result = nullptr;
+
+   assert( _layout );
    
-   // TODO: Allocate Descriptor Set from Desriptor Pool
-   
+   SetLayoutD3D12* layout = raw_reinterpret_cast<SetLayoutD3D12>(&_layout);
+
+   // In Vulkan there are 11 different types of Descriptors. Each type has separate range in pool, 
+   // from which it is allocated, but they all share single pool/heap. In D3D12 there are 4 different 
+   // types of Descriptors. Descriptors Pool is backed by two Heaps, one for Samplers, and one for all 
+   // other types of resource descriptors:
+   //
+   // D3D12_DESCRIPTOR_RANGE_TYPE_SRV
+   // D3D12_DESCRIPTOR_RANGE_TYPE_UAV
+   // D3D12_DESCRIPTOR_RANGE_TYPE_CBV
+
+   // Index of first Descriptor Slot for given allocation
+   uint64 descriptorIndex[2];
+   descriptorIndex[0] = 0;
+   descriptorIndex[1] = 0;
+
+   // Allocates Descriptors from the General and Samplers pools depending on actual need.
+   // If any of those allocations will fail, partial allocations are released and whole
+   // creation terminated.
+   bool allocated = true;
+   for(uint32 i=0; i<2; ++i)
+      {
+      if (layout->descriptors[i])
+         if (!allocator[i]->allocate(layout->descriptors[i], 0, descriptorIndex[i]))
+            {
+            if (i == 1 && layout->descriptors[0] > 0)
+               allocator[0]->deallocate(descriptorIndex[0], layout->descriptors[0]);
+            allocated = false;
+            break;
+            }
+      }
+
+   if (!allocated)
+      return ptr_reinterpret_cast<DescriptorSet>(&result);
+
+   uint32 rangesCount = layout->mappingsCount;
+
+   // Copy array of RangeMappings from SetLayout
+   RangeMapping* mappings = en::allocate<RangeMapping>(cacheline, rangesCount);
+   memcpy(mappings, layout->mappings, rangesCount * sizeof(RangeMapping));
+
+   // Patch copied array with newly allocated heapOffsets.
+   // Relative offsets in sub-allocations are computed during
+   // layout creation time, so now, they just need to get 
+   // added global starting offset in given Heap.
+   for(uint32 i=0; i<rangesCount; ++i)
+      mappings[i].heapOffset += descriptorIndex[mappings[i].heap];
+
+   result = new DescriptorSetD3D12(gpu, Ptr<DescriptorsD3D12>(this), &descriptorIndex[0], &layout->descriptors[0], mappings, rangesCount);
+
    return ptr_reinterpret_cast<DescriptorSet>(&result);
    }
    
-   bool DescriptorsD3D12::allocate(const uint32 count, const Ptr<SetLayout>* layouts, Ptr<DescriptorSet>* sets)
+   bool DescriptorsD3D12::allocate(const uint32 count, const Ptr<SetLayout>* layouts, Ptr<DescriptorSet>** sets)
    {
-   bool result = false;
+   // Allocate group of Descriptor Sets from Desriptor Pool
+   *sets = new Ptr<DescriptorSet>[count];
+   for(uint32 i=0; i<count; ++i)
+      {
+      (*sets)[i] = allocate(layouts[i]);
+      if ((*sets)[i] == nullptr)
+         {
+         // Release already allocated DescriptorSets
+         for(uint32 j=0; j<i; ++j)
+            (*sets)[i] = nullptr;
 
-   // TODO: Allocate group of Descriptor Sets from Desriptor Pool
+         // Delete array of pointers and reset return pointer to null
+         delete [] *sets;
+         *sets = nullptr;
+         return false;
+         }
+      }
 
-   return result;
+   return true;
    }
    
+
+   // COMMAND BUFFER
+   //////////////////////////////////////////////////////////////////////////
+
+
+   void CommandBufferD3D12::setDescriptors(const Ptr<PipelineLayout> _layout, 
+                                           const Ptr<DescriptorSet> _set,
+                                           const uint32 index)
+   {
+   assert( started );
+
+   assert( _layout );
+   assert( _set );
+
+   PipelineLayoutD3D12* layout = raw_reinterpret_cast<PipelineLayoutD3D12>(&_layout);
+   DescriptorSetD3D12*  set    = raw_reinterpret_cast<DescriptorSetD3D12>(&_set);
+
+   assert( layout->sets > index );
+
+   // TODO: Support Compute!!!
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   // There are only two Heaps that can be set at a time, general and for Samplers.
+   // Each change of those Heaps, removes previously bound ones.
+   ProfileComNoRet( command->SetDescriptorHeaps(2, (ID3D12DescriptorHeap*const*)(&set->parent->handle[0])) )
+
+   // Each DescriptorSet may be backed by up to two D3D12 Descriptor Tables pointing
+   // into two separate D3D12 Descriptor Heaps, depending on the fact if it is keeping 
+   // Sampler descriptors mixed with different ones, just Sampler Descriptors or just
+   // all other ones.
+   // Thus for each logical Set creating layout, it's binding index is computed at
+   // layout creation time.
+   uint32 bindIndex = 0;
+   if (index > 0)
+      bindIndex = layout->setBindingIndex[index];
+
+   if (set->slots[0])
+      {
+      ProfileComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToDescriptorOnGPU(set->offset[0])) )
+      bindIndex++;
+      }
+   if (set->slots[1])
+      ProfileComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToSamplerDescriptorOnGPU(set->offset[1])) )
+   }
+
+   void CommandBufferD3D12::setDescriptors(const Ptr<PipelineLayout> _layout, 
+                                           const uint32 count,
+                                           const Ptr<DescriptorSet>* sets,
+                                           const uint32 firstIndex)
+   {
+   assert( started );
+
+   assert( _layout );
+   assert( count );
+   assert( sets );
+
+   PipelineLayoutD3D12* layout = raw_reinterpret_cast<PipelineLayoutD3D12>(&_layout);
+
+   assert( layout->sets >= firstIndex + count );
+
+   // TODO: Support Compute!!!
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   // Each DescriptorSet may be backed by up to two D3D12 Descriptor Tables pointing
+   // into two separate D3D12 Descriptor Heaps, depending on the fact if it is keeping 
+   // Sampler descriptors mixed with different ones, just Sampler Descriptors or just
+   // all other ones.
+   // Thus for each logical Set creating layout, it's binding index is computed at
+   // layout creation time.
+   uint32 bindIndex = 0;
+   for(uint32 i=0; i<count; ++i)
+      {
+      DescriptorSetD3D12* set = raw_reinterpret_cast<DescriptorSetD3D12>(&sets[i]);
+
+      uint32 index = firstIndex + i;
+      if (index > 0)
+         bindIndex = layout->setBindingIndex[index];
+      
+      if (set->slots[0])
+         {
+         ProfileComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToDescriptorOnGPU(set->offset[0])) )
+         bindIndex++;
+         }
+      if (set->slots[1])
+         ProfileComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToSamplerDescriptorOnGPU(set->offset[1])) )
+      }
+   }
+
+
    // DEVICE
    //////////////////////////////////////////////////////////////////////////
 
 
-   // Optimisation: This table is not needed. Frontend type can be directly cast to D3D12 type.
-   // https://msdn.microsoft.com/en-us/library/windows/desktop/dn879482(v=vs.85).aspx
-   const D3D12_SHADER_VISIBILITY TranslateShaderStage[underlyingType(ShaderStage::Count)] =
-      {
-      D3D12_SHADER_VISIBILITY_ALL                 ,  // All
-      D3D12_SHADER_VISIBILITY_VERTEX              ,  // Vertex
-      D3D12_SHADER_VISIBILITY_HULL                ,  // Control
-      D3D12_SHADER_VISIBILITY_DOMAIN              ,  // Evaluation
-      D3D12_SHADER_VISIBILITY_GEOMETRY            ,  // Geometry
-      D3D12_SHADER_VISIBILITY_PIXEL                  // Fragment
-      };
+   //// Optimisation: This table is not needed. Frontend type can be directly cast to D3D12 type.
+   //// https://msdn.microsoft.com/en-us/library/windows/desktop/dn879482(v=vs.85).aspx
+   //const D3D12_SHADER_VISIBILITY TranslateShaderStage[underlyingType(ShaderStage::Count)] =
+   //   {
+   //   D3D12_SHADER_VISIBILITY_ALL                 ,  // All
+   //   D3D12_SHADER_VISIBILITY_VERTEX              ,  // Vertex
+   //   D3D12_SHADER_VISIBILITY_HULL                ,  // Control
+   //   D3D12_SHADER_VISIBILITY_DOMAIN              ,  // Evaluation
+   //   D3D12_SHADER_VISIBILITY_GEOMETRY            ,  // Geometry
+   //   D3D12_SHADER_VISIBILITY_PIXEL                  // Fragment
+   //   };
          
    Ptr<SetLayout> Direct3D12Device::createSetLayout(const uint32 count, 
                                                     const ResourceGroup* group,
@@ -124,32 +434,183 @@ namespace en
 
    Ptr<SetLayoutD3D12> result = new SetLayoutD3D12();
 
-   // Current assigned HLSL slot for each resource type
-   // TODO: Are those slots numerated separately per each resource type or is this shared pool ?
-   //       See this: https://msdn.microsoft.com/en-us/library/windows/desktop/dn899207(v=vs.85).aspx
-   uint32 types = underlyingType(ResourceType::Count) - 1;   // Uniform and Storage buffers are both handled as CBV
-   uint32* slot = new uint32[types];
-   for(uint32 i=0u; i<types; ++i)
-      slot[i] = 0u;
-      
-   D3D12_DESCRIPTOR_RANGE* rangeInfo = new D3D12_DESCRIPTOR_RANGE[count];
- //D3D12_DESCRIPTOR_RANGE1* rangeInfo = new D3D12_DESCRIPTOR_RANGE1[count]; // v1.1
-   for(uint32 i=0u; i<count; ++i)
+   // Total count of descriptors per Descriptor Table
+   uint32 descriptors[2];
+   descriptors[0] = 0;
+   descriptors[1] = 0;
+
+   // Each DescriptorSet may be backed by up to two D3D12 Descriptor Tables pointing
+   // into two separate D3D12 Descriptor Heaps, depending on the fact if it is keeping 
+   // Sampler descriptors mixed with different ones, just Sampler Descriptors or just
+   // all other ones.
+   // Thus all Sampler groups need to be separated from other types of descriptors,
+   // and placed in separate Descriptor Table. To maintain logical Set layout matching
+   // Vulkan, both Descriptor Tables will share the same HLSL space.
+   //
+   // To perform quick translation of logical index in Set, to internal index in one
+   // of the two Heap sub-allocations, descriptors backed by the same heap are grouped
+   // into mapping range. Each time desriptors change between general and samplers,
+   // new mapping range is describing that.
+   uint32 generalGroups = 0;
+   uint32 samplerGroups = 0;
+   uint32 rangesCount   = 1;
+   bool   general       = true;
+   if (group[0].type == ResourceType::Sampler)
+      general = false;
+   for(uint32 i=0; i<count; ++i)
       {
-      // Single Descriptors range
+      // Calculate amount of required Descriptor Tables
+      if (group[i].type == ResourceType::Sampler)
+         {
+         descriptors[1] += group[i].count;
+         samplerGroups++;
+
+         if (general)
+            {
+            general = false;
+            rangesCount++;
+            }
+         }
+      else
+         {
+         descriptors[0] += group[i].count;
+         generalGroups++;
+
+         if (!general)
+            {
+            general = true;
+            rangesCount++;
+            }
+         }
+      }
+
+   // Allocate mapping ranges 
+   result->mappingsCount = rangesCount;
+   result->mappings      = new RangeMapping[rangesCount];
+
+   // Images and Storage buffers are both handled as UAV's so there should be 
+   // exactly 4 types of resource to be backed. Each type of resource has it's
+   // own separate logical register space inside of single HLSL "space".
+   // See: https://msdn.microsoft.com/en-us/library/windows/desktop/dn899207(v=vs.85).aspx  
+   uint32 slot[4];
+   CompileTimeAssert( sizeof(slot) == ((underlyingType(ResourceType::Count) - 1) * sizeof(uint32)), Amount_of_ResourceTypes_is_not_matching )
+   memset(&slot, 0, sizeof(slot));
+
+   // Ranges array for general Descriptor Table
+   uint32 generalRangeIndex = 0;
+   D3D12_DESCRIPTOR_RANGE* generalRange = nullptr;              //D3D12_DESCRIPTOR_RANGE1* v1.1
+   if (generalGroups)
+      generalRange = new D3D12_DESCRIPTOR_RANGE[generalGroups]; //new D3D12_DESCRIPTOR_RANGE1[generalGroups]; v1.1
+
+   // Ranges array for Sampler Descriptor Table
+   uint32 samplerRangeIndex = 0;
+   D3D12_DESCRIPTOR_RANGE* samplerRange = nullptr;              //D3D12_DESCRIPTOR_RANGE1* v1.1
+   if (samplerGroups)
+      samplerRange = new D3D12_DESCRIPTOR_RANGE[samplerGroups]; //new D3D12_DESCRIPTOR_RANGE1[samplerGroups]; v1.1
+
+   // RangeMappings gather together all descriptors backed by the same Heap, 
+   // thus they are not matching ResourceGroups, and make search for binding faster.
+   uint32 rangeIndex = 0;
+   result->mappings[rangeIndex].layoutOffset = 0;  // First Descriptor offset in Layout
+   result->mappings[rangeIndex].heapOffset   = 0;  // First Descriptor offset in Heap (layoutOffset + heapStartingOffset)
+   result->mappings[rangeIndex].elements     = 0;  // Size of range in Descriptors
+   result->mappings[rangeIndex].heap         = 0;  // 0 - General, 1 - Samplers
+
+   general = true;
+   if (group[0].type == ResourceType::Sampler)
+      {
+      general = false;
+      result->mappings[rangeIndex].heap = 1;
+      }
+
+   for(uint32 i=0; i<count; ++i)
+      {
       uint32 resourceType = underlyingType(group[i].type);
-      rangeInfo[i].RangeType          = TranslateResourceType[resourceType];
-      rangeInfo[i].NumDescriptors     = group[i].count;     // UINT - -1 or UINT_MAX to specify unbounded size (only last entry)
 
-      // Storage buffers share register pool with Uniform buffers (as CBV)
-      if (group[i].type == ResourceType::Storage)
-         resourceType--;
+      if (group[i].type == ResourceType::Sampler)
+         {
+         samplerRange[samplerRangeIndex].RangeType          = TranslateResourceType[resourceType];
+         samplerRange[samplerRangeIndex].NumDescriptors     = group[i].count;     // UINT - -1 or UINT_MAX to specify unbounded size (only last entry)
 
-      // Register Slots are assigned in order of Resource Group declarations.
-      // Register Space is set during Root Signature creation, in order in
-      // which Descriptor Sets are assigned to Pipeline Layout.
-      rangeInfo[i].BaseShaderRegister = slot[resourceType];
-      rangeInfo[i].RegisterSpace      = 0u;                 // To be patched.
+         // Register Slots are assigned in order of Resource Group declarations.
+         // Register Space is set during Root Signature creation, in order in
+         // which Descriptor Sets are assigned to Pipeline Layout.
+         samplerRange[samplerRangeIndex].BaseShaderRegister = slot[resourceType];
+         samplerRange[samplerRangeIndex].RegisterSpace      = 0u;                 // To be patched.
+
+         // Defines offset from first Descriptor in the Descriptors Heap, used by 
+         // this Descriptors Table (Set Layout). Each range can have it's own offset
+         // if separately sub-allocated from the Heap, or can have it set to:
+         // D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND - immediatelly follow previous range.
+         //
+         // Because each sub-allocation of Descriptor Ranges for DescriptorSet 
+         // matching this SetLayout would result in different offsets between Ranges,
+         // and at the same time, those offsets need to be known during Root Signature
+         // creation, all CBV, SRV and UAV descriptors need to be allocated on the
+         // Heap as single range, and all Sampler descriptors on Sampler Heap in the
+         // same way. Thus Vulkan sub-allocation cannot be perfectly matched.
+         samplerRange[samplerRangeIndex].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+         samplerRangeIndex++;
+
+         // Switch between backing heaps enforces new mapping range description
+         if (general)
+            {
+            general = false;
+            rangeIndex++;
+
+            result->mappings[rangeIndex].layoutOffset = result->mappings[rangeIndex - 1].elements;
+            result->mappings[rangeIndex].heapOffset   = result->mappings[rangeIndex - 1].elements;
+            result->mappings[rangeIndex].elements     = 0;
+            result->mappings[rangeIndex].heap         = 1;
+            }
+
+         result->mappings[rangeIndex].elements += group[i].count;
+         }
+      else
+         {
+         generalRange[generalRangeIndex].RangeType          = TranslateResourceType[resourceType];
+         generalRange[generalRangeIndex].NumDescriptors     = group[i].count;     // UINT - -1 or UINT_MAX to specify unbounded size (only last entry)
+
+         // Storage buffers share local register space with Images (as UAV's, u(x))
+         if (group[i].type == ResourceType::Storage)
+            resourceType = underlyingType(ResourceType::Image);
+
+         // Register Slots are assigned in order of Resource Group declarations.
+         // Register Space is set during Root Signature creation, in order in
+         // which Descriptor Sets are assigned to Pipeline Layout.
+         generalRange[generalRangeIndex].BaseShaderRegister = slot[resourceType];
+         generalRange[generalRangeIndex].RegisterSpace      = 0u;                 // To be patched.
+
+         // Defines offset from first Descriptor in the Descriptors Heap, used by 
+         // this Descriptors Table (Set Layout). Each range can have it's own offset
+         // if separately sub-allocated from the Heap, or can have it set to:
+         // D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND - immediatelly follow previous range.
+         //
+         // Because each sub-allocation of Descriptor Ranges for DescriptorSet 
+         // matching this SetLayout would result in different offsets between Ranges,
+         // and at the same time, those offsets need to be known during Root Signature
+         // creation, all CBV, SRV and UAV descriptors need to be allocated on the
+         // Heap as single range, and all Sampler descriptors on Sampler Heap in the
+         // same way. Thus Vulkan sub-allocation cannot be perfectly matched.
+         generalRange[generalRangeIndex].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+         generalRangeIndex++;
+
+         // Switch between backing heaps enforces new mapping range description
+         if (!general)
+            {
+            general = true;
+            rangeIndex++;
+
+            result->mappings[rangeIndex].layoutOffset = result->mappings[rangeIndex - 1].elements;
+            result->mappings[rangeIndex].heapOffset   = result->mappings[rangeIndex - 1].elements;
+            result->mappings[rangeIndex].elements     = 0;
+            result->mappings[rangeIndex].heap         = 0;
+            }
+
+         result->mappings[rangeIndex].elements += group[i].count;
+         }
 
       // Increase index by amount of slots used
       slot[resourceType] += group[i].count;
@@ -161,21 +622,23 @@ namespace en
       // RootSignature 1.1 new feature:
       // (see for details: https://msdn.microsoft.com/en-us/library/windows/desktop/mt709473(v=vs.85).aspx )
       //
-      //rangeInfo[i].Flags              = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;  // Descriptors Static, all Data static at execute (except UAV's)
+      //generalRange[generalRangeIndex].Flags              = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;  // Descriptors Static, all Data static at execute (except UAV's)
       //
       // D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE              
       // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE                     // Data changes on the fly (UAV's)
       // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE  // Data changes when not executing
       // D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC                       // Data never changes
-
-      // UINT - offset in descriptors from the start of the root signature
-      // D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND - immediatelly follow previous one
-      rangeInfo[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
       }
 
-   // Descriptor Ranges Table
-   result->table.NumDescriptorRanges = count;
-   result->table.pDescriptorRanges   = rangeInfo;
+   // General Descriptors Table
+   result->table[0].NumDescriptorRanges = generalGroups;
+   result->table[0].pDescriptorRanges   = generalRange;
+   result->descriptors[0]               = descriptors[0];
+
+   // Sampler Descriptors Table
+   result->table[1].NumDescriptorRanges = samplerGroups;
+   result->table[1].pDescriptorRanges   = samplerRange;
+   result->descriptors[1]               = descriptors[1];
 
    // Shader visibility
    //
@@ -210,8 +673,6 @@ namespace en
          break;
       };
       
-   delete [] slot;
-
    return ptr_reinterpret_cast<SetLayout>(&result);
    }
 
@@ -295,7 +756,7 @@ namespace en
          samplers[i].MinLOD           = ptr->state.MinLOD;
          samplers[i].MaxLOD           = ptr->state.MaxLOD;
          samplers[i].ShaderRegister   = i; // All Immutable Samplers are enumerated in the order they are provided
-         samplers[i].RegisterSpace    = // UINT
+         samplers[i].RegisterSpace    = sets; // Immutable Samplers always in last HLSL Space after all other Sets
          samplers[i].ShaderVisibility = visibility;
          }
       }
@@ -303,35 +764,75 @@ namespace en
    // Gather Descriptor Tables
    D3D12_ROOT_PARAMETER* tables = nullptr;
  //D3D12_ROOT_PARAMETER1* tables = nullptr; // v1.1
+   uint32* setBindingIndex = nullptr;
    if (sets)
       {
+      // Each DescriptorSet may be backed by up to two D3D12 Descriptor Tables pointing
+      // into two separate D3D12 Descriptor Heaps, depending on the fact if it is keeping 
+      // Sampler descriptors mixed with different ones, just Sampler Descriptors or just
+      // all other ones. Thus for each logical Set creating layout, it's binding index 
+      // needs to be computed at layout creation time.
+      if (sets > 1)
+         {
+         setBindingIndex = new uint32[sets];
+         setBindingIndex[0] = 0;
+         }
 
-      tables = new D3D12_ROOT_PARAMETER[sets];
-    //tables = new D3D12_ROOT_PARAMETER1[sets]; // v1.1
+      // Count amount of backing Descriptor Tables
+      uint32 tablesCount = 0;
+      for(uint32 i=0; i<sets; ++i)
+         {
+         SetLayoutD3D12* ptr = raw_reinterpret_cast<SetLayoutD3D12>(&set[i]);
+         tablesCount += ptr->tablesCount;
+         }
+
+      uint32 tableIndex = 0;
+      tables = new D3D12_ROOT_PARAMETER[tablesCount];
+    //tables = new D3D12_ROOT_PARAMETER1[tablesCount]; // v1.1
       for(uint32 i=0; i<sets; ++i)
          {
          SetLayoutD3D12* ptr = raw_reinterpret_cast<SetLayoutD3D12>(&set[i]);
          
-         tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-         tables[i].DescriptorTable  = ptr->table;
-         tables[i].ShaderVisibility = ptr->visibility;
+         if (i > 0)
+            setBindingIndex[i] = tableIndex;
 
-         // Patch Descriptor Table spaces
-         // HLSL Register Space matches SPIRV Set indexing
-         uint32 ranges = ptr->table.NumDescriptorRanges;
-         for(uint32 j=0; i<ranges; ++j)
-            ptr->table.pDescriptorRanges[j].RegisterSpace = i;
-
-       //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-       //tables[i].Constants        = //D3D12_ROOT_CONSTANTS;
-
-       //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_CBV;
-       //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_SRV;
-       //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_UAV;
-       //tables[i].Descriptor       = //D3D12_ROOT_DESCRIPTOR;
-       //   UINT ShaderRegister;
-       //   UINT RegisterSpace;
+         for(uint32 j=0; j<2; ++j)
+            {
+            uint32 ranges = ptr->table[j].NumDescriptorRanges;
+            if (ranges)
+               {
+               tables[tableIndex].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+               tables[tableIndex].DescriptorTable  = ptr->table[j];   // It copies descriptor, but pointer in it, still shares pointed array!
+               tables[tableIndex].ShaderVisibility = ptr->visibility;
             
+               for(uint32 k=0; k<ranges; ++k)
+                  {
+                  // Patch Descriptor Table HLSL Spaces
+                  // HLSL Register Space matches SPIRV Set indexing.
+                  // pDescriptorRanges is pointing to const, so need to cast to patch.
+                  // Patched "Space" assignments are still laying in the given SetLayout
+                  // so they are valid only for current operation of RootSignature creation,
+                  // each consecuting RootSignature creation will overwrite them - thus 
+                  // Pipeline Layouts sharing Set Layouts cannot be created at the same
+                  // time on different threads.
+                  D3D12_DESCRIPTOR_RANGE& range = (D3D12_DESCRIPTOR_RANGE&)(tables[tableIndex].DescriptorTable.pDescriptorRanges[k]);
+                  range.RegisterSpace = i;
+                  }
+            
+             //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+             //tables[i].Constants        = //D3D12_ROOT_CONSTANTS;
+            
+             //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_CBV;
+             //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_SRV;
+             //tables[i].ParameterType    = D3D12_ROOT_PARAMETER_TYPE_UAV;
+             //tables[i].Descriptor       = //D3D12_ROOT_DESCRIPTOR;
+             //   UINT ShaderRegister;
+             //   UINT RegisterSpace;
+
+               tableIndex++;
+               }
+            }
+
          // Record shader stages that refer to any descriptors
          if (ptr->visibility == D3D12_SHADER_VISIBILITY_ALL)
             allStages = true;
@@ -339,7 +840,6 @@ namespace en
             stageUsesDescriptors[static_cast<uint32>(ptr->visibility) - 1] = true;
          }
       }
-
 
    D3D12_ROOT_SIGNATURE_DESC desc;
  //D3D12_ROOT_SIGNATURE_DESC1 desc; // v1.1
@@ -349,7 +849,7 @@ namespace en
    desc.pStaticSamplers   = samplers;
    desc.Flags             = D3D12_ROOT_SIGNATURE_FLAG_NONE;
    
-   // Don't use this flag to get small optimization on Programmable Vertex Fetch shaders
+   // Don't use this flag, to get small optimization on Programmable Vertex Fetch shaders
    desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
    if (!allStages)
@@ -382,7 +882,7 @@ namespace en
                                       signature->GetBufferSize(),
                                       IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12RootSignature), reinterpret_cast<void**>(&handle)
    if (SUCCEEDED(lastResult[Scheduler.core()]))
-      result = new PipelineLayoutD3D12(handle);
+      result = new PipelineLayoutD3D12(handle, sets, setBindingIndex);
 
    delete [] tables;
    delete [] samplers;
@@ -406,16 +906,16 @@ namespace en
    // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899199(v=vs.85).aspx
    
    // Create Samplers Heap if requested
-   ID3D12DescriptorHeap* handleSamplers = nullptr;
-   if (count[0] > 0)
+   ID3D12DescriptorHeap* samplersHandle = nullptr;
+   if (count[underlyingType(ResourceType::Sampler)] > 0)
       {
       D3D12_DESCRIPTOR_HEAP_DESC desc;
       desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-      desc.NumDescriptors = count[0];
+      desc.NumDescriptors = count[underlyingType(ResourceType::Sampler)];
       desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
       desc.NodeMask       = 0u; // TODO: Set bit to current GPU index in SLI
    
-      Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&handleSamplers)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handleSamplers)
+      Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&samplersHandle)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handleSamplers)
       if (!SUCCEEDED(lastResult[Scheduler.core()]))
          {
          return ptr_reinterpret_cast<Descriptors>(&result);
@@ -446,7 +946,11 @@ namespace en
       }
 
    // D3D12 has no limit of Descriptor Sets that can be allocated from it.
-   result = new DescriptorsD3D12(handle, handleSamplers);
+   result = new DescriptorsD3D12(this);
+   result->handle[0]    = handle;
+   result->handle[1]    = samplersHandle;
+   result->allocator[0] = new BasicAllocator(slots);
+   result->allocator[1] = new BasicAllocator(count[underlyingType(ResourceType::Sampler)]);
 
    return ptr_reinterpret_cast<Descriptors>(&result);
    }

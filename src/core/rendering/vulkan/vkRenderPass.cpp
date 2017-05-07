@@ -1020,61 +1020,6 @@ namespace en
 
 
 
-      
-      
-      
-// VK_IMAGE_LAYOUT_UNDEFINED = 0,
-// VK_IMAGE_LAYOUT_GENERAL = 1,
-// VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL = 2,
-// VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
-// VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
-// VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL = 5,
-// VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL = 6,
-// VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL = 7,
-// VK_IMAGE_LAYOUT_PREINITIALIZED = 8,
-// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR = 1000001002,
-
-
-
- 
-
-
-
-
-
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1251,17 +1196,6 @@ namespace en
 //
 //
 //
-//// VK_IMAGE_LAYOUT_UNDEFINED = 0,
-//// VK_IMAGE_LAYOUT_GENERAL = 1,
-//// VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL = 2,
-//// VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
-//// VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
-//// VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL = 5,
-//// VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL = 6,
-//// VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL = 7,
-//// VK_IMAGE_LAYOUT_PREINITIALIZED = 8,
-//// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR = 1000001002,
-//
 //
 //   // Gather Attachment states
 //   VkAttachmentDescription* attachment = new VkAttachmentDescription[_attachments];
@@ -1373,28 +1307,6 @@ namespace en
 //   return result;
 //   }
 
-
-   // D3D12 IMPLEMENTATION
-   //////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-   // DX12 Doesn't support Tiled Renderers, and as such, don't have load and store operations.
-
-
-
-
-   // typedef enum {
-   //     VK_IMAGE_LAYOUT_UNDEFINED = 0,
-   //     VK_IMAGE_LAYOUT_GENERAL = 1,
-   //     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL = 2,
-   //     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
-   //     VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
-   //     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL = 5,
-   //     VK_IMAGE_LAYOUT_TRANSFER_SOURCE_OPTIMAL = 6,
-   //     VK_IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL = 7,
-   //     VK_IMAGE_LAYOUT_PREINITIALIZED = 8,
-   // } VkImageLayout;
 
 
    }

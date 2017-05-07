@@ -107,8 +107,7 @@ namespace en
 
    // Pipeline descriptor
    D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
-   ID3D12RootSignature                *pRootSignature;  // TODO: <--- Layout cast
-  
+   desc.pRootSignature        = layout->handle;
    desc.VS                    = pipelineState.shader[0] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[0])->state : noShader;
    desc.PS                    = pipelineState.shader[4] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[4])->state : noShader;
    desc.DS                    = pipelineState.shader[2] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[2])->state : noShader;

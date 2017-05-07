@@ -30,6 +30,9 @@
 // DXGI Overview
 // https://msdn.microsoft.com/en-us/library/windows/desktop/bb205075(v=vs.85).aspx
 
+// D3D12 Helper Structures
+// https://msdn.microsoft.com/en-us/library/windows/desktop/mt186617(v=vs.85).aspx
+
 // TODO: To build with Direct3D12, project configuration is forced to build against Windows 10 SDK and minimum platform is Windows 10 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.

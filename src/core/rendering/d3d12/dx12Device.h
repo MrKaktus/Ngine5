@@ -246,7 +246,8 @@ namespace en
                                                        const Ptr<Sampler>* sampler = nullptr,
                                                        const ShaderStages stagesMask = ShaderStages::All);
 
-
+      virtual Ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
+                                                     const uint32 (&count)[underlyingType(ResourceType::Count)]);
 
 
       virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state);

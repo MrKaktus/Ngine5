@@ -15,7 +15,7 @@
 #define ENG_CORE_DEFINES
 
 // Compile-Time Assertion
-#define CompileTimeAssert(predicate, file) _impl_CASSERT_LINE(predicate,__LINE__,file)
+#define CompileTimeAssert(predicate, message) _impl_CASSERT_LINE(predicate,__LINE__,message)
 #define _impl_PASTE(a,b) a##b
 #define _impl_CASSERT_LINE(predicate, line, file) \
     typedef char _impl_PASTE(assertion_failed_##file##_,line)[2*!!(predicate)-1];

@@ -62,6 +62,15 @@ namespace en
       virtual void startRenderPass(const Ptr<RenderPass> pass, 
                                    const Ptr<Framebuffer> framebuffer) = 0;
 
+      virtual void setDescriptors(const Ptr<PipelineLayout> layout, 
+                                  const Ptr<DescriptorSet> set,
+                                  const uint32 index = 0u) = 0;
+
+      virtual void setDescriptors(const Ptr<PipelineLayout> layout, 
+                                  const uint32 count,
+                                  const Ptr<DescriptorSet>* sets,
+                                  const uint32 firstIndex = 0u) = 0;
+
       virtual void setPipeline(const Ptr<Pipeline> pipeline) = 0;
       
       // Assigns Vertex Buffers to specified input attachment slots.

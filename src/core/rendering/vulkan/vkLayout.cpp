@@ -18,7 +18,10 @@
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/rendering/vulkan/vkDevice.h"
+#include "core/rendering/vulkan/vkCommandBuffer.h"
+#include "core/rendering/vulkan/vkBuffer.h"
 #include "core/rendering/vulkan/vkSampler.h"
+#include "core/rendering/vulkan/vkTexture.h"
 
 namespace en
 {
@@ -46,15 +49,6 @@ namespace en
    // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,  // * Uniform (dynamic array size, specifcied on runtime)
    // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,  //   Storage (dynamic array size, specifcied on runtime)
    // VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,       // Render Pass Input Attachment for multi-sub-pass graph (Fragment Shader read of RT)
-
-
-
-
-
-
-
-// VkShaderStageFlags
-
 
    SetLayoutVK::SetLayoutVK(VulkanDevice* _gpu, VkDescriptorSetLayout _handle) :
       gpu(_gpu),
@@ -186,10 +180,121 @@ namespace en
 
    DescriptorSetVK::~DescriptorSetVK()
    {
-   Profile( gpu, vkFreeDescriptorSets(gpu->device, parent->handle, 1u, &handle) )
+   Profile( parent->gpu, vkFreeDescriptorSets(parent->gpu->device, parent->handle, 1u, &handle) )
    parent = nullptr;
    }
    
+   // TODO: Update DescriptorSets with batches of resources
+ 
+   //VkWriteDescriptorSet writeDesc;
+   //writeDesc.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+   //writeDesc.pNext           = nullptr;
+   //writeDesc.dstSet          = handle;
+   //writeDesc.dstBinding      = slot;
+   //uint32_t                         dstArrayElement;
+   //writeDesc.descriptorCount = 1U;
+   //writeDesc.descriptorType  = TranslateResourceType[underlyingType(ResourceType::Count)];
+   //const VkDescriptorImageInfo*     pImageInfo;
+   //const VkDescriptorBufferInfo*    pBufferInfo;
+   //const VkBufferView*              pTexelBufferView;
+
+   //vkUpdateDescriptorSets(gpu->device
+   //uint32_t                                    descriptorWriteCount,
+   //const VkWriteDescriptorSet*                 pDescriptorWrites,
+   //uint32_t                                    descriptorCopyCount,
+   //const VkCopyDescriptorSet*                  pDescriptorCopies);
+
+
+   void DescriptorSetVK::setBuffer(const uint32 slot, const Ptr<Buffer> _buffer)
+   {
+   assert( _buffer );
+
+   VulkanDevice* gpu = parent->gpu;
+
+   BufferVK* src = raw_reinterpret_cast<BufferVK>(&_buffer);
+
+   VkDescriptorBufferInfo bufferInfo;
+   bufferInfo.buffer = src->handle;
+   bufferInfo.offset = 0U;
+   bufferInfo.range  = src->size;
+
+   VkWriteDescriptorSet writeDesc;
+   writeDesc.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+   writeDesc.pNext            = nullptr;
+   writeDesc.dstSet           = handle;
+   writeDesc.dstBinding       = slot;
+   writeDesc.dstArrayElement  = 0U; // Starting element in Array, looks like arrays have separate indexing from global namespace?
+   writeDesc.descriptorCount  = 1U;
+   writeDesc.descriptorType   = TranslateResourceType[underlyingType(ResourceType::Count)];
+   writeDesc.pImageInfo       = nullptr;
+   writeDesc.pBufferInfo      = &bufferInfo; // Array of buffer descriptors
+   writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
+
+   ProfileNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
+   }
+
+   void DescriptorSetVK::setSampler(const uint32 slot, const Ptr<Sampler> _sampler)
+   {
+   assert( _sampler );
+
+   VulkanDevice* gpu = parent->gpu;
+
+   SamplerVK* src = raw_reinterpret_cast<SamplerVK>(&_sampler);
+
+   VkDescriptorImageInfo imageInfo;
+   imageInfo.sampler     = src->handle;
+   imageInfo.imageView   = VK_NULL_HANDLE;
+   imageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED; // Ommited for Samplers
+
+   VkWriteDescriptorSet writeDesc;
+   writeDesc.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+   writeDesc.pNext            = nullptr;
+   writeDesc.dstSet           = handle;
+   writeDesc.dstBinding       = slot;
+   writeDesc.dstArrayElement  = 0U; // Starting element in Array, looks like arrays have separate indexing from global namespace?
+   writeDesc.descriptorCount  = 1U;
+   writeDesc.descriptorType   = TranslateResourceType[underlyingType(ResourceType::Sampler)];
+   writeDesc.pImageInfo       = &imageInfo;  // Array of image descriptors
+   writeDesc.pBufferInfo      = nullptr; 
+   writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
+
+   ProfileNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
+   }
+
+   void DescriptorSetVK::setTextureView(const uint32 slot, const Ptr<TextureView> _view)
+   {
+   assert( _view );
+
+   VulkanDevice* gpu = parent->gpu;
+
+   TextureViewVK* src = raw_reinterpret_cast<TextureViewVK>(&_view);
+
+   VkDescriptorImageInfo imageInfo;
+   imageInfo.sampler     = VK_NULL_HANDLE;
+   imageInfo.imageView   = src->handle;
+   imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+   // TODO: This could be precomputed and stored in TextureView as a bool
+   if ( TextureFormatIsDepth(src->viewFormat) ||
+        TextureFormatIsStencil(src->viewFormat) ||
+        TextureFormatIsDepthStencil(src->viewFormat) )
+       imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+   VkWriteDescriptorSet writeDesc;
+   writeDesc.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+   writeDesc.pNext            = nullptr;
+   writeDesc.dstSet           = handle;
+   writeDesc.dstBinding       = slot;
+   writeDesc.dstArrayElement  = 0U; // Starting element in Array, looks like arrays have separate indexing from global namespace?
+   writeDesc.descriptorCount  = 1U;
+   writeDesc.descriptorType   = TranslateResourceType[underlyingType(src->viewType)];
+   writeDesc.pImageInfo       = &imageInfo;  // Array of image descriptors
+   writeDesc.pBufferInfo      = nullptr; 
+   writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
+
+   ProfileNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
+   }
+
    
    // DESCRIPTOR POOL
    //////////////////////////////////////////////////////////////////////////
@@ -215,33 +320,33 @@ namespace en
    allocInfo.pNext              = nullptr;
    allocInfo.descriptorPool     = handle;
    allocInfo.descriptorSetCount = 1u;
-   allocInfo.pSetLayouts        = &raw_reinterpret_cast<SetLayoutVK>(layout)->handle;
+   allocInfo.pSetLayouts        = &raw_reinterpret_cast<SetLayoutVK>(&layout)->handle;
 
    VkDescriptorSet set = VK_NULL_HANDLE;
 
    Profile( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, &set) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       result = new DescriptorSetVK(this, set);
 
    return ptr_reinterpret_cast<DescriptorSet>(&result);
    }
    
-   bool DescriptorsVK::allocate(const uint32 count, const Ptr<SetLayout>* layouts, Ptr<DescriptorSet>* sets)
+   bool DescriptorsVK::allocate(const uint32 count, const Ptr<SetLayout>* layouts, Ptr<DescriptorSet>** sets)
    {
    bool result = false;
    
-   // This is the place where Objectiveness of Rendering Abstraction is unwanted for a first time.
-   
+   // This is the place where OOD of Rendering Abstraction is unwanted, and DOD would match better.
+
    // Pack layouts
-   VkDescriptorSet*       handle = new VkDescriptorSet[count];
-   VkDescriptorSetLayout* layout = new VkDescriptorSetLayout[count];
-   assert( handle );
-   assert( layout );
+   VkDescriptorSet*       setHandle    = new VkDescriptorSet[count];
+   VkDescriptorSetLayout* layoutHandle = new VkDescriptorSetLayout[count];
+   assert( setHandle );
+   assert( layoutHandle );
    for(uint32 i=0; i<count; ++i)
       {
-      SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(layouts[i]);
-      layout[i] = ptr->handle;
-      handle[i] = VK_NULL_HANDLE;
+      SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(&layouts[i]);
+      layoutHandle[i] = ptr->handle;
+      setHandle[i]    = VK_NULL_HANDLE;
       }
    
    VkDescriptorSetAllocateInfo allocInfo;
@@ -249,23 +354,24 @@ namespace en
    allocInfo.pNext              = nullptr;
    allocInfo.descriptorPool     = handle;
    allocInfo.descriptorSetCount = count;
-   allocInfo.pSetLayouts        = layout;
+   allocInfo.pSetLayouts        = layoutHandle;
 
-   Profile( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, &handle) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+   Profile( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, setHandle) )
+   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       // Unpack results
+      *sets = new Ptr<DescriptorSet>[count];
       for(uint32 i=0; i<count; ++i)
          {
-         Ptr<DescriptorSetVK> ptr = new DescriptorSetVK(this, handle[i]);
-         sets[i] = raw_reinterpret_cast<DescriptorSet>(&ptr);
+         Ptr<DescriptorSetVK> ptr = new DescriptorSetVK(this, setHandle[i]);
+         (*sets)[i] = raw_reinterpret_cast<DescriptorSet>(&ptr);
          }
          
       result = true;
       }
 
-   delete [] handle;
-   delete [] layout;
+   delete [] setHandle;
+   delete [] layoutHandle;
    
    return result;
    }
@@ -275,6 +381,65 @@ namespace en
    // This would break dependency with child DescriptorSets
    // vkResetDescriptorPool
    //}
+
+
+   // COMMAND BUFFER
+   //////////////////////////////////////////////////////////////////////////
+
+
+   void CommandBufferVK::setDescriptors(const Ptr<PipelineLayout> _layout, 
+                                        const Ptr<DescriptorSet> _set,
+                                        const uint32 index)
+   {
+   assert( started );
+   assert( _layout );
+   assert( _set );
+
+   PipelineLayoutVK* layout = raw_reinterpret_cast<PipelineLayoutVK>(&_layout);
+   DescriptorSetVK*  set    = raw_reinterpret_cast<DescriptorSetVK>(&_set);
+
+   VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+   // TODO: Support Compute!!!
+   //if (!ptr->graphics)
+   //   bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+
+   // TODO: Support for Dynamic Offsets - offsets in Dynamic Uniform/Storage buffers
+   ProfileNoRet( gpu, vkCmdBindDescriptorSets(handle, bindPoint, layout->handle, index, 1, &set->handle, 0, nullptr) )
+   }
+
+   void CommandBufferVK::setDescriptors(const Ptr<PipelineLayout> _layout, 
+                                        const uint32 count,
+                                        const Ptr<DescriptorSet>* sets,
+                                        const uint32 firstIndex)
+   {
+   assert( started );
+   assert( _layout );
+   assert( count );
+   assert( sets );
+
+   PipelineLayoutVK* layout = raw_reinterpret_cast<PipelineLayoutVK>(&_layout);
+
+   // Pack sets handles
+   VkDescriptorSet* setHandles = new VkDescriptorSet[count];
+   assert( setHandles );
+   for(uint32 i=0; i<count; ++i)
+      {
+      DescriptorSetVK* ptr = raw_reinterpret_cast<DescriptorSetVK>(&sets[i]);
+      setHandles[i] = ptr->handle;
+      }
+
+   VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+   // TODO: Support Compute!!!
+   //if (!ptr->graphics)
+   //   bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+
+   // TODO: Support for Dynamic Offsets - offsets in Dynamic Uniform/Storage buffers
+   ProfileNoRet( gpu, vkCmdBindDescriptorSets(handle, bindPoint, layout->handle, firstIndex, count, setHandles, 0, nullptr) )
+
+   delete [] setHandles;
+   }
 
 
    // DEVICE
@@ -317,7 +482,7 @@ namespace en
    VkDescriptorSetLayoutCreateInfo setInfo;
    setInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
    setInfo.pNext        = nullptr;
-   setInfo.flags        = 0u;      // Reserved for future
+   setInfo.flags        = 0u;      // VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR to push Descriptors update using vkCmdPushDescriptorSetKHR
    setInfo.bindingCount = count;
    setInfo.pBindings    = rangeInfo;
    
@@ -434,7 +599,7 @@ namespace en
    
    uint32 resourceTypesCount = underlyingType(ResourceType::Count);
    
-   VkDescriptorPoolSize ranges[resourceTypesCount];
+   VkDescriptorPoolSize ranges[underlyingType(ResourceType::Count)];
    for(uint32 i=0; i<resourceTypesCount; ++i)
       {
       ranges[i].type            = TranslateResourceType[i];
@@ -450,7 +615,7 @@ namespace en
    poolInfo.pPoolSizes    = &ranges[0];
 
    VkDescriptorPool handle = VK_NULL_HANDLE;
-   Profile( gpu, vkCreateDescriptorPool(gpu->device, &poolInfo, nullptr, &handle) )
+   Profile( this, vkCreateDescriptorPool(device, &poolInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       result = new DescriptorsVK(this, handle);

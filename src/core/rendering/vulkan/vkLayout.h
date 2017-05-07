@@ -57,12 +57,14 @@ namespace en
       virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout);
       virtual bool allocate(const uint32 count,
                             const Ptr<SetLayout>* layouts,
-                            Ptr<DescriptorSet>* sets);
+                            Ptr<DescriptorSet>** sets);
          
       DescriptorsVK(VulkanDevice* gpu, VkDescriptorPool handle);
       virtual ~DescriptorsVK();
       };
 
+   // AMD hints on Descriptors:
+   // http://32ipi028l5q82yhj72224m8j.wpengine.netdna-cdn.com/wp-content/uploads/2016/03/VulkanFastPaths.pdf
    class DescriptorSetVK : public DescriptorSet
       {
       public:
@@ -71,6 +73,10 @@ namespace en
       
       DescriptorSetVK(Ptr<DescriptorsVK> parent, VkDescriptorSet handle);
       virtual ~DescriptorSetVK();
+
+      virtual void setBuffer(const uint32 slot, const Ptr<Buffer> buffer);
+      virtual void setSampler(const uint32 slot, const Ptr<Sampler> sampler);
+      virtual void setTextureView(const uint32 slot, const Ptr<TextureView> view);
       };
    }
 }
