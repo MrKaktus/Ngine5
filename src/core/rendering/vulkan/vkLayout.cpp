@@ -184,7 +184,7 @@ namespace en
    parent = nullptr;
    }
    
-   // TODO: Update DescriptorSets with batches of resources
+   // TODO: Update DescriptorSets with batches of resources (or cache updates)
  
    //VkWriteDescriptorSet writeDesc;
    //writeDesc.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -205,6 +205,7 @@ namespace en
    //const VkCopyDescriptorSet*                  pDescriptorCopies);
 
 
+
    void DescriptorSetVK::setBuffer(const uint32 slot, const Ptr<Buffer> _buffer)
    {
    assert( _buffer );
@@ -212,6 +213,9 @@ namespace en
    VulkanDevice* gpu = parent->gpu;
 
    BufferVK* src = raw_reinterpret_cast<BufferVK>(&_buffer);
+
+   assert( src->apiType == BufferType::Uniform ||
+           src->apiType == BufferType::Storage );
 
    VkDescriptorBufferInfo bufferInfo;
    bufferInfo.buffer = src->handle;
@@ -225,7 +229,7 @@ namespace en
    writeDesc.dstBinding       = slot;
    writeDesc.dstArrayElement  = 0U; // Starting element in Array, looks like arrays have separate indexing from global namespace?
    writeDesc.descriptorCount  = 1U;
-   writeDesc.descriptorType   = TranslateResourceType[underlyingType(ResourceType::Count)];
+   writeDesc.descriptorType   = src->apiType == BufferType::Uniform ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
    writeDesc.pImageInfo       = nullptr;
    writeDesc.pBufferInfo      = &bufferInfo; // Array of buffer descriptors
    writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
@@ -253,7 +257,7 @@ namespace en
    writeDesc.dstBinding       = slot;
    writeDesc.dstArrayElement  = 0U; // Starting element in Array, looks like arrays have separate indexing from global namespace?
    writeDesc.descriptorCount  = 1U;
-   writeDesc.descriptorType   = TranslateResourceType[underlyingType(ResourceType::Sampler)];
+   writeDesc.descriptorType   = VK_DESCRIPTOR_TYPE_SAMPLER; // Sampler
    writeDesc.pImageInfo       = &imageInfo;  // Array of image descriptors
    writeDesc.pBufferInfo      = nullptr; 
    writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
@@ -287,7 +291,7 @@ namespace en
    writeDesc.dstBinding       = slot;
    writeDesc.dstArrayElement  = 0U; // Starting element in Array, looks like arrays have separate indexing from global namespace?
    writeDesc.descriptorCount  = 1U;
-   writeDesc.descriptorType   = TranslateResourceType[underlyingType(src->viewType)];
+   writeDesc.descriptorType   = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE; // Texture
    writeDesc.pImageInfo       = &imageInfo;  // Array of image descriptors
    writeDesc.pBufferInfo      = nullptr; 
    writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported

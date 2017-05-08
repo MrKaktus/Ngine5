@@ -98,6 +98,11 @@ namespace en
       {
       ResourceType type;
       uint32       count;
+
+      ResourceGroup(ResourceType type, uint32 count) :
+         type(type),
+         count(count)
+         {};
       };
       
    // Layout of resources in Descriptors Set

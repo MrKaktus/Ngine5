@@ -21,12 +21,13 @@ void sample_ClearScreen(const char* title)
    Ptr<GpuDevice> gpu = Graphics->primaryDevice();
 
    // Position Window at the center of the primary display
-   uint32v2 resolution = Graphics->primaryDisplay()->resolution();
-   uint32v2 size       = uint32v2(1280, 720);
-   uint32v2 position   = uint32v2((resolution.x - size.x) / 2, (resolution.y - size.y) / 2);
+   Ptr<Display> display = Graphics->primaryDisplay();
+   uint32v2 resolution  = display->resolution();
+   uint32v2 size        = uint32v2(1280, 720);
+   uint32v2 position    = uint32v2((resolution.x - size.x) / 2, (resolution.y - size.y) / 2);
 
    WindowSettings settings;
-   settings.display  = Graphics->primaryDisplay();
+   settings.display  = display;
    settings.position = position;  // Ignored in Fullscreen.
    settings.size     = size;
    settings.format   = Format::BGRA_8;
@@ -48,50 +49,65 @@ void sample_ClearScreen(const char* title)
    assert( Input->available(IO::Keyboard) );
    keyboard = Input->keyboard();
    
+   // Cached temporary resources (released after 5 frames)
+   #define CommandBufferCacheSize 5
+   Ptr<CommandBuffer> command[CommandBufferCacheSize];
+   Ptr<Texture> swapChainSurface[CommandBufferCacheSize];
+   Ptr<TextureView> swapChainView[CommandBufferCacheSize];
+   Ptr<Framebuffer> framebuffer[CommandBufferCacheSize];
+
+   // This loop is completly non blocking. CPU and GPU execute asynchronously and never synchronize.
    while(!keyboard->pressed(Key::Esc))
       {
       // Input
       Input->update();
 
       // Rendering
-      Ptr<CommandBuffer> command = gpu->createCommandBuffer();
+      uint32 id = window->frame() % CommandBufferCacheSize;
+      
+      command[id] = gpu->createCommandBuffer();
          
-      Ptr<Texture> swapChainSurface = window->surface(waitForSwapChain);
-      command->start(waitForSwapChain);
-      command->barrier(swapChainSurface,
-                       uint32v2(0,1),
-                       uint32v2(0,1),
-                       TextureAccess::Present,
-                       TextureAccess::RenderTargetWrite);
+      swapChainSurface[id] = window->surface(waitForSwapChain);
+      command[id]->start(waitForSwapChain);
+      command[id]->barrier(swapChainSurface[id],
+                           uint32v2(0,1),
+                           uint32v2(0,1),
+                           TextureAccess::Present,
+                           TextureAccess::RenderTargetWrite);
 
-      Ptr<TextureView> swapChainView = swapChainSurface->view();
-      Ptr<Framebuffer> framebuffer = renderPass->createFramebuffer(settings.size, swapChainView);
+      swapChainView[id] = swapChainSurface[id]->view();
+      framebuffer[id] = renderPass->createFramebuffer(settings.size, swapChainView[id]);
 
-      command->startRenderPass(renderPass, framebuffer);
+      command[id]->startRenderPass(renderPass, framebuffer[id]);
 
       // Here will be rendering in next sample . . 
 
       // Finish encoding and Display when processed
-      command->endRenderPass();
+      command[id]->endRenderPass();
       
-      command->barrier(swapChainSurface,
+      command[id]->barrier(swapChainSurface[id],
                        uint32v2(0,1),    // First mipmap
                        uint32v2(0,1),    // First layer
                        TextureAccess::RenderTargetWrite,
                        TextureAccess::Present);
       
-      command->commit(waitForGPU);
+      command[id]->commit(waitForGPU);
       window->present(waitForGPU);
-
-      // CommandBuffer is not released here, as it may still be processed by the GPU.
-      // GpuDevice keeps it in it's Garbage Collector until completion Fence is signaled,
-      // then it is safely and in automatic way destroyed.
-      command          = nullptr;
-      framebuffer      = nullptr;
-      swapChainView    = nullptr;
-      swapChainSurface = nullptr;
       }
  
+   // CommandBuffer is not released here, as it may still be processed by the GPU.
+   // GpuDevice keeps it in it's Garbage Collector until completion Fence is signaled,
+   // then it is safely and in automatic way destroyed.
+   for(uint32 i=0; i<CommandBufferCacheSize; ++i)
+      {
+      command[i]->waitUntilCompleted();
+
+      framebuffer[i] = nullptr;
+      swapChainView[i] = nullptr;
+      swapChainSurface[i] = nullptr;
+      command[i] = nullptr;
+      }
+
    renderPass = nullptr;
    window = nullptr;
    gpu = nullptr;
