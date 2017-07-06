@@ -50,6 +50,9 @@ namespace en
 
    class GpuDevice;
 
+   // Note: Try not to mix Buffers and Textures allocations smaller than 4KB on the same Heap.
+   //       Not all vendors may support sharing single memory page size by Texture and Buffer,
+   //       even if they are not aliasing each other.
    class Heap : public SafeObject<Heap>
       {
       public:

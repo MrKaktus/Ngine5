@@ -237,6 +237,11 @@ namespace en
    heap = nullptr;
    }
    
+   Ptr<Heap> TextureD3D12::parent(void) const
+   {
+   return ptr_reinterpret_cast<Heap>(&heap);
+   }
+
    // Texture View ?
    Ptr<TextureView> TextureD3D12::view(const TextureType _type,
       const Format _format,

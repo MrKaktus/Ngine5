@@ -48,8 +48,12 @@ namespace en
 
    // Window > Surface > Swap-Chain > Device - connection
 
+   
+   // TODO: WARNING: WA: If resources are created/uploaded earlier, NVidia Kernel driver crashes here.
+   //                    Disabled for now.
+   //
    // Be sure device is idle before creating Swap-Chain
-   Profile( gpu, vkDeviceWaitIdle(gpu->device) )
+   //Profile( gpu, vkDeviceWaitIdle(gpu->device) )
 
    // Create Swap-Chain surface attached to Window
    //----------------------------------------------
@@ -61,7 +65,7 @@ namespace en
    winCreateInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
    winCreateInfo.pNext     = nullptr;
    winCreateInfo.flags     = 0;           // VkWin32SurfaceCreateFlagsKHR - Reserved.
-   winCreateInfo.hinstance = AppInstance; // HINSTANCE
+   winCreateInfo.hinstance = winWindow::AppInstance; // HINSTANCE
    winCreateInfo.hwnd      = hWnd;        // HWND
 
    VulkanAPI* api = raw_reinterpret_cast<VulkanAPI>(&en::Graphics);

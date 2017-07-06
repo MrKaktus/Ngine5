@@ -95,6 +95,12 @@ namespace en
                         uint64 dstOffset = 0u) = 0;
 
       virtual void copy(Ptr<Buffer> source,
+                        const uint64 srcOffset,
+                        Ptr<Texture> texture,
+                        const uint32 mipmap,
+                        const uint32 layer) = 0;
+
+      virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,
                         const uint32 mipmap,
                         const uint32 layer) = 0;
@@ -114,6 +120,14 @@ namespace en
                         const uint32       firstElement = 0) = 0;  // First index to process in Index buffer (if specified)
 
       virtual void endRenderPass(void) = 0;
+
+      // Optimize the way buffer is beeing accessed during 
+      // different operation types, by different units in GPU.
+      virtual void barrier(const Ptr<Buffer> buffer, 
+                           const uint64 offset,
+                           const uint64 size,
+                           const BufferAccess currentAccess,
+                           const BufferAccess newAccess) = 0;
 
       // Optimize the way texture is internally stored in memory,
       // by describing the way it was used in the past, and the 

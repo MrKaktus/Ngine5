@@ -27,6 +27,59 @@ namespace en
 {
    namespace gpu
    {
+   
+   void TranslateBufferAccess(BufferAccess usage, BufferType type, VkAccessFlags& access)
+   {
+   access = static_cast<VkAccessFlags>(0u);
+
+   bool canBeWritten = false;
+
+   uint32 usageMask = underlyingType(usage);
+
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::Read)))
+      {
+      // Allows buffer to be read as Vertex Buffer during Draw
+      if (type == BufferType::Vertex)
+         setBitmask(access, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+      else
+      // Allows buffer to be read as Index Buffer during Indexed Draw
+      if (type == BufferType::Index)
+         setBitmask(access, VK_ACCESS_INDEX_READ_BIT);
+      else
+      // Allows buffer to be read as Uniform Buffer
+      if (type == BufferType::Uniform)
+         setBitmask(access, VK_ACCESS_UNIFORM_READ_BIT);
+      else
+      // Allows buffer to be used as Indirect Command Buffer during Draw and Dispatch Indirect commands
+      if (type == BufferType::Indirect)
+         setBitmask(access, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+      else
+      // Allows general Buffer read access by Shaders (Storage)
+         setBitmask(access, VK_ACCESS_SHADER_READ_BIT);
+      }
+
+   // Allows Writing to Buffers (by Compute Shaders)
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::Write)))
+      {
+      setBitmask(access, VK_ACCESS_SHADER_WRITE_BIT);
+      canBeWritten = true;
+      }
+
+   // Transfer between System Memory and Dedicated Memory
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::SystemSource)))
+      setBitmask(access, VK_ACCESS_HOST_READ_BIT);
+
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::SystemDestination)))
+      setBitmask(access, VK_ACCESS_HOST_WRITE_BIT);
+
+   // Copy and Blit operations
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::CopySource)))
+      setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
+
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::CopyDestination)))
+      setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
+   }
+
    void TranslateTextureAccess(TextureAccess usage, Format format, VkAccessFlags& access, VkImageLayout& layout)
    {
    access = static_cast<VkAccessFlags>(0u);
@@ -138,9 +191,14 @@ namespace en
       }
    }
 
+   // TODO: Analyze below access types:
+   //
+   //  VK_ACCESS_MEMORY_READ_BIT
+   //  VK_ACCESS_MEMORY_WRITE_BIT
+   //  VK_ACCESS_COMMAND_PROCESS_READ_BIT_NVX
+   //  VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX
 
-
-   // Todo: Figure out how to expose barrier place in pipeline
+   // TODO: Figure out how to expose barrier place in pipeline
    //
    //  VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT = 0x00000001,
    //  VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT = 0x00000002,
@@ -160,6 +218,37 @@ namespace en
    //  VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT = 0x00008000,
    //  VK_PIPELINE_STAGE_ALL_COMMANDS_BIT = 0x00010000,
 
+
+
+   // Buffer barrier
+   void CommandBufferVK::barrier(const Ptr<Buffer> buffer, 
+                                 const uint64 offset,
+                                 const uint64 size,
+                                 const BufferAccess currentAccess,
+                                 const BufferAccess newAccess)
+   {
+   assert( buffer );
+
+   BufferVK* ptr = raw_reinterpret_cast<BufferVK>(&buffer);
+
+   // Determine current buffer access bitmask
+   VkAccessFlags vOldAccess;
+   TranslateBufferAccess(currentAccess, ptr->apiType, vOldAccess);
+
+   // Determine buffer new access
+   VkAccessFlags vNewAccess;
+   TranslateBufferAccess(newAccess, ptr->apiType, vNewAccess);
+
+   barrier(buffer, 
+           offset, 
+           size,
+           vOldAccess,
+           vNewAccess,
+           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  
+           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+   }
+
+   // Texture barrier
    void CommandBufferVK::barrier(const Ptr<Texture>  texture, 
                                  const uint32v2      mipmaps, 
                                  const uint32v2      layers,
@@ -191,6 +280,41 @@ namespace en
            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
    }
 
+
+   // Buffer barrier
+   void CommandBufferVK::barrier(const Ptr<Buffer> _buffer, 
+                                 const uint64 offset,
+                                 const uint64 size,
+                                 const VkAccessFlags currentAccess,
+                                 const VkAccessFlags newAccess,
+                                 const VkPipelineStageFlags afterStage,  // Transition after this stage
+                                 const VkPipelineStageFlags beforeStage) // Transition before this stage
+   {
+   assert( _buffer );
+
+   BufferVK* buffer = raw_reinterpret_cast<BufferVK>(&_buffer);
+
+   VkBufferMemoryBarrier barrier;
+   barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+   barrier.pNext               = nullptr;
+   barrier.srcAccessMask       = currentAccess;
+   barrier.dstAccessMask       = newAccess;
+   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
+   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
+   barrier.buffer              = buffer->handle;
+   barrier.offset              = offset;
+   barrier.size                = size;
+
+   ProfileNoRet( gpu, vkCmdPipelineBarrier(handle,
+                                           afterStage,
+                                           beforeStage,    
+                                           0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
+                                           0u, nullptr,   // Memory barriers
+                                           1u, &barrier,  // Buffer memory barriers
+                                           0u, nullptr) ) // Image memory barriers
+   }
+
+   // Texture barrier
    void CommandBufferVK::barrier(const Ptr<Texture> _texture, 
                                  const uint32v2 mipmaps, 
                                  const uint32v2 layers,
@@ -214,7 +338,7 @@ namespace en
    barrier.oldLayout           = currentLayout;
    barrier.newLayout           = newLayout;
    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
-   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
    barrier.image               = texture->handle; 
    barrier.subresourceRange.aspectMask     = TranslateImageAspect(texture->state.format);
    barrier.subresourceRange.baseMipLevel   = mipmaps.base;

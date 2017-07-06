@@ -83,6 +83,8 @@ namespace en
    //     - Sets are numerated from 0, in order in which they are declared in Layout
    //     - Descriptors inside given Set, are numerated from 0, per resource-type, in order in which they are bound
    
+   // TODO: "per resource-type" ? clarify 
+
    enum class ResourceType : uint32
       {
       Sampler = 0,

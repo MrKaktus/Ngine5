@@ -64,6 +64,12 @@ namespace en
                         uint64 dstOffset = 0u);
                         
       virtual void copy(Ptr<Buffer> source,
+                        const uint64 srcOffset,
+                        Ptr<Texture> texture,
+                        const uint32 mipmap,
+                        const uint32 layer);
+
+      virtual void copy(Ptr<Buffer> source,
                         Ptr<Texture> texture,
                         const uint32 mipmap,
                         const uint32 layer);
@@ -85,9 +91,12 @@ namespace en
 
       virtual void endRenderPass(void);
       
-      // Optimize the way texture is internally stored in memory,
-      // by describing the way it was used in the past, and the 
-      // way it will be used now.
+      virtual void barrier(const Ptr<Buffer> buffer, 
+                           const uint64 offset,
+                           const uint64 size,
+                           const BufferAccess currentAccess,
+                           const BufferAccess newAccess);
+
       virtual void barrier(const Ptr<Texture>  texture, 
                            const uint32v2      mipmaps, 
                            const uint32v2      layers,

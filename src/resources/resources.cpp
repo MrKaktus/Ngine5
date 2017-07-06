@@ -155,19 +155,20 @@ namespace en
 
    // TODO: This is temporary solution. Resources should be dynamically streamed in,
    //       from storage to RAM and then VRAM. Also different Heaps should be used
-   //       for different kinds of resources.
+   //       for different kinds of resources / gpu's.
    
    // Create default textures for materials
-   defaults.enAlbedoMap             = png::load(string("./resources/engine/textures/enDefaultAlbedoMap.png"));   
-   defaults.enMetallicMap           = png::load(string("./resources/engine/textures/enDefaultMetallicMap.png"));
-   defaults.enCavityMap             = png::load(string("./resources/engine/textures/enDefaultCavityMap.png"));
-   defaults.enRoughnessMap          = png::load(string("./resources/engine/textures/enDefaultRoughnessMap.png"));
-   defaults.enAOMap                 = png::load(string("./resources/engine/textures/enDefaultAOMap.png"));
-   defaults.enNormalMap             = png::load(string("./resources/engine/textures/enDefaultNormalMap.png"));
-   defaults.enDisplacementMap       = png::load(string("./resources/engine/textures/enDefaultDisplacementMap.png"));
-   defaults.enVectorDisplacementMap = png::load(string("./resources/engine/textures/enDefaultVectorDisplacementMap.png"));
-   defaults.enEmmisiveMap           = png::load(string("./resources/engine/textures/enDefaultEmmisiveMap.png"));
-   defaults.enOpacityMap            = png::load(string("./resources/engine/textures/enDefaultOpacityMap.png"));
+   //defaults.enAlbedoMap             = png::load(string("./resources/engine/textures/enDefaultAlbedoMap.png"));   
+   //defaults.enMetallicMap           = png::load(string("./resources/engine/textures/enDefaultMetallicMap.png"));
+   //defaults.enCavityMap             = png::load(string("./resources/engine/textures/enDefaultCavityMap.png"));
+   //defaults.enRoughnessMap          = png::load(string("./resources/engine/textures/enDefaultRoughnessMap.png"));
+   //defaults.enAOMap                 = png::load(string("./resources/engine/textures/enDefaultAOMap.png"));
+   //defaults.enNormalMap             = png::load(string("./resources/engine/textures/enDefaultNormalMap.png"));
+   //defaults.enDisplacementMap       = png::load(string("./resources/engine/textures/enDefaultDisplacementMap.png"));
+   //defaults.enVectorDisplacementMap = png::load(string("./resources/engine/textures/enDefaultVectorDisplacementMap.png"));
+   //defaults.enEmmisiveMap           = png::load(string("./resources/engine/textures/enDefaultEmmisiveMap.png"));
+   //defaults.enOpacityMap            = png::load(string("./resources/engine/textures/enDefaultOpacityMap.png"));
+
    //defaults.enEmmisiveMap     = png::load(string("./resources/engine/textures/enDefaultEmmisiveMap.png"));
    //defaults.enAmbientMap      = png::load(string("./resources/engine/textures/enDefaultAmbientMap.png"));       
    //defaults.enDiffuseMap      = png::load(string("./resources/engine/textures/enDefaultDiffuseMap.png"));       

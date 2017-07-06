@@ -384,6 +384,11 @@ namespace en
       };
 #endif
 
+   uint32 genericTexelSize(const Format format)
+   {
+   return TextureCompressionInfo[underlyingType(format)].size;
+   }
+
    bool TextureFormatIsDepth(const Format format)
    {
    if ( (format == Format::D_16  ) ||   

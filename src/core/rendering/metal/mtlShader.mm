@@ -86,6 +86,12 @@ namespace en
    return ptr_dynamic_cast<Shader, ShaderMTL>(Ptr<ShaderMTL>(new ShaderMTL(library)));
    }
 
+   Ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   {
+   // Unsupported on Metal
+   assert( 0 );
+   return Ptr<Shader>(nullptr);
+   }
       
 //    NSString* shaderText = [NSString stringWithContentsOfFile:stringTo<NSString*>(filepath) encoding:NSUTF8StringEncoding error:&error];
 //    if (!shaderText)
@@ -94,19 +100,6 @@ namespace en
 //        // [[error description] UTF8String]
 //
 //    }
-
-
-
-
-
-
-   //id <MTLLibrary>  gCommonLib    = ATFMTLNewLibraryWithSourceFile(gDevice, @"SimpleShader.metal");
-   //id <MTLFunction> gBlitVertProg = ATFMTLNewFunctionFromLibrary(gCommonLib, @"vertex");
-   //id <MTLFunction> gBlitFragProg = ATFMTLNewFunctionFromLibrary(gCommonLib, @"fragment");
-
-
-
-
 
    }
 }

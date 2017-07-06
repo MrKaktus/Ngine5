@@ -242,6 +242,9 @@ namespace en
       virtual Ptr<Shader>  createShader(const ShaderStage stage,
                                         const string& source);
 
+      virtual Ptr<Shader>  createShader(const ShaderStage stage,
+                                        const uint8* data,
+                                        const uint64 size);
 
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
@@ -372,9 +375,13 @@ namespace en
       DeclareFunction( vkGetPhysicalDeviceWin32PresentationSupportKHR )
 
       // VK_EXT_debug_report
+#if defined(EN_DEBUG)
+      VkDebugReportCallbackEXT debugCallbackHandle;
+
       DeclareFunction( vkCreateDebugReportCallbackEXT )
       DeclareFunction( vkDestroyDebugReportCallbackEXT )
       DeclareFunction( vkDebugReportMessageEXT )
+#endif
 
       public:
       VulkanAPI(string appName);

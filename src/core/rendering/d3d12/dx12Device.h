@@ -217,6 +217,10 @@ namespace en
       virtual Ptr<Shader>  createShader(const ShaderStage stage,
                                         const string& source);
 
+      virtual Ptr<Shader> createShader(const ShaderStage stage,
+                                       const uint8* data,
+                                       const uint64 size);
+
       virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
                                                          const uint32 samples = 1u);
 

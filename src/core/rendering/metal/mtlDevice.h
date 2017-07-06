@@ -74,6 +74,10 @@ namespace en
       
       virtual Ptr<Shader>  createShader(const ShaderStage stage,
                                         const string& source);
+
+      virtual Ptr<Shader>  createShader(const ShaderStage stage,
+                                        const uint8* data,
+                                        const uint64 size);
       
       virtual uint32 queues(const QueueType type) const;
       

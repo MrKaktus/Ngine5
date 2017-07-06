@@ -26,6 +26,22 @@ namespace en
    namespace gpu
    {
    // Bitmask
+   enum class BufferAccess : uint32
+      {
+      Read                = 0x0001,  // Allows Buffers to be read (as Vertex, Index, Uniform, Indirect or general buffer type)
+      Write               = 0x0002,  // Allows Buffers to be written (by Compute Shaders)
+      SystemSource        = 0x0080,  // System memory backed resource, used as source of data transfer to dedicated memory.
+      SystemDestination   = 0x0100,  // System memory backed resource, used as destination of data transfer from dedicated memory.
+      CopySource          = 0x0200,  // Resource backed by dedicated memory. Used as source for Copy or Blit operation.
+      CopyDestination     = 0x0400,  // Resource backed by dedicated memory. Used as destination of Copy or Blit operation.
+      };
+
+   inline BufferAccess operator| (BufferAccess a, BufferAccess b)
+   {
+   return static_cast<BufferAccess>(underlyingType(a) | underlyingType(b));
+   }
+
+   // Bitmask
    enum class TextureAccess : uint32
       {
       Read                = 0x0001,  // Allows Reading and Sampling Textures by Shaders (if format is Depth-Stencil, allows Depth comparison test read)

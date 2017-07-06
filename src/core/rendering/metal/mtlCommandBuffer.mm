@@ -195,8 +195,7 @@ namespace en
    
    }
 
-   // Copies content of buffer, to given mipmap and layer of destination texture
-   void CommandBufferMTL::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   void CommandBufferMTL::copy(Ptr<Buffer> transfer, const uint64 srcOffset, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
    {
    assert( transfer );
    assert( transfer->type() == BufferType::Transfer );
@@ -207,14 +206,14 @@ namespace en
    BufferMTL*  source      = raw_reinterpret_cast<BufferMTL>(&transfer);
    TextureMTL* destination = raw_reinterpret_cast<TextureMTL>(&texture);
 
-   assert( source->size >= destination->size(mipmap) );
+   assert( source->size >= srcOffset + destination->size(mipmap) );
 
    @autoreleasepool
       {
       // Blit to Private buffer
       id <MTLBlitCommandEncoder> blit = [[handle blitCommandEncoder] autorelease];
       [blit copyFromBuffer:source->handle
-              sourceOffset:0
+              sourceOffset:srcOffset
          sourceBytesPerRow:destination->width(mipmap)
        sourceBytesPerImage:destination->size(mipmap)
                 sourceSize:MTLSizeMake(destination->width(mipmap), destination->height(mipmap), 1)
@@ -227,6 +226,12 @@ namespace en
       [blit endEncoding];
       blit = nil;
       } // autoreleasepool
+   }
+
+   // Copies content of buffer, to given mipmap and layer of destination texture
+   void CommandBufferMTL::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   {
+   copy(transfer, 0u, texture, mipmap, layer);
    }
 
 

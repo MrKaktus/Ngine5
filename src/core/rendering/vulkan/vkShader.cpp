@@ -62,6 +62,28 @@ namespace en
    return ptr_reinterpret_cast<Shader>(&shader);
    }
 
+   Ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   {
+   Ptr<ShaderVK> shader = nullptr;
+
+   VkShaderModuleCreateInfo createInfo;
+   createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+   createInfo.pNext    = nullptr;
+   createInfo.flags    = 0u; // Reserved for future use
+   createInfo.codeSize = size;
+   createInfo.pCode    = (const uint32_t*)data;
+
+   VkShaderModule handle = VK_NULL_HANDLE;
+   Profile( this, vkCreateShaderModule(device, &createInfo, nullptr, &handle) )
+   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      shader = new ShaderVK(this, handle, stage);
+
+
+   // TODO: Verify initial compilation with VK_EXT_debug_report
+
+   return ptr_reinterpret_cast<Shader>(&shader);
+   }
+
    }
 }
 #endif

@@ -33,6 +33,17 @@ namespace en
    return Ptr<Semaphore>(nullptr);
    }
 
+   void CommandBufferMTL::barrier(const Ptr<Buffer> buffer, 
+                                  const uint64 offset,
+                                  const uint64 size,
+                                  const BufferAccess currentAccess,
+                                  const BufferAccess newAccess)
+   {
+   // Direct3D12 and Vulkan requires explicit transition barriers
+   // specified by the application. Metal handles internal storage
+   // management automaticly, thus this is a no-op.
+   }
+
    void CommandBufferMTL::barrier(const Ptr<Texture>  texture,
                                   const uint32v2      mipmaps,
                                   const uint32v2      layers,
@@ -43,7 +54,6 @@ namespace en
    // specified by the application. Metal handles internal storage
    // management automaticly, thus this is a no-op.
    }
-
 
    }
 }

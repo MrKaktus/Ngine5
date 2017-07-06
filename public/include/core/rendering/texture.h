@@ -463,11 +463,13 @@ namespace en
           bool operator !=(const TextureState& b);
           };
 
+   class Heap;
    class TextureView;
    
    class Texture : public SafeObject<Texture>
       {
       public:
+      virtual Ptr<Heap> parent(void) const = 0;
       virtual TextureType type(void) const = 0;
       virtual Format   format(void) const = 0;
       virtual uint32   mipmaps(void) const = 0;
@@ -516,7 +518,10 @@ namespace en
       virtual ~TextureView() {};                       // Polymorphic deletes require a virtual base destructor
       };
       
-
+   // Device independent, texel size in bytes, based on the given format. 
+   // It is not taking into account texel padding or any other device
+   // specific optimizations. For compressed formats, it's texel block size.
+   extern uint32 genericTexelSize(const Format format);
 
 
 

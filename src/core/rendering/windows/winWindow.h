@@ -29,8 +29,8 @@ namespace en
    class winWindow : public CommonWindow
       {
       public:
-      HINSTANCE AppInstance; // Application handle (helper handle)
-      HWND hWnd;             // Window handle
+      static HINSTANCE AppInstance; // Application handle (helper handle)
+      HWND hWnd;                    // Window handle
 
       winWindow(const Ptr<winDisplay> selectedDisplay,
                 const uint32v2 selectedResolution,

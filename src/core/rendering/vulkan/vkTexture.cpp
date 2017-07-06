@@ -525,6 +525,11 @@ namespace en
       }
    }
  
+   Ptr<Heap> TextureVK::parent(void) const
+   {
+   return ptr_reinterpret_cast<Heap>(&heap);
+   }
+
    bool TextureVK::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
    {
    // Check if specified mipmap and layer are correct

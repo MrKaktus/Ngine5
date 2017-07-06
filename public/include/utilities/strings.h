@@ -82,6 +82,10 @@ namespace en
    string stringFrom(uint16 in);
    string stringFrom(uint32 in);
    string stringFrom(uint64 in);
+   string hexStringFrom(uint8 in);
+   string hexStringFrom(uint16 in);
+   string hexStringFrom(uint32 in);
+   string hexStringFrom(uint64 in);
    string stringFrom(sint8  in);
    string stringFrom(sint16 in);
    string stringFrom(sint32 in);

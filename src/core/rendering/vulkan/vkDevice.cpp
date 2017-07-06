@@ -1328,6 +1328,114 @@ namespace en
 
 
 
+   // VK_EXT_debug_report
+   ///////////////////////
+
+   #define CaseString( x ) case x: return #x;
+
+   // Checks Vulkan error state
+   char* ObjectTypeString(const VkDebugReportObjectTypeEXT objectType)
+   {
+   switch(objectType)
+      {
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_PHYSICAL_DEVICE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_QUERY_POOL_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_VIEW_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_CACHE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_POOL_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_SWAPCHAIN_KHR_EXT )
+      CaseString( VK_DEBUG_REPORT_OBJECT_TYPE_DEBUG_REPORT_EXT )
+      default:
+         return "VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT";
+      };
+
+   // Should never reach this place
+   assert( 0 );
+   return nullptr; 
+   }   
+
+   VkBool32 vulkanDebugCallbackLogger(
+      VkDebugReportFlagsEXT                       flags,
+      VkDebugReportObjectTypeEXT                  objectType,
+      uint64_t                                    object,
+      size_t                                      location,
+      int32_t                                     messageCode,
+      const char*                                 pLayerPrefix,
+      const char*                                 pMessage,
+      void*                                       pUserData)
+   {
+   // Log callback event type
+   string info = "Vulkan Debug Callback: ";
+   if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+      info += "INFO ";
+   if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+      info += "ERROR ";
+   if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
+      info += "WARNING ";
+   if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+      info += "PERFORMANCE ";
+   if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+      info += "DEBUG";
+   info += "\n";
+   
+   // Object type
+   info += "     Type: ";
+   info += ObjectTypeString(objectType);
+   info += "\n";
+
+   // Object handle
+   info += "   Handle: 0x";
+   info += hexStringFrom(object);
+   info += "\n";
+
+   // Object location (pointer?)
+   info += " Location: 0x";
+   info += hexStringFrom(location);
+   info += "\n";
+
+   // Message code
+   info += "     Code: ";
+   info += stringFrom(messageCode);
+   info += "\n";
+
+   // Layer prefix
+   info += "    Layer: ";
+   info += string(pLayerPrefix);
+   info += "\n";
+
+   // Message
+   info += "  Message: ";
+   info += string(pMessage);
+   info += "\n\n";
+
+   Log << info.c_str();
+
+   // Don't abort this function call (to maintain consistency with Release behavior)
+   return VK_FALSE;
+   }
+
+
 
 
 
@@ -1559,10 +1667,12 @@ namespace en
    char** extensionPtrs = nullptr;
    extensionPtrs = new char*[globalExtensionsCount];
    
-   // Adding Windowing System Interface extensions to the list
+   // Adding Debug specific extensions to the list
 #if defined(EN_DEBUG)
    extensionPtrs[enabledExtensionsCount++] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME; 
 #endif
+
+   // Adding Windowing System Interface extensions to the list
    extensionPtrs[enabledExtensionsCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
 #if defined(EN_PLATFORM_ANDROID)
    extensionPtrs[enabledExtensionsCount++] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
@@ -1618,7 +1728,7 @@ namespace en
 
    // Temporary WA to manually select layers to load
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_api_dump";
-   layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_core_validation";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_core_validation";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_image";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_object_tracker";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_parameter_validation";
@@ -1713,76 +1823,28 @@ namespace en
    // Register debug callbacks
    //--------------------------
 
-   // TODO: !!!!
-
 #if defined(EN_DEBUG)
+   // Register callback for handling debug messages
+   VkDebugReportCallbackCreateInfoEXT debugInfo;
+   debugInfo.sType       = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+   debugInfo.pNext       = nullptr;
+   debugInfo.flags       = VK_DEBUG_REPORT_ERROR_BIT_EXT;
+   debugInfo.pfnCallback = vulkanDebugCallbackLogger;
+   debugInfo.pUserData   = nullptr;
 
-//typedef enum VkDebugReportObjectTypeEXT {
-//VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT = 0,
-//VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT = 1,
-//VK_DEBUG_REPORT_OBJECT_TYPE_PHYSICAL_DEVICE_EXT = 2,
-//VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT = 3,
-//VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT = 4,
-//VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT = 5,
-//VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT = 6,
-//VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT = 7,
-//VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT = 8,
-//VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT = 9,
-//VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT = 10,
-//VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT = 11,
-//VK_DEBUG_REPORT_OBJECT_TYPE_QUERY_POOL_EXT = 12,
-//VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_VIEW_EXT = 13,
-//VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT = 14,
-//VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT = 15,
-//VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_CACHE_EXT = 16,
-//VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT = 17,
-//VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT = 18,
-//VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT = 19,
-//VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT = 20,
-//VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT = 21,
-//VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT = 22,
-//VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT = 23,
-//VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT = 24,
-//VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_POOL_EXT = 25,
-//VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT = 26,
-//VK_DEBUG_REPORT_OBJECT_TYPE_SWAPCHAIN_KHR_EXT = 27,
-//VK_DEBUG_REPORT_OBJECT_TYPE_DEBUG_REPORT_EXT = 28,
-//} VkDebugReportObjectTypeEXT;
-//
-//typedef VkBool32 (VKAPI_PTR *PFN_vkDebugReportCallbackEXT)(
-//VkDebugReportFlagsEXT flags,
-//VkDebugReportObjectTypeEXT objectType,
-//uint64_t object,
-//size_t location,
-//int32_t messageCode,
-//const char* pLayerPrefix,
-//const char* pMessage,
-//void* pUserData);
-
-
-   //// Can register separate callbacks for each report type
-   //VkDebugReportCallbackCreateInfoEXT debugInfo;
-   //debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-   //debugInfo.pNext = nullptr;
-   //debugInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT   |
-   //                  VK_DEBUG_REPORT_WARNING_BIT_EXT |
-   //                  VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-
-//pedef enum VkDebugReportFlagBitsEXT {
-//VK_DEBUG_REPORT_INFORMATION_BIT_EXT = 0x00000001,
-//VK_DEBUG_REPORT_DEBUG_BIT_EXT =
-//PFN_vkDebugReportCallbackEXT pfnCallback;
-//void* pUserData;
-
-   //Profile( this, vkCreateDebugReportCallbackEXT(instance, &debugInfo, nullptr, VkDebugReportCallbackEXT* pCallback) )
+   Profile( this, vkCreateDebugReportCallbackEXT(instance, &debugInfo, nullptr, &debugCallbackHandle) )
 #endif
-
 
    delete [] deviceHandle;
    }
 
    VulkanAPI::~VulkanAPI()
    {
+    // Remove debug callbacks (Error, Warning, Performance)
+#if defined(EN_DEBUG)
+    vkDestroyDebugReportCallbackEXT(instance, debugCallbackHandle, nullptr);
+#endif
+
    // Release Layers and Extensions information
    for(uint32 i=0; i<layersCount; ++i)
       delete [] layer[i].extension;

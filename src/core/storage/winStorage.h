@@ -15,6 +15,9 @@
 
 #include "core/storage/storage.h"
 
+// Disable this to use WinAPI instead
+#define UseFStreamOverWinAPI 1
+
 #if defined(EN_PLATFORM_WINDOWS)
 namespace en
 {
@@ -23,7 +26,11 @@ namespace en
    class WinFile : public CommonFile
       {
       public:
+#if UseFStreamOverWinAPI
       fstream* handle;
+#else
+      HANDLE handle;
+#endif
 
       virtual bool   read(const uint64 offset,
                           const uint64 size,
@@ -36,7 +43,11 @@ namespace en
                            const uint64 size,
                            void* buffer);            // Writes to file at specified location
 
+#if UseFStreamOverWinAPI
       WinFile(fstream* handle);
+#else
+      WinFile(HANDLE handle);
+#endif
       virtual ~WinFile();
       };
       

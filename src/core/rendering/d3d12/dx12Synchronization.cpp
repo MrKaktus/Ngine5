@@ -28,6 +28,19 @@ namespace en
 {
    namespace gpu
    {
+   void CommandBufferD3D12::barrier(const Ptr<Buffer> buffer, 
+                                    const uint64 offset,
+                                    const uint64 size,
+                                    const BufferAccess currentAccess,
+                                    const BufferAccess newAccess)
+   {
+   assert( buffer );
+
+   BufferD3D12* ptr = raw_reinterpret_cast<BufferD3D12>(&buffer);
+
+   // TODO: Finish!
+   }
+
    void CommandBufferD3D12::barrier(const Ptr<Texture>  texture, 
                                     const uint32v2      mipmaps, 
                                     const uint32v2      layers,

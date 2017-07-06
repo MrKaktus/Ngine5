@@ -254,7 +254,7 @@ namespace en
                                       &region) )
    }
 
-   void CommandBufferVK::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   void CommandBufferVK::copy(Ptr<Buffer> transfer, const uint64 srcOffset, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
    {
    assert( started );
    assert( transfer );
@@ -266,7 +266,7 @@ namespace en
    BufferVK*  source      = raw_reinterpret_cast<BufferVK>(&transfer);
    TextureVK* destination = raw_reinterpret_cast<TextureVK>(&texture);
 
-   assert( source->size >= destination->size(mipmap) );
+   assert( source->size >= srcOffset + destination->size(mipmap) );
    
    VkImageSubresourceLayers layersInfo;
    layersInfo.aspectMask     = TranslateImageAspect(destination->state.format);
@@ -277,8 +277,8 @@ namespace en
    assert( source->size < 0xFFFFFFFF );
 
    VkBufferImageCopy regionInfo;
-   regionInfo.bufferOffset      = 0u;
-   regionInfo.bufferRowLength   = source->size;
+   regionInfo.bufferOffset      = srcOffset;
+   regionInfo.bufferRowLength   = 0u;
    regionInfo.bufferImageHeight = 0u;
    regionInfo.imageSubresource  = layersInfo;
    regionInfo.imageOffset       = { 0u, 0u, 0u };
@@ -289,6 +289,12 @@ namespace en
                                              destination->handle,
                                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                              1, &regionInfo) )
+
+   }
+
+   void CommandBufferVK::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   {
+   copy(transfer, 0u, texture, mipmap, layer);
    }
       
 //   // CPU data -> Buffer (max 64KB, recorded on CommandBuffer itself, for UBO's ?)
@@ -640,7 +646,7 @@ namespace en
    VkCommandBufferAllocateInfo commandInfo;
    commandInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
    commandInfo.pNext              = nullptr;
-   commandInfo.commandPool        = commandPool[thread][parentQueue];
+   commandInfo.commandPool        = commandPool[thread][underlyingType(type)];
    commandInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Secondary CB's need VK_COMMAND_BUFFER_LEVEL_SECONDARY
    commandInfo.commandBufferCount = 1; // Can create multiple CB's at once
    

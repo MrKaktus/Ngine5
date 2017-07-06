@@ -459,27 +459,24 @@ namespace en
    
    Ptr<SetLayoutVK> result = nullptr;
 
-   // Current assigned HLSL slot for each resource type 
-   // TODO: Are those slots numerated separately per each resource type or is this shared pool ?
+   // TODO: Those slots are numerated separately per each resource type in D3D12, but have shared binding pool in Vulkan.
+   //       Verify if D3D12 implementation is consistent with that.
    //       See this: https://msdn.microsoft.com/en-us/library/windows/desktop/dn899207(v=vs.85).aspx
-   uint32 types = underlyingType(ResourceType::Count);
-   uint32* slot = new uint32[types];
-   for(uint32 i=0; i<types; ++i)
-      slot[i] = 0u;
-      
+   uint32 slot = 0;
+
    VkDescriptorSetLayoutBinding* rangeInfo = new VkDescriptorSetLayoutBinding[count];
    for(uint32 i=0; i<count; ++i)
       {
       // Single Descriptors range
       uint32 resourceType = underlyingType(group[i].type);
-      rangeInfo[i].binding            = slot[resourceType];
+      rangeInfo[i].binding            = slot;
       rangeInfo[i].descriptorType     = TranslateResourceType[resourceType];
       rangeInfo[i].descriptorCount    = group[i].count;
       rangeInfo[i].stageFlags         = static_cast<VkShaderStageFlagBits>(underlyingType(stageMask));
       rangeInfo[i].pImmutableSamplers = nullptr; 
 
       // Increase index by amount of slots used
-      slot[resourceType] += group[i].count;
+      slot += group[i].count;
       }
 
    // Descriptor Ranges Table
@@ -498,8 +495,6 @@ namespace en
       result = new SetLayoutVK(this, setLayout);
       }
     
-   delete [] slot;
-  
    return ptr_reinterpret_cast<SetLayout>(&result);
    }
 

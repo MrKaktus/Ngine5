@@ -35,49 +35,55 @@ namespace en
 {
    namespace gpu
    {
+   HINSTANCE winWindow::AppInstance = nullptr;  // Application handle (helper handle)
+   static uint32    windows = 0;      // Count of currently active windows
+
    winWindow::winWindow(const Ptr<winDisplay> selectedDisplay,
                         const uint32v2 selectedResolution,
                         const WindowSettings& settings,
                         const string title) :
-      AppInstance(nullptr),
       hWnd(nullptr),
       CommonWindow()
    {
    _mode = settings.mode;
    
-   WNDCLASS  Window;      // Window class
    DWORD     Style;       // Window style
    DWORD     ExStyle;     // Window extended style
    RECT      WindowRect;  // Window rectangle
       
-   // Get this application instance
-   AppInstance          = (HINSTANCE)GetWindowLongPtr(GetConsoleWindow(), GWLP_HINSTANCE);  // GWL_HINSTANCE is deprecated in x64 environment
-     
-   // Window settings
-   Window.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Have its own Device Context and also cannot be resized. Oculus uses CLASSDC which is not thread safe!    
-   Window.lpfnWndProc   = (WNDPROC) WinEvents;                // Procedure that handles OS evets for this window
-   Window.cbClsExtra    = 0;                                  // No extra window data
-   Window.cbWndExtra    = 0;                                  //
-   Window.hInstance     = AppInstance;                        // Handle to instance of program that this window belongs to
-   Window.hIcon         = LoadIcon(NULL, IDI_WINLOGO);        // Load default icon
-   Window.hCursor       = LoadCursor(NULL, IDC_ARROW);        // Load arrow pointer
-   Window.hbrBackground = NULL;                               // No background (Direct3D/OpenGL/Vulkan will handle this)
-   Window.lpszMenuName  = NULL;                               // No menu
-   Window.lpszClassName = L"WindowClass";                     // Class name
-   
+   // First time, init shared helper resources
+   if (windows == 0)
+      {
+      // Get this application instance
+      AppInstance          = (HINSTANCE)GetWindowLongPtr(GetConsoleWindow(), GWLP_HINSTANCE);  // GWL_HINSTANCE is deprecated in x64 environment
+        
+      // Window settings
+      WNDCLASS WindowClass;
+      WindowClass.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Have its own Device Context and also cannot be resized. Oculus uses CLASSDC which is not thread safe!    
+      WindowClass.lpfnWndProc   = (WNDPROC) WinEvents;                // Procedure that handles OS evets for this window
+      WindowClass.cbClsExtra    = 0;                                  // No extra window data
+      WindowClass.cbWndExtra    = 0;                                  //
+      WindowClass.hInstance     = AppInstance;                        // Handle to instance of program that this window belongs to
+      WindowClass.hIcon         = LoadIcon(NULL, IDI_WINLOGO);        // Load default icon
+      WindowClass.hCursor       = LoadCursor(NULL, IDC_ARROW);        // Load arrow pointer
+      WindowClass.hbrBackground = NULL;                               // No background (Direct3D/OpenGL/Vulkan will handle this)
+      WindowClass.lpszMenuName  = NULL;                               // No menu
+      WindowClass.lpszClassName = L"WindowClass";                     // Class name
+      
+      // Registering Window Class
+      if (!RegisterClass(&WindowClass))	
+         {					
+         Log << "Error! Cannot register window class." << endl;
+         assert( 0 );
+         }
+      }
+
    // Window size      
    WindowRect.left      = (long)0;      
    WindowRect.right     = (long)selectedResolution.width;
    WindowRect.top       = (long)0;    
    WindowRect.bottom    = (long)selectedResolution.height;
-     
-   // Registering Window Class
-   if (!RegisterClass(&Window))	
-      {					
-      Log << "Error! Cannot register window class." << endl;
-      assert( 0 );
-      }
-      
+          
    // Preparing for displays native fullscreen mode
    if (settings.mode == Fullscreen)
       {
@@ -157,6 +163,8 @@ namespace en
    _position = settings.position;
    _size     = selectedResolution;
  //_resolution will be set by child class implementing given Graphics API Swap-Chain
+
+   windows++;
    }
 
    winWindow::~winWindow()
@@ -172,7 +180,12 @@ namespace en
    DestroyWindow(hWnd);
 
    // Unregister window class
-   UnregisterClass(L"WindowClass", AppInstance);
+   if (windows == 1)
+      {
+      UnregisterClass(L"WindowClass", AppInstance);
+      }
+
+   windows--;
    }
 
    bool winWindow::movable(void)

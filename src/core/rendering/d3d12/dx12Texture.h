@@ -54,6 +54,8 @@ namespace en
                             const uint32v2 mipmaps,         
                             const uint32v2 layers) const;
          
+      virtual Ptr<Heap> parent(void) const;
+
       // Reads texture mipmap to given buffer (app needs to allocate it)
       virtual bool read(uint8* buffer,
                         const uint8 mipmap = 0,

@@ -27,14 +27,6 @@ namespace en
 {
    namespace gpu
    {
-
-
-
-
-
-
-
-
    //enum ProvokingVertex
    //   {
    //   ProvokingVertexFirst     = 0,
@@ -125,17 +117,15 @@ namespace en
    
    
    
-   //// This translation table consist also Compute Shader !
-   //// TODO: Should single shader stage enum also support Compute?
-   //const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
-   //   {
-   //   VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
-   //   VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
-   //   VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
-   //   VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
-   //   VK_SHADER_STAGE_FRAGMENT_BIT                ,  // Fragment   
-   //   VK_SHADER_STAGE_COMPUTE_BIT                    // Compute    
-   //   };
+   // Translate Rendering Pipeline Shader Stage 
+   const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
+      {
+      VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
+      VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
+      VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
+      VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
+      VK_SHADER_STAGE_FRAGMENT_BIT                   // Fragment     
+      };
 
    PipelineVK::PipelineVK(VulkanDevice* _gpu, VkPipeline _handle, bool _graphics) :
       gpu(_gpu),
@@ -206,7 +196,7 @@ namespace en
          shaderInfo[stage].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
          shaderInfo[stage].pNext  = nullptr;
          shaderInfo[stage].flags  = 0u; // Reserved for future use
-         shaderInfo[stage].stage  = static_cast<VkShaderStageFlagBits>(underlyingType(shader->stage));
+         shaderInfo[stage].stage  = TranslateShaderStage[underlyingType(shader->stage)];
          shaderInfo[stage].module = shader->handle;
          shaderInfo[stage].pName  = pipelineState.function[i].c_str();
          shaderInfo[stage].pSpecializationInfo = nullptr; // Engine is not supporting specialization for now. (const VkSpecializationInfo*)

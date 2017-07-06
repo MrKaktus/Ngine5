@@ -155,6 +155,10 @@ namespace en
       // Metal  - has libraries, from which we pick functions as entry points
       virtual Ptr<Shader> createShader(const ShaderStage stage,
                                        const string& source) = 0;
+
+      virtual Ptr<Shader> createShader(const ShaderStage stage,
+                                       const uint8* data,
+                                       const uint64 size) = 0;
       
       
       // Returns count of available Command Queues of given type

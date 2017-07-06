@@ -170,24 +170,33 @@ namespace en
    // TODO: Finish!
    }
          
-   void CommandBufferD3D12::copy(Ptr<Buffer> _source,
-                                 Ptr<Texture> texture,
-                                 const uint32 mipmap,
+   void CommandBufferD3D12::copy(Ptr<Buffer> transfer, 
+                                 const uint64 srcOffset, 
+                                 Ptr<Texture> texture, 
+                                 const uint32 mipmap, 
                                  const uint32 layer)
    {
    assert( started );
-   assert( _source );
-   assert( _source->type() == BufferType::Transfer );
+   assert( transfer );
+   assert( transfer->type() == BufferType::Transfer );
    assert( texture );
    assert( texture->mipmaps() > mipmap );
    assert( texture->layers() > layer );
    
-   BufferD3D12*  source      = raw_reinterpret_cast<BufferD3D12>(&_source);
+   BufferD3D12*  source      = raw_reinterpret_cast<BufferD3D12>(&transfer);
    TextureD3D12* destination = raw_reinterpret_cast<TextureD3D12>(&texture);
 
    assert( source->size >= destination->size(mipmap) );
    
    // TODO: Finish ! 
+   }
+
+   void CommandBufferD3D12::copy(Ptr<Buffer> transfer,
+                                 Ptr<Texture> texture,
+                                 const uint32 mipmap,
+                                 const uint32 layer)
+   {
+   copy(transfer, 0u, texture, mipmap, layer);
    }
 
 

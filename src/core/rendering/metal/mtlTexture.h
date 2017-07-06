@@ -50,6 +50,7 @@ namespace en
       TextureMTL(const id<MTLDevice> device,
                  const Ptr<SharedSurface> backingSurface);
       
+      virtual Ptr<Heap> parent(void) const;
       virtual bool read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
 
       virtual Ptr<TextureView> view(void) const;

@@ -28,6 +28,7 @@ extern void initHalfs(void);
 #include "platform/context.h"
 #include "threading/context.h"
 //#include "input/context.h"
+#include "resources/context.h"
 #include "scene/context.h"
 
 #ifdef EN_PLATFORM_WINDOWS
@@ -82,8 +83,8 @@ en::SchedulerContext.create();
 //en::GpuContext.create();
 en::gpu::GraphicAPI::create();
 en::AudioContext.create();
-//en::InputContext.create();
 en::input::Interface::create();
+//en::ResourcesContext.create();  <-- TODO: FIXME: Creation before Window causes Vulkan to crash on NV :/
 
 en::StateContext.create();
 
@@ -96,6 +97,8 @@ en::SchedulerContext.start(new MainTask(argc,argv));
 
 // Close modules in order
 en::StateContext.destroy();
+
+//en::ResourcesContext.destroy();
 
 en::Input = nullptr;
 //en::InputContext.destroy();

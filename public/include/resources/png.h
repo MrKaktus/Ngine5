@@ -19,6 +19,13 @@ namespace en
 {
    namespace png
    {
+   bool load(const string& filename, 
+             uint8* const destination,             // Pointer to buffer where image should be decompressed and decoded
+             const uint32 width,                   // Expected width of surface
+             const uint32 height,                  // Expected height of surface
+             const gpu::Format format,             // Expected format of surface
+             const bool invertHorizontal = false); // Determines if image should be flipped Horizontally
+
    bool load(Ptr<en::gpu::Texture> dst, 
              const uint16 layer, 
              const string& filename, 

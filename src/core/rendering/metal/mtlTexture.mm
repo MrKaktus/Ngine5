@@ -520,6 +520,11 @@ namespace en
    ioSurface = nullptr;
    }
 
+   Ptr<Heap> TextureMTL::parent(void) const
+   {
+   return ptr_reinterpret_cast<Heap>(&heap);
+   }
+
    bool TextureMTL::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
    {
    // Check if specified mipmap and layer are correct

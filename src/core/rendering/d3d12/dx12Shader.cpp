@@ -42,6 +42,12 @@ namespace en
    return Ptr<Shader>(nullptr);
    }
 
+   Ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   {
+   // TODO: Finish!
+   return Ptr<Shader>(nullptr);
+   }
+
    }
 }
 #endif
