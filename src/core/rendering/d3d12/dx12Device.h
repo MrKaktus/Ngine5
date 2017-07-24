@@ -162,7 +162,7 @@ namespace en
       uint32                  queuesCount[underlyingType(QueueType::Count)];
       ID3D12CommandQueue*     queue[underlyingType(QueueType::Count)];
       ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];
-      uint32                  fenceCurrentValue[MaxSupportedWorkerThreads]; // Pool of values signaled by Fences
+      volatile uint32         fenceCurrentValue[MaxSupportedWorkerThreads]; // Pool of values signaled by Fences
       HANDLE                  fenceSignalingEvent[MaxSupportedWorkerThreads]; // Event used to signal Fence completion on CPU side
       
 	//// Synchronization objects.
@@ -277,6 +277,7 @@ namespace en
    class Direct3DAPI : public GraphicAPI
       {
       public:
+      HMODULE                library;
       HRESULT                lastResult[MaxSupportedWorkerThreads];
 
       ID3D12Debug*           debugController;

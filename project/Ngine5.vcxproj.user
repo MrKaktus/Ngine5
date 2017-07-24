@@ -9,5 +9,6 @@
     <LocalDebuggerCommand>$(SolutionDir)..\..\..\..\Projects\Samples\bin\win64\Debug\Samples.exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\..\..\Projects\Samples\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>VK_LAYER_PATH=%VULKAN_SDK%\Source\lib</LocalDebuggerEnvironment>
   </PropertyGroup>
 </Project>

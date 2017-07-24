@@ -35,6 +35,16 @@ namespace en
    memcpy(&viewport[0], &viewports[0], count * sizeof(ViewportStateInfo));
    memcpy(&scissor[0],  &scissors[0],  count * sizeof(ScissorStateInfo));
 
+   // Patch Viewports, to WA Vulkan's upside-down NDC Y axis.
+   // Viewport Height is negated, and position is changed to lower-left 
+   // corner, so that coordinates from NDC are flipped around X axis, and 
+   // image is properly rendered to destination.
+   for(uint32 i=0; i<count; ++i)
+      {
+      viewport[i].y      = viewport[i].y + viewport[i].height;
+      viewport[i].height = -viewport[i].height;
+      }
+
    // Set state
    state.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
    state.pNext         = nullptr;

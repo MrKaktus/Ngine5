@@ -179,6 +179,9 @@
       // VK_KHR_display_swapchain
       DeclareFunction( vkCreateSharedSwapchainsKHR )
       
+      // VK_KHR_maintenance1
+      DeclareFunction( vkTrimCommandPoolKHR )
+
       // Windowing System Interface - OS Specyific extension
       
       // VK_KHR_xlib_surface

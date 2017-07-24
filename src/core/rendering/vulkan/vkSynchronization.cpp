@@ -393,6 +393,7 @@ namespace en
    //              Command Buffers synchronization on the queue.
    // 
    //              D3D12 Fences - used to synchronize queues.
+   //                             An object used for synchronization of the CPU and one or more GPUs.
    //              CommandQueue::Signal(ID3D12Fence *pFence, UINT64 Value) - signals execution reaching given fence
    //              CommandQueue::Wait(ID3D12Fence *pFence, UINT64 Value) - waits for given fence to be signaled
    //

@@ -175,9 +175,10 @@ namespace en
    {
    assert( started );
    assert( count );
-   assert( (firstSlot + count) <= gpu->properties.limits.maxVertexInputBindings );
+   assert( buffers );
+   assert( (firstSlot + count) <= gpu->support.maxInputLayoutBuffersCount );
 
-   // Extrack Vulkan buffer handles
+   // Extract Vulkan buffer handles
    VkBuffer* handles = new VkBuffer[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
    for(uint32 i=0; i<count; ++i)
       {
@@ -207,7 +208,7 @@ namespace en
    {
    assert( started );
    assert( buffer );
-   assert( slot < gpu->properties.limits.maxVertexInputBindings );
+   assert( slot < gpu->support.maxInputLayoutBuffersCount );
 
    ProfileNoRet( gpu, vkCmdBindVertexBuffers(handle, 
                                              slot, 1,

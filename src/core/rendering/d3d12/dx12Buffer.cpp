@@ -58,9 +58,14 @@ namespace en
    // Buffers can be mapped only on Streamed and Immediate Heaps.
    assert( heap->_usage == MemoryUsage::Streamed ||
            heap->_usage == MemoryUsage::Immediate );
-      
-   // TODO: SIZE_T is 32bit -> settings.maxBufferSize < 4GB !!!
+  
+#ifdef EN_ARCHITECTURE_X86    
+   // TODO: 
+   // SIZE_T is 32bit on 32bit systems (64bit on 64bit systems),
+   // thus on 32bit target, we need to limit settings.maxBufferSize
+   // to 4GB.
    assert( _offset + _size <= 0xFFFFFFFF );
+#endif
 
    // Mapped range
    range.Begin = static_cast<SIZE_T>(_offset); 

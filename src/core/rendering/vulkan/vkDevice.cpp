@@ -339,20 +339,6 @@ namespace en
  //ProfileNoRet( api, vkGetPhysicalDeviceFormatProperties(handle, VkFormat format, VkFormatProperties* pFormatProperties) )
  //ProfileNoRet( api, vkGetPhysicalDeviceImageFormatProperties(handle, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties) )
 
-   // TODO: Populate "Support" section of CommonDevice
-   // Texture
- //support.maxTextureSize1D     = properties.limits.maxImageDimension1D;
-   support.maxTextureSize       = properties.limits.maxImageDimension2D;
-   support.maxTextureRectSize   = properties.limits.maxImageDimension2D;     // TODO: There is no such thing in Vulkan
-   support.maxTextureCubeSize   = properties.limits.maxImageDimensionCube; 
-   support.maxTexture3DSize     = properties.limits.maxImageDimension3D;
-   support.maxTextureLayers     = properties.limits.maxImageArrayLayers;          
-   support.maxTextureBufferSize = properties.limits.maxImageDimension1D;     // TODO: Looks like there is no such thing in Vulkan
-   support.maxTextureLodBias    = properties.limits.maxSamplerLodBias;            
-   // Sampler
-   support.maxAnisotropy        = properties.limits.maxSamplerAnisotropy;
-
-
    // Queue Families, Queues
    //------------------------
 
@@ -447,7 +433,7 @@ namespace en
    // Debug log Queue Families
    for(uint32_t family=0; family<queueFamiliesCount; ++family)
       {
-      Log << "Queue Family %i:" << family << endl;
+      Log << "Queue Family: " << family << endl;
 
       Log << "    Queues: " << queueFamily[family].queueCount << endl;
       Log << "    Queue Min Transfer W: " << queueFamily[family].minImageTransferGranularity.width << endl;
@@ -507,22 +493,12 @@ namespace en
    uint32 enabledExtensionsCount = 0;
    char** extensionPtrs = nullptr;
    extensionPtrs = new char*[globalExtensionsCount];
-   
+
    // Adding Windowing System Interface extensions to the list
    extensionPtrs[enabledExtensionsCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-#if defined(EN_PLATFORM_ANDROID)
-   extensionPtrs[enabledExtensionsCount++] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
-#endif
-#if defined(EN_PLATFORM_LINUX)
-   // TODO: Pick one on Linux (as usual it's complete mess)
-   extensionPtrs[enabledExtensionsCount++] = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
-   extensionPtrs[enabledExtensionsCount++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
-   extensionPtrs[enabledExtensionsCount++] = VK_KHR_MIR_SURFACE_EXTENSION_NAME;
-   extensionPtrs[enabledExtensionsCount++] = VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
-#endif
-#if defined(EN_PLATFORM_WINDOWS)
-   //extensionPtrs[enabledExtensionsCount++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
-#endif
+
+   // Adding minimum required set of extensions
+   extensionPtrs[enabledExtensionsCount++] = VK_KHR_MAINTENANCE1_EXTENSION_NAME;
 
    // TODO: Add here loading list of needed extensions from some config file.
    //       (generated automatically by the engine/editor based on features
@@ -539,6 +515,10 @@ namespace en
       if (!found)
          {
          Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!" << endl;
+         Log << "       Supported extensions:\n";
+         for(uint32 j=0; j<globalExtensionsCount; ++j)
+            Log << "       - " << globalExtension[j].extensionName << endl;
+
          assert( 0 );
          }
       }
@@ -710,8 +690,24 @@ namespace en
 
    void VulkanDevice::init()
    {
-   // TODO: Populate API capabilities
+   // Input Assembler
+   support.maxInputLayoutBuffersCount    = properties.limits.maxVertexInputBindings;
+   support.maxInputLayoutAttributesCount = properties.limits.maxVertexInputAttributes;
 
+   // Texture
+ //support.maxTextureSize1D              = properties.limits.maxImageDimension1D;
+   support.maxTextureSize                = properties.limits.maxImageDimension2D;
+   support.maxTextureRectSize            = properties.limits.maxImageDimension2D;     // TODO: There is no such thing in Vulkan
+   support.maxTextureCubeSize            = properties.limits.maxImageDimensionCube; 
+   support.maxTexture3DSize              = properties.limits.maxImageDimension3D;
+   support.maxTextureLayers              = properties.limits.maxImageArrayLayers;          
+   support.maxTextureBufferSize          = properties.limits.maxTexelBufferElements;  // It's not size in bytes, but array size?
+   support.maxTextureLodBias             = properties.limits.maxSamplerLodBias;            
+
+   // Sampler                            
+   support.maxAnisotropy                 = properties.limits.maxSamplerAnisotropy;
+
+   // TODO: Populate API capabilities
 
    for(uint32 i=0; i<MaxSupportedWorkerThreads; i++)
       {
@@ -940,13 +936,6 @@ namespace en
    LoadDeviceFunction( vkAcquireNextImageKHR )
    LoadDeviceFunction( vkQueuePresentKHR )
 
-   // VK_KHR_swapchain 
-   LoadDeviceFunction( vkCreateSwapchainKHR )
-   LoadDeviceFunction( vkDestroySwapchainKHR )
-   LoadDeviceFunction( vkGetSwapchainImagesKHR )
-   LoadDeviceFunction( vkAcquireNextImageKHR )
-   LoadDeviceFunction( vkQueuePresentKHR )
-      
    // VK_KHR_display
    LoadDeviceFunction( vkGetPhysicalDeviceDisplayPropertiesKHR )
    LoadDeviceFunction( vkGetPhysicalDeviceDisplayPlanePropertiesKHR )
@@ -958,7 +947,10 @@ namespace en
       
    // VK_KHR_display_swapchain
    LoadDeviceFunction( vkCreateSharedSwapchainsKHR )
-      
+   
+   // VK_KHR_maintenance1
+   LoadDeviceFunction( vkTrimCommandPoolKHR )
+
    // Windowing System Interface - OS Specyific extension
    
    // VK_KHR_xlib_surface
@@ -1703,6 +1695,10 @@ namespace en
       if (!found)
          {
          Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!" << endl;
+         Log << "       Supported extensions:\n";
+         for(uint32 j=0; j<globalExtensionsCount; ++j)
+            Log << "       - " << globalExtension[j].extensionName << endl;
+ 
          assert( 0 );
          }
       }
@@ -1728,10 +1724,10 @@ namespace en
 
    // Temporary WA to manually select layers to load
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_api_dump";
-   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_core_validation";
+   layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_core_validation";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_image";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_object_tracker";
-   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_parameter_validation";
+   layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_parameter_validation";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_screenshot";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_swapchain";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_GOOGLE_threading";
@@ -1740,7 +1736,7 @@ namespace en
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_NV_optimus";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_RENDERDOC_Capture";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_VALVE_steam_overlay";
-   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_standard_validation";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_standard_validation";  // Meta-layer - Loads standard set of validation layers in optimal order (all of them in fact)
 
 
    //// In debug mode enable additional layers for debugging,

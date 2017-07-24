@@ -276,6 +276,7 @@ namespace en
    // TODO: Finish
      
    // Input Assembler
+   support.maxInputLayoutBuffersCount    = 31;
    support.maxInputLayoutAttributesCount = 31;
 
    // Texture

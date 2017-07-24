@@ -34,12 +34,16 @@ namespace en
       gpu(_gpu),
       queue(_queue),
       handle(_handle),
+      fence(nullptr),
+      fenceSignalingEvent(0),
       started(false),
       encoding(false),
       commited(false),
       CommandBuffer()
    {
-   // TODO: Finish!
+   Profile( gpu, CreateFence(0, 
+                             D3D12_FENCE_FLAG_SHARED, 
+                             IID_PPV_ARGS(&fence)) ) // __uuidof(ID3D12Fence), reinterpret_cast<void**>(&fence)
    }
 
    CommandBufferD3D12::~CommandBufferD3D12()
@@ -48,8 +52,13 @@ namespace en
    if (!commited)
       commit();
 
-   // TODO: Finish!
-   
+   // Release Fence
+   assert( fence );
+   ProfileCom( fence->Release() )
+   fence = nullptr;
+
+   // Release Command Buffer
+   assert( handle );
    ProfileCom( handle->Release() )
    handle = nullptr;
    queue = nullptr;
@@ -138,7 +147,72 @@ namespace en
    // the last one that is used, thus TRUE can be passed in third parameter.
    ProfileComNoRet( command->OMSetRenderTargets((lastUsedIndex + 1), gpu->handleRTV, TRUE, &gpu->handleDSV) )
    }
+
+   void CommandBufferD3D12::endRenderPass(void)
+   {
+   assert( started );
+   assert( encoding );
+
+   // Direct3D12 has no notion of Render Passes.
+
+   encoding = false;
+   }
    
+   
+   // SETTING INPUT ASSEMBLER VERTEX BUFFERS
+   //////////////////////////////////////////////////////////////////////////
+
+
+   void CommandBufferD3D12::setVertexBuffers(const uint32 count, const uint32 firstSlot, const Ptr<Buffer>* buffers, const uint64* offsets) const
+   {
+   assert( started );
+   assert( count );
+   assert( buffers );
+   assert( (firstSlot + count) <= gpu->support.maxInputLayoutBuffersCount );
+
+   // TODO: Ensure this Command Buffer is Graphic one !
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   // Extract Direct3D12 buffer handles
+   D3D12_VERTEX_BUFFER_VIEW* views = new D3D12_VERTEX_BUFFER_VIEW[count]; // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+   for(uint32 i=0; i<count; ++i)
+      {
+      assert( buffers[i] );
+      BufferD3D12* bufferD3D12 = raw_reinterpret_cast<BufferD3D12>(&buffers[i]);
+      ID3D12Resource* resource = bufferD3D12->handle;
+      
+      // Populate Buffer View
+      views[i].BufferLocation = resource->GetGPUVirtualAddress() + offsets[i];  // Final location is Base Buffer Adress + current Offset
+      views[i].SizeInBytes    = buffers[i]->length();
+      views[i].StrideInBytes  = bufferD3D12->formatting.elementSize();
+      }
+
+   ProfileComNoRet( command->IASetVertexBuffers(firstSlot, count, views) )
+
+   delete [] views;
+   }
+
+   void CommandBufferD3D12::setVertexBuffer(const uint32 slot, const Ptr<Buffer> buffer, const uint64 offset) const
+   {
+   assert( started );
+   assert( buffer );
+   assert( slot < gpu->support.maxInputLayoutBuffersCount );
+
+   BufferD3D12* bufferD3D12 = raw_reinterpret_cast<BufferD3D12>(&buffer);
+   ID3D12Resource* resource = bufferD3D12->handle;
+      
+   // Populate Buffer View
+   D3D12_VERTEX_BUFFER_VIEW view;
+   view.BufferLocation = resource->GetGPUVirtualAddress() + offset;  // Final location is Base Buffer Adress + current Offset
+   view.SizeInBytes    = buffer->length();
+   view.StrideInBytes  = bufferD3D12->formatting.elementSize();
+
+   // TODO: Ensure this Command Buffer is Graphic one !
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   ProfileComNoRet( command->IASetVertexBuffers(slot, 1, &view) )
+   }
+
 
    // TRANSFER COMMANDS
    //////////////////////////////////////////////////////////////////////////
@@ -263,51 +337,58 @@ namespace en
    // TODO: Check if graphics or compute!  
    reinterpret_cast<ID3D12GraphicsCommandList*>(handle)->Close();
    
+   // Commit this single Command Buffer for execution
    ID3D12CommandList* lists[] = { handle };
-
    queue->ExecuteCommandLists(1, lists);
-      
+
+   // Alloc unique value for Fence to signal on this thread
+   uint32 thread = Scheduler.core();
+   UINT64 acquiredValue = AtomicIncrease(&gpu->fenceCurrentValue[thread]);
+
+   // Create signaling Event
+   fenceSignalingEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+   // Signal the fence value (GPU will set this value on Fence, once reaching this point)
+   queue->Signal(fence, acquiredValue);
+   fence->SetEventOnCompletion(acquiredValue, fenceSignalingEvent); 
+
    if (signalSemaphore)
       {
+      // Alloc unique value for Fence to signal on this thread
+      acquiredValue = AtomicIncrease(&gpu->fenceCurrentValue[thread]);
+
+      // Signal the fence value (GPU will set this value on Fence, once reaching this point)
+      SemaphoreD3D12* semaphore = raw_reinterpret_cast<SemaphoreD3D12>(&signalSemaphore);
+
+      queue->Signal(semaphore->handle, acquiredValue);
+
       // TODO: Is there a way to sync on GPU side CB execution with Swap-Chain ?
       }
 
    commited = true;
    }
    
-//   void CommandBufferVK::waitUntilCompleted(void)
-//   {
-//   assert( started );
-//   assert( !encoding );
-//   assert( commited );
-//
-//   // Wait maximum 1 second, then assume GPU hang. // TODO: This should be configurable global
-//   DWORD gpuWatchDog = 1000;
-//   
-//   // Alloc unique value for Fence to signal on this thread
-//   uint32 thread = Scheduler.core();
-//   UINT64 acquiredValue = AtomicIncrease(gpu->fenceCurrentValue[thread]);
-//
-//
-//
-//    // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899171(v=vs.85).aspx
-//
-//// Create signaling Event
-//gpu->fenceSignalingEvent[thread] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-//
-//   queue->Signal(fence, acquiredValue);
-//   fence->SetEventOnCompletion(acquiredValue, gpu->fenceSignalingEvent[thread]);
-//
-//// Destroy signaling Event
-//CloseHandle(gpu->fenceSignalingEvent[thread]);
-//   
-//   DWORD result = WaitForSingleObject(gpu->fenceSignalingEvent[thread], gpuWatchDog);
-//   if (result == WAIT_TIMEOUT)
-//      {
-//      }
-//
-//   }
+   void CommandBufferD3D12::waitUntilCompleted(void)
+   {
+   assert( started );
+   assert( !encoding );
+   assert( commited );
+
+   // Wait maximum 1 second, then assume GPU hang. // TODO: This should be configurable global
+   DWORD gpuWatchDog = 1000;
+
+   // Wait until the fence is completed of watch dog timer is out
+   DWORD result = WaitForSingleObject(fenceSignalingEvent, gpuWatchDog);
+   if (result == WAIT_TIMEOUT)
+      {
+      Log << "GPU Hang!\n" << endl;
+      }
+
+   // Destroy signaling Event
+   CloseHandle(fenceSignalingEvent);
+   }
    
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899171(v=vs.85).aspx
 
  
    // DEVICE

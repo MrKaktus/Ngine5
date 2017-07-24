@@ -841,36 +841,37 @@ namespace en
          }
       }
 
-   D3D12_ROOT_SIGNATURE_DESC desc;
- //D3D12_ROOT_SIGNATURE_DESC1 desc; // v1.1
-   desc.NumParameters     = sets;
-   desc.pParameters       = tables;
-   desc.NumStaticSamplers = immutableSamplers;
-   desc.pStaticSamplers   = samplers;
-   desc.Flags             = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+  
+   D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc;
+   desc.Version = D3D_ROOT_SIGNATURE_VERSION_1_0;
+   desc.Desc_1_0.NumParameters     = sets;
+   desc.Desc_1_0.pParameters       = tables;
+   desc.Desc_1_0.NumStaticSamplers = immutableSamplers;
+   desc.Desc_1_0.pStaticSamplers   = samplers;
+   desc.Desc_1_0.Flags             = D3D12_ROOT_SIGNATURE_FLAG_NONE;
    
    // Don't use this flag, to get small optimization on Programmable Vertex Fetch shaders
-   desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+   desc.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
    if (!allStages)
       {
       // Optimize pipeline layout by preventin wiring down descriptors
       // to stages that never access them in any way. It will also deny
       // access to all shader stages in "default" Root Signature.
-      if (!stageUsesDescriptors[0]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS;
-      if (!stageUsesDescriptors[1]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
-      if (!stageUsesDescriptors[2]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS;
-      if (!stageUsesDescriptors[3]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
-      if (!stageUsesDescriptors[4]) desc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[0]) desc.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[1]) desc.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[2]) desc.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[3]) desc.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+      if (!stageUsesDescriptors[4]) desc.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
       }
 
    // TODO: Add support for StreamOut
    // D3D12_ROOT_SIGNATURE_FLAG_ALLOW_STREAM_OUTPUT
-  
+
    // Serialize Root Signature
    ID3DBlob* signature = nullptr;
    ID3DBlob* error     = nullptr;
-   ProfileCom( D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_0, &signature, &error) )
+   ProfileCom( D3D12SerializeVersionedRootSignature(&desc, &signature, &error) )
    if (error)
       {
       // TODO: Log Serialization error blob

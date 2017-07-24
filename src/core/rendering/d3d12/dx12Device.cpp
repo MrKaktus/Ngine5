@@ -129,7 +129,7 @@ namespace en
       ProfileCom( D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)) ) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
 
    // All threads starts with Fence values == 0, first Fences will have ID 1
-   memset(&fenceCurrentValue[0], 0, sizeof(fenceCurrentValue));
+   memset((void*)&fenceCurrentValue[0], 0, sizeof(fenceCurrentValue));
 
    // COMMAND QUEUES
    // ==============
@@ -290,6 +290,7 @@ namespace en
 
 
    Direct3DAPI::Direct3DAPI(string appName) :
+      library(LoadLibrary(L"d3d12.dll")),
       debugController(nullptr),
       factory(nullptr),
       device(nullptr),

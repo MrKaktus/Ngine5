@@ -51,7 +51,8 @@ namespace en
          bitset<underlyingType(Format::Count)> rendering;    // Texel Formats - Rendering support
             
          // Input Assembler
-         uint8       maxInputLayoutAttributesCount;  // Maximum number of input attributes
+         uint8       maxInputLayoutBuffersCount;        // Maximum number of Vertex buffers that can be bound
+         uint8       maxInputLayoutAttributesCount;     // Maximum number of input attributes
 
          // Texture
          uint32      maxTextureSize;                    // Maximum 2D/1D texture image dimension

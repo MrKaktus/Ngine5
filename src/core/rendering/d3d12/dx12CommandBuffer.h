@@ -22,6 +22,7 @@
 
 #include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/commandBuffer.h"
+#include "core/rendering/d3d12/dx12Synchronization.h"
 
 namespace en
 {
@@ -36,6 +37,7 @@ namespace en
       ID3D12CommandQueue* queue;
       ID3D12CommandList* handle;
       ID3D12Fence*    fence;
+      HANDLE          fenceSignalingEvent; 
       bool            started;
       bool            encoding;
       bool            commited;

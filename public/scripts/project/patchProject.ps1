@@ -124,6 +124,7 @@ $user_settings=@"
   <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>VK_LAYER_PATH=%VULKAN_SDK%\Source\lib32</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Release|Win32'">
     <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
@@ -132,6 +133,7 @@ $user_settings=@"
   <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>VK_LAYER_PATH=%VULKAN_SDK%\Source\lib</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>

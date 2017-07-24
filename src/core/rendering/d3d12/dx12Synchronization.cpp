@@ -54,6 +54,41 @@ namespace en
    // TODO: Finish!
    }
 
+   // SEMAPHORES
+   //////////////////////////////////////////////////////////////////////////
+
+
+   SemaphoreD3D12::SemaphoreD3D12(Direct3D12Device* _gpu) :
+      gpu(_gpu),
+      handle(nullptr)
+   {
+   Profile( gpu, CreateFence(0, 
+                             D3D12_FENCE_FLAG_SHARED, 
+                             IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12Fence), reinterpret_cast<void**>(&fence)
+   }
+
+   SemaphoreD3D12::~SemaphoreD3D12()
+   {
+   assert( handle );
+   ProfileCom( handle->Release() )
+   handle = nullptr;
+   }
+
+   Ptr<Semaphore> Direct3D12Device::createSemaphore(void)
+   {
+   return Ptr<Semaphore>(new SemaphoreD3D12(this));
+   }
+
+   // Semaphores - can be used to control resource access across multiple queues.
+   //              Command Buffers synchronization on the queue.
+   // 
+   //              D3D12 Fences - used to synchronize queues.
+   //              CommandQueue::Signal(ID3D12Fence *pFence, UINT64 Value) - signals execution reaching given fence
+   //              CommandQueue::Wait(ID3D12Fence *pFence, UINT64 Value) - waits for given fence to be signaled
+   //
+
+
+
    }
 }
 #endif

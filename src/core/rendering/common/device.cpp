@@ -20,6 +20,7 @@
 //extern class en::gpu::MetalAPI;
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
+#include "core/rendering/d3d12/dx12Device.h" // TODO: Separate header in future ?
 #include "core/rendering/vulkan/vkDevice.h" // TODO: Separate header in future ?
 #endif
 
@@ -102,7 +103,8 @@ namespace en
    support.rendering.reset();
       
    // Input Assembler
-   support.maxInputLayoutAttributesCount = 0;
+   support.maxInputLayoutBuffersCount       = 0;
+   support.maxInputLayoutAttributesCount    = 0;
 
    // Texture
    support.maxTextureSize                   = 0;
@@ -288,7 +290,7 @@ namespace en
 
    // TODO: API Selection based on config file / terminal parameters
 
-   // Graphics = ptr_dynamic_cast<GraphicAPI, Direct3DAPI>(Ptr<Direct3DAPI>(new Direct3DAPI()));
+   //Graphics = ptr_dynamic_cast<GraphicAPI, Direct3DAPI>(Ptr<Direct3DAPI>(new Direct3DAPI("Ngine5.0")));
    // Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLAPI>(Ptr<OpenGLAPI>(new OpenGLAPI()));
    Graphics = ptr_dynamic_cast<GraphicAPI, VulkanAPI>(Ptr<VulkanAPI>(new VulkanAPI("Ngine5.0")));      // TODO: Propagate application name !
 #endif

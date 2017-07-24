@@ -21,6 +21,7 @@
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 #include "core/rendering/synchronization.h"
+#include "core/rendering/d3d12/dx12.h"
 
 namespace en
 {
@@ -36,7 +37,7 @@ namespace en
       {
       public:
       Direct3D12Device* gpu;
-      //  handle; ??
+      ID3D12Fence*      handle;
       
       SemaphoreD3D12(Direct3D12Device* _gpu);
      ~SemaphoreD3D12();

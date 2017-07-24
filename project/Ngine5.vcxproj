@@ -526,6 +526,7 @@
     <TargetName>$(ProjectName)dbg</TargetName>
     <IntDir>$(SolutionDir)\..\build\win64\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)\..\bin\win64\$(Configuration)\</OutDir>
+    <SourcePath>C:\VulkanSDK\1.0.51.0\Source\layers;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\..\bin\win64\$(Configuration)\</OutDir>

@@ -502,12 +502,6 @@ namespace en
    // - array of buffer settings descriptions
 
 
-// GpuContext.support.maxInputLayoutAttributesCount;
-
-
-
-
-
 
 
  //  stepFunction - update type (per Vertex, per few Instances)
