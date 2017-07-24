@@ -77,6 +77,9 @@ namespace en
    assert( _usage == MemoryUsage::Static );
    
    Ptr<TextureMTL> ptr = new TextureMTL(handle, state);
+   if (ptr)
+      ptr->heap = Ptr<HeapMTL>(this);
+   
    return ptr_reinterpret_cast<Texture>(&ptr);
    }
    

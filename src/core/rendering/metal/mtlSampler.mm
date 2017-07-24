@@ -28,14 +28,14 @@ namespace en
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
 
 #if defined(EN_PLATFORM_OSX)
-   // Last verified for Metal 2.0 and OSX 10.11
+   // Last verified for Metal 2.0 and OSX 10.13
    static const Nversion TextureWrapingSupportedMTL[underlyingType(SamplerAdressing::Count)] =
       {
       Metal_OSX_1_0           ,   // Repeat
       Metal_OSX_1_0           ,   // RepeatMirrored
       Metal_OSX_1_0           ,   // ClampToEdge
-      Metal_OSX_1_0           ,   // ClampToBorder
-      Metal_OSX_Unsupported       // MirrorClampToEdge
+      Metal_OSX_1_0           ,   // ClampToBorder     (10.12+)
+      Metal_OSX_Unsupported       // MirrorClampToEdge (10.11+)
       };
 #endif
 
@@ -73,11 +73,12 @@ namespace en
     
    static const MTLSamplerAddressMode TranslateSamplerAdressing[underlyingType(SamplerAdressing::Count)] =
       {
-      MTLSamplerAddressModeRepeat      ,  // Repeat
-      MTLSamplerAddressModeMirrorRepeat,  // RepeatMirrored
-      MTLSamplerAddressModeClampToEdge ,  // ClampToEdge
-      MTLSamplerAddressModeClampToZero ,  // ClampToBorder     (for Metal border is always zero - "OpaqueBlack")
-      (MTLSamplerAddressMode)0            // MirrorClampToEdge (unsupported)
+      MTLSamplerAddressModeRepeat             ,  // Repeat
+      MTLSamplerAddressModeMirrorRepeat       ,  // RepeatMirrored
+      MTLSamplerAddressModeClampToEdge        ,  // ClampToEdge
+    //MTLSamplerAddressModeClampToZero        ,  // ClampToBorder     (with alpha - "TransparentBlack", without - "OpaqueBlack")
+      MTLSamplerAddressModeClampToBorderColor ,  // ClampToBorder     (10.12+)
+      MTLSamplerAddressModeMirrorClampToEdge  ,  // MirrorClampToEdge (10.11+)
       };
 
    // Optimisation: This table is not needed. Backend type can be directly cast to Metal type.

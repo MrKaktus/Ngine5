@@ -41,8 +41,7 @@ namespace en
       MTLArgumentTypeBuffer ,   // Uniform
       MTLArgumentTypeBuffer ,   // Storage
       };
-
-    
+      
       
    // stageMask is ignored in Metal
    Ptr<SetLayout> MetalDevice::createSetLayout(const uint32 count,
@@ -53,7 +52,8 @@ namespace en
    assert( group );
    
    Ptr<SetLayoutMTL> result = nullptr;
-
+   
+   // TODO: Verify design decision about slot space per resource type vs shared slot space
    uint32 types = underlyingType(ResourceType::Count);
    uint32* slot = new uint32[types];
    for(uint32 i=0; i<types; ++i)
@@ -61,47 +61,49 @@ namespace en
       
    NSMutableArray* rangeInfo = [NSMutableArray arrayWithCapacity:count];
    
-   //MTLIndirectArgumentDescriptor* rangeInfo = new MTLIndirectArgumentDescriptor[count];
+   //MTLArgumentDescriptor* rangeInfo = new MTLArgumentDescriptor[count];
    for(uint32 i=0; i<count; ++i)
       {
-      rangeInfo[i] = [MTLIndirectArgumentDescriptor alloc];
+      MTLArgumentDescriptor* desc = [MTLArgumentDescriptor alloc];
       
       // Single Descriptors range
       uint32 resourceType = underlyingType(group[i].type);
-     
-      rangeInfo[i].argumentType = TranslateArgumentType[resourceType];
-    MTLDataType       dataType;
-      rangeInfo[i].index       = slot[resourceType];
-      rangeInfo[i].arrayLength = group[i].count;
-      rangeInfo[i].access      = MTLArgumentAccessReadWrite;
-      rangeInfo[i].textureType =
       
-      rangeInfo[i].index       = slot[resourceType];
-      rangeInfo[i].dataType    = TranslateResourceType[resourceType];
-      rangeInfo[i].arrayLength = group[i].count;
-      rangeInfo[i].access      = MTLArgumentAccessReadWrite; // Resource access type (read/write/readWrite)
-                              // MTLArgumentAccessReadOnly
-                              // MTLArgumentAccessReadWrite
-                              // MTLArgumentAccessWriteOnly
-      rangeInfo[i].textureType =
-
+      desc.dataType               = TranslateDataType[resourceType];
+      desc.index                  = slot[resourceType];
+      desc.arrayLength            = group[i].count;
+      desc.access                 = MTLArgumentAccessReadWrite; // Missing information, could optimize it.
+                                 // MTLArgumentAccessReadOnly
+                                 // MTLArgumentAccessWriteOnly
+      desc.textureType            = MTLTextureType2D; // TODO: FIXME: Missing information needed by Metal !
+      desc.constantBlockAlignment = 0; // Unsupported by Engine
+      
+      rangeInfo[i] = desc;
+      
       // Increase index by amount of slots used
       slot[resourceType] += group[i].count;
       }
-
-
-   NSArray<MTLIndirectArgumentDescriptor *>* rangeInfo =
+      
+   // Convert temporary mutable array, to fixed non-mutable one
+   NSArray<MTLArgumentDescriptor *>* arguments = rangeInfo;
    
-   //NSArray<MTLIndirectArgumentDescriptor *> *)arguments
-
-   MTLIndirectArgumentDescriptor* descriptor = [MTLIndirectArgumentDescriptor indirectArgumentDescriptor];
-   
-
-   
-   // TODO: Finish / Emulate !
-   return Ptr<SetLayout>(nullptr);
+   // Create arguments encoder (Descriptors Layout)
+   id<MTLArgumentEncoder> encoder = [device newArgumentEncoderWithArguments:arguments];
+   if (encoder)
+      {
+      result = new SetLayoutMTL(this, encoder);
+      }
+      
+   return ptr_reinterpret_cast<SetLayout>(&result);
    }
-
+   
+   Ptr<Descriptors> MetalDevice::createDescriptorsPool(const uint32 maxSets,
+                                                       const uint32 (&count)[underlyingType(ResourceType::Count)])
+   {
+   // TODO: Finish / Emulate !
+   return Ptr<Descriptors>(nullptr);
+   }
+   
    Ptr<PipelineLayout> MetalDevice::createPipelineLayout(const uint32 sets,
                                                          const Ptr<SetLayout>* set,
                                                          const uint32 immutableSamplers,

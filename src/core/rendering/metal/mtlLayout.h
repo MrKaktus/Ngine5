@@ -33,9 +33,9 @@ namespace en
       {
       public:
       //MetalDevice* gpu;
-      //VkDescriptorSetLayout handle;
+      id<MTLArgumentEncoder> handle;
 
-      SetLayoutMTL(/*VulkanDevice* gpu, VkDescriptorSetLayout layout*/);
+      SetLayoutMTL(MetalDevice* gpu, id<MTLArgumentEncoder> encoder);
       virtual ~SetLayoutMTL();
       };
 

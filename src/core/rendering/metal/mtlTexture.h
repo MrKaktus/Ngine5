@@ -24,6 +24,7 @@
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/texture.h"
 #include "core/rendering/common/device.h"
+#include "core/rendering/metal/mtlHeap.h"
 #include "threading/mutex.h"
 
 namespace en
@@ -36,6 +37,7 @@ namespace en
       {
       public:
       id<MTLTexture>        handle;      // Metal texture ID
+      Ptr<HeapMTL>          heap;        // Memory backing heap
       Ptr<SharedSurfaceOSX> ioSurface;   // Texture object may own backing, but this backing may be in form of shared IOSurface
       bool                  ownsBacking; // Is this texture container the owner of backing surface (no for Swap-Chain surfaces)
       
