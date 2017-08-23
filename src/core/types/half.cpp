@@ -134,26 +134,6 @@ namespace en
 //       uint32 sign     : 1;
 //       };
 //
-//#define fp16exponentMask 0x7C00
-//#define fp32exponentMask 0x7F800000
-//#define fp64exponentMask 0x7FF0000000000000
-//#define fp80exponentMask 0x7FFF0000000000000000
-//
-//#define fp16exponentShift 10
-//#define fp32exponentShift 23
-//#define fp64exponentShift 52
-//#define fp80exponentShift 64
-//
-//#define fp16exponentFull 0x1F
-//#define fp32exponentFull 0xFF
-//#define fp64exponentFull 0x7FF
-//#define fp80exponentFull 0x7FFF
-//
-//#define fp16mantistaMask 0x03FF
-//#define fp32mantistaMask 0x007FFFFF
-//#define fp64mantistaMask 0x000FFFFFFFFFFFFF
-//#define fp80mantistaMask 0x0000FFFFFFFFFFFFFFFF
-//
 //bool isNaN(float src)
 //{
 //return ((src & fp32exponentMask >> fp32exponentShift) == fp32exponentFull) &&

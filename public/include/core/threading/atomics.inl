@@ -67,7 +67,10 @@ atomic_add((volatile unsigned *)value, 1);
 return *value;
 #endif
 
-#ifdef EN_PLATFORM_OSX
+#if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
+// As it returns old value, we need to locally increment it again.
+return static_cast<uint32>(std::atomic_fetch_add((volatile std::atomic<uint32>*)value, 1u) + 1u);
+#elif defined(EN_PLATFORM_OSX)
 // Cast from Unsigned to Signed is safe as Mac's uses x86 CPU's
 return static_cast<uint32>(OSAtomicIncrement32Barrier((volatile int*)value));
 #endif
@@ -93,7 +96,10 @@ return __sync_fetch_and_add(value, 1) + 1;
 //       Is BlackBerry using two's complement arithmetic?
 #endif
 
-#ifdef EN_PLATFORM_OSX
+#if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
+// As it returns old value, we need to locally increment it again.
+return std::atomic_fetch_add((volatile std::atomic<sint32>*)value, 1) + 1;
+#elif defined(EN_PLATFORM_OSX)
 return OSAtomicIncrement32Barrier((volatile int32_t*)value);
 #endif
 
@@ -122,7 +128,10 @@ atomic_sub((volatile unsigned *)value, 1);
 return *value;
 #endif
 
-#ifdef EN_PLATFORM_OSX
+#if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
+// As it returns old value, we need to locally decrement it again.
+return static_cast<uint32>(std::atomic_fetch_sub((volatile std::atomic<uint32>*)value, 1u) - 1u);
+#elif defined(EN_PLATFORM_OSX)
 // Cast from Unsigned to Signed is safe as Mac's uses x86 CPU's
 return static_cast<uint32>(OSAtomicDecrement32Barrier((volatile int32_t*)value));
 #endif
@@ -148,7 +157,10 @@ return __sync_fetch_and_sub(value, 1) - 1;
 //       Is BlackBerry using two's complement arithmetic?
 #endif
 
-#ifdef EN_PLATFORM_OSX
+#if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
+// As it returns old value, we need to locally decrement it again.
+return std::atomic_fetch_sub((volatile std::atomic<sint32>*)value, 1) - 1;
+#elif defined(EN_PLATFORM_OSX)
 return OSAtomicDecrement32Barrier((volatile int32_t*)value);
 #endif
 
@@ -181,7 +193,17 @@ return oldValue;
 // It is not supported on BlackBerry.
 #endif
 
-#ifdef EN_PLATFORM_OSX
+
+#if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
+// Software implementation
+uint32 oldValue;
+do
+{
+oldValue = *dst;
+}
+while(!std::atomic_compare_exchange_strong((volatile std::atomic<uint32>*)dst, &oldValue, value));
+return oldValue;
+#elif defined(EN_PLATFORM_OSX)
 // Software implementation
 uint32 oldValue;
 do
@@ -212,7 +234,16 @@ forceinline uint64 AtomicSwap(volatile uint64* dst, uint64 value)
 // It is not supported on BlackBerry.
 #endif
 
-#ifdef EN_PLATFORM_OSX
+#if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
+// Software implementation
+uint64 oldValue;
+do
+{
+oldValue = *dst;
+}
+while(!std::atomic_compare_exchange_strong((volatile std::atomic<uint64>*)dst, &oldValue, value));
+return oldValue;
+#elif defined(EN_PLATFORM_OSX)
 // Software implementation
 uint64 oldValue;
 do
@@ -249,7 +280,9 @@ return __sync_val_compare_and_swap(dst, cmp, src) == cmp;
 // Unfortunately it's not supported by BlackBerry NDK.
 #endif
 
-#ifdef EN_PLATFORM_OSX
+#if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
+return std::atomic_compare_exchange_strong((volatile std::atomic<uint32>*)dst, &cmp, src);
+#elif defined(EN_PLATFORM_OSX)
 return OSAtomicCompareAndSwap32Barrier(cmp, src, (volatile int32_t*)dst);
 #endif
 
@@ -270,7 +303,9 @@ forceinline bool CompareAndSwap(volatile uint64* dst, uint64 src, uint64 cmp)
 // It is not supported on Android.
 #endif
 
-#ifdef EN_PLATFORM_OSX
+#if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
+return std::atomic_compare_exchange_strong((volatile std::atomic<uint64>*)dst, &cmp, src);
+#elif defined(EN_PLATFORM_OSX)
 return OSAtomicCompareAndSwap64Barrier(cmp, src, (volatile int64_t*)dst);
 #endif
 

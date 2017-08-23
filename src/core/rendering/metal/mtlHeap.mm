@@ -23,8 +23,7 @@
 namespace en
 {
    namespace gpu
-   { 
-#if defined(EN_PLATFORM_IOS)
+   {
    HeapMTL::HeapMTL(MetalDevice* _gpu, id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size) :
       gpu(_gpu),
       handle(handle),
@@ -40,21 +39,7 @@ namespace en
       [handle release];
       }
    }
-#endif
-#if defined(EN_PLATFORM_OSX)
-   HeapMTL::HeapMTL(MetalDevice* _gpu, id<MTLDevice> device, const MemoryUsage _usage, const uint32 _size) :
-      gpu(_gpu),
-      handle(device),
-      CommonHeap(_usage, _size)
-   {
-   }
-      
-   HeapMTL::~HeapMTL()
-   {
-   handle = nullptr;
-   }
-#endif
-
+   
    // Return parent device
    Ptr<GpuDevice> HeapMTL::device(void) const
    {
@@ -89,21 +74,28 @@ namespace en
 
    uint32 roundedSize = roundUp(size, 4096u);
    
-#if defined(EN_PLATFORM_IOS)
-   MTLHeapDescriptor desc;
+   MTLHeapDescriptor* desc = [MTLHeapDescriptor alloc];
    desc.size         = roundedSize;
-   desc.storageMode  = MTLStorageModeShared;   // Private on macOS
+#if defined(EN_PLATFORM_IOS)
+   desc.storageMode  = MTLStorageModeShared;
+#else
+   desc.storageMode  = MTLStorageModePrivate;
+#endif
    desc.cpuCacheMode = MTLCPUCacheModeDefaultCache;
    
    id<MTLHeap> handle = nil;
    handle = [device newHeapWithDescriptor:desc];
    if (handle)
       heap = new HeapMTL(this, handle, usage, roundedSize);
-#else
-   // On macOS we emulate Heaps by passing calls directly to Device
-   heap = new HeapMTL(this, device, usage, roundedSize);
+      
+#ifndef APPLE_ARC
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   @autoreleasepool
+      {
+      [desc release];
+      }
 #endif
-   
+
    return ptr_reinterpret_cast<Heap>(&heap);
    }
       

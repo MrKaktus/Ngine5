@@ -521,7 +521,7 @@ namespace en
    do
    {
       // Queries incoming events until all are done (doesn't sleep the thread)
-      event = [NSApp nextEventMatchingMask:NSAnyEventMask
+      event = [NSApp nextEventMatchingMask:NSEventMaskAny
                                  untilDate:[NSDate distantPast]
                                     inMode:NSDefaultRunLoopMode
                                    dequeue:YES];
@@ -541,7 +541,7 @@ namespace en
          {
          // Mouse Events
          // https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/EventOverview/HandlingMouseEvents/HandlingMouseEvents.html#//apple_ref/doc/uid/10000060i-CH6
-         case NSLeftMouseDown:
+         case NSEventTypeLeftMouseDown:
             {
             ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Left)] = KeyState::Pressed;
 
@@ -552,7 +552,7 @@ namespace en
             break;
             }
             
-         case NSLeftMouseUp:
+         case NSEventTypeLeftMouseUp:
             {
             ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Left)] = KeyState::Released;
             
@@ -563,7 +563,7 @@ namespace en
             break;
             }
             
-         case NSRightMouseDown:
+         case NSEventTypeRightMouseDown:
             {
             ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Right)] = KeyState::Pressed;
 
@@ -574,7 +574,7 @@ namespace en
             break;
             }
             
-         case NSRightMouseUp:
+         case NSEventTypeRightMouseUp:
             {
             ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Right)] = KeyState::Released;
             
@@ -585,7 +585,7 @@ namespace en
             break;
             }
             
-         case NSMouseMoved:
+         case NSEventTypeMouseMoved:
             {
             Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0u]);
                
@@ -627,14 +627,14 @@ namespace en
             break;
             }
             
-         case NSLeftMouseDragged:
-         case NSRightMouseDragged:
-         case NSMouseEntered:
-         case NSMouseExited:
+         case NSEventTypeLeftMouseDragged:
+         case NSEventTypeRightMouseDragged:
+         case NSEventTypeMouseEntered:
+         case NSEventTypeMouseExited:
             [NSApp sendEvent:event];
             break;
             
-         case NSKeyDown:
+         case NSEventTypeKeyDown:
             {
             // Pass control over key combinations like Cmd-Q, Cmd-S to OS
             //if ([self checkForSystemMnemonic: event])
@@ -645,7 +645,7 @@ namespace en
                break;
                
             } // Continue in shared decoding section.
-         case NSKeyUp:
+         case NSEventTypeKeyUp:
             {
             // There are 3 types of input:
             // - Unicode Characters - [Event characters]
@@ -684,13 +684,13 @@ namespace en
                {
                KeyboardEvent outEvent(key);
                
-               if ([event type] == NSKeyDown)
+               if ([event type] == NSEventTypeKeyDown)
                   {
                   ptr_reinterpret_cast<CommonKeyboard>(&keyboards[0])->keys[underlyingType(key)] = KeyState::Pressed;
                   outEvent.type = KeyPressed;
                   }
                else
-               if ([event type] == NSKeyUp)
+               if ([event type] == NSEventTypeKeyUp)
                   {
                   ptr_reinterpret_cast<CommonKeyboard>(&keyboards[0])->keys[underlyingType(key)] = KeyState::Released;
                   outEvent.type = KeyReleased;
@@ -715,7 +715,7 @@ namespace en
 //    };
          
          // State key changed (CapsLock, NumLock etc.)
-         case NSFlagsChanged:
+         case NSEventTypeFlagsChanged:
             {
             // Each key state change is reported as separate system event
             uint32 newStateFlags = static_cast<uint32>([event modifierFlags]);
@@ -760,17 +760,17 @@ namespace en
             }
             break;
             
-         case NSAppKitDefined:
-         case NSSystemDefined:
-         case NSApplicationDefined:
-         case NSPeriodic:
-         case NSCursorUpdate:
-         case NSScrollWheel:
-         case NSTabletPoint:
-         case NSTabletProximity:
-         case NSOtherMouseDown:
-         case NSOtherMouseUp:
-         case NSOtherMouseDragged:
+         case NSEventTypeAppKitDefined:
+         case NSEventTypeSystemDefined:
+         case NSEventTypeApplicationDefined:
+         case NSEventTypePeriodic:
+         case NSEventTypeCursorUpdate:
+         case NSEventTypeScrollWheel:
+         case NSEventTypeTabletPoint:
+         case NSEventTypeTabletProximity:
+         case NSEventTypeOtherMouseDown:
+         case NSEventTypeOtherMouseUp:
+         case NSEventTypeOtherMouseDragged:
          case NSEventTypeGesture:
          case NSEventTypeMagnify:
          case NSEventTypeSwipe:

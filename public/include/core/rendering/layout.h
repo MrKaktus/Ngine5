@@ -21,6 +21,7 @@
 #include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/buffer.h"
 #include "core/rendering/sampler.h"
+#include "core/rendering/texture.h"
 
 namespace en
 {
@@ -100,10 +101,14 @@ namespace en
       {
       ResourceType type;
       uint32       count;
-
-      ResourceGroup(ResourceType type, uint32 count) :
+      TextureType  textureType; // If resource is Texture, it's type needs to be specified in Layout
+      
+      ResourceGroup(const ResourceType type,
+                    const uint32 count,
+                    const TextureType _textureType = TextureType::Texture2D) :
          type(type),
-         count(count)
+         count(count),
+         textureType(_textureType)
          {};
       };
       

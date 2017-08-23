@@ -73,7 +73,7 @@ namespace en
 #endif
 #endif
 
-   static const MTLTextureType TranslateTextureType[underlyingType(TextureType::Count)] =
+   const MTLTextureType TranslateTextureType[underlyingType(TextureType::Count)] =
       {
       MTLTextureType1D                    ,   // Texture1D
       MTLTextureType1DArray               ,   // Texture1DArray

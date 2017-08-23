@@ -150,7 +150,7 @@ namespace en
    pipeDesc.depthAttachmentPixelFormat   = MTLPixelFormatInvalid;
    pipeDesc.stencilAttachmentPixelFormat = MTLPixelFormatInvalid;
    pipeDesc.inputPrimitiveTopology       = MTLPrimitiveTopologyClassUnspecified;
-    
+   
    // Required Pipeline State depending from Render Pass
    for(uint32 i=0; i<8; ++i)                                  // TODO: Change 8 to support.maxColorAttachments
       pipeDesc.colorAttachments[i].pixelFormat = TranslateTextureFormat[underlyingType(renderPass->format[i])];
@@ -162,7 +162,15 @@ namespace en
       pipeDesc.alphaToCoverageEnabled    = multisampling->alphaToCoverage;
       pipeDesc.alphaToOneEnabled         = multisampling->alphaToOne;
       }
- 
+      
+   // Optional Pipeline State depending from Pipeline Layout
+   for(uint32 i=0; i<31; ++i)                                  // TODO: Change 31 to layout->usedDescriptors
+      {
+      // TODO: Extract DescriptorSets mutability from PipelineLayout
+    //pipeDesc.vertexBuffers[0].mutability = layout->
+    //pipeDesc.fragmentBuffers[0].mutability = layout->
+      }
+   
    // Optional Pipeline State depending from Render Pass
    if (renderPass->desc.depthAttachment.texture)
       pipeDesc.depthAttachmentPixelFormat   = TranslateTextureFormat[underlyingType(renderPass->format[8])];

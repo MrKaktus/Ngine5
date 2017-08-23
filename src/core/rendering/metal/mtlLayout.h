@@ -22,31 +22,72 @@
 
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/layout.h"
+#include "core/rendering/shader.h"
+
+#include <vector>
+using namespace std;
 
 namespace en
 {
    namespace gpu
    {
-   //class MetalDevice;
+   class MetalDevice;
 
    class SetLayoutMTL : public SetLayout
       {
       public:
-      //MetalDevice* gpu;
       id<MTLArgumentEncoder> handle;
+      ShaderStages stageMask;
+      uint32 descriptors;
 
-      SetLayoutMTL(MetalDevice* gpu, id<MTLArgumentEncoder> encoder);
+      SetLayoutMTL(id<MTLArgumentEncoder> encoder, const ShaderStages stageMask, const uint32 descriptors);
       virtual ~SetLayoutMTL();
       };
 
    class PipelineLayoutMTL : public PipelineLayout
       {
       public:
-      //MetalDevice* gpu;
-      //VkPipelineLayout handle;
-
-      PipelineLayoutMTL(/*MetalDevice* gpu, VkPipelineLayout handle*/);
+      MetalDevice* gpu;
+      uint32 setsCount;  // Count of descriptor sets
+      
+      PipelineLayoutMTL(MetalDevice* gpu);
       virtual ~PipelineLayoutMTL();
+      };
+      
+   class DescriptorsMTL : public Descriptors
+      {
+      public:
+      MetalDevice* gpu;
+      
+      DescriptorsMTL(MetalDevice* gpu);
+      virtual ~DescriptorsMTL();
+      
+      virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout);
+      virtual bool allocate(const uint32 count,
+                            const Ptr<SetLayout>* layouts,
+                            Ptr<DescriptorSet>** sets);
+      };
+      
+   class DescriptorSetMTL : public DescriptorSet
+      {
+      public:
+      MetalDevice*      gpu;        // Device backing this buffer memory
+      Ptr<SetLayoutMTL> layout;     // Reference to Layout, that will be used to encode descriptors in backing buffer
+      id<MTLBuffer>     handle;     // MTLBuffer storing descriptors
+      
+      uint8*            heapId;     // Index to Heap pointer, that backs resource currently bound to given Descriptor Slot
+      id<MTLHeap>*      heapsUsed;  // Array of pointers to Heaps used by bound resources
+      uint32*           heapsRefs;  // Count of desriptors referencing each Heap
+      uint32            heapsCount; // Describes range of slots in Heaps array, used by valid Heaps pointers
+      
+      DescriptorSetMTL(MetalDevice* gpu, Ptr<SetLayoutMTL> layout);
+      virtual ~DescriptorSetMTL();
+      
+      void updateResidencyTracking(const uint32 slot, const id<MTLHeap> heap);
+      
+      virtual void setBuffer(const uint32 slot, const Ptr<Buffer> buffer);
+      virtual void setSampler(const uint32 slot, const Ptr<Sampler> sampler);
+      virtual void setTextureView(const uint32 slot, const Ptr<TextureView> view);
       };
    }
 }

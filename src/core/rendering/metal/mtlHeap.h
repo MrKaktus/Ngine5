@@ -33,17 +33,10 @@ namespace en
       {
       public:
       MetalDevice* gpu;
-      
-#if defined(EN_PLATFORM_IOS)
       id <MTLHeap> handle;
       
       HeapMTL(MetalDevice* gpu, id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size);
-#endif
-#if defined(EN_PLATFORM_OSX)
-      id <MTLDevice> handle;
-      
-      HeapMTL(MetalDevice* gpu, id<MTLDevice> device, const MemoryUsage _usage, const uint32 _size);
-#endif
+      virtual ~HeapMTL();
 
       // Return parent device
       virtual Ptr<GpuDevice> device(void) const;
@@ -55,8 +48,6 @@ namespace en
                                        const uint32 size);
       
       virtual Ptr<Texture> createTexture(const TextureState state);
-
-      virtual ~HeapMTL();
       };
    }
 }

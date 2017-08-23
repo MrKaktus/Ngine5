@@ -209,7 +209,7 @@ namespace en
       }
 
    // If Single Part, determine part type
-   PartType singlePartType;
+   PartType singlePartType = ScanLineImage;
    if (!header.multiPart)
       {
       if (!header.singleTile && !header.containsData)

@@ -64,13 +64,17 @@ namespace en
    // Determine window type
    NSUInteger style = 0;
    if (settings.mode == Windowed)
-      style = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask;
+      style = NSWindowStyleMaskTitled |
+              NSWindowStyleMaskClosable |
+              NSWindowStyleMaskMiniaturizable |
+              NSWindowStyleMaskResizable;
    else
    if (settings.mode == BorderlessWindow)
-      style = NSBorderlessWindowMask;
+      style = NSWindowStyleMaskBorderless;
    else
       {
-      style = NSTitledWindowMask | NSFullScreenWindowMask;
+      style = NSWindowStyleMaskTitled |
+              NSWindowStyleMaskFullScreen;
       frame.origin.x = 0;
       frame.origin.y = 0;
       }

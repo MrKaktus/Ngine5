@@ -387,7 +387,7 @@ namespace en
    // Vulkan:
    // 
    // Fences     - can be used to communicate to the host that execution of some task on the device has completed.
-   //              (CPU - GPU synchronization)
+   //              (GPU -> CPU notification, CPU - GPU synchronization)
    //
    // Semaphores - can be used to control resource access across multiple queues.
    //              Command Buffers synchronization on the queue.

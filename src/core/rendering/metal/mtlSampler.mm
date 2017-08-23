@@ -104,20 +104,21 @@ namespace en
 
    SamplerMTL::SamplerMTL(const MetalDevice* gpu, const SamplerState& state)
    {
-   MTLSamplerDescriptor* samplerInfo = [[MTLSamplerDescriptor alloc] init];
-   samplerInfo.magFilter             = static_cast<MTLSamplerMinMagFilter>(underlyingType(state.magnification)); // Optimisation: TranslateSamplerFilter[underlyingType(state.magnification)];
-   samplerInfo.minFilter             = static_cast<MTLSamplerMinMagFilter>(underlyingType(state.minification));  // Optimisation: TranslateSamplerFilter[underlyingType(state.minification)];
-   samplerInfo.mipFilter             = static_cast<MTLSamplerMipFilter>(underlyingType(state.mipmap) + 1);       // Optimisation: TranslateSamplerMipMapMode[underlyingType(state.mipmap)];
-   samplerInfo.sAddressMode          = TranslateSamplerAdressing[underlyingType(state.coordU)];
-   samplerInfo.tAddressMode          = TranslateSamplerAdressing[underlyingType(state.coordV)];
-   samplerInfo.rAddressMode          = TranslateSamplerAdressing[underlyingType(state.coordW)];
-   samplerInfo.borderColor           = static_cast<MTLSamplerBorderColor>(underlyingType(state.borderColor));    // Optimisation: TranslateSamplerBorder[underlyingType(state.borderColor)]; macOS 10.12+ !
-   samplerInfo.maxAnisotropy         = min(state.anisotropy, gpu->support.maxAnisotropy);                    // [1.0f - ??]
-   samplerInfo.lodMinClamp           = state.minLod;
-   samplerInfo.lodMaxClamp           = state.maxLod;
-   samplerInfo.compareFunction       = static_cast<MTLCompareFunction>(underlyingType(state.compare));           // Optimisation: TranslateCompareOperation[underlyingType(state.compare)];  iOS 9.0+ !
-   samplerInfo.normalizedCoordinates = TRUE;     // TODO: Unnormalized coordinates are not supported for now (both supported by Vulkan & Metal)
-
+   MTLSamplerDescriptor* samplerInfo  = [[MTLSamplerDescriptor alloc] init];
+   samplerInfo.magFilter              = static_cast<MTLSamplerMinMagFilter>(underlyingType(state.magnification)); // Optimisation: TranslateSamplerFilter[underlyingType(state.magnification)];
+   samplerInfo.minFilter              = static_cast<MTLSamplerMinMagFilter>(underlyingType(state.minification));  // Optimisation: TranslateSamplerFilter[underlyingType(state.minification)];
+   samplerInfo.mipFilter              = static_cast<MTLSamplerMipFilter>(underlyingType(state.mipmap) + 1);       // Optimisation: TranslateSamplerMipMapMode[underlyingType(state.mipmap)];
+   samplerInfo.sAddressMode           = TranslateSamplerAdressing[underlyingType(state.coordU)];
+   samplerInfo.tAddressMode           = TranslateSamplerAdressing[underlyingType(state.coordV)];
+   samplerInfo.rAddressMode           = TranslateSamplerAdressing[underlyingType(state.coordW)];
+   samplerInfo.borderColor            = static_cast<MTLSamplerBorderColor>(underlyingType(state.borderColor));    // Optimisation: TranslateSamplerBorder[underlyingType(state.borderColor)]; macOS 10.12+ !
+   samplerInfo.maxAnisotropy          = min(state.anisotropy, gpu->support.maxAnisotropy);                    // [1.0f - ??]
+   samplerInfo.lodMinClamp            = state.minLod;
+   samplerInfo.lodMaxClamp            = state.maxLod;
+   samplerInfo.compareFunction        = static_cast<MTLCompareFunction>(underlyingType(state.compare));           // Optimisation: TranslateCompareOperation[underlyingType(state.compare)];  iOS 9.0+ !
+   samplerInfo.normalizedCoordinates  = TRUE;     // TODO: Unnormalized coordinates are not supported for now (both supported by Vulkan & Metal)
+   samplerInfo.supportArgumentBuffers = TRUE; // Required for Descriptor Tables - macOS 10.13+
+   
    handle = [gpu->device newSamplerStateWithDescriptor:samplerInfo];       // or getDevice()
 #ifndef APPLE_ARC
    // Auto-release pool to ensure that Metal ARC will flush garbage collector

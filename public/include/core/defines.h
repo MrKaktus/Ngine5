@@ -35,6 +35,13 @@
    CompileTimeAssert(false, unknown_platform)
 #endif
 
+// Determine target platform version
+#if defined(EN_PLATFORM_OSX)
+   #if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_12
+      #define EN_PLATFORM_OSX_MINIMUM_10_12
+   #endif
+#endif
+
 // Define platform architecture
 #if defined(_WIN64)
    #define EN_ARCHITECTURE_X64

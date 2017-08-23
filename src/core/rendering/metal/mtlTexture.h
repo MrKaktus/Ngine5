@@ -31,6 +31,7 @@ namespace en
 {
    namespace gpu
    {
+   extern const MTLTextureType TranslateTextureType[underlyingType(TextureType::Count)];
    extern const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)];
 
    class TextureMTL : public CommonTexture
