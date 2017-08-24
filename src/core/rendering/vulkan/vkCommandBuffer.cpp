@@ -681,7 +681,6 @@ namespace en
    commandBuffersExecuting[thread]++;
    }
 
-   // TODO: Add wait for all CB's completion on Device destruction !
    void VulkanDevice::clearCommandBuffersQueue(void)
    {
    // Iterate over list of Command Buffers submitted for execution by this thread.

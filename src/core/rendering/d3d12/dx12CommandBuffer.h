@@ -22,6 +22,7 @@
 
 #include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/commandBuffer.h"
+#include "core/rendering/d3d12/dx12RenderPass.h"
 #include "core/rendering/d3d12/dx12Synchronization.h"
 
 namespace en
@@ -33,21 +34,28 @@ namespace en
    class CommandBufferD3D12 : public CommandBuffer
       {
       public:
-      Direct3D12Device* gpu;     // GPU owning this Command Buffer (for temporary staging buffers creation)
-      ID3D12CommandQueue* queue;
-      ID3D12CommandList* handle;
-      ID3D12Fence*    fence;
-      HANDLE          fenceSignalingEvent; 
-      bool            started;
-      bool            encoding;
-      bool            commited;
+      Direct3D12Device*     gpu;         // GPU owning this Command Buffer (for temporary staging buffers creation)
+      ID3D12CommandQueue*   queue;
+      uint32                queueIndex;  // Direct index to queue in device's array (also used for queue fence indexing) 
+      ID3D12CommandList*    handle;
+      ID3D12Fence*          fence;        // Fence to wait for before executing this CommandBuffer
+      uint64                waitForValue; // Accompanying value representing unique moment in time
+      uint64                commitValue;  // Value representing moment in time, when this CommandBuffer is executed
+      Ptr<RenderPassD3D12>  renderPass;  // Render Pass and Framebuffer used for currently encoded Render Pass
+      Ptr<FramebufferD3D12> framebuffer;
+      bool                  started;
+      bool                  encoding;
+      bool                  commited;
       
-      // Internal 
+      // Internal methods
 
-      CommandBufferD3D12(Direct3D12Device* _gpu, ID3D12CommandQueue* _queue, ID3D12CommandList* _handle);
+      CommandBufferD3D12(Direct3D12Device* _gpu, ID3D12CommandQueue* _queue, uint32 queueIndex, ID3D12CommandList* _handle);
+
+      bool isCompleted(void);
+
+      // Interface methods
+
       virtual ~CommandBufferD3D12();
-
-      // Interface
 
       virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr);
 
@@ -119,6 +127,10 @@ namespace en
                            const uint64 size,
                            const BufferAccess currentAccess,
                            const BufferAccess newAccess);
+
+      virtual void barrier(const Ptr<Texture>  _texture, 
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess);
 
       virtual void barrier(const Ptr<Texture>  texture, 
                            const uint32v2      mipmaps, 

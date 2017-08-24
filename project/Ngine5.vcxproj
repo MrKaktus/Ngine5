@@ -580,7 +580,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x64\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\x64\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win64;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;$(WindowsSDK_LibraryPath_x86);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x64\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\x64\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win64;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
     </Lib>
     <BuildLog>
       <Path>.\..\build\win64\$(Configuration)\$(MSBuildProjectName).log</Path>
@@ -641,12 +641,15 @@
       <Path>.\..\build\win64\$(Configuration)\$(MSBuildProjectName).log</Path>
     </BuildLog>
     <Lib>
-      <AdditionalDependencies>zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x64\ZlibDllRelease;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015;.\..\middleware\openvr-1.0.3\lib\win64;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\release;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;$(WindowsSDK_LibraryPath_x86);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x64\ZlibDllRelease;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015;.\..\middleware\openvr-1.0.3\lib\win64;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\release;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;$(WindowsSDK_LibraryPath_x64);%DXSDK_DIR%\Lib</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
       <Command>Ngine_post_build.bat</Command>
     </PostBuildEvent>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

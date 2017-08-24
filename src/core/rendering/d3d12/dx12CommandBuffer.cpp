@@ -22,7 +22,7 @@
 #include "core/rendering/d3d12/dx12Buffer.h"
 #include "core/rendering/d3d12/dx12Texture.h"
 #include "core/rendering/d3d12/dx12Pipeline.h"
-#include "core/rendering/d3d12/dx12RenderPass.h"
+#include "utilities/strings.h"
 
 namespace en
 {
@@ -30,32 +30,32 @@ namespace en
    {
    CommandBufferD3D12::CommandBufferD3D12(Direct3D12Device* _gpu, 
                                           ID3D12CommandQueue* _queue, 
+                                          uint32              _queueIndex,
                                           ID3D12CommandList* _handle) :
       gpu(_gpu),
       queue(_queue),
+      queueIndex(_queueIndex),
       handle(_handle),
       fence(nullptr),
-      fenceSignalingEvent(0),
+      waitForValue(0),
+      commitValue(0),
+      renderPass(nullptr),
+      framebuffer(nullptr),
       started(false),
       encoding(false),
       commited(false),
       CommandBuffer()
    {
-   Profile( gpu, CreateFence(0, 
-                             D3D12_FENCE_FLAG_SHARED, 
-                             IID_PPV_ARGS(&fence)) ) // __uuidof(ID3D12Fence), reinterpret_cast<void**>(&fence)
    }
 
    CommandBufferD3D12::~CommandBufferD3D12()
    {
+   // RendeRPass needs to be finished before Command Buffer is destroyed
+   assert( !encoding );
+
    // Finish encoded tasks
    if (!commited)
       commit();
-
-   // Release Fence
-   assert( fence );
-   ProfileCom( fence->Release() )
-   fence = nullptr;
 
    // Release Command Buffer
    assert( handle );
@@ -74,7 +74,12 @@ namespace en
    {
    assert( !started );
 
-   // TODO: Finish !
+   // Remember fence and it's value, for which this CommandBuffer execution should wait for.
+   SemaphoreD3D12* semaphore = raw_reinterpret_cast<SemaphoreD3D12>(&waitForSemaphore);
+   fence        = semaphore->fence;
+   waitForValue = semaphore->waitForValue;
+
+   started = true;
    }
 
    void CommandBufferD3D12::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer> _framebuffer)
@@ -85,13 +90,24 @@ namespace en
    assert( pass );
    assert( _framebuffer );
    
-   RenderPassD3D12*  renderPass  = raw_reinterpret_cast<RenderPassD3D12>(&pass);
-   FramebufferD3D12* framebuffer = raw_reinterpret_cast<FramebufferD3D12>(&_framebuffer);
+   renderPass  = ptr_reinterpret_cast<RenderPassD3D12>(&pass);
+   framebuffer = ptr_reinterpret_cast<FramebufferD3D12>(&_framebuffer);
 
    // Descriptor for empty Color Attachment output
-   D3D12_RENDER_TARGET_VIEW_DESC nullDesc;
+   D3D12_RENDER_TARGET_VIEW_DESC nullColorDesc;
+   nullColorDesc.Format               = DXGI_FORMAT_B8G8R8A8_UNORM;
+   nullColorDesc.ViewDimension        = D3D12_RTV_DIMENSION_TEXTURE2D;
+   nullColorDesc.Texture2D.MipSlice   = 0u;
+   nullColorDesc.Texture2D.PlaneSlice = 0u;
 
-   // TODO: Do we need to set Format, or view Dimmension ?
+   // Descriptor for empty Depth-Sterncil Attachment output
+   D3D12_DEPTH_STENCIL_VIEW_DESC nullDepthDesc;
+   nullDepthDesc.Format               = DXGI_FORMAT_D32_FLOAT;
+   nullDepthDesc.ViewDimension        = D3D12_DSV_DIMENSION_TEXTURE2D;
+   nullDepthDesc.Flags                = D3D12_DSV_FLAG_NONE;
+   nullDepthDesc.Texture2D.MipSlice   = 0u;
+
+   // TODO: Should View dimmension be inherited from other RTV?
 
    // Create new Views that bind resources to Descriptors on the fly
    uint32 lastUsedIndex = 0;
@@ -109,15 +125,23 @@ namespace en
          {
          // Clear binding. To ensure proper shader behavior (reading 0's, writes are discarded)
          ProfileNoRet( gpu, CreateRenderTargetView(nullptr,
-                                                  &nullDesc,
+                                                  &nullColorDesc,
                                                    gpu->handleRTV[i]) )
          }
    
    // Create Depth-Stencil View
    if (renderPass->depthStencil)
+      {
       ProfileNoRet( gpu, CreateDepthStencilView(framebuffer->depthHandle->texture->handle,
                                                &framebuffer->depthDesc,
                                                 gpu->handleDSV) )
+      }
+   else
+      {
+      ProfileNoRet( gpu, CreateDepthStencilView(nullptr,
+                                               &nullDepthDesc,
+                                                gpu->handleDSV) )
+      }
    
    // RTV and DSV handles could be sourced from Framebuffer (if preallocated).
    
@@ -146,6 +170,8 @@ namespace en
    // Always fill up all consecutive descriptors, from first one to
    // the last one that is used, thus TRUE can be passed in third parameter.
    ProfileComNoRet( command->OMSetRenderTargets((lastUsedIndex + 1), gpu->handleRTV, TRUE, &gpu->handleDSV) )
+
+   encoding = true;
    }
 
    void CommandBufferD3D12::endRenderPass(void)
@@ -153,7 +179,62 @@ namespace en
    assert( started );
    assert( encoding );
 
-   // Direct3D12 has no notion of Render Passes.
+   // Direct3D12 has no notion of Render Passes. Thus if there are resolve
+   // targets assigned, their resolve needs to be handled here.
+   if (renderPass->resolve)
+      {
+      // TODO: Ensure this Command Buffer is Graphic one !
+      ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+      // Optional Color Attachment's resolve
+      for(uint32 i=0; i<8; ++i)
+         if (checkBit(renderPass->usedAttachments, i))
+            if (renderPass->colorState[i].storeOp == StoreOperation::Resolve ||
+                renderPass->colorState[i].storeOp == StoreOperation::StoreAndResolve)
+               {
+               assert( framebuffer->resolveHandle[i] );
+
+               // MSAA source and resolve destination View's need to have the same texel format
+               assert( framebuffer->colorHandle[i]->desc.Format == framebuffer->resolveHandle[i]->desc.Format );
+
+               // MSAA source and resolve destination View's need to have the same amount of mipmaps and layers
+               assert( framebuffer->colorHandle[i]->mipmaps.count == framebuffer->resolveHandle[i]->mipmaps.count );
+               assert( framebuffer->colorHandle[i]->layers.count  == framebuffer->resolveHandle[i]->layers.count  );
+
+               // Amount of mipmaps and layers to resolve
+               UINT mipmaps = framebuffer->colorHandle[i]->mipmaps.count;
+               UINT layers  = framebuffer->colorHandle[i]->layers.count;
+
+               DXGI_FORMAT format = framebuffer->colorHandle[i]->desc.Format;
+
+               // Resolve source (MSAA)
+               UINT srcSubresource = D3D12CalcSubresource(framebuffer->colorHandle[i]->mipmaps.base,
+                                                          framebuffer->colorHandle[i]->layers.base,
+                                                          0u,                      // Plane Slice - DepthStencil formats have two slices
+                                                          mipmaps,
+                                                          layers); 
+
+               // Resolve destination
+               UINT dstSubresource = D3D12CalcSubresource(framebuffer->resolveHandle[i]->mipmaps.base,
+                                                          framebuffer->resolveHandle[i]->layers.base,
+                                                          0u,                      // Plane Slice - DepthStencil formats have two slices
+                                                          mipmaps,
+                                                          layers); 
+
+               // Resolves original resources (on top of which Views for rendering were created)
+               ProfileComNoRet( command->ResolveSubresource(framebuffer->resolveHandle[i]->texture->handle,
+                                                            dstSubresource,
+                                                            framebuffer->colorHandle[i]->texture->handle,
+                                                            srcSubresource,
+                                                            format) )
+               }
+
+      // D3D12 doesn't support Depth, nor Stencil resolves
+      }
+
+   // Release references
+   renderPass  = nullptr;
+   framebuffer = nullptr;
 
    encoding = false;
    }
@@ -328,6 +409,10 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
+   // Create signaling Event
+   // fenceSignalingEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+   // fence->SetEventOnCompletion(acquiredValue, fenceSignalingEvent); 
+
    void CommandBufferD3D12::commit(const Ptr<Semaphore> signalSemaphore)
    {
    assert( started );
@@ -337,55 +422,86 @@ namespace en
    // TODO: Check if graphics or compute!  
    reinterpret_cast<ID3D12GraphicsCommandList*>(handle)->Close();
    
-   // Commit this single Command Buffer for execution
-   ID3D12CommandList* lists[] = { handle };
-   queue->ExecuteCommandLists(1, lists);
+   // Ensures CommandBuffer submission and following encoding of fence signaling 
+   // operation are atomically encoded on queue in multi-threaded environment.
+   gpu->queueAcquire[queueIndex].lock();
+      {
+      // If this CommandBuffer should first synchronize with some other event,
+      // we encode wait command just before it's execution. 
+      if (fence)
+         {
+         queue->Wait(fence, waitForValue);
+         fence = nullptr;
+         }
 
-   // Alloc unique value for Fence to signal on this thread
-   uint32 thread = Scheduler.core();
-   UINT64 acquiredValue = AtomicIncrease(&gpu->fenceCurrentValue[thread]);
+      // Commit this single Command Buffer for execution
+      ID3D12CommandList* lists[] = { handle };
+      queue->ExecuteCommandLists(1, lists);
+      
+      // Get unique value, representing current moment after CommandBuffer 
+      // encoding, on it's parent queue, for that queue fence, to signal it
+      // once this CommandBuffer is completed.
+      gpu->fenceValue[queueIndex]++;
+      commitValue = gpu->fenceValue[queueIndex];
 
-   // Create signaling Event
-   fenceSignalingEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-
-   // Signal the fence value (GPU will set this value on Fence, once reaching this point)
-   queue->Signal(fence, acquiredValue);
-   fence->SetEventOnCompletion(acquiredValue, fenceSignalingEvent); 
+      // Queue will signal that fence value (GPU will set this value on Fence)
+      // once just commited CommandBuffer is executed.
+      queue->Signal(gpu->fence[queueIndex], commitValue);
+      }
+   gpu->queueAcquire[queueIndex].unlock();
 
    if (signalSemaphore)
       {
-      // Alloc unique value for Fence to signal on this thread
-      acquiredValue = AtomicIncrease(&gpu->fenceCurrentValue[thread]);
-
-      // Signal the fence value (GPU will set this value on Fence, once reaching this point)
+      // This Semaphore can be now used, to synchronize any Queue
+      // execution with this particular fence, and it's value.
       SemaphoreD3D12* semaphore = raw_reinterpret_cast<SemaphoreD3D12>(&signalSemaphore);
-
-      queue->Signal(semaphore->handle, acquiredValue);
-
-      // TODO: Is there a way to sync on GPU side CB execution with Swap-Chain ?
+      semaphore->fence        = gpu->fence[queueIndex];
+      semaphore->waitForValue = commitValue;
       }
+
+   // Try to clear any CommandBuffers that are no longer executing.
+   gpu->clearCommandBuffersQueue();
+
+   // Add this CommandBuffer to device's array of CB's in flight.
+   // This will ensure that CommandBuffer won't be destroyed until
+   // fence is not signaled.
+   gpu->addCommandBufferToQueue(Ptr<CommandBuffer>(this));
 
    commited = true;
    }
    
+   bool CommandBufferD3D12::isCompleted(void)
+   {
+   uint64 reachedMoment = gpu->fence[queueIndex]->GetCompletedValue();
+   return reachedMoment >= commitValue;
+   }
+
    void CommandBufferD3D12::waitUntilCompleted(void)
    {
    assert( started );
    assert( !encoding );
    assert( commited );
 
-   // Wait maximum 1 second, then assume GPU hang. // TODO: This should be configurable global
-   DWORD gpuWatchDog = 1000;
-
-   // Wait until the fence is completed of watch dog timer is out
-   DWORD result = WaitForSingleObject(fenceSignalingEvent, gpuWatchDog);
-   if (result == WAIT_TIMEOUT)
+   if (!isCompleted())
       {
-      Log << "GPU Hang!\n" << endl;
-      }
+      HANDLE fenceSignalingEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
-   // Destroy signaling Event
-   CloseHandle(fenceSignalingEvent);
+      gpu->fence[queueIndex]->SetEventOnCompletion(commitValue, fenceSignalingEvent);
+
+      // Wait maximum 1 second, then assume GPU hang. // TODO: This should be configurable global
+      DWORD gpuWatchDog = 1000;
+
+      // Wait until the fence is completed or watch dog timer is out
+      DWORD result = WaitForSingleObject(fenceSignalingEvent, gpuWatchDog);
+
+      if (result == WAIT_TIMEOUT)
+         {
+         Log << "GPU Hang!\n" << endl;
+         }
+      
+      // Destroy signaling Event
+      CloseHandle(fenceSignalingEvent);
+      }
    }
    
    // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899171(v=vs.85).aspx
@@ -400,21 +516,46 @@ namespace en
    // Each thread creates it's Command Buffers from separate Command Allocator
    uint32 thread    = Scheduler.core();
    uint32 queueType = underlyingType(type);
-   
+   uint32 cacheId   = currentAllocator[thread][queueType];
+
    assert( queuesCount[queueType] > parentQueue );
    
    Ptr<CommandBufferD3D12> result = nullptr;
 
-   ID3D12CommandList* handle;
+   ID3D12CommandList* handle = nullptr;
    
    Profile( this, CreateCommandList(0u,      /* No Multi-GPU support for now */
                                     TranslateQueueType[queueType],
-                                    commandAllocator[thread][queueType],
+                                    commandAllocator[thread][queueType][cacheId],
                                     nullptr, /* No initial PipelineState for now */
                                     IID_PPV_ARGS(&handle)) )
    if ( SUCCEEDED(lastResult[thread]) )
       {
-      result = new CommandBufferD3D12(this, queue[queueType], handle);
+      result = new CommandBufferD3D12(this, queue[queueType], queueType, handle);
+
+#if defined(EN_DEBUG)
+      // Name CommandBuffer for debugging
+      string name("CommandBuffer_T: ");
+      name += stringFrom(thread);
+      name += " Q: ";
+      name += stringFrom(queueType);
+      name += " C: ";
+      name += stringFrom(cacheId);
+      handle->SetPrivateData( WKPDID_D3DDebugObjectName, name.length(), name.c_str());
+#endif
+
+      // Switch to next CommandAllocator in Cache, if enough CommandBuffers were allocated on this one
+      commandBuffersAllocated[thread][queueType]++;
+      if (commandBuffersAllocated[thread][queueType] == MaxCommandBuffersAllocated)
+         {
+         currentAllocator[thread][queueType] = (currentAllocator[thread][queueType] + 1) % AllocatorCacheSize;
+         commandBuffersAllocated[thread][queueType]  = 0;
+ 
+         // It is assumed, that all CommandBuffers execution on newly selected 
+         // allocator from cache was finished, and allocator was already reset.
+         uint32 cacheId = currentAllocator[thread][queueType];
+         assert( commandBuffersExecuting[thread][queueType][cacheId] == 0 );
+         }
       }
 
    // ID3D12GraphicsCommandList extends ID3D12CommandList
@@ -424,6 +565,60 @@ namespace en
    return ptr_reinterpret_cast<CommandBuffer>(&result);
    }
    
+   void Direct3D12Device::addCommandBufferToQueue(Ptr<CommandBuffer> command)
+   {
+   CommandBufferD3D12* ptr = raw_reinterpret_cast<CommandBufferD3D12>(&command);
+
+   uint32 thread    = Scheduler.core();
+   uint32 queueType = ptr->queueIndex;
+   uint32 cacheId   = currentAllocator[thread][queueType];
+   uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
+   
+   assert( executing < MaxCommandBuffersExecuting );
+
+   commandBuffers[thread][queueType][cacheId][executing] = command;
+   commandBuffersExecuting[thread][queueType][cacheId]++;
+   }
+
+   void Direct3D12Device::clearCommandBuffersQueue(void)
+   {
+   // Iterate over list of Command Buffers submitted for execution by this thread (per each Queue type and allocator in pool).
+   uint32 thread = Scheduler.core();
+   for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
+      for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
+         {
+         uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
+         for(uint32 i=0; i<executing; ++i)
+            {
+            CommandBufferD3D12* command = raw_reinterpret_cast<CommandBufferD3D12>(&commandBuffers[thread][queueType][cacheId][i]);
+
+            // Assume that CommandBuffer is finished, after next Fence event is passed (so with one event of delay).
+            // This way driver has time to clean-up, and is not throwing Debug errors that we reset CommandAllocator
+            // which CommandBuffers are still in flight.
+            if (fence[command->queueIndex]->GetCompletedValue() > command->commitValue)
+            //if (command->isCompleted())
+               {
+               // Safely release Command Buffer object
+               commandBuffers[thread][queueType][cacheId][i] = nullptr;
+               if (i < (executing - 1))
+                  {
+                  commandBuffers[thread][queueType][cacheId][i] = commandBuffers[thread][queueType][cacheId][executing - 1];
+                  commandBuffers[thread][queueType][cacheId][executing - 1] = nullptr;
+                  }
+         
+               executing--;
+               commandBuffersExecuting[thread][queueType][cacheId]--;
+
+               // If this CommandAllocator queue of CommandBuffers in flight just get 
+               // emptied, and it's not actually used CommandAllocator, it may be reset.
+               if (cacheId != currentAllocator[thread][queueType])
+                  if (commandBuffersExecuting[thread][queueType][cacheId] == 0)
+                     commandAllocator[thread][queueType][cacheId]->Reset();
+               }
+            }
+         }
+   }
+
    }
 }
 #endif

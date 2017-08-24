@@ -65,7 +65,7 @@ namespace en
 
    // Init modules in proper order
    en::storage::Interface::create(activity->assetManager);
-   ConfigContext.create();
+   ConfigContext.create(0, nullptr);
    LogContext.create();
    SystemContext.create();
    AudioContext.create();

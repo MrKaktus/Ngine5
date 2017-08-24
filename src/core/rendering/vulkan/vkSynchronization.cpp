@@ -27,7 +27,12 @@ namespace en
 {
    namespace gpu
    {
-   
+
+
+   // BARRIERS
+   //////////////////////////////////////////////////////////////////////////
+
+
    void TranslateBufferAccess(BufferAccess usage, BufferType type, VkAccessFlags& access)
    {
    access = static_cast<VkAccessFlags>(0u);
@@ -249,6 +254,19 @@ namespace en
    }
 
    // Texture barrier
+   void CommandBufferVK::barrier(const Ptr<Texture>  _texture, 
+                                 const TextureAccess currentAccess,
+                                 const TextureAccess newAccess)
+   {
+   // Vulkan is not gaining anything from this specialized call,
+   // as it's already transitioning all subresources in one call.
+   barrier(_texture, 
+           uint32v2(0, _texture->mipmaps()), 
+           uint32v2(0, _texture->layers()),
+           currentAccess,
+           newAccess);
+   }
+
    void CommandBufferVK::barrier(const Ptr<Texture>  texture, 
                                  const uint32v2      mipmaps, 
                                  const uint32v2      layers,
@@ -411,13 +429,76 @@ namespace en
 
 
 
+   // EVENTS
+   //////////////////////////////////////////////////////////////////////////
 
 
+   EventVK::EventVK(VulkanDevice* _gpu) :
+      gpu(_gpu),
+      handle(VK_NULL_HANDLE)
+   {
+   VkEventCreateInfo info;
+   info.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
+   info.pNext = nullptr;
+   info.flags = 0; // Reserved for future
+
+   Profile( gpu, vkCreateEvent(gpu->device, &info, nullptr, &handle) )
+   }
+
+   EventVK::~EventVK()
+   {
+   ProfileNoRet( gpu, vkDestroyEvent(gpu->device, handle, nullptr) )
+   }
    
+   bool EventVK::signaled(void)
+   {
+   uint32 thread = Scheduler.core();
 
-   
-   
+   Profile( gpu, vkGetEventStatus(gpu->device, handle) )
+   if (gpu->lastResult[thread] == VK_EVENT_SET)
+      return true;
 
+   return false;
+   }
+
+   void EventVK::signal(void)
+   {
+   Profile( gpu, vkSetEvent(gpu->device, handle) )
+   }
+
+   void EventVK::unsignal(void)
+   {
+   Profile( gpu, vkResetEvent(gpu->device, handle) )
+   }
+
+   Ptr<Event> CommandBufferVK::signal(void)
+   {
+   Ptr<EventVK> result = new EventVK(gpu);
+
+   // All stages work, before this moment in time, needs to be finished.
+   // TODO: Expose way to specify only sub-set of pipeline stages.
+   VkPipelineStageFlags flags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+   ProfileNoRet( gpu, vkCmdSetEvent(handle, result->handle, flags) )
+
+   return ptr_reinterpret_cast<Event>(&result);
+   }
+
+   void CommandBufferVK::wait(Ptr<Event> eventToWaitFor)
+   {
+   EventVK* _event = raw_reinterpret_cast<EventVK>(&eventToWaitFor);
+
+   ProfileNoRet( gpu, vkCmdWaitEvents(handle,
+                                      1,       // events count
+                                      &_event->handle,
+                                      VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, // TODO: Expose event sync place in currently executed Pipeline Stage
+                                      VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, //       This will avoid unnecessary Cache flushes, etc.
+                                      0,       // Memory barriers
+                                      nullptr,
+                                      0,       // Buffer memory barriers
+                                      nullptr,
+                                      0,       // Image memory barriers
+                                      nullptr) )
+   }
 
 
    //enum class PipelineStage : uint32
@@ -858,83 +939,7 @@ namespace en
 //
 //
 //
-//   // Vulkan tries to hide barrier latency by specifying after completion of which pipeline stage it should start, and before which it should end.
-//   // At the same time D3D12 is trying to do the same, by allowing split-barriers, where app manuall places begining and ending barrrier events on CommandBuffer.
-//   // (see: http://www.gamedev.net/topic/676655-how-could-we-benefit-from-using-split-barriers/ )
-//
-//   CommandBufferD3D12::transitionTexture(const Ptr<Texture> _texture)
-//   {
-//   assert( _texture );
-//
-//   TextureD3D12* texture = raw_reinterpret_cast<TextureD3D12>(&_texture);
-//
-//   // Transition Swap-Chain surface from rendering destination to presentation layout.
-//   D3D12_RESOURCE_BARRIER barrier;
-//   barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-//   barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-//          // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
-//          // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends
-//   barrier.Transition.pResource   = texture->handle;
-//   barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-//   barrier.Transition.StateBefore = texture->currentState;
-//   barrier.Transition.StateAfter  = 0; // TODO: D3D12_RESOURCE_STATES
-//
-//   ProfileComNoRet( handle->ResourceBarrier(1, barrier) )
-//   }
-//
-//   CommandBufferD3D12::transitionTexture(const Ptr<Texture> _texture, 
-//                                         const uint32v2 mipmaps, 
-//                                         const uint32v2 layers)
-//   {
-//   assert( _texture );
-//
-//   TextureD3D12* texture = raw_reinterpret_cast<TextureD3D12>(&_texture);
-//
-//   // Each surface needs to be described separately if whole resource is not transitioning
-//   UINT barriers = mipmaps.count * layers.count;
-//
-//   // Transition Swap-Chain surface from rendering destination to presentation layout.
-//   D3D12_RESOURCE_BARRIER* barrier = new D3D12_RESOURCE_BARRIER[barriers];
-//   for(uint32 layer=0; layer<layers.count; ++layer)
-//      for(uint32 mipmap=0; mipmap<mipmaps.count; ++mipmap)
-//         {
-//         uint32 index = layer * mipmaps.count + mipmap;
-//
-//         UINT subresource = D3D12CalcSubresource(mipmaps.base + mipmap,
-//                                                 layers.base  + layer,
-//                                                 0u,                      // Plane Slice - DepthStencil formats have two slices
-//                                                 texture->state.mipmaps,
-//                                                 texture->state.layers);  // D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES for whole texture
-//
-//         ba rrier[index].Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-//         barrier[index].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-//                // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
-//                // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends
-//         barrier[index].Transition.pResource   = texture->handle;
-//         barrier[index].Transition.Subresource = subresource;
-//         barrier[index].Transition.StateBefore = texture->currentState;
-//         barrier[index].Transition.StateAfter  = 0; // TODO: D3D12_RESOURCE_STATES
-//         }
-//
-//   ProfileComNoRet( handle->ResourceBarrier(barriers, barrier) )
-//
-//   delete [] barrier;
-//   }
-//
-//   // Ensures that operations on "before" resource are finished before operations of "after" resource starts.
-//   // (as both resources are sharing the same memory, so it prevens concurrent work and data corruption).
-//   //
-//   // barrier.Type                     = D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
-//   // barrier.Aliasing.pResourceBefore = ; // TODO: ID3D12Resource *
-//   // barrier.Aliasing.pResourceAfter  = ; // TODO: ID3D12Resource *
-//
-//   // UAV (r/w) accessess barrier, previous operations need to finish before next ones
-//   // (prevents concurrent execution, and data corruption)
-//   //
-//   // barrier.Type          = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-//   // barrier.UAV.pResource = texture->handle;
-//
-//
+
 
    }
 }

@@ -28,8 +28,6 @@ namespace en
    {
    class VulkanDevice;
 
-
-
    // It's currently just a handle to synchronize command buffers execution.
    // Similar to MTLFence in Metal, but works between CB's submissions.
    class SemaphoreVK : public Semaphore
@@ -39,9 +37,33 @@ namespace en
       VkSemaphore   handle;
       
       SemaphoreVK(VulkanDevice* _gpu);
-     ~SemaphoreVK();
+      virtual ~SemaphoreVK();
       };
 
+   // Fine grained synchronization primitive. 
+   // Use it to sync between concurrently executed commands (for eg. Compute and 3D, or Copy and Compute).
+   class Event
+      {
+      public:
+      virtual ~Event() {};
+      };
+
+   // TODO: There are no Events equivalent in D3D12 nor Metal !!!!
+   //       Keeps this API private until can be exposed, or emulated on all three backends.
+
+   class EventVK : public Event
+      {
+      public:
+      VulkanDevice* gpu;
+      VkEvent       handle;
+
+      EventVK(VulkanDevice* gpu);
+      virtual ~EventVK();
+
+      virtual bool signaled(void);
+      virtual void signal(void);    // Signals event from CPU side
+      virtual void unsignal(void);  // Disable event from CPU side
+      };
    }
 }
 #endif

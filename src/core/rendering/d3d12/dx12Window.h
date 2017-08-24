@@ -34,8 +34,10 @@ namespace en
       {
       public:
       Direct3D12Device* gpu;
-      IDXGISwapChain3*  swapChain;
+      IDXGISwapChain1*  swapChain;
+      IDXGISwapChain4*  swapChain4;
 
+      Ptr<Texture>*  swapChainTexture;
       uint32         swapChainImages;
       uint32         swapChainCurrentImageIndex;
 

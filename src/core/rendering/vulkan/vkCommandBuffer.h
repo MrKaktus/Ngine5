@@ -69,6 +69,10 @@ namespace en
                    const VkPipelineStageFlags afterStage,   // Transition after this stage
                    const VkPipelineStageFlags beforeStage); // Transition before this stage
 
+      // Vulkan specific API (thus private for now)
+      Ptr<Event> signal(void);                      // Event will be signaled, once execution reaches this point in Command Buffer
+      void       wait(Ptr<Event> eventToWaitFor);   // Commnad Buffer execution will be stalled until given event won't be signaled
+
       bool isCompleted(void);
 
       // Interface methods
@@ -142,6 +146,10 @@ namespace en
                            const uint64 size,
                            const BufferAccess currentAccess,
                            const BufferAccess newAccess);
+
+      virtual void barrier(const Ptr<Texture>  _texture, 
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess);
 
       virtual void barrier(const Ptr<Texture>  texture, 
                            const uint32v2      mipmaps, 

@@ -561,6 +561,8 @@ namespace en
 
    Ptr<Window> VulkanDevice::createWindow(const WindowSettings& settings, const string title)
    {
+   Ptr<WindowVK> result = nullptr;
+
    // Select destination display
    Ptr<CommonDisplay> display;
    if (settings.display)
@@ -594,7 +596,7 @@ namespace en
          if (!validResolution)
             {
             Log << "Error! Requested window size for Fullscreen mode is not supported by selected display." << endl;
-            return Ptr<Window>(nullptr);
+            return ptr_reinterpret_cast<Window>(&result);
             }
          }
          
@@ -603,12 +605,13 @@ namespace en
           settings.resolution.y != 0)
          {
          Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead." << endl;
-         return Ptr<Window>(nullptr);
+         return ptr_reinterpret_cast<Window>(&result);
          }
       }
 
-   Ptr<WindowVK> ptr = new WindowVK(this, display, selectedResolution, settings, title);
-   return ptr_dynamic_cast<Window>(ptr);
+   result = new WindowVK(this, display, selectedResolution, settings, title);
+
+   return ptr_reinterpret_cast<Window>(&result);
    }
 
    }

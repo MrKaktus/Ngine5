@@ -127,9 +127,7 @@ namespace en
       bool        resolve;
       bool        depthStencil;
       
-      RenderPassD3D12(const uint32 usedAttachments,
-                      const bool   _resolve,
-                      const bool   _depthStencil);
+      RenderPassD3D12();
 
       virtual ~RenderPassD3D12();
 

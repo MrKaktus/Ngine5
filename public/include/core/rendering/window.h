@@ -70,8 +70,8 @@ namespace en
       virtual void active(void) = 0;
       virtual void transparent(const float opacity) = 0;
       virtual void opaque(void) = 0;
-      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr) = 0; // Signal when Swap-Chain surface is presented, and can be reused
-      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr) = 0;        // Wait for rendering to Swap-Chain surface being done
+      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr) = 0; // Will signal this semaphore, once Swap-Chain surface is presented, and can be reused
+      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr) = 0;        // Will wait for semaphore to signal, when rendering to Swap-Chain surface is being done, and then will present
                                                                                         
       //virtual void present(void) = 0;                 // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
       

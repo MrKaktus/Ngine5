@@ -45,8 +45,7 @@ namespace en
       uint64        offset;        // Offset in the heap
 
       TextureVK(VulkanDevice* gpu, const TextureState& state);
-      TextureVK(VulkanDevice* gpu, const TextureState& state, const uint32 id);    // Create texture interface for texture that already exists
-
+ 
       virtual Ptr<Heap> parent(void) const;
       virtual bool      read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
 

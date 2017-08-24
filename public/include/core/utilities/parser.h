@@ -33,8 +33,11 @@ class Nparser
       bool end(void);                     // Returns true if offset reached end of buffer
       };
 
+bool isCypher(uint8 input);
 bool isCharacter(uint8 input);
 bool isWhitespace(uint8 input);
 bool isEol(uint8 input);
+bool isInteger(const char* text, const uint32 length);
+bool isFloat(const char* text, const uint32 length);
 
 #endif

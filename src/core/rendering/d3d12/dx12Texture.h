@@ -31,6 +31,8 @@ namespace en
    {
    extern const DXGI_FORMAT TranslateTextureFormat[underlyingType(Format::Count)];
 
+   extern UINT D3D12CalcSubresource(UINT MipSlice, UINT ArraySlice, UINT PlaneSlice, UINT MipLevels, UINT ArraySize);
+
    class TextureD3D12 : public CommonTexture
       {
       public:
@@ -46,13 +48,13 @@ namespace en
                    const TextureState& state);
                    
       TextureD3D12(Direct3D12Device* gpu,
-                   const TextureState& state,
-                   const uint32 id);           // Create texture interface for texture that already exists
+                   const TextureState& state); // Create texture interface for texture that already exists
 
-      Ptr<TextureView> view(const TextureType type,
-                            const Format format,
-                            const uint32v2 mipmaps,         
-                            const uint32v2 layers) const;
+      virtual Ptr<TextureView> view(void) const;
+      virtual Ptr<TextureView> view(const TextureType type,
+                                    const Format format,
+                                    const uint32v2 mipmaps,         
+                                    const uint32v2 layers) const;
          
       virtual Ptr<Heap> parent(void) const;
 

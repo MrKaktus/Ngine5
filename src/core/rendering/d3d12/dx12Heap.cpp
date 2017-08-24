@@ -61,8 +61,10 @@ namespace en
    // Heap properties (GPU VRAM by default)
    D3D12_HEAP_PROPERTIES properties;
    properties.Type                 = D3D12_HEAP_TYPE_DEFAULT;
-   properties.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
-   properties.MemoryPoolPreference = D3D12_MEMORY_POOL_L1;
+   properties.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN; // Must be used when creating DEFAULT typed Heap. 
+                                     // D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
+   properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN; // Must be used when creating DEFAULT typed Heap. 
+                                     // D3D12_MEMORY_POOL_L1;
    properties.CreationNodeMask     = 0u;  // TODO: Set bit equivalent to GPU index !
    properties.VisibleNodeMask      = 0u;  // TODO: Set all bits to make it visible everywhere.
                                           // Multi-GPU is currently not supported.
@@ -89,8 +91,8 @@ namespace en
    D3D12_HEAP_DESC desc;
    desc.SizeInBytes = static_cast<UINT64>(roundedSize);
    desc.Properties  = properties;
-   desc.Alignment   = 4 * MB;                // 4KB, 64K or 4MB for MSAA
-	desc.Flags       = D3D12_HEAP_FLAG_NONE;
+   desc.Alignment   = 4 * KB;                // 4KB, 64K or 4MB for MSAA
+   desc.Flags       = D3D12_HEAP_FLAG_NONE;
       
    // TODO: If Intel/UMA architecture
    if (usage == MemoryUsage::Streamed  ||
@@ -125,7 +127,7 @@ namespace en
 
    ID3D12Heap* handle;
 
-   Profile( this, CreateHeap(&desc, IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12Heap), reinterpret_cast<void**>(&handle)
+   Profile( this, CreateHeap(&desc, __uuidof(ID3D12Heap), reinterpret_cast<void**>(&handle)) ) // IID_PPV_ARGS(&handle)
    if ( SUCCEEDED(lastResult[Scheduler.core()]) )
       result = new HeapD3D12(this, handle, usage, roundedSize);
    

@@ -132,6 +132,14 @@ namespace en
       // Optimize the way texture is internally stored in memory,
       // by describing the way it was used in the past, and the 
       // way it will be used now.
+      virtual void barrier(const Ptr<Texture>  _texture, 
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess) = 0;
+
+      // Optimize the way texture is internally stored in memory,
+      // by describing the way it was used in the past, and the 
+      // way it will be used now. Specifies only subset of mipmaps
+      // and layers to transition (or single mipmap).
       virtual void barrier(const Ptr<Texture>  texture, 
                            const uint32v2      mipmaps, 
                            const uint32v2      layers,

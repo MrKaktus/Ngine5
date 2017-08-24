@@ -21,6 +21,7 @@
 #include "utilities/Nversion.h"
 
 #include <map>
+#include <vector>
 using namespace std;
 
 namespace en
@@ -30,18 +31,17 @@ namespace en
    struct Context
           {
           // Parsed variables of different types
+          vector<string>        keys;
           map<string, bool>     bools;
-          map<string, uint8>    uint8s;
-          map<string, uint16>   uint16s;
-          map<string, sint16>   sint16s;
-          map<string, uint32>   uint32s;
+          map<string, sint64>   ints;
+          map<string, double>   doubles;
           map<string, string>   strings;
           map<string, Nversion> versions;
 
           Context();
          ~Context();
 
-          bool create(void);
+          bool create(int argc, const char **argv);
           void destroy(void);
           };
    }

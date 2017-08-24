@@ -45,7 +45,7 @@ namespace en
           HANDLE         wakeUpSignal;   // Signals that workers should react to new event
 #endif
           WorkerThread** thread;         // Table of pointers to worker threads
-          uint32         workers;        // Threads count
+          sint64         workers;        // Threads count
    static TLS            currentState;   // Pointer to current worker state (Thread-Dependent)
           union
           {

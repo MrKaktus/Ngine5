@@ -205,6 +205,14 @@ namespace en
       D3D12_SRV_DIMENSION_TEXTURECUBEARRAY       // TextureCubeMapArray
       };
 
+   // WA:
+   // According to https://msdn.microsoft.com/en-us/library/windows/desktop/mt186591(v=vs.85).aspx
+   // this helper function should be located in D3dx12.h, but during linking it is not beeing found,
+   // so as WA, it is explicitly implemented here.
+   UINT D3D12CalcSubresource(UINT MipSlice, UINT ArraySlice, UINT PlaneSlice, UINT MipLevels, UINT ArraySize)
+   {
+   return MipSlice + ArraySlice * MipLevels + PlaneSlice * MipLevels * ArraySize;
+   }
 
    TextureD3D12::TextureD3D12(Ptr<HeapD3D12> _heap,
                               ID3D12Resource* _handle,
@@ -220,10 +228,14 @@ namespace en
    }
 
    TextureD3D12::TextureD3D12(Direct3D12Device* gpu,
-                   const TextureState& state,
-                   const uint32 id)
+                   const TextureState& _state) :
+      heap(nullptr),
+      handle(nullptr),
+      offset(0),
+      textureSize(0),
+      CommonTexture(_state)
    {
-   // TODO: Finish !
+   // App needs to set handle after Texture object creation.
    }
    
    TextureD3D12::~TextureD3D12()
@@ -232,9 +244,13 @@ namespace en
    ProfileCom( handle->Release() )
    handle = nullptr;
    
-   // Deallocate from the Heap (let Heap allocator know that memory region is available again)
-   heap->allocator->deallocate(offset, textureSize);
-   heap = nullptr;
+   // Textures backed with Swap-Chain surfaces have no backing heap.
+   if (heap)
+      {
+      // Deallocate from the Heap (let Heap allocator know that memory region is available again)
+      heap->allocator->deallocate(offset, textureSize);
+      heap = nullptr;
+      }
    }
    
    Ptr<Heap> TextureD3D12::parent(void) const
@@ -266,7 +282,11 @@ namespace en
    return false;
    }
 
-   // Texture View ?
+   Ptr<TextureView> TextureD3D12::view(void) const
+   {
+   return view(state.type, state.format, uint32v2(0, state.mipmaps), uint32v2(0, state.layers));
+   }
+
    Ptr<TextureView> TextureD3D12::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
@@ -389,14 +409,6 @@ namespace en
    return ptr_reinterpret_cast<TextureView>(&result);
    }
    
-   // Created at Bind Time !
-   
-   // When it creates View, it binds it to specific Descriptor at the same time ???
-   // ID3D12Resource handle;  // Parent resource handle ???
-   // D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle; // <- result, handle to bound View's descriptor slot
-   // Profile( gpu, CreateShaderResourceView(&handle, &desc, descriptorHandle) )
-
-
    Ptr<Texture> HeapD3D12::createTexture(const TextureState state)
    {
    Ptr<TextureD3D12> result = nullptr;

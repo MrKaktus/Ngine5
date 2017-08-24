@@ -1,8 +1,61 @@
+Eric Lengyel:
+-------------
+
+( Series of tweets: https://twitter.com/EricLengyel/status/898432283278843907 )
+
+- Coordinate Spaces are Right-Handed
+- World Space:
+  - Up    - Z+ (gravity -Z)
+  - Look  - Y+
+  - Right - X+
+
+- Object Space (rotated left by 90 deg around Up vector):
+  - Up    - Z+
+  - Look  - X+
+  - Right - Y- (Left +Y)
+
+- Vectors are Columns -> Matrices are stored in Column-Major order
+            max x vec
+  antivec x mat
+
+  -> vectors can be stored in continuous way in memory, pointers to vectors etc.
+  -> vectors as rows could use DPPS to calculate dot product of two ( https://stackoverflow.com/questions/37879678/dot-product-performance-with-sse-instructions )
+  -> Then pass Matrices to Shaders as set of row-vectors -> as row-vector x vector is how matrix multiply works
+
+Left Handed:
+------------
+- D3D9
+- Unity              - LH +Y Up (http://www.aclockworkberry.com/world-coordinate-systems-in-3ds-max-unity-and-unreal-engine/ )
+  - Up    - Y+
+  - Look  - Z+
+  - Right - X+
+
+- RenderMan          - LH +Y Up ( https://t.co/BMoJn8zKoZ ) 
+- POV-Ray            - LH +Y Up ( https://t.co/Ada6U3Rs2x )
+- Unreal Engine      - LH +Z Up ( https://docs.unrealengine.com/latest/INT/Engine/Basics/CoordinateSpace/ )
+  World Space (?):
+  - Up    - Z+
+  - Look  - Y- (the only difference from 3DSMax)
+  - Right - X+
+  Object spoace: (http://www.aclockworkberry.com/world-coordinate-systems-in-3ds-max-unity-and-unreal-engine/)
+  - Up    - Z+
+  - Look  - X+
+  - Right - Y+
+- 3DSMax (Internals) - LH
+
+Right Handed:
+-------------
+- 3DSMax             - RH +Z up
+  - Up    - Z+
+  - Look  - Y+
+  - Right - X+
+
+- Physics engines    - RH
 
 
 Entity / Oriented:
 
-Default orientation:
+Default orientation (RH):
 
        Up (Y+)
        . 
@@ -28,7 +81,7 @@ Move Down    -> Y-
 Move Front   -> Z+
 Move Back    -> Z-
 
-All rotations are clock-wise positive:
+All rotations are clock-wise positive (when looking from center towards the arrow):
 
        Up (Y+)
        . 

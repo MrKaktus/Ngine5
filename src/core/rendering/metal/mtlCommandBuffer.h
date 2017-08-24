@@ -106,6 +106,10 @@ namespace en
                            const BufferAccess currentAccess,
                            const BufferAccess newAccess);
 
+      virtual void barrier(const Ptr<Texture>  _texture, 
+                           const TextureAccess currentAccess,
+                           const TextureAccess newAccess);
+
       virtual void barrier(const Ptr<Texture>  texture, 
                            const uint32v2      mipmaps, 
                            const uint32v2      layers,

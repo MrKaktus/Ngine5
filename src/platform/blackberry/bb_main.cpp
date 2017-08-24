@@ -48,7 +48,7 @@
 
    // Init modules in proper order
    en::storage::Interface::create();
-   ConfigContext.create();
+   ConfigContext.create(argc, argv);
    LogContext.create();
    SystemContext.create();
    GpuContext.create();

@@ -21,12 +21,15 @@ using namespace std;
 
 #include "core/rendering/device.h"
 #include "core/rendering/common/inputLayout.h"
+#include "core/rendering/common/display.h"
 #include "utilities/Nversion.h"
 #include "threading/mutex.h"
 
 // TODO: Move it to Thread Pool Scheduler
-#define MaxSupportedWorkerThreads 64
+#define MaxSupportedWorkerThreads  64
 #define MaxCommandBuffersExecuting 32
+#define MaxCommandBuffersAllocated 32
+#define AllocatorCacheSize         2
 
 namespace en
 {
@@ -113,6 +116,11 @@ namespace en
          
       virtual void init(void);
 
+      virtual uint32 displays(void) const;
+
+      virtual Ptr<Display> display(uint32 index) const;
+
+
       virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                  const uint32 controlPoints = 0u);
 
@@ -131,6 +139,20 @@ namespace en
       virtual PipelineState defaultPipelineState(void);
 
       virtual uint32 texelSize(const Format format);
+      };
+
+   class CommonGraphicAPI : public GraphicAPI
+      {
+      public:
+      // API Independent, OS Dependent - Windowing System
+      Ptr<CommonDisplay>*              displayArray;
+      Ptr<CommonDisplay>               virtualDisplay;
+      uint32                           displaysCount;
+      uint32                           displayPrimary;
+  
+      public:
+      CommonGraphicAPI();
+      virtual ~CommonGraphicAPI();
       };
    }
 }

@@ -35,6 +35,7 @@ namespace en
 
    CommonDisplay::~CommonDisplay()
    {
+   delete [] modeResolution;
    }
 
    uint32v2 CommonDisplay::position(void)

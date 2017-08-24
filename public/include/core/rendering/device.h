@@ -245,7 +245,10 @@ namespace en
       virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
                                                const Ptr<DepthStencilAttachment> depthStencil) = 0;
 
-      // Creates render pass 
+      // Creates render pass. Entries in "color" array, match output
+      // color attachment slots in Fragment Shader. Entries in this 
+      // array may be set to nullptr, which means that given output
+      // color attachment slot has no bound resource descriptor.
       virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
                                                const Ptr<ColorAttachment>* color,
                                                const Ptr<DepthStencilAttachment> depthStencil) = 0;

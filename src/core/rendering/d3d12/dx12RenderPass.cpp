@@ -201,6 +201,13 @@ namespace en
 
    FramebufferD3D12::~FramebufferD3D12()
    {
+   for(uint32 i=0; i<8; ++i)
+      {
+      colorHandle[i] = nullptr;
+      resolveHandle[i] = nullptr;
+      }
+
+   depthHandle = nullptr;
    }
 
 
@@ -208,13 +215,13 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   RenderPassD3D12::RenderPassD3D12(const uint32 _usedAttachments,
-                                    const bool   _resolve,
-                                    const bool   _depthStencil) :
-      usedAttachments(_usedAttachments),
-      resolve(_resolve),
-      depthStencil(_depthStencil)
+   RenderPassD3D12::RenderPassD3D12() :
+      usedAttachments(0),
+      resolve(false),
+      depthStencil(false)
    {
+   // By default it asumes that output is carried only by
+   // side effects, and there are no output attachments.
    }
 
    RenderPassD3D12::~RenderPassD3D12()
@@ -314,7 +321,7 @@ namespace en
 
    Ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
       const uint32 layers,
-      const uint32 attachments, // TODO: Count of passed attachments, may be smaller than usedAttachments count ?
+      const uint32 attachments, // TODO: Count of passed attachments, may be smaller than usedAttachments count ?  <-- Currently input attachments array is tightly packed, firct colors, then their resolves
       const Ptr<TextureView>* attachment,
       const Ptr<TextureView> _depthStencil,
       const Ptr<TextureView> _stencil,
@@ -414,30 +421,188 @@ namespace en
    return ptr_reinterpret_cast<Framebuffer>(&result);
    }
 
-      // Creates framebuffer using window Swap-Chain surface.
+   // Creates framebuffer using window Swap-Chain surface.
    Ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
       const Ptr<TextureView> swapChainSurface,
-      const Ptr<TextureView> depthStencil,
-      const Ptr<TextureView> stencil)
+      const Ptr<TextureView> _depthStencil,
+      const Ptr<TextureView> _stencil)
    {
+   Ptr<FramebufferD3D12> result = nullptr;
 
-   // TODO: Finish!
+   assert( swapChainSurface );
+   assert( _depthStencil == nullptr ||   // D3D12 is not supporting separate Depth and Stencil at the same time.
+           _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
 
-   return Ptr<Framebuffer>(nullptr);
+   // Resolution cannot be greater than selected destination size (Swap-Chain surfaces have no mipmaps)
+   TextureViewD3D12* ptr = raw_reinterpret_cast<TextureViewD3D12>(&swapChainSurface);
+   assert( resolution.width  <= ptr->texture->state.width );
+   assert( resolution.height <= ptr->texture->state.height );
+
+   // Render Pass should use single Color Attachment #0
+   assert( bitsCount(usedAttachments) == 1 );
+   assert( checkBit(usedAttachments, 0) );
+
+   result = new FramebufferD3D12(resolution, 1);
+
+   // Keep reference to used view
+   Ptr<TextureViewD3D12> view = ptr_reinterpret_cast<TextureViewD3D12>(&swapChainSurface);
+   result->colorHandle[0] = view;
+   
+   // It's Swap-Chain surface, thus it needs to be single 2D texture
+   assert( view->desc.ViewDimension == D3D12_SRV_DIMENSION_TEXTURE2D );
+
+   // Create Render Target View
+   result->colorDesc[0].Format        = view->desc.Format;
+   result->colorDesc[0].ViewDimension = static_cast<D3D12_RTV_DIMENSION>(view->desc.ViewDimension);
+   
+   // D3D12 is not allowing reinterpretation of resource type
+   // when using it for rendering (as there is no ViewDimmension field)
+   TextureType type = view->texture->state.type;
+   assert( type == view->viewType );
+   
+   fillRTV(view->viewType,
+           view->mipmaps,
+           view->layers,
+           result->colorDesc[0]);
+
+   // There is no MSAA resolve in this Render Pass
+   assert( !resolve );
+
+   if (depthStencil)
+      {
+      Ptr<TextureViewD3D12> view = _depthStencil ? ptr_reinterpret_cast<TextureViewD3D12>(&_depthStencil)
+                                                 : ptr_reinterpret_cast<TextureViewD3D12>(&_stencil);
+         
+      // Keep reference to used Depth-Stencil resource
+      result->depthHandle = view;
+
+      // TODO: Verify those asserts, what about 1D, 1DArray? why forbide 3D, Cube, CubeArray?
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_UNKNOWN );
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_BUFFER );
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURE3D );
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURECUBE );
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURECUBEARRAY );
+
+      result->depthDesc.Format        = view->desc.Format;
+      result->depthDesc.ViewDimension = static_cast<D3D12_DSV_DIMENSION>(view->desc.ViewDimension);
+      result->depthDesc.Flags         = D3D12_DSV_FLAG_NONE;
+      
+      // Optimize texture usage
+      if (!checkBitmask(underlyingType(view->texture->state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
+         {
+         Format format = view->texture->state.format;
+         
+         if (TextureFormatIsStencil(format))
+            result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
+         else
+         if (TextureFormatIsDepth(format))
+            result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
+         else
+            result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL;
+         }
+      
+      fillDSV(view->viewType,
+              view->mipmaps,
+              view->layers,
+              result->depthDesc);
+      }
+
+   return ptr_reinterpret_cast<Framebuffer>(&result);
    }
    
-      // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
-      // window Swap-Chain surface.
+   // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
+   // window Swap-Chain surface.
    Ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
       const Ptr<TextureView> temporaryMSAA,
       const Ptr<TextureView> swapChainSurface,
-      const Ptr<TextureView> depthStencil,
-      const Ptr<TextureView> stencil)
+      const Ptr<TextureView> _depthStencil,
+      const Ptr<TextureView> _stencil)
    {
+   Ptr<FramebufferD3D12> result = nullptr;
 
-   // TODO: Finish!
+   assert( temporaryMSAA );
+   assert( swapChainSurface );
+   assert( _depthStencil == nullptr ||   // D3D12 is not supporting separate Depth and Stencil at the same time.
+           _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
 
-   return Ptr<Framebuffer>(nullptr);
+   // Resolution cannot be greater than selected destination size (Swap-Chain surfaces have no mipmaps)
+   Ptr<TextureViewD3D12> source      = ptr_reinterpret_cast<TextureViewD3D12>(&temporaryMSAA);
+   Ptr<TextureViewD3D12> destination = ptr_reinterpret_cast<TextureViewD3D12>(&swapChainSurface);
+   assert( source->texture->state.width  == destination->texture->state.width );
+   assert( source->texture->state.height == destination->texture->state.height );
+   assert( resolution.width  <= destination->texture->state.width );
+   assert( resolution.height <= destination->texture->state.height );
+
+   // Render Pass should use single Color Attachment #0
+   assert( bitsCount(usedAttachments) == 1 );
+   assert( checkBit(usedAttachments, 0) );
+
+   result = new FramebufferD3D12(resolution, 1);
+
+   // Keep reference to used view
+   result->colorHandle[0] = source;
+   
+   // Create Render Target View
+   result->colorDesc[0].Format        = source->desc.Format;
+   result->colorDesc[0].ViewDimension = static_cast<D3D12_RTV_DIMENSION>(source->desc.ViewDimension);
+   
+   // D3D12 is not allowing reinterpretation of resource type
+   // when using it for rendering (as there is no ViewDimmension field)
+   TextureType type = source->texture->state.type;
+   assert( type == source->viewType );
+   
+   fillRTV(source->viewType,
+           source->mipmaps,
+           source->layers,
+           result->colorDesc[0]);
+
+   // It's Swap-Chain surface, thus it needs to be single 2D texture
+   assert( destination->desc.ViewDimension == D3D12_SRV_DIMENSION_TEXTURE2D );
+
+   // Keep references to resolve destinations
+   assert( resolve );
+   result->resolveHandle[0] = destination;
+
+   if (depthStencil)
+      {
+      Ptr<TextureViewD3D12> view = _depthStencil ? ptr_reinterpret_cast<TextureViewD3D12>(&_depthStencil)
+                                                 : ptr_reinterpret_cast<TextureViewD3D12>(&_stencil);
+         
+      // Keep reference to used Depth-Stencil resource
+      result->depthHandle = view;
+
+      // TODO: Verify those asserts, what about 1D, 1DArray? why forbide 3D, Cube, CubeArray?
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_UNKNOWN );
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_BUFFER );
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURE3D );
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURECUBE );
+      assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURECUBEARRAY );
+
+      result->depthDesc.Format        = view->desc.Format;
+      result->depthDesc.ViewDimension = static_cast<D3D12_DSV_DIMENSION>(view->desc.ViewDimension);
+      result->depthDesc.Flags         = D3D12_DSV_FLAG_NONE;
+      
+      // Optimize texture usage
+      if (!checkBitmask(underlyingType(view->texture->state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
+         {
+         Format format = view->texture->state.format;
+         
+         if (TextureFormatIsStencil(format))
+            result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
+         else
+         if (TextureFormatIsDepth(format))
+            result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
+         else
+            result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL;
+         }
+      
+      fillDSV(view->viewType,
+              view->mipmaps,
+              view->layers,
+              result->depthDesc);
+      }
+
+   return ptr_reinterpret_cast<Framebuffer>(&result);
    }
 
    
@@ -469,13 +634,36 @@ namespace en
    Ptr<RenderPassD3D12> result = nullptr;
    
    assert( swapChainSurface );
+  
+   // D3D12 doesn't support Render Passes, thus references to Color 
+   // and Depth-Stencil Attachment objects are stored in Render Pass 
+   // object, and used to emulate Rende Pass behavior when it is 
+   // started and ended on Command Buffer.
 
-   // TODO: Finish!
+   result = new RenderPassD3D12();
+   assert( result );
+
+   // Single Color Attachment
+   result->colorState[0] = raw_reinterpret_cast<ColorAttachmentD3D12>(&swapChainSurface)->state;
+   if (result->colorState[0].resolve)
+      result->resolve = true;
+
+   setBit(result->usedAttachments, 0);
+
+   // Optional Depth-Stencil / Depth / Stencil
+   if (depthStencil)
+      {
+      result->depthState = raw_reinterpret_cast<DepthStencilAttachmentD3D12>(&depthStencil)->state;
+      result->depthStencil = true;
+      }
 
    return ptr_reinterpret_cast<RenderPass>(&result);
    }
 
-
+   // Creates render pass. Entries in "color" array, match output
+   // color attachment slots in Fragment Shader. Entries in this 
+   // array may be set to nullptr, which means that given output
+   // color attachment slot has no bound resource descriptor.
    Ptr<RenderPass> Direct3D12Device::createRenderPass(const uint32 attachments,
                                                       const Ptr<ColorAttachment>* color,
                                                       const Ptr<DepthStencilAttachment> depthStencil)
@@ -484,7 +672,46 @@ namespace en
    
    assert( attachments < support.maxColorAttachments );
 
-   // TODO: Finish!
+   // D3D12 doesn't support Render Passes, thus references to Color 
+   // and Depth-Stencil Attachment objects are stored in Render Pass 
+   // object, and used to emulate Rende Pass behavior when it is 
+   // started and ended on Command Buffer.
+
+
+   // TODO: Does D3D12 support below? (Vulkan does):
+   //       Allows pass without any color and depth attachments.
+   //       In such case, rasterization is still performed in width x height x layers x sampler space,
+   //       but it is expected that results will be outputted as a result of side effects operation.
+   //
+   // Metal is not supporting that !
+   //
+   // TODO: Make this method universal and internal. Provide common width/height/layers paarameters.
+   //       There should be separate method for creating such RenderPass that accepts only those parameters.
+   //
+
+   result = new RenderPassD3D12();
+   assert( result );
+
+   // Optional Color Attachments
+   for(uint32 i=0; i<attachments; ++i)
+      {
+      // Passed in array of Color Attachment descriptors may have empty slots.
+      if (color[i])
+         {
+         result->colorState[i] = raw_reinterpret_cast<ColorAttachmentD3D12>(&color[i])->state;
+         if (result->colorState[i].resolve)
+            result->resolve = true;
+
+         setBit(result->usedAttachments, i);
+         }
+      }
+
+   // Optional Depth-Stencil / Depth / Stencil
+   if (depthStencil)
+      {
+      result->depthState = raw_reinterpret_cast<DepthStencilAttachmentD3D12>(&depthStencil)->state;
+      result->depthStencil = true;
+      }
 
    return ptr_reinterpret_cast<RenderPass>(&result);
    }

@@ -76,7 +76,7 @@ en::initHalfs();
 
 // Init modules in proper order
 en::storage::Interface::create();
-en::ConfigContext.create();
+en::ConfigContext.create(argc,argv);
 en::LogContext.create();
 en::SystemContext.create();
 en::SchedulerContext.create();

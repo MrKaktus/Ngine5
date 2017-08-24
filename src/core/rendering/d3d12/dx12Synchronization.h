@@ -37,8 +37,9 @@ namespace en
       {
       public:
       Direct3D12Device* gpu;
-      ID3D12Fence*      handle;
-      
+      ID3D12Fence*      fence;        // Direct pointer to one of queue's fences
+      uint64            waitForValue; // Moment in time represented by unique value
+
       SemaphoreD3D12(Direct3D12Device* _gpu);
      ~SemaphoreD3D12();
       };

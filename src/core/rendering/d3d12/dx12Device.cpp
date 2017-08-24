@@ -19,9 +19,12 @@
 
 #include "core/log/log.h"
 #include "core/utilities/memory.h"
+#include "core/rendering/d3d12/dx12CommandBuffer.h"
 #include "core/rendering/d3d12/dx12Texture.h"
 #include "threading/scheduler.h"
+#include "utilities/strings.h"
 
+#include "platform/system.h"
 #include "platform/windows/win_events.h"
 
 namespace en
@@ -29,7 +32,7 @@ namespace en
    namespace gpu
    {
    // Checks Vulkan error state
-   bool IsError(const HRESULT result)
+   bool IsError(ID3D12Device* device, const HRESULT result)
    {
    if (result == NOERROR)
       return false;
@@ -67,6 +70,15 @@ namespace en
       info += "       The previous blit operation that is transferring information to or from this surface is incomplete.\n";
       }
    else
+   if (result == DXGI_ERROR_DEVICE_REMOVED)
+      {
+      HRESULT reason = device->GetDeviceRemovedReason();
+      IsError(device, reason);
+
+      info += "Above error caused: DXGI_ERROR_DEVICE_REMOVED.\n";
+      info += "       The GPU device instance has been suspended.\n";
+      }
+   else
    if (result == E_FAIL)
       {
       info += "E_FAIL.\n";
@@ -96,6 +108,12 @@ namespace en
       info += "S_FALSE.\n";
       info += "       Alternate success value, indicating a successful but nonstandard completion (the precise meaning depends on context).\n";
       }
+   else // Error message unknown!
+      {
+      info += "UNKNOWN: ";
+      info += (uint64)(result);
+      info += " \n";
+      }
 
    Log << info.c_str();
    return true; 
@@ -112,9 +130,11 @@ namespace en
       api(_api),
       index(_index),
       adapter(_adapter),
-      device(nullptr)
+      device(nullptr),
+      initThreads(min(Scheduler.workers(), MaxSupportedWorkerThreads))
+
    {
-   for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
+   for(uint32 i=0; i<initThreads; ++i)
       lastResult[i] = 0;
 
    // Way to find HW Adapter from which given D3D12 Device was created (DXGI 1.4+):
@@ -123,13 +143,31 @@ namespace en
    // HRESULT IDXGIFactory4::EnumAdapterByLuid(luid, IID_PPV_ARGS(adapter)); // __uuidof(IDXGIAdapter), reinterpret_cast<void**>(&adapter)
 
    // Try to create device with 12.1 feature level, if not supported fallback to 12.0
-   if (SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1, _uuidof(ID3D12Device), nullptr)))
-      ProfileCom( D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)) ) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
-   else
+   if (!SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)))) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
       ProfileCom( D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)) ) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
 
-   // All threads starts with Fence values == 0, first Fences will have ID 1
-   memset((void*)&fenceCurrentValue[0], 0, sizeof(fenceCurrentValue));
+#if defined(EN_DEBUG)
+   // Name Device for debugging
+   string name("D3D12 GPU N: ");
+   name += stringFrom(index);
+   device->SetName((LPCWSTR)name.c_str());
+#endif
+
+    // TODO: Debug print of GPU:
+
+    //  DXGI_ADAPTER_DESC1 adapterDescription; 
+    //  deviceHandle->GetDesc1(&adapterDescription);
+    //WCHAR Description[ 128 ];
+    //UINT VendorId;
+    //UINT DeviceId;
+    //UINT SubSysId;
+    //UINT Revision;
+    //SIZE_T DedicatedVideoMemory;
+    //SIZE_T DedicatedSystemMemory;
+    //SIZE_T SharedSystemMemory;
+    //LUID AdapterLuid;
+    //UINT Flags;
+
 
    // COMMAND QUEUES
    // ==============
@@ -138,6 +176,7 @@ namespace en
    uint32 types = underlyingType(QueueType::Count);
    for(uint32 type=0; type<types; ++type)
       {
+      // Create single queue for each Queue Family
       D3D12_COMMAND_QUEUE_DESC desc;
       desc.Type     = TranslateQueueType[type];
       desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL; // In [0..100] range 100 == D3D12_COMMAND_QUEUE_PRIORITY_HIGH
@@ -146,22 +185,57 @@ namespace en
      
       Profile( this, CreateCommandQueue(&desc, IID_PPV_ARGS(&queue[type])) ) // __uuidof(ID3D12CommandQueue), reinterpret_cast<void**>(&queue[type])
 
+#if defined(EN_DEBUG)
+      // Name CommandQueue for debugging
+      string name("CommandQueue Q: ");
+      name += stringFrom(type);
+      queue[type]->SetName((LPCWSTR)name.c_str());
+#endif
+
       queuesCount[type] = 1;
 
+      // Each queue has matching fence, to synchronize it's CommandBuffers
+      // TODO: Consider sharing across all adapters with D3D12_FENCE_FLAG_SHARED_CROSS_ADAPTER
+      Profile( this, CreateFence(0, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&fence[type])) ) // __uuidof(ID3D12Fence), reinterpret_cast<void**>(&fence)
 
-      // TODO: Each thread should create it's own CommandAllocators
-      uint32 thread = 0;
-      
-      // " A given allocator can be associated with no more than one
-      //   currently recording command list at a time, . . . "
-      //
-      Profile( this, CreateCommandAllocator(TranslateQueueType[type],
-                                            IID_PPV_ARGS(&commandAllocator[thread][type])) ) // __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&commandAllocator[thread][type])
+#if defined(EN_DEBUG)
+      // Name Fence for debugging
+      name = "Fence Q: ";
+      name += stringFrom(type);
+      fence[type]->SetName((LPCWSTR)name.c_str());
+#endif
       }
 
+   // All queues start with inital fence state
+   memset((void*)&fenceValue[0], 0, sizeof(fenceValue));
 
-   
-   
+   // COMMAND ALLOCATORS
+   // ==================
+
+   // Each thread has separate pool of allocators for each Queue Type
+   for(uint32 thread=0; thread<initThreads; ++thread)
+      for(uint32 type=0; type<underlyingType(QueueType::Count); ++type)
+         {
+         for(uint32 cache=0; cache<AllocatorCacheSize; ++cache)
+            {
+            // " A given allocator can be associated with no more than one
+            //   currently recording command list at a time, . . . "
+            //
+            commandAllocator[thread][type][cache] = nullptr;
+            Profile( this, CreateCommandAllocator(TranslateQueueType[type],
+                                                  IID_PPV_ARGS(&(commandAllocator[thread][type][cache]) )) ) // __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&commandAllocator[thread][type][cache])
+         
+            // TODO: BUG: FIXME: Why it fails to create more allocators than 8 ????? 
+            //                   It's not throwing any errors, and while RefCount for
+            //                   device grows, pointer is not beeing returned. 
+            //                   Looks like internal driver error.
+            assert( commandAllocator[thread][type][cache] );
+            }
+         
+         currentAllocator[thread][type] = 0;
+         commandBuffersAllocated[thread][type] = 0;
+         }
+
    // RENDER PASS
    // ===========
    //
@@ -197,11 +271,23 @@ namespace en
    // Allocate global Color Attachment descriptors heap
    Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heapRTV)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&heapRTV)
 
+#if defined(EN_DEBUG)
+   // Name RTV Heap for debugging
+   name = "RTV Heap";
+   heapRTV->SetName((LPCWSTR)name.c_str());
+#endif
+
    desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
    desc.NumDescriptors = 1;
    
    // Allocate global Depth-Stencil Attachment descriptor heap
    Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heapDSV)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&heapDSV)
+
+#if defined(EN_DEBUG)
+   // Name DSV Heap for debugging
+   name = "DSV Heap";
+   heapDSV->SetName((LPCWSTR)name.c_str());
+#endif
 
    // Acquire CPU side handles to all slots in RTV and DSV heaps
    D3D12_CPU_DESCRIPTOR_HANDLE firstHandleRTV = heapRTV->GetCPUDescriptorHandleForHeapStart();
@@ -226,17 +312,55 @@ namespace en
    {
    // TODO: Everything else . . . .
 
-   // Destroy Command Queues and Allocators
-   for(uint32 type=0; type<underlyingType(QueueType::Count); ++type)
+   // Release CommandBuffers in flight once they are done
+   bool stillExecuting;
+   do
+   {
+   stillExecuting = false;
+   for(uint32 thread=0; thread<initThreads; ++thread)
+      for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
+         for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
+            {
+            uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
+            for(uint32 i=0; i<executing; ++i)
+               {
+               CommandBufferD3D12* command = raw_reinterpret_cast<CommandBufferD3D12>(&commandBuffers[thread][queueType][cacheId][i]);
+               if (command->isCompleted())
+                  {
+                  // Safely release Command Buffer object
+                  commandBuffers[thread][queueType][cacheId][i] = nullptr;
+                  if (i < (executing - 1))
+                     {
+                     commandBuffers[thread][queueType][cacheId][i] = commandBuffers[thread][queueType][cacheId][executing - 1];
+                     commandBuffers[thread][queueType][cacheId][executing - 1] = nullptr;
+                     }
+            
+                  executing--;
+                  commandBuffersExecuting[thread][queueType][cacheId]--;
+                  }
+               else
+                  stillExecuting = true;
+               }
+            }
+   }
+   while(stillExecuting);
+
+   // Destroy Command Queues, their Fences and Allocators
+   for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
       {
-      // TODO: Each thread should destroy it's own CommandAllocators
-      uint32 thread = 0;
+      for(uint32 thread=0; thread<initThreads; ++thread)
+         for(uint32 cache=0; cache<AllocatorCacheSize; ++cache)
+            {
+            commandAllocator[thread][queueType][cache]->Reset();
+            commandAllocator[thread][queueType][cache]->Release();
+            commandAllocator[thread][queueType][cache] = nullptr;
+            }
 
-      commandAllocator[thread][type]->Release();
-      commandAllocator[thread][type] = nullptr;
+      fence[queueType]->Release();
+      fence[queueType] = nullptr;
 
-      queue[type]->Release();
-      queue[type] = nullptr;
+      queue[queueType]->Release();
+      queue[queueType] = nullptr;
       }
 
    // Destroy device
@@ -252,21 +376,16 @@ namespace en
    {
    // TODO: Populate API capabilities
 
-   CommonDevice::init();
-   }
+   for(uint32 thread=0; thread<initThreads; ++thread)
+      for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
+         for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
+            {
+            commandBuffersExecuting[thread][queueType][cacheId] = 0u;
+            for(uint32 i=0; i<MaxCommandBuffersExecuting; i++)      
+               commandBuffers[thread][queueType][cacheId][i] = nullptr;
+            }
 
-   uint32 Direct3D12Device::displays(void) const
-   {
-   // TODO: Currently all Direct3D12 devices share all available displays
-   return api->displaysCount;
-   }
-   
-   Ptr<Display> Direct3D12Device::display(uint32 index) const
-   {
-   // TODO: Currently all Direct3D12 devices share all available displays
-   assert( api->displaysCount > index );
-   
-   return ptr_reinterpret_cast<Display>(&api->displayArray[index]);
+   CommonDevice::init();
    }
 
    uint32 Direct3D12Device::queues(const QueueType type) const
@@ -295,10 +414,7 @@ namespace en
       factory(nullptr),
       device(nullptr),
       devicesCount(0),
-      displayArray(nullptr),
-      virtualDisplay(nullptr),
-      displaysCount(0),
-      displayPrimary(0)
+      CommonGraphicAPI()
    {
    for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
       lastResult[i] = 0;
@@ -320,23 +436,63 @@ namespace en
    // Factory handles all physical GPU's (adapters)
    ProfileCom( CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)) ) // __uuidof(IDXGIFactory5), reinterpret_cast<void**>(&factory)
 
+#if defined(EN_DEBUG)
+   // Name Factory for debugging
+   string name("Factory");
+   factory->SetPrivateData( WKPDID_D3DDebugObjectName, name.length(), name.c_str() );
+#endif
+
    // Create Direct3D12 Devices
    //---------------------------
 
-   // Enumerate available physical devices (with and without video output)
+   // Enumerate available physical devices (with and without video output) that support D3D12
    IDXGIAdapter1* deviceHandle = nullptr;
-   while(factory->EnumAdapters1(devicesCount, &deviceHandle) != DXGI_ERROR_NOT_FOUND) 
-      ++devicesCount;
-
-   // Create interfaces for all available physical devices
-   device = new Ptr<Direct3D12Device>[devicesCount];
-   for(uint32 i=0; i<devicesCount; ++i)
+   uint32 deviceIndex = 0;
+   while(factory->EnumAdapters1(deviceIndex, &deviceHandle) != DXGI_ERROR_NOT_FOUND) 
       {
-      deviceHandle = nullptr;
-      assert( factory->EnumAdapters1(i, &deviceHandle) != DXGI_ERROR_NOT_FOUND );
+      if (SUCCEEDED(D3D12CreateDevice(deviceHandle, D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr)))
+         ++devicesCount;
+      deviceIndex++;
 
-      device[i] = new Direct3D12Device(this, i, deviceHandle);
+      // Release acquired handle after query
+      deviceHandle->Release();
+      deviceHandle = nullptr;
       }
+
+   device = new Ptr<Direct3D12Device>[devicesCount];
+
+   // Create interfaces for all physical devices supporting D3D12
+   uint32 index = 0;
+   deviceIndex = 0;
+   while(factory->EnumAdapters1(index, &deviceHandle) != DXGI_ERROR_NOT_FOUND) 
+      {
+      if (SUCCEEDED(D3D12CreateDevice(deviceHandle, D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr)))
+         {
+         device[deviceIndex] = new Direct3D12Device(this, deviceIndex, deviceHandle);
+         ++deviceIndex;
+         }
+      else
+         {
+         // Release acquired handle if Device Creation fails
+         deviceHandle->Release();
+         deviceHandle = nullptr; 
+         }
+
+      index++;
+      }
+
+   //for(uint32 i=0; i<devicesCount; ++i)
+   //   {
+   //   deviceHandle = nullptr;
+   //   assert( factory->EnumAdapters1(i, &deviceHandle) != DXGI_ERROR_NOT_FOUND );
+
+   //   // Verify that device supports at least 12.0 feature level
+
+   //      {
+   //      device[i] = new Direct3D12Device(this, i, deviceHandle);
+   //      }
+   //   }
+
    }
 
    Direct3DAPI::~Direct3DAPI()
@@ -356,12 +512,6 @@ namespace en
       ProfileCom( debugController->Release() )
       debugController = nullptr;
       }
-
-   // Windows OS - Windowing System (API Independent)
-   virtualDisplay = nullptr;
-   for(uint32 i=0; i<displaysCount; ++i)
-      displayArray[i] = nullptr;
-   delete [] displayArray;
    }
 
    uint32 Direct3DAPI::devices(void) const

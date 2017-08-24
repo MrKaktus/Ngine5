@@ -50,7 +50,7 @@ namespace en
 #endif
    {
    // Create queues for incoming tasks
-   uint32 tasks = 256;
+   sint64 tasks = 256;
    Config.get("en.threading.maxTasks", &tasks);
    queue[0] = new Nqueue<Task*>(tasks);
    queue[1] = new Nqueue<Task*>(tasks);

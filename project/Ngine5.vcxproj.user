@@ -10,5 +10,11 @@
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\..\..\Projects\Samples\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>VK_LAYER_PATH=%VULKAN_SDK%\Source\lib</LocalDebuggerEnvironment>
+    <LocalDebuggerCommandArguments>-g.api=d3d12</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>
+    </LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

@@ -38,7 +38,7 @@ namespace en
 {
    namespace gpu
    {
-   extern bool IsError(const HRESULT result);
+   extern bool IsError(ID3D12Device* device, const HRESULT result);
    extern bool IsWarning(const HRESULT result);
    }
 }
@@ -91,13 +91,13 @@ namespace en
            }
    #else 
 
-   #define Profile( _gpu, command )                                    \
-           {                                                           \
-           uint32 thread = Scheduler.core();                           \
-           _gpu->lastResult[thread] = _gpu->device->command;           \
-           if (en::gpu::IsError(_gpu->lastResult[thread]))             \
-              assert( 0 );                                             \
-           en::gpu::IsWarning(_gpu->lastResult[thread]);               \
+   #define Profile( _gpu, command )                                                 \
+           {                                                                        \
+           uint32 thread = Scheduler.core();                                        \
+           _gpu->lastResult[thread] = _gpu->device->command;                        \
+           if (en::gpu::IsError(_gpu->device, _gpu->lastResult[thread]))            \
+              assert( 0 );                                                          \
+           en::gpu::IsWarning(_gpu->lastResult[thread]);                            \
            }
 
    #define ProfileCom( command )                                       \
@@ -161,15 +161,25 @@ namespace en
       ID3D12Device*           device;
       uint32                  queuesCount[underlyingType(QueueType::Count)];
       ID3D12CommandQueue*     queue[underlyingType(QueueType::Count)];
-      ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];
-      volatile uint32         fenceCurrentValue[MaxSupportedWorkerThreads]; // Pool of values signaled by Fences
-      HANDLE                  fenceSignalingEvent[MaxSupportedWorkerThreads]; // Event used to signal Fence completion on CPU side
-      
-	//// Synchronization objects.
-	//UINT m_frameIndex;
-	//HANDLE m_fenceEvent;
-	//ComPtr<ID3D12Fence> m_fence;
-	//UINT64 m_fenceValue;
+      ID3D12Fence*            fence[underlyingType(QueueType::Count)];        // One Fence per Queue, synchronizing CommandBuffers execution
+      volatile uint32         fenceValue[underlyingType(QueueType::Count)];   // Each queue fence increasing value for proper ordering of events
+      Nmutex                  queueAcquire[underlyingType(QueueType::Count)]; // Ensures CommandBuffer commit and fence signal is atomic operation.
+      uint32                  currentAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)]; // Specifies currently used Allocator on given thread for given queue
+      uint32                  commandBuffersAllocated[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];  // Specifies current amount of CommandBuffers allocated from current allocator
+      uint32                  commandBuffersExecuting[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize]; // Count of CommandBuffers still executing per allocator
+      Ptr<CommandBuffer>      commandBuffers[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize][MaxCommandBuffersExecuting];
+      ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize]; // Each thread can encode separate CommandBuffer,
+                                                                              // using pool of allocators. This allows them to be reset without CPU-GPU synchronization.
+      uint32                  initThreads;                                    // Amount of threads handled by this device
+
+      // Command Buffers Management
+      //----------------------------
+
+      void addCommandBufferToQueue(Ptr<CommandBuffer> command);
+      void clearCommandBuffersQueue(void);
+
+
+
 
       // We treat rendering destinations as fixed state that is rebinded with every RenderPass change.
       ID3D12DescriptorHeap* heapRTV; // Global heaps for current RenderPass (there can be only one)
@@ -183,10 +193,6 @@ namespace en
 
 
       virtual void init(void);
-
-      virtual uint32 displays(void) const;
-
-      virtual Ptr<Display> display(uint32 index) const;
 
       virtual Ptr<Window> createWindow(const WindowSettings& settings, 
                                        const string title);
@@ -274,7 +280,7 @@ namespace en
 
 
    // Direct3D API Interface
-   class Direct3DAPI : public GraphicAPI
+   class Direct3DAPI : public CommonGraphicAPI
       {
       public:
       HMODULE                library;
@@ -284,12 +290,6 @@ namespace en
       IDXGIFactory5*         factory;         // Application Direct3D API Factory
       Ptr<Direct3D12Device>* device;          // Physical Device Interfaces
       uint32                 devicesCount;
-
-      // API Independent, OS Dependent - Windowing System
-      Ptr<CommonDisplay>*    displayArray;
-      Ptr<CommonDisplay>     virtualDisplay;
-      uint32                 displaysCount;
-      uint32                 displayPrimary;
 
       public:
       Direct3DAPI(string appName);

@@ -15,7 +15,7 @@
 #include "core/config/context.h" 
 #include "core/storage.h" 
 #include "core/utilities/parser.h"
-
+#include "utilities/strings.h"
 #include "core/log/log.h"
 
 namespace en
@@ -31,7 +31,7 @@ namespace en
    {
    }
 
-   bool Context::create(void)
+   bool Context::create(int argc, const char **argv)
    {
    using namespace en::storage;
 
@@ -49,71 +49,140 @@ namespace en
 
    // Open config file 
    Ptr<File> file = Storage->open(filepath + filename);
-   if (!file)
-      return false;
+   if (file)
+      {
+      // Config file should have max 1MB size
+      if (file->size() > 1024*1024)
+         {
+         file = nullptr;
+         return false;
+         }
 
-   // Config file should have max 1MB size
-   if (file->size() > 1024*1024)
-      return false;
+      // Allocate temporary buffer for file content
+      uint32 size = static_cast<uint32>(file->size());
+      uint8* buffer = new uint8[size];
+      if (!buffer)
+         {
+         file = nullptr;
+         return false;
+         }
 
-   // Allocate temporary buffer for file content
-   uint32 size = static_cast<uint32>(file->size());
-   uint8* buffer = new uint8[size];
-   if (!buffer)
-      return false;
-   
-   // Read file to buffer and close file
-   if (!file->read(buffer))
-      return false;   
-   file = nullptr;
-   
-   // Create parser to quickly process text from file
-   Nparser text(buffer, size);
+      // Read file to buffer and close file
+      if (!file->read(buffer))
+         {
+         file = nullptr;
+         return false;  
+         } 
+      file = nullptr;
+      
+      // Create parser to quickly process text from file
+      Nparser text(buffer, size);
+      
+      // TODO: Parsing config file, extracting names, types and values of variables to map's.
+      }
 
+   // Terminal parameters override config file ones
+   assert( argc >= 0 );
+   for(uint32 i=1; i<argc; ++i)
+      {
+      // Parameters should be in format:
+      //
+      // Optional prefix   : -, --
+      // Body              : alpha.string.dots.allowed
+      // Optional separator: =
+      // Optional value    : string, number
+      //
 
-   // TODO: Parsing config file, extracting names, types and values of variables to map's.
+      // Skip optional prefix      
+      uint32 startKeyOffset = 0;
+      while(argv[i][startKeyOffset] == '-')
+         startKeyOffset++;
 
+      // Determine key length (terminated by separator or 0)
+      uint32 endKeyOffset = startKeyOffset;
+      while(argv[i][endKeyOffset] != '=' &&
+            argv[i][endKeyOffset] != 0)
+         endKeyOffset++;
+      endKeyOffset--;
+
+      // Extract key name if there is one
+      if (endKeyOffset >= startKeyOffset)
+         {
+         string keyName(&argv[i][startKeyOffset], endKeyOffset - startKeyOffset + 1);
+
+         // Check if there is optional separator, and following value
+         if (argv[i][endKeyOffset + 1] == '=' &&
+             argv[i][endKeyOffset + 2] != 0)
+            {
+            uint32 startValueOffset = endKeyOffset + 2;
+            uint32 endValueOffset   = startValueOffset; 
+            while(argv[i][endValueOffset] != 0)
+               endValueOffset++;
+            endValueOffset--;
+
+            // Extract value string
+            const char* valueStart = &argv[i][startValueOffset];
+            uint32 valueLength = endValueOffset - startValueOffset + 1;
+            string value(valueStart, valueLength);
+
+            // Determine value type
+            if (isFloat(valueStart, valueLength))
+               doubles.insert( std::pair<string, double>(keyName, stringTo<double>(value)) );
+            else
+            if (isInteger(valueStart, valueLength))
+               ints.insert( std::pair<string, sint64>(keyName, stringTo<sint64>(value)) );
+            else
+               strings.insert( std::pair<string, string>(keyName, value) );
+            }
+         else
+            {
+            // This is single key without value
+            keys.push_back(keyName);
+            }
+         }
+      }
 
    return true;
    }
 
    void Context::destroy(void)
    {
+   keys.clear();
    bools.clear();
-   uint8s.clear();
-   uint16s.clear();
-   sint16s.clear();
-   uint32s.clear();
+   ints.clear();
+   doubles.clear();
    strings.clear();
    versions.clear();
    }
 
+   bool Interface::get(const string& name)
+   {
+   return get(name.c_str());
+   }
+ 
+   bool Interface::get(const string  name)
+   {
+   return get(name.c_str());
+   }
+
+   bool Interface::get(const char* name)
+   {
+   // TODO: Optimize by replacing vector with other type of container for more optimal search
+   for(uint32 i=0; i<ConfigContext.keys.size(); ++i)
+      if (ConfigContext.keys[i] == name)
+         return true;
+
+   return false;
+   }
+
    bool Interface::get(const string& name, bool* destination)
    {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.bools.empty())
-      return false;
-
-   map<string, bool>::iterator it = ConfigContext.bools.find(name);
-   if (it == ConfigContext.bools.end())
-      return false;
-
-   *destination = it->second;
-   return true;
+   return get(name.c_str(), destination);
    }
 
    bool Interface::get(const string name, bool* destination)
    {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.bools.empty())
-      return false;
-
-   map<string, bool>::iterator it = ConfigContext.bools.find(name);
-   if (it == ConfigContext.bools.end())
-      return false;
-
-   *destination = it->second;
-   return true;
+   return get(name.c_str(), destination);
    }
 
    bool Interface::get(const char* name, bool* destination)
@@ -130,200 +199,62 @@ namespace en
    return true;
    }
 
-   bool Interface::get(const string& name, uint8* destination)
+   bool Interface::get(const string& name, sint64* destination)
+   {
+   return get(name.c_str(), destination);
+   }
+
+   bool Interface::get(const string name, sint64* destination)
+   {
+   return get(name.c_str(), destination);
+   }
+
+   bool Interface::get(const char* name, sint64* destination)
    {
    // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint8s.empty())
+   if (ConfigContext.ints.empty())
       return false;
 
-   map<string, uint8>::iterator it = ConfigContext.uint8s.find(name);
-   if (it == ConfigContext.uint8s.end())
+   map<string, sint64>::iterator it = ConfigContext.ints.find(name);
+   if (it == ConfigContext.ints.end())
       return false;
 
    *destination = it->second;
    return true;
    }
 
-   bool Interface::get(const string name, uint8* destination)
+   bool Interface::get(const string& name, double* destination)
    {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint8s.empty())
-      return false;
-
-   map<string, uint8>::iterator it = ConfigContext.uint8s.find(name);
-   if (it == ConfigContext.uint8s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
-   }
-
-   bool Interface::get(const char* name, uint8* destination)
-   {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint8s.empty())
-      return false;
-
-   map<string, uint8>::iterator it = ConfigContext.uint8s.find(name);
-   if (it == ConfigContext.uint8s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
-   }
-
-   bool Interface::get(const string& name, uint16* destination)
-   {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint16s.empty())
-      return false;
-
-   map<string, uint16>::iterator it = ConfigContext.uint16s.find(name);
-   if (it == ConfigContext.uint16s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
-   }
-
-   bool Interface::get(const string name, uint16* destination)
-   {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint16s.empty())
-      return false;
-
-   map<string, uint16>::iterator it = ConfigContext.uint16s.find(name);
-   if (it == ConfigContext.uint16s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
-   }
-
-   bool Interface::get(const char* name, uint16* destination)
-   {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint16s.empty())
-      return false;
-
-   map<string, uint16>::iterator it = ConfigContext.uint16s.find(name);
-   if (it == ConfigContext.uint16s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
-   }
-
-   bool Interface::get(const string& name, sint16* destination)
-   {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.sint16s.empty())
-      return false;
-
-   map<string, sint16>::iterator it = ConfigContext.sint16s.find(name);
-   if (it == ConfigContext.sint16s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
-   }
-
-   bool Interface::get(const string name, sint16* destination)
-   {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.sint16s.empty())
-      return false;
-
-   map<string, sint16>::iterator it = ConfigContext.sint16s.find(name);
-   if (it == ConfigContext.sint16s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
-   }
-
-   bool Interface::get(const char* name, sint16* destination)
-   {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.sint16s.empty())
-      return false;
-
-   map<string, sint16>::iterator it = ConfigContext.sint16s.find(name);
-   if (it == ConfigContext.sint16s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
-   }
-   
-   bool Interface::get(const string& name, uint32* destination)
-   {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint32s.empty())
-      return false;
-
-   map<string, uint32>::iterator it = ConfigContext.uint32s.find(name);
-   if (it == ConfigContext.uint32s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
+   return get(name.c_str(), destination);
    }
  
-   bool Interface::get(const string name, uint32* destination)
+   bool Interface::get(const string name, double* destination)
    {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint32s.empty())
-      return false;
-
-   map<string, uint32>::iterator it = ConfigContext.uint32s.find(name);
-   if (it == ConfigContext.uint32s.end())
-      return false;
-
-   *destination = it->second;
-   return true;
+   return get(name.c_str(), destination);
    }
     
-   bool Interface::get(const char* name, uint32* destination)
+   bool Interface::get(const char* name, double* destination)
    {
    // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.uint32s.empty())
+   if (ConfigContext.doubles.empty())
       return false;
 
-   map<string, uint32>::iterator it = ConfigContext.uint32s.find(name);
-   if (it == ConfigContext.uint32s.end())
+   map<string, double>::iterator it = ConfigContext.doubles.find(name);
+   if (it == ConfigContext.doubles.end())
       return false;
 
    *destination = it->second;
    return true;
    }
-     
+
    bool Interface::get(const string& name, string& destination)
    {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.strings.empty())
-      return false;
-
-   map<string, string>::iterator it = ConfigContext.strings.find(name);
-   if (it == ConfigContext.strings.end())
-      return false;
-
-   destination = it->second;
-   return true;
+   return get(name.c_str(), destination);
    }
 
    bool Interface::get(const string name, string& destination)
    {
-   // WA: std::map::find() crashes when map is empty!
-   if (ConfigContext.strings.empty())
-      return false;
-
-   map<string, string>::iterator it = ConfigContext.strings.find(name);
-   if (it == ConfigContext.strings.end())
-      return false;
-
-   destination = it->second;
-   return true;
+   return get(name.c_str(), destination);
    }
 
    bool Interface::get(const char* name, string& destination)

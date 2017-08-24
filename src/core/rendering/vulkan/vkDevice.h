@@ -214,9 +214,9 @@ namespace en
 
       virtual void init(void);
 
-      virtual uint32 displays(void) const;
+      //virtual uint32 displays(void) const;
 
-      virtual Ptr<Display> display(uint32 index) const;
+      //virtual Ptr<Display> display(uint32 index) const;
 
       virtual Ptr<Window> createWindow(const WindowSettings& settings, 
                                        const string title);
@@ -317,7 +317,7 @@ namespace en
       };
       
    // Vulkan API Interface
-   class VulkanAPI : public GraphicAPI
+   class VulkanAPI : public CommonGraphicAPI
       {
       public:
 #if defined(EN_PLATFORM_WINDOWS)
@@ -336,12 +336,6 @@ namespace en
       Ptr<VulkanDevice>*               device;      // Physical Device Interfaces
       uint32                           devicesCount;
 
-      // API Independent, OS Dependent - Windowing System
-      Ptr<CommonDisplay>*              displayArray;
-      Ptr<CommonDisplay>               virtualDisplay;
-      uint32                           displaysCount;
-      uint32                           displayPrimary;
-  
       // OS Function Pointer
       DeclareFunction( vkGetInstanceProcAddr )
    

@@ -647,6 +647,10 @@ namespace en
    return ptr_reinterpret_cast<RenderPass>(&result);
    }
 
+   // Creates render pass. Entries in "color" array, match output
+   // color attachment slots in Fragment Shader. Entries in this 
+   // array may be set to nullptr, which means that given output
+   // color attachment slot has no bound resource descriptor.
    Ptr<RenderPass> VulkanDevice::createRenderPass(const uint32 attachments,
                                                   const Ptr<ColorAttachment>* color,
                                                   const Ptr<DepthStencilAttachment> depthStencil)

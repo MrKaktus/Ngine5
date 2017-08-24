@@ -44,6 +44,18 @@ namespace en
    // management automaticly, thus this is a no-op.
    }
 
+
+   void CommandBufferMTL::barrier(const Ptr<Texture>  _texture, 
+                                  const TextureAccess currentAccess,
+                                  const TextureAccess newAccess)
+   {
+   // Direct3D12 and Vulkan requires explicit transition barriers
+   // specified by the application. Metal handles internal storage
+   // management automaticly, thus this is a no-op.
+
+   // TODO: Check textureBarrier call.
+   }
+
    void CommandBufferMTL::barrier(const Ptr<Texture>  texture,
                                   const uint32v2      mipmaps,
                                   const uint32v2      layers,
@@ -53,6 +65,8 @@ namespace en
    // Direct3D12 and Vulkan requires explicit transition barriers
    // specified by the application. Metal handles internal storage
    // management automaticly, thus this is a no-op.
+
+   // TODO: Check textureBarrier call.
    }
 
    }

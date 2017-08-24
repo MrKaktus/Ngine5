@@ -23,6 +23,7 @@
 #include "utilities/strings.h"
 
 #include "core/utilities/memory.h"
+#include "core/rendering/vulkan/vkCommandBuffer.h"
 #include "core/rendering/vulkan/vkTexture.h"
 #include "core/rendering/vulkan/vkSynchronization.h"
 
@@ -764,6 +765,37 @@ namespace en
 
    ProfileNoRet( this, vkDestroyPipelineCache(device, pipelineCache, nullptr) )
 
+   // Release CommandBuffers in flight once they are done
+   bool stillExecuting;
+   do
+   {
+   stillExecuting = false;
+   for(uint32 thread=0; thread<MaxSupportedWorkerThreads; ++thread)
+      {
+      uint32 executing = commandBuffersExecuting[thread];
+      for(uint32 i=0; i<executing; ++i)
+         {
+         CommandBufferVK* command = raw_reinterpret_cast<CommandBufferVK>(&commandBuffers[thread][i]);
+         if (command->isCompleted())
+            {
+            // Safely release Command Buffer object
+            commandBuffers[thread][i] = nullptr;
+            if (i < (executing - 1))
+               {
+               commandBuffers[thread][i] = commandBuffers[thread][executing - 1];
+               commandBuffers[thread][executing - 1] = nullptr;
+               }
+      
+            executing--;
+            commandBuffersExecuting[thread]--;
+            }
+         else
+            stillExecuting = true;
+         }
+      }
+   }
+   while(stillExecuting);
+
    // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
    uint32 thread = Scheduler.core();
 
@@ -1109,25 +1141,6 @@ namespace en
 
 
 
-
-
-   uint32 VulkanDevice::displays(void) const
-   {
-   // Currently all Vulkan devices share all available displays
-   Ptr<VulkanAPI> api = ptr_reinterpret_cast<VulkanAPI>(&en::Graphics);
-   return api->displaysCount;
-   }
-   
-   Ptr<Display> VulkanDevice::display(uint32 index) const
-   {
-   // Currently all Vulkan devices share all available displays
-   Ptr<VulkanAPI> api = ptr_reinterpret_cast<VulkanAPI>(&en::Graphics);
-     
-   assert( api->displaysCount > index );
-   
-   return ptr_reinterpret_cast<Display>(&api->displayArray[index]);
-   }
-
    uint32 VulkanDevice::queues(const QueueType type) const
    {
    return queuesCount[underlyingType(type)];  //Need translation table from (Type, N) -> (Family, Index)
@@ -1443,148 +1456,11 @@ namespace en
       globalExtension(nullptr),
       globalExtensionsCount(0),
       devicesCount(0),
-      displayArray(nullptr),
-      virtualDisplay(nullptr),
-      displaysCount(0),
-      GraphicAPI() // or SafeObject()
+      CommonGraphicAPI()
    {
    for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
       lastResult[i] = VK_SUCCESS;
       
-   // Windows OS - Windowing System Query (API Independent)
-   //-------------------------------------------------------
-
-#if defined(EN_PLATFORM_WINDOWS)
-   // Display Device settings
-   DISPLAY_DEVICE Device;
-   memset(&Device, 0, sizeof(Device));
-   Device.cb = sizeof(Device);
-
-   // Calculate amount of available displays
-   uint32 index = 0;
-   while(EnumDisplayDevices(nullptr, index++, &Device, EDD_GET_DEVICE_INTERFACE_NAME))
-      if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
-         displaysCount++;
-
-   displayArray = new Ptr<CommonDisplay>[displaysCount];
-   virtualDisplay = new winDisplay();
-  
-   // Clear structure for next display (to ensure there is no old data)
-   memset(&Device, 0, sizeof(Device));
-   Device.cb = sizeof(Device);
-      
-   // Gather information about available displays
-   uint32 displayId = 0;
-   uint32 activeId = 0;
-   while(EnumDisplayDevices(nullptr, displayId, &Device, EDD_GET_DEVICE_INTERFACE_NAME))
-      {
-      // Only displays that are part of Virtual Desktop are used by engine
-      // (so HMD displays won't be queried until they work in legacy mode as part of desktop)
-      if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) 
-         {
-         uint32v2 desktopPosition;     // Display position on Virtual Desktop
-         uint32v2 currentResolution;   // Displays current resolution
-         uint32v2 nativeResolution;    // Displays native resolution (assumed largest possible)
-         
-         DEVMODE DispMode;
-         memset(&DispMode, 0, sizeof(DispMode));
-         DispMode.dmSize = sizeof(DispMode);
-
-         // Query displays current resolution before game started
-         assert( EnumDisplaySettingsEx(Device.DeviceName, ENUM_CURRENT_SETTINGS, &DispMode, 0u) );
- 
-         // Verify that proper values were returned by query
-         assert( checkBitmask(DispMode.dmFields, (DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT)) );
-
-         desktopPosition.x   = DispMode.dmPosition.x;
-         desktopPosition.y   = DispMode.dmPosition.y;
-         currentResolution.x = DispMode.dmPelsWidth;
-         currentResolution.y = DispMode.dmPelsHeight;
-            
-         // Calculate amount of available display modes (count only modes supported by display and no rotation ones)
-         uint32 modesCount = 0;
-         while(EnumDisplaySettingsEx(Device.DeviceName, modesCount, &DispMode, 0u))
-            modesCount++;
-
-         Ptr<winDisplay> currentDisplay = new winDisplay();
-         
-         currentDisplay->modeResolution = new uint32v2[modesCount];
-     
-         // Gather information about all supported display modes
-         uint32 modeId = 0;
-         while(EnumDisplaySettingsEx(Device.DeviceName, modeId, &DispMode, 0u))
-            {
-            // Verify that proper values were returned by query
-            assert( checkBitmask(DispMode.dmFields, DM_PELSWIDTH | DM_PELSHEIGHT) );
-            
-            currentDisplay->modeResolution[modeId].x = DispMode.dmPelsWidth;
-            currentDisplay->modeResolution[modeId].y = DispMode.dmPelsHeight;
-
-            // Find largest supported resolution and assume it's display native
-            if ( (DispMode.dmPelsWidth  > nativeResolution.x) ||
-                 (DispMode.dmPelsHeight > nativeResolution.y) )
-               {
-               nativeResolution.x = DispMode.dmPelsWidth;
-               nativeResolution.y = DispMode.dmPelsHeight;
-               }
-               
-            modeId++;
-            }
-        
-         currentDisplay->_position          = desktopPosition;
-         currentDisplay->_resolution        = nativeResolution;
-         currentDisplay->observedResolution = currentResolution;
-         currentDisplay->modesCount         = modesCount;
-         currentDisplay->index              = displayId;
-       
-         // Select Primary Display
-         if (Device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
-            {
-            displayPrimary = activeId;
-            }
-       
-         // Calculate upper-left corner position, and size of virtual display.
-         // It's assumed that X axis increases right, and Y axis increases down.
-         // Virtual Display is a bounding box for all available displays.
-         if (activeId == 0)
-            {
-            virtualDisplay->_position   = currentDisplay->_position;
-            virtualDisplay->_resolution = currentDisplay->_resolution;
-            }
-         else
-            {
-            if (currentDisplay->_position.x < virtualDisplay->_position.x)
-               {
-               virtualDisplay->_resolution.width += (virtualDisplay->_position.x - currentDisplay->_position.x);
-               virtualDisplay->_position.x = currentDisplay->_position.x;
-               }
-            if (currentDisplay->_position.y < virtualDisplay->_position.y)
-               {
-               virtualDisplay->_resolution.height += (virtualDisplay->_position.y - currentDisplay->_position.y);
-               virtualDisplay->_position.y = currentDisplay->_position.y;
-               }
-            uint32 virtualRightBorder = virtualDisplay->_position.x + virtualDisplay->_resolution.width;
-            uint32 currentRightBorder = currentDisplay->_position.x + currentDisplay->_resolution.width;
-            if (virtualRightBorder < currentRightBorder)
-               virtualDisplay->_resolution.width = currentRightBorder - virtualDisplay->_position.x;
-            uint32 virtualBottomBorder = virtualDisplay->_position.y + virtualDisplay->_resolution.height;
-            uint32 currentBottomBorder = currentDisplay->_position.y + currentDisplay->_resolution.height;
-            if (virtualBottomBorder < currentBottomBorder)
-               virtualDisplay->_resolution.height = currentBottomBorder - virtualDisplay->_position.y;
-            }
-       
-         // Add active display to the list
-         displayArray[activeId] = ptr_dynamic_cast<CommonDisplay, winDisplay>(currentDisplay);
-         activeId++;
-         }
-         
-      // Clear structure for next display (to ensure there is no old data)
-      memset(&Device, 0, sizeof(Device));
-      Device.cb = sizeof(Device);
-      displayId++;
-      }
-#endif
-
    // Verify load of Vulkan dynamic library
    if (library == nullptr)
       {
@@ -1864,12 +1740,6 @@ namespace en
       dlclose(library);
 #endif
       }
-      
-   // Windows OS - Windowing System (API Independent)
-   virtualDisplay = nullptr;
-   for(uint32 i=0; i<displaysCount; ++i)
-      displayArray[i] = nullptr;
-   delete [] displayArray;
    }
 
    void VulkanAPI::loadInterfaceFunctionPointers(void)
@@ -1898,9 +1768,11 @@ namespace en
    LoadInstanceFunction( vkGetPhysicalDeviceWin32PresentationSupportKHR )
 
    // VK_EXT_debug_report
+#if defined(EN_DEBUG)
    LoadInstanceFunction( vkCreateDebugReportCallbackEXT )
    LoadInstanceFunction( vkDestroyDebugReportCallbackEXT )
    LoadInstanceFunction( vkDebugReportMessageEXT )
+#endif
    }
 
    void VulkanAPI::clearInterfaceFunctionPointers(void)
