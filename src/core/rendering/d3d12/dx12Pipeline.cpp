@@ -34,22 +34,40 @@ namespace en
       {
       D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT    , // Points
       D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE     , // Lines
-      D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE     , // LineLoops
       D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE     , // LineStripes
       D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE , // Triangles
-      D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE , // TriangleFans
       D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE , // TriangleStripes
       D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH    , // Patches
       };
-    
-   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, ID3D12PipelineState* _handle) :
+
+   static const D3D_PRIMITIVE_TOPOLOGY TranslatePrimitiveTopology[underlyingType(DrawableType::DrawableTypesCount)] =
+      {
+      D3D_PRIMITIVE_TOPOLOGY_POINTLIST                 ,  // Points
+      D3D_PRIMITIVE_TOPOLOGY_LINELIST                  ,  // Lines
+      D3D_PRIMITIVE_TOPOLOGY_LINESTRIP                 ,  // LineStripes
+      D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST              ,  // Triangles
+      D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP             ,  // TriangleStripes
+      D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST    // Patches (need to explicitly state patch size)
+      };
+
+   // D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ
+   // D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ
+   // D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ
+   // D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ
+
+   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, ID3D12PipelineState* _handle, Ptr<PipelineLayoutD3D12> _layout) :
       gpu(_gpu),
-      handle(_handle)
+      handle(_handle),
+      layout(_layout),
+      topology(D3D_PRIMITIVE_TOPOLOGY_UNDEFINED),
+      stencilRef(0)
    {
    }
 
    PipelineD3D12::~PipelineD3D12()
    {
+   layout = nullptr;
+
    assert( handle );
    ProfileCom(  handle->Release() )
    handle = nullptr;
@@ -84,7 +102,7 @@ namespace en
    const BlendStateD3D12*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateD3D12>(&pipelineState.blendState)
                                                                             : raw_reinterpret_cast<BlendStateD3D12>(&defaultState->blendState);
 
-   const PipelineLayoutD3D12*     layout         = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutD3D12>(&pipelineState.pipelineLayout) 
+   PipelineLayoutD3D12*     layout               = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutD3D12>(&pipelineState.pipelineLayout) 
                                                                                 : raw_reinterpret_cast<PipelineLayoutD3D12>(&defaultState->pipelineLayout);
 
    // Count amount of shader stages in use
@@ -134,8 +152,8 @@ namespace en
    desc.NumRenderTargets      = 0;
    if (highestBit(renderPass->usedAttachments, desc.NumRenderTargets))
       desc.NumRenderTargets++;
-   for(uint32 i=0; i<desc.NumRenderTargets; ++i)
-      desc.RTVFormats[i]      = renderPass->colorState[i].format;
+   for(uint32 i=0; i<support.maxColorAttachments; ++i)
+      desc.RTVFormats[i]      = renderPass->colorState[i].format; // Copies format from set attachments, unset ones are init to DXGI_FORMAT_UNKNOWN
    desc.DSVFormat             = renderPass->depthState.format;
    desc.SampleDesc            = multisampling->state;
    desc.NodeMask              = 0u; // Only use for multi-GPU
@@ -151,29 +169,36 @@ namespace en
    desc.RasterizerState.AntialiasedLineEnable = FALSE; // Currently unsupported (See dx12Raster.cpp).
    desc.RasterizerState.ForcedSampleCount     = 0u;    // Currently unsupported (See dx12Raster.cpp).
 
+   // TODO: Use PSO cache/library
+   // ID3D12PipelineLibrary*
+
    // Create pipeline state object
-   ID3D12PipelineState* pipeline;
+   ID3D12PipelineState* pipeline = nullptr;
    Profile( this, CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline)) ) // __uuidof(ID3D12PipelineState), reinterpret_cast<void**>(&pipeline)
    if (SUCCEEDED(lastResult[Scheduler.core()]))
       {
-      result = new PipelineD3D12(this, pipeline);
+      Ptr<PipelineLayoutD3D12> layoutPtr(layout);
+      result = new PipelineD3D12(this, pipeline, layoutPtr);
       
-      // Pass-Through - Dynamic, set on CommandBuffer
-      result->blendColor[0] = blend->blendColor.r;
-      result->blendColor[1] = blend->blendColor.g;
-      result->blendColor[2] = blend->blendColor.b;
-      result->blendColor[3] = blend->blendColor.a;
-      
-      // Viewport State is dynamic 
+      // Defer dynamic state: Viewport & Scissor State 
       const ViewportStateD3D12* viewport = raw_reinterpret_cast<ViewportStateD3D12>(&pipelineState.viewportState);
       memcpy(&result->viewport[0], &viewport->viewport[0], viewport->count * sizeof(D3D12_VIEWPORT));
       memcpy(&result->scissor[0],  &viewport->scissor[0],  viewport->count * sizeof(D3D12_RECT));
       result->viewportsCount = viewport->count;
       
-      // TODO: Set on Bind to Command Buffer !!!!!
-      // command->OMSetBlendFactor(blendColor);
-      // command->RSSetViewports(viewportsCount, &viewport[0]);
-      // command->RSSetScissorRects(viewportsCount, &scissor[0]);
+      // Defer dynamic state: Blend Color
+      result->blendColor[0] = blend->blendColor.r;
+      result->blendColor[1] = blend->blendColor.g;
+      result->blendColor[2] = blend->blendColor.b;
+      result->blendColor[3] = blend->blendColor.a;
+      
+      // Defer dynamic state: Stencil Reference
+      result->stencilRef = depthStencil->reference;
+
+      // Defer dynamic state: Primitve Type
+      result->topology = TranslatePrimitiveTopology[underlyingType(input->primitive)];
+      if (input->primitive == DrawableType::Patches)
+         result->topology = (D3D_PRIMITIVE_TOPOLOGY)(underlyingType(result->topology) + input->points - 1);
       }
 
    return ptr_reinterpret_cast<Pipeline>(&result);

@@ -22,6 +22,7 @@
 
 #include "core/rendering/d3d12/dx12.h"
 #include "core/rendering/pipeline.h"
+#include "core/rendering/d3d12/dx12Layout.h"
 
 namespace en
 {
@@ -34,14 +35,17 @@ namespace en
       public:
       Direct3D12Device* gpu;
       ID3D12PipelineState* handle;
-      
+      Ptr<PipelineLayoutD3D12> layout; // Reference to Pipeline Layout
+
       // Dynamic - Set on CommandBuffer
       FLOAT blendColor[4];
       D3D12_VIEWPORT viewport[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
       D3D12_RECT     scissor[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
       uint32 viewportsCount;  // Count of enabled states from the beginning of the array
-      
-      PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle);
+      D3D_PRIMITIVE_TOPOLOGY topology;
+      UINT stencilRef;
+
+      PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle, Ptr<PipelineLayoutD3D12> layout);
       virtual ~PipelineD3D12();
       };
 

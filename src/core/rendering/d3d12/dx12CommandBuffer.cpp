@@ -44,6 +44,7 @@ namespace en
       started(false),
       encoding(false),
       commited(false),
+      currentIndexBuffer(nullptr),
       CommandBuffer()
    {
    }
@@ -155,8 +156,8 @@ namespace en
       if (checkBit(renderPass->usedAttachments, i))
          if (renderPass->colorState[i].loadOp == LoadOperation::Clear)
             ProfileComNoRet( command->ClearRenderTargetView(gpu->handleRTV[i],
-                                                     reinterpret_cast<const FLOAT*>(&renderPass->colorState[i].clearValue),
-                                                     0, nullptr) )
+                                                            reinterpret_cast<const FLOAT*>(&renderPass->colorState[i].clearValue),
+                                                            0, nullptr) )
       
    // Clear Depth-Stencil Attachment
    if (renderPass->depthStencil)
@@ -359,14 +360,53 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::setPipeline(const Ptr<Pipeline> pipeline)
+   void CommandBufferD3D12::setPipeline(const Ptr<Pipeline> _pipeline)
    {
    assert( started );
-   assert( pipeline );
+   assert( _pipeline );
 
-   PipelineD3D12* ptr = raw_reinterpret_cast<PipelineD3D12>(&pipeline);
+   PipelineD3D12* pipeline = raw_reinterpret_cast<PipelineD3D12>(&_pipeline);
 
-   // TODO: Finish !
+   // TODO: Check if graphics or compute!  
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   ProfileComNoRet( command->SetGraphicsRootSignature(pipeline->layout->handle) )
+        
+   ProfileComNoRet( command->SetPipelineState(pipeline->handle) )
+
+   // Dynamic States:
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899196(v=vs.85).aspx
+
+   // Stream Out is currently unsupported:
+   // - ProfileComNoRet( command->SOSetTargets() )
+
+   ProfileComNoRet( command->RSSetViewports(pipeline->viewportsCount, &pipeline->viewport[0]) )
+   ProfileComNoRet( command->RSSetScissorRects(pipeline->viewportsCount, &pipeline->scissor[0]) )
+
+   ProfileComNoRet( command->OMSetBlendFactor(pipeline->blendColor) )
+
+   ProfileComNoRet( command->OMSetStencilRef(pipeline->stencilRef) )
+
+   // Metal needs primitive topology type to be specified at
+   // PSO creation time, when layered rendering is enabled, and
+   // can specify primitive adjacency and ordering at Draw time. 
+   //
+   // D3D12 always need to specify primitive topology type at 
+   // PSO creation, but still can specify primitive adjacency 
+   // and ordering at Draw time. 
+   //
+   // Vulkan on the other end is most restrictive, it cannot 
+   // dynamically change drawn primitive type, as it needs 
+   // primitive topology, adjacency and ordering info at PSO 
+   // creation time.
+   //
+   // Thus Vulkan behavior needs to be followed.
+   ProfileComNoRet( command->IASetPrimitiveTopology(pipeline->topology) )
+
+   // TODO: Check at runtime if given states really change, to prevent their constant rebinding with each PSO.
+   // TODO: Decide, which of the states below, can be promoted to be dynamic and set explicitly on CommandBuffer
+   //       (by modifying Vulkan backend PSO to have those states as dynamic, and loosing possibility for best
+   //       optimization).
    }
 
 
@@ -374,8 +414,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::draw(const DrawableType primitiveType,
-                                 const uint32       elements,
+   void CommandBufferD3D12::draw(const uint32       elements,
                                  const Ptr<Buffer>  indexBuffer,
                                  const uint32       instances,
                                  const uint32       firstElement,
@@ -384,12 +423,57 @@ namespace en
    {
    assert( started );
    assert( encoding );
+   assert( elements );
 
-   // TODO: Finish!
+   // TODO: Check if graphics or compute!  
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+   
+   // Vulkan cannot dynamically change drawn primitive type,
+   // thus it is set during Pipeline State Object binding.
+
+   // Elements are assembled into Primitives.
+   if (indexBuffer)
+      {
+      BufferD3D12* index = raw_reinterpret_cast<BufferD3D12>(&indexBuffer);
+      assert( index->apiType == BufferType::Index );
+      
+      // Prevent binding the same IBO several times in row
+      if (index != currentIndexBuffer)
+         {
+         D3D12_INDEX_BUFFER_VIEW desc;
+         desc.BufferLocation = index->handle->GetGPUVirtualAddress(); // Offset In Index Buffer is calculated at draw call.
+         desc.SizeInBytes    = index->length();  
+         desc.Format         = DXGI_FORMAT_R16_UINT;
+         if (index->formatting.column[0] == Attribute::u32)
+            desc.Format      = DXGI_FORMAT_R32_UINT;
+         
+         // Index Buffer remains bound to Command Buffer after this call,
+         // but because there is no other way to do indexed draw than to
+         // go through this API, it's safe to leave it bounded.
+         ProfileComNoRet( command->IASetIndexBuffer(&desc) )
+
+         currentIndexBuffer = index;
+         }
+
+      // TODO: Do I correctly interprete BaseVertexLocation & StartInstanceLocation?
+      //       Are they equal to starting VertexID and InstanceID?
+
+      ProfileComNoRet( command->DrawIndexedInstanced(elements,           // Number of indices to use for draw
+                                                     max(1U, instances), // Number of instances to draw
+                                                     firstElement,       // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
+                                                     firstVertex,        // BaseVertexLocation - A value added to each index before reading a vertex from the vertex buffer.
+                                                     firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
+      }
+   else
+      {
+      ProfileComNoRet( command->DrawInstanced(elements,           // Number of vertices to draw
+                                              max(1U, instances), // Number of instances to draw
+                                              firstVertex,        // Index of first vertex to draw
+                                              firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
+      }
    }
 
-   void CommandBufferD3D12::draw(const DrawableType primitiveType,
-                                 const Ptr<Buffer>  indirectBuffer,
+   void CommandBufferD3D12::draw(const Ptr<Buffer>  indirectBuffer,
                                  const uint32       firstEntry,
                                  const Ptr<Buffer>  indexBuffer,
                                  const uint32       firstElement)
@@ -401,7 +485,75 @@ namespace en
    BufferD3D12* indirect = raw_reinterpret_cast<BufferD3D12>(&indirectBuffer);
    assert( indirect->apiType == BufferType::Indirect );
    
-   // TODO: Finish!
+   // TODO: Check if graphics or compute!  
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+   
+   // D3D12 Indirect Drawing
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/dn903925(v=vs.85).aspx
+   //
+   // Engine supports only arrays of one of two indirect arguments:
+   //
+   // - D3D12_DRAW_ARGUMENTS (exposed as IndirectDrawArgument)
+   // - D3D12_DRAW_INDEXED_ARGUMENTS (exposed as IndirectIndexedDrawArgument)
+   //
+   // Unsupported D3D12 indirect arguments:
+   // 
+   // - D3D12_DISPATCH_ARGUMENTS
+   // - D3D12_VERTEX_BUFFER_VIEW
+   // - D3D12_INDEX_BUFFER_VIEW
+   // - D3D12_GPU_VIRTUAL_ADDRESS (a typedef'd synonym of UINT64).
+   // - D3D12_CONSTANT_BUFFER_VIEW_DESC
+   //
+   // D3D12 allows mixing of different Indirect Arguments in the GPU generated buffer.
+
+   UINT MaxCommandCount = 0;
+   UINT ArgumentBufferOffset = 0;
+
+   if (indexBuffer)
+      {
+      BufferD3D12* index = raw_reinterpret_cast<BufferD3D12>(&indexBuffer);
+      assert( index->apiType == BufferType::Index );
+      
+      // Prevent binding the same IBO several times in row
+      if (index != currentIndexBuffer)
+         {
+         D3D12_INDEX_BUFFER_VIEW desc;
+         desc.BufferLocation = index->handle->GetGPUVirtualAddress(); // Offset In Index Buffer is calculated at draw call.
+         desc.SizeInBytes    = index->length();  
+         desc.Format         = DXGI_FORMAT_R16_UINT;
+         if (index->formatting.column[0] == Attribute::u32)
+            desc.Format      = DXGI_FORMAT_R32_UINT;
+         
+         // Index Buffer remains bound to Command Buffer after this call,
+         // but because there is no other way to do indexed draw than to
+         // go through this API, it's safe to leave it bounded.
+         ProfileComNoRet( command->IASetIndexBuffer(&desc) )
+
+         currentIndexBuffer = index;
+         }
+
+      MaxCommandCount      = indirect->length() / sizeof(IndirectIndexedDrawArgument);
+      ArgumentBufferOffset = firstEntry * sizeof(IndirectIndexedDrawArgument);
+
+      ProfileComNoRet( command->ExecuteIndirect(indirect->signatureIndexed,
+                                                MaxCommandCount - firstEntry,
+                                                indirect->handle,
+                                                ArgumentBufferOffset,
+                                                nullptr,
+                                                0) )
+      }
+   else
+      {
+      MaxCommandCount      = indirect->length() / sizeof(IndirectDrawArgument);
+      ArgumentBufferOffset = firstEntry * sizeof(IndirectDrawArgument);
+
+      ProfileComNoRet( command->ExecuteIndirect(indirect->signature,
+                                                MaxCommandCount - firstEntry,
+                                                indirect->handle,
+                                                ArgumentBufferOffset,
+                                                nullptr,
+                                                0) )
+      }
    }
 
 

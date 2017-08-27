@@ -31,12 +31,79 @@ namespace en
       heap(_heap),
       handle(_handle),
       offset(_offset),
+      signature(nullptr),
+      signatureIndexed(nullptr),
       CommonBuffer(_type, _size)
    {
+   // For Indirect draw buffer, D3D12 requires detailed signatures
+   // to be created (as D3D12 allows mixed commands to be encoded
+   // in Indirect buffers). This is cumbersome for simple Indirect
+   // buffer usages. See Indirect Draw method in CommandBuffer for
+   // more information.
+   if (apiType == BufferType::Indirect)
+      {
+      UINT MaxCommandCount = 0;
+      D3D12_INDIRECT_ARGUMENT_DESC* argDescs = nullptr;
+
+      // Signature for Indirect Indexed Draws
+         {
+         MaxCommandCount = size / sizeof(IndirectIndexedDrawArgument);
+         
+         argDescs = new D3D12_INDIRECT_ARGUMENT_DESC[MaxCommandCount];
+         for(uint32 i=0; i<MaxCommandCount; ++i)
+            argDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
+         
+         // IndirectIndexedDrawArgument can be directly cast to D3D12_DRAW_INDEXED_ARGUMENTS.
+         D3D12_COMMAND_SIGNATURE_DESC desc;
+         desc.ByteStride       = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
+         desc.NumArgumentDescs = MaxCommandCount;
+         desc.pArgumentDescs   = argDescs;
+         desc.NodeMask         = 0;  // Multi-GPU clusters are not supported yet.
+         
+         // Engine currently doesn't support updates of DescriptorSets. 
+         // When it will, RootSignature pointer needs to be passed here.
+         Profile( heap->gpu, CreateCommandSignature(&desc,
+                                                    nullptr,  
+                                                    IID_PPV_ARGS(&signatureIndexed)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
+         }
+
+      // Signature for Indirect draws
+         {
+         MaxCommandCount = size / sizeof(IndirectDrawArgument);
+         
+         argDescs = new D3D12_INDIRECT_ARGUMENT_DESC[MaxCommandCount];
+         for(uint32 i=0; i<MaxCommandCount; ++i)
+            argDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+         
+         // IndirectDrawArgument can be directly cast to D3D12_DRAW_ARGUMENTS.
+         D3D12_COMMAND_SIGNATURE_DESC desc;
+         desc.ByteStride       = sizeof(D3D12_DRAW_ARGUMENTS);
+         desc.NumArgumentDescs = MaxCommandCount;
+         desc.pArgumentDescs   = argDescs;
+         desc.NodeMask         = 0;  // Multi-GPU clusters are not supported yet.
+         
+         // Engine currently doesn't support updates of DescriptorSets. 
+         // When it will, RootSignature pointer needs to be passed here.
+         Profile( heap->gpu, CreateCommandSignature(&desc,
+                                                    nullptr,  
+                                                    IID_PPV_ARGS(&signature)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
+         }
+      
+      delete [] argDescs;
+      }
    }
 
    BufferD3D12::~BufferD3D12()
    {
+   if (apiType == BufferType::Indirect)
+      {
+      ProfileCom( signature->Release() )
+      signature = nullptr;
+
+      ProfileCom( signatureIndexed->Release() )
+      signatureIndexed = nullptr;
+      }
+
    assert( handle );
    ProfileCom( handle->Release() )
    handle = nullptr;

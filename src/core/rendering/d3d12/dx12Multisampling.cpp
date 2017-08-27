@@ -37,7 +37,17 @@ namespace en
    // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476218(v=vs.85).aspx
    // Quality level can be also used to enable CSAA.
    state.Count   = min(static_cast<uint32>(nextPowerOfTwo(_samples)), static_cast<uint32>(MaxSamples));
-   state.Quality = D3D12_STANDARD_MULTISAMPLE_PATTERN;
+   state.Quality = 0; // D3D12_STANDARD_MULTISAMPLE_PATTERN
+
+   // Multisampling Quality levels for given PixelFormat can be queried using:
+   //
+   // D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS desc;
+   // desc.Format           = ; // Format of RenderTarget
+   // desc.SampleCount      = ; // Samples count of RenderTarget
+   // desc.Flags            = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE; // D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_TILED_RESOURCE
+   // desc.NumQualityLevels = 0;  // Query for this number
+   // 
+   // Profile( this, CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &desc, sizeof(D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS)) )
    }
    
    Ptr<MultisamplingState> Direct3D12Device::createMultisamplingState(const uint32 samples,

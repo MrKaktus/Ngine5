@@ -295,6 +295,8 @@ namespace en
       Direct3DAPI(string appName);
       virtual ~Direct3DAPI();
 
+      virtual RenderingAPI type(void) const;
+
       // TODO: Those could be moved to CommonGraphicAPI
       virtual uint32 devices(void) const;
       virtual Ptr<GpuDevice> primaryDevice(void) const;

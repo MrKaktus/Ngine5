@@ -244,22 +244,21 @@ namespace en
       {
       MTLPrimitiveTypePoint                , // Points
       MTLPrimitiveTypeLine                 , // Lines
-      MTLPrimitiveTypeLineStrip            , // LineLoops       (unsupported)
       MTLPrimitiveTypeLineStrip            , // LineStripes
       MTLPrimitiveTypeTriangle             , // Triangles
-      MTLPrimitiveTypeTriangleStrip        , // TriangleFans    (unsupported)
       MTLPrimitiveTypeTriangleStrip        , // TriangleStripes
       MTLPrimitiveTypeTriangleStrip        , // Patches         (unsupported)
       };
 
-   void CommandBufferMTL::draw(const DrawableType primitiveType,
-                               const uint32       elements,
+   void CommandBufferMTL::draw(const uint32       elements,
                                const Ptr<Buffer>  indexBuffer,
                                const uint32       instances,
                                const uint32       firstElement,
                                const sint32       firstVertex,
                                const uint32       firstInstance)
    {
+   assert( elements );
+
    MTLPrimitiveType primitive = TranslateDrawableType[primitiveType];
    
    // Elements are assembled into Primitives.
@@ -313,8 +312,7 @@ namespace en
    }
 
    // IOS 9.0+, OSX 10.11+
-   void CommandBufferMTL::draw(const DrawableType primitiveType,
-                               const Ptr<Buffer>  indirectBuffer,
+   void CommandBufferMTL::draw(const Ptr<Buffer>  indirectBuffer,
                                const uint32       firstEntry,
                                const Ptr<Buffer>  indexBuffer,
                                const uint32       firstElement)

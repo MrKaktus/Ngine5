@@ -56,8 +56,7 @@ namespace en
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       shader = new ShaderVK(this, handle, stage);
 
-
-   // TODO: Verify initial compilation with VK_EXT_debug_report
+   // In Debug mode, VK_EXT_debug_report will handle logging of initial compilation errors.
 
    return ptr_reinterpret_cast<Shader>(&shader);
    }
@@ -78,8 +77,7 @@ namespace en
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       shader = new ShaderVK(this, handle, stage);
 
-
-   // TODO: Verify initial compilation with VK_EXT_debug_report
+   // In Debug mode, VK_EXT_debug_report will handle logging of initial compilation errors.
 
    return ptr_reinterpret_cast<Shader>(&shader);
    }

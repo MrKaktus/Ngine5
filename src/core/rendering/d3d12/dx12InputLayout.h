@@ -33,7 +33,7 @@ namespace en
       public:
       D3D12_INPUT_LAYOUT_DESC state;
       DrawableType primitive;
-      uint32 points;
+      uint32 points;  // Control Points count
 
       InputLayoutD3D12(const DrawableType primitiveType,
                           const uint32 controlPoints, 

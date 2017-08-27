@@ -375,6 +375,9 @@ namespace en
    void Direct3D12Device::init()
    {
    // TODO: Populate API capabilities
+   // See: https://msdn.microsoft.com/en-us/library/windows/desktop/dn788653(v=vs.85).aspx
+
+   support.maxColorAttachments = 8;
 
    for(uint32 thread=0; thread<initThreads; ++thread)
       for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
@@ -512,6 +515,11 @@ namespace en
       ProfileCom( debugController->Release() )
       debugController = nullptr;
       }
+   }
+
+   RenderingAPI Direct3DAPI::type(void) const
+   {
+   return RenderingAPI::Direct3D;
    }
 
    uint32 Direct3DAPI::devices(void) const

@@ -35,6 +35,7 @@
 //    logic     - NoOperation
 //    writeMask - ColorMaskAll
 
+// TODO: Once sure all API's have the same default state (why different?) this default state should be exposed in public headers.
 // TODO: Rename to blend.cpp and move one level up when old interface will be completly removed
 
 namespace en

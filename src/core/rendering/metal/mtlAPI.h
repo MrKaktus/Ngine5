@@ -44,6 +44,8 @@ namespace en
 
       MetalAPI();
 
+      virtual RenderingAPI type(void) const;
+
       virtual uint32         devices(void) const;
       virtual Ptr<GpuDevice> primaryDevice(void) const;
 

@@ -105,16 +105,16 @@ namespace en
                         const uint32 mipmap,
                         const uint32 layer) = 0;
          
-      virtual void draw(const DrawableType primitiveType,
-                        const uint32       elements      = 1,      // Elements to process (they are assembled into Primitives)
+                                                                   // Primitive Type is specified in bound Pipeline State Object
+      virtual void draw(const uint32       elements,               // Elements to process (they are assembled into Primitives)
                         const Ptr<Buffer>  indexBuffer   = Ptr<Buffer>(nullptr), // Optional Index buffer
                         const uint32       instances     = 1,      // Instances to draw
                         const uint32       firstElement  = 0,      // First element to process (or index in Index buffer if specified)
-                        const sint32       firstVertex   = 0,      // VertexID from which numeration should start (can be negative)
-                        const uint32       firstInstance = 0) = 0; // InstanceID from which numeration should start
+                        const sint32       firstVertex   = 0,      // First Per-Vertex entry in VBO from which numeration should start (can be negative)
+                        const uint32       firstInstance = 0) = 0; // First Per-Instance entry in VBO from which numeration should start
          
-      virtual void draw(const DrawableType primitiveType,
-                        const Ptr<Buffer>  indirectBuffer,         // Buffer from which Draw parameters are sourced
+                                                                   // Primitive Type is specified in bound Pipeline State Object
+      virtual void draw(const Ptr<Buffer>  indirectBuffer,         // Buffer from which Draw parameters are sourced
                         const uint32       firstEntry   = 0,       // First entry to process in Indirect buffer
                         const Ptr<Buffer>  indexBuffer  = Ptr<Buffer>(nullptr), // Optional Index buffer
                         const uint32       firstElement = 0) = 0;  // First index to process in Index buffer (if specified)

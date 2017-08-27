@@ -30,18 +30,21 @@ namespace en
       };
 
    // Types of primitives to draw
+   //
+   // LineLoops    - are unsupported by all modern API's (D3D12, Vulkan, Metal)
+   // TriangleFans - are still supported only by Vulkan
    enum DrawableType
       {
       Points                      = 0,
       Lines                          ,
-      LineLoops                      ,
       LineStripes                    ,
       Triangles                      ,
-      TriangleFans                   ,
       TriangleStripes                ,
       Patches                        ,
       DrawableTypesCount          
       };
+
+
                                     
    // Comparison method             
    enum CompareMethod               

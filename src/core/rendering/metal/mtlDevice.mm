@@ -505,6 +505,11 @@ namespace en
 
    }
    
+   RenderingAPI MetalAPI::type(void) const
+   {
+   return RenderingAPI::Metal;
+   }
+
    uint32 MetalAPI::devices(void) const
    {
    return devicesCount;

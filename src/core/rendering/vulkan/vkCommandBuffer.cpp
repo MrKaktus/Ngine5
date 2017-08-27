@@ -42,6 +42,7 @@ namespace en
       started(false),
       encoding(false),
       commited(false),
+      currentIndexBuffer(nullptr),
       CommandBuffer()
    {
    }
@@ -385,8 +386,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::draw(const DrawableType primitiveType,
-                              const uint32       elements,
+   void CommandBufferVK::draw(const uint32       elements,
                               const Ptr<Buffer>  indexBuffer,
                               const uint32       instances,
                               const uint32       firstElement,
@@ -395,37 +395,37 @@ namespace en
    {
    assert( started );
    assert( encoding );
+   assert( elements );
 
-   // Vulkan cannot dynamically change drawn primitive type
-   // TODO: Should we remove primitiveType from parameters ?
-   
    // Elements are assembled into Primitives.
    if (indexBuffer)
       {
-      Ptr<BufferVK> index = ptr_dynamic_cast<BufferVK, Buffer>(indexBuffer);
+      BufferVK* index = raw_reinterpret_cast<BufferVK>(&indexBuffer);
       
       assert( index->apiType == BufferType::Index );
       
-      uint32 elementSize = 2;
-      VkIndexType indexType = VK_INDEX_TYPE_UINT16;
-      if (index->formatting.column[0] == Attribute::u32)
+      // Prevent binding the same IBO several times in row
+      if (index != currentIndexBuffer)
          {
-         elementSize = 4;
-         indexType = VK_INDEX_TYPE_UINT32;
+         VkIndexType indexType = VK_INDEX_TYPE_UINT16;
+         if (index->formatting.column[0] == Attribute::u32)
+            indexType = VK_INDEX_TYPE_UINT32;
+         
+         // Index Buffer remains bound to Command Buffer after this call,
+         // but because there is no other way to do indexed draw than to
+         // go through this API, it's safe to leave it bounded.
+         ProfileNoRet( gpu, vkCmdBindIndexBuffer(handle,
+                                                 index->handle,
+                                                 0,             // Offset In Index Buffer is calculated at draw call.
+                                                 indexType) )
+
+         currentIndexBuffer = index;
          }
 
-      // Index Buffer remains bound to Command Buffer after this call,
-      // but because there is no other way to do indexed draw than to
-      // go through this API, it's safe to leave it bounded.
-      ProfileNoRet( gpu, vkCmdBindIndexBuffer(handle,
-                                              index->handle,
-                                              (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indexes groups in one GPU Buffer
-                                              indexType) )
-      // TODO: We probably should bind from offset 0, pass starting offset in draw call, and avoid binding at all if index buffer is the same.
       ProfileNoRet( gpu, vkCmdDrawIndexed(handle,
                                           elements,
                                           max(1U, instances),
-                                          0,               // Index of first index to start (we've calculated final offset above)
+                                          firstElement,    // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
                                           firstVertex,     // VertexID of first processed vertex
                                           firstInstance) ) // InstanceID of first processed instance
       }
@@ -439,8 +439,7 @@ namespace en
       }
    }
 
-   void CommandBufferVK::draw(const DrawableType primitiveType,
-                              const Ptr<Buffer>  indirectBuffer,
+   void CommandBufferVK::draw(const Ptr<Buffer>  indirectBuffer,
                               const uint32       firstEntry,
                               const Ptr<Buffer>  indexBuffer,
                               const uint32       firstElement)

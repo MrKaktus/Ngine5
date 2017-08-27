@@ -116,6 +116,16 @@ namespace en
    extern const Nversion OpenGL_1_0;                  // OpenGL 1.0    - 20.06.1992
    extern const Nversion OpenGL_Unsupported;          // For marking unsupported features
 
+
+   // For use of API specific features (shouldn't be used if not really needed).
+   enum class RenderingAPI : uint32
+      {
+      Direct3D = 0,
+      Metal       ,
+      Vulkan      ,
+      };
+
+
    // All queues support transfer operations.
    // If device support Sparse resources, Universal and Compute queues support Sparse Transfer as well. (can we make this assumption ?)
    // Except of Transfer, they sypport:
@@ -307,6 +317,8 @@ namespace en
       
       static bool create(void);                           // Creates instance of this class (API specific) and assigns it to "Graphics".
       
+      virtual RenderingAPI type(void) const = 0;
+
       virtual uint32 devices(void) const = 0;
       virtual Ptr<GpuDevice> primaryDevice(void) const = 0;
 

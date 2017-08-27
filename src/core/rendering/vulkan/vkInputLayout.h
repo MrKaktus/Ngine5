@@ -35,11 +35,11 @@ namespace en
       VkPipelineTessellationStateCreateInfo  stateTessellator;
 
       InputLayoutVK(const DrawableType primitiveType,
-                       const uint32 controlPoints, 
-                       const uint32 usedAttributes, 
-                       const uint32 usedBuffers, 
-                       const AttributeDesc* attributes,  
-                       const BufferDesc* buffers);
+                    const uint32 controlPoints, 
+                    const uint32 usedAttributes, 
+                    const uint32 usedBuffers, 
+                    const AttributeDesc* attributes,  
+                    const BufferDesc* buffers);
 
       virtual ~InputLayoutVK() {};
       };

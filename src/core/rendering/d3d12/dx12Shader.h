@@ -32,11 +32,10 @@ namespace en
    class ShaderD3D12 : public Shader
       {
       public:
-      Direct3D12Device*  gpu;
       D3D12_SHADER_BYTECODE state;
-      ShaderStage    stage;
+      ShaderStage           stage;
 
-      //ShaderD3D12(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
+      ShaderD3D12(const ShaderStage _stage, const uint8* binary, const uint32 length);
       virtual ~ShaderD3D12();
       };
 

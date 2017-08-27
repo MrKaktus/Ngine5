@@ -266,7 +266,7 @@ namespace en
       primitive(primitiveType),
       points(controlPoints)
    {
-   state.pInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[usedAttributes];
+   state.pInputElementDescs = usedAttributes ? new D3D12_INPUT_ELEMENT_DESC[usedAttributes] : nullptr;
    state.NumElements        = static_cast<UINT>(usedAttributes);
 
    for(uint32 i=0; i<usedAttributes; ++i)

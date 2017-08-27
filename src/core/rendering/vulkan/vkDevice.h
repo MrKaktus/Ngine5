@@ -384,6 +384,8 @@ namespace en
       void loadInterfaceFunctionPointers(void);
       void clearInterfaceFunctionPointers(void);
 
+      virtual RenderingAPI type(void) const;
+
       // TODO: Those could be moved to CommonGraphicAPI
       virtual uint32 devices(void) const;
       virtual Ptr<GpuDevice> primaryDevice(void) const;

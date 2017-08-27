@@ -416,14 +416,13 @@ namespace en
       {
       VK_PRIMITIVE_TOPOLOGY_POINT_LIST,         // Points
       VK_PRIMITIVE_TOPOLOGY_LINE_LIST,          // Lines
-      VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,         // LineLoops          (Unsupported, WA with Line Strips even though one line will be missing)
       VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,         // LineStripes
       VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,      // Triangles
-      VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,       // TriangleFans
       VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,     // TriangleStripes
       VK_PRIMITIVE_TOPOLOGY_PATCH_LIST          // Patches
       };
 
+   // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,       // TriangleFans - Supported only by Vulkan.
    // VK_PRIMITIVE_TOPOLOGY_LINE_LIST_ADJ
    // VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_ADJ
    // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_ADJ
@@ -547,11 +546,9 @@ namespace en
    //
    // Primitive restart is always: 
    // off - for: Points, Lines, Triangles, Patches
-   // on  - for: LineLoops, LineStripes, TriangleFans, TriangleStripes
+   // on  - for: LineStripes, TriangleStripes (LineLoops, TriangleFans)
    //
-   if ( primitiveType == LineLoops       ||
-        primitiveType == LineStripes     ||
-        primitiveType == TriangleFans    ||
+   if ( primitiveType == LineStripes     ||
         primitiveType == TriangleStripes )
       statePrimitive.primitiveRestartEnable = VK_TRUE;
 

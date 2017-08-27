@@ -31,11 +31,13 @@ namespace en
    class BufferD3D12 : public CommonBuffer
       {
       public:
-      ID3D12Resource* handle;
-      Ptr<HeapD3D12>  heap;       // Memory backing heap
-      uint64          offset;     // Offset in the heap
-      D3D12_RANGE     range;      // Mapped range
-      
+      ID3D12Resource*         handle;
+      Ptr<HeapD3D12>          heap;             // Memory backing heap
+      uint64                  offset;           // Offset in the heap
+      D3D12_RANGE             range;            // Mapped range
+      ID3D12CommandSignature* signature;        // Indirect buffer semantic.
+      ID3D12CommandSignature* signatureIndexed; // Indirect buffer semantic for Indexed draw.
+
       BufferD3D12(Ptr<HeapD3D12> heap,
                   ID3D12Resource* handle,
                   const BufferType type,

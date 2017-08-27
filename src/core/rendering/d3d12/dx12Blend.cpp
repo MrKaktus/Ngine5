@@ -88,7 +88,7 @@ namespace en
    blendColor     = state.blendColor;
    enabledSamples = state.enabledSamples;
    
-   // To create default descriptor: desc = CD3D12_BLEND_DESC(CD3D12_DEFAULT)
+   // To create default descriptor: desc = CD3D12_BLEND_DESC(CD3D12_DEFAULT);
 
    desc.AlphaToCoverageEnable  = false; // Unspecified, patch during Pipeline creation from Multisample State
    desc.IndependentBlendEnable = true;
@@ -116,7 +116,22 @@ namespace en
       //if (color[i].writeMask & ColorMaskAlpha)
       //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
       //
-      // or for all: D3D12_COLOR_WRITE_ENABLE_ALL
+      // or for all: 
+      }
+
+   // Unused slots need to be set to default values
+   for(uint32 i=attachments; i<MaxColorAttachmentsCount; ++i)
+      {
+      desc.RenderTarget[i].BlendEnable           = FALSE;
+      desc.RenderTarget[i].LogicOpEnable         = FALSE;
+      desc.RenderTarget[i].SrcBlend              = D3D12_BLEND_ONE;
+      desc.RenderTarget[i].DestBlend             = D3D12_BLEND_ZERO;
+      desc.RenderTarget[i].BlendOp               = D3D12_BLEND_OP_ADD;
+      desc.RenderTarget[i].SrcBlendAlpha         = D3D12_BLEND_ONE;
+      desc.RenderTarget[i].DestBlendAlpha        = D3D12_BLEND_ZERO;
+      desc.RenderTarget[i].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
+      desc.RenderTarget[i].LogicOp               = D3D12_LOGIC_OP_NOOP;
+      desc.RenderTarget[i].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
       }
    }
    

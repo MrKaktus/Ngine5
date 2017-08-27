@@ -1800,6 +1800,11 @@ namespace en
    vkGetPhysicalDeviceSurfaceSupportKHR           = nullptr;
    }
    
+   RenderingAPI VulkanAPI::type(void) const
+   {
+   return RenderingAPI::Vulkan;
+   }
+
    uint32 VulkanAPI::devices(void) const
    {
    return devicesCount;

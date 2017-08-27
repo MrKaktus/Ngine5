@@ -41,10 +41,8 @@ namespace en
       {
       MTLPrimitiveTopologyClassPoint       , // Points
       MTLPrimitiveTopologyClassLine        , // Lines
-      MTLPrimitiveTopologyClassLine        , // LineLoops       (unsupported)
       MTLPrimitiveTopologyClassLine        , // LineStripes
       MTLPrimitiveTopologyClassTriangle    , // Triangles
-      MTLPrimitiveTopologyClassTriangle    , // TriangleFans    (unsupported)
       MTLPrimitiveTopologyClassTriangle    , // TriangleStripes
       MTLPrimitiveTopologyClassUnspecified , // Patches         (unsupported)
       };
