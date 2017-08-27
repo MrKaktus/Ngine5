@@ -90,7 +90,6 @@
 		85846D801CE7875000E06629 /* buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 85846D7F1CE7875000E06629 /* buffer.h */; };
 		8585EB361D78F7DF00437C1D /* sint32v4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8585EB351D78F7DF00437C1D /* sint32v4.cpp */; };
 		858B46241DD1889B0053E275 /* dx12Pipeline.h in Headers */ = {isa = PBXBuildFile; fileRef = 858B46231DD1889B0053E275 /* dx12Pipeline.h */; };
-		8591790D1C3F64750051382A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178EE1C3EC7680051382A /* libz.dylib */; };
 		8591790E1C3F64800051382A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 859178EC1C3EC3960051382A /* OpenAL.framework */; };
 		859179101C3F648C0051382A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8591790F1C3F648C0051382A /* OpenGL.framework */; };
 		859179111C3F64950051382A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85585EE61C0A32C3002EB348 /* QuartzCore.framework */; };
@@ -260,6 +259,7 @@
 		85B17C271CA4E9D800D88AF5 /* osxInput.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85B17C261CA4E9D800D88AF5 /* osxInput.mm */; };
 		85C15E371E2DE313005C69C6 /* osxStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 85C15E361E2DE313005C69C6 /* osxStorage.h */; };
 		85CDB0941C62D023001A1FA1 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85917A5A1C3F66120051382A /* AppDelegate.mm */; };
+		85DBC5871F50D34C00B429EB /* libz.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 85DBC5851F50D30A00B429EB /* libz.1.dylib */; };
 		85E070891CAC9B4600F11A41 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E070881CAC9B4600F11A41 /* CoreGraphics.framework */; };
 		85E3E2551E390EEF00703F0E /* osxStorageFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 85E3E2541E390EEF00703F0E /* osxStorageFile.h */; };
 		85E9CB9C1D7485A80029A9BE /* vkHeap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85E9CB991D7485A80029A9BE /* vkHeap.cpp */; };
@@ -367,7 +367,6 @@
 		8585EB351D78F7DF00437C1D /* sint32v4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sint32v4.cpp; sourceTree = "<group>"; };
 		858B46231DD1889B0053E275 /* dx12Pipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12Pipeline.h; sourceTree = "<group>"; };
 		859178EC1C3EC3960051382A /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
-		859178EE1C3EC7680051382A /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		859178F01C3EC8490051382A /* libfbxsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfbxsdk.a; path = "../../../../../Applications/Autodesk/FBX SDK/2015.1/lib/clang/debug/libfbxsdk.a"; sourceTree = "<group>"; };
 		859179041C3F64330051382A /* libNgine.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNgine.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8591790F1C3F648C0051382A /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -605,6 +604,7 @@
 		859A39CC1CA7AF7C00CC4173 /* winInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = winInput.h; sourceTree = "<group>"; };
 		85B17C261CA4E9D800D88AF5 /* osxInput.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxInput.mm; sourceTree = "<group>"; };
 		85C15E361E2DE313005C69C6 /* osxStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = osxStorage.h; sourceTree = "<group>"; };
+		85DBC5851F50D30A00B429EB /* libz.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.dylib; path = ../../../../usr/lib/libz.1.dylib; sourceTree = "<group>"; };
 		85DDD1151C50644B007E707D /* mtlAPI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mtlAPI.h; sourceTree = "<group>"; };
 		85E070861CAC99BB00F11A41 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		85E070881CAC9B4600F11A41 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -631,6 +631,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				85DBC5871F50D34C00B429EB /* libz.1.dylib in Frameworks */,
 				852CFDF81E2CA589002F0946 /* libfbxsdk.dylib in Frameworks */,
 				85245FCF1DB4A408004A903C /* IOSurface.framework in Frameworks */,
 				85245FB81DB3EA89004A903C /* libopenvr_api.dylib in Frameworks */,
@@ -640,7 +641,6 @@
 				859179111C3F64950051382A /* QuartzCore.framework in Frameworks */,
 				859179101C3F648C0051382A /* OpenGL.framework in Frameworks */,
 				8591790E1C3F64800051382A /* OpenAL.framework in Frameworks */,
-				8591790D1C3F64750051382A /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -650,6 +650,7 @@
 		85245FB61DB3EA89004A903C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				85DBC5851F50D30A00B429EB /* libz.1.dylib */,
 				852CFDF71E2CA589002F0946 /* libfbxsdk.dylib */,
 				85245FCE1DB4A408004A903C /* IOSurface.framework */,
 				85245FB71DB3EA89004A903C /* libopenvr_api.dylib */,
@@ -1220,7 +1221,6 @@
 				8591799A1C3F66120051382A /* src */,
 				8591790F1C3F648C0051382A /* OpenGL.framework */,
 				859178F01C3EC8490051382A /* libfbxsdk.a */,
-				859178EE1C3EC7680051382A /* libz.dylib */,
 				859178EC1C3EC3960051382A /* OpenAL.framework */,
 				85585EE61C0A32C3002EB348 /* QuartzCore.framework */,
 				8568754E1BF411C200D7FD2D /* Metal.framework */,

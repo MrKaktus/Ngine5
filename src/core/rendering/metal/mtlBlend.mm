@@ -74,7 +74,7 @@ namespace en
       MTLRenderPipelineColorAttachmentDescriptor* desc = [blendInfo objectAtIndexedSubscript:i];
          
       [desc setBlendingEnabled:             color[i].blending                      ];
-    //[desc pixelFormat:                    /* color[i].format ???  */ ];  // Metal TODO: Pixel Format need to match the pixel format of color attachment !!
+    //[desc pixelFormat];                   // Pixel Format is patched at Pipeline creation time
       [desc setSourceRGBBlendFactor:        TranslateBlend[color[i].srcRGB]        ];
       [desc setDestinationRGBBlendFactor:   TranslateBlend[color[i].dstRGB]        ];
       [desc setSourceAlphaBlendFactor:      TranslateBlend[color[i].srcAlpha]      ];

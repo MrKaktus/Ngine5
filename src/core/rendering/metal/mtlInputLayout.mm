@@ -39,20 +39,21 @@ namespace en
    // (last verified for Metal on IOS 9.0)
    //
    // All available formats are available since IOS 8.0 or OSX 10.11 unless later version of introduction is explicitly stated.
+   // From IOS 11.0 and OSX 10.13 those two are unified (there is no distinction between IOS and OSX types).
    //
    // Type of data in attributes
    static const MTLVertexFormat TranslateAttributeFormat[underlyingType(Attribute::Count)] =
       {
       MTLVertexFormatInvalid               ,  // None                 
-      MTLVertexFormatInvalid               ,  // u8_norm                (unsupported)
-      MTLVertexFormatInvalid               ,  // s8_norm                (unsupported)
-      MTLVertexFormatInvalid               ,  // u8                     (unsupported)
-      MTLVertexFormatInvalid               ,  // s8                     (unsupported)
-      MTLVertexFormatInvalid               ,  // u16_norm               (unsupported)
-      MTLVertexFormatInvalid               ,  // s16_norm               (unsupported)
-      MTLVertexFormatInvalid               ,  // u16                    (unsupported)
-      MTLVertexFormatInvalid               ,  // s16                    (unsupported)
-      MTLVertexFormatInvalid               ,  // f16                    (unsupported)
+      MTLVertexFormatUCharNormalized       ,  // u8_norm                (10.13+)
+      MTLVertexFormatCharNormalized        ,  // s8_norm                (10.13+)
+      MTLVertexFormatUChar                 ,  // u8                     (10.13+)
+      MTLVertexFormatChar                  ,  // s8                     (10.13+)
+      MTLVertexFormatUShortNormalized      ,  // u16_norm               (10.13+)
+      MTLVertexFormatShortNormalized       ,  // s16_norm               (10.13+)
+      MTLVertexFormatUShort                ,  // u16                    (10.13+)
+      MTLVertexFormatShort                 ,  // s16                    (10.13+)
+      MTLVertexFormatHalf                  ,  // f16                    (10.13+)
       MTLVertexFormatUInt                  ,  // u32                    
       MTLVertexFormatInt                   ,  // s32                    
       MTLVertexFormatFloat                 ,  // f32                    
@@ -90,6 +91,7 @@ namespace en
       MTLVertexFormatInvalid               ,  // v3u64                  (unsupported)
       MTLVertexFormatInvalid               ,  // v3s64                  (unsupported)
       MTLVertexFormatInvalid               ,  // v3f64                  (unsupported)
+   // MTLVertexFormatUChar4Normalized_BGRA ,  // v4u8_norm_rev          (Metal specific type, not exposed, why it is needed?)
       MTLVertexFormatUChar4Normalized      ,  // v4u8_norm              
       MTLVertexFormatChar4Normalized       ,  // v4s8_norm              
       MTLVertexFormatUChar4                ,  // v4u8                   
@@ -120,15 +122,15 @@ namespace en
    const uint8 AttributeSize[underlyingType(Attribute::Count)] =
       {
       0,    // None           
-      0,    // u8_norm                (unsupported)
-      0,    // s8_norm                (unsupported)
-      0,    // u8                     (unsupported)
-      0,    // s8                     (unsupported)
-      0,    // u16_norm               (unsupported)
-      0,    // s16_norm               (unsupported)
-      0,    // u16                    (unsupported)
-      0,    // s16                    (unsupported)
-      0,    // f16                    (unsupported)
+      4,    // u8_norm                (1 byte, 3 bytes padding - 10.13+)
+      4,    // s8_norm                (1 byte, 3 bytes padding - 10.13+)
+      4,    // u8                     (1 byte, 3 bytes padding - 10.13+)
+      4,    // s8                     (1 byte, 3 bytes padding - 10.13+)
+      4,    // u16_norm               (2 bytes, 2 bytes padding - 10.13+)
+      4,    // s16_norm               (2 bytes, 2 bytes padding - 10.13+)
+      4,    // u16                    (2 bytes, 2 bytes padding - 10.13+)
+      4,    // s16                    (2 bytes, 2 bytes padding - 10.13+)
+      4,    // f16                    (2 bytes, 2 bytes padding - 10.13+)
       4,    // u32                   
       4,    // s32                   
       4,    // f32                   
@@ -192,77 +194,6 @@ namespace en
       0,    // v4s10_10_10_2_rev      (unsupported)
       };
       
-      // OLD:
-      //{
-      //0,    // None                      
-      //0,    // Half                   
-      //4,    // Half2                  
-      //8,    // Half3               (6 bytes + 2 bytes of padding)
-      //8,    // Half4                  
-      //4,    // Float                  
-      //8,    // Float2                 
-      //12,   // Float3                 
-      //16,   // Float4                 
-      //0,    // Double                 
-      //0,    // Double2                
-      //0,    // Double3                
-      //0,    // Double4                
-      //0,    // Int8                   
-      //4,    // Int8v2              (2 bytes + 2 bytes of padding)
-      //4,    // Int8v3              (3 bytes + 1 byte  of padding)
-      //4,    // Int8v4                 
-      //0,    // Int16                  
-      //4,    // Int16v2                
-      //8,    // Int16v3             (6 bytes + 2 bytes of padding)
-      //8,    // Int16v4                
-      //4,    // Int32                  
-      //8,    // Int32v2                
-      //12,   // Int32v3                
-      //16,   // Int32v4                
-      //0,    // Int64                  
-      //0,    // Int64v2                
-      //0,    // Int64v3                
-      //0,    // Int64v4                
-      //0,    // UInt8                  
-      //4,    // UInt8v2             (2 bytes + 2 bytes of padding)        
-      //4,    // UInt8v3             (3 bytes + 1 byte  of padding)
-      //4,    // UInt8v4                
-      //0,    // UInt16                 
-      //4,    // UInt16v2               
-      //8,    // UInt16v3            (6 bytes + 2 bytes of padding)
-      //8,    // UInt16v4               
-      //4,    // UInt32                 
-      //8,    // UInt32v2               
-      //12,   // UInt32v3               
-      //16,   // UInt32v4               
-      //0,    // UInt64                 
-      //0,    // UInt64v2               
-      //0,    // UInt64v3               
-      //0,    // UInt64v4               
-      //0,    // Float8_SNorm           
-      //4,    // Float8v2_SNorm      (2 bytes + 2 bytes of padding)
-      //4,    // Float8v3_SNorm      (3 bytes + 1 byte  of padding)
-      //4,    // Float8v4_SNorm         
-      //0,    // Float16_SNorm          
-      //4,    // Float16v2_SNorm        
-      //8,    // Float16v3_SNorm     (6 bytes + 2 bytes of padding)
-      //8,    // Float16v4_SNorm        
-      //0,    // Float8_Norm            
-      //4,    // Float8v2_Norm       (2 bytes + 2 bytes of padding)
-      //4,    // Float8v3_Norm       (3 bytes + 1 byte  of padding)
-      //4,    // Float8v4_Norm          
-      //0,    // Float16_Norm           
-      //4,    // Float16v2_Norm         
-      //8,    // Float16v3_Norm      (6 bytes + 2 bytes of padding)
-      //8,    // Float16v4_Norm         
-      //4,    // Float4_10_10_10_2_SNorm
-      //4     // Float4_10_10_10_2_Norm 
-      //};
-
-   uint32 stepRate;  // Rate at which consecutive elements are sourced
-   uint32 elementSize; // Size of single element (row size)
-   
-
    InputLayoutMTL::InputLayoutMTL(const DrawableType primitiveType,
                                         const uint32 controlPoints, 
                                         const uint32 usedAttributes, 
