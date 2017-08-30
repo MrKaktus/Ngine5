@@ -47,6 +47,17 @@ namespace en
       MTLPrimitiveTopologyClassUnspecified , // Patches         (unsupported)
       };
 
+   // Types of primitives to draw
+   const MTLPrimitiveType TranslateDrawableType[DrawableTypesCount]
+      {
+      MTLPrimitiveTypePoint                , // Points
+      MTLPrimitiveTypeLine                 , // Lines
+      MTLPrimitiveTypeLineStrip            , // LineStripes
+      MTLPrimitiveTypeTriangle             , // Triangles
+      MTLPrimitiveTypeTriangleStrip        , // TriangleStripes
+      MTLPrimitiveTypeTriangleStrip        , // Patches         (unsupported)
+      };
+
    PipelineMTL::PipelineMTL(const id<MTLDevice> device, MTLRenderPipelineDescriptor* desc, NSError** result) :
       handle([device newRenderPipelineStateWithDescriptor:desc error:result]),
       depthStencil(nullptr),
@@ -206,6 +217,7 @@ namespace en
       pipeline->depthStencil = ptr_reinterpret_cast<DepthStencilStateMTL>(&pipelineState.depthStencilState);
       pipeline->raster       = *ptr_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState);
       pipeline->viewport     = *ptr_reinterpret_cast<ViewportStateMTL>(&pipelineState.viewportState);
+      pipeline->primitive    = TranslateDrawableType[input->primitive];
       }
 
    return ptr_reinterpret_cast<Pipeline>(&pipeline);
@@ -219,6 +231,24 @@ namespace en
    
    [renderEncoder setRenderPipelineState: ptr->handle];
    
+   // Dynamic States:
+   
+   // Metal needs primitive topology type to be specified at
+   // PSO creation time, when layered rendering is enabled, and
+   // can specify primitive adjacency and ordering at Draw time.
+   //
+   // D3D12 always need to specify primitive topology type at
+   // PSO creation, but still can specify primitive adjacency
+   // and ordering at Draw time.
+   //
+   // Vulkan on the other end is most restrictive, it cannot
+   // dynamically change drawn primitive type, as it needs
+   // primitive topology, adjacency and ordering info at PSO
+   // creation time.
+   //
+   // Thus Vulkan behavior needs to be followed.
+   primitive = ptr->primitive;
+
    // Rasterization State
    [renderEncoder setFrontFacingWinding: ptr->raster.frontFace];
    [renderEncoder setCullMode: ptr->raster.culling];

@@ -42,9 +42,9 @@ namespace en
  
    // Attributes representing data in fixed point schemes like 16.16, 8.0, 16.0
    // were introduced in OpenGL ES for low end devices without HW acceleration. 
-   // Currently all mobile devices has HW acceleration for OpenGL ES which means 
-   // that floating point values will be better choose in almost all cases. 
-   // Therefore fixed attribute formats are not supported by engine.
+   // Currently all mobile devices has HW acceleration which means that floating
+   // point values will be better choose in almost all cases. Therefore fixed
+   // attribute formats are not supported by engine.
 
    // Format of attribute data
    enum class Attribute : uint32
@@ -80,11 +80,11 @@ namespace en
       v2u64                  ,
       v2s64                  ,
       v2f64                  ,
-      v3u8_norm              , //  - Not reccomended due to lack of memory aligment
-      v3u8_srgb              , //  - Not reccomended due to lack of memory aligment
-      v3s8_norm              , //  - Not reccomended due to lack of memory aligment
-      v3u8                   , //  - Not reccomended due to lack of memory aligment
-      v3s8                   , //  - Not reccomended due to lack of memory aligment
+      v3u8_norm              , //  - Not reccomended due to lack of memory alignment
+      v3u8_srgb              , //  - Not reccomended due to lack of memory alignment
+      v3s8_norm              , //  - Not reccomended due to lack of memory alignment
+      v3u8                   , //  - Not reccomended due to lack of memory alignment
+      v3s8                   , //  - Not reccomended due to lack of memory alignment
       v3u16_norm             ,
       v3s16_norm             ,
       v3u16                  ,
@@ -116,10 +116,10 @@ namespace en
       v4s10_10_10_2_norm     ,
       v4u10_10_10_2          ,
       v4s10_10_10_2          ,
-      v4u10_10_10_2_norm_rev ,
-      v4s10_10_10_2_norm_rev ,
-      v4u10_10_10_2_rev      ,
-      v4s10_10_10_2_rev      ,
+      v4u10_10_10_2_norm_rev , // BGRA
+      v4s10_10_10_2_norm_rev , // BGRA
+      v4u10_10_10_2_rev      , // BGRA
+      v4s10_10_10_2_rev      , // BGRA
       Count
       };
 
@@ -224,195 +224,6 @@ namespace en
       virtual Format format(void) const = 0;
       virtual ~BufferView() {};       // Polymorphic deletes require a virtual base destructor
       };
-      
-      
-      
-     
-
-      // R_8                 , Attribute::u8_norm
-      // R_8_sn              , Attribute::s8_norm
-      // R_8_u               , Attribute::u8
-      // R_8_s               , Attribute::s8
-      // R_16                , Attribute::u16_norm
-      // R_16_sn             , Attribute::s16_norm
-      // R_16_u              , Attribute::u16
-      // R_16_s              , Attribute::s16
-      // R_16_hf             , Attribute::f16
-      // R_32_u              , Attribute::u32
-      // R_32_s              , Attribute::s32
-      // R_32_f              , Attribute::f32
-      // R_64_u              , Attribute::u64
-      // R_64_s              , Attribute::s64
-      // R_64_f              , Attribute::f64
-      // RG_8                , Attribute::v2u8_norm
-      // RG_8_sn             , Attribute::v2s8_norm
-      // RG_8_u              , Attribute::v2u8
-      // RG_8_s              , Attribute::v2s8
-      // RG_16               , Attribute::v2u16_norm
-      // RG_16_sn            , Attribute::v2s16_norm
-      // RG_16_u             , Attribute::v2u16
-      // RG_16_s             , Attribute::v2s16
-      // RG_16_hf            , Attribute::v2f16
-      // RG_32_u             , Attribute::v2u32
-      // RG_32_s             , Attribute::v2s32
-      // RG_32_f             , Attribute::v2f32
-      // RG_64_u             , Attribute::v2u64
-      // RG_64_s             , Attribute::v2s64
-      // RG_64_f             , Attribute::v2f64
-      // RGB_8               , Attribute::v3u8_norm
-      // RGB_8_sRGB          , Attribute::v3u8_srgb
-      // RGB_8_sn            , Attribute::v3s8_norm
-      // RGB_8_u             , Attribute::v3u8
-      // RGB_8_s             , Attribute::v3s8
-      // RGB_16              , Attribute::v3u16_norm
-      // RGB_16_sn           , Attribute::v3s16_norm
-      // RGB_16_u            , Attribute::v3u16
-      // RGB_16_s            , Attribute::v3s16
-      // RGB_16_hf           , Attribute::v3f16
-      // RGB_32_u            , Attribute::v3u32
-      // RGB_32_s            , Attribute::v3s32
-      // RGB_32_f            , Attribute::v3f32
-      // RGB_64_u            , Attribute::v3u64
-      // RGB_64_s            , Attribute::v3s64
-      // RGB_64_f            , Attribute::v3f64
-      // RGBA_8              , Attribute::v4u8_norm
-      // RGBA_8_sn           , Attribute::v4s8_norm
-      // RGBA_8_u            , Attribute::v4u8
-      // RGBA_8_s            , Attribute::v4s8
-      // RGBA_16             , Attribute::v4u16_norm
-      // RGBA_16_sn          , Attribute::v4s16_norm
-      // RGBA_16_u           , Attribute::v4u16
-      // RGBA_16_s           , Attribute::v4s16
-      // RGBA_16_hf          , Attribute::v4f16
-      // RGBA_32_u           , Attribute::v4u32
-      // RGBA_32_s           , Attribute::v4s32
-      // RGBA_32_f           , Attribute::v4f32
-      // RGBA_64_u           , Attribute::v4u64
-      // RGBA_64_s           , Attribute::v4s64
-      // RGBA_64_f           , Attribute::v4f64
-      // RGB_11_11_10_uf     , Attribute::v3f11_11_10
-      // RGBA_10_10_10_2     , Attribute::v4u10_10_10_2_norm
-      // RGBA_10_10_10_2_sn  , Attribute::v4s10_10_10_2_norm
-      // RGBA_10_10_10_2_u   , Attribute::v4u10_10_10_2
-      // RGBA_10_10_10_2_s   , Attribute::v4s10_10_10_2
-      // BGRA_10_10_10_2     , Attribute::v4u10_10_10_2_norm_rev
-      // BGRA_10_10_10_2_sn  , Attribute::v4s10_10_10_2_norm_rev
-      // BGRA_10_10_10_2_u   , Attribute::v4u10_10_10_2_rev
-      // BGRA_10_10_10_2_s   , Attribute::v4s10_10_10_2_rev
-
-      
-   // OLD API BELOW:
-#if 0
-   
-   // Type of data in columns
-   enum ColumnType
-        {
-        None                      = 0,   
-        Float_8                      ,
-        Float2_8                     ,
-        Float3_8                     ,
-        Float4_8                     ,
-        Float_16                     ,
-        Float2_16                    ,
-        Float3_16                    ,
-        Float4_16                    ,
-        UFloat_8                     ,
-        UFloat2_8                    ,
-        UFloat3_8                    ,
-        UFloat4_8                    ,
-        UFloat_16                    ,
-        UFloat2_16                   ,
-        UFloat3_16                   ,
-        UFloat4_16                   ,
-        Half                         ,
-        Half2                        ,
-        Half3                        ,
-        Half4                        ,
-        Float                        ,
-        Float2                       ,
-        Float3                       ,
-        Float4                       ,
-        Double                       ,
-        Double2                      ,
-        Double3                      ,
-        Double4                      ,
-        Float_8_SNorm                ,
-        Float2_8_SNorm               ,
-        Float3_8_SNorm               ,
-        Float4_8_SNorm               ,
-        Half_SNorm                   ,
-        Half2_SNorm                  ,
-        Half3_SNorm                  ,
-        Half4_SNorm                  ,
-        Float_SNorm                  ,
-        Float2_SNorm                 ,
-        Float3_SNorm                 ,
-        Float4_SNorm                 ,
-        Float_8_Norm                 ,
-        Float2_8_Norm                ,
-        Float3_8_Norm                ,
-        Float4_8_Norm                ,
-        Half_Norm                    ,
-        Half2_Norm                   ,
-        Half3_Norm                   ,
-        Half4_Norm                   ,
-        Float_Norm                   ,
-        Float2_Norm                  ,
-        Float3_Norm                  ,
-        Float4_Norm                  ,
-        Byte                         ,
-        Byte2                        ,
-        Byte3                        ,
-        Byte4                        ,
-        Short                        ,
-        Short2                       ,
-        Short3                       ,
-        Short4                       ,
-        Int                          ,
-        Int2                         ,
-        Int3                         ,
-        Int4                         ,
-        UByte                        ,
-        UByte2                       ,
-        UByte3                       ,
-        UByte4                       ,
-        UShort                       ,
-        UShort2                      ,
-        UShort3                      ,
-        UShort4                      ,
-        UInt                         ,
-        UInt2                        ,
-        UInt3                        ,
-        UInt4                        ,
-        Float4_10_10_10_2_SNorm      ,
-        Float4_10_10_10_2_Norm       ,
-        ColumnTypesCount
-        };
-
-   // Buffer type
-   enum BufferType                      // OpenGL:
-        {
-        VertexBuffer              = 0,  // Vertex Buffer Object
-        IndexBuffer                  ,  // Index Buffer Object
-        UniformBuffer                ,  // Uniform Buffer Object
-        FeedbackBuffer               ,  // Transform Feedback Buffer Object
-        DrawBuffer                   ,  // Draw Indirect Buffer Object
-        CounterBuffer                ,  // Atomic Counters Buffer Object
-        DispatchBuffer               ,  // Dispatch Indirect Buffer Object
-        StorageBuffer                ,  // Shader Storage Buffer Object
-        QueryBuffer                  ,  // Query Buffer Object
-        BufferTypesCount
-        };
-
-   // Buffer data transfer type
-   enum DataTransfer
-        {
-        Static                    = 0,  // Data will be static, set once, used whole the time
-        Dynamic                      ,  // Data will be updated frequently
-        Streaming                    ,  // Data in most cases will be used only once and updated all the time
-        DataTransferTypes
-        };
-#endif
    }
 }
 

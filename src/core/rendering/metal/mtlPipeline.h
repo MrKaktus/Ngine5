@@ -40,6 +40,7 @@ namespace en
       Ptr<DepthStencilStateMTL> depthStencil;
       RasterStateMTL   raster;
       ViewportStateMTL viewport;
+      MTLPrimitiveType primitive;
       
       PipelineMTL(const id<MTLDevice> device, MTLRenderPipelineDescriptor* desc, NSError** result);
       virtual ~PipelineMTL();

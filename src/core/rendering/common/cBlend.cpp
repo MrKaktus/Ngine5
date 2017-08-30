@@ -24,18 +24,33 @@
 //
 // D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT:
 // 
-//    blending - false
+//    blending       - false
 //    logicOperation - false
-//    srcRGB    - One
-//    dstRGB    - Zero
-//    rgbFunc   - Add
-//    srcAlpha  - One
-//    dstAlpha  - Zero
-//    alphaFunc - Add
-//    logic     - NoOperation
-//    writeMask - ColorMaskAll
-
-// TODO: Once sure all API's have the same default state (why different?) this default state should be exposed in public headers.
+//    srcRGB         - One
+//    dstRGB         - Zero
+//    rgbFunc        - Add
+//    srcAlpha       - One
+//    dstAlpha       - Zero
+//    alphaFunc      - Add
+//    logic          - NoOperation
+//    writeMask      - ColorMaskAll
+//
+//
+// Metal default state:
+//
+//    blendingEnabled             - NO
+//    [Metal is not exposing Logic Operations]
+//    sourceRGBBlendFactor        - MTLBlendFactorOne
+//    destinationRGBBlendFactor   - MTLBlendFactorZero
+//    rgbBlendOperation           - MTLBlendOperationAdd
+//    sourceAlphaBlendFactor      - MTLBlendFactorOne
+//    destinationAlphaBlendFactor - MTLBlendFactorZero
+//    alphaBlendOperation         - MTLBlendOperationAdd
+//    [Metal is not exposing Logic Operations]
+//    writeMask                   - MTLColorWriteMaskAll
+//
+// Vulkan has no default state, it's specified at creation time.
+//
 // TODO: Rename to blend.cpp and move one level up when old interface will be completly removed
 
 namespace en

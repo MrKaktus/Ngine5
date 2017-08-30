@@ -13,7 +13,6 @@
 
 */
 
-
 #ifndef ENG_CORE_RENDERING_COMMAND_BUFFER
 #define ENG_CORE_RENDERING_COMMAND_BUFFER
 
@@ -147,6 +146,8 @@ namespace en
                            const TextureAccess newAccess) = 0;
 
       virtual void commit(const Ptr<Semaphore> signalSemaphore = nullptr) = 0;
+      
+      // Incurrs full CPU-GPU synchronization.
       virtual void waitUntilCompleted(void) = 0;
       
       virtual ~CommandBuffer() {};                        // Polymorphic deletes require a virtual base destructor

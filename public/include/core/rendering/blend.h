@@ -13,7 +13,6 @@
 
 */
 
-
 #ifndef ENG_CORE_RENDERING_BLEND_STATE
 #define ENG_CORE_RENDERING_BLEND_STATE
 
@@ -27,6 +26,64 @@ namespace en
    namespace gpu
    {
    #define MaxColorAttachmentsCount 8
+
+   // Color Buffer blend functions
+   enum BlendFunction
+      {
+      Zero                        = 0,
+      One                            ,
+      Source                         ,
+      OneMinusSource                 ,
+      Destination                    ,
+      OneMinusDestination            ,
+      SourceAlpha                    ,
+      OneMinusSourceAlpha            ,
+      DestinationAlpha               ,
+      OneMinusDestinationAlpha       ,
+      ConstantColor                  ,
+      OneMinusConst                  ,
+      ConstantAlpha                  ,
+      OneMinusConstantAlpha          ,
+      SourceAlphaSaturate            ,
+      SecondSource                   ,
+      OneMinusSecondSource           ,
+      SecondSourceAlpha              ,
+      OneMinusSecondSourceAlpha      ,
+      BlendFunctionsCount
+      };
+
+   // Color Buffer blend equations
+   enum BlendEquation
+      {
+      Add                         = 0,
+      Subtract                       ,
+      DestinationMinusSource         ,
+      Min                            ,
+      Max                            ,
+      BlendEquationsCount
+      };
+
+   // Color Buffer logic operations (currently unsupported)
+   enum LogicOperation
+      {
+      ClearDestination            = 0,
+      Set                            ,
+      Copy                           ,
+      CopyInverted                   ,
+      NoOperation                    ,
+      Invert                         ,
+      And                            ,
+      NAnd                           ,
+      Or                             ,
+      Nor                            ,
+      Xor                            ,
+      Equiv                          ,
+      AndReverse                     ,
+      AndInverted                    ,
+      OrReverse                      ,
+      OrInverted                     ,
+      LogicOperationsCount
+      };
 
    // state.h
    enum ColorMask
@@ -46,6 +103,19 @@ namespace en
       BlendStateInfo();
       };
 
+   // Default state:
+   //
+   // - blending       = false
+   // - logicOperation = false (unsupported)
+   // - srcRGB         = BlendFunction::One
+   // - dstRGB         = BlendFunction::Zero
+   // - rgbFunc        = BlendEquation::Add
+   // - srcAlpha       = BlendFunction::One
+   // - dstAlpha       = BlendFunction::Zero
+   // - alphaFunc      = BlendEquation::Add
+   // - logic          = NoOperation (unsupported)
+   // - writeMask      = ColorMask::ColorMaskAll
+   //
    // Logic Operations are currently ignored as they are unsupported in Metal API.
    struct BlendAttachmentInfo
       {

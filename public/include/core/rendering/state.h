@@ -74,62 +74,6 @@ namespace en
       StencilModificationsCount
       };
 
-   // Color Buffer blend functions
-   enum BlendFunction
-      {
-      Zero                        = 0,
-      One                            ,
-      Source                         ,
-      OneMinusSource                 ,
-      Destination                    ,
-      OneMinusDestination            ,
-      SourceAlpha                    ,
-      OneMinusSourceAlpha            ,
-      DestinationAlpha               ,
-      OneMinusDestinationAlpha       ,
-      ConstantColor                  ,
-      OneMinusConst                  ,
-      ConstantAlpha                  ,
-      OneMinusConstantAlpha          ,
-      SourceAlphaSaturate            ,
-      SecondSource                   ,
-      OneMinusSecondSource           ,
-      SecondSourceAlpha              ,
-      OneMinusSecondSourceAlpha      ,
-      BlendFunctionsCount
-      };
-
-   // Color Buffer blend equations
-   enum BlendEquation
-      {
-      Add                         = 0,
-      Subtract                       ,
-      DestinationMinusSource         ,
-      Min                            ,
-      Max                            ,
-      BlendEquationsCount
-      };
-
-   enum LogicOperation
-      {
-      ClearDestination            = 0,
-      Set                            ,
-      Copy                           ,
-      CopyInverted                   ,
-      NoOperation                    ,
-      Invert                         ,
-      And                            ,
-      NAnd                           ,
-      Or                             ,
-      Nor                            ,
-      Xor                            ,
-      Equiv                          ,
-      AndReverse                     ,
-      AndInverted                    ,
-      OrReverse                      ,
-      OrInverted                     ,
-      LogicOperationsCount
-      };
 
    enum FillMode
       {

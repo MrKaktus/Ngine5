@@ -35,6 +35,10 @@ namespace en
       id <MTLRenderCommandEncoder> renderEncoder;
       bool commited;
       
+      // State cache
+      
+      MTLPrimitiveType primitive;
+         
       virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr);
 
       virtual void startRenderPass(const Ptr<RenderPass> pass, 

@@ -92,6 +92,8 @@ namespace en
    // Metal OSX Pixel Formats:
    // https://developer.apple.com/library/mac/documentation/Metal/Reference/MetalConstants_Ref/#//apple_ref/c/tdef/MTLPixelFormat
    // (last verified for Metal on OSX 10.11)
+   // New page: https://developer.apple.com/documentation/metal/mtlpixelformat?language=objc
+   //
    const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)] =
       { // Sized Internal Format     
       MTLPixelFormatInvalid               ,   // Format::Unsupported
@@ -242,6 +244,13 @@ namespace en
       MTLPixelFormatInvalid               ,   // Format::ASTC_12x12_sRGB    (unsupported) 
       };
 #endif
+
+// Unsupported Metal Pixel Formats:
+//
+// - MTLPixelFormatA8Unorm
+// - MTLPixelFormatABGR4Unorm
+// - MTLPixelFormatBGR10A2Unorm (iOS 11+, macOS 10.13+)
+
 
 #if defined(EN_PLATFORM_IOS)
    // Metal IOS Pixel Formats:

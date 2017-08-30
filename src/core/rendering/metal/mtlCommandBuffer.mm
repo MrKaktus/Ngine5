@@ -239,17 +239,6 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   // Types of primitives to draw
-   const MTLPrimitiveType TranslateDrawableType[DrawableTypesCount]
-      {
-      MTLPrimitiveTypePoint                , // Points
-      MTLPrimitiveTypeLine                 , // Lines
-      MTLPrimitiveTypeLineStrip            , // LineStripes
-      MTLPrimitiveTypeTriangle             , // Triangles
-      MTLPrimitiveTypeTriangleStrip        , // TriangleStripes
-      MTLPrimitiveTypeTriangleStrip        , // Patches         (unsupported)
-      };
-
    void CommandBufferMTL::draw(const uint32       elements,
                                const Ptr<Buffer>  indexBuffer,
                                const uint32       instances,
@@ -258,9 +247,7 @@ namespace en
                                const uint32       firstInstance)
    {
    assert( elements );
-
-   MTLPrimitiveType primitive = TranslateDrawableType[primitiveType];
-   
+ 
    // Elements are assembled into Primitives.
    if (indexBuffer)
       {
@@ -319,7 +306,6 @@ namespace en
    {
    assert( indirectBuffer );
    
-   MTLPrimitiveType primitive = TranslateDrawableType[primitiveType];
    BufferMTL* indirect = raw_reinterpret_cast<BufferMTL>(&indirectBuffer);
    assert( indirect->apiType == BufferType::Indirect );
    
