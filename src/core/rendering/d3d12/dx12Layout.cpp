@@ -492,9 +492,22 @@ namespace en
    // exactly 4 types of resource to be backed. Each type of resource has it's
    // own separate logical register space inside of single HLSL "space".
    // See: https://msdn.microsoft.com/en-us/library/windows/desktop/dn899207(v=vs.85).aspx  
+   //
+   // Metal and Vulkan have shared register spaces inside of their Descriptor Sets,
+   // thus even though in HLSL they are separate per type, assigned register indexes
+   // will be unique, mimicking shared register space.
+   //
+   // TODO: Check what impact this type of emulation has on performance!
+   //       If it will be terrible, need to figure out different abstraction
+   //        model that fits all three API's.
+#if EN_SEPARATE_REGISTER_SPACES
+   // For separate register spces:
    uint32 slot[4];
    CompileTimeAssert( sizeof(slot) == ((underlyingType(ResourceType::Count) - 1) * sizeof(uint32)), Amount_of_ResourceTypes_is_not_matching )
    memset(&slot, 0, sizeof(slot));
+#else
+   uint32 slot = 0;
+#endif
 
    // Ranges array for general Descriptor Table
    uint32 generalRangeIndex = 0;
@@ -535,7 +548,11 @@ namespace en
          // Register Slots are assigned in order of Resource Group declarations.
          // Register Space is set during Root Signature creation, in order in
          // which Descriptor Sets are assigned to Pipeline Layout.
+#if EN_SEPARATE_REGISTER_SPACES
          samplerRange[samplerRangeIndex].BaseShaderRegister = slot[resourceType];
+#else
+         samplerRange[samplerRangeIndex].BaseShaderRegister = slot;
+#endif
          samplerRange[samplerRangeIndex].RegisterSpace      = 0u;                 // To be patched.
 
          // Defines offset from first Descriptor in the Descriptors Heap, used by 
@@ -579,7 +596,11 @@ namespace en
          // Register Slots are assigned in order of Resource Group declarations.
          // Register Space is set during Root Signature creation, in order in
          // which Descriptor Sets are assigned to Pipeline Layout.
+#if EN_SEPARATE_REGISTER_SPACES
          generalRange[generalRangeIndex].BaseShaderRegister = slot[resourceType];
+#else
+         generalRange[generalRangeIndex].BaseShaderRegister = slot;
+#endif
          generalRange[generalRangeIndex].RegisterSpace      = 0u;                 // To be patched.
 
          // Defines offset from first Descriptor in the Descriptors Heap, used by 
@@ -613,7 +634,11 @@ namespace en
          }
 
       // Increase index by amount of slots used
+#if EN_SEPARATE_REGISTER_SPACES
       slot[resourceType] += group[i].count;
+#else
+      slot += group[i].count;
+#endif
 
       // RootSignature 1.0:
       //
@@ -639,6 +664,10 @@ namespace en
    result->table[1].NumDescriptorRanges = samplerGroups;
    result->table[1].pDescriptorRanges   = samplerRange;
    result->descriptors[1]               = descriptors[1];
+
+   // Calculate amount of backing Descriptor Tables
+   if (generalGroups) result->tablesCount++;
+   if (samplerGroups) result->tablesCount++;
 
    // Shader visibility
    //
@@ -732,7 +761,7 @@ namespace en
             break;
          };
          
-      samplers = new D3D12_STATIC_SAMPLER_DESC[immutableSamplers];
+      samplers = allocate<D3D12_STATIC_SAMPLER_DESC>(immutableSamplers);
       for(uint32 i=0; i<immutableSamplers; ++i)
          {
          SamplerD3D12* ptr = raw_reinterpret_cast<SamplerD3D12>(&sampler);
@@ -762,6 +791,7 @@ namespace en
       }
    
    // Gather Descriptor Tables
+   uint32 tablesCount = 0;
    D3D12_ROOT_PARAMETER* tables = nullptr;
  //D3D12_ROOT_PARAMETER1* tables = nullptr; // v1.1
    uint32* setBindingIndex = nullptr;
@@ -779,7 +809,6 @@ namespace en
          }
 
       // Count amount of backing Descriptor Tables
-      uint32 tablesCount = 0;
       for(uint32 i=0; i<sets; ++i)
          {
          SetLayoutD3D12* ptr = raw_reinterpret_cast<SetLayoutD3D12>(&set[i]);
@@ -787,7 +816,7 @@ namespace en
          }
 
       uint32 tableIndex = 0;
-      tables = new D3D12_ROOT_PARAMETER[tablesCount];
+      tables = allocate<D3D12_ROOT_PARAMETER>(tablesCount);
     //tables = new D3D12_ROOT_PARAMETER1[tablesCount]; // v1.1
       for(uint32 i=0; i<sets; ++i)
          {
@@ -844,7 +873,7 @@ namespace en
   
    D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc;
    desc.Version = D3D_ROOT_SIGNATURE_VERSION_1_0;
-   desc.Desc_1_0.NumParameters     = sets;
+   desc.Desc_1_0.NumParameters     = tablesCount;
    desc.Desc_1_0.pParameters       = tables;
    desc.Desc_1_0.NumStaticSamplers = immutableSamplers;
    desc.Desc_1_0.pStaticSamplers   = samplers;
@@ -885,8 +914,10 @@ namespace en
    if (SUCCEEDED(lastResult[Scheduler.core()]))
       result = new PipelineLayoutD3D12(handle, sets, setBindingIndex);
 
-   delete [] tables;
-   delete [] samplers;
+   if (sets)
+      deallocate<D3D12_ROOT_PARAMETER>(tables);
+   if (immutableSamplers)
+      deallocate<D3D12_STATIC_SAMPLER_DESC>(samplers);
    
    return ptr_reinterpret_cast<PipelineLayout>(&result);
    }

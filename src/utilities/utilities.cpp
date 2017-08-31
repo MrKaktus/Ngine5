@@ -11,6 +11,7 @@
    
 */
 
+#include "assert.h"
 #include <math.h>
 #include "utilities/utilities.h"
 
@@ -158,6 +159,28 @@ namespace en
       ++power;
       }
    return true;
+   }
+
+   uint32 align(uint32 adress, uint32 alignment)
+   {
+   // Alignment need to be power of two
+   assert( !(alignment & (alignment - 1)) );
+
+   if (alignment == 0u)
+      return adress;
+   
+   return ( (adress + (uint64(alignment) - 1ull)) & ~(uint64(alignment) - 1ull) );
+   }
+
+   uint64 align(uint64 adress, uint32 alignment)
+   {
+   // Alignment need to be power of two
+   assert( !(alignment & (alignment - 1)) );
+
+   if (alignment == 0u)
+      return adress;
+   
+   return ( (adress + (uint64(alignment) - 1ull)) & ~(uint64(alignment) - 1ull) );
    }
    
    uint32 roundUp(uint32 num, uint32 alignment)

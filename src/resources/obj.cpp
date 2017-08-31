@@ -603,7 +603,7 @@ namespace en
                }
             }
          }
-      Ptr<gpu::Buffer> vertexBuffer = en::ResourcesContext.defaults.enHeap->createBuffer(vertexes, formatting, 0u);
+      Ptr<gpu::Buffer> vertexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertexes, formatting, 0u);
 
       // Create staging buffer
       uint32 stagingSize = vertexes * rowSize;
@@ -694,7 +694,7 @@ namespace en
             srcIndex = ibo;
             }
          }
-      Ptr<gpu::Buffer> indexBuffer = en::ResourcesContext.defaults.enHeap->createBuffer(indexes, formatting, 0u);
+      Ptr<gpu::Buffer> indexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexes, formatting, 0u);
       
       // Create staging buffer
       staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);

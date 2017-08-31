@@ -164,8 +164,8 @@ namespace en
       // Engine declares ideal order and count of types it wants to use for each memory usage (it can exclude some types for some usages deliberately).
       // Then those initial lists are validated at runtime with available memory types reported by device.
       
-      uint32 memoryTypePerUsageCount[4];                 // Count of found and used memory types in hierarchy for each usage.
-      uint32 memoryTypePerUsage[4][VK_MAX_MEMORY_TYPES]; // Memory types ordered from best suitable to least suitable ones for given memory usage (Type index in memory array).
+      uint32 memoryTypePerUsageCount[6];                 // Count of found and used memory types in hierarchy for each usage.
+      uint32 memoryTypePerUsage[6][VK_MAX_MEMORY_TYPES]; // Memory types ordered from best suitable to least suitable ones for given memory usage (Type index in memory array).
 
       void initMemoryManager();
 
@@ -302,6 +302,10 @@ namespace en
       virtual Ptr<ViewportState>      createViewportState(const uint32 count,
                                                           const ViewportStateInfo* viewports,
                                                           const ScissorStateInfo* scissors);
+
+      virtual LinearAlignment textureLinearAlignment(const Ptr<Texture> texture, 
+                                                     const uint32 mipmap, 
+                                                     const uint32 layer);
       };
 
 

@@ -341,7 +341,7 @@ namespace en
    settings.type   = TextureType::Texture2D;
 
    // Create texture in gpu
-   Ptr<Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(settings);
+   Ptr<Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";

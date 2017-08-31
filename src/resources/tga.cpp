@@ -294,7 +294,7 @@ namespace en
    uint32 dataSize  = (header.width * header.height * header.bpp) / 8;
       
    // Create texture
-   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(textureState);
+   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(textureState);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture object!\n";

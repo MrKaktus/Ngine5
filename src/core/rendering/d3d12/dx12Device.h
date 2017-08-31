@@ -276,6 +276,9 @@ namespace en
                                                      const ViewportStateInfo* viewports,
                                                      const ScissorStateInfo* scissors);
 
+      virtual LinearAlignment textureLinearAlignment(const Ptr<Texture> texture, 
+                                                     const uint32 mipmap, 
+                                                     const uint32 layer);
       };
 
 

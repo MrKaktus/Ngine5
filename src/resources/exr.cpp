@@ -490,7 +490,7 @@ namespace en
          }
    
       // Create texture in gpu
-      Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(settings);
+      Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
       if (!texture)
          {
          Log << "ERROR: Cannot create texture in GPU!\n";

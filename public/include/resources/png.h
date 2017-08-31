@@ -14,6 +14,7 @@
 #include "core/defines.h"
 #include "core/types.h"
 #include "core/rendering/state.h"
+#include "core/rendering/texture.h"
 
 namespace en
 {
@@ -24,6 +25,7 @@ namespace en
              const uint32 width,                   // Expected width of surface
              const uint32 height,                  // Expected height of surface
              const gpu::Format format,             // Expected format of surface
+             const gpu::LinearAlignment layout,    // Expected memory layout of read data
              const bool invertHorizontal = false); // Determines if image should be flipped Horizontally
 
    bool load(Ptr<en::gpu::Texture> dst, 

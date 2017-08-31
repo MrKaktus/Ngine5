@@ -60,7 +60,7 @@ namespace en
    //                                  Access is slower but explicit synchronization is not needed.
    //                                  (GPU writes are immediately visible as well). Equivalent of Write-Around cache.
    // c) SystemCached                - System memory, CPU caches it's writes. Memory access is faster, but
-   //                                  requires mapping and explicit flushing, to make changes visible for GPU.
+   //                                  requires mapping and explicit flushing to make changes visible for GPU.
    // d) SystemWriteThrough          - System memory, CPU caches it's writes and sends data to RAM at the same time.
    //                                  Data is coherent but writes confirmation take more time. Write-Through cache.
    // e) Dedicated                   - GPU dedicated memory (VRAM on Discreete or BIOS mapped region of RAM on Integrated).
@@ -320,7 +320,7 @@ namespace en
    {
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
-   assert( _usage == MemoryUsage::Static );
+   assert( _usage == MemoryUsage::Tiled );
    
    // Create texture descriptor
    Ptr<TextureVK> texture = gpu::createTexture(gpu, state);
@@ -374,15 +374,20 @@ namespace en
 
    // Discrete
 
-   memoryTypePerUsageCount[underlyingType(MemoryUsage::Static)]    = 1; // Staging in using Immediate or Streamed
-   memoryTypePerUsageCount[underlyingType(MemoryUsage::Streamed)]  = 3; // Map-unmap (only for buffers, staging)
-   memoryTypePerUsageCount[underlyingType(MemoryUsage::Immediate)] = 3; // Map-unmap (only for buffers, staging)
-   memoryTypePerUsageCount[underlyingType(MemoryUsage::Temporary)] = 1; // Staging in using Immediate or Streamed
-   uint32 prefferedMemoryTypePerUsage[4][8] = {
-      { Dedicated },                                    // Fastest possible GPU read and write
-      { SystemWriteThrough, System, DedicatedMapped },  // Fastest possible CPU read and write
-      { DedicatedMapped, SystemWriteThrough, System },  // Fastest possible CPU write, immediate upload to GPU memory if possible
-      { DedicatedMemorylessFallback }                   // Fastest possible allocation, GPU read and write
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Linear)]     = 1;
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Tiled)]      = 1; 
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Renderable)] = 1; 
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Upload)]     = 3; // Map-unmap (only for buffers, staging)
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Download)]   = 3; // Map-unmap (only for buffers, staging)
+   memoryTypePerUsageCount[underlyingType(MemoryUsage::Immediate)]  = 3; // Immediately visible
+
+   uint32 prefferedMemoryTypePerUsage[6][8] = {
+      { Dedicated },                                    // Fastest possible GPU read and write (linear)
+      { Dedicated },                                    // Fastest possible GPU read and write (tiled/compressed for size)
+      { Dedicated },                                    // Fastest possible GPU read and write (linear/compressed for bandwith)
+      { SystemWriteThrough, System, DedicatedMapped },  // Fastest possible CPU write for upload
+      { SystemCached, System, DedicatedMapped },        // Fastest possible CPU read for download
+      { DedicatedMapped, SystemWriteThrough, System }   // Fastest possible CPU write, immediate upload to GPU memory if possible
       };
       
    // // Integrated 
@@ -416,7 +421,7 @@ namespace en
    // Iterate over lists of engine preffered Vulkan Memory Types.
    // For each element in each list, verify if such type is supported by current device.
    // If it is store it's index for future heaps allocations and move to the next one.
-   for(uint32 usage=0; usage<4; ++usage)
+   for(uint32 usage=0; usage<6; ++usage)
       {
       uint32 index = 0;
       for(uint32 i=0; i<memoryTypePerUsageCount[usage]; ++i)
@@ -429,9 +434,7 @@ namespace en
                }
 
       // For each memory usage there need to be at least one memory type.
-      // The only exception is Temporary memory usage, which is optional.
-      if (usage < 3)
-         assert( index > 0u );
+      assert( index > 0u );
       
       // Set final count of Vulkan Memory Type indexes stored in array.
       memoryTypePerUsageCount[usage] = index;

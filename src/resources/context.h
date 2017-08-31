@@ -172,7 +172,8 @@ namespace en
 //                 Ptr<gpu::Pipeline> pipeline;            // Default program for materials
 //                 Ptr<gpu::Shader>   vertex;
 //                 Ptr<gpu
-                 Ptr<gpu::Heap>    enHeap;
+                 Ptr<gpu::Heap>    enHeapBuffers;
+                 Ptr<gpu::Heap>    enHeapTextures;
                  Ptr<gpu::Heap>    enStagingHeap;
                  Ptr<gpu::Texture> enAlbedoMap;
                  Ptr<gpu::Texture> enMetallicMap;

@@ -62,7 +62,8 @@ namespace en
 
    Context::Defaults::Defaults() :
       //program(nullptr),
-      enHeap(nullptr),
+      enHeapBuffers(nullptr),
+      enHeapTextures(nullptr),
       enStagingHeap(nullptr),
       enAlbedoMap(nullptr),
       enMetallicMap(nullptr),
@@ -148,10 +149,11 @@ namespace en
    //defaults.program     = Gpu.program.create(shaders);
 
    // Create GPU Heap used as backing store for all resources (for now 256MB)
-   defaults.enHeap        = Graphics->primaryDevice()->createHeap(MemoryUsage::Static, 256*1024*1024);
-   
+   defaults.enHeapBuffers  = Graphics->primaryDevice()->createHeap(MemoryUsage::Linear, 64*1024*1024);
+   defaults.enHeapTextures = Graphics->primaryDevice()->createHeap(MemoryUsage::Tiled, 256*1024*1024);
+
    // Create Heap as temporary location for resources upload
-   defaults.enStagingHeap = Graphics->primaryDevice()->createHeap(MemoryUsage::Streamed, 64*1024*1024);
+   defaults.enStagingHeap = Graphics->primaryDevice()->createHeap(MemoryUsage::Upload, 64*1024*1024);
 
    // TODO: This is temporary solution. Resources should be dynamically streamed in,
    //       from storage to RAM and then VRAM. Also different Heaps should be used
@@ -180,7 +182,7 @@ namespace en
 
    // Create default mesh for corrdinate system axes
    Formatting formatting(Attribute::v3f32, Attribute::v3f32); // inPosition, inColor
-   defaults.enAxes = defaults.enHeap->createBuffer(14u, formatting, 0u);
+   defaults.enAxes = defaults.enHeapBuffers->createBuffer(14u, formatting, 0u);
 
    // Create staging buffer
    uint32 stagingSize = 14u;

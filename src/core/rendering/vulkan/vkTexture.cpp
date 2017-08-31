@@ -661,7 +661,34 @@ namespace en
    {
    return ptr_reinterpret_cast<Texture>(&texture);
    }
-     
+
+ 
+   // DEVICE
+   //////////////////////////////////////////////////////////////////////////
+
+
+   LinearAlignment VulkanDevice::textureLinearAlignment(const Ptr<Texture> texture, 
+                                                        const uint32 mipmap, 
+                                                        const uint32 layer)
+   {
+   assert( texture );
+   assert( texture->mipmaps() > mipmap );
+   assert( texture->layers() > layer );
+
+   TextureVK* destination = raw_reinterpret_cast<TextureVK>(&texture);
+
+   // Looks like Vulkan has no restrictions regarding rows padding or inital alignment like
+   // Direct3D12 does, or D3D12 just enforces them to ensure most optimal data transfer 
+   // while Vulkan can handle unoptimal ones.
+   LinearAlignment result;
+   result.size      = texture->size(mipmap);
+   result.alignment = 256;
+   result.rowSize   = texture->width(mipmap) * texelSize(destination->state.format);
+   result.rowsCount = texture->height(mipmap);
+
+   return result;
+   }
+
    }
 }
 #endif

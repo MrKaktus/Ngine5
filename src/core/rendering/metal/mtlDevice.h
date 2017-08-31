@@ -151,6 +151,10 @@ namespace en
                                                           const ScissorStateInfo* scissors);
          
       virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
+
+      virtual LinearAlignment textureLinearAlignment(const Ptr<Texture> texture, 
+                                                     const uint32 mipmap, 
+                                                     const uint32 layer);
       };
    }
 }

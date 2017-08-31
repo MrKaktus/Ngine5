@@ -76,9 +76,12 @@ namespace en
    assert( !started );
 
    // Remember fence and it's value, for which this CommandBuffer execution should wait for.
-   SemaphoreD3D12* semaphore = raw_reinterpret_cast<SemaphoreD3D12>(&waitForSemaphore);
-   fence        = semaphore->fence;
-   waitForValue = semaphore->waitForValue;
+   if (waitForSemaphore)
+      {
+      SemaphoreD3D12* semaphore = raw_reinterpret_cast<SemaphoreD3D12>(&waitForSemaphore);
+      fence        = semaphore->fence;
+      waitForValue = semaphore->waitForValue;
+      }
 
    started = true;
    }
@@ -343,9 +346,74 @@ namespace en
    TextureD3D12* destination = raw_reinterpret_cast<TextureD3D12>(&texture);
 
    assert( source->size >= destination->size(mipmap) );
+
+   // TODO: Check if graphics or compute!  
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   // Get information about buffer layout for upload
+   D3D12_RESOURCE_DESC desc = destination->handle->GetDesc();
+
+   // Based on amount of mip-maps and layers, calculates
+   // index of subresource to modify.
+   UINT subresource = D3D12CalcSubresource(mipmap,
+                                           layer,
+                                           0u,
+                                           destination->state.mipmaps,
+                                           destination->state.layers);
    
-   // TODO: Finish ! 
+   D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+   UINT64                             requiredUploadBufferSize = 0;
+
+   ProfileNoRet( gpu, GetCopyableFootprints(&desc,
+                                            subresource, // First subresource to modify
+                                            1,           // Subresources count
+                                            0,
+                                            &layout,
+                                            nullptr,
+                                            nullptr,
+                                            &requiredUploadBufferSize) )
+
+   // Verify that source buffer has enough storage to read from specified offset.
+   // (application should properly fill it will all requred paddings).
+   assert( srcOffset + requiredUploadBufferSize <= source->size );
+
+   // Take into notice offset in source buffer
+   layout.Offset = srcOffset;
+
+   // Copy from Buffer with given alignments
+   D3D12_TEXTURE_COPY_LOCATION srcLocation;
+   srcLocation.pResource       = source->handle;
+   srcLocation.Type            = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+   srcLocation.PlacedFootprint = layout;
+
+   // Copy to given subresource of destination texture
+   D3D12_TEXTURE_COPY_LOCATION dstLocation;
+   dstLocation.pResource        = destination->handle;
+   dstLocation.Type             = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+   dstLocation.SubresourceIndex = subresource;
+
+   ProfileComNoRet( command->CopyTextureRegion(&dstLocation,
+                                               0, 0, 0,      // Upper-Left corner of destination region
+                                               &srcLocation,
+                                               nullptr) )    // Size of source region/volume to copy (in Texture-Texture copy)
    }
+
+
+  // uint32 rowPitch = destination->width(mipmap) * genericTexelSize(destination->state.format);
+
+  // // TODO: ROW PITCH NEEDS TO ME MULTIPLE OF 256 BYTES ON DISCREETE GPU's
+  // assert( rowPitch % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT == 0 );
+
+
+
+		//D3D12_SUBRESOURCE_DATA textureData = {};
+		//textureData.pData = &texture[0];
+		//textureData.RowPitch = TextureWidth * TexturePixelSize;
+		//textureData.SlicePitch = textureData.RowPitch * TextureHeight;
+
+
+
+
 
    void CommandBufferD3D12::copy(Ptr<Buffer> transfer,
                                  Ptr<Texture> texture,

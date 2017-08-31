@@ -34,8 +34,9 @@ namespace en
 #if defined(EN_PLATFORM_IOS)
    options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
 #else
-   if (heap->_usage == MemoryUsage::Static ||
-       heap->_usage == MemoryUsage::Temporary)
+   if (heap->_usage == MemoryUsage::Linear ||
+       heap->_usage == MemoryUsage::Tiled  ||
+       heap->_usage == MemoryUsage::Renderable)
       options |= (MTLStorageModePrivate << MTLResourceStorageModeShift);
    else
       options |= (MTLStorageModeShared << MTLResourceStorageModeShift);

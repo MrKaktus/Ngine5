@@ -306,6 +306,11 @@ namespace en
       // Size of texel in bytes, based on the given format. For compressed formats, it's texel block size.
       virtual uint32 texelSize(const Format format) = 0;
 
+      // Provides description of staging buffer alignment and padding required
+      // for given texture layer data upload.
+      virtual LinearAlignment textureLinearAlignment(const Ptr<Texture> texture, 
+                                                     const uint32 mipmap, 
+                                                     const uint32 layer) = 0;
 
       virtual ~GpuDevice() {};                            // Polymorphic deletes require a virtual base destructor
       };

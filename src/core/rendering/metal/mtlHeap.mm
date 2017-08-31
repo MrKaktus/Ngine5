@@ -59,7 +59,7 @@ namespace en
    {
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
-   assert( _usage == MemoryUsage::Static );
+   assert( _usage == MemoryUsage::Tiled );
    
    Ptr<TextureMTL> ptr = new TextureMTL(handle, state);
    if (ptr)

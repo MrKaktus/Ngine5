@@ -94,6 +94,10 @@ namespace en
    bool whichPowerOfTwo(uint32 in, uint32& power);
    bool whichPowerOfTwo(uint64 in, uint32& power);
    
+   // Aligns given adress to multiple of alignment (it needs to be power of two or zero)
+   uint32 align(uint32 adress, uint32 alignment);
+   uint64 align(uint64 adress, uint32 alignment);
+
    // Rounds up number to multiple of given alignment
    uint32 roundUp(uint32 num, uint32 alignment);
    uint64 roundUp(uint64 num, uint64 alignment);

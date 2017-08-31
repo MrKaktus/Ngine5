@@ -59,8 +59,9 @@ namespace en
    {
    assert( _offset + _size <= size );
    
-   // Buffers can be mapped only on Streamed and Immediate Heaps.
-   assert( heap->_usage == MemoryUsage::Streamed ||
+   // Buffers can only be mapped on Upload, Download and Immediate Heaps.
+   assert( heap->_usage == MemoryUsage::Upload   ||
+           heap->_usage == MemoryUsage::Download ||
            heap->_usage == MemoryUsage::Immediate );
       
    // If heap is already locked by other thread mapping resource, fail.
@@ -146,7 +147,11 @@ namespace en
    Ptr<BufferVK> buffer = nullptr;
    
    assert( size );
-   
+
+   // Buffers cannot be created in Heaps dedicated to Texture storage
+   assert( heap->_usage != MemoryUsage::Tiled   &&
+           heap->_usage != MemoryUsage::Renderable );
+
    VkBufferUsageFlags bufferUsage = 0;
    switch(type)
       {
@@ -179,17 +184,17 @@ namespace en
       };
       
    // Buffers in VRAM needs to be populated first
-   if (heap->_usage == MemoryUsage::Static)
+   if (heap->_usage == MemoryUsage::Linear)
       bufferUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-   // Buffers on Streamed Heaps can be used to transfer data in both ways
-   if (heap->_usage == MemoryUsage::Streamed)
-      {
-      // TODO: Optimize it so that transfer direction is specified
+   else
+   // Source for transfer to Linear, Tiled, Renderable (VRAM on NUMA)
+   if (heap->_usage == MemoryUsage::Upload)
       bufferUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+   else
+   // Destination for transfers from Renderable (VRAM on NUMA)
+   if (heap->_usage == MemoryUsage::Download)
       bufferUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-      }
-
+   else
    // Buffers created on Immediate Heaps should be used only to upload data to GPU VRAM
    if (heap->_usage == MemoryUsage::Immediate)
       bufferUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;

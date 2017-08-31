@@ -437,31 +437,41 @@ namespace en
       TextureFacesCount
       };
 
+   // Structure defining texture data layout in linear memory,
+   // for copying from staging buffer to destination texture.
+   struct LinearAlignment
+      {
+      uint64 size;      // Total size of linear block of memory
+      uint32 alignment; // Required alignment for data adress
+      uint32 rowSize;   // Size of single row in bytes, with padding alignment. If it matches size of data in row, whole texture can be read as single linear block.
+      uint32 rowsCount; // Count of separate rows (rows of texels or blocks of texels for compressed resources).
+      };
+
    // Texture settings structure
    struct TextureState
-          {
-          TextureType   type;
-          Format        format;   
-          TextureUsage  usage;
-          uint16        width;
-          uint16        height;
-          uint16        depth;
-          uint16        layers;   // Layers of Array texture, or Layers * Faces for CubeMap Array texture
-          uint16        samples;
-          uint16        mipmaps;  // Ignored, will be calculated automatically during texture creation TODO: Shouldn't be ignored we may want to create partial mipmap stack for streaming
-          TextureState();
-          TextureState(const TextureType type, 
-             const Format format,
-             const TextureUsage usage,
-             const uint16 width,
-             const uint16 height = 1,
-             const uint16 depth = 1,
-             const uint16 layers = 1,
-             const uint16 samples = 1,
-             const uint16 mipmaps = 1);
-
-          bool operator !=(const TextureState& b);
-          };
+      {
+      TextureType   type;
+      Format        format;   
+      TextureUsage  usage;
+      uint16        width;
+      uint16        height;
+      uint16        depth;
+      uint16        layers;   // Layers of Array texture, or Layers * Faces for CubeMap Array texture
+      uint16        samples;
+      uint16        mipmaps;  // Ignored, will be calculated automatically during texture creation TODO: Shouldn't be ignored we may want to create partial mipmap stack for streaming
+      TextureState();
+      TextureState(const TextureType type, 
+         const Format format,
+         const TextureUsage usage,
+         const uint16 width,
+         const uint16 height = 1,
+         const uint16 depth = 1,
+         const uint16 layers = 1,
+         const uint16 samples = 1,
+         const uint16 mipmaps = 1);
+      
+      bool operator !=(const TextureState& b);
+      };
 
    class Heap;
    class TextureView;
@@ -483,8 +493,7 @@ namespace en
       virtual uint16   samples(void) const = 0;
       
       // TODO: Delete: Texture transfer is done through usage of "StagingBuffer" and "CommandBuffer" transfer calls.
-      //               Are we sure? Depending on type of backing memory, there may be a performance gain in
-      //               "mapping" resources:
+      //               Depending on type of backing memory, there may be a performance gain in "mapping" resources:
       //               - iOS, tvOS - those are UMA devices.
       //               - Vulkan specific Heaps backing memory types
       //virtual void*    map(const uint8 mipmap = 0, const uint16 surface = 0) = 0;  // Surface is: CubeMap face, 3D depth, Array layer or CubeMapArray face-layer

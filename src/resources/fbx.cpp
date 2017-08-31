@@ -928,7 +928,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
          }
       }
 
-   Ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeap->createBuffer(vertices, formatting, 0u);
+   Ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting, 0u);
 
    // Create staging buffer
    uint32 stagingSize = vertices * rowSize;
@@ -1019,7 +1019,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
       vboBegin += unpackedMesh[mesh].vertices.size();
       }
-   Ptr<gpu::Buffer> ibo = en::ResourcesContext.defaults.enHeap->createBuffer(indexCount, format);
+   Ptr<gpu::Buffer> ibo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexCount, format);
 
    // Create staging buffer
    stagingSize = indexCount * indexSize;

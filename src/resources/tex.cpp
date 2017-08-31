@@ -140,7 +140,7 @@ namespace en
                             textures[i].depth,
                             textures[i].layers,
                             textures[i].samples);
-      out[i] = en::ResourcesContext.defaults.enHeap->createTexture(settings);
+      out[i] = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
 
       // TODO: Add proper support for error reporting
       assert( out[i] );

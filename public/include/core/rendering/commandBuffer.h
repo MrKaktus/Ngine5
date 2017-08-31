@@ -93,6 +93,14 @@ namespace en
                         uint64 srcOffset = 0u,
                         uint64 dstOffset = 0u) = 0;
 
+      // Before copying data from staging buffer to destination texture
+      // application should use below GpuDevice method to obtain alignment
+      // and padding layout of data in that staging buffer:
+      //
+      // LinearAlignment textureLinearAlignment(const Ptr<Texture> texture, 
+      //                                        const uint32 mipmap, 
+      //                                        const uint32 layer);
+      //
       virtual void copy(Ptr<Buffer> source,
                         const uint64 srcOffset,
                         Ptr<Texture> texture,

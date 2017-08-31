@@ -485,12 +485,16 @@ namespace en
 
    uint32 CommonTexture::width(const uint8 mipmap) const
    {
+   // TODO: Should this be alighed up for compressed texture formats?
+
    // If mipmap exceeds total mipmaps count, result will be 0
    return state.width >> mipmap;
    }
    
    uint32 CommonTexture::height(const uint8 mipmap) const
    {
+   // TODO: Should this be alighed up for compressed texture formats?
+
    // If mipmap exceeds total mipmaps count, result will be 0
    return state.height >> mipmap;
    }

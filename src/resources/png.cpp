@@ -164,6 +164,7 @@ namespace en
       uint32 texelSize;      //
       uint32 width;          //
       uint32 height;         // Image height
+      uint32 linePadding;    // Padding after each line in output buffer
       uint8* input;          // Input buffer
       uint8* output;         // Output buffer
       bool invertHorizontal; // Should invert the image ?
@@ -177,6 +178,7 @@ namespace en
       uint32 texelSize;      //
       uint32 width;          //
       uint32 height;         // Image height
+      uint32 linePadding;    // Padding after each line in output buffer
       uint8* input;          // Input buffer
       uint8* output;         // Output buffer
       bool invertHorizontal; // Should invert the image ?
@@ -192,6 +194,7 @@ namespace en
       texelSize(state.texelSize),
       width(state.width),
       height(state.height),
+      linePadding(state.linePadding),
       input(state.input),
       output(state.output),
       invertHorizontal(state.invertHorizontal),
@@ -205,7 +208,7 @@ namespace en
    // Revert filters line by line
    uint32 lineSize   = width * texelSize;
    uint32 inOffset   = startLine * (lineSize + 1);
-   uint32 outOffset  = startLine * lineSize;
+   uint32 outOffset  = startLine * (lineSize + linePadding);
    uint32 prevOffset = 0;
    for(uint32 i=startLine; i<(startLine + lines); ++i)
       {
@@ -515,7 +518,7 @@ namespace en
 
 
 
-   bool load(const string& filename, uint8* const destination, const uint32 width, const uint32 height, const gpu::Format format, const bool invertHorizontal)
+   bool load(const string& filename, uint8* const destination, const uint32 width, const uint32 height, const gpu::Format format, const LinearAlignment layout, const bool invertHorizontal)
    {
    using namespace en::storage;
    using namespace en::gpu;
@@ -549,7 +552,7 @@ namespace en
    // Free temporary 4KB memory page
    deallocate<uint8>(buffer);
 
-   // Werify that file matches expected properties
+   // Verify that file matches expected properties
    if ( (settings.width != width) ||
         (settings.height != height) ||
         (settings.format != format) )
@@ -748,12 +751,16 @@ namespace en
    // ### Decode applied filters
 
 
+   assert( reinterpret_cast<uint64>(destination) % layout.alignment == 0 );
+   assert( settings.height == layout.rowsCount );
+
    DecodeState decoder;
    decoder.startLine        = 0;
    decoder.lines            = settings.height;
    decoder.texelSize        = gpu::genericTexelSize(settings.format);
    decoder.width            = settings.width;
    decoder.height           = settings.height;
+   decoder.linePadding      = layout.rowSize - settings.width * gpu::genericTexelSize(settings.format);
    decoder.input            = inflated;
    decoder.output           = destination;
    decoder.invertHorizontal = invertHorizontal;
@@ -1773,7 +1780,7 @@ namespace en
 
 
    // Create texture in gpu
-   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeap->createTexture(settings);
+   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";

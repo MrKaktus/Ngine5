@@ -122,8 +122,9 @@ namespace en
    {
    assert( _offset + _size <= size );
    
-   // Buffers can be mapped only on Streamed and Immediate Heaps.
-   assert( heap->_usage == MemoryUsage::Streamed ||
+   // Buffers can be mapped only on Upload, Download and Immediate Heaps.
+   assert( heap->_usage == MemoryUsage::Upload   ||
+           heap->_usage == MemoryUsage::Download ||
            heap->_usage == MemoryUsage::Immediate );
   
 #ifdef EN_ARCHITECTURE_X86    
@@ -155,7 +156,11 @@ namespace en
    Ptr<Buffer> HeapD3D12::createBuffer(const BufferType type, const uint32 size)
    {
    Ptr<BufferD3D12> result = nullptr;
-   
+
+   // Buffers cannot be created in Heaps dedicated to Texture storage
+   assert( _usage != MemoryUsage::Tiled   &&
+           _usage != MemoryUsage::Renderable );
+
    // Buffer descriptor
    D3D12_RESOURCE_DESC desc;
    desc.Dimension          = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -184,11 +189,13 @@ namespace en
       return Ptr<Buffer>(nullptr);
       }
 
-   // Can be used by all stages, and needs to be populated first.
-   D3D12_RESOURCE_STATES initState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE |
-                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
-                                     D3D12_RESOURCE_STATE_COPY_DEST;
-   
+   D3D12_RESOURCE_STATES initState;
+   if (_usage == MemoryUsage::Upload ||
+       _usage == MemoryUsage::Immediate)
+      initState = D3D12_RESOURCE_STATE_GENERIC_READ;
+   else
+      initState = D3D12_RESOURCE_STATE_COPY_DEST;
+
    ID3D12Resource* bufferHandle = nullptr;
 
    Profile( gpu, CreatePlacedResource(handle,

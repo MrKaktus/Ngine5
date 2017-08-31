@@ -415,7 +415,7 @@ namespace en
    
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
-   assert( _usage == MemoryUsage::Static );
+   assert( _usage == MemoryUsage::Tiled );
 
    // Texture descriptor
    D3D12_RESOURCE_DESC desc;
@@ -485,14 +485,12 @@ namespace en
    // clarColor.DepthStencil.Depth;   // FLOAT
    // clarColor.DepthStencil.Stencil; // UINT8
 
-   // Can be used by all stages, and needs to be populated first.
-   D3D12_RESOURCE_STATES initState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE |
-                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
-                                     D3D12_RESOURCE_STATE_COPY_DEST;
+   // Resource is in generic state at creation time.
+   D3D12_RESOURCE_STATES initState = D3D12_RESOURCE_STATE_COMMON;
    
    if (state.usage == TextureUsage::RenderTargetWrite)
       {
-      initState |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+      initState = D3D12_RESOURCE_STATE_RENDER_TARGET;
       
       if (TextureFormatIsDepthStencil(state.format) ||
           TextureFormatIsDepth(state.format))
@@ -548,7 +546,54 @@ namespace en
    return ptr_reinterpret_cast<Texture>(&texture);
    }
    
+ 
+   // DEVICE
+   //////////////////////////////////////////////////////////////////////////
+
+
+   LinearAlignment Direct3D12Device::textureLinearAlignment(const Ptr<Texture> texture, 
+                                                            const uint32 mipmap, 
+                                                            const uint32 layer)
+   {
+   assert( texture );
+   assert( texture->mipmaps() > mipmap );
+   assert( texture->layers() > layer );
    
+   TextureD3D12* destination = raw_reinterpret_cast<TextureD3D12>(&texture);
+
+   D3D12_RESOURCE_DESC desc = destination->handle->GetDesc();
+
+   // Based on amount of mip-maps and layers, calculates
+   // index of subresource to modify.
+   UINT subresource = D3D12CalcSubresource(mipmap,
+                                           layer,
+                                           0u,
+                                           destination->state.mipmaps,
+                                           destination->state.layers);
+   
+   D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+   UINT                               linesCount = 0;
+   UINT64                             lineSize = 0;
+   UINT64                             requiredUploadBufferSize = 0;
+
+   ProfileNoRet( this, GetCopyableFootprints(&desc,
+                                            subresource, // First subresource to modify
+                                            1,           // Subresources count
+                                            0,
+                                            &layout,
+                                            &linesCount, // Count of lines in given subresource
+                                            &lineSize,   // Size of line in bytes
+                                            &requiredUploadBufferSize) )
+
+   LinearAlignment result;
+   result.size      = requiredUploadBufferSize;
+   result.alignment = 256;
+   result.rowSize   = lineSize;
+   result.rowsCount = linesCount;
+
+   return result;
+   }
+
    }
 }
 #endif
