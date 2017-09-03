@@ -407,12 +407,12 @@ namespace en
       };
 #endif
 
-   TextureMTL::TextureMTL(const id memory, const TextureState& _state) :
-      TextureMTL(memory, _state, true)
+   TextureMTL::TextureMTL(const id<MTLHeap> heap, const TextureState& _state) :
+      TextureMTL(heap, _state, true)
    {
    }
    
-   TextureMTL::TextureMTL(const id memory, const TextureState& _state, const bool allocateBacking) :
+   TextureMTL::TextureMTL(const id<MTLHeap> heap, const TextureState& _state, const bool allocateBacking) :
       ioSurface(nullptr),
       ownsBacking(allocateBacking),
       CommonTexture(_state)
@@ -448,11 +448,8 @@ namespace en
    if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::MultipleViews)))
       desc.usage        |= MTLTextureUsagePixelFormatView;
       
-#if defined(EN_PLATFORM_IOS)
-   handle = [(id<MTLHeap>)memory newTextureWithDescriptor:desc];
-#else
-   handle = [(id<MTLDevice>)memory newTextureWithDescriptor:desc];
-#endif
+   handle = [heap newTextureWithDescriptor:desc];
+
 #ifndef APPLE_ARC
    // Auto-release pool to ensure that Metal ARC will flush garbage collector
    @autoreleasepool
@@ -516,13 +513,13 @@ namespace en
    {
    if (ownsBacking)
       {
-      // Auto-release pool to ensure that garbage collector is flushed
+#ifndef APPLE_ARC
+      // Auto-release pool to ensure that Metal ARC will flush garbage collector
       @autoreleasepool
          {
-#ifndef APPLE_ARC
          [handle release];
-#endif
          }
+#endif
       handle = nil;
       }
       
@@ -632,6 +629,37 @@ namespace en
    Ptr<Texture> TextureViewMTL::parent(void) const
    {
    return ptr_reinterpret_cast<Texture>(&texture);
+   }
+
+ 
+   // DEVICE
+   //////////////////////////////////////////////////////////////////////////
+
+
+   LinearAlignment MetalDevice::textureLinearAlignment(const Ptr<Texture> texture,
+                                                       const uint32 mipmap,
+                                                       const uint32 layer)
+   {
+   LinearAlignment desc;
+   
+   // Data total size with paddings (Metal doesn't require paddings between lines?)
+   desc.size = texture->size(mipmap);
+   
+   // Data starting offset alignment
+#if defined(EN_PLATFORM_OSX)
+   desc.alignment = 256;
+#elif defined(EN_PLATFORM_IOS)
+   // Apple A9 and A10 chips support 16 byte data alignment
+   if ([device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily3_v1])
+      desc.alignment = 16;
+   else
+      desc.alignment = 64;
+#endif
+
+   desc.rowSize   = texture->width(mipmap) * genericTexelSize(texture->format());
+   desc.rowsCount = texture->height(mipmap); // TODO: Correct this for compressed textures!
+   
+   return desc;
    }
 
    Ptr<Texture> MetalDevice::createSharedTexture(Ptr<SharedSurface> backingSurface)

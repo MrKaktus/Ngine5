@@ -42,10 +42,10 @@ namespace en
       Ptr<SharedSurfaceOSX> ioSurface;   // Texture object may own backing, but this backing may be in form of shared IOSurface
       bool                  ownsBacking; // Is this texture container the owner of backing surface (no for Swap-Chain surfaces)
       
-      TextureMTL(const id memory,
+      TextureMTL(const id<MTLHeap> heap,
                  const TextureState& state);
          
-      TextureMTL(const id memory,
+      TextureMTL(const id<MTLHeap> heap,
                  const TextureState& state,
                  const bool allocateBacking);
       

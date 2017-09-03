@@ -58,7 +58,7 @@ namespace en
    options.fastMathEnabled    = NO;
 #endif
    // TODO: Dynamic version in future ?
-   options.languageVersion    = MTLLanguageVersion1_2;
+   options.languageVersion    = MTLLanguageVersion2_0; //MTLLanguageVersion1_2;
    
    NSError* error = nil;
    id <MTLLibrary> library = nil;

@@ -38,6 +38,14 @@ namespace en
    id<MTLDevice> device = gpu->device;
    
    // Determine destination screen properties
+   //
+   // For rendring in native resolution on Retina displays,
+   // application need to opt-in to Retina support by setting
+   // in it's Info.plist file:
+   //
+   // <key>NSHighResolutionCapable</key>
+   // <string>True</string>
+   //
    NSScreen* handle = nullptr;
    uint32v2 resolution;
    if (settings.display)
@@ -45,6 +53,10 @@ namespace en
       DisplayMTL* ptr = raw_reinterpret_cast<DisplayMTL>(&settings.display);
       handle     = ptr->handle;
       resolution = ptr->_resolution;
+      //NSRect info = [handle convertRectToBacking:[handle frame]];
+      //CGFloat factor = [handle backingScaleFactor];
+      //resolution.width  = static_cast<uint32>(info.size.width);
+      //resolution.height = static_cast<uint32>(info.size.height);
       }
    else
       {
@@ -174,7 +186,8 @@ namespace en
                       TextureUsage::RenderTargetWrite,
                       settings.size.width,
                       settings.size.height);
-   framebuffer = new TextureMTL(device, state, false);
+      
+   framebuffer = new TextureMTL(nullptr, state, false);
    }
    
    WindowMTL::~WindowMTL()
@@ -265,7 +278,7 @@ namespace en
       surfaceAcquire.lock();
 
       if (needNewSurface)
-         {
+         {            
          drawable            = [layer nextDrawable];
          framebuffer->handle = [drawable.texture retain];
          needNewSurface      = false;
@@ -292,7 +305,7 @@ namespace en
          [drawable release];
          }
       needNewSurface = true;
-	  _frame++;
+      _frame++;
       }
    }
 

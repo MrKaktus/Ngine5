@@ -176,8 +176,8 @@ namespace en
    for(uint32 i=0; i<31; ++i)                                  // TODO: Change 31 to layout->usedDescriptors
       {
       // TODO: Extract DescriptorSets mutability from PipelineLayout
-    //pipeDesc.vertexBuffers[0].mutability = layout->
-    //pipeDesc.fragmentBuffers[0].mutability = layout->
+      pipeDesc.vertexBuffers[0].mutability   = MTLMutabilityImmutable; //layout->
+      pipeDesc.fragmentBuffers[0].mutability = MTLMutabilityImmutable; //layout->
       }
    
    // Optional Pipeline State depending from Render Pass

@@ -23,32 +23,16 @@ namespace en
 {
    namespace gpu
    {
-   BufferMTL::BufferMTL(Ptr<HeapMTL> _heap, const BufferType type, const uint32 size) :
-      handle(nil),
+   BufferMTL::BufferMTL(Ptr<HeapMTL> _heap,
+                        id<MTLBuffer> _handle,
+                        const BufferType type,
+                        const uint32 size,
+                        const uint32 _offset) :
+      handle(_handle),
       heap(_heap),
+      offset(_offset),
       CommonBuffer(type, size)
    {
-   MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift); // MTLCPUCacheModeWriteCombined
-   
-   // Based on buffer type, it's located in CPU RAM or GPU VRAM on NUMA architectures.
-#if defined(EN_PLATFORM_IOS)
-   options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
-#else
-   if (heap->_usage == MemoryUsage::Linear ||
-       heap->_usage == MemoryUsage::Tiled  ||
-       heap->_usage == MemoryUsage::Renderable)
-      options |= (MTLStorageModePrivate << MTLResourceStorageModeShift);
-   else
-      options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
-#endif
-
-#if defined(EN_PLATFORM_IOS)
-   handle = [(id<MTLHeap>)heap->handle newBufferWithLength:(NSUInteger)size
-                                                   options:options];
-#else
-   handle = [(id<MTLDevice>)heap->handle newBufferWithLength:(NSUInteger)size
-                                                     options:options];
-#endif
    }
 
 
@@ -208,6 +192,11 @@ namespace en
    BufferMTL::~BufferMTL()
    {
    handle = nil;
+   
+   if (offset)
+      heap->allocator->deallocate(offset, size);
+      
+   heap = nullptr;
    }
 
    void* BufferMTL::map(void)
@@ -219,12 +208,13 @@ namespace en
    {
    assert( _offset + _size <= size );
    
-   // Buffers can be mapped only on Streamed and Immediate Heaps.
-   assert( heap->_usage == MemoryUsage::Streamed ||
+   // Buffers can be mapped only on Upload, Download and Immediate Heaps.
+   assert( heap->_usage == MemoryUsage::Upload   ||
+           heap->_usage == MemoryUsage::Download ||
            heap->_usage == MemoryUsage::Immediate );
       
    // Just return pointer to buffer data
-   return (void*)((uint64)[handle contents] + (uint64)_offset);
+   return (void*)((uint64)[handle contents] + (uint64)offset + (uint64)_offset);
    }
 
    void BufferMTL::unmap(void)

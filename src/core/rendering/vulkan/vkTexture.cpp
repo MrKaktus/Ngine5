@@ -684,7 +684,7 @@ namespace en
    result.size      = texture->size(mipmap);
    result.alignment = 256;
    result.rowSize   = texture->width(mipmap) * texelSize(destination->state.format);
-   result.rowsCount = texture->height(mipmap);
+   result.rowsCount = texture->height(mipmap); // TODO: Correct it for compressed textures !
 
    return result;
    }

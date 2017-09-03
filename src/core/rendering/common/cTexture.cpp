@@ -71,87 +71,87 @@ namespace en
    const TextureCompressedBlockInfo TextureCompressionInfo[underlyingType(Format::Count)] =
       {
       {  0,  0,  0, false },   // Format::Unsupported         
-      {  0,  0,  1, false },   // Format::R_8                  
-      {  0,  0,  1, false },   // Format::R_8_sRGB            
-      {  0,  0,  1, false },   // Format::R_8_sn              
-      {  0,  0,  1, false },   // Format::R_8_u               
-      {  0,  0,  1, false },   // Format::R_8_s               
-      {  0,  0,  2, false },   // Format::R_16                
-      {  0,  0,  2, false },   // Format::R_16_sn             
-      {  0,  0,  2, false },   // Format::R_16_u              
-      {  0,  0,  2, false },   // Format::R_16_s              
-      {  0,  0,  2, false },   // Format::R_16_hf             
-      {  0,  0,  4, false },   // Format::R_32_u              
-      {  0,  0,  4, false },   // Format::R_32_s              
-      {  0,  0,  4, false },   // Format::R_32_f              
-      {  0,  0,  2, false },   // Format::RG_8                
-      {  0,  0,  2, false },   // Format::RG_8_sRGB           
-      {  0,  0,  2, false },   // Format::RG_8_sn             
-      {  0,  0,  2, false },   // Format::RG_8_u              
-      {  0,  0,  2, false },   // Format::RG_8_s              
-      {  0,  0,  4, false },   // Format::RG_16               
-      {  0,  0,  4, false },   // Format::RG_16_sn            
-      {  0,  0,  4, false },   // Format::RG_16_u             
-      {  0,  0,  4, false },   // Format::RG_16_s             
-      {  0,  0,  4, false },   // Format::RG_16_hf            
-      {  0,  0,  8, false },   // Format::RG_32_u             
-      {  0,  0,  8, false },   // Format::RG_32_s             
-      {  0,  0,  8, false },   // Format::RG_32_f             
-      {  0,  0,  3, false },   // Format::RGB_8             (may be padded internally to 4 bytes)            
-      {  0,  0,  3, false },   // Format::RGB_8_sRGB        (may be padded internally to 4 bytes)    
-      {  0,  0,  3, false },   // Format::RGB_8_sn          (may be padded internally to 4 bytes)    
-      {  0,  0,  3, false },   // Format::RGB_8_u           (may be padded internally to 4 bytes)    
-      {  0,  0,  3, false },   // Format::RGB_8_s           (may be padded internally to 4 bytes)    
-      {  0,  0,  6, false },   // Format::RGB_16            (may be padded internally to 8 bytes)    
-      {  0,  0,  6, false },   // Format::RGB_16_sn         (may be padded internally to 8 bytes)    
-      {  0,  0,  6, false },   // Format::RGB_16_u          (may be padded internally to 8 bytes)    
-      {  0,  0,  6, false },   // Format::RGB_16_s          (may be padded internally to 8 bytes)    
-      {  0,  0,  6, false },   // Format::RGB_16_hf         (may be padded internally to 8 bytes)    
-      {  0,  0, 12, false },   // Format::RGB_32_u            
-      {  0,  0, 12, false },   // Format::RGB_32_s            
-      {  0,  0, 12, false },   // Format::RGB_32_f            
-      {  0,  0,  4, false },   // Format::RGBA_8              
-      {  0,  0,  4, false },   // Format::RGBA_8_sRGB         
-      {  0,  0,  4, false },   // Format::RGBA_8_sn           
-      {  0,  0,  4, false },   // Format::RGBA_8_u            
-      {  0,  0,  4, false },   // Format::RGBA_8_s            
-      {  0,  0,  8, false },   // Format::RGBA_16             
-      {  0,  0,  8, false },   // Format::RGBA_16_sn          
-      {  0,  0,  8, false },   // Format::RGBA_16_u           
-      {  0,  0,  8, false },   // Format::RGBA_16_s           
-      {  0,  0,  8, false },   // Format::RGBA_16_hf          
-      {  0,  0, 16, false },   // Format::RGBA_32_u           
-      {  0,  0, 16, false },   // Format::RGBA_32_s           
-      {  0,  0, 16, false },   // Format::RGBA_32_f           
-      {  0,  0,  2, false },   // Format::D_16                
-      {  0,  0,  3, false },   // Format::D_24              (may be padded internally to 4 bytes)        
-      {  0,  0,  4, false },   // Format::D_24_8               
-      {  0,  0,  4, false },   // Format::D_32                 
-      {  0,  0,  4, false },   // Format::D_32_f               
-      {  0,  0,  1, false },   // Format::S_8                  
-      {  0,  0,  3, false },   // Format::DS_16_8              
-      {  0,  0,  4, false },   // Format::DS_24_8              
-      {  0,  0,  8, false },   // Format::DS_32_f_8         (5 bytes plus 3 bytes padding)            
-      {  0,  0,  2, false },   // Format::RGB_5_6_5            
-      {  0,  0,  2, false },   // Format::BGR_5_6_5            
-      {  0,  0,  3, false },   // Format::BGR_8             (may be padded internally to 4 bytes)   
-      {  0,  0,  3, false },   // Format::BGR_8_sRGB        (may be padded internally to 4 bytes)   
-      {  0,  0,  3, false },   // Format::BGR_8_sn          (may be padded internally to 4 bytes)   
-      {  0,  0,  3, false },   // Format::BGR_8_u           (may be padded internally to 4 bytes)   
-      {  0,  0,  3, false },   // Format::BGR_8_s           (may be padded internally to 4 bytes) 
-      {  0,  0,  4, false },   // Format::RGB_11_11_10_uf      
-      {  0,  0,  4, false },   // Format::RGBE_9_9_9_5_uf      
-      {  0,  0,  4, false },   // Format::BGRA_8               
-      {  0,  0,  4, false },   // Format::BGRA_8_sRGB          
-      {  0,  0,  4, false },   // Format::BGRA_8_sn           
-      {  0,  0,  4, false },   // Format::BGRA_8_u            
-      {  0,  0,  4, false },   // Format::BGRA_8_s            
-      {  0,  0,  2, false },   // Format::BGRA_5_5_5_1        
-      {  0,  0,  2, false },   // Format::ARGB_1_5_5_5        
-      {  0,  0,  2, false },   // Format::ABGR_1_5_5_5         
-      {  0,  0,  4, false },   // Format::RGBA_10_10_10_2      
-      {  0,  0,  4, false },   // Format::RGBA_10_10_10_2_u   
-      {  0,  0,  4, false },   // Format::BGRA_10_10_10_2      
+      {  1,  1,  1, false },   // Format::R_8
+      {  1,  1,  1, false },   // Format::R_8_sRGB
+      {  1,  1,  1, false },   // Format::R_8_sn
+      {  1,  1,  1, false },   // Format::R_8_u
+      {  1,  1,  1, false },   // Format::R_8_s
+      {  1,  1,  2, false },   // Format::R_16
+      {  1,  1,  2, false },   // Format::R_16_sn
+      {  1,  1,  2, false },   // Format::R_16_u
+      {  1,  1,  2, false },   // Format::R_16_s
+      {  1,  1,  2, false },   // Format::R_16_hf
+      {  1,  1,  4, false },   // Format::R_32_u
+      {  1,  1,  4, false },   // Format::R_32_s
+      {  1,  1,  4, false },   // Format::R_32_f
+      {  1,  1,  2, false },   // Format::RG_8
+      {  1,  1,  2, false },   // Format::RG_8_sRGB
+      {  1,  1,  2, false },   // Format::RG_8_sn
+      {  1,  1,  2, false },   // Format::RG_8_u
+      {  1,  1,  2, false },   // Format::RG_8_s
+      {  1,  1,  4, false },   // Format::RG_16
+      {  1,  1,  4, false },   // Format::RG_16_sn
+      {  1,  1,  4, false },   // Format::RG_16_u
+      {  1,  1,  4, false },   // Format::RG_16_s
+      {  1,  1,  4, false },   // Format::RG_16_hf
+      {  1,  1,  8, false },   // Format::RG_32_u
+      {  1,  1,  8, false },   // Format::RG_32_s
+      {  1,  1,  8, false },   // Format::RG_32_f
+      {  1,  1,  3, false },   // Format::RGB_8             (may be padded internally to 4 bytes)
+      {  1,  1,  3, false },   // Format::RGB_8_sRGB        (may be padded internally to 4 bytes)
+      {  1,  1,  3, false },   // Format::RGB_8_sn          (may be padded internally to 4 bytes)
+      {  1,  1,  3, false },   // Format::RGB_8_u           (may be padded internally to 4 bytes)
+      {  1,  1,  3, false },   // Format::RGB_8_s           (may be padded internally to 4 bytes)
+      {  1,  1,  6, false },   // Format::RGB_16            (may be padded internally to 8 bytes)
+      {  1,  1,  6, false },   // Format::RGB_16_sn         (may be padded internally to 8 bytes)
+      {  1,  1,  6, false },   // Format::RGB_16_u          (may be padded internally to 8 bytes)
+      {  1,  1,  6, false },   // Format::RGB_16_s          (may be padded internally to 8 bytes)
+      {  1,  1,  6, false },   // Format::RGB_16_hf         (may be padded internally to 8 bytes)
+      {  1,  1, 12, false },   // Format::RGB_32_u
+      {  1,  1, 12, false },   // Format::RGB_32_s
+      {  1,  1, 12, false },   // Format::RGB_32_f
+      {  1,  1,  4, false },   // Format::RGBA_8
+      {  1,  1,  4, false },   // Format::RGBA_8_sRGB
+      {  1,  1,  4, false },   // Format::RGBA_8_sn
+      {  1,  1,  4, false },   // Format::RGBA_8_u
+      {  1,  1,  4, false },   // Format::RGBA_8_s
+      {  1,  1,  8, false },   // Format::RGBA_16
+      {  1,  1,  8, false },   // Format::RGBA_16_sn
+      {  1,  1,  8, false },   // Format::RGBA_16_u
+      {  1,  1,  8, false },   // Format::RGBA_16_s
+      {  1,  1,  8, false },   // Format::RGBA_16_hf
+      {  1,  1, 16, false },   // Format::RGBA_32_u
+      {  1,  1, 16, false },   // Format::RGBA_32_s
+      {  1,  1, 16, false },   // Format::RGBA_32_f
+      {  1,  1,  2, false },   // Format::D_16
+      {  1,  1,  3, false },   // Format::D_24              (may be padded internally to 4 bytes)
+      {  1,  1,  4, false },   // Format::D_24_8
+      {  1,  1,  4, false },   // Format::D_32
+      {  1,  1,  4, false },   // Format::D_32_f
+      {  1,  1,  1, false },   // Format::S_8
+      {  1,  1,  3, false },   // Format::DS_16_8
+      {  1,  1,  4, false },   // Format::DS_24_8
+      {  1,  1,  8, false },   // Format::DS_32_f_8         (5 bytes plus 3 bytes padding)
+      {  1,  1,  2, false },   // Format::RGB_5_6_5
+      {  1,  1,  2, false },   // Format::BGR_5_6_5
+      {  1,  1,  3, false },   // Format::BGR_8             (may be padded internally to 4 bytes)
+      {  1,  1,  3, false },   // Format::BGR_8_sRGB        (may be padded internally to 4 bytes)
+      {  1,  1,  3, false },   // Format::BGR_8_sn          (may be padded internally to 4 bytes)
+      {  1,  1,  3, false },   // Format::BGR_8_u           (may be padded internally to 4 bytes)
+      {  1,  1,  3, false },   // Format::BGR_8_s           (may be padded internally to 4 bytes)
+      {  1,  1,  4, false },   // Format::RGB_11_11_10_uf
+      {  1,  1,  4, false },   // Format::RGBE_9_9_9_5_uf
+      {  1,  1,  4, false },   // Format::BGRA_8
+      {  1,  1,  4, false },   // Format::BGRA_8_sRGB
+      {  1,  1,  4, false },   // Format::BGRA_8_sn
+      {  1,  1,  4, false },   // Format::BGRA_8_u
+      {  1,  1,  4, false },   // Format::BGRA_8_s
+      {  1,  1,  2, false },   // Format::BGRA_5_5_5_1
+      {  1,  1,  2, false },   // Format::ARGB_1_5_5_5
+      {  1,  1,  2, false },   // Format::ABGR_1_5_5_5
+      {  1,  1,  4, false },   // Format::RGBA_10_10_10_2
+      {  1,  1,  4, false },   // Format::RGBA_10_10_10_2_u
+      {  1,  1,  4, false },   // Format::BGRA_10_10_10_2
       {  4,  4,  8, true  },   // Format::BC1_RGB              
       {  4,  4,  8, true  },   // Format::BC1_RGB_sRGB         
       {  4,  4,  8, true  },   // Format::BC1_RGBA             

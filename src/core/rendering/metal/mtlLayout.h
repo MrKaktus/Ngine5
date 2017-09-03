@@ -49,8 +49,9 @@ namespace en
       public:
       MetalDevice* gpu;
       uint32 setsCount;  // Count of descriptor sets
+      Ptr<SetLayoutMTL>* setLayout;
       
-      PipelineLayoutMTL(MetalDevice* gpu);
+      PipelineLayoutMTL(MetalDevice* gpu, const uint32 _setsCount);
       virtual ~PipelineLayoutMTL();
       };
       

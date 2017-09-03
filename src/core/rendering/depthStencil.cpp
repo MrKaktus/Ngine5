@@ -91,11 +91,11 @@ namespace en
 
    // Default Values: D3D12                                       Metal                Vulkan                OpenGL
    // 
-   // depthTest       T                                         | F (func: Always)  |  ?                  |
+   // depthTest       T                                         | F (func: Always)  |  ?                  | F
    // depthWrite      T (write mask)                            | F                 |  ?                  |
    // depthBounds     ----                                      | ----              |  ? (Static/Dynamic) |
    // stencilTest     F                                         | F       F         |  ?                  |
-   // depthFunc       Less                                      | Always            |  ?                  |
+   // depthFunc       Less                                      | Always            |  ?                  | Less
    // depthRange      ----                                      | ----              |  ?                  |
    //                                                                                          
    //                 FRONT:  BACK:                               FRONT:  BACK:                
@@ -109,11 +109,11 @@ namespace en
    // writeMask       Shared - D3D12_DEFAULT_STENCIL_WRITE_MASK | 0xFFFF  0xFFFF    |  ?    ?  |
    //
    DepthStencilStateInfo::DepthStencilStateInfo() :
-      enableDepthTest(true),
-      enableDepthWrite(true),
+      enableDepthTest(false),
+      enableDepthWrite(false),
       enableDepthBounds(false), 
       enableStencilTest(false),  
-      depthFunction(Less),
+      depthFunction(Always),
       depthRange(-1.0f, 1.0f)
    {
    for(uint8 i=0; i<2; ++i)

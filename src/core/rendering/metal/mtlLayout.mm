@@ -73,13 +73,19 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
    
-   PipelineLayoutMTL::PipelineLayoutMTL(MetalDevice* _gpu) :
-      gpu(_gpu)
+   PipelineLayoutMTL::PipelineLayoutMTL(MetalDevice* _gpu, const uint32 _setsCount) :
+      gpu(_gpu),
+      setsCount(_setsCount),
+      setLayout(new Ptr<SetLayoutMTL>[_setsCount])
    {
    }
    
    PipelineLayoutMTL::~PipelineLayoutMTL()
    {
+   for(uint32 i=0; i<setsCount; ++i)
+      setLayout[i] = nullptr;
+      
+   delete [] setLayout;
    }
    
    
@@ -96,7 +102,9 @@ namespace en
       heapsRefs(nullptr),
       heapsCount(0)
    {
-   MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift); // MTLCPUCacheModeWriteCombined
+   // Argument Buffer will be only written to by CPU, thus
+   // WriteCombined mode is used to speed up those writes.
+   MTLResourceOptions options = (MTLCPUCacheModeWriteCombined << MTLResourceCPUCacheModeShift);
    
    // ArgumentBuffer need to be CPU accessible all the time,
    // and it's VRAM copy is explicitly managed by the Driver,
@@ -110,7 +118,8 @@ namespace en
    options |= (MTLStorageModeManaged << MTLResourceStorageModeShift);
 #endif
 
-   handle = [gpu->device newBufferWithLength:(NSUInteger)[layout->handle encodedLength]
+   NSUInteger layoutBufferLength = [layout->handle encodedLength];
+   handle = [gpu->device newBufferWithLength:layoutBufferLength
                                      options:options];
                                      
    // Per Descriptor array of Id's referencing slots in array of required Heaps
@@ -321,11 +330,17 @@ namespace en
    PipelineLayoutMTL* layout = raw_reinterpret_cast<PipelineLayoutMTL>(&_layout);
    DescriptorSetMTL*  set    = raw_reinterpret_cast<DescriptorSetMTL>(&_set);
    
-   // TODO: Verify that index is in range of the layout
-   // assert( layout->setsCount > index );
+   // Verify that index is in range of the layout
+   assert( layout->setsCount > index );
    
-   // TODO: Verify that set is based on setLayout that matches N'th setLayout from PipelineLayout
+   // Verify that set is based on setLayout that matches N'th setLayout from PipelineLayout
+   assert( layout->setLayout[index] == set->layout );
    
+   // TODO: Optimize upload of descriptors to VRAM
+#if defined(EN_PLATFORM_OSX)
+   [set->handle didModifyRange:NSMakeRange(0, [set->layout->handle encodedLength])];
+#endif
+
    // Bind descriptor set only to pipeline stage it is visible in
    uint32 mask = underlyingType(set->layout->stageMask);
    if (checkBitmask(mask, underlyingType(ShaderStages::Vertex)))
@@ -375,11 +390,7 @@ namespace en
    
    Ptr<SetLayoutMTL> result = nullptr;
    
-   // TODO: Verify design decision about slot space per resource type vs shared slot space
-   uint32 types = underlyingType(ResourceType::Count);
-   uint32* slot = new uint32[types];
-   for(uint32 i=0; i<types; ++i)
-      slot[i] = 0u;
+   uint32 slot = 0;
       
    NSMutableArray* rangeInfo = [NSMutableArray arrayWithCapacity:count];
    
@@ -392,7 +403,7 @@ namespace en
       uint32 resourceType = underlyingType(group[i].type);
       
       desc.dataType               = TranslateDataType[resourceType];
-      desc.index                  = slot[resourceType];
+      desc.index                  = slot;
       desc.arrayLength            = group[i].count;
       desc.access                 = MTLArgumentAccessReadOnly; // RO indicates Texture, Buffer
                                  // MTLArgumentAccessReadWrite // RW indicates Image/UAV
@@ -403,7 +414,7 @@ namespace en
       rangeInfo[i] = desc;
       
       // Increase index by amount of slots used
-      slot[resourceType] += group[i].count;
+      slot += group[i].count;
       }
       
    // Convert temporary mutable array, to fixed non-mutable one
@@ -412,13 +423,7 @@ namespace en
    // Create arguments encoder (Descriptors Layout)
    id<MTLArgumentEncoder> encoder = [device newArgumentEncoderWithArguments:arguments];
    if (encoder)
-      {
-      uint32 descriptors = 0;
-      for(uint32 i=0; i<types; ++i)
-         descriptors += slot[i];
-         
-      result = new SetLayoutMTL(encoder, stageMask, descriptors);
-      }
+      result = new SetLayoutMTL(encoder, stageMask, slot);
       
    return ptr_reinterpret_cast<SetLayout>(&result);
    }
@@ -433,9 +438,19 @@ namespace en
    
    MTLMutability mutability = MTLMutabilityImmutable;
 
-   result = new PipelineLayoutMTL(this);
-   result->setsCount = sets;
+   result = new PipelineLayoutMTL(this, sets);
+   for(uint32 i=0; i<sets; ++i)
+      result->setLayout[i] = ptr_reinterpret_cast<SetLayoutMTL>(&set[i]);
    
+   //  MTLArgumentBuffersTier argumentBuffersSupport
+   
+   // Metal has no notion of Immutable samplers
+   if (immutableSamplers)
+      {
+       
+      }
+
+      
    
    // TODO: Finish / Emulate !
    

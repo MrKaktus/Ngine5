@@ -44,7 +44,7 @@ namespace en
          uint32              reference;        // Reference value
          uint32              readMask;         // Mask that is ANDed with both the reference value and the stored stencil value before the test, also called "compare mask"
          uint32              writeMask;        // Mask that is ANDed with output stencil value before writing to stencil attachment
-         } stencil[2];
+         } stencil[2];                         // Masks allow Front and Back Stencil operations to work on separate ranges of bits in Stencil buffer
 
       DepthStencilStateInfo();
       };

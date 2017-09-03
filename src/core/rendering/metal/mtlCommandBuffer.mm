@@ -47,8 +47,8 @@ namespace en
    namespace gpu
    {
 
-   CommandBufferMTL::CommandBufferMTL(const id<MTLDevice> _device) :
-      device(_device),
+   CommandBufferMTL::CommandBufferMTL(MetalDevice* _gpu) :
+      gpu(_gpu),
       handle(nil),
       renderEncoder(nil),
       commited(false)
@@ -184,9 +184,9 @@ namespace en
       // Blit to Private buffer
       id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
       [blit copyFromBuffer:src->handle
-              sourceOffset:srcOffset
+              sourceOffset:src->offset + srcOffset
                   toBuffer:dst->handle
-         destinationOffset:dstOffset
+         destinationOffset:dst->offset + dstOffset
                       size:size];
 
       [blit endEncoding];
@@ -208,14 +208,14 @@ namespace en
 
    assert( source->size >= srcOffset + destination->size(mipmap) );
 
-   @autoreleasepool
-      {
+   LinearAlignment layout = gpu->textureLinearAlignment(texture, mipmap, layer);
+
       // Blit to Private buffer
-      id <MTLBlitCommandEncoder> blit = [[handle blitCommandEncoder] autorelease];
+      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
       [blit copyFromBuffer:source->handle
-              sourceOffset:srcOffset
-         sourceBytesPerRow:destination->width(mipmap)
-       sourceBytesPerImage:destination->size(mipmap)
+              sourceOffset:source->offset + srcOffset
+         sourceBytesPerRow:layout.rowSize
+       sourceBytesPerImage:layout.size
                 sourceSize:MTLSizeMake(destination->width(mipmap), destination->height(mipmap), 1)
                  toTexture:destination->handle
           destinationSlice:layer
@@ -224,8 +224,8 @@ namespace en
                    options:MTLBlitOptionNone ];
       
       [blit endEncoding];
+      [blit release];
       blit = nil;
-      } // autoreleasepool
    }
 
    // Copies content of buffer, to given mipmap and layer of destination texture
@@ -402,7 +402,7 @@ namespace en
    // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers can be recycled / reused !!! )
    // Multiple buffers can be created simultaneously for one queue
    // Buffers are executed in order in queue
-   Ptr<CommandBufferMTL> buffer = new CommandBufferMTL(device);
+   Ptr<CommandBufferMTL> buffer = new CommandBufferMTL(this);
 
    // Acquired Command Buffer is autoreleased.
    buffer->handle = [queue commandBufferWithUnretainedReferences];

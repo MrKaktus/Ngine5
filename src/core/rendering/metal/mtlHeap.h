@@ -22,6 +22,7 @@
 
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/common/heap.h"
+#include "core/utilities/basicAllocator.h"
 
 namespace en
 {
@@ -33,9 +34,19 @@ namespace en
       {
       public:
       MetalDevice* gpu;
+#if defined(EN_PLATFORM_IOS)
       id <MTLHeap> handle;
-      
-      HeapMTL(MetalDevice* gpu, id<MTLHeap> handle, const MemoryUsage _usage, const uint32 _size);
+#else
+      // On macOS Upload/Download/Immediate heaps are emulated with
+      // MTLBuffer directly allocated on MTLDevice, as MTLHeaps with
+      // MTLStorageModeShared are not allowed (as Textures can have
+      // only Private backing, such Heaps would need to disallow
+      // Texture allocation).
+      id         handle;    // id<MTLHeap> or id<MTLBuffer>
+      Allocator* allocator; // Allocation algorithm used to place resources on the backing buffer
+#endif
+
+      HeapMTL(MetalDevice* gpu, id handle, const MemoryUsage _usage, const uint32 _size);
       virtual ~HeapMTL();
 
       // Return parent device

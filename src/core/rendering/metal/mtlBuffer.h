@@ -33,8 +33,9 @@ namespace en
       public:
       id<MTLBuffer> handle;
       Ptr<HeapMTL>  heap;      // Memory backing heap
+      uint32        offset;    // Offset in parent MTLBuffer
       
-      BufferMTL(Ptr<HeapMTL> heap, const BufferType type, const uint32 size);
+      BufferMTL(Ptr<HeapMTL> heap, id<MTLBuffer> handle, const BufferType type, const uint32 size, const uint32 offset);
 
       virtual void* map(void);
       virtual void* map(const uint64 offset, const uint64 size);

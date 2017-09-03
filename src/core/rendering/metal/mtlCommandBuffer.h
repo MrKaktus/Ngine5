@@ -22,6 +22,7 @@
 
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/commandBuffer.h"
+#include "core/rendering/metal/mtlDevice.h"
 
 namespace en
 {
@@ -30,7 +31,7 @@ namespace en
    class CommandBufferMTL : public CommandBuffer
       {
       public:
-      id <MTLDevice> device;  // GPU owning this Command Buffer (for temporary staging buffers creation)
+      MetalDevice* gpu;  // GPU owning this Command Buffer (for temporary staging buffers creation)
       id <MTLCommandBuffer> handle;
       id <MTLRenderCommandEncoder> renderEncoder;
       bool commited;
@@ -122,7 +123,7 @@ namespace en
       
       virtual void waitUntilCompleted(void);
    
-      CommandBufferMTL(const id<MTLDevice> _device);
+      CommandBufferMTL(MetalDevice* gpu);
       virtual ~CommandBufferMTL();
       };
    }

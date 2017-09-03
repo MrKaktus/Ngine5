@@ -253,6 +253,8 @@
 		859A39CD1CA7AF7C00CC4173 /* winInput.h in Headers */ = {isa = PBXBuildFile; fileRef = 859A39CC1CA7AF7C00CC4173 /* winInput.h */; };
 		85B17C271CA4E9D800D88AF5 /* osxInput.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85B17C261CA4E9D800D88AF5 /* osxInput.mm */; };
 		85C15E371E2DE313005C69C6 /* osxStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 85C15E361E2DE313005C69C6 /* osxStorage.h */; };
+		85C3A1071F5A430E00DA913D /* basicAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 85C3A1051F5A430E00DA913D /* basicAllocator.h */; };
+		85C3A1081F5A430E00DA913D /* basicAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85C3A1061F5A430E00DA913D /* basicAllocator.cpp */; };
 		85CDB0941C62D023001A1FA1 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85917A5A1C3F66120051382A /* AppDelegate.mm */; };
 		85DBC5871F50D34C00B429EB /* libz.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 85DBC5851F50D30A00B429EB /* libz.1.dylib */; };
 		85DBC58B1F50D96E00B429EB /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85DBC58A1F50D96E00B429EB /* OpenAL.framework */; };
@@ -598,6 +600,8 @@
 		859A39CC1CA7AF7C00CC4173 /* winInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = winInput.h; sourceTree = "<group>"; };
 		85B17C261CA4E9D800D88AF5 /* osxInput.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxInput.mm; sourceTree = "<group>"; };
 		85C15E361E2DE313005C69C6 /* osxStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = osxStorage.h; sourceTree = "<group>"; };
+		85C3A1051F5A430E00DA913D /* basicAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = basicAllocator.h; sourceTree = "<group>"; };
+		85C3A1061F5A430E00DA913D /* basicAllocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = basicAllocator.cpp; sourceTree = "<group>"; };
 		85DBC5851F50D30A00B429EB /* libz.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.dylib; path = ../../../../usr/lib/libz.1.dylib; sourceTree = "<group>"; };
 		85DBC5881F50D96600B429EB /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		85DBC58A1F50D96E00B429EB /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
@@ -1021,6 +1025,8 @@
 		85917A3F1C3F66120051382A /* utilities */ = {
 			isa = PBXGroup;
 			children = (
+				85C3A1061F5A430E00DA913D /* basicAllocator.cpp */,
+				85C3A1051F5A430E00DA913D /* basicAllocator.h */,
 				85917A401C3F66120051382A /* parser.cpp */,
 			);
 			path = utilities;
@@ -1315,6 +1321,7 @@
 				85917C931C408C9F0051382A /* threading.h in Headers */,
 				856E9C961CB8753000875662 /* mtlPipeline.h in Headers */,
 				85756B8A1E108A3500C8F3DB /* glBlend.h in Headers */,
+				85C3A1071F5A430E00DA913D /* basicAllocator.h in Headers */,
 				85E9CB9D1D7485A80029A9BE /* vkHeap.h in Headers */,
 				85756B801E108A0A00C8F3DB /* vkLayout.h in Headers */,
 				851A8EBB1CC5A4F600272F88 /* vkBuffer.h in Headers */,
@@ -1499,6 +1506,7 @@
 				85917ADB1C3F66F60051382A /* double4.cpp in Sources */,
 				858398B81D0B0FDE00431C85 /* vkCommandBuffer.cpp in Sources */,
 				85917ADC1C3F66F60051382A /* float2.cpp in Sources */,
+				85C3A1081F5A430E00DA913D /* basicAllocator.cpp in Sources */,
 				85917ADD1C3F66F60051382A /* float3.cpp in Sources */,
 				85917ADE1C3F66F60051382A /* float3x3.cpp in Sources */,
 				85917ADF1C3F66F60051382A /* float3x4.cpp in Sources */,
@@ -1682,7 +1690,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OBJROOT = ../build/osx;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1724,7 +1732,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OBJROOT = ../build/osx;
 				SDKROOT = macosx;
