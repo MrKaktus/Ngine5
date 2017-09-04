@@ -785,11 +785,7 @@ namespace en
             break;
          }
 
-      // Auto-release pool to ensure that ARC will flush garbage collector
-      @autoreleasepool
-         {
-         [event release];
-         }
+      deallocateObjectiveC(event);
 
    } while(event != nil);
    

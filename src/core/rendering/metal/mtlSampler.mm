@@ -104,7 +104,7 @@ namespace en
 
    SamplerMTL::SamplerMTL(const MetalDevice* gpu, const SamplerState& state)
    {
-   MTLSamplerDescriptor* samplerInfo  = [[MTLSamplerDescriptor alloc] init];
+   MTLSamplerDescriptor* samplerInfo  = allocateObjectiveC(MTLSamplerDescriptor);
    samplerInfo.magFilter              = static_cast<MTLSamplerMinMagFilter>(underlyingType(state.magnification)); // Optimisation: TranslateSamplerFilter[underlyingType(state.magnification)];
    samplerInfo.minFilter              = static_cast<MTLSamplerMinMagFilter>(underlyingType(state.minification));  // Optimisation: TranslateSamplerFilter[underlyingType(state.minification)];
    samplerInfo.mipFilter              = static_cast<MTLSamplerMipFilter>(underlyingType(state.mipmap) + 1);       // Optimisation: TranslateSamplerMipMapMode[underlyingType(state.mipmap)];
@@ -120,13 +120,8 @@ namespace en
    samplerInfo.supportArgumentBuffers = TRUE; // Required for Descriptor Tables - macOS 10.13+
    
    handle = [gpu->device newSamplerStateWithDescriptor:samplerInfo];       // or getDevice()
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [samplerInfo release];
-      }
-#endif
+   
+   deallocateObjectiveC(samplerInfo);
 
    // Metal vs OpenGL/Vulkan diff:
    //
@@ -141,13 +136,7 @@ namespace en
 
    SamplerMTL::~SamplerMTL()
    {
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [handle release];
-      }
-#endif
+   deallocateObjectiveC(handle);
    }
 
    Ptr<Sampler> MetalDevice::createSampler(const SamplerState& state)

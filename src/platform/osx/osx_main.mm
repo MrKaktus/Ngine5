@@ -73,7 +73,7 @@ namespace en
 // Entry point for console applications
 int ConsoleMain(int argc, const char* argv[]) 
 {
-//NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+//NSAutoreleasePool* pool = allocateObjectiveC(NSAutoreleasePool);
 //@try
 {
    // Init Math
@@ -99,7 +99,7 @@ int ConsoleMain(int argc, const char* argv[])
    NSApplication* application = [NSApplication sharedApplication];
 
    // Create custom Application Delegate and assign it to global NSApp
-   AppDelegate* appDelegate = [[AppDelegate alloc] init];
+   AppDelegate* appDelegate = allocateObjectiveC(AppDelegate);
    [application setDelegate:appDelegate];
    [application setActivationPolicy:NSApplicationActivationPolicyRegular];
    
@@ -126,6 +126,8 @@ int ConsoleMain(int argc, const char* argv[])
    // will return here. This will allow sheduler
    // destructor to close rest of worker threads.
    en::SchedulerContext.start(new MainTask(argc,argv));
+   
+   deallocateObjectiveC(appDelegate);
 }
 //@catch(NSException* exception)
 //{
@@ -152,7 +154,7 @@ int ConsoleMain(int argc, const char* argv[])
     // TODO: There was no task pooling possible on iPhone in the past, verify if it's still true.
 /*
     // We need to give whole control over app to damn OS!
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool* pool = allocateObjectiveC(NSAutoreleasePool);
     @try
     {
         result = UIApplicationMain(argc, argv, nil, nil);

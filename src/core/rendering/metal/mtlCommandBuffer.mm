@@ -98,13 +98,9 @@ namespace en
    {
    assert( renderEncoder != nil );
    
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [renderEncoder endEncoding];
-      [renderEncoder release];
-      renderEncoder = nullptr;
-      }
+   [renderEncoder endEncoding];
+   
+   deallocateObjectiveC(renderEncoder);
    }
    
 
@@ -224,8 +220,8 @@ namespace en
                    options:MTLBlitOptionNone ];
       
       [blit endEncoding];
-      [blit release];
-      blit = nil;
+      
+      deallocateObjectiveC(blit);
    }
 
    // Copies content of buffer, to given mipmap and layer of destination texture
@@ -385,12 +381,7 @@ namespace en
       
    // Don't wait for completion
    
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [handle release];
-      handle = nil;
-      }
+   deallocateObjectiveC(handle);
    }
 
    Ptr<CommandBuffer> MetalDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)

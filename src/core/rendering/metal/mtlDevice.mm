@@ -636,7 +636,7 @@ namespace en
    // render content to texture using MTLRenderCommandEncoder:
 
    // Default FBO which "default color attachment 0" is in fact texture from swap-chain
-   desc = [MTLRenderPassDescriptor alloc];
+   desc = allocateObjectiveC(MTLRenderPassDescriptor);
    desc.colorAttachments[0].texture = drawable.texture;   // <<-- HERE ASSIGN TEXTURE
    desc.colorAttachments[0].loadAction = MTLLoadActionClear;
    desc.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);

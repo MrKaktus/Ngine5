@@ -68,12 +68,9 @@ namespace en
    
    PipelineMTL::~PipelineMTL()
    {
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [handle release];
-      }
    depthStencil = nullptr;
+   
+   deallocateObjectiveC(handle);
    }
  
    Ptr<Pipeline> MetalDevice::createPipeline(const PipelineState& pipelineState)
@@ -135,18 +132,14 @@ namespace en
          {
          Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
          
-         // Auto-release pool to ensure that Metal ARC will flush garbage collector
-         @autoreleasepool
-            {
-            [functionVertex release];
-            }
+         deallocateObjectiveC(functionVertex);
             
          return Ptr<Pipeline>(nullptr);
          }
       }
       
    // Pipeline state
-   MTLRenderPipelineDescriptor* pipeDesc = [[MTLRenderPipelineDescriptor alloc] init];
+   MTLRenderPipelineDescriptor* pipeDesc = allocateObjectiveC(MTLRenderPipelineDescriptor);
    pipeDesc.vertexFunction               = functionVertex;
    pipeDesc.fragmentFunction             = pipelineState.shader[4] ? functionFragment : nil;
    pipeDesc.vertexDescriptor             = input->desc;
@@ -194,11 +187,7 @@ namespace en
    error = nullptr;
    pipeline = new PipelineMTL(device, pipeDesc, &error);
    
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [pipeDesc release];
-      }
+   deallocateObjectiveC(pipeDesc);
       
 //typedef NS_ENUM(NSUInteger, MTLCompilerError) {
 //    MTLCompilerErrorNoError = 0,

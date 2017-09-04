@@ -200,7 +200,7 @@ namespace en
                                         const uint32 usedBuffers, 
                                         const AttributeDesc* attributes,  
                                         const BufferDesc* buffers) :
-      desc([[MTLVertexDescriptor alloc] init]),
+      desc(allocateObjectiveC(MTLVertexDescriptor)),
       primitive(primitiveType)
    {
    for(uint32 i=0; i<usedBuffers; ++i)
@@ -227,11 +227,7 @@ namespace en
    
    InputLayoutMTL::~InputLayoutMTL()
    {
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [desc release];
-      }
+   deallocateObjectiveC(desc);
    }
 
    Ptr<InputLayout> MetalDevice::createInputLayout(const DrawableType primitiveType,

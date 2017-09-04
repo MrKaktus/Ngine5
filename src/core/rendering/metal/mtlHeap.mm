@@ -36,15 +36,11 @@ namespace en
       
    HeapMTL::~HeapMTL()
    {
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [handle release];
-      }
-      
 #if defined(EN_PLATFORM_OSX)
    delete allocator;
 #endif
+
+   deallocateObjectiveC(handle);
    }
    
    // Return parent device
@@ -156,7 +152,7 @@ namespace en
       }
 #endif
   
-   MTLHeapDescriptor* desc = [[MTLHeapDescriptor alloc] init];
+   MTLHeapDescriptor* desc = allocateObjectiveC(MTLHeapDescriptor);
    desc.size         = roundedSize;
    desc.cpuCacheMode = MTLCPUCacheModeDefaultCache;
 #if defined(EN_PLATFORM_IOS)
@@ -172,13 +168,7 @@ namespace en
    if (handle)
       heap = new HeapMTL(this, handle, usage, roundedSize);
 
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [desc release];
-      }
-#endif
+   deallocateObjectiveC(desc);
 
    return ptr_reinterpret_cast<Heap>(&heap);
    }

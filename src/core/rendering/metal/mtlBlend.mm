@@ -60,13 +60,18 @@ namespace en
 
    // Metal is not supporting logical operation at all
 
+
+// APPLE_ARC
+
+
    BlendStateMTL::BlendStateMTL(const BlendStateInfo& state,
                                 const uint32 _attachments,
                                 const BlendAttachmentInfo* color)
    {
    blendColor      = state.blendColor;
    attachments     = min(_attachments, static_cast<uint32>(MaxColorAttachmentsCount));
-   blendInfo       = [[MTLRenderPipelineColorAttachmentDescriptorArray alloc] init];
+   
+   blendInfo       = allocateObjectiveC(MTLRenderPipelineColorAttachmentDescriptorArray);
    for(uint8 i=0; i<attachments; ++i)
       {
       //assert( !(color[0].logicOperation && color[i].blending) );
@@ -88,13 +93,7 @@ namespace en
 
    BlendStateMTL::~BlendStateMTL()
    {
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [blendInfo release];
-      }
-#endif
+   deallocateObjectiveC(blendInfo);
    }
    
    Ptr<BlendState> MetalDevice::createBlendState(const BlendStateInfo& state,

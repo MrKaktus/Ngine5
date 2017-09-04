@@ -55,7 +55,7 @@ namespace en
 
    ColorAttachmentMTL::ColorAttachmentMTL(const Format _format,
                                           const uint32 _samples) :
-      desc([[MTLRenderPassColorAttachmentDescriptor alloc] init]),
+      desc(allocateObjectiveC(MTLRenderPassColorAttachmentDescriptor)),
       format(_format),
       samples(_samples)
    {
@@ -75,13 +75,7 @@ namespace en
 
    ColorAttachmentMTL::~ColorAttachmentMTL()
    {
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [desc release];
-      }
-#endif
+   deallocateObjectiveC(desc);
    }
 
    void ColorAttachmentMTL::onLoad(const LoadOperation load, const float4 clearColor)
@@ -129,8 +123,8 @@ namespace en
    DepthStencilAttachmentMTL::DepthStencilAttachmentMTL(const Format _depthFormat,
                                                         const Format _stencilFormat,
                                                         const uint32 _samples) :
-      descDepth([[MTLRenderPassDepthAttachmentDescriptor alloc] init]),
-      descStencil([[MTLRenderPassStencilAttachmentDescriptor alloc] init]),
+      descDepth(allocateObjectiveC(MTLRenderPassDepthAttachmentDescriptor)),
+      descStencil(allocateObjectiveC(MTLRenderPassStencilAttachmentDescriptor)),
       depthFormat(_depthFormat),
       stencilFormat(_stencilFormat),
       samples(_samples)
@@ -154,14 +148,8 @@ namespace en
 
    DepthStencilAttachmentMTL::~DepthStencilAttachmentMTL()
    {
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [descDepth release];
-      [descStencil release];
-      }
-#endif
+   deallocateObjectiveC(descDepth);
+   deallocateObjectiveC(descStencil);
    }
    
    void DepthStencilAttachmentMTL::onLoad(const LoadOperation loadDepthStencil,
@@ -253,18 +241,12 @@ namespace en
       {
       for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
          {
-#ifndef APPLE_ARC
-         [color[i] release];
-         [resolve[i] release];
-#endif
+         deallocateObjectiveC(color[i]);
+         deallocateObjectiveC(resolve[i]);
          }
       
       for(uint32 i=0; i<3; ++i)
-         {
-#ifndef APPLE_ARC
-         [depthStencil[i] release];
-#endif
-         }
+         deallocateObjectiveC(depthStencil[i]);
       }
       
 //   for(uint32 i=0; i<(MaxColorAttachmentsCount*2+3); ++i)
@@ -276,7 +258,7 @@ namespace en
 
 
    RenderPassMTL::RenderPassMTL() :
-      desc([[MTLRenderPassDescriptor alloc] init]),
+      desc(allocateObjectiveC(MTLRenderPassDescriptor)),
       usedAttachments(0u),
       resolve(false)
    {
@@ -284,13 +266,7 @@ namespace en
 
    RenderPassMTL::~RenderPassMTL()
    {
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [desc release];
-      }
-#endif
+   deallocateObjectiveC(desc);
    }
 
    Ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,

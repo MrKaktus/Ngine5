@@ -36,8 +36,7 @@ namespace en
    OSXFile::~OSXFile()
    {
    assert( handle );
-   [handle release];
-   handle = nil;
+   deallocateObjectiveC(handle);
    }
 
    bool OSXFile::read(const uint64 offset, const uint64 _size, void* buffer, uint64* readBytes)

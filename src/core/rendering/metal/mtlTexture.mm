@@ -427,7 +427,7 @@ namespace en
       return;
       
    // All validation was done in interface, parameters should be correct
-   MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
+   MTLTextureDescriptor* desc = allocateObjectiveC(MTLTextureDescriptor);
    desc.textureType      = TranslateTextureType[underlyingType(state.type)];
    desc.pixelFormat      = TranslateTextureFormat[underlyingType(state.format)];
    desc.width            = state.width;
@@ -450,13 +450,7 @@ namespace en
       
    handle = [heap newTextureWithDescriptor:desc];
 
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [desc release];
-      }
-#endif
+   deallocateObjectiveC(desc);
 
    assert( handle != nil );
    }
@@ -483,7 +477,7 @@ namespace en
    state.mipmaps = 1u;
 
    // All validation was done in interface, parameters should be correct
-   MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
+   MTLTextureDescriptor* desc = allocateObjectiveC(MTLTextureDescriptor);
    desc.textureType      = MTLTextureType2D;
    desc.pixelFormat      = MTLPixelFormatBGRA8Unorm;
    desc.width            = state.width;
@@ -498,13 +492,7 @@ namespace en
 
    // Create Metal texture backed by IOSurface
    handle = [device newTextureWithDescriptor:desc iosurface:ioSurface->surface plane:0u];
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [desc release];
-      }
-#endif
+   deallocateObjectiveC(desc);
 
    assert( handle != nil );
    }
@@ -512,17 +500,8 @@ namespace en
    TextureMTL::~TextureMTL()
    {
    if (ownsBacking)
-      {
-#ifndef APPLE_ARC
-      // Auto-release pool to ensure that Metal ARC will flush garbage collector
-      @autoreleasepool
-         {
-         [handle release];
-         }
-#endif
-      handle = nil;
-      }
-      
+      deallocateObjectiveC(handle);
+
    ioSurface = nullptr;
    }
 
@@ -613,17 +592,10 @@ namespace en
    
    TextureViewMTL::~TextureViewMTL()
    {
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-#ifndef APPLE_ARC
-      [handle release];
-#endif
-      }
-   handle = nil;
-
    // Release reference to parent
    texture = nullptr;
+   
+   deallocateObjectiveC(handle);
    }
    
    Ptr<Texture> TextureViewMTL::parent(void) const

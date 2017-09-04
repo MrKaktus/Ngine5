@@ -144,6 +144,26 @@
    #if __has_feature(objc_arc)
       #define APPLE_ARC
    #endif
+
+   // Objective-C object allocator and reference count initialization
+   #define allocateObjectiveC(x)    \
+   [[[x alloc] init] autorelease]
+
+#if defined(APPLE_ARC)
+   // When ARC is enabled, app shouldn't need to do anything
+   // (resources should be released when going out of scope)
+   #define deallocateObjectiveC(x)
+#else
+   // Auto-release pool to ensure that Metal ARC will flush garbage collector
+   #define deallocateObjectiveC(x)  \
+   @autoreleasepool                 \
+   {                                \
+      [x release];                  \
+      x = nullptr;                  \
+   }
+#endif
+
+
 #endif
 
 #endif

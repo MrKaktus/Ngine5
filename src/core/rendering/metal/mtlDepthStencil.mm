@@ -55,7 +55,7 @@ namespace en
       state(nullptr),
       reference(0, 0)
    {
-   MTLDepthStencilDescriptor* descriptor = [[MTLDepthStencilDescriptor alloc] init];
+   MTLDepthStencilDescriptor* descriptor = allocateObjectiveC(MTLDepthStencilDescriptor);
 
    descriptor.depthWriteEnabled    = desc.enableDepthWrite;
    descriptor.depthCompareFunction = TranslateCompareFunction[desc.depthFunction];
@@ -80,13 +80,7 @@ namespace en
    reference.x = desc.stencil[0].reference;
    reference.y = desc.stencil[1].reference;
 
-#ifndef APPLE_ARC
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [descriptor release];
-      }
-#endif
+   deallocateObjectiveC(descriptor);
    }
 
    DepthStencilStateMTL::~DepthStencilStateMTL()

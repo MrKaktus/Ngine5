@@ -88,12 +88,8 @@ namespace en
    
    osxOpenGLContext::~osxOpenGLContext()
    {
-   // Auto-release pool to ensure that ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [pixelFormat release];
-      [context release];
-      }
+   deallocateObjectiveC(pixelFormat);
+   deallocateObjectiveC(context);
    }
 
    uint32 osxOpenGLContext::createSharedTexture(Ptr<SharedSurface> backingSurface)

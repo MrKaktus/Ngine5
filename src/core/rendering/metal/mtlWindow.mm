@@ -125,7 +125,7 @@ namespace en
    
    // Attach View to Window
    const NSRect viewFrame = NSMakeRect(0, 0, settings.size.width, settings.size.height);
-   NSView* view = [[NSView alloc] initWithFrame: viewFrame];
+   view = [[NSView alloc] initWithFrame: viewFrame];
    
    // Allow view to resize with window
    if (settings.mode == Windowed)
@@ -195,7 +195,9 @@ namespace en
    // Present last surface if there is any
    present();
    
-   // TODO: Release device, layer, view, window
+   deallocateObjectiveC(layer);
+   deallocateObjectiveC(view);
+   deallocateObjectiveC(window);
    }
    
 
@@ -298,12 +300,9 @@ namespace en
       {
       [drawable present];
       
-      // Auto-release pool to ensure that Metal ARC will flush garbage collector
-      @autoreleasepool
-         {
-         [framebuffer->handle release];
-         [drawable release];
-         }
+      deallocateObjectiveC(framebuffer->handle);
+      deallocateObjectiveC(drawable);
+
       needNewSurface = true;
       _frame++;
       }

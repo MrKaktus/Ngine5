@@ -33,6 +33,7 @@ namespace en
       {
       public:
       NSWindow*     window;
+      NSView*       view;
       CAMetalLayer* layer;
       id <CAMetalDrawable> drawable;
       Ptr<TextureMTL> framebuffer;

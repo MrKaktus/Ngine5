@@ -61,11 +61,7 @@ namespace en
    
    SetLayoutMTL::~SetLayoutMTL()
    {
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [handle release];
-      }
+   deallocateObjectiveC(handle);
    }
    
       
@@ -140,11 +136,7 @@ namespace en
    delete [] heapsUsed;
    delete [] heapsRefs;
       
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [handle release];
-      }
+   deallocateObjectiveC(handle);
       
    layout = nullptr;
    }
@@ -397,7 +389,7 @@ namespace en
    //MTLArgumentDescriptor* rangeInfo = new MTLArgumentDescriptor[count];
    for(uint32 i=0; i<count; ++i)
       {
-      MTLArgumentDescriptor* desc = [[MTLArgumentDescriptor alloc] init];
+      MTLArgumentDescriptor* desc = allocateObjectiveC(MTLArgumentDescriptor);
       
       // Single Descriptors range
       uint32 resourceType = underlyingType(group[i].type);

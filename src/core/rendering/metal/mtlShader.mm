@@ -34,11 +34,7 @@ namespace en
    
    ShaderMTL::~ShaderMTL()
    {
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   @autoreleasepool
-      {
-      [library release];
-      }
+   deallocateObjectiveC(library);
    }
    
    Ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const string& source)
@@ -47,7 +43,7 @@ namespace en
 
    NSString* code = stringTo_NSString(source);
    
-   MTLCompileOptions* options = [MTLCompileOptions alloc];
+   MTLCompileOptions* options = allocateObjectiveC(MTLCompileOptions);
    options.preprocessorMacros = nil;
 #if defined(EN_PLATFORM_IOS)
    // On mobile use fast math
@@ -79,10 +75,15 @@ namespace en
          if ([error code] == MTLLibraryErrorCompileFailure)
             Log << "Error! Failed to compile shader library from source.\n";
          Log << [[error description] UTF8String] << endl;
+         
+         deallocateObjectiveC(options);
+         
          return Ptr<Shader>(nullptr);
          }
       }
     
+   deallocateObjectiveC(options);
+   
    return ptr_dynamic_cast<Shader, ShaderMTL>(Ptr<ShaderMTL>(new ShaderMTL(library)));
    }
 
