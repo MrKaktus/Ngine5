@@ -344,7 +344,8 @@ namespace en
 
    // There are only two Heaps that can be set at a time, general and for Samplers.
    // Each change of those Heaps, removes previously bound ones.
-   ProfileComNoRet( command->SetDescriptorHeaps(2, (ID3D12DescriptorHeap*const*)(&set->parent->handle[0])) )
+   ID3D12DescriptorHeap* ppHeaps[] = {set->parent->handle[0], set->parent->handle[1] };
+   ProfileComNoRet( command->SetDescriptorHeaps(2, ppHeaps ) )  // (ID3D12DescriptorHeap*const*)(&set->parent->handle[0])
 
    // Each DescriptorSet may be backed by up to two D3D12 Descriptor Tables pointing
    // into two separate D3D12 Descriptor Heaps, depending on the fact if it is keeping 
@@ -536,6 +537,9 @@ namespace en
       result->mappings[rangeIndex].heap = 1;
       }
 
+   uint32 generalDescriptors = 0;
+   uint32 samplerDescriptors = 0;
+
    for(uint32 i=0; i<count; ++i)
       {
       uint32 resourceType = underlyingType(group[i].type);
@@ -576,13 +580,17 @@ namespace en
             general = false;
             rangeIndex++;
 
-            result->mappings[rangeIndex].layoutOffset = result->mappings[rangeIndex - 1].elements;
-            result->mappings[rangeIndex].heapOffset   = result->mappings[rangeIndex - 1].elements;
+            result->mappings[rangeIndex].layoutOffset = generalDescriptors + samplerDescriptors;
+            result->mappings[rangeIndex].heapOffset   = samplerDescriptors;
             result->mappings[rangeIndex].elements     = 0;
             result->mappings[rangeIndex].heap         = 1;
             }
 
+         // Increase count of Samplers in this mapping
          result->mappings[rangeIndex].elements += group[i].count;
+ 
+         // Count total amount of Sampler descriptors to use as offset for next mapping after break
+         samplerDescriptors += group[i].count;
          }
       else
          {
@@ -624,13 +632,17 @@ namespace en
             general = true;
             rangeIndex++;
 
-            result->mappings[rangeIndex].layoutOffset = result->mappings[rangeIndex - 1].elements;
-            result->mappings[rangeIndex].heapOffset   = result->mappings[rangeIndex - 1].elements;
+            result->mappings[rangeIndex].layoutOffset = generalDescriptors + samplerDescriptors;
+            result->mappings[rangeIndex].heapOffset   = generalDescriptors;
             result->mappings[rangeIndex].elements     = 0;
             result->mappings[rangeIndex].heap         = 0;
             }
 
+         // Increase count of descriptors in this mapping
          result->mappings[rangeIndex].elements += group[i].count;
+
+         // Count total amount of General descriptors to use as offset for next mapping after break
+         generalDescriptors += group[i].count;
          }
 
       // Increase index by amount of slots used
