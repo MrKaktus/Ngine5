@@ -252,7 +252,6 @@ namespace en
 
    // Texture
    maxTextureSize                 = 0;
-   maxTextureRectSize             = 0;
    maxTextureCubeSize             = 0;
    maxTexture3DSize               = 0;
    maxTextureLayers               = 0;

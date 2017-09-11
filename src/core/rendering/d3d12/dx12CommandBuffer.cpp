@@ -326,7 +326,14 @@ namespace en
    BufferD3D12* src = raw_reinterpret_cast<BufferD3D12>(&source);
    BufferD3D12* dst = raw_reinterpret_cast<BufferD3D12>(&destination);
 
-   // TODO: Finish!
+   // TODO: Check if graphics or compute!  
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   ProfileComNoRet( command->CopyBufferRegion(dst->handle,
+                                              dstOffset,
+                                              src->handle,
+                                              srcOffset,
+                                              size) )
    }
          
    void CommandBufferD3D12::copy(Ptr<Buffer> transfer, 

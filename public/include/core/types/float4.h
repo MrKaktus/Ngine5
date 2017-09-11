@@ -25,16 +25,16 @@ namespace en
       union { float w; float a; };
       
       float4(void); 
-      float4(float* src);                                  
-      float4(float3 f3, float w = 1.0f);                   
-      float4(double3 d3, float w = 1.0f);                    
+      float4(const float* src);                                  
+      float4(const float3 f3, const float w = 1.0f);                   
+      float4(const double3 d3, const float w = 1.0f);                    
       float4(const float x, const float y = 0.0f, const float z = 0.0f, const float w = 1.0f);      
 
-      void operator=  (float4 b);
-      void operator-= (float4 b);      
-      void operator+= (float4 b);         
+      void operator=  (const float4 b);
+      void operator-= (const float4 b);      
+      void operator+= (const float4 b);         
       
-      float3 xyz(void);
+      float3 xyz(void) const;
       void normalize(void);                    
       };
 }

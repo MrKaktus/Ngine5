@@ -22,9 +22,9 @@ namespace en
       union { uint32 y; uint32 height; uint32 count; };
       
       uint32v2(void);
-      uint32v2(uint32 a, uint32 b);
+      uint32v2(const uint32 x, const uint32 y);
 
-      bool operator== (uint32v2 b);
+      bool operator== (const uint32v2 b) const;
       };
 }
 

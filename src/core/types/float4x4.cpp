@@ -19,24 +19,41 @@
 
 namespace en
 {
+   // Stored in Column-Major order
+   #define mat(m,r,c) (m)[(c)*4+(r)]
+
+   // Stored in Row-Major order
+   // #define mat(m,r,c) (m)[(r)*4+(c)]
+
    float4x4::float4x4()
    {
    memset(m, 0, 64);
-   m[0]  = 1.0f;
-   m[5]  = 1.0f;
-   m[10] = 1.0f;
-   m[15] = 1.0f;
+
+   mat(m,0,0) = 1.0f;
+   mat(m,1,1) = 1.0f;
+   mat(m,2,2) = 1.0f;
+   mat(m,3,3) = 1.0f;
    }
    
-   float4x4::float4x4(float* src)
+   float4x4::float4x4(const float* src)
    {
    memcpy(m, src, 64);
    }
    
-   float4x4::float4x4(float3 translation, float3 rotation, float3 scale)
+   float4x4::float4x4(const float m00, const float m01, const float m02, const float m03,
+                      const float m10, const float m11, const float m12, const float m13,
+                      const float m20, const float m21, const float m22, const float m23,
+                      const float m30, const float m31, const float m32, const float m33 )
    {
-   float3& s = scale;
+   mat(m,0,0) = m00;  mat(m,0,1) = m01;  mat(m,0,2) = m02;  mat(m,0,3) = m03;
+   mat(m,1,0) = m10;  mat(m,1,1) = m11;  mat(m,1,2) = m12;  mat(m,1,3) = m13;
+   mat(m,2,0) = m20;  mat(m,2,1) = m21;  mat(m,2,2) = m22;  mat(m,2,3) = m23;
+   mat(m,3,0) = m30;  mat(m,3,1) = m31;  mat(m,3,2) = m32;  mat(m,3,3) = m33;
+   } 
    
+   
+   float4x4::float4x4(const float3 translation, const float3 rotation, const float3 s)
+   {
    float a = cos(radians(rotation.x));
    float b = sin(radians(rotation.x));
    float c = cos(radians(rotation.y));
@@ -82,73 +99,62 @@ namespace en
                  d      ,  ( -b * c )        ,  (  a * c )        ,  0.0f,
                0.0f     ,  0.0f              ,  0.0f              ,  1.0f );
    
-   float4x4 S( s.x, 0, 0, 0,
-               0, s.y, 0, 0,
-               0, 0, s.z, 0,
-               0, 0, 0, 1 );
+   float4x4 S( s.x, 0,   0,   0,
+               0,   s.y, 0,   0,
+               0,   0,   s.z, 0,
+               0,   0,   0,   1 );
    
    *this = mul( T, mul( R , S ) );
    } 
-   
-   float4x4::float4x4(float m00, float m01, float m02, float m03,
-                      float m10, float m11, float m12, float m13,
-                      float m20, float m21, float m22, float m23,
-                      float m30, float m31, float m32, float m33 )
-   {
-   m[0] = m00;  m[4] = m01;  m[8]  = m02;  m[12] = m03;
-   m[1] = m10;  m[5] = m11;  m[9]  = m12;  m[13] = m13;
-   m[2] = m20;  m[6] = m21;  m[10] = m22;  m[14] = m23;
-   m[3] = m30;  m[7] = m31;  m[11] = m32;  m[15] = m33;
-   } 
-   
-   void float4x4::set(float* src)
+
+   void float4x4::set(const float* src)
    {
    memcpy(m, src, 64);
    }
    
-   float4 float4x4::row(uint8 r)
+   float4 float4x4::row(const uint8 r) const
    {
    assert( r < 4 );
-   return float4(m[r], m[r+4], m[r+8], m[r+12]);
+   return float4(mat(m,r,0), mat(m,r,1), mat(m,r,2), mat(m,r,3));
    }
    
-   float4 float4x4::column(uint8 c)
+   float4 float4x4::column(const uint8 c) const
    {
    assert( c < 4 );
-   return float4(m[c*4], m[c*4+1], m[c*4+2], m[c*4+3]);
+   return float4(mat(m,0,c), mat(m,1,c), mat(m,2,c), mat(m,3,c));
    }
    
-   void float4x4::column(uint8 c, float4 f4)
+   void float4x4::column(const uint8 c, const float4 v4)
    {
    assert( c < 4 );
-   m[c*4]   = f4.x;
-   m[c*4+1] = f4.y;
-   m[c*4+2] = f4.z;
-   m[c*4+3] = f4.w;
+   mat(m,0,c) = v4.x;
+   mat(m,1,c) = v4.y;
+   mat(m,2,c) = v4.z;
+   mat(m,3,c) = v4.w;
    }
    
-   void float4x4::column(uint8 c, float3 f3)
+   void float4x4::column(const uint8 c, const float3 v3)
    {
    assert( c < 4 );
-   m[c*4]   = f3.x;
-   m[c*4+1] = f3.y;
-   m[c*4+2] = f3.z;
+   mat(m,0,c) = v3.x;
+   mat(m,1,c) = v3.y;
+   mat(m,2,c) = v3.z;
    }
    
-   void float4x4::diagonal(float4 f4)
+   void float4x4::diagonal(const float4 f4)
    {
-   m[0]  = f4.x;
-   m[5]  = f4.y;
-   m[10] = f4.z;
-   m[15] = f4.w;
+   mat(m,0,0) = f4.x;
+   mat(m,1,1) = f4.y;
+   mat(m,2,2) = f4.z;
+   mat(m,3,3) = f4.w;
    }
    
-   void float4x4::diagonal(float3 f3)
+   void float4x4::diagonal(const float3 f3)
    {
-   m[0]  = f3.x;
-   m[5]  = f3.y;
-   m[10] = f3.z;
-   m[15] = 1.0f;
+   mat(m,0,0) = f3.x;
+   mat(m,1,1) = f3.y;
+   mat(m,2,2) = f3.z;
+   mat(m,3,3) = 1.0f;
    }
    
    float4x4 float4x4::invert(void)
@@ -159,29 +165,22 @@ namespace en
        float* m = this->m;
        float* out = f44Res.m;
    #define SWAP_ROWS(a, b) { float *_tmp = a; (a)=(b); (b)=_tmp; }
-   #define MAT(m,r,c) (m)[(c)*4+(r)]
-   
+
        float wtmp[4][8];
        float m0, m1, m2, m3, s;
        float *r0, *r1, *r2, *r3;
    
        r0 = wtmp[0], r1 = wtmp[1], r2 = wtmp[2], r3 = wtmp[3];
    
-       r0[0] = MAT(m,0,0), r0[1] = MAT(m,0,1),
-           r0[2] = MAT(m,0,2), r0[3] = MAT(m,0,3),
-           r0[4] = 1.0, r0[5] = r0[6] = r0[7] = 0.0,
-   
-           r1[0] = MAT(m,1,0), r1[1] = MAT(m,1,1),
-           r1[2] = MAT(m,1,2), r1[3] = MAT(m,1,3),
-           r1[5] = 1.0, r1[4] = r1[6] = r1[7] = 0.0,
-   
-           r2[0] = MAT(m,2,0), r2[1] = MAT(m,2,1),
-           r2[2] = MAT(m,2,2), r2[3] = MAT(m,2,3),
-           r2[6] = 1.0, r2[4] = r2[5] = r2[7] = 0.0,
-   
-           r3[0] = MAT(m,3,0), r3[1] = MAT(m,3,1),
-           r3[2] = MAT(m,3,2), r3[3] = MAT(m,3,3),
-           r3[7] = 1.0, r3[4] = r3[5] = r3[6] = 0.0;
+       r0[0] = mat(m,0,0); r0[1] = mat(m,0,1); r0[2] = mat(m,0,2); r0[3] = mat(m,0,3);
+       r1[0] = mat(m,1,0); r1[1] = mat(m,1,1); r1[2] = mat(m,1,2); r1[3] = mat(m,1,3);   
+       r2[0] = mat(m,2,0); r2[1] = mat(m,2,1); r2[2] = mat(m,2,2); r2[3] = mat(m,2,3);
+       r3[0] = mat(m,3,0); r3[1] = mat(m,3,1); r3[2] = mat(m,3,2); r3[3] = mat(m,3,3);
+
+       r0[4] = 1.0; r0[5] = r0[6] = r0[7] = 0.0;
+       r1[5] = 1.0; r1[4] = r1[6] = r1[7] = 0.0;
+       r2[6] = 1.0; r2[4] = r2[5] = r2[7] = 0.0;
+       r3[7] = 1.0; r3[4] = r3[5] = r3[6] = 0.0;
    
        /* Choose myPivot, or die. */
        if (fabs(r3[0])>fabs(r2[0])) SWAP_ROWS(r3, r2);
@@ -273,16 +272,12 @@ namespace en
        r0[4] = s * (r0[4] - r1[4] * m0), r0[5] = s * (r0[5] - r1[5] * m0),
            r0[6] = s * (r0[6] - r1[6] * m0), r0[7] = s * (r0[7] - r1[7] * m0);
    
-       MAT(out,0,0) = r0[4]; MAT(out,0,1) = r0[5],
-           MAT(out,0,2) = r0[6]; MAT(out,0,3) = r0[7],
-           MAT(out,1,0) = r1[4]; MAT(out,1,1) = r1[5],
-           MAT(out,1,2) = r1[6]; MAT(out,1,3) = r1[7],
-           MAT(out,2,0) = r2[4]; MAT(out,2,1) = r2[5],
-           MAT(out,2,2) = r2[6]; MAT(out,2,3) = r2[7],
-           MAT(out,3,0) = r3[4]; MAT(out,3,1) = r3[5],
-           MAT(out,3,2) = r3[6]; MAT(out,3,3) = r3[7]; 
+       mat(out,0,0) = r0[4]; mat(out,0,1) = r0[5]; mat(out,0,2) = r0[6]; mat(out,0,3) = r0[7];
+       mat(out,1,0) = r1[4]; mat(out,1,1) = r1[5]; mat(out,1,2) = r1[6]; mat(out,1,3) = r1[7];
+       mat(out,2,0) = r2[4]; mat(out,2,1) = r2[5]; mat(out,2,2) = r2[6]; mat(out,2,3) = r2[7];
+       mat(out,3,0) = r3[4]; mat(out,3,1) = r3[5]; mat(out,3,2) = r3[6]; mat(out,3,3) = r3[7]; 
    
-   #undef MAT
+
    #undef SWAP_ROWS
     
        return f44Res;

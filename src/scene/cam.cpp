@@ -18,6 +18,12 @@ namespace en
 {
    namespace scene
    {
+   // Stored in Column-Major order
+   #define mat(m,r,c) (m)[(c)*4+(r)]
+
+   // Stored in Row-Major order
+   // #define mat(m,r,c) (m)[(r)*4+(c)]
+
    // In OpenGL / GLUT / Oculus - FOV means "Vertical FOV"
    // HOR+ - Horizontal FOV is adjusted to const Vertical FOV taking into notice aspect ratio
    //
@@ -130,6 +136,7 @@ namespace en
    vFov       = _vFov;
    }
 
+   // TODO: Input should be pointer to buffer (ideally Staging buffer on Heap).
    Ptr<Buffer> FrustumSettings::wireframe(Ptr<Heap> heap) const
    {
    //assert(Gpu.screen.created());
@@ -164,7 +171,7 @@ namespace en
    Ptr<Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, 16);
    assert( staging );
    
-   // Read texture to temporary buffer
+   // Save wireframe to temporary buffer
    void* dst = staging->map();
    memcpy(dst, points, 16);
    staging->unmap();
@@ -217,13 +224,15 @@ namespace en
    float  t1     = -handed * (far / (near - far));
    float  t2     = (far * near) / (near - far);
 
-   float4x4 m;
-   m.m[0] = scale.x;     m.m[4] = 0.0f;        m.m[8]  = offset.x;    m.m[12] = 0.0f;
-   m.m[1] = 0.0f;        m.m[5] = scale.y;     m.m[9]  = offset.y;    m.m[13] = 0.0f;
-   m.m[2] = 0.0f;        m.m[6] = 0.0f;        m.m[10] = t1;          m.m[14] = t2; 
-   m.m[3] = 0.0f;        m.m[7] = 0.0f;        m.m[11] = handed;      m.m[15] = 0.0f;
+   float4x4 mat;
+   float*   m = &mat.m[0];
+
+   mat(m,0,0) = scale.x;     mat(m,0,1) = 0.0f;        mat(m,0,2) = offset.x;    mat(m,0,3) = 0.0f;
+   mat(m,1,0) = 0.0f;        mat(m,1,1) = scale.y;     mat(m,1,2) = offset.y;    mat(m,1,3) = 0.0f;
+   mat(m,2,0) = 0.0f;        mat(m,2,1) = 0.0f;        mat(m,2,2) = t1;          mat(m,2,3) = t2; 
+   mat(m,3,0) = 0.0f;        mat(m,3,1) = 0.0f;        mat(m,3,2) = handed;      mat(m,3,3) = 0.0f;
    
-   return m;
+   return mat;
    }
 
 
@@ -259,72 +268,75 @@ namespace en
    } 
 
    // View Matrix (World Space -> View Space)
+   // View Space has the same coordinate space as World Space and is also Right-Handed
    float4x4 Cam::viewMatrix(void)
    {
-   float4x4 m;
-
+   float4x4 mat;
+   float*   m = &mat.m[0];
    float3   p = *reinterpret_cast<float3*>(&pWorldMatrix->m[12]);
-   float3   a = *reinterpret_cast<float3*>(&pWorldMatrix->m[8]);
-   float3   b = *reinterpret_cast<float3*>(&pWorldMatrix->m[4]);
-   float3   c = *reinterpret_cast<float3*>(&pWorldMatrix->m[0]);
+   float3   l = *reinterpret_cast<float3*>(&pWorldMatrix->m[4]);
+   float3   u = *reinterpret_cast<float3*>(&pWorldMatrix->m[8]);
+   float3   s = *reinterpret_cast<float3*>(&pWorldMatrix->m[0]);
 
-   m.m[0] = -c.x;   m.m[4] = -c.y;   m.m[8]  = -c.z;   m.m[12] = dot(-c,-p); 
-   m.m[1] =  b.x;   m.m[5] =  b.y;   m.m[9]  =  b.z;   m.m[13] = dot( b,-p); 
-   m.m[2] = -a.x;   m.m[6] = -a.y;   m.m[10] = -a.z;   m.m[14] = dot(-a,-p); 
-   m.m[3] =  0.0f;  m.m[7] =  0.0f;  m.m[11] =  0.0f;  m.m[15] = 1.0f;
+   mat(m,0,0) =  s.x;   mat(m,0,1) =  s.y;   mat(m,0,2) =  s.z;   mat(m,0,3) = dot( s,-p); 
+   mat(m,1,0) =  u.x;   mat(m,1,1) =  u.y;   mat(m,1,2) =  u.z;   mat(m,1,3) = dot( u,-p); 
+   mat(m,2,0) = -l.x;   mat(m,2,1) = -l.y;   mat(m,2,2) = -l.z;   mat(m,2,3) = dot( l,-p); 
+   mat(m,3,0) =  0.0f;  mat(m,3,1) =  0.0f;  mat(m,3,2) =  0.0f;  mat(m,3,3) = 1.0f;
 
-   return m;
+   return mat;
    }
    
    // Eye View Matrix (World Space -> View Space)
+   // View Space has the same coordinate space as World Space and is also Right-Handed
    float4x4 Cam::viewMatrix(float3 eyeVector)
    {
-   float4x4 m;
-
+   float4x4 mat;
+   float*   m = &mat.m[0];
    float3   p = *reinterpret_cast<float3*>(&pWorldMatrix->m[12]);
-   float3   a = *reinterpret_cast<float3*>(&pWorldMatrix->m[8]);
-   float3   b = *reinterpret_cast<float3*>(&pWorldMatrix->m[4]);
-   float3   c = *reinterpret_cast<float3*>(&pWorldMatrix->m[0]);
+   float3   l = *reinterpret_cast<float3*>(&pWorldMatrix->m[4]);
+   float3   u = *reinterpret_cast<float3*>(&pWorldMatrix->m[8]);
+   float3   s = *reinterpret_cast<float3*>(&pWorldMatrix->m[0]);
 
-   p  += (eyeVector.x * c) + (eyeVector.y * b) + (eyeVector.z * a);
+   p  += (eyeVector.x * s) + (eyeVector.y * l) + (eyeVector.z * u);
 
-   m.m[0] = -c.x;   m.m[4] = -c.y;   m.m[8]  = -c.z;   m.m[12] = dot(-c,-p); 
-   m.m[1] =  b.x;   m.m[5] =  b.y;   m.m[9]  =  b.z;   m.m[13] = dot( b,-p); 
-   m.m[2] = -a.x;   m.m[6] = -a.y;   m.m[10] = -a.z;   m.m[14] = dot(-a,-p); 
-   m.m[3] =  0.0f;  m.m[7] =  0.0f;  m.m[11] =  0.0f;  m.m[15] = 1.0f;
+   mat(m,0,0) =  s.x;   mat(m,0,1) =  s.y;   mat(m,0,2) =  s.z;   mat(m,0,3) = dot( s,-p); 
+   mat(m,1,0) =  u.x;   mat(m,1,1) =  u.y;   mat(m,1,2) =  u.z;   mat(m,1,3) = dot( u,-p); 
+   mat(m,2,0) = -l.x;   mat(m,2,1) = -l.y;   mat(m,2,2) = -l.z;   mat(m,2,3) = dot( l,-p); 
+   mat(m,3,0) =  0.0f;  mat(m,3,1) =  0.0f;  mat(m,3,2) =  0.0f;  mat(m,3,3) = 1.0f;
 
-   return m;
+   return mat;
    }
-
 
    // Rotation Matrix (World Space -> Eye Space)
    float4x4 Cam::rotationMatrix(void)
    {
-   float4x4 m;
-   float3   a = *reinterpret_cast<float3*>(&pWorldMatrix->m[8]);
-   float3   b = *reinterpret_cast<float3*>(&pWorldMatrix->m[4]);
-   float3   c = *reinterpret_cast<float3*>(&pWorldMatrix->m[0]);
+   float4x4 mat;
+   float*   m = &mat.m[0];
+   float3   l = *reinterpret_cast<float3*>(&pWorldMatrix->m[4]);
+   float3   u = *reinterpret_cast<float3*>(&pWorldMatrix->m[8]);
+   float3   s = *reinterpret_cast<float3*>(&pWorldMatrix->m[0]);
+
+   mat(m,0,0) =  s.x;   mat(m,0,1) =  s.y;   mat(m,0,2) =  s.z;   mat(m,0,3) = 0.0f; 
+   mat(m,1,0) =  u.x;   mat(m,1,1) =  u.y;   mat(m,1,2) =  u.z;   mat(m,1,3) = 0.0f; 
+   mat(m,2,0) = -l.x;   mat(m,2,1) = -l.y;   mat(m,2,2) = -l.z;   mat(m,2,3) = 0.0f; 
+   mat(m,3,0) =  0.0f;  mat(m,3,1) =  0.0f;  mat(m,3,2) =  0.0f;  mat(m,3,3) = 1.0f;
  
-   m.m[0] = -c.x;  m.m[4] = -c.y;  m.m[8]  = -c.z;  m.m[12] = 0.0f;
-   m.m[1] =  b.x;  m.m[5] =  b.y;  m.m[9]  =  b.z;  m.m[13] = 0.0f;
-   m.m[2] = -a.x;  m.m[6] = -a.y;  m.m[10] = -a.z;  m.m[14] = 0.0f;
-   m.m[3] =  0.0f; m.m[7] =  0.0f; m.m[11] =  0.0f; m.m[15] = 1.0f;
- 
-   return m;
+   return mat;
    }
 
    // Translation Matrix (World Space -> Eye Space)
    float4x4 Cam::translationMatrix(void)
    {
-   float4x4 m;
+   float4x4 mat;
+   float*   m = &mat.m[0];
    float3   p = *reinterpret_cast<float3*>(&pWorldMatrix->m[12]);
 
-   m.m[0] = 1.0f;  m.m[4] = 0.0f;  m.m[8]  = 0.0f;  m.m[12] = (float)-p.x; 
-   m.m[1] = 0.0f;  m.m[5] = 1.0f;  m.m[9]  = 0.0f;  m.m[13] = (float)-p.y;
-   m.m[2] = 0.0f;  m.m[6] = 0.0f;  m.m[10] = 1.0f;  m.m[14] = (float)-p.z;
-   m.m[3] = 0.0f;  m.m[7] = 0.0f;  m.m[11] = 0.0f;  m.m[15] = 1.0f;
-   
-   return m;
+   // Matrix is set to identity matrix by it's constructor
+   mat(m,0,3) = (float)-p.x; 
+   mat(m,1,3) = (float)-p.y;
+   mat(m,2,3) = (float)-p.z;
+ 
+   return mat;
    }
 
    // Projection matrix (Eye Space -> Clipping Space [NDC])
@@ -333,7 +345,8 @@ namespace en
    #undef far
    #undef near
 
-   float4x4 m;
+   float4x4 mat;
+   float*   m = &mat.m[0];
 
    uint32 index = static_cast<uint32>(eye);
    float handed = -1.0f; // Right Handed
@@ -376,12 +389,12 @@ namespace en
    //float  t1     = -FpN / FmN;
    //float  t2     = -(2.0f * FxN) / FmN;
 
-   m.m[0] = scale.x;     m.m[4] = 0.0f;        m.m[8]  = offset.x;    m.m[12] = 0.0f;
-   m.m[1] = 0.0f;        m.m[5] = scale.y;     m.m[9]  = offset.y;    m.m[13] = 0.0f;
-   m.m[2] = 0.0f;        m.m[6] = 0.0f;        m.m[10] = t1;          m.m[14] = t2; 
-   m.m[3] = 0.0f;        m.m[7] = 0.0f;        m.m[11] = handed;      m.m[15] = 0.0f;
+   mat(m,0,0) = scale.x;    mat(m,0,1) = 0.0f;       mat(m,0,2) = offset.x;    mat(m,0,3) = 0.0f;
+   mat(m,1,0) = 0.0f;       mat(m,1,1) = scale.y;    mat(m,1,2) = offset.y;    mat(m,1,3) = 0.0f;
+   mat(m,2,0) = 0.0f;       mat(m,2,1) = 0.0f;       mat(m,2,2) = t1;          mat(m,2,3) = t2; 
+   mat(m,3,0) = 0.0f;       mat(m,3,1) = 0.0f;       mat(m,3,2) = handed;      mat(m,3,3) = 0.0f;
    
-   return m;
+   return mat;
    }
 
    }

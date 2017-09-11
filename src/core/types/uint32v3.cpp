@@ -19,10 +19,10 @@ namespace en
    {
    }
    
-   uint32v3::uint32v3(uint32 a, uint32 b, uint32 c) :
-      x(a),
-      y(b),
-      z(c)
+   uint32v3::uint32v3(const uint32 _x, const uint32 _y, const uint32 _z) :
+      x(_x),
+      y(_y),
+      z(_z)
    {
    }
 }

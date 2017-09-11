@@ -118,6 +118,9 @@ namespace en
       desc.Properties.Type                 = D3D12_HEAP_TYPE_UPLOAD;          // D3D12_HEAP_TYPE_CUSTOM;
       desc.Properties.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN; // D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
       desc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;       // D3D12_MEMORY_POOL_L0;
+
+      // TODO: Consider Intel/UMA architecture
+      desc.Flags |= D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
       }
 
    // Flags bitfield:

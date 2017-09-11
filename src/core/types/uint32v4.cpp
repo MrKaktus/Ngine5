@@ -20,7 +20,7 @@ namespace en
    {
    }
    
-   uint32v4::uint32v4(uint32 _x, uint32 _y, uint32 _z, uint32 _w) :
+   uint32v4::uint32v4(const uint32 _x, const uint32 _y, const uint32 _z, const uint32 _w) :
       x(_x),
       y(_y),
       width(_z),

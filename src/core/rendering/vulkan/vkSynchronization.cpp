@@ -71,10 +71,10 @@ namespace en
       }
 
    // Transfer between System Memory and Dedicated Memory
-   if (checkBitmask(usageMask, underlyingType(BufferAccess::SystemSource)))
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::TransferSource)))
       setBitmask(access, VK_ACCESS_HOST_READ_BIT);
 
-   if (checkBitmask(usageMask, underlyingType(BufferAccess::SystemDestination)))
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::TransferDestination)))
       setBitmask(access, VK_ACCESS_HOST_WRITE_BIT);
 
    // Copy and Blit operations
@@ -165,12 +165,12 @@ namespace en
       }
 
    // Transfer between System Memory and Dedicated Memory
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::SystemSource)))
+   if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferSource)))
       {
       setBitmask(access, VK_ACCESS_HOST_READ_BIT);
       layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
       }
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::SystemDestination)))
+   if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferDestination)))
       {
       setBitmask(access, VK_ACCESS_HOST_WRITE_BIT);
       layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -226,6 +226,37 @@ namespace en
 
 
    // Buffer barrier
+   void CommandBufferVK::barrier(const Ptr<Buffer> _buffer, 
+                                 const BufferAccess initAccess)
+   {
+   assert( _buffer );
+
+   BufferVK* buffer = raw_reinterpret_cast<BufferVK>(&_buffer);
+
+   // Determine buffer initial access
+   VkAccessFlags vNewAccess;
+   TranslateBufferAccess(initAccess, buffer->apiType, vNewAccess);
+
+   VkBufferMemoryBarrier barrier;
+   barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+   barrier.pNext               = nullptr;
+   barrier.srcAccessMask       = 0;
+   barrier.dstAccessMask       = vNewAccess;
+   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
+   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
+   barrier.buffer              = buffer->handle;
+   barrier.offset              = 0;
+   barrier.size                = buffer->size;
+
+   ProfileNoRet( gpu, vkCmdPipelineBarrier(handle,
+                                           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                                           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,    
+                                           0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
+                                           0u, nullptr,   // Memory barriers
+                                           1u, &barrier,  // Buffer memory barriers
+                                           0u, nullptr) ) // Image memory barriers
+   }
+
    void CommandBufferVK::barrier(const Ptr<Buffer> buffer, 
                                  const uint64 offset,
                                  const uint64 size,
@@ -799,56 +830,56 @@ namespace en
    //   ResolveDestination  = 0x0400,  // Can be destination of MSAA resolve operation.
    //   };
 
-   //   SystemSource      // System memory backed resource, used as source of data transfer to dedicated memory.
-   //   SystemDestination // System memory backed resource, used as destination of data transfer from dedicated memory.
-   //   CopySource        // Resource backed by dedicated memory. Used as source for Copy or Blit operation.
-   //   CopyDestination   // Resource backed by dedicated memory. Used as destination of Copy or Blit operation.
+   //   TransferSource      // System memory backed resource, used as source of data transfer to dedicated memory.
+   //   TransferDestination // System memory backed resource, used as destination of data transfer from dedicated memory.
+   //   CopySource          // Resource backed by dedicated memory. Used as source for Copy or Blit operation.
+   //   CopyDestination     // Resource backed by dedicated memory. Used as destination of Copy or Blit operation.
 
 
    // Mapping:
    //
    // This can be deduced during bind to Indirect draw command. (but then we will have bubble caused by late transition).
    //
-   // IndirectCommand    (R buffer)   VK_ACCESS_INDIRECT_COMMAND_READ_BIT           D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT
+   // IndirectCommand     (R buffer)   VK_ACCESS_INDIRECT_COMMAND_READ_BIT           D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT
    //
    // Those can be deduced on buffer creation:
    //
-   // IndexBuffer        (R buffer)   VK_ACCESS_INDEX_READ_BIT                      D3D12_RESOURCE_STATE_INDEX_BUFFER
-   // VertexBuffer       (R buffer)   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT           D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
-   // UniformBuffer      (R buffer)   VK_ACCESS_UNIFORM_READ_BIT                    D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+   // IndexBuffer         (R buffer)   VK_ACCESS_INDEX_READ_BIT                      D3D12_RESOURCE_STATE_INDEX_BUFFER
+   // VertexBuffer        (R buffer)   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT           D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+   // UniformBuffer       (R buffer)   VK_ACCESS_UNIFORM_READ_BIT                    D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
    //
-   // Read               (R Texture)  VK_ACCESS_SHADER_READ_BIT
-   // Write              (W Texture)  VK_ACCESS_SHADER_WRITE_BIT
-   // RenderTargetRead   (R Texture)  VK_ACCESS_INPUT_ATTACHMENT_READ_BIT
+   // Read                (R Texture)  VK_ACCESS_SHADER_READ_BIT
+   // Write               (W Texture)  VK_ACCESS_SHADER_WRITE_BIT
+   // RenderTargetRead    (R Texture)  VK_ACCESS_INPUT_ATTACHMENT_READ_BIT
    //
    // D3D12 distinguishes difference between Copy/Blit operations and Resolve ones, 
    // while Vulkan treats all of them as Transfer operations. On the other hand,
    // Vulkan distinguishes difference between copy operations inside VRAM and transfers
    // between RAM and VRAM, while Direct3D12 treats them as the same.
    //
-   // SystemSource       (R)          VK_ACCESS_HOST_READ_BIT                       D3D12_RESOURCE_STATE_COPY_SOURCE
-   // SystemDestination  (W)          VK_ACCESS_HOST_WRITE_BIT                      D3D12_RESOURCE_STATE_COPY_DEST
+   // TransferSource      (R)          VK_ACCESS_HOST_READ_BIT                       D3D12_RESOURCE_STATE_COPY_SOURCE
+   // TransferDestination (W)          VK_ACCESS_HOST_WRITE_BIT                      D3D12_RESOURCE_STATE_COPY_DEST
    //
-   // CopySource         (R)          VK_ACCESS_TRANSFER_READ_BIT                   D3D12_RESOURCE_STATE_COPY_SOURCE
-   // CopyDestination    (W)          VK_ACCESS_TRANSFER_WRITE_BIT                  D3D12_RESOURCE_STATE_COPY_DEST
+   // CopySource          (R)          VK_ACCESS_TRANSFER_READ_BIT                   D3D12_RESOURCE_STATE_COPY_SOURCE
+   // CopyDestination     (W)          VK_ACCESS_TRANSFER_WRITE_BIT                  D3D12_RESOURCE_STATE_COPY_DEST
    //
-   // ResolveSource      (R)          VK_ACCESS_TRANSFER_READ_BIT                   D3D12_RESOURCE_STATE_RESOLVE_SOURCE
-   // ResolveDestination (W)          VK_ACCESS_TRANSFER_WRITE_BIT                  D3D12_RESOURCE_STATE_RESOLVE_DEST
+   // ResolveSource       (R)          VK_ACCESS_TRANSFER_READ_BIT                   D3D12_RESOURCE_STATE_RESOLVE_SOURCE
+   // ResolveDestination  (W)          VK_ACCESS_TRANSFER_WRITE_BIT                  D3D12_RESOURCE_STATE_RESOLVE_DEST
    //
    // Should this need to be explicitly state? Or should this pixel/non-pixel flags always declared?
-   // Texture                         VK_ACCESS_SHADER_READ_BIT                     D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
-   //                                                                               D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+   // Texture                          VK_ACCESS_SHADER_READ_BIT                     D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
+   //                                                                                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
    //
-   // Image              (RW texture) VK_ACCESS_SHADER_READ_BIT                     D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-   //                                 VK_ACCESS_SHADER_WRITE_BIT
+   // Image               (RW texture) VK_ACCESS_SHADER_READ_BIT                     D3D12_RESOURCE_STATE_UNORDERED_ACCESS
+   //                                  VK_ACCESS_SHADER_WRITE_BIT
    //
-   // RenderTargetWrite  (W  texture) VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT          D3D12_RESOURCE_STATE_RENDER_TARGET
+   // RenderTargetWrite   (W  texture) VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT          D3D12_RESOURCE_STATE_RENDER_TARGET
    //
    // Those two could be figured out from RenderTargetRead/Write, Format and RenderPass Load/Store operations
-   // DepthWrite         (W  texture) VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT  D3D12_RESOURCE_STATE_DEPTH_WRITE
-   // DepthRead          (R  texture) VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT   D3D12_RESOURCE_STATE_DEPTH_READ
+   // DepthWrite          (W  texture) VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT  D3D12_RESOURCE_STATE_DEPTH_WRITE
+   // DepthRead           (R  texture) VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT   D3D12_RESOURCE_STATE_DEPTH_READ
    //
-   // Present            (R)          VK_ACCESS_COLOR_ATTACHMENT_READ_BIT           D3D12_RESOURCE_STATE_PRESENT
+   // Present             (R)          VK_ACCESS_COLOR_ATTACHMENT_READ_BIT           D3D12_RESOURCE_STATE_PRESENT
 
 
 

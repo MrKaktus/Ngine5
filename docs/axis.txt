@@ -24,33 +24,128 @@ Eric Lengyel:
 
 Left Handed:
 ------------
-- D3D9
-- Unity              - LH +Y Up (http://www.aclockworkberry.com/world-coordinate-systems-in-3ds-max-unity-and-unreal-engine/ )
+
+- Direct3D 9
+- LightWave
+- Cinema4D
   - Up    - Y+
   - Look  - Z+
   - Right - X+
 
-- RenderMan          - LH +Y Up ( https://t.co/BMoJn8zKoZ ) 
-- POV-Ray            - LH +Y Up ( https://t.co/Ada6U3Rs2x )
-- Unreal Engine      - LH +Z Up ( https://docs.unrealengine.com/latest/INT/Engine/Basics/CoordinateSpace/ )
-  World Space (?):
-  - Up    - Z+
-  - Look  - Y- (the only difference from 3DSMax)
+- Unity              (http://www.aclockworkberry.com/world-coordinate-systems-in-3ds-max-unity-and-unreal-engine/ )
+  - Up    - Y+
+  - Look  - Z+
   - Right - X+
-  Object spoace: (http://www.aclockworkberry.com/world-coordinate-systems-in-3ds-max-unity-and-unreal-engine/)
+
+- Pixar RenderMan    (https://t.co/BMoJn8zKoZ) 
+  - Up    - Y+
+
+- POV-Ray            (https://t.co/Ada6U3Rs2x)
+  - Up    - Y+
+
+- Unreal Engine 4 (World Space)     (https://docs.unrealengine.com/latest/INT/Engine/Basics/CoordinateSpace/)
   - Up    - Z+
-  - Look  - X+
-  - Right - Y+
+  - North - Y-                      (the only difference from 3DSMax)
+  - East  - X+
+
+- Unreal Engine 4 (Object spoace)   (http://www.aclockworkberry.com/world-coordinate-systems-in-3ds-max-unity-and-unreal-engine/)
+  - Up    - Z+
+  - Look  - X+ (East in WS)
+  - Right - Y+ (South in WS)
+
 - 3DSMax (Internals) - LH
+- pbrt
 
 Right Handed:
 -------------
-- 3DSMax             - RH +Z up
+
+- OpenGL
+- 3DSMax (camera space)
+- Maya
+- Cheetah3D
+  - Up    - Y+
+  - Look  - Z-
+  - Right - X+
+
+- 3DSMax (World-Space)
+- Physics engines   
   - Up    - Z+
   - Look  - Y+
   - Right - X+
 
-- Physics engines    - RH
+
+
+
+LHS rotated by 180 degree around Y axis:
+     +x left    +y top   +z back
+
+    - Unity
+
+LHS (z as Up, y as DEPTH)
+    +x right   +y front   +z up
+
+    - Blender
+
+
+
+
+
+
+
+
+
+
+World Space coordinate system (Right Handed):
+=============================================
+
+       Up (Z+)
+       . 
+      /|\
+       |   . Look (Y+)
+       |  /|
+       | /
+       |/
+       +--------> Side (X+)
+                  RIGHT
+
+All rotations are clock-wise positive (when looking from center towards the arrow):
+
+Roll left      -
+Roll right     +
+Pitch up       +
+Pitch down     -
+Turn/yaw left  +
+Turn/yaw right -
+
+Cross products:
+
+X = Y x Z 
+Y = Z x X
+Z = X x Y
+
+
+
+
+
+
+Example Units specification:
+----------------------------
+
+coordinate system: left handed
+
+gravity convention: in which direction is gravity pointing? Seems like its negative y.
+
+Euler Angles: which order of rotation (there are 64 different possibilities!). Seems like its Kardan, with z -> y -> x, all counter clockwise.
+
+Quaternions: Is w rotating clock wise or counterclockwise around the xyz vector?
+
+Units: SI? Seems like the unit translation is ment to be 1 meter.
+
+
+
+
+
+
 
 
 Entity / Oriented:

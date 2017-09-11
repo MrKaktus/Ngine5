@@ -25,18 +25,18 @@ namespace en
       union { float z; float q3; };
       
       quaternion();
-      quaternion(float degrees, float3 vector);
+      quaternion(const float degrees, const float3 vector);
      ~quaternion();
       
-      float magnitude(void);
+      float magnitude(void) const;
       void normalize(void);
       float4x4 matrix(void);
       };
    
-   bool operator ==(quaternion a, quaternion b);
-   quaternion operator- (quaternion a, quaternion b);
-   quaternion operator+ (quaternion a, quaternion b);
-   quaternion mul(quaternion a, quaternion b);
+   bool       operator==(const quaternion a, const quaternion b);
+   quaternion operator- (const quaternion a, const quaternion b);
+   quaternion operator+ (const quaternion a, const quaternion b);
+   quaternion mul(const quaternion a, const quaternion b);
 }
 
 #endif

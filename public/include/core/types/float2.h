@@ -20,15 +20,15 @@ namespace en
       union { float y; float v; float t; float maximum; };
       
       float2(void);                     
-      float2(float x, float y);         
+      float2(const float x, const float y);         
       
-      void operator-= (float2 b);      
-      void operator+= (float2 b);         
-      bool operator== (float2 b);
-      float2 operator/ (float2 b);
+      void operator-= (const float2 b);      
+      void operator+= (const float2 b);         
+      bool operator== (const float2 b);
+      float2 operator/ (const float2 b) const;
             
       void  normalize(void);       
-      float length(void);      
+      float length(void) const;      
       };
 }
 

@@ -14,39 +14,39 @@
 
 namespace en
 {
-   double4::double4(void)
+   double4::double4(void) :
+      x(0.0),
+      y(0.0),
+      z(0.0),
+      w(1.0)
    {
-   x = 0.0;
-   y = 0.0;
-   z = 0.0;
-   w = 1.0;
    }
    
-   double4::double4(float3 f3)
+   double4::double4(const float3 v3) :
+      x(double(v3.x)),
+      y(double(v3.y)),
+      z(double(v3.z)),
+      w(1.0)
    {
-   x = (double)f3.x;
-   y = (double)f3.y;
-   z = (double)f3.z;
-   w = 1.0;
    } 
    
-   double4::double4(double3 d3, double w=1.0)
+   double4::double4(const double3 v3, const double w) :
+      x(v3.x),
+      y(v3.y),
+      z(v3.z),
+      w(w)
    {
-   this->x = d3.x;
-   this->y = d3.y;
-   this->z = d3.z;
-   this->w = w;
    }
    
-   double4::double4(double x, double y, double z, double w)
+   double4::double4(const double _x, const double _y, const double _z, const double _w) :
+      x(_x),
+      y(_y),
+      z(_z),
+      w(_w)
    {
-   this->x = x;
-   this->y = y;
-   this->z = z;
-   this->w = w;
    }
    
-   void double4::operator-= (double4 b)
+   void double4::operator-= (const double4 b)
    {
    x -= b.x;
    y -= b.y; 
@@ -54,7 +54,7 @@ namespace en
    w -= b.w;
    }
    
-   void double4::operator+= (double4 b)
+   void double4::operator+= (const double4 b)
    {
    x += b.x;
    y += b.y; 
@@ -63,7 +63,7 @@ namespace en
    }
    
    // Channels
-   double3 double4::xyz(void)
+   double3 double4::xyz(void) const
    {
    return double3(x, y, z);
    }

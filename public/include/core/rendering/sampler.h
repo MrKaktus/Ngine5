@@ -124,7 +124,7 @@ namespace en
       SamplerBorder     borderColor;
       CompareOperation  compare;       // For Shadow maps sampling ??
       float             LodBias;       // 0.0f;
-      float             minLod;        // 0.0f;        // Can force sampling of less detailed LOD levels (less mip levels used saves GPU memory)
+      float             minLod;        // 0.0f;        // Can force sampling of less detailed LOD levels, when texture is not fully loaded (less mip levels used saves GPU memory)
       float             maxLod;        // mipmaps.0f;  // Can force sampling of more detailed LOD levels
 
       SamplerState();

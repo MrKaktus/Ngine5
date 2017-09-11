@@ -15,44 +15,44 @@
 
 namespace en
 {
-   float4::float4(void)
+   float4::float4(void) :
+      x(0.0f),
+      y(0.0f),
+      z(0.0f),
+      w(1.0f)
    {
-   x = 0.0f;
-   y = 0.0f;
-   z = 0.0f;
-   w = 1.0f;
    }
    
-   float4::float4(float* src)
+   float4::float4(const float* src)
    {
    memcpy(&x, src, 16);
    }
    
-   float4::float4(float3 f3, float w)
+   float4::float4(const float3 v3, const float _w) :
+      x(v3.x),
+      y(v3.y),
+      z(v3.z),
+      w(_w)
    {
-   this->x = f3.x;
-   this->y = f3.y;
-   this->z = f3.z;
-   this->w = w;
    }
    
-   float4::float4(double3 d3, float w)
+   float4::float4(const double3 v3, const float _w) :
+      x(float(v3.x)),
+      y(float(v3.y)),
+      z(float(v3.z)),
+      w(_w)
    {
-   this->x = float(d3.x);
-   this->y = float(d3.y);
-   this->z = float(d3.z);
-   this->w = w;
    }
    
-   float4::float4(const float x, const float y, const float z, const float w)
+   float4::float4(const float _x, const float _y, const float _z, const float _w) :
+      x(_x),
+      y(_y),
+      z(_z),
+      w(_w)
    {
-   this->x = x;
-   this->y = y;
-   this->z = z;
-   this->w = w;
    }
 
-   void float4::operator= (float4 b)
+   void float4::operator= (const float4 b)
    {
    x = b.x;
    y = b.y;
@@ -60,7 +60,7 @@ namespace en
    w = b.w;
    }
    
-   void float4::operator-= (float4 b)
+   void float4::operator-= (const float4 b)
    {
    x -= b.x;
    y -= b.y; 
@@ -68,7 +68,7 @@ namespace en
    w -= b.w;
    }
    
-   void float4::operator+= (float4 b)
+   void float4::operator+= (const float4 b)
    {
    x += b.x;
    y += b.y; 
@@ -77,7 +77,7 @@ namespace en
    }
    
    // Channels
-   float3 float4::xyz(void)
+   float3 float4::xyz(void) const
    {
    return float3(x, y, z);
    }

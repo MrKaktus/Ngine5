@@ -13,59 +13,59 @@
 
 namespace en
 {
-   double3::double3(void)
+   double3::double3(void) :
+      x(0.0),
+      y(0.0),
+      z(0.0)
    {
-   x = 0.0;
-   y = 0.0;
-   z = 0.0;
    }
    
-   double3::double3(double x, double y, double z)
+   double3::double3(const double _x, const double _y, const double _z) :
+      x(_x),
+      y(_y),
+      z(_z)
    {
-   this->x = x;
-   this->y = y;
-   this->z = z;
    }
    
-   void double3::operator-= (double3 b)
+   void double3::operator-= (const double3 b)
    {
    x -= b.x;
    y -= b.y; 
    z -= b.z;
    }
    
-   void double3::operator/= (double b)
+   void double3::operator/= (const double b)
    {
    x /= b;
    y /= b; 
    z /= b; 
    }
    
-   void double3::operator+= (double3 b)
+   void double3::operator+= (const double3 b)
    {
    x += b.x;
    y += b.y; 
    z += b.z; 
    }
    
-   void double3::operator*= (double b)
+   void double3::operator*= (const double b)
    {
    x *= b;
    y *= b; 
    z *= b; 
    }
    
-   bool double3::operator== (double3 b)
+   bool double3::operator== (const double3 b) const
    {
    return (x == b.x) && (y == b.y) && (z == b.z);
    }
    
-   bool double3::operator!= (double3 b)
+   bool double3::operator!= (const double3 b) const
    {
    return (x != b.x) || (y != b.y) || (z != b.z);
    }
    
-   double3 double3::operator- ()
+   double3 double3::operator- () const
    {
    return double3(x * -1.0, y * -1.0, z * -1.0);
    }
@@ -81,7 +81,7 @@ namespace en
       }
    }
    
-   double double3::length(void)
+   double double3::length(void) const
    {
    return sqrt(x*x + y*y + z*z);
    }

@@ -80,8 +80,8 @@ namespace en
    class Entity : public SafeObject<Entity>, private NonCopyable
 /* 8  */ {
          protected:
-         // When attached to scene, these parameters are stored in arrays for data locality.
-         // Otherwise they are freely alocated.
+         // When attached to scene, these parameters are stored in arrays 
+         // for data locality. Otherwise they are freely alocated.
 
          double3*  pPosition;
          float4x4* pRotation;
@@ -113,7 +113,7 @@ namespace en
          void    position(const float x,           
                           const float y,           
                           const float z);                    
-         double3 position(void);                   // Get position
+         double3 position(void) const;             // Get position
          void    scale(const float3 s);            // Set global scale
          void    scale(const float x,              
                        const float y,              
@@ -121,21 +121,21 @@ namespace en
          void    scaleX(const float x);            
          void    scaleY(const float y);            
          void    scaleZ(const float z);            
-         float3  scale(void);                      // Get global scale
+         float3  scale(void) const;                // Get global scale
          void    direct(const float3 look,         
                         const float3 up);          // Set orientation
-         void    direct(float4x4& orientation);
-         float3  direction(void);                  // Get direction
-         float3  top(void);                        // Get top
-         float3  side(void);                       // Get side vector
+         //void    direct(float4x4& orientation);
+         float3  direction(void) const;            // Get direction
+         float3  top(void) const;                  // Get top
+         float3  side(void) const;                 // Get side vector (right vector)
                                                    
          void    yaw(const float deg);             // Rotates around axis UP   (positive left) 
          void    turn(const float deg);            
          void    roll(const float deg);            // Rotates around axis LOOK (positive right) 
-         void    pitch(const float deg);           // Rotates around axis SIDE (positive down)
+         void    pitch(const float deg);           // Rotates around axis SIDE (positive up)
    
          void    move(const double units);         // Moves forwar/backward (positive forward)
-         void    strafe(const double units);       // Moves horizontally (positive left)
+         void    strafe(const double units);       // Moves horizontally (positive right)
          void    moveVertical(const double units); // Moves vertically (positive up)
          void    ascend(const double units);
          void    descend(const double units);

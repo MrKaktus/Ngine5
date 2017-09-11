@@ -18,26 +18,34 @@
 
 namespace en
 {
+   // Stored in Column-Major order
    class float4x4
       {
       public:
       float m[16];
       
-      float4x4();
-      float4x4(float* src); 
-      float4x4(float3 translation, float3 rotation, float3 scale);
-      float4x4(float m00, float m01, float m02, float m03,
-               float m10, float m11, float m12, float m13,
-               float m20, float m21, float m22, float m23,
-               float m30, float m31, float m32, float m33 ); 
+      float4x4(); // Matrix is set to identity matrix
+      float4x4(const float* src); 
+      float4x4(const float m00, const float m01, const float m02, const float m03,
+               const float m10, const float m11, const float m12, const float m13,
+               const float m20, const float m21, const float m22, const float m23,
+               const float m30, const float m31, const float m32, const float m33); 
+
+      // Generates cumulated scale, rotation and translation matrix.
+      // Equations are performed from right to left, as follows:
+      //
+      // m = T * (r(X) * r(Y) * r(Z)) * S
+      //
+      // Right handed coordinate system is assumed.
+      float4x4(const float3 translation, const float3 rotation, const float3 scale);
       
-      void     set(float* src);
-      float4   row(uint8 r);
-      float4   column(uint8 c);
-      void     column(uint8 c, float4 f4);
-      void     column(uint8 c, float3 f3);
-      void     diagonal(float4 f4);
-      void     diagonal(float3 f3);
+      void     set(const float* src);
+      float4   row(const uint8 r) const;
+      float4   column(const uint8 c) const;
+      void     column(const uint8 c, const float4 v4);
+      void     column(const uint8 c, const float3 v3);
+      void     diagonal(const float4 v4);
+      void     diagonal(const float3 v3);
       float4x4 invert(void);
       
       static float4x4 translation(float3 vector)

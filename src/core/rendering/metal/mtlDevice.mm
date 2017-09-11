@@ -281,7 +281,6 @@ namespace en
 
    // Texture
 //   support.maxTextureSize;                    // Maximum 2D/1D texture image dimension
-//   support.maxTextureRectSize;                // Maximum size of rectangle texture dimmension
 //   support.maxTextureCubeSize;                // Maximum cube map texture image dimension
 //   support.maxTexture3DSize;                  // Maximum 3D texture image dimension
 //   support.maxTextureLayers;                  // Maximum number of layers for texture arrays

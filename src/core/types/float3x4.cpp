@@ -9,54 +9,61 @@
 */
 
 #include <string.h>
+#include "assert.h"
 #include "core/types/float3x4.h"
 
 namespace en
 {
+   // Stored in Column-Major order
+   #define mat(m,r,c) (m)[(c)*3+(r)]
+
+   // Stored in Row-Major order
+   // #define mat(m,r,c) (m)[(r)*4+(c)]
+
    float3x4::float3x4()
    {
    memset(&m[0], 0, 48);
-   m[0] = 1.0f;
-   m[4] = 1.0f;
-   m[8] = 1.0f;
+   mat(m,0,0) = 1.0f;
+   mat(m,1,1) = 1.0f;
+   mat(m,2,2) = 1.0f;
    }
    
-   float3x4::float3x4(float* src)
+   float3x4::float3x4(const float* src)
    {
    memcpy(m, src, 48);
    }
    
-   float3x4::float3x4(float m00, float m01, float m02, float m03,
-                      float m10, float m11, float m12, float m13,
-                      float m20, float m21, float m22, float m23 )
+   float3x4::float3x4(const float m00, const float m01, const float m02, const float m03,
+                      const float m10, const float m11, const float m12, const float m13,
+                      const float m20, const float m21, const float m22, const float m23)
    {
-   m[0] = m00;  m[3] = m01;  m[6] = m02;  m[9]  = m03;
-   m[1] = m10;  m[4] = m11;  m[7] = m12;  m[10] = m13;
-   m[2] = m20;  m[5] = m21;  m[8] = m22;  m[11] = m23;
+   mat(m,0,0) = m00;  mat(m,0,1) = m01;  mat(m,0,2) = m02;  mat(m,0,3) = m03;
+   mat(m,1,0) = m10;  mat(m,1,1) = m11;  mat(m,1,2) = m12;  mat(m,1,3) = m13;
+   mat(m,2,0) = m20;  mat(m,2,1) = m21;  mat(m,2,2) = m22;  mat(m,2,3) = m23;
    } 
    
-   void float3x4::set(float* src)
+   void float3x4::set(const float* src)
    {
    memcpy(m, src, 48);
    }
    
-   float4 float3x4::row(uint8 r)
+   float4 float3x4::row(const uint8 r) const
    {
-   r %= 3;
-   return float4(m[r], m[r+3], m[r+6], m[r+9]);
+   assert( r < 3 );
+   return float4(mat(m,r,0), mat(m,r,1), mat(m,r,2), mat(m,r,3));
    }
    
-   float3 float3x4::column(uint8 c)
+   float3 float3x4::column(const uint8 c) const
    {
-   c %= 4;
-   return float3(m[c*3], m[c*3+1], m[c*3+2]);
+   assert( c < 4 );
+   return float3(mat(m,0,c), mat(m,1,c), mat(m,2,c));
    }
    
-   void float3x4::column(uint8 c, float3 f3)
+   void float3x4::column(const uint8 c, const float3 v3)
    {
-   c %= 4;
-   m[c*3]   = f3.x;
-   m[c*3+1] = f3.y;
-   m[c*3+2] = f3.z;
+   assert( c < 4 );
+   mat(m,0,c) = v3.x;
+   mat(m,1,c) = v3.y;
+   mat(m,2,c) = v3.z;
    }
 }

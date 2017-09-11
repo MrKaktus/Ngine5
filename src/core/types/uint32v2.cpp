@@ -18,13 +18,13 @@ namespace en
    {
    }
    
-   uint32v2::uint32v2(uint32 a, uint32 b) :
-      x(a),
-      y(b)
+   uint32v2::uint32v2(const uint32 _x, const uint32 _y) :
+      x(_x),
+      y(_y)
    {
    }
 
-   bool uint32v2::operator== (uint32v2 b)
+   bool uint32v2::operator== (const uint32v2 b) const
    {
    return ((x == b.x) && (y == b.y));
    }

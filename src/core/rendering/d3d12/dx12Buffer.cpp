@@ -185,15 +185,20 @@ namespace en
    if (!allocator->allocate(static_cast<uint64>(allocInfo.SizeInBytes),
                             static_cast<uint64>(allocInfo.Alignment),
                             offset))
-      {
-      return Ptr<Buffer>(nullptr);
-      }
+      return ptr_reinterpret_cast<Buffer>(&result);
 
+   // Patch descriptor with proper alignment and rounded-up size
+   desc.Alignment          = allocInfo.Alignment;
+   desc.Width              = allocInfo.SizeInBytes;
+
+   // Initial resource state is dictate by type of backing Heap
    D3D12_RESOURCE_STATES initState;
    if (_usage == MemoryUsage::Upload ||
        _usage == MemoryUsage::Immediate)
       initState = D3D12_RESOURCE_STATE_GENERIC_READ;
    else
+   if (_usage == MemoryUsage::Download ||
+       _usage == MemoryUsage::Linear)
       initState = D3D12_RESOURCE_STATE_COPY_DEST;
 
    ID3D12Resource* bufferHandle = nullptr;

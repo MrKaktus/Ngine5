@@ -36,42 +36,98 @@ namespace en
    //
    // Those can be deduced on buffer creation:
    //
-   // IndexBuffer        (R buffer)   VK_ACCESS_INDEX_READ_BIT                      D3D12_RESOURCE_STATE_INDEX_BUFFER
-   // VertexBuffer       (R buffer)   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT           D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
-   // UniformBuffer      (R buffer)   VK_ACCESS_UNIFORM_READ_BIT                    D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+   // IndexBuffer         (R buffer)   VK_ACCESS_INDEX_READ_BIT                      D3D12_RESOURCE_STATE_INDEX_BUFFER
+   // VertexBuffer        (R buffer)   VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT           D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+   // UniformBuffer       (R buffer)   VK_ACCESS_UNIFORM_READ_BIT                    D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
    //
-   // Read               (R Texture)  VK_ACCESS_SHADER_READ_BIT
-   // Write              (W Texture)  VK_ACCESS_SHADER_WRITE_BIT
-   // RenderTargetRead   (R Texture)  VK_ACCESS_INPUT_ATTACHMENT_READ_BIT
+   // Read                (R Texture)  VK_ACCESS_SHADER_READ_BIT
+   // Write               (W Texture)  VK_ACCESS_SHADER_WRITE_BIT
+   // RenderTargetRead    (R Texture)  VK_ACCESS_INPUT_ATTACHMENT_READ_BIT
    //
    // D3D12 distinguishes difference between Copy/Blit operations and Resolve ones, 
    // while Vulkan treats all of them as Transfer operations. On the other hand,
    // Vulkan distinguishes difference between copy operations inside VRAM and transfers
    // between RAM and VRAM, while Direct3D12 treats them as the same.
    //
-   // SystemSource       (R)          VK_ACCESS_HOST_READ_BIT                       D3D12_RESOURCE_STATE_COPY_SOURCE
-   // SystemDestination  (W)          VK_ACCESS_HOST_WRITE_BIT                      D3D12_RESOURCE_STATE_COPY_DEST
+   // TransferSource      (R)          VK_ACCESS_HOST_READ_BIT                       D3D12_RESOURCE_STATE_COPY_SOURCE
+   // TransferDestination (W)          VK_ACCESS_HOST_WRITE_BIT                      D3D12_RESOURCE_STATE_COPY_DEST
    //
-   // CopySource         (R)          VK_ACCESS_TRANSFER_READ_BIT                   D3D12_RESOURCE_STATE_COPY_SOURCE
-   // CopyDestination    (W)          VK_ACCESS_TRANSFER_WRITE_BIT                  D3D12_RESOURCE_STATE_COPY_DEST
-   //
-   // ResolveSource      (R)          VK_ACCESS_TRANSFER_READ_BIT                   D3D12_RESOURCE_STATE_RESOLVE_SOURCE
-   // ResolveDestination (W)          VK_ACCESS_TRANSFER_WRITE_BIT                  D3D12_RESOURCE_STATE_RESOLVE_DEST
+   // CopySource          (R)          VK_ACCESS_TRANSFER_READ_BIT                   D3D12_RESOURCE_STATE_COPY_SOURCE
+   // CopyDestination     (W)          VK_ACCESS_TRANSFER_WRITE_BIT                  D3D12_RESOURCE_STATE_COPY_DEST
+   //                     
+   // ResolveSource       (R)          VK_ACCESS_TRANSFER_READ_BIT                   D3D12_RESOURCE_STATE_RESOLVE_SOURCE
+   // ResolveDestination  (W)          VK_ACCESS_TRANSFER_WRITE_BIT                  D3D12_RESOURCE_STATE_RESOLVE_DEST
    //
    // Should this need to be explicitly state? Or should this pixel/non-pixel flags always declared?
-   // Texture                         VK_ACCESS_SHADER_READ_BIT                     D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
-   //                                                                               D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+   // Texture                          VK_ACCESS_SHADER_READ_BIT                     D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
+   //                                                                                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
    //
-   // Image              (RW texture) VK_ACCESS_SHADER_READ_BIT                     D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-   //                                 VK_ACCESS_SHADER_WRITE_BIT
+   // Image               (RW texture) VK_ACCESS_SHADER_READ_BIT                     D3D12_RESOURCE_STATE_UNORDERED_ACCESS
+   //                                  VK_ACCESS_SHADER_WRITE_BIT
    //
-   // RenderTargetWrite  (W  texture) VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT          D3D12_RESOURCE_STATE_RENDER_TARGET
+   // RenderTargetWrite   (W  texture) VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT          D3D12_RESOURCE_STATE_RENDER_TARGET
    //
    // Those two could be figured out from RenderTargetRead/Write, Format and RenderPass Load/Store operations
-   // DepthWrite         (W  texture) VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT  D3D12_RESOURCE_STATE_DEPTH_WRITE
-   // DepthRead          (R  texture) VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT   D3D12_RESOURCE_STATE_DEPTH_READ
+   // DepthWrite          (W  texture) VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT  D3D12_RESOURCE_STATE_DEPTH_WRITE
+   // DepthRead           (R  texture) VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT   D3D12_RESOURCE_STATE_DEPTH_READ
    //
-   // Present            (R)          VK_ACCESS_COLOR_ATTACHMENT_READ_BIT           D3D12_RESOURCE_STATE_PRESENT
+   // Present             (R)          VK_ACCESS_COLOR_ATTACHMENT_READ_BIT           D3D12_RESOURCE_STATE_PRESENT
+
+
+   D3D12_RESOURCE_STATES TranslateBufferAccess(BufferAccess usage, BufferType type)
+   {
+   D3D12_RESOURCE_STATES access = D3D12_RESOURCE_STATE_COMMON;
+
+   bool canBeWritten = false;
+
+   uint32 usageMask = underlyingType(usage);
+
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::Read)))
+      {
+      // Allows buffer to be read as Vertex Buffer during Draw
+      if (type == BufferType::Vertex)
+         setBitmask(access, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+      else
+      // Allows buffer to be read as Index Buffer during Indexed Draw
+      if (type == BufferType::Index)
+         setBitmask(access, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+      else
+      // Allows buffer to be read as Uniform Buffer
+      if (type == BufferType::Uniform)
+         setBitmask(access, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+      else
+      // Allows buffer to be used as Indirect Command Buffer during Draw and Dispatch Indirect commands
+      if (type == BufferType::Indirect)
+         setBitmask(access, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+
+      // Storage - general Buffer read access by Shaders (Common)
+      }
+
+   // Allows Writing to Buffers (by Compute Shaders)
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::Write)))
+      {
+      // Is Common enough? There is no D3D12 flag for Buffer Shader Write.
+      // setBitmask(access, VK_ACCESS_SHADER_WRITE_BIT);
+      canBeWritten = true;
+      }
+
+   // Transfer between System Memory and Dedicated Memory
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::TransferSource)))
+      setBitmask(access, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::TransferDestination)))
+      setBitmask(access, D3D12_RESOURCE_STATE_COPY_DEST);
+
+   // Copy and Blit operations
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::CopySource)))
+      setBitmask(access, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+   if (checkBitmask(usageMask, underlyingType(BufferAccess::CopyDestination)))
+      setBitmask(access, D3D12_RESOURCE_STATE_COPY_DEST);
+
+   return access;
+   }
+
 
    D3D12_RESOURCE_STATES TranslateTextureAccess(TextureAccess usage, Format format)
    {
@@ -138,10 +194,10 @@ namespace en
       setBitmask(access, D3D12_RESOURCE_STATE_RESOLVE_DEST);
 
    // Transfer between System Memory and Dedicated Memory
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::SystemSource)))
+   if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferSource)))
       setBitmask(access, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::SystemDestination)))
+   if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferDestination)))
       setBitmask(access, D3D12_RESOURCE_STATE_COPY_DEST);
 
    // Copy and Blit operations
@@ -159,6 +215,47 @@ namespace en
    }
 
 
+   void CommandBufferD3D12::barrier(const Ptr<Buffer> _buffer, 
+                                    const BufferAccess initAccess)
+   {
+   assert( _buffer );
+
+   BufferD3D12* buffer = raw_reinterpret_cast<BufferD3D12>(&_buffer);
+
+   // TODO: Ensure this Command Buffer is Graphic one !
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   MemoryUsage heapUsage = buffer->heap->_usage;
+
+   // If buffer was created on Upload or Immediate Heap,
+   // it's initial state is General, and it needs to 
+   // stay in that access mode.
+   if (heapUsage == MemoryUsage::Upload ||
+       heapUsage == MemoryUsage::Immediate)
+      return;
+
+   D3D12_RESOURCE_STATES dstState =TranslateBufferAccess(initAccess, buffer->apiType);
+
+   // If app tries to init Buffer as TransferDestination,
+   // and it already is in this state due to D3D12 resource
+   // creation requirements, barrier can be skipped.
+   if ( (heapUsage == MemoryUsage::Download ||
+         heapUsage == MemoryUsage::Linear) &&
+        dstState == D3D12_RESOURCE_STATE_COPY_DEST )
+      return;
+
+   D3D12_RESOURCE_BARRIER barrier;
+   barrier.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+   barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
+                // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends  
+   barrier.Transition.pResource   = buffer->handle;
+   barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+   barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+   barrier.Transition.StateAfter  = dstState;
+   
+   ProfileComNoRet( command->ResourceBarrier(1, &barrier) )
+   }
 
    void CommandBufferD3D12::barrier(const Ptr<Buffer> _buffer, 
                                     const uint64 offset,
@@ -170,10 +267,29 @@ namespace en
 
    BufferD3D12* buffer = raw_reinterpret_cast<BufferD3D12>(&_buffer);
 
+   MemoryUsage heapUsage = buffer->heap->_usage;
+
+   // If buffer was created on Upload or Immediate Heap,
+   // it's initial state is General, and it needs to 
+   // stay in that access mode.
+   if (heapUsage == MemoryUsage::Upload ||
+       heapUsage == MemoryUsage::Immediate)
+      return;
+
    // TODO: Ensure this Command Buffer is Graphic one !
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 
-   // TODO: Finish!
+   D3D12_RESOURCE_BARRIER barrier;
+   barrier.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+   barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
+                // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends  
+   barrier.Transition.pResource   = buffer->handle;
+   barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+   barrier.Transition.StateBefore = TranslateBufferAccess(currentAccess, buffer->apiType);
+   barrier.Transition.StateAfter  = TranslateBufferAccess(newAccess, buffer->apiType);
+   
+   ProfileComNoRet( command->ResourceBarrier(1, &barrier) )
    }
 
    // Vulkan tries to hide barrier latency by specifying after completion of which pipeline stage it should start, and before which it should end.

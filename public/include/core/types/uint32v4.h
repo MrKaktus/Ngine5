@@ -24,7 +24,7 @@ namespace en
       union { uint32 w; uint32 height; };
       
       uint32v4(void);
-      uint32v4(uint32 _x, uint32 _y, uint32 _z, uint32 _w);
+      uint32v4(const uint32 x, const uint32 y, const uint32 z, const uint32 w);
       };
 }
 

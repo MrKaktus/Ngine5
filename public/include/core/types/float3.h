@@ -24,19 +24,19 @@ namespace en
       
       float3(void);                       
       float3(const float* src); 
-      float3(double3 d3);                
-      float3(float x, float y, float z);   
+      float3(const double3 d3);                
+      float3(const float x, const float y, const float z);   
       
-      void   operator-= (float3 b);          
-      void   operator+= (float3 b);  
-      void   operator/= (float b);
-      void   operator*= (float b);
-      bool   operator!= (float3 b);
-      float3 operator-  ();      
-      operator double3();
+      void   operator-= (const float3 b);          
+      void   operator+= (const float3 b);  
+      void   operator/= (const float b);
+      void   operator*= (const float b);
+      bool   operator!= (const float3 b) const;
+      float3 operator-  () const;      
+      operator double3() const;
       
       void   normalize(void);               
-      float  length(void);
+      float  length(void) const;
       };
 }
 

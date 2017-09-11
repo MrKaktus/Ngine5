@@ -24,14 +24,14 @@ namespace en
       union { double w; double a; };
       
       double4(void);                                   
-      double4(float3 f3);
-      double4(double3 d3, double w);                   
-      double4(double x, double y, double z, double w); 
+      double4(const float3 f3);
+      double4(const double3 d3, const double w = 1.0f);                   
+      double4(const double x, const double y, const double z, const double w); 
       
-      void operator-= (double4 b);      
-      void operator+= (double4 b);         
+      void operator-= (const double4 b);      
+      void operator+= (const double4 b);         
       
-      double3 xyz(void);
+      double3 xyz(void) const;
       void normalize(void);                       
       };
 }

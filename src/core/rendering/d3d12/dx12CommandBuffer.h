@@ -126,6 +126,9 @@ namespace en
       virtual void endRenderPass(void);
 
       virtual void barrier(const Ptr<Buffer> buffer, 
+                           const BufferAccess initAccess);
+
+      virtual void barrier(const Ptr<Buffer> buffer, 
                            const uint64 offset,
                            const uint64 size,
                            const BufferAccess currentAccess,

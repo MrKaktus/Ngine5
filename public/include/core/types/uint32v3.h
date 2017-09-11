@@ -23,7 +23,7 @@ namespace en
       union { uint32 z; uint32 depth;  };
       
       uint32v3(void);
-      uint32v3(uint32 a, uint32 b, uint32 c);
+      uint32v3(const uint32 x, const uint32 y, const uint32 z);
       };
 }
 

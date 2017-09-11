@@ -26,7 +26,7 @@ namespace en
       //      };
       
       half(void);                         
-      half(float src); 
+      half(const float src); 
       };
 }
 

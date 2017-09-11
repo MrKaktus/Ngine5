@@ -21,7 +21,7 @@ namespace en
    memset(this, 0, sizeof(quaternion));
    }
    
-   quaternion::quaternion(float degrees, float3 vector)
+   quaternion::quaternion(const float degrees, const float3 vector)
    {
    float angle = radians(degrees) / 2.0f;
    float sinus = sin(angle);
@@ -35,7 +35,7 @@ namespace en
    {
    }
    
-   float quaternion::magnitude(void)
+   float quaternion::magnitude(void) const
    {
    return sqrt(s*s + x*x + y*y + z*z);
    }
@@ -73,12 +73,12 @@ namespace en
    return m;
    }
    
-   bool operator ==(quaternion a, quaternion b)
+   bool operator ==(const quaternion a, const quaternion b)
    {
    return memcmp(static_cast<const void*>(&a), static_cast<const void*>(&b), sizeof(quaternion)) == 0;
    }
    
-   quaternion operator+ (quaternion a, quaternion b)
+   quaternion operator+ (const quaternion a, const quaternion b)
    {
    quaternion temp;
    
@@ -90,7 +90,7 @@ namespace en
    return temp;
    }
    
-   quaternion operator- (quaternion a, quaternion b)
+   quaternion operator- (const quaternion a, const quaternion b)
    {
    quaternion temp;
    
@@ -102,7 +102,7 @@ namespace en
    return temp;
    }
    
-   quaternion mul(quaternion a, quaternion b)
+   quaternion mul(const quaternion a, const quaternion b)
    {
    quaternion temp;
    

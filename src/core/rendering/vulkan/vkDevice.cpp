@@ -696,9 +696,8 @@ namespace en
    support.maxInputLayoutAttributesCount = properties.limits.maxVertexInputAttributes;
 
    // Texture
- //support.maxTextureSize1D              = properties.limits.maxImageDimension1D;
+ //support.maxTexture1DSize              = properties.limits.maxImageDimension1D;
    support.maxTextureSize                = properties.limits.maxImageDimension2D;
-   support.maxTextureRectSize            = properties.limits.maxImageDimension2D;     // TODO: There is no such thing in Vulkan
    support.maxTextureCubeSize            = properties.limits.maxImageDimensionCube; 
    support.maxTexture3DSize              = properties.limits.maxImageDimension3D;
    support.maxTextureLayers              = properties.limits.maxImageArrayLayers;          
@@ -707,6 +706,9 @@ namespace en
 
    // Sampler                            
    support.maxAnisotropy                 = properties.limits.maxSamplerAnisotropy;
+
+   // Rasterizer
+   support.maxColorAttachments           = properties.limits.maxColorAttachments;
 
    // TODO: Populate API capabilities
 

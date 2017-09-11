@@ -180,7 +180,7 @@ namespace en
 
       // Texture
       Profile( glGetIntegerv(GL_MAX_TEXTURE_SIZE,           (GLint*)&GpuContext.support.maxTextureSize) )
-      Profile( glGetIntegerv(GL_MAX_RECTANGLE_TEXTURE_SIZE, (GLint*)&GpuContext.support.maxTextureRectSize) )
+    //Profile( glGetIntegerv(GL_MAX_RECTANGLE_TEXTURE_SIZE, (GLint*)&GpuContext.support.maxTextureRectSize) )
       Profile( glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE,  (GLint*)&GpuContext.support.maxTextureCubeSize) )
       Profile( glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE,        (GLint*)&GpuContext.support.maxTexture3DSize) )
       Profile( glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS,   (GLint*)&GpuContext.support.maxTextureLayers) )

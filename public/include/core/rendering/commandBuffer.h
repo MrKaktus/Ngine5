@@ -128,6 +128,12 @@ namespace en
 
       virtual void endRenderPass(void) = 0;
 
+      // For each newly created buffer resource, initial
+      // barrier need to be called to transfer it to valid
+      // access state.
+      virtual void barrier(const Ptr<Buffer> buffer, 
+                           const BufferAccess initAccess) = 0;
+
       // Optimize the way buffer is beeing accessed during 
       // different operation types, by different units in GPU.
       virtual void barrier(const Ptr<Buffer> buffer, 

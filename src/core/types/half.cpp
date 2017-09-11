@@ -96,13 +96,13 @@ namespace en
    {
    }
    
-   half::half(float src)
+   half::half(const float src)
    {
    // Used fast conversion algorithm described here:
    // ftp://ftp.fox-toolkit.org/pub/fasthalffloatconversion.pdf
    //
-   uint32 exponent = (*reinterpret_cast<uint32*>(&src) >> fp32exponentShift) & 0x1ff;
-   value = base[exponent] + ((*reinterpret_cast<uint32*>(&src) & fp32mantistaMask) >> shift[exponent]);
+   uint32 exponent = (*reinterpret_cast<const uint32*>(&src) >> fp32exponentShift) & 0x1ff;
+   value = base[exponent] + ((*reinterpret_cast<const uint32*>(&src) & fp32mantistaMask) >> shift[exponent]);
    }
 }
 

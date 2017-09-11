@@ -30,8 +30,8 @@ namespace en
       {
       Read                = 0x0001,  // Allows Buffers to be read (as Vertex, Index, Uniform, Indirect or general buffer type)
       Write               = 0x0002,  // Allows Buffers to be written (by Compute Shaders)
-      SystemSource        = 0x0080,  // System memory backed resource, used as source of data transfer to dedicated memory.
-      SystemDestination   = 0x0100,  // System memory backed resource, used as destination of data transfer from dedicated memory.
+      TransferSource      = 0x0080,  // Buffer will be used as source of data transfer between host and dedicated memory.
+      TransferDestination = 0x0100,  // Buffer will be used as destination of data transfer between host and dedicated memory.
       CopySource          = 0x0200,  // Resource backed by dedicated memory. Used as source for Copy or Blit operation.
       CopyDestination     = 0x0400,  // Resource backed by dedicated memory. Used as destination of Copy or Blit operation.
       };
@@ -55,8 +55,8 @@ namespace en
                                      // Depth-Stencil - written via Depth Write
       ResolveSource       = 0x0020,  // Can be source of MSAA resolve operation.
       ResolveDestination  = 0x0040,  // Can be destination of MSAA resolve operation.
-      SystemSource        = 0x0080,  // System memory backed resource, used as source of data transfer to dedicated memory.
-      SystemDestination   = 0x0100,  // System memory backed resource, used as destination of data transfer from dedicated memory.
+      TransferSource      = 0x0080,  // Texture will be used as source of data transfer between host and dedicated memory.
+      TransferDestination = 0x0100,  // Texture will be used as destination of data transfer between host and dedicated memory.
       CopySource          = 0x0200,  // Resource backed by dedicated memory. Used as source for Copy or Blit operation.
       CopyDestination     = 0x0400,  // Resource backed by dedicated memory. Used as destination of Copy or Blit operation.
       Present             = 0x0800   // Resource can be present on window / display. Present cannot be used with any other option.

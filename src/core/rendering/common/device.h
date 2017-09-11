@@ -59,7 +59,6 @@ namespace en
 
          // Texture
          uint32      maxTextureSize;                    // Maximum 2D/1D texture image dimension
-         uint32      maxTextureRectSize;                // Maximum size of rectangle texture dimmension
          uint32      maxTextureCubeSize;                // Maximum cube map texture image dimension
          uint32      maxTexture3DSize;                  // Maximum 3D texture image dimension
          uint32      maxTextureLayers;                  // Maximum number of layers for texture arrays

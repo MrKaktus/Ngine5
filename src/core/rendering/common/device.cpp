@@ -121,7 +121,6 @@ namespace en
 
    // Texture
    support.maxTextureSize                   = 0;
-   support.maxTextureRectSize               = 0;
    support.maxTextureCubeSize               = 0;
    support.maxTexture3DSize                 = 0;
    support.maxTextureLayers                 = 0;
@@ -467,8 +466,7 @@ namespace en
    Graphics = ptr_dynamic_cast<GraphicAPI, MetalAPI>(Ptr<MetalAPI>(new MetalAPI()));
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
-
-   // TODO: API Selection based on config file / terminal parameters
+   // API Selection based on config file / terminal parameters
    if (Config.get("g.api", string("d3d12")))
       Graphics = ptr_dynamic_cast<GraphicAPI, Direct3DAPI>(Ptr<Direct3DAPI>(new Direct3DAPI("Ngine5.0")));
    else

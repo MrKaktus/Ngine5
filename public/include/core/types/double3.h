@@ -21,18 +21,18 @@ namespace en
      union { double z; double b; };
      
      double3(void);                         
-     double3(double x, double y, double z); 
+     double3(const double x, const double y, const double z); 
      
-     void    operator-= (double3 b);          
-     void    operator+= (double3 b);  
-     void    operator*= (double b);  
-     void    operator/= (double b);  
-     bool    operator== (double3 b);
-     bool    operator!= (double3 b);
-     double3 operator-  ();
+     void    operator-= (const double3 b);          
+     void    operator+= (const double3 b);  
+     void    operator*= (const double b);  
+     void    operator/= (const double b);  
+     bool    operator== (const double3 b) const;
+     bool    operator!= (const double3 b) const;
+     double3 operator-  () const;
      
      void normalize(void);                
-     double length(void);
+     double length(void) const;
      };
 }
 

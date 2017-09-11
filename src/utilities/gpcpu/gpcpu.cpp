@@ -117,36 +117,39 @@ namespace en
    return double3(a.x/b, a.y/b, a.z/b);
    }
    
-   // True if all components different from zero
+   #define isZero(x) \
+   *reinterpret_cast<uint32*>(&x) == 0
+   
+   // True if all components are different from zero
    bool all(float2& a)
    {
-   return ((a.x != 0.0f) && (a.y != 0.0f)) ? true : false;
+   return !isZero(a.x) && !isZero(a.y);
    }
    
    bool all(float3& a)
    {
-   return ((a.x != 0.0f) && (a.y != 0.0f) && (a.z != 0.0f)) ? true : false;
+   return !isZero(a.x) && !isZero(a.y) && !isZero(a.z);
    }
    
    bool all(float4& a)
    {
-   return ((a.x != 0.0f) && (a.y != 0.0f) && (a.z != 0.0f) && (a.w != 0.0f)) ? true : false;
+   return !isZero(a.x) && !isZero(a.y) && !isZero(a.z) && !isZero(a.w);
    }
    
-   // True if any component different from zero
+   // True if any component is different from zero
    bool any(float2& a)
    {
-   return ((a.x != 0.0f) || (a.y != 0.0f)) ? true : false;
+   return !isZero(a.x) || !isZero(a.y);
    }
    
    bool any(float3& a)
    {
-   return ((a.x != 0.0f) || (a.y != 0.0f) || (a.z != 0.0f)) ? true : false;
+   return !isZero(a.x) || !isZero(a.y) || !isZero(a.z);
    }
    
    bool any(float4& a)
    {
-   return ((a.x != 0.0f) || (a.y != 0.0f) || (a.z != 0.0f) || (a.w != 0.0f)) ? true : false;
+   return !isZero(a.x) || !isZero(a.y) || !isZero(a.z) || !isZero(a.w);
    }
    
    // clamp value to a range

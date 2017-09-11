@@ -111,7 +111,7 @@ namespace en
    else // Error message unknown!
       {
       info += "UNKNOWN: ";
-      info += (uint64)(result);
+      info += hexStringFrom((uint64)result);
       info += " \n";
       }
 
@@ -377,7 +377,256 @@ namespace en
    // TODO: Populate API capabilities
    // See: https://msdn.microsoft.com/en-us/library/windows/desktop/dn788653(v=vs.85).aspx
 
-   support.maxColorAttachments = 8;
+   D3D12_FEATURE_DATA_D3D12_OPTIONS featureGeneralOptions;
+   // BOOL                                  DoublePrecisionFloatShaderOps;
+   // BOOL                                  OutputMergerLogicOp;
+   // D3D12_SHADER_MIN_PRECISION_SUPPORT    MinPrecisionSupport;
+   // D3D12_TILED_RESOURCES_TIER            TiledResourcesTier;
+   // D3D12_RESOURCE_BINDING_TIER           ResourceBindingTier;
+   // BOOL                                  PSSpecifiedStencilRefSupported;
+   // BOOL                                  TypedUAVLoadAdditionalFormats;
+   // BOOL                                  ROVsSupported;
+   // D3D12_CONSERVATIVE_RASTERIZATION_TIER ConservativeRasterizationTier;
+   // UINT                                  MaxGPUVirtualAddressBitsPerResource;
+   // BOOL                                  StandardSwizzle64KBSupported;
+   // D3D12_CROSS_NODE_SHARING_TIER         CrossNodeSharingTier;
+   // BOOL                                  CrossAdapterRowMajorTextureSupported;
+   // BOOL                                  VPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation;
+   // D3D12_RESOURCE_HEAP_TIER              ResourceHeapTier;
+
+   D3D12_FEATURE_DATA_ARCHITECTURE featureArchitecture;
+   featureArchitecture.NodeIndex = 0;
+   // BOOL                                  TileBasedRenderer;
+   // BOOL                                  UMA;
+   // BOOL                                  CacheCoherentUMA;
+
+   // TODO: Future Queries, not exposed in current SDK:
+   // D3D12_FEATURE_DATA_ARCHITECTURE1 featureArchitecture;
+   // featureArchitecture.NodeIndex = 0;
+   // BOOL TileBasedRenderer;
+   // BOOL UMA;
+   // BOOL CacheCoherentUMA;
+   // BOOL IsolatedMMU;
+
+
+   const D3D_FEATURE_LEVEL levelsArray[] = { D3D_FEATURE_LEVEL_12_0, D3D_FEATURE_LEVEL_12_1 };
+
+   D3D12_FEATURE_DATA_FEATURE_LEVELS featureLevels;
+   featureLevels.NumFeatureLevels        = 2;
+   featureLevels.pFeatureLevelsRequested = &levelsArray[0];
+   // D3D_FEATURE_LEVEL                     MaxSupportedFeatureLevel;
+
+   D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT featureMemory;
+   // UINT                                  MaxGPUVirtualAddressBitsPerResource;
+   // UINT                                  MaxGPUVirtualAddressBitsPerProcess;
+
+   D3D12_FEATURE_DATA_SHADER_MODEL featureShaderModel;
+   // D3D_SHADER_MODEL                      HighestShaderModel;
+
+   D3D12_FEATURE_DATA_D3D12_OPTIONS1 featureGeneralOptionsB;
+   // BOOL                                  WaveOps;
+   // UINT                                  WaveLaneCountMin;
+   // UINT                                  WaveLaneCountMax;
+   // UINT                                  TotalLaneCount;
+   // BOOL                                  ExpandedComputeResourceStates;
+   // BOOL                                  Int64ShaderOps;
+
+   D3D12_FEATURE_DATA_ROOT_SIGNATURE featureRootSignature;
+   // D3D_ROOT_SIGNATURE_VERSION            HighestVersion;
+
+   // TODO: Future Queries, not exposed in current SDK:
+   // D3D12_FEATURE_DATA_D3D12_OPTIONS2 featureGeneralOptionsC;
+   // BOOL                                     DepthBoundsTestSupported;
+   // D3D12_PROGRAMMABLE_SAMPLE_POSITIONS_TIER ProgrammableSamplePositionsTier;
+   //
+   // D3D12_FEATURE_DATA_SHADER_CACHE featureShaderCache;
+   // D3D12_SHADER_CACHE_SUPPORT_FLAGS SupportFlags;
+   //
+   // D3D12_FEATURE_DATA_COMMAND_QUEUE_PRIORITY featureCommandQueue;
+   // D3D12_COMMAND_LIST_TYPE CommandListType;
+   // UINT                    Priority;
+   // BOOL                    PriorityForTypeIsSupported;
+
+
+   // Some drivers don't recognize queries, even if they are listed in Windows SDK.
+   // Thus return codes need to be handled explicitly.
+   if (device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, 
+                                   &featureGeneralOptions,
+                                   sizeof(featureGeneralOptions)) == E_INVALIDARG)
+      Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_D3D12_OPTIONS query.\n";
+
+   if (device->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE, 
+                                     &featureArchitecture,
+                                     sizeof(featureArchitecture)) == E_INVALIDARG)
+      Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_ARCHITECTURE query.\n";
+
+   // if (device->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE1, 
+   //                                 &featureArchitecture,
+   //                                 sizeof(featureArchitecture)) == E_INVALIDARG)
+   
+   if (device->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, 
+                                   &featureLevels,
+                                   sizeof(featureLevels)) == E_INVALIDARG)
+      Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FEATURE_LEVELS query.\n";
+
+   if (device->CheckFeatureSupport(D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT, 
+                                   &featureMemory,
+                                   sizeof(featureMemory)) == E_INVALIDARG)
+      Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT query.\n";
+
+   // WA: Unrecognized
+   if (device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, 
+                                   &featureShaderModel,
+                                   sizeof(featureShaderModel)) == E_INVALIDARG)
+      Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_SHADER_MODEL query.\n";
+
+   if (device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS1, 
+                                   &featureGeneralOptionsB,
+                                   sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS1)) == E_INVALIDARG)
+      Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_D3D12_OPTIONS1 query.\n";
+
+   // WA: Unrecognized
+   if (device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, 
+                                   &featureRootSignature,
+                                   sizeof(featureRootSignature)) == E_INVALIDARG)
+      Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_ROOT_SIGNATURE query.\n";
+
+   // TODO: Future Queries, not exposed in current SDK:
+   //if (device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS2, 
+   //                                &featureGeneralOptionsC,
+   //                                sizeof(featureGeneralOptionsC)) == E_INVALIDARG)
+   //
+   // if (device->CheckFeatureSupport(D3D12_FEATURE_SHADER_CACHE, 
+   //                                 &featureShaderCache,
+   //                                 sizeof(featureShaderCache)) == E_INVALIDARG)
+   // 
+   // if (device->CheckFeatureSupport(D3D12_FEATURE_COMMAND_QUEUE_PRIORITY, 
+   //                                 &featureCommandQueue,
+   //                                 sizeof(featureCommandQueue)) == E_INVALIDARG)
+
+   // Gather properties of each Texel Format
+   for(uint32 i=0; i<underlyingType(Format::Count); ++i)
+      {
+      DXGI_FORMAT dxFormat = TranslateTextureFormat[i];
+
+      // Detailed per Texel Format arrays:
+      // https://msdn.microsoft.com/en-us/library/windows/desktop/mt426648(v=vs.85).aspx
+
+      D3D12_FEATURE_DATA_FORMAT_SUPPORT featureFormatSupport;
+      featureFormatSupport.Format = dxFormat;
+      // D3D12_FORMAT_SUPPORT1 Support1;
+      //     D3D12_FORMAT_SUPPORT1_NONE                         = 0,
+      //     D3D12_FORMAT_SUPPORT1_BUFFER                       = 0x1,
+      //     D3D12_FORMAT_SUPPORT1_IA_VERTEX_BUFFER             = 0x2,
+      //     D3D12_FORMAT_SUPPORT1_IA_INDEX_BUFFER              = 0x4,
+      //     D3D12_FORMAT_SUPPORT1_SO_BUFFER                    = 0x8,
+      //     D3D12_FORMAT_SUPPORT1_TEXTURE1D                    = 0x10,
+      //     D3D12_FORMAT_SUPPORT1_TEXTURE2D                    = 0x20,
+      //     D3D12_FORMAT_SUPPORT1_TEXTURE3D                    = 0x40,
+      //     D3D12_FORMAT_SUPPORT1_TEXTURECUBE                  = 0x80,
+      //     D3D12_FORMAT_SUPPORT1_SHADER_LOAD                  = 0x100,
+      //     D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE                = 0x200,
+      //     D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE_COMPARISON     = 0x400,
+      //     D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE_MONO_TEXT      = 0x800,
+      //     D3D12_FORMAT_SUPPORT1_MIP                          = 0x1000,
+      //     D3D12_FORMAT_SUPPORT1_RENDER_TARGET                = 0x4000,
+      //     D3D12_FORMAT_SUPPORT1_BLENDABLE                    = 0x8000,
+      //     D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL                = 0x10000,
+      //     D3D12_FORMAT_SUPPORT1_MULTISAMPLE_RESOLVE          = 0x40000,
+      //     D3D12_FORMAT_SUPPORT1_DISPLAY                      = 0x80000,
+      //     D3D12_FORMAT_SUPPORT1_CAST_WITHIN_BIT_LAYOUT       = 0x100000,
+      //     D3D12_FORMAT_SUPPORT1_MULTISAMPLE_RENDERTARGET     = 0x200000,
+      //     D3D12_FORMAT_SUPPORT1_MULTISAMPLE_LOAD             = 0x400000,
+      //     D3D12_FORMAT_SUPPORT1_SHADER_GATHER                = 0x800000,
+      //     D3D12_FORMAT_SUPPORT1_BACK_BUFFER_CAST             = 0x1000000,
+      //     D3D12_FORMAT_SUPPORT1_TYPED_UNORDERED_ACCESS_VIEW  = 0x2000000,
+      //     D3D12_FORMAT_SUPPORT1_SHADER_GATHER_COMPARISON     = 0x4000000,
+      //     D3D12_FORMAT_SUPPORT1_DECODER_OUTPUT               = 0x8000000,
+      //     D3D12_FORMAT_SUPPORT1_VIDEO_PROCESSOR_OUTPUT       = 0x10000000,
+      //     D3D12_FORMAT_SUPPORT1_VIDEO_PROCESSOR_INPUT        = 0x20000000,
+      //     D3D12_FORMAT_SUPPORT1_VIDEO_ENCODER                = 0x40000000
+      // D3D12_FORMAT_SUPPORT2 Support2;
+      
+      if (device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, 
+                                      &featureFormatSupport,
+                                      sizeof(featureFormatSupport)) == E_INVALIDARG)
+         {
+         Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FORMAT_SUPPORT query.\n";
+         break;
+         }
+      }
+
+
+   // Gather properties of each Texel Format
+   for(uint32 i=0; i<underlyingType(Format::Count); ++i)
+      {
+      DXGI_FORMAT dxFormat = TranslateTextureFormat[i];
+
+      // Iterate over Samples Count:
+      D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS formatMultisampling;
+      formatMultisampling.Format = dxFormat;
+      // UINT                                  SampleCount;
+      // D3D12_MULTISAMPLE_QUALITY_LEVEL_FLAGS Flags;
+      //     D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE
+      //     D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_TILED_RESOURCE
+      // UINT                                  NumQualityLevels;
+      
+      if (device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, 
+                                      &formatMultisampling,
+                                      sizeof(formatMultisampling)) == E_INVALIDARG)
+         {
+         Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS query.\n";
+         break;
+         }
+      }
+
+   // Gather properties of each Texel Format
+   for(uint32 i=0; i<underlyingType(Format::Count); ++i)
+      {
+      DXGI_FORMAT dxFormat = TranslateTextureFormat[i];
+
+      D3D12_FEATURE_DATA_FORMAT_INFO formatInfo;
+      formatInfo.Format = dxFormat;
+      // UINT8       PlaneCount;
+
+      if (device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_INFO, 
+                                      &formatInfo,
+                                      sizeof(formatInfo)) == E_INVALIDARG)
+         {
+         Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FORMAT_INFO query.\n";
+         break;
+         }
+      }
+
+   // Some capabilities are fixed based on Feature Level:
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/mt186615(v=vs.85).aspx
+
+
+
+
+   // Input Assembler
+   support.maxInputLayoutBuffersCount    = 32;      // "Max Input Slots"
+   support.maxInputLayoutAttributesCount = 32;      // "Max Input Slots"
+
+   // Texture
+   support.maxTextureSize                = 16384;   // "Max Texture Dimension"
+   support.maxTextureCubeSize            = 16384;   // "Max Cubemap Dimension"
+   support.maxTexture3DSize              = 2048;    // "Max Volume Extent"
+   support.maxTextureLayers              = 2048;    // ???
+   support.maxTextureBufferSize          = 0;       // ???
+   support.maxTextureLodBias             = 1000.0f; // Out of scale high number to allow all possible           
+
+   // Sampler                            
+   support.maxAnisotropy                 = 16;      // "Max Anisotropy"
+
+   // Rasterizer
+   support.maxColorAttachments           = 8;       // "Simultaneous Render Targets"
+
+
+   // TODO: Populate API capabilities
+
+
+
 
    for(uint32 thread=0; thread<initThreads; ++thread)
       for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
