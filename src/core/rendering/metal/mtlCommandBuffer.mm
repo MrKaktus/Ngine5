@@ -80,7 +80,7 @@ namespace en
    FramebufferMTL* framebuffer = raw_reinterpret_cast<FramebufferMTL>(&_framebuffer);
    
    // Patch Texture handles
-   for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
+   for(uint32 i=0; i<gpu->support.maxColorAttachments; ++i)
       {
       renderPass->desc.colorAttachments[i].texture        = framebuffer->color[i];
       renderPass->desc.colorAttachments[i].resolveTexture = framebuffer->resolve[i];

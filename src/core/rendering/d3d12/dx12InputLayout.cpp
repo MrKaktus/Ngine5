@@ -190,6 +190,11 @@ namespace en
 //      DXGI_FORMAT_FORCE_UINT                  = 0xffffffff
 //      } DXGI_FORMAT;
 
+
+   // Direct3D12 is not supporting 3 component attributes which size is not aligned to 4 bytes, as well as 64bit attributes.
+   // More details on Input Assembler supported Vertex Buffer formats can be found here:
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/mt426648(v=vs.85).aspx
+   //
    static const DXGI_FORMAT TranslateAttributeFormat[underlyingType(Attribute::Count)] =
       {                                    // New naming:                         Old naming: 
       DXGI_FORMAT_UNKNOWN              ,   // Attribute::None                     VertexFormat::None
@@ -205,9 +210,6 @@ namespace en
       DXGI_FORMAT_R32_UINT             ,   // Attribute::u32                      VertexFormat::R_32_u
       DXGI_FORMAT_R32_SINT             ,   // Attribute::s32                      VertexFormat::R_32_s
       DXGI_FORMAT_R32_FLOAT            ,   // Attribute::f32                      VertexFormat::R_32_f
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::u64                      VertexFormat::R_64_u       (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::s64                      VertexFormat::R_64_s       (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::f64                      VertexFormat::R_64_f       (unsupported)
       DXGI_FORMAT_R8G8_UNORM           ,   // Attribute::v2u8_norm                VertexFormat::RG_8
       DXGI_FORMAT_R8G8_SNORM           ,   // Attribute::v2s8_norm                VertexFormat::RG_8_sn
       DXGI_FORMAT_R8G8_UINT            ,   // Attribute::v2u8                     VertexFormat::RG_8_u
@@ -220,25 +222,9 @@ namespace en
       DXGI_FORMAT_R32G32_UINT          ,   // Attribute::v2u32                    VertexFormat::RG_32_u
       DXGI_FORMAT_R32G32_SINT          ,   // Attribute::v2s32                    VertexFormat::RG_32_s
       DXGI_FORMAT_R32G32_FLOAT         ,   // Attribute::v2f32                    VertexFormat::RG_32_f
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v2u64                    VertexFormat::RG_64_u      (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v2s64                    VertexFormat::RG_64_s      (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v2f64                    VertexFormat::RG_64_f      (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3u8_norm                VertexFormat::RGB_8        (unsupported) - Not reccomended due to lack of memory aligment
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3u8_srgb                VertexFormat::RGB_8_sRGB   (unsupported) - Not reccomended due to lack of memory aligment
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3s8_norm                VertexFormat::RGB_8_sn     (unsupported) - Not reccomended due to lack of memory aligment
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3u8                     VertexFormat::RGB_8_u      (unsupported) - Not reccomended due to lack of memory aligment
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3s8                     VertexFormat::RGB_8_s      (unsupported) - Not reccomended due to lack of memory aligment
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3u16_norm               VertexFormat::RGB_16       (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3s16_norm               VertexFormat::RGB_16_sn    (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3u16                    VertexFormat::RGB_16_u     (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3s16                    VertexFormat::RGB_16_s     (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3f16                    VertexFormat::RGB_16_hf    (unsupported)
       DXGI_FORMAT_R32G32B32_UINT       ,   // Attribute::v3u32                    VertexFormat::RGB_32_u
       DXGI_FORMAT_R32G32B32_SINT       ,   // Attribute::v3s32                    VertexFormat::RGB_32_s
       DXGI_FORMAT_R32G32B32_FLOAT      ,   // Attribute::v3f32                    VertexFormat::RGB_32_f
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3u64                    VertexFormat::RGB_64_u     (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3s64                    VertexFormat::RGB_64_s     (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v3f64                    VertexFormat::RGB_64_f     (unsupported)
       DXGI_FORMAT_R8G8B8A8_UNORM       ,   // Attribute::v4u8_norm                VertexFormat::RGBA_8
       DXGI_FORMAT_R8G8B8A8_SNORM       ,   // Attribute::v4s8_norm                VertexFormat::RGBA_8_sn
       DXGI_FORMAT_R8G8B8A8_UINT        ,   // Attribute::v4u8                     VertexFormat::RGBA_8_u
@@ -251,19 +237,10 @@ namespace en
       DXGI_FORMAT_R32G32B32A32_UINT    ,   // Attribute::v4u32                    VertexFormat::RGBA_32_u
       DXGI_FORMAT_R32G32B32A32_SINT    ,   // Attribute::v4s32                    VertexFormat::RGBA_32_s
       DXGI_FORMAT_R32G32B32A32_FLOAT   ,   // Attribute::v4f32                    VertexFormat::RGBA_32_f
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4u64                    VertexFormat::RGBA_64_u           (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4s64                    VertexFormat::RGBA_64_s           (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4f64                    VertexFormat::RGBA_64_f           (unsupported) Compressed formats:
-      DXGI_FORMAT_R11G11B10_FLOAT      ,   // Attribute::v3f11_11_10              VertexFormat::RGB_11_11_10_uf     - Packed unsigned float for HDR Textures, UAV's and Render Targets
-      DXGI_FORMAT_R10G10B10A2_UNORM    ,   // Attribute::v4u10_10_10_2_norm       VertexFormat::RGBA_10_10_10_2
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4s10_10_10_2_norm       VertexFormat::RGBA_10_10_10_2_sn  (unsupported)
-      DXGI_FORMAT_R10G10B10A2_UINT     ,   // Attribute::v4u10_10_10_2            VertexFormat::RGBA_10_10_10_2_u   
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4s10_10_10_2            VertexFormat::RGBA_10_10_10_2_s   (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4u10_10_10_2_norm_rev   VertexFormat::BGRA_10_10_10_2     (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4s10_10_10_2_norm_rev   VertexFormat::BGRA_10_10_10_2_sn  (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4u10_10_10_2_rev        VertexFormat::BGRA_10_10_10_2_u   (unsupported)
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::v4s10_10_10_2_rev        VertexFormat::BGRA_10_10_10_2_s   (unsupported)
+      DXGI_FORMAT_R10G10B10A2_UNORM        // Attribute::v4u10_10_10_2_norm       VertexFormat::RGBA_10_10_10_2
       };
+
+
  
 
    //static const DXGI_FORMAT TranslateAttributeFormat[underlyingType(Attribute::Count)] =

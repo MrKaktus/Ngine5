@@ -22,6 +22,8 @@
 
 #include "core/rendering/blend.h"
 
+#define MaxColorAttachmentsCount 8
+
 namespace en
 {
    namespace gpu

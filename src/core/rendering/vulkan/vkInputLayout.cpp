@@ -56,9 +56,6 @@ namespace en
       VK_FORMAT_R32_UINT                   ,   // VertexFormat::R_32_u
       VK_FORMAT_R32_SINT                   ,   // VertexFormat::R_32_s
       VK_FORMAT_R32_SFLOAT                 ,   // VertexFormat::R_32_f
-      VK_FORMAT_R64_UINT                   ,   // VertexFormat::R_64_u
-      VK_FORMAT_R64_SINT                   ,   // VertexFormat::R_64_s
-      VK_FORMAT_R64_SFLOAT                 ,   // VertexFormat::R_64_f
       VK_FORMAT_R8G8_UNORM                 ,   // VertexFormat::RG_8
       VK_FORMAT_R8G8_SNORM                 ,   // VertexFormat::RG_8_sn
       VK_FORMAT_R8G8_UINT                  ,   // VertexFormat::RG_8_u
@@ -71,25 +68,9 @@ namespace en
       VK_FORMAT_R32G32_UINT                ,   // VertexFormat::RG_32_u
       VK_FORMAT_R32G32_SINT                ,   // VertexFormat::RG_32_s
       VK_FORMAT_R32G32_SFLOAT              ,   // VertexFormat::RG_32_f
-      VK_FORMAT_R64G64_UINT                ,   // VertexFormat::RG_64_u
-      VK_FORMAT_R64G64_SINT                ,   // VertexFormat::RG_64_s
-      VK_FORMAT_R64G64_SFLOAT              ,   // VertexFormat::RG_64_f
-      VK_FORMAT_R8G8B8_UNORM               ,   // VertexFormat::RGB_8                  - Not reccomended due to lack of memory aligment
-      VK_FORMAT_R8G8B8_SRGB                ,   // VertexFormat::RGB_8_sRGB             - Not reccomended due to lack of memory aligment
-      VK_FORMAT_R8G8B8_SNORM               ,   // VertexFormat::RGB_8_sn               - Not reccomended due to lack of memory aligment
-      VK_FORMAT_R8G8B8_UINT                ,   // VertexFormat::RGB_8_u                - Not reccomended due to lack of memory aligment
-      VK_FORMAT_R8G8B8_SINT                ,   // VertexFormat::RGB_8_s                - Not reccomended due to lack of memory aligment
-      VK_FORMAT_R16G16B16_UNORM            ,   // VertexFormat::RGB_16
-      VK_FORMAT_R16G16B16_SNORM            ,   // VertexFormat::RGB_16_sn
-      VK_FORMAT_R16G16B16_UINT             ,   // VertexFormat::RGB_16_u
-      VK_FORMAT_R16G16B16_SINT             ,   // VertexFormat::RGB_16_s
-      VK_FORMAT_R16G16B16_SFLOAT           ,   // VertexFormat::RGB_16_hf
       VK_FORMAT_R32G32B32_UINT             ,   // VertexFormat::RGB_32_u
       VK_FORMAT_R32G32B32_SINT             ,   // VertexFormat::RGB_32_s
       VK_FORMAT_R32G32B32_SFLOAT           ,   // VertexFormat::RGB_32_f
-      VK_FORMAT_R64G64B64_UINT             ,   // VertexFormat::RGB_64_u
-      VK_FORMAT_R64G64B64_SINT             ,   // VertexFormat::RGB_64_s
-      VK_FORMAT_R64G64B64_SFLOAT           ,   // VertexFormat::RGB_64_f
       VK_FORMAT_R8G8B8A8_UNORM             ,   // VertexFormat::RGBA_8
       VK_FORMAT_R8G8B8A8_SNORM             ,   // VertexFormat::RGBA_8_sn
       VK_FORMAT_R8G8B8A8_UINT              ,   // VertexFormat::RGBA_8_u
@@ -102,53 +83,27 @@ namespace en
       VK_FORMAT_R32G32B32A32_UINT          ,   // VertexFormat::RGBA_32_u
       VK_FORMAT_R32G32B32A32_SINT          ,   // VertexFormat::RGBA_32_s
       VK_FORMAT_R32G32B32A32_SFLOAT        ,   // VertexFormat::RGBA_32_f
-      VK_FORMAT_R64G64B64A64_UINT          ,   // VertexFormat::RGBA_64_u
-      VK_FORMAT_R64G64B64A64_SINT          ,   // VertexFormat::RGBA_64_s
-      VK_FORMAT_R64G64B64A64_SFLOAT        ,   // VertexFormat::RGBA_64_f   Compressed formats:
-      VK_FORMAT_B10G11R11_UFLOAT_PACK32    ,   // VertexFormat::RGB_11_11_10_uf     - Packed unsigned float for HDR Textures, UAV's and Render Targets
-      VK_FORMAT_A2B10G10R10_UNORM_PACK32   ,   // VertexFormat::RGBA_10_10_10_2
-      VK_FORMAT_A2B10G10R10_SNORM_PACK32   ,   // VertexFormat::RGBA_10_10_10_2_sn
-      VK_FORMAT_A2B10G10R10_UINT_PACK32    ,   // VertexFormat::RGBA_10_10_10_2_u
-      VK_FORMAT_A2B10G10R10_SINT_PACK32    ,   // VertexFormat::RGBA_10_10_10_2_s
-      VK_FORMAT_A2R10G10B10_UNORM_PACK32   ,   // VertexFormat::BGRA_10_10_10_2
-      VK_FORMAT_A2R10G10B10_SNORM_PACK32   ,   // VertexFormat::BGRA_10_10_10_2_sn
-      VK_FORMAT_A2R10G10B10_UINT_PACK32    ,   // VertexFormat::BGRA_10_10_10_2_u
-      VK_FORMAT_A2R10G10B10_SINT_PACK32    ,   // VertexFormat::BGRA_10_10_10_2_s
+      VK_FORMAT_A2B10G10R10_UNORM_PACK32       // VertexFormat::RGBA_10_10_10_2
       };
  
-     // Vertex Fetch fixed point formats deliberately not supported:
-     //  
-     // ucf - unsigned integer cast to float (also known as USCALED)
-     // scf - signed integer cast to float (also known as SSCALED)
-     //
-     // It's better to use unsignd/signed integer formats and cast to float manually if needed.
-     //          
-     // VK_FORMAT_R8_USCALED                 ,   // VertexFormat::R_8_ucf
-     // VK_FORMAT_R8_SSCALED                 ,   // VertexFormat::R_8_scf
-     // VK_FORMAT_R16_USCALED                ,   // VertexFormat::R_16_ucf
-     // VK_FORMAT_R16_SSCALED                ,   // VertexFormat::R_16_scf
-     // VK_FORMAT_R8G8_USCALED               ,   // VertexFormat::RG_8_ucf
-     // VK_FORMAT_R8G8_SSCALED               ,   // VertexFormat::RG_8_scf
-     // VK_FORMAT_R16G16_USCALED             ,   // VertexFormat::RG_16_ucf
-     // VK_FORMAT_R16G16_SSCALED             ,   // VertexFormat::RG_16_scf
-     // VK_FORMAT_R8G8B8_USCALED             ,   // VertexFormat::RGB_8_ucf
-     // VK_FORMAT_R8G8B8_SSCALED             ,   // VertexFormat::RGB_8_scf
-     // VK_FORMAT_R16G16B16_USCALED          ,   // VertexFormat::RGB_16_ucf
-     // VK_FORMAT_R16G16B16_SSCALED          ,   // VertexFormat::RGB_16_scf
-     // VK_FORMAT_R8G8B8A8_USCALED           ,   // VertexFormat::RGBA_8_ucf    - Endiannes Independent
-     // VK_FORMAT_R8G8B8A8_SSCALED           ,   // VertexFormat::RGBA_8_scf
-     // VK_FORMAT_A8B8G8R8_USCALED_PACK32    ,   // VertexFormat::RGBA_8_ucf    - Endiannes Dependent
-     // VK_FORMAT_A8B8G8R8_SSCALED_PACK32    ,   // VertexFormat::RGBA_8_scf
-     // VK_FORMAT_R16G16B16A16_USCALED       ,   // VertexFormat::RGBA_16_ucf
-     // VK_FORMAT_R16G16B16A16_SSCALED       ,   // VertexFormat::RGBA_16_scf
-     // VK_FORMAT_B8G8R8_USCALED             ,   // VertexFormat::BGR_8_ucf
-     // VK_FORMAT_B8G8R8_SSCALED             ,   // VertexFormat::BGR_8_scf
-     // VK_FORMAT_B8G8R8A8_USCALED           ,   // VertexFormat::BGRA_8_ucf
-     // VK_FORMAT_B8G8R8A8_SSCALED           ,   // VertexFormat::BGRA_8_scf
-     // VK_FORMAT_A2B10G10R10_USCALED_PACK32 ,   // VertexFormat::RGBA_10_10_10_2_ucf
-     // VK_FORMAT_A2B10G10R10_SSCALED_PACK32 ,   // VertexFormat::RGBA_10_10_10_2_scf
-     // VK_FORMAT_A2R10G10B10_USCALED_PACK32 ,   // VertexFormat::BGRA_10_10_10_2_ucf
-     // VK_FORMAT_A2R10G10B10_SSCALED_PACK32 ,   // VertexFormat::BGRA_10_10_10_2_scf
+   // Vulkan is not supporting 3 component formats that's size is not
+   // multiple of four bytes (they are not reccomended anyway due to 
+   // mentioned lack of memory aligment).
+   //
+   // VK_FORMAT_R8G8B8_UNORM               ,   // VertexFormat::RGB_8                  
+   // VK_FORMAT_R8G8B8_SRGB                ,   // VertexFormat::RGB_8_sRGB             
+   // VK_FORMAT_R8G8B8_SNORM               ,   // VertexFormat::RGB_8_sn               
+   // VK_FORMAT_R8G8B8_UINT                ,   // VertexFormat::RGB_8_u                
+   // VK_FORMAT_R8G8B8_SINT                ,   // VertexFormat::RGB_8_s                
+   // VK_FORMAT_R16G16B16_UNORM            ,   // VertexFormat::RGB_16                
+   // VK_FORMAT_R16G16B16_SNORM            ,   // VertexFormat::RGB_16_sn             
+   // VK_FORMAT_R16G16B16_UINT             ,   // VertexFormat::RGB_16_u              
+   // VK_FORMAT_R16G16B16_SINT             ,   // VertexFormat::RGB_16_s              
+   // VK_FORMAT_R16G16B16_SFLOAT           ,   // VertexFormat::RGB_16_hf             
+   //
+   // Even though Vulkan specification describes 64bit formats layout
+   // for Input Assembler, it's not listing those formats as supported:
+   //
 
    // Size of each attribute in memory taking into notice required padding
    const uint8 AttributeSize[underlyingType(Attribute::Count)] =
@@ -165,10 +120,7 @@ namespace en
       2,    // f16                    
       4,    // u32                   
       4,    // s32                   
-      4,    // f32                   
-      8,    // u64                    
-      8,    // s64                    
-      8,    // f64                    
+      4,    // f32                                     
       2,    // v2u8_norm              
       2,    // v2s8_norm              
       2,    // v2u8                   
@@ -180,26 +132,10 @@ namespace en
       4,    // v2f16                 
       8,    // v2u32                 
       8,    // v2s32                 
-      8,    // v2f32                 
-      16,   // v2u64                  
-      16,   // v2s64                  
-      16,   // v2f64                  
-      3,    // v3u8_norm              
-      3,    // v3u8_srgb              
-      3,    // v3s8_norm              
-      3,    // v3u8                   
-      3,    // v3s8                   
-      6,    // v3u16_norm             
-      6,    // v3s16_norm             
-      6,    // v3u16                  
-      6,    // v3s16                  
-      6,    // v3f16                  
+      8,    // v2f32                                  
       12,   // v3u32
       12,   // v3s32
-      12,   // v3f32                  
-      24,   // v3u64                  
-      24,   // v3s64                  
-      24,   // v3f64                  
+      12,   // v3f32                                  
       4,    // v4u8_norm             
       4,    // v4s8_norm             
       4,    // v4u8                  
@@ -211,27 +147,12 @@ namespace en
       8,    // v4f16                 
       16,   // v4u32                 
       16,   // v4s32                 
-      16,   // v4f32                 
-      32,   // v4u64                  
-      32,   // v4s64                  
-      32,   // v4f64                  
-      4,    // v3f11_11_10            
-      4,    // v4u10_10_10_2_norm    
-      4,    // v4s10_10_10_2_norm    
-      4,    // v4u10_10_10_2          
-      4,    // v4s10_10_10_2          
-      4,    // v4u10_10_10_2_norm_rev 
-      4,    // v4s10_10_10_2_norm_rev 
-      4,    // v4u10_10_10_2_rev      
-      4,    // v4s10_10_10_2_rev      
+      16,   // v4f32                                           
+      4,    // v4u10_10_10_2_norm           
       };
 
+ 
 
-
-
-
-
- //
  //  // Vulkan formats represent byte order in memory (RGB -> R byte 0, B byte 2)
 
 

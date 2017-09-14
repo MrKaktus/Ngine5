@@ -1034,37 +1034,6 @@ namespace en
 
 
 
-   //Ptr<ColorAttachment> VulkanDevice::create(const Format format, const uint32 samples)
-   //{
-   //return ptr_dynamic_cast<ColorAttachment, ColorAttachmentVK>(new ColorAttachmentVK(format, samples));
-   //}
-
-   //   // Creates simple render pass with one color destination
-   //Ptr<RenderPass> VulkanDevice::create(const Ptr<ColorAttachment> color,
-   //                                  const Ptr<DepthStencilAttachment> depthStencil)
-   //{
-   //}
-   //   
-   //   // Creates render pass with Multiple Render Targets
-   //Ptr<RenderPass> VulkanDevice::create(const uint32 _attachments,
-   //                                  const Ptr<ColorAttachment> color[MaxColorAttachmentsCount],
-   //                                  const Ptr<DepthStencilAttachment> depthStencil)
-   //{
-   //}
-   //     
-   //   // Creates render pass which's output goes to window framebuffer
-   //Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> framebuffer,
-   //                                  const Ptr<DepthStencilAttachment> depthStencil)
-   //{
-   //}
-   //   
-   //   // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-   //Ptr<RenderPass> VulkanDevice::create(const Ptr<Texture> temporaryMSAA,
-   //                                  const Ptr<Texture> framebuffer,
-   //                                  const Ptr<DepthStencilAttachment> depthStencil)
-   //{
-   //}
-
 
 
 

@@ -25,8 +25,6 @@ namespace en
 {
    namespace gpu
    {
-   #define MaxColorAttachmentsCount 8
-
    // Color Buffer blend functions
    enum BlendFunction
       {

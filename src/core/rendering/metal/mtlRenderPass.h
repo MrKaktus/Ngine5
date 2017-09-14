@@ -20,10 +20,11 @@
 
 #if defined(EN_MODULE_RENDERER_METAL)
 
-#include "core/rendering/blend.h"       // For MaxColorAttachmentsCount
 #include "core/rendering/renderPass.h"
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/metal/mtlTexture.h"
+
+#define MaxColorAttachmentsCount 8
 
 namespace en
 {

@@ -20,6 +20,8 @@
 #include "core/rendering/d3d12/dx12Device.h"
 #include "core/rendering/state.h"
 
+#define MaxColorAttachmentsCount 8
+
 namespace en
 {
    namespace gpu

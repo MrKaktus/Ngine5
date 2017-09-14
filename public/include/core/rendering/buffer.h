@@ -40,12 +40,6 @@ namespace en
       Count                    //            Upload buffers are used to populate all other resources with data.
       };
  
-   // Attributes representing data in fixed point schemes like 16.16, 8.0, 16.0
-   // were introduced in OpenGL ES for low end devices without HW acceleration. 
-   // Currently all mobile devices has HW acceleration which means that floating
-   // point values will be better choose in almost all cases. Therefore fixed
-   // attribute formats are not supported by engine.
-
    // Format of attribute data
    enum class Attribute : uint32
       {
@@ -62,9 +56,6 @@ namespace en
       u32                    ,
       s32                    ,
       f32                    ,
-      u64                    ,
-      s64                    ,
-      f64                    ,
       v2u8_norm              ,
       v2s8_norm              ,
       v2u8                   ,
@@ -77,25 +68,9 @@ namespace en
       v2u32                  ,
       v2s32                  ,
       v2f32                  ,
-      v2u64                  ,
-      v2s64                  ,
-      v2f64                  ,
-      v3u8_norm              , //  - Not reccomended due to lack of memory alignment
-      v3u8_srgb              , //  - Not reccomended due to lack of memory alignment
-      v3s8_norm              , //  - Not reccomended due to lack of memory alignment
-      v3u8                   , //  - Not reccomended due to lack of memory alignment
-      v3s8                   , //  - Not reccomended due to lack of memory alignment
-      v3u16_norm             ,
-      v3s16_norm             ,
-      v3u16                  ,
-      v3s16                  ,
-      v3f16                  ,
       v3u32                  ,
       v3s32                  ,
       v3f32                  ,
-      v3u64                  ,
-      v3s64                  ,
-      v3f64                  ,
       v4u8_norm              ,
       v4s8_norm              ,
       v4u8                   ,
@@ -108,53 +83,93 @@ namespace en
       v4u32                  ,
       v4s32                  ,
       v4f32                  ,
-      v4u64                  ,
-      v4s64                  ,
-      v4f64                  , // Compressed formats:
-      v3f11_11_10            , // - Packed unsigned float for HDR Textures, UAV's and Render Targets
       v4u10_10_10_2_norm     ,
-      v4s10_10_10_2_norm     ,
-      v4u10_10_10_2          ,
-      v4s10_10_10_2          ,
-      v4u10_10_10_2_norm_rev , // BGRA
-      v4s10_10_10_2_norm_rev , // BGRA
-      v4u10_10_10_2_rev      , // BGRA
-      v4s10_10_10_2_rev      , // BGRA
       Count
       };
 
-   // Vertex Fetch fixed point formats deliberately not supported:
+   // Attribute formats supported only by Direct3D12:
+   //
+   // DXGI_FORMAT_R11G11B10_FLOAT          - Attribute::v3f11_11_10
+   // DXGI_FORMAT_R10G10B10A2_UINT         - Attribute::v4u10_10_10_2       
+   //
+   // Attribute formats supported only by Metal API:
+   //
+   // MTLVertexFormatInt1010102Normalized  - Attribute::v4s10_10_10_2_norm  
+   //
+   // Metal is the only API that supports 3 component attributes, which
+   // size is not aligned to four bytes (with exception of v3u8_sRGB): 
+   //
+   // MTLVertexFormatUChar3Normalized      - Attribute::v3u8_norm              
+   // MTLVertexFormatChar3Normalized       - Attribute::v3s8_norm              
+   // MTLVertexFormatUChar3                - Attribute::v3u8                   
+   // MTLVertexFormatChar3                 - Attribute::v3s8                   
+   // MTLVertexFormatUShort3Normalized     - Attribute::v3u16_norm             
+   // MTLVertexFormatShort3Normalized      - Attribute::v3s16_norm             
+   // MTLVertexFormatUShort3               - Attribute::v3u16                  
+   // MTLVertexFormatShort3                - Attribute::v3s16                  
+   // MTLVertexFormatHalf3                 - Attribute::v3f16 
+   //
+   // 64bit attributes are currently not supported by any backing API:
+   // (Vulkan specifies their memory layout for all possible types though).
+   //
+   // VK_FORMAT_R64_UINT                   - Attribute::u64                    
+   // VK_FORMAT_R64_SINT                   - Attribute::s64                    
+   // VK_FORMAT_R64_SFLOAT                 - Attribute::f64  
+   // VK_FORMAT_R64G64_UINT                - Attribute::v2u64                  
+   // VK_FORMAT_R64G64_SINT                - Attribute::v2s64                  
+   // VK_FORMAT_R64G64_SFLOAT              - Attribute::v2f64 
+   // VK_FORMAT_R64G64B64_UINT             - Attribute::v3u64                  
+   // VK_FORMAT_R64G64B64_SINT             - Attribute::v3s64                  
+   // VK_FORMAT_R64G64B64_SFLOAT           - Attribute::v3f64  
+   // VK_FORMAT_R64G64B64A64_UINT          - Attribute::v4u64                  
+   // VK_FORMAT_R64G64B64A64_SINT          - Attribute::v4s64                  
+   // VK_FORMAT_R64G64B64A64_SFLOAT        - Attribute::v4f64 
+   //
+   // Legacy Vertex Fetch fixed point formats like 16.16, 8.0, 16.0 were 
+   // introduced in OpenGL ES for low end devices without HW acceleration. 
+   // Currently all mobile devices have HW acceleration. Therefore fixed
+   // attribute formats are not supported anymore by modern API's.
    //  
    // cf - integer cast to float (also known as USCALED/SSCALED)
    //
-   // It's better to use unsigned/signed integer formats and cast to float manually if needed.
-   //          
-   // Attribute::u8_cf
-   // Attribute::s8_cf
-   // Attribute::u16_cf
-   // Attribute::s16_cf
-   // Attribute::v2u8_cf
-   // Attribute::v2s8_cf
-   // Attribute::v2u16_cf
-   // Attribute::v2s16_cf
-   // Attribute::v3u8_cf
-   // Attribute::v3s8_cf
-   // Attribute::v3u16_cf
-   // Attribute::v3s16_cf
-   // Attribute::v4u8_cf    - Endiannes Independent
-   // Attribute::v4s8_cf
-   // Attribute::v4u8_cf    - Endiannes Dependent
-   // Attribute::v4s8_cf
-   // Attribute::v4u16_cf
-   // Attribute::v4s16_cf
-   // Attribute::v3u8_cf_rev
-   // Attribute::v3s8_cf_rev
-   // Attribute::v4u8_cf_rev
-   // Attribute::v4s8_cf_rev
-   // Attribute::v4u10_10_10_2_cf
-   // Attribute::v4s10_10_10_2_cf
-   // Attribute::v4u10_10_10_2_cf_rev
-   // Attribute::v4s10_10_10_2_cf_rev
+   // VK_FORMAT_R8_USCALED                 - Attribute::u8_cf
+   // VK_FORMAT_R8_SSCALED                 - Attribute::s8_cf
+   // VK_FORMAT_R16_USCALED                - Attribute::u16_cf
+   // VK_FORMAT_R16_SSCALED                - Attribute::s16_cf
+   // VK_FORMAT_R8G8_USCALED               - Attribute::v2u8_cf
+   // VK_FORMAT_R8G8_SSCALED               - Attribute::v2s8_cf
+   // VK_FORMAT_R16G16_USCALED             - Attribute::v2u16_cf
+   // VK_FORMAT_R16G16_SSCALED             - Attribute::v2s16_cf
+   // VK_FORMAT_R8G8B8_USCALED             - Attribute::v3u8_cf
+   // VK_FORMAT_R8G8B8_SSCALED             - Attribute::v3s8_cf
+   // VK_FORMAT_R16G16B16_USCALED          - Attribute::v3u16_cf
+   // VK_FORMAT_R16G16B16_SSCALED          - Attribute::v3s16_cf
+   // VK_FORMAT_R8G8B8A8_USCALED           - Attribute::v4u8_cf    - Endiannes Independent
+   // VK_FORMAT_R8G8B8A8_SSCALED           - Attribute::v4s8_cf
+   // VK_FORMAT_A8B8G8R8_USCALED_PACK32    - Attribute::v4u8_cf    - Endiannes Dependent
+   // VK_FORMAT_A8B8G8R8_SSCALED_PACK32    - Attribute::v4s8_cf
+   // VK_FORMAT_R16G16B16A16_USCALED       - Attribute::v4u16_cf
+   // VK_FORMAT_R16G16B16A16_SSCALED       - Attribute::v4s16_cf
+   // VK_FORMAT_B8G8R8_USCALED             - Attribute::v3u8_cf_rev
+   // VK_FORMAT_B8G8R8_SSCALED             - Attribute::v3s8_cf_rev
+   // VK_FORMAT_B8G8R8A8_USCALED           - Attribute::v4u8_cf_rev
+   // VK_FORMAT_B8G8R8A8_SSCALED           - Attribute::v4s8_cf_rev
+   // VK_FORMAT_A2B10G10R10_USCALED_PACK32 - Attribute::v4u10_10_10_2_cf
+   // VK_FORMAT_A2B10G10R10_SSCALED_PACK32 - Attribute::v4s10_10_10_2_cf
+   // VK_FORMAT_A2R10G10B10_USCALED_PACK32 - Attribute::v4u10_10_10_2_cf_rev
+   // VK_FORMAT_A2R10G10B10_SSCALED_PACK32 - Attribute::v4s10_10_10_2_cf_rev
+   //
+   // It's worth to mention that OpenGL specified two attribute types marked 
+   // below, that differed as one was Endiannes independent on read, while 
+   // other was identical except of the fact that it was Endiannes dependent. 
+   //
+   // VK_FORMAT_R8G8B8A8_USCALED           - Attribute::v4u8_cf    - Endiannes Independent
+   // VK_FORMAT_R8G8B8A8_SSCALED           - Attribute::v4s8_cf
+   // VK_FORMAT_A8B8G8R8_USCALED_PACK32    - Attribute::v4u8_cf    - Endiannes Dependent
+   // VK_FORMAT_A8B8G8R8_SSCALED_PACK32    - Attribute::v4s8_cf
+   //
+   // USCALED/SSCALED formats are still defined in Vulkan, but their support
+   // in API for any kind of operation is not guaranteed nor expected.
 
    #define MaxInputLayoutAttributesCount 32
    

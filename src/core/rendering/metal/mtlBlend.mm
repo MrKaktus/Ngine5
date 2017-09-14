@@ -25,6 +25,8 @@ namespace en
 {
    namespace gpu
    { 
+   #define MaxColorAttachmentsCount 8
+
    // Metal doesn't support double source blending
    static const MTLBlendFactor TranslateBlend[BlendFunctionsCount] =
       {
@@ -59,10 +61,6 @@ namespace en
       };
 
    // Metal is not supporting logical operation at all
-
-
-// APPLE_ARC
-
 
    BlendStateMTL::BlendStateMTL(const BlendStateInfo& state,
                                 const uint32 _attachments,

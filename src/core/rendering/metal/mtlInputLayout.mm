@@ -28,8 +28,7 @@ namespace en
    // it is not verified yet. Other missing types could be added as well but
    // Epic and Crytek didn't requested them when API was designed so they
    // were ommited!
-
-
+   //
    // Metal OSX Vertex Attribute Formats:
    // https://developer.apple.com/library/mac/documentation/Metal/Reference/MTLVertexAttributeDescriptor_Ref/#//apple_ref/c/tdef/MTLVertexFormat
    // (last verified for Metal on OSX 10.11)
@@ -57,9 +56,6 @@ namespace en
       MTLVertexFormatUInt                  ,  // u32                    
       MTLVertexFormatInt                   ,  // s32                    
       MTLVertexFormatFloat                 ,  // f32                    
-      MTLVertexFormatInvalid               ,  // u64                    (unsupported)
-      MTLVertexFormatInvalid               ,  // s64                    (unsupported)
-      MTLVertexFormatInvalid               ,  // f64                    (unsupported)
       MTLVertexFormatUChar2Normalized      ,  // v2u8_norm              
       MTLVertexFormatChar2Normalized       ,  // v2s8_norm              
       MTLVertexFormatUChar2                ,  // v2u8                   
@@ -71,26 +67,10 @@ namespace en
       MTLVertexFormatHalf2                 ,  // v2f16                  
       MTLVertexFormatUInt2                 ,  // v2u32                  
       MTLVertexFormatInt2                  ,  // v2s32                  
-      MTLVertexFormatFloat2                ,  // v2f32                  
-      MTLVertexFormatInvalid               ,  // v2u64                  (unsupported)
-      MTLVertexFormatInvalid               ,  // v2s64                  (unsupported)
-      MTLVertexFormatInvalid               ,  // v2f64                  (unsupported)
-      MTLVertexFormatUChar3Normalized      ,  // v3u8_norm              
-      MTLVertexFormatInvalid               ,  // v3u8_srgb              (unsupported)
-      MTLVertexFormatChar3Normalized       ,  // v3s8_norm              
-      MTLVertexFormatUChar3                ,  // v3u8                   
-      MTLVertexFormatChar3                 ,  // v3s8                   
-      MTLVertexFormatUShort3Normalized     ,  // v3u16_norm             
-      MTLVertexFormatShort3Normalized      ,  // v3s16_norm             
-      MTLVertexFormatUShort3               ,  // v3u16                  
-      MTLVertexFormatShort3                ,  // v3s16                  
-      MTLVertexFormatHalf3                 ,  // v3f16                  
+      MTLVertexFormatFloat2                ,  // v2f32                                   
       MTLVertexFormatUInt3                 ,  // v3u32                  
       MTLVertexFormatInt3                  ,  // v3s32                  
       MTLVertexFormatFloat3                ,  // v3f32                  
-      MTLVertexFormatInvalid               ,  // v3u64                  (unsupported)
-      MTLVertexFormatInvalid               ,  // v3s64                  (unsupported)
-      MTLVertexFormatInvalid               ,  // v3f64                  (unsupported)
    // MTLVertexFormatUChar4Normalized_BGRA ,  // v4u8_norm_rev          (Metal specific type, not exposed, why it is needed?)
       MTLVertexFormatUChar4Normalized      ,  // v4u8_norm              
       MTLVertexFormatChar4Normalized       ,  // v4s8_norm              
@@ -104,18 +84,7 @@ namespace en
       MTLVertexFormatUInt4                 ,  // v4u32                  
       MTLVertexFormatInt4                  ,  // v4s32                  
       MTLVertexFormatFloat4                ,  // v4f32                  
-      MTLVertexFormatInvalid               ,  // v4u64                  (unsupported)
-      MTLVertexFormatInvalid               ,  // v4s64                  (unsupported)
-      MTLVertexFormatInvalid               ,  // v4f64                  (unsupported)
-      MTLVertexFormatInvalid               ,  // v3f11_11_10            (unsupported)
-      MTLVertexFormatUInt1010102Normalized ,  // v4u10_10_10_2_norm     
-      MTLVertexFormatInt1010102Normalized  ,  // v4s10_10_10_2_norm     
-      MTLVertexFormatInvalid               ,  // v4u10_10_10_2          (unsupported)
-      MTLVertexFormatInvalid               ,  // v4s10_10_10_2          (unsupported)
-      MTLVertexFormatInvalid               ,  // v4u10_10_10_2_norm_rev (unsupported)
-      MTLVertexFormatInvalid               ,  // v4s10_10_10_2_norm_rev (unsupported)
-      MTLVertexFormatInvalid               ,  // v4u10_10_10_2_rev      (unsupported)
-      MTLVertexFormatInvalid               ,  // v4s10_10_10_2_rev      (unsupported)
+      MTLVertexFormatUInt1010102Normalized    // v4u10_10_10_2_norm     
       };
 
    // Size of each attribute in memory taking into notice required padding (4bytes on Metal)
@@ -134,9 +103,6 @@ namespace en
       4,    // u32                   
       4,    // s32                   
       4,    // f32                   
-      0,    // u64                    (unsupported)
-      0,    // s64                    (unsupported)
-      0,    // f64                    (unsupported)
       4,    // v2u8_norm              (2 bytes, 2 bytes padding)
       4,    // v2s8_norm              (2 bytes, 2 bytes padding)
       4,    // v2u8                   (2 bytes, 2 bytes padding)
@@ -149,25 +115,9 @@ namespace en
       8,    // v2u32                 
       8,    // v2s32                 
       8,    // v2f32                 
-      0,    // v2u64                  (unsupported)
-      0,    // v2s64                  (unsupported)
-      0,    // v2f64                  (unsupported)
-      4,    // v3u8_norm              (3 bytes, 1 byte padding)
-      0,    // v3u8_srgb              (unsupported)
-      4,    // v3s8_norm              (3 bytes, 1 byte padding)
-      4,    // v3u8                   (3 bytes, 1 byte padding)
-      4,    // v3s8                   (3 bytes, 1 byte padding)
-      8,    // v3u16_norm             (6 bytes, 2 bytes padding)
-      8,    // v3s16_norm             (6 bytes, 2 bytes padding)
-      8,    // v3u16                  (6 bytes, 2 bytes padding)
-      8,    // v3s16                  (6 bytes, 2 bytes padding)
-      8,    // v3f16                  (6 bytes, 2 bytes padding)
       12,   // v3u32
       12,   // v3s32
       12,   // v3f32                  
-      0,    // v3u64                  (unsupported)
-      0,    // v3s64                  (unsupported)
-      0,    // v3f64                  (unsupported)
       4,    // v4u8_norm             
       4,    // v4s8_norm             
       4,    // v4u8                  
@@ -180,18 +130,7 @@ namespace en
       16,   // v4u32                 
       16,   // v4s32                 
       16,   // v4f32                 
-      0,    // v4u64                  (unsupported)
-      0,    // v4s64                  (unsupported)
-      0,    // v4f64                  (unsupported)
-      0,    // v3f11_11_10            (unsupported)
-      4,    // v4u10_10_10_2_norm    
-      4,    // v4s10_10_10_2_norm    
-      0,    // v4u10_10_10_2          (unsupported)
-      0,    // v4s10_10_10_2          (unsupported)
-      0,    // v4u10_10_10_2_norm_rev (unsupported)
-      0,    // v4s10_10_10_2_norm_rev (unsupported)
-      0,    // v4u10_10_10_2_rev      (unsupported)
-      0,    // v4s10_10_10_2_rev      (unsupported)
+      4     // v4u10_10_10_2_norm    
       };
       
    InputLayoutMTL::InputLayoutMTL(const DrawableType primitiveType,
