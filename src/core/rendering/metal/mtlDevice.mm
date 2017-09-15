@@ -42,6 +42,17 @@
 
 //#include "platform/osx/AppDelegate.h"    // For registering Window Delegate
 
+// Runtime check of macOS/iOS version
+#if defined(EN_PLATFORM_OSX)
+#define supportedVersion_macOS_iOS(x,y,z,w) \
+   [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:{x, y, 0}]
+#elif defined(EN_PLATFORM_IOS)
+#define supportedVersion_macOS_iOS(x,y,z,w) \
+   [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:{z, w, 0}]
+#define supportedVersion_iOS(x,y) \
+   [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:{x, y, 0}]
+#endif
+
 namespace en
 {
    namespace gpu
@@ -73,45 +84,33 @@ namespace en
    // https://developer.apple.com/library/ios/documentation/Miscellaneous/Conceptual/MetalProgrammingGuide/MetalFeatureSetTables/MetalFeatureSetTables.html
    //
    
-   // iPhone 5S      - A7 - PowerVR G6430
-   // iPhone 6S Plus - A9 - PowerVR GT7600
    // iPad Mini 4    - A8 - PowerVR GX6450
    // iPad Air 2    - A8X - PowerVR GXA6850
+   // iPhone 5S      - A7 - PowerVR G6430
+   // iPhone 6S Plus - A9 - PowerVR GT7600
+   // iPhone 7      - A10 -
+   // iPhone 8      - A11 -
+   // iPhone X      - A11 -
    
    // Gather information about supported API capabilites
    
    // Attribute formats 
    support.attribute.set();
-   support.attribute.reset(underlyingType(Attribute::u8_norm));               
-   support.attribute.reset(underlyingType(Attribute::s8_norm));
-   support.attribute.reset(underlyingType(Attribute::u8));
-   support.attribute.reset(underlyingType(Attribute::s8));
-   support.attribute.reset(underlyingType(Attribute::u16_norm));
-   support.attribute.reset(underlyingType(Attribute::s16_norm));
-   support.attribute.reset(underlyingType(Attribute::u16));
-   support.attribute.reset(underlyingType(Attribute::s16));
-   support.attribute.reset(underlyingType(Attribute::f16));
-   support.attribute.reset(underlyingType(Attribute::u64));
-   support.attribute.reset(underlyingType(Attribute::s64));                
-   support.attribute.reset(underlyingType(Attribute::f64));
-   support.attribute.reset(underlyingType(Attribute::v2u64));
-   support.attribute.reset(underlyingType(Attribute::v2s64));
-   support.attribute.reset(underlyingType(Attribute::v2f64));
-   support.attribute.reset(underlyingType(Attribute::v3u8_srgb));
-   support.attribute.reset(underlyingType(Attribute::v3u64));
-   support.attribute.reset(underlyingType(Attribute::v3s64));
-   support.attribute.reset(underlyingType(Attribute::v3f64));
-   support.attribute.reset(underlyingType(Attribute::v4u64));
-   support.attribute.reset(underlyingType(Attribute::v4s64));
-   support.attribute.reset(underlyingType(Attribute::v4f64));
-   support.attribute.reset(underlyingType(Attribute::v3f11_11_10));
-   support.attribute.reset(underlyingType(Attribute::v4u10_10_10_2));
-   support.attribute.reset(underlyingType(Attribute::v4s10_10_10_2));
-   support.attribute.reset(underlyingType(Attribute::v4u10_10_10_2_norm_rev));
-   support.attribute.reset(underlyingType(Attribute::v4s10_10_10_2_norm_rev));
-   support.attribute.reset(underlyingType(Attribute::v4u10_10_10_2_rev));
-   support.attribute.reset(underlyingType(Attribute::v4s10_10_10_2_rev));
-   
+
+   // Supported since macOS 10.13 and iOS 11.0
+   if (!supportedVersion_macOS_iOS(10,13,11,0))
+      {
+      support.attribute.reset(underlyingType(Attribute::u8_norm));
+      support.attribute.reset(underlyingType(Attribute::s8_norm));
+      support.attribute.reset(underlyingType(Attribute::u8));
+      support.attribute.reset(underlyingType(Attribute::s8));
+      support.attribute.reset(underlyingType(Attribute::u16_norm));
+      support.attribute.reset(underlyingType(Attribute::s16_norm));
+      support.attribute.reset(underlyingType(Attribute::u16));
+      support.attribute.reset(underlyingType(Attribute::s16));
+      support.attribute.reset(underlyingType(Attribute::f16));
+      }
+      
    // Texture formats
    support.sampling.set();
 
@@ -209,15 +208,8 @@ namespace en
    support.sampling.reset(underlyingType(Format::ASTC_12x12_sRGB));
 #endif
 #if defined(EN_PLATFORM_IOS)
-
-#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
-#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
-#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
-#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
-#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
-
    // Supported since IOS 9.0
-   if (SYSTEM_VERSION_LESS_THAN(@"9.0"))
+   if (!supportedVersion_iOS(9,0))
       support.sampling.reset(underlyingType(Format::DS_32_f_8));
 
    // Unsupported

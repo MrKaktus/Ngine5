@@ -95,7 +95,7 @@ namespace en
    {
    assert( buffer );
    
-   Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer);
+   CommonBuffer* common = raw_reinterpret_cast<CommonBuffer>(&buffer);
    
    // Compute amount of used attributes
    uint32 usedAttributes = 0;

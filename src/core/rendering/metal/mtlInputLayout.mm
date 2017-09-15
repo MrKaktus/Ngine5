@@ -176,9 +176,9 @@ namespace en
                                                    const AttributeDesc* attributes,
                                                    const BufferDesc* buffers)
    {
-   Ptr<InputLayoutMTL> input = Ptr<InputLayoutMTL>(new InputLayoutMTL(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+   Ptr<InputLayoutMTL> input = new InputLayoutMTL(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
 
-   return ptr_dynamic_cast<InputLayout, InputLayoutMTL>(input);
+   return ptr_reinterpret_cast<InputLayout>(&input);
    }
 
 

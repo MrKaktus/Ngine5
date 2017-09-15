@@ -12,7 +12,7 @@
 
 */
 
-#include "threading/maintask.h"
+#include "threading/scheduler.h"
 
 MainTask::MainTask(int argc, const char* argv[]) : en::threads::Task(new en::threads::TaskState())
 {

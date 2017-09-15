@@ -89,6 +89,8 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
    
+   #define InvalidSlot 255
+   
    DescriptorSetMTL::DescriptorSetMTL(MetalDevice* _gpu, Ptr<SetLayoutMTL> _layout) :
       gpu(_gpu),
       layout(_layout),
@@ -120,7 +122,7 @@ namespace en
                                      
    // Per Descriptor array of Id's referencing slots in array of required Heaps
    heapId = new uint8[layout->descriptors];
-   memset(heapId, 0, layout->descriptors);
+   memset(heapId, InvalidSlot, layout->descriptors);
    
    // Array of id<MTLHeap> pointers, representing backing heaps for bound resources
    // As Id's are of type uint8, each DescriptorSet can use max of 256 backing Heaps.
@@ -156,7 +158,8 @@ namespace en
    // If Heap backing previously bound resource to this
    // DescriptorSlot, is no longer used by any other bound
    // resource, it can be removed from the list.
-   if (heapsRefs[heapId[slot]] > 0)
+   if (heapId[slot] != InvalidSlot &&
+       heapsRefs[heapId[slot]] > 0)
       {
       heapsRefs[heapId[slot]]--;
       if (heapsRefs[heapId[slot]] == 0)
@@ -179,8 +182,8 @@ namespace en
          return;
          }
          
-   // Max 256 different Heaps can back all bound resources.
-   assert( heapsCount < 256 );
+   // Max 255 different Heaps can back all bound resources.
+   assert( heapsCount < InvalidSlot );
    
    // Newly bounds resource backing Heap is not cached yet.
    for(uint32 i=0; i<heapsCount; ++i)
@@ -208,8 +211,11 @@ namespace en
    [layout->handle setArgumentBuffer:handle offset:0];
    
    // TODO: Buffer offsets are not supported yet. Maybe use BufferView for that?
+   
+   // If buffer is suballocated from other buffer (emulating staging heap),
+   // it's offset in that parent buffer needs to be applied.
    BufferMTL* ptr = raw_reinterpret_cast<BufferMTL>(&buffer);
-   [layout->handle setBuffer:ptr->handle offset:0 atIndex:slot];
+   [layout->handle setBuffer:ptr->handle offset:ptr->offset atIndex:slot];
    
    // TODO: Unlock layout mutex
    

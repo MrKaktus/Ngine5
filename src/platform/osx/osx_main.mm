@@ -92,8 +92,6 @@ int ConsoleMain(int argc, const char* argv[])
    en::input::Interface::create();
    en::StateContext.create();
 
-   // TODO: Store input parameters somewhere (config?)
-
    // Connect application to Window Server and Display Server. Init global variable NSApp.
    // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSApplication_Class/index.html#//apple_ref/occ/cl/NSApplication
    NSApplication* application = [NSApplication sharedApplication];
