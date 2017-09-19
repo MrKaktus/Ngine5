@@ -128,7 +128,7 @@ namespace en
    support.maxTextureLodBias                = 0.0f;
 
    // Sampler
-   support.maxAnisotropy                    = 0.0f;
+   support.maxAnisotropy                    = 1.0f;  // 1.0 means anisotropy is disabled
    
    // Rasterizer
    support.maxColorAttachments              = 0;

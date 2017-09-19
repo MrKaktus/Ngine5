@@ -140,16 +140,11 @@
 #endif
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   // Enable Automatic Reference Counting, as Metal is leaking without it
-   #if __has_feature(objc_arc)
-      #define APPLE_ARC
-   #endif
-
    // Objective-C object allocator and reference count initialization
    #define allocateObjectiveC(x)    \
    [[[x alloc] init] autorelease]
 
-#if defined(APPLE_ARC)
+#if __has_feature(objc_arc)
    // When ARC is enabled, app shouldn't need to do anything
    // (resources should be released when going out of scope)
    #define deallocateObjectiveC(x)
