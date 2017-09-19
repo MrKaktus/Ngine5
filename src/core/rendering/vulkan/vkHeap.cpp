@@ -320,7 +320,8 @@ namespace en
    {
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
-   assert( _usage == MemoryUsage::Tiled );
+   assert( _usage == MemoryUsage::Tiled ||
+           _usage == MemoryUsage::Renderable );
    
    // Create texture descriptor
    Ptr<TextureVK> texture = gpu::createTexture(gpu, state);

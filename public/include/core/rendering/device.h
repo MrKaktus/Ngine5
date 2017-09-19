@@ -246,6 +246,7 @@ namespace en
       virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
                                                          const uint32 samples = 1u) = 0;
 
+      // By default, Load operation is set to Load, and Store operation is set to Store.
       virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
                                                                        const Format stencilFormat = Format::Unsupported,
                                                                        const uint32 samples = 1u) = 0;

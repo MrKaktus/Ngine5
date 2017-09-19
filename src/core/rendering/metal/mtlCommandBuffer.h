@@ -112,6 +112,9 @@ namespace en
                            const BufferAccess currentAccess,
                            const BufferAccess newAccess);
 
+      virtual void barrier(const Ptr<Texture>  texture, 
+                           const TextureAccess initAccess);
+
       virtual void barrier(const Ptr<Texture>  _texture, 
                            const TextureAccess currentAccess,
                            const TextureAccess newAccess);

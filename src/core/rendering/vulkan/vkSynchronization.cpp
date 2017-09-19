@@ -286,6 +286,29 @@ namespace en
 
    // Texture barrier
    void CommandBufferVK::barrier(const Ptr<Texture>  _texture, 
+                                 const TextureAccess initAccess)
+   {
+   assert( _texture );
+
+   TextureVK* texture = raw_reinterpret_cast<TextureVK>(&_texture);
+
+   // Determine texture inital access and layout
+   VkAccessFlags vNewAccess;
+   VkImageLayout vNewLayout;
+   TranslateTextureAccess(initAccess, texture->state.format, vNewAccess, vNewLayout);
+
+   barrier(_texture, 
+           uint32v2(0, _texture->mipmaps()), 
+           uint32v2(0, _texture->layers()),
+           0,
+           vNewAccess,
+           VK_IMAGE_LAYOUT_UNDEFINED,
+           vNewLayout,
+           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  
+           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+   }
+
+   void CommandBufferVK::barrier(const Ptr<Texture>  _texture, 
                                  const TextureAccess currentAccess,
                                  const TextureAccess newAccess)
    {

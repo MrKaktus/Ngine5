@@ -415,11 +415,12 @@ namespace en
    
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
-   assert( _usage == MemoryUsage::Tiled );
+   assert( _usage == MemoryUsage::Tiled ||
+           _usage == MemoryUsage::Renderable );
 
    // Texture descriptor
    D3D12_RESOURCE_DESC desc;
-   desc.Dimension = TranslateTextureDimension[underlyingType(state.type)];
+   desc.Dimension          = TranslateTextureDimension[underlyingType(state.type)];
    desc.Alignment          = 0u; // We will know alignment after querying it
    desc.Width              = static_cast<UINT64>(state.width);
    desc.Height             = static_cast<UINT>(state.height);
@@ -428,7 +429,7 @@ namespace en
    desc.MipLevels          = static_cast<UINT16>(state.mipmaps);
    desc.Format             = TranslateTextureFormat[underlyingType(state.format)];
    desc.SampleDesc.Count   = static_cast<UINT>(state.samples);
-   desc.SampleDesc.Quality = state.samples > 0u ? D3D12_STANDARD_MULTISAMPLE_PATTERN : (UINT)0u;
+   desc.SampleDesc.Quality = state.samples > 1u ? D3D12_STANDARD_MULTISAMPLE_PATTERN : (UINT)0u;
    desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
    desc.Flags              = D3D12_RESOURCE_FLAG_NONE;
 
@@ -439,15 +440,22 @@ namespace en
    // - D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE
    // - D3D12_TEXTURE_LAYOUT_64KB_STANDARD_SWIZZLE
 
+   bool enableOptimizedClear = false;
    if (state.usage == TextureUsage::RenderTargetRead ||
        state.usage == TextureUsage::RenderTargetWrite)
+      {
       desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+      enableOptimizedClear = true;
+      }
 
    if (TextureFormatIsDepthStencil(state.format) ||
        TextureFormatIsDepth(state.format)        ||
        TextureFormatIsStencil(state.format))
+      {
       desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-      
+      enableOptimizedClear = true;
+      }
+  
    // TODO: GPU possible internal optimizations:
    //
    // Use below when creating "Images"
@@ -478,31 +486,28 @@ namespace en
       }
 
    // Optimized clear value (completly not matching other abstractions)
-   // D3D12_CLEAR_VALUE clearValue;
-   // clearValue.Format;      //DXGI_FORMAT
-   // clearValue.Color[4];    // FLOAT
-   // OR
-   // clarColor.DepthStencil.Depth;   // FLOAT
-   // clarColor.DepthStencil.Stencil; // UINT8
-
-   // Resource is in generic state at creation time.
-   D3D12_RESOURCE_STATES initState = D3D12_RESOURCE_STATE_COMMON;
-   
-   if (state.usage == TextureUsage::RenderTargetWrite)
+   D3D12_CLEAR_VALUE clearValue;
+   if (TextureFormatIsDepthStencil(state.format) ||
+       TextureFormatIsDepth(state.format)        ||
+       TextureFormatIsStencil(state.format))
       {
-      initState = D3D12_RESOURCE_STATE_RENDER_TARGET;
-      
-      if (TextureFormatIsDepthStencil(state.format) ||
-          TextureFormatIsDepth(state.format))
-         initState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+      clearValue.Format   = desc.Format;
+      clearValue.DepthStencil.Depth   = 1.0f;
+      clearValue.DepthStencil.Stencil = 0;
       }
    else
       {
-      if (TextureFormatIsDepthStencil(state.format) ||
-          TextureFormatIsDepth(state.format))
-         initState |= D3D12_RESOURCE_STATE_DEPTH_READ;
+      clearValue.Format   = desc.Format;
+      clearValue.Color[0] = 0.0f;
+      clearValue.Color[1] = 0.0f;
+      clearValue.Color[2] = 0.0f;
+      clearValue.Color[3] = 1.0f;
       }
 
+   // Resource is in generic state at creation time
+   // (it needs to be explicitly transferred with initial barrier).
+   D3D12_RESOURCE_STATES initState = D3D12_RESOURCE_STATE_COMMON;
+   
    // TODO: When creating Images
    // - D3D12_RESOURCE_STATE_UNORDERED_ACCESS
    
@@ -512,7 +517,7 @@ namespace en
                                       static_cast<UINT64>(offset),
                                       &desc,
                                       initState,
-                                      nullptr,                        // Clear value - currently not supported
+                                      enableOptimizedClear ? &clearValue : nullptr, // Clear value - currently not supported
                                       IID_PPV_ARGS(&textureHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&textureHandle)
       
    if ( SUCCEEDED(gpu->lastResult[Scheduler.core()]) )

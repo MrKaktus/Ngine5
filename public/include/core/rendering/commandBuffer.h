@@ -142,6 +142,12 @@ namespace en
                            const BufferAccess currentAccess,
                            const BufferAccess newAccess) = 0;
 
+      // For each newly created texture resource, initial
+      // barrier need to be called to transfer it to valid
+      // access state.
+      virtual void barrier(const Ptr<Texture>  texture, 
+                           const TextureAccess initAccess) = 0;
+
       // Optimize the way texture is internally stored in memory,
       // by describing the way it was used in the past, and the 
       // way it will be used now.

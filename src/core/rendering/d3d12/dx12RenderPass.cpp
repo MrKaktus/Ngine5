@@ -228,7 +228,6 @@ namespace en
    {
    }
 
-
    void fillRTV(const TextureType viewType,
                 const uint32v2 viewMipmaps,
                 const uint32v2 viewLayers,
@@ -395,7 +394,7 @@ namespace en
       assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURECUBEARRAY );
 
       result->depthDesc.Format        = view->desc.Format;
-      result->depthDesc.ViewDimension = static_cast<D3D12_DSV_DIMENSION>(view->desc.ViewDimension);
+      result->depthDesc.ViewDimension = static_cast<D3D12_DSV_DIMENSION>(static_cast<uint32>(view->desc.ViewDimension) + 1);
       result->depthDesc.Flags         = D3D12_DSV_FLAG_NONE;
       
       // Optimize texture usage
@@ -484,7 +483,7 @@ namespace en
       assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURECUBEARRAY );
 
       result->depthDesc.Format        = view->desc.Format;
-      result->depthDesc.ViewDimension = static_cast<D3D12_DSV_DIMENSION>(view->desc.ViewDimension);
+      result->depthDesc.ViewDimension = static_cast<D3D12_DSV_DIMENSION>(static_cast<uint32>(view->desc.ViewDimension) + 1);
       result->depthDesc.Flags         = D3D12_DSV_FLAG_NONE;
       
       // Optimize texture usage
@@ -579,7 +578,7 @@ namespace en
       assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURECUBEARRAY );
 
       result->depthDesc.Format        = view->desc.Format;
-      result->depthDesc.ViewDimension = static_cast<D3D12_DSV_DIMENSION>(view->desc.ViewDimension);
+      result->depthDesc.ViewDimension = static_cast<D3D12_DSV_DIMENSION>(static_cast<uint32>(view->desc.ViewDimension) + 1);
       result->depthDesc.Flags         = D3D12_DSV_FLAG_NONE;
       
       // Optimize texture usage

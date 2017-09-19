@@ -176,12 +176,12 @@ namespace en
    // Texture can be one of Color, Depth, Stencil destination for Rendering operations
    if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetWrite)))
       {
-      setBitmask(access, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
       if ( TextureFormatIsDepth(format) ||
            TextureFormatIsStencil(format) ||
            TextureFormatIsDepthStencil(format) )                   // Written via Depth Write, Depth Clear
          setBitmask(access, D3D12_RESOURCE_STATE_DEPTH_WRITE);     // Overrides Read-Only Depth-Stencil mode (if PSO enables Depth writes)
+      else
+         setBitmask(access, D3D12_RESOURCE_STATE_RENDER_TARGET);
       }
 
    // Any kind of transfer or present operation overrides previously selected layout
@@ -295,6 +295,30 @@ namespace en
    // Vulkan tries to hide barrier latency by specifying after completion of which pipeline stage it should start, and before which it should end.
    // At the same time D3D12 is trying to do the same, by allowing split-barriers, where app manuall places begining and ending barrrier events on CommandBuffer.
    // (see: http://www.gamedev.net/topic/676655-how-could-we-benefit-from-using-split-barriers/ )
+
+
+   void CommandBufferD3D12::barrier(const Ptr<Texture>  _texture, 
+                                    const TextureAccess initAccess) 
+   {
+   assert( _texture );
+
+   TextureD3D12* texture = raw_reinterpret_cast<TextureD3D12>(&_texture);
+
+   // TODO: Ensure this Command Buffer is Graphic one !
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   D3D12_RESOURCE_BARRIER barrier;
+   barrier.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+   barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
+                // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends  
+   barrier.Transition.pResource   = texture->handle;
+   barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+   barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
+   barrier.Transition.StateAfter  = TranslateTextureAccess(initAccess, texture->state.format);
+   
+   ProfileComNoRet( command->ResourceBarrier(1, &barrier) )
+   }
 
    void CommandBufferD3D12::barrier(const Ptr<Texture>  _texture, 
                                     const TextureAccess currentAccess,
