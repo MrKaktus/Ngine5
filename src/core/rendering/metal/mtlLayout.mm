@@ -219,6 +219,8 @@ namespace en
    
    // TODO: Unlock layout mutex
    
+   // Pass both, handles to backing Heaps, and
+   // backing Buffers for emulated staging Heaps.
    updateResidencyTracking(slot, ptr->heap->handle);
    }
    
@@ -345,13 +347,13 @@ namespace en
       {
       [renderEncoder setVertexBuffer:set->handle
                               offset:0
-                             atIndex:index];
+                             atIndex:30 - index]; // Metal shares "argument table" between Input Assembler and standard binding slots!!! WTF??!!
       }
    if (checkBitmask(mask, underlyingType(ShaderStages::Fragment)))
       {
       [renderEncoder setFragmentBuffer:set->handle
                                 offset:0
-                               atIndex:index];
+                               atIndex:30 - index]; // Metal shares "argument table" between Input Assembler and standard binding slots!!! WTF??!!
       }
       
    // TODO: Binding for Compute Shader
@@ -360,7 +362,12 @@ namespace en
    // Ensure that Heaps that are backing all bound resources are resident in GPU VRAM
    for(uint32 i=0; i<set->heapsCount; ++i)
       if (set->heapsUsed[i] != nullptr)
-         [renderEncoder useHeap:set->heapsUsed[i]];
+         {
+         if ([set->heapsUsed[i] conformsToProtocol:@protocol(MTLHeap)])
+            [renderEncoder useHeap:set->heapsUsed[i]];
+         else
+            [renderEncoder useResource:(id<MTLResource>)set->heapsUsed[i] usage:MTLResourceUsageRead];
+         }
    }
                                   
    void CommandBufferMTL::setDescriptors(const Ptr<PipelineLayout> layout,

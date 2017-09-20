@@ -42,23 +42,7 @@ namespace en
    // VK_NV_glsl_shader - allows passing in GLSL instead of SPIR-V
    //                     (we can compile GLSL to SPIRV offline)
 
-   Ptr<ShaderVK> shader = nullptr;
-
-   VkShaderModuleCreateInfo createInfo;
-   createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-   createInfo.pNext    = nullptr;
-   createInfo.flags    = 0u; // Reserved for future use
-   createInfo.codeSize = source.size();
-   createInfo.pCode    = (const uint32_t*)source.c_str();
-
-   VkShaderModule handle = VK_NULL_HANDLE;
-   Profile( this, vkCreateShaderModule(device, &createInfo, nullptr, &handle) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      shader = new ShaderVK(this, handle, stage);
-
-   // In Debug mode, VK_EXT_debug_report will handle logging of initial compilation errors.
-
-   return ptr_reinterpret_cast<Shader>(&shader);
+   return createShader(stage,(const uint8*)source.c_str(), source.size());
    }
 
    Ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)

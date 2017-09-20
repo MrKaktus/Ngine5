@@ -35,8 +35,8 @@ namespace en
    //              It's optimal for linear access, and allows Render Targets specific compressions.
    //              Depth and Stencil render targets should also be allocated on it. Can be used as
    //              backup memory for temporary Render-Targets. May allow resources aliasing.
-   // Upload     - Fastest possible CPU write. Used to stream data to Static memory. Can be mapped.
-   // Download   - Fastest possible CPU read. Used to stream data from Static memory. Can be mapped.
+   // Upload     - Fastest possible CPU write. Used to stream data to dedicated memory. Can be mapped.
+   // Download   - Fastest possible CPU read. Used to stream data from dedicated memory. Can be mapped.
    // Immediate  - Fastest possible CPU write, with immediate upload to GPU memory if possible. Dedicated
    //              for fast changing key data like Push Constants and UBO's. Can be mapped as well.
    //              This type of memory shouldn't be used to read data back from GPU. 
