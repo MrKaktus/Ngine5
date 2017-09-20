@@ -41,7 +41,6 @@ namespace en
    // management automaticly, thus this is a no-op.
    }
 
-
    void CommandBufferMTL::barrier(const Ptr<Buffer> buffer, 
                                   const uint64 offset,
                                   const uint64 size,
@@ -53,7 +52,14 @@ namespace en
    // management automaticly, thus this is a no-op.
    }
 
-
+   void CommandBufferMTL::barrier(const Ptr<Texture>  texture,
+                                  const TextureAccess initAccess)
+   {
+   // Direct3D12 and Vulkan requires explicit transition barriers
+   // specified by the application. Metal handles internal storage
+   // management automaticly, thus this is a no-op.
+   }
+      
    void CommandBufferMTL::barrier(const Ptr<Texture>  _texture, 
                                   const TextureAccess currentAccess,
                                   const TextureAccess newAccess)

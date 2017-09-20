@@ -87,13 +87,12 @@ namespace en
       virtual ~DepthStencilAttachmentMTL();
       };
      
+   // Metal Framebuffer retains references to underlying Metal resources
+   // to ensure they won't be released when Framebuffer is still in use,
+   // even if their container objects will be released.
    class FramebufferMTL : public Framebuffer
       {
       public:
-      // Packed, kept to ensure source textures won't be freed from underneath of us.
-      // (do we really need that?)
-      Ptr<TextureViewMTL> views[MaxColorAttachmentsCount*2+3];
-      
       // Direct Metal handles (unpacked, with holes)
       id<MTLTexture>      color[MaxColorAttachmentsCount];
       id<MTLTexture>      resolve[MaxColorAttachmentsCount];

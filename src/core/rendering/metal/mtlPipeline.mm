@@ -175,10 +175,8 @@ namespace en
       }
    
    // Optional Pipeline State depending from Render Pass
-   if (renderPass->desc.depthAttachment.texture)
-      pipeDesc.depthAttachmentPixelFormat   = TranslateTextureFormat[underlyingType(renderPass->format[8])];
-   if (renderPass->desc.stencilAttachment.texture)
-      pipeDesc.stencilAttachmentPixelFormat = TranslateTextureFormat[underlyingType(renderPass->format[9])];
+   pipeDesc.depthAttachmentPixelFormat   = TranslateTextureFormat[underlyingType(renderPass->format[8])];
+   pipeDesc.stencilAttachmentPixelFormat = TranslateTextureFormat[underlyingType(renderPass->format[9])];
       
    // TODO: !! This is stored now in Framebuffer !
    if (renderPass->desc.renderTargetArrayLength > 0) // Metal 1.0 for OSX - Default is unspecified, but needs to be set, when layered rendering is performed.

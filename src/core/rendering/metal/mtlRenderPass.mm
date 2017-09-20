@@ -129,6 +129,11 @@ namespace en
       stencilFormat(_stencilFormat),
       samples(_samples)
    {
+   // Depth-Stencil textures need to be bound to both slots
+   if (TextureFormatIsDepthStencil(depthFormat) &&
+       stencilFormat == Format::Unsupported)
+      stencilFormat = depthFormat;
+      
    descDepth.texture     = nil; // Bind at RenderPass start. Use Framebuffer surface.
    descDepth.level       = 0;   // Texture view will specify mipmap/layer/depthPlane of source texture
    descDepth.slice       = 0;
@@ -248,9 +253,6 @@ namespace en
       for(uint32 i=0; i<3; ++i)
          deallocateObjectiveC(depthStencil[i]);
       }
-      
-//   for(uint32 i=0; i<(MaxColorAttachmentsCount*2+3); ++i)
-//      views[i] = nullptr;
    }
 
    // RENDER PASS
@@ -303,8 +305,8 @@ namespace en
       {
       if (checkBit(usedAttachments, i))
          {
-         framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&surface[index]);
-         framebuffer->color[i] = framebuffer->views[index]->handle;
+         TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&surface[index]);
+         framebuffer->color[i] = [view->handle retain];
          index++;
          }
       else
@@ -321,8 +323,8 @@ namespace en
          {
          if (checkBit(usedAttachments, i))
             {
-            framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&surface[index]);
-            framebuffer->resolve[i] = framebuffer->views[index]->handle;
+            TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&surface[index]);
+            framebuffer->resolve[i] = [view->handle retain];
             index++;
             }
          else
@@ -335,21 +337,22 @@ namespace en
       
    if (_depthStencil)
       {
-      framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&_depthStencil);
-      framebuffer->depthStencil[0] = framebuffer->views[index]->handle;
-      index++;
+      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&_depthStencil);
+      framebuffer->depthStencil[0u] = [view->handle retain];
+      
+      // Depth-Stencil textures need to be bound to both slots
+      if (!_stencil && TextureFormatIsDepthStencil(view->viewFormat))
+         framebuffer->depthStencil[1u] = [view->handle retain];
       }
    if (_stencil)
       {
-      framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&_stencil);
-      framebuffer->depthStencil[1] = framebuffer->views[index]->handle;
-      index++;
+      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&_stencil);
+      framebuffer->depthStencil[1u] = [view->handle retain];
       }
    if (_depthResolve)
       {
-      framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&_depthResolve);
-      framebuffer->depthStencil[2] = framebuffer->views[index]->handle;
-      index++;
+      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&_depthResolve);
+      framebuffer->depthStencil[2] = [view->handle retain];
       }
       
    // TODO: This function should only validate that all surfaces have the same
@@ -372,14 +375,10 @@ namespace en
    Ptr<FramebufferMTL> framebuffer = new FramebufferMTL(_resolution, 1u);
 
    // Create patching array
-   uint32 index = 0u;
-   //framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&swapChainSurface);
-   //framebuffer->color[0u] = framebuffer->views[index]->handle;
    TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&swapChainSurface);
    framebuffer->color[0u] = [view->handle retain];
-   index++;
-
    framebuffer->resolve[0u] = nil;
+   
    for(uint32 i=1; i<MaxColorAttachmentsCount; ++i)
       {
       framebuffer->color[i] = nil;
@@ -391,19 +390,17 @@ namespace en
       
    if (depthStencil)
       {
-      //framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&depthStencil);
-      //framebuffer->depthStencil[0] = framebuffer->views[index]->handle;
       TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&depthStencil);
       framebuffer->depthStencil[0u] = [view->handle retain];
-      index++;
+      
+      // Depth-Stencil textures need to be bound to both slots
+      if (!stencil && TextureFormatIsDepthStencil(view->viewFormat))
+         framebuffer->depthStencil[1u] = [view->handle retain];
       }
    if (stencil)
       {
-      //framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&stencil);
-      //framebuffer->depthStencil[1] = framebuffer->views[index]->handle;
-      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&depthStencil);
+      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&stencil);
       framebuffer->depthStencil[1u] = [view->handle retain];
-      index++;
       }
       
    // TODO: This function should only validate that all surfaces have the same
@@ -428,14 +425,11 @@ namespace en
    Ptr<FramebufferMTL> framebuffer = new FramebufferMTL(_resolution, 1u);
 
    // Create patching array
-   uint32 index = 0u;
-   framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&temporaryMSAA);
-   framebuffer->color[0u] = framebuffer->views[index]->handle;
-   index++;
+   TextureViewMTL* viewA = raw_reinterpret_cast<TextureViewMTL>(&temporaryMSAA);
+   framebuffer->color[0u] = [viewA->handle retain];
 
-   framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&swapChainSurface);
-   framebuffer->resolve[0u] = framebuffer->views[index]->handle;
-   index++;
+   TextureViewMTL* viewB = raw_reinterpret_cast<TextureViewMTL>(&swapChainSurface);
+   framebuffer->resolve[0u] = [viewB->handle retain];
    
    for(uint32 i=1; i<MaxColorAttachmentsCount; ++i)
       {
@@ -448,15 +442,17 @@ namespace en
    
    if (depthStencil)
       {
-      framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&depthStencil);
-      framebuffer->depthStencil[0] = framebuffer->views[index]->handle;
-      index++;
+      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&depthStencil);
+      framebuffer->depthStencil[0] = [view->handle retain];
+
+      // Depth-Stencil textures need to be bound to both slots
+      if (!stencil && TextureFormatIsDepthStencil(view->viewFormat))
+         framebuffer->depthStencil[1u] = [view->handle retain];
       }
    if (stencil)
       {
-      framebuffer->views[index] = ptr_reinterpret_cast<TextureViewMTL>(&stencil);
-      framebuffer->depthStencil[1] = framebuffer->views[index]->handle;
-      index++;
+      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&stencil);
+      framebuffer->depthStencil[1] = [view->handle retain];
       }
       
    // TODO: This function should only validate that all surfaces have the same
