@@ -74,7 +74,7 @@ delete [] list;
 }
 
 template <typename obj, uint32 maxsize>
-bool TarrayAdvanced<obj, maxsize>::create(uint32 size)
+bool TarrayAdvanced<obj, maxsize>::create(uint32 _size)
 {
 // Check if not already created
 if (buffer)
@@ -83,12 +83,12 @@ if (list)
    return false;
 
 // Allocate memory for objects array
-buffer = operator new[] (size * sizeof(obj));
+buffer = operator new[] (_size * sizeof(obj));
 if (!buffer)
    return false;
 
 // Allocate memory for free objects list
-list = new uint32[size];
+list = new uint32[_size];
 if (!list)
    {
    delete [] static_cast<obj*>(buffer);
@@ -96,8 +96,8 @@ if (!list)
    }
 
 // Mark all fields as free
-count = size;
-size = size;
+count = _size;
+size = _size;
 used.reset();
 for(uint32 i=0; i<size; ++i)
    list[i] = i;
