@@ -144,7 +144,11 @@ namespace en
    desc.RasterizerState       = raster->state;
    desc.DepthStencilState     = depthStencil->state;
    desc.InputLayout           = input->state;
-   desc.IBStripCutValue       = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFFFFFF;
+   desc.IBStripCutValue       = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
+   if (input->restart &&
+       (input->primitive == LineStripes ||
+        input->primitive == TriangleStripes))
+      desc.IBStripCutValue    = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFFFFFF;
                              // What happens if IBO uses u16 indexes?
                              // Do we need to distinguish u16 and u32 types?
                              // D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF;

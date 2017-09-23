@@ -272,24 +272,16 @@ namespace en
    // Offsets and strides will be calculated based on these buffers.
 
 
-   //Ptr<InputLayout> Interface::IInputLayout::Create(Attribute&  attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-   //                                                       Ptr<Buffer> buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
-   //{
-   //}
 
-
-   //struct Attribute
-   //   {
-   //   AttributeFormat format; // Data format
-   //   };
 
 
    InputLayoutVK::InputLayoutVK(const DrawableType primitiveType,
-                                      const uint32 controlPoints, 
-                                      const uint32 usedAttributes, 
-                                      const uint32 usedBuffers, 
-                                      const AttributeDesc* attributes,  
-                                      const BufferDesc* buffers)
+                                const bool primitiveRestart,
+                                const uint32 controlPoints,
+                                const uint32 usedAttributes,
+                                const uint32 usedBuffers,
+                                const AttributeDesc* attributes,
+                                const BufferDesc* buffers)
    {
    // Describe Primitive Type stored in incoming buffers
    statePrimitive.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -302,8 +294,9 @@ namespace en
    // off - for: Points, Lines, Triangles, Patches
    // on  - for: LineStripes, TriangleStripes (LineLoops, TriangleFans)
    //
-   if ( primitiveType == LineStripes     ||
-        primitiveType == TriangleStripes )
+   if (primitiveRestart &&
+       (primitiveType == LineStripes ||
+        primitiveType == TriangleStripes))
       statePrimitive.primitiveRestartEnable = VK_TRUE;
 
    // Optional: Describe Tessellation Incoming Patch size
@@ -347,19 +340,21 @@ namespace en
    
    // Implemented by CommonDevice
    // Ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+   //                                                  const bool primitiveRestart,
    //                                                  const uint32 controlPoints,
    //                                                  const Ptr<Buffer> buffer)
       
    Ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+                                                    const bool primitiveRestart,
                                                     const uint32 controlPoints,
                                                     const uint32 usedAttributes,
                                                     const uint32 usedBuffers,
                                                     const AttributeDesc* attributes,
                                                     const BufferDesc* buffers)
    {
-   Ptr<InputLayoutVK> input = Ptr<InputLayoutVK>(new InputLayoutVK(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+   Ptr<InputLayoutVK> input = Ptr<InputLayoutVK>(new InputLayoutVK(primitiveType, primitiveRestart, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
-   return ptr_dynamic_cast<InputLayout, InputLayoutVK>(input);
+   return ptr_reinterpret_cast<InputLayout>(&input);
    }
 
    }

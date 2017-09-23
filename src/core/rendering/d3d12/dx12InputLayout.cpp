@@ -311,12 +311,14 @@ namespace en
    //   };
 
    InputLayoutD3D12::InputLayoutD3D12(const DrawableType primitiveType,
+      const bool primitiveRestart,
       const uint32 controlPoints, 
       const uint32 usedAttributes, 
       const uint32 usedBuffers, 
       const AttributeDesc* attributes,  
       const BufferDesc* buffers) :
       primitive(primitiveType),
+      restart(primitiveRestart),
       points(controlPoints)
    {
    state.pInputElementDescs = usedAttributes ? new D3D12_INPUT_ELEMENT_DESC[usedAttributes] : nullptr;
@@ -344,13 +346,14 @@ namespace en
    }
 
    Ptr<InputLayout> Direct3D12Device::createInputLayout(const DrawableType primitiveType,
+                                                        const bool primitiveRestart,
                                                         const uint32 controlPoints,
                                                         const uint32 usedAttributes,
                                                         const uint32 usedBuffers,
                                                         const AttributeDesc* attributes,
                                                         const BufferDesc* buffers)
    {
-   Ptr<InputLayoutD3D12> input = Ptr<InputLayoutD3D12>(new InputLayoutD3D12(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
+   Ptr<InputLayoutD3D12> input = Ptr<InputLayoutD3D12>(new InputLayoutD3D12(primitiveType, primitiveRestart, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
 
    return ptr_reinterpret_cast<InputLayout>(&input);
    }

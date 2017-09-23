@@ -184,14 +184,32 @@ namespace en
       virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
                                                  const uint32 controlPoints = 0u) = 0;
 
+      // Input Layout Primitive Restart feature note:
+      //
+      // If primitiveRestart is enabled, and PrimitiveType is LineStripes
+      // or TriangleStripes, primitives will be restarted on 0xFFFF or
+      // 0xFFFFFFFF element index, depending what Index Buffer type is used.
+      // Primitive restart flag is ignored for all other primitive types.
+      //
+      // It is adviced to disable primitive restart, and instead provide
+      // index buffer that distinguishes separate stripes with degenerate
+      // primitives (through repeated indexes). This way some GPU's can
+      // process whole workload in parallel, by dividing it. With
+      // special primitive restart index, workload cannot be easily
+      // distributed. Some underlying API's may still use primitive
+      // restart index specified above, so it is adviced to not use it
+      // as standard element index anyway.
+      
       // Creates InputLayout description based on single Vertex buffer.
       // Buffer needs to have specified internal formatting.
       virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const bool primitiveRestart,
                                                  const uint32 controlPoints,
                                                  const Ptr<Buffer> buffer) = 0;
 
       // Specialized function for creation of any type of InputAssember description.
       virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const bool primitiveRestart,
                                                  const uint32 controlPoints,
                                                  const uint32 usedAttributes,
                                                  const uint32 usedBuffers,

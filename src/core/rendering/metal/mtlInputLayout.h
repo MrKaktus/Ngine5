@@ -35,11 +35,12 @@ namespace en
       DrawableType primitive;
 
       InputLayoutMTL(const DrawableType primitiveType,
-                        const uint32 controlPoints, 
-                        const uint32 usedAttributes, 
-                        const uint32 usedBuffers, 
-                        const AttributeDesc* attributes,  
-                        const BufferDesc* buffers);
+                     const bool primitiveRestart,
+                     const uint32 controlPoints,
+                     const uint32 usedAttributes,
+                     const uint32 usedBuffers,
+                     const AttributeDesc* attributes,
+                     const BufferDesc* buffers);
 
       virtual ~InputLayoutMTL();
       };

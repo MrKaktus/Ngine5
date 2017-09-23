@@ -124,6 +124,7 @@ namespace en
                                                  const uint32 controlPoints = 0u);
 
       virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const bool primitiveRestart,
                                                  const uint32 controlPoints,
                                                  const Ptr<Buffer> buffer);
          

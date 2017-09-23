@@ -250,6 +250,7 @@ namespace en
 
 
       virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                 const bool primitiveRestart,
                                                  const uint32 controlPoints,
                                                  const uint32 usedAttributes,
                                                  const uint32 usedBuffers,

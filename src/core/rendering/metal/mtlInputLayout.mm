@@ -134,14 +134,18 @@ namespace en
       };
       
    InputLayoutMTL::InputLayoutMTL(const DrawableType primitiveType,
-                                        const uint32 controlPoints, 
-                                        const uint32 usedAttributes, 
-                                        const uint32 usedBuffers, 
-                                        const AttributeDesc* attributes,  
-                                        const BufferDesc* buffers) :
+                                  const bool primitiveRestart,
+                                  const uint32 controlPoints,
+                                  const uint32 usedAttributes,
+                                  const uint32 usedBuffers,
+                                  const AttributeDesc* attributes,
+                                  const BufferDesc* buffers) :
       desc(allocateObjectiveC(MTLVertexDescriptor)),
       primitive(primitiveType)
    {
+   // In Metal API primitive restart is always enabled, and there is
+   // no way of disabling it (except of not using max index itself).
+   
    for(uint32 i=0; i<usedBuffers; ++i)
       {
       // There is no point in using MTLVertexStepFunctionConstant
@@ -170,13 +174,14 @@ namespace en
    }
 
    Ptr<InputLayout> MetalDevice::createInputLayout(const DrawableType primitiveType,
+                                                   const bool primitiveRestart,
                                                    const uint32 controlPoints,
                                                    const uint32 usedAttributes,
                                                    const uint32 usedBuffers,
                                                    const AttributeDesc* attributes,
                                                    const BufferDesc* buffers)
    {
-   Ptr<InputLayoutMTL> input = new InputLayoutMTL(primitiveType, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
+   Ptr<InputLayoutMTL> input = new InputLayoutMTL(primitiveType, primitiveRestart, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
 
    return ptr_reinterpret_cast<InputLayout>(&input);
    }

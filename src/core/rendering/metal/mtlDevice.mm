@@ -364,13 +364,12 @@ namespace en
          {
          NSRect info = [handle convertRectToBacking:[handle frame]];
          
-         Ptr<DisplayMTL> currentDisplay = new DisplayMTL();
+         Ptr<DisplayMTL> currentDisplay = new DisplayMTL(handle);
  
          currentDisplay->_position.x        = static_cast<uint32>(info.origin.x);
          currentDisplay->_position.y        = static_cast<uint32>(info.origin.y);
          currentDisplay->_resolution.width  = static_cast<uint32>(info.size.width);
          currentDisplay->_resolution.height = static_cast<uint32>(info.size.height);
-         currentDisplay->handle             = handle;
          
          // Calculate upper-left corner position, and size of virtual display.
          // It's assumed that X axis increases right, and Y axis increases down.

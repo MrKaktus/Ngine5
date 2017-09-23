@@ -34,13 +34,15 @@ namespace en
       D3D12_INPUT_LAYOUT_DESC state;
       DrawableType primitive;
       uint32 points;  // Control Points count
-
+      bool restart;
+      
       InputLayoutD3D12(const DrawableType primitiveType,
-                          const uint32 controlPoints, 
-                          const uint32 usedAttributes, 
-                          const uint32 usedBuffers, 
-                          const AttributeDesc* attributes,  
-                          const BufferDesc* buffers);
+                       const bool primitiveRestart,
+                       const uint32 controlPoints,
+                       const uint32 usedAttributes,
+                       const uint32 usedBuffers,
+                       const AttributeDesc* attributes,
+                       const BufferDesc* buffers);
 
       virtual ~InputLayoutD3D12();
       };
