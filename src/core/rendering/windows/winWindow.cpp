@@ -45,8 +45,6 @@ namespace en
       hWnd(nullptr),
       CommonWindow()
    {
-   _mode = settings.mode;
-   
    DWORD     Style;       // Window style
    DWORD     ExStyle;     // Window extended style
    RECT      WindowRect;  // Window rectangle
@@ -159,10 +157,12 @@ namespace en
       assert( 0 );
       }
    
-   _display  = ptr_reinterpret_cast<CommonDisplay>(&selectedDisplay);
-   _position = settings.position;
-   _size     = selectedResolution;
+   _display     = ptr_reinterpret_cast<CommonDisplay>(&selectedDisplay);
+   _position    = settings.position;
+   _size        = selectedResolution;
  //_resolution will be set by child class implementing given Graphics API Swap-Chain
+   _mode        = settings.mode;
+   verticalSync = settings.verticalSync;
 
    windows++;
    }

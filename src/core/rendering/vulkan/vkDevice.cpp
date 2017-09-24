@@ -313,24 +313,28 @@ namespace en
 
     for(uint32_t i=0; i<memory.memoryHeapCount; ++i)
        {
-       printf("Memory range %i:\n\n", i);
-       printf("    Size          : %llu\n", memory.memoryHeaps[i].size);
-       printf("    Backing memory: %s\n", memory.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT ? "VRAM" : "RAM");
-       printf("    Memory types  :\n");
+       Log << "Memory range " << stringFrom(i) << ":\n\n";
+       Log << "    Size          : "  << stringFrom(memory.memoryHeaps[i].size) << "\n";
+       Log << "    Backing memory: ";
+       if (memory.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+          Log << "VRAM\n";
+       else 
+          Log << "RAM\n";
+       Log << "    Memory types  :\n";
        for(uint32_t j=0; j<memory.memoryTypeCount; ++j)
           if (memory.memoryTypes[j].heapIndex == i)
              {
-             printf("    Type: %i\n", j);
+             Log << "    Type: "  << stringFrom(j) << "\n";
              if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-                printf("        Supports: VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT\n");
+                Log << "        Supports: VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT\n";
              if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-                printf("        Supports: VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT\n");
+                Log << "        Supports: VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT\n";
              if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-                printf("        Supports: VK_MEMORY_PROPERTY_HOST_COHERENT_BIT\n");
+                Log << "        Supports: VK_MEMORY_PROPERTY_HOST_COHERENT_BIT\n";
              if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
-                printf("        Supports: VK_MEMORY_PROPERTY_HOST_CACHED_BIT\n\n\n"); 
+                Log << "        Supports: VK_MEMORY_PROPERTY_HOST_CACHED_BIT\n\n\n"; 
              if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
-                printf("        Supports: VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT\n\n\n"); 
+                Log << "        Supports: VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT\n\n\n"; 
              }
 
        }

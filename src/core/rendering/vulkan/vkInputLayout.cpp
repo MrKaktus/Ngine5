@@ -25,20 +25,16 @@ namespace en
    namespace gpu
    {
    // Vulkan Formats HW support:
-   // https://docs.google.com/spreadsheets/d/1VuAYTNhkfJ1UiL-ITU-1Wk64m5B6iqPjOy4hUeHvEbU/edit#gid=2114123332
-
-
+   //
    // Feature Survey/Proposal  (Bug 14574)
    // https://docs.google.com/spreadsheets/d/1rva7gNP7Vk_vTTqSKOcJibDJfhiBcyxxJQOzgYlcJ84/edit#gid=1703792510
- 
+   //
    // Limit Survey/Proposal (Bug 14780)
    // https://docs.google.com/spreadsheets/d/1FPpAsErMMVRBZQ24Y8c6Q6dF3L6lEkuxkDMSqpCHzb4/edit#gid=1870836081
- 
+   //
    // Format Survey (Bug 12998)
    // https://docs.google.com/spreadsheets/d/1VuAYTNhkfJ1UiL-ITU-1Wk64m5B6iqPjOy4hUeHvEbU/edit#gid=2114123332
-
-
-   
+   //
    // Last Verified during Vulkan 1.0 Release
    //
    static const VkFormat TranslateAttributeFormat[underlyingType(Attribute::Count)] =

@@ -35,22 +35,23 @@ namespace en
       
    struct WindowSettings
       {
-      WindowMode   mode;       // Mode in which we create surface (BorderlessWindow by default).
-      Ptr<Display> display;    // Display on which window will be created, if not specified, primary display is selected.
-      uint32v2     position;   // Position on the display in pixels from Upper-Left corner. Ignored in Fullscreen mode.
-      uint32v2     size;       // Window size in pixels of the screen native resolution (if zeros are set, native
-                               // resolution will be assumed). In Fullscreen mode, if size is set, it need to match
-                               // one of resolutions supported by the display (if it's smaller than native resolution,
-                               // Display will change resolution and use native HW scaler).
-                               // Swap-Chain properties:
-      Format       format;     // Pixel Format for backing surfaces. (Default Format::RGBA_8)
-      uint32v2     resolution; // Destination surface resolution. If set to zeros, resolution will match window size
-                               // (default state). Can be set to smaller resolution than window size if application
-                               // wants to benefit from Windowing System scaler that will upsample the image (useful
-                               // on high DPI displays, allows saving of memory needed for allocation of Swap-Chain
-                               // surfaces, and GPU power needed to rasterize in high resolution).
-                               // In Fullscreen mode, this field should be set to zeroes (default).
-                               // You should use size instead to obtain the same results.
+      WindowMode   mode;         // Mode in which we create surface (BorderlessWindow by default).
+      Ptr<Display> display;      // Display on which window will be created, if not specified, primary display is selected.
+      uint32v2     position;     // Position on the display in pixels from Upper-Left corner. Ignored in Fullscreen mode.
+      uint32v2     size;         // Window size in pixels of the screen native resolution (if zeros are set, native
+                                 // resolution will be assumed). In Fullscreen mode, if size is set, it need to match
+                                 // one of resolutions supported by the display (if it's smaller than native resolution,
+                                 // Display will change resolution and use native HW scaler).
+                                 // Swap-Chain properties:
+      Format       format;       // Pixel Format for backing surfaces. (Default Format::RGBA_8)
+      uint32v2     resolution;   // Destination surface resolution. If set to zeros, resolution will match window size
+                                 // (default state). Can be set to smaller resolution than window size if application
+                                 // wants to benefit from Windowing System scaler that will upsample the image (useful
+                                 // on high DPI displays, allows saving of memory needed for allocation of Swap-Chain
+                                 // surfaces, and GPU power needed to rasterize in high resolution).
+                                 // In Fullscreen mode, this field should be set to zeroes (default), and you should 
+                                 // use size instead to obtain the same results.
+      bool         verticalSync; // If enabled (by default), will block rendering thread until VSync occurs.
 
       WindowSettings();
       };

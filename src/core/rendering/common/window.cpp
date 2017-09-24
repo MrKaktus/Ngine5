@@ -25,7 +25,8 @@ namespace en
       position(0u, 0u),
       size(0u, 0u),
       format(Format::RGBA_8),
-      resolution(0u, 0u)
+      resolution(0u, 0u),
+      verticalSync(true)
    {
    }
 
@@ -33,6 +34,7 @@ namespace en
       _mode(WindowMode::Windowed),
       _frame(0u),
       needNewSurface(true),
+      verticalSync(true),
       Window()
    {
    }

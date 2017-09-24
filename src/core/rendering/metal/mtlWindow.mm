@@ -32,9 +32,10 @@ namespace en
       framebuffer(nullptr),
       CommonWindow()
    {
-   _position = settings.position;
-   _mode     = settings.mode;
-    
+   _position    = settings.position;
+   _mode        = settings.mode;
+   verticalSync = settings.verticalSync;
+
    id<MTLDevice> device = gpu->device;
    
    // Determine destination screen properties
@@ -296,6 +297,7 @@ namespace en
    {
    // Does Metal ensure that CommandBuffers on Queue will be executed ?
    
+   // TODO: To disable VSync, we need to have access to CommandBuffer / Queue on which rendering is performed!
    if (!needNewSurface)
       {
       [drawable present];

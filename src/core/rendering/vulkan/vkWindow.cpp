@@ -275,16 +275,31 @@ namespace en
    // Select presentation mode. Prefer immediate dispatch to display with VSync.
    // If that's not possible, we will deal with internal queue of Swap-Chain images.
    bool selectedMode = false;
-   VkPresentModeKHR swapChainPresentationMode = VK_PRESENT_MODE_MAILBOX_KHR;
+   VkPresentModeKHR swapChainPresentationMode = VK_PRESENT_MODE_FIFO_KHR;
+   if (!settings.verticalSync)
+      swapChainPresentationMode = VK_PRESENT_MODE_IMMEDIATE_KHR; //VK_PRESENT_MODE_MAILBOX_KHR;
    for(uint32 i=0; i<modes; ++i)
-      if (presentationMode[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+      if (presentationMode[i] == swapChainPresentationMode)
          {
          selectedMode = true;
          break;
          }
 
+   // If Immediate mode is not supported, try to fallback to Mailbox one when VSync is disabled
+   if (!selectedMode && !settings.verticalSync)
+      {
+      swapChainPresentationMode = VK_PRESENT_MODE_MAILBOX_KHR;
+      for(uint32 i=0; i<modes; ++i)
+         if (presentationMode[i] == swapChainPresentationMode)
+            {
+            selectedMode = true;
+            break;
+            }
+      }
+
    if (!selectedMode)
       {
+      // This is the only mode that is required to be supported, so it's a fallback mode
       for(uint32 i=0; i<modes; ++i)
          if (presentationMode[i] == VK_PRESENT_MODE_FIFO_KHR)
             {
@@ -393,10 +408,16 @@ namespace en
    // Release Swap-Chain surfaces attached to Swap-Chain textures in their descriptors.
    delete [] swapChainTexture;
 
+   // Destroy Swap-Chain
+
+   // TODO: FIXME: WA: NVIDIA Driver crashes on it!
+   //ProfileNoRet( gpu, vkDestroySwapchainKHR(gpu->device, swapChain, nullptr) )
+
+
+   // Destroy Surface
    VulkanAPI* api = raw_reinterpret_cast<VulkanAPI>(&en::Graphics);
 
-   ProfileNoRet( api, vkDestroySurfaceKHR(api->instance,
-                                          swapChainSurface, nullptr) )
+   ProfileNoRet( api, vkDestroySurfaceKHR(api->instance, swapChainSurface, nullptr) )
    }
    
    void WindowVK::resize(const uint32v2 size)

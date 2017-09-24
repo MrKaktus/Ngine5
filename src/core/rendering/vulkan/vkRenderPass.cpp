@@ -566,8 +566,12 @@ namespace en
    if (depthStencil)
       {
       attDepthStencil.attachment = surfaces;
-      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL; // Why Read-Only? What about write?
+      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
       surfaces++;
+      
+      // TODO: How to determine below situation ?
+      // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL - is a once rendered depth buffer, now used for depth test OR sample as shadow map
+      // We would need to know from the current pipeline object if depth/stencil test/write is enabled to safely set it.
       }
 
    // Engine is currently not supporting multiple sub-passes described as one dependency graph

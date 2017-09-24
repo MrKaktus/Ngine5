@@ -35,6 +35,7 @@ namespace en
       WindowMode _mode;          // Windowed / Borderless / Fullscreen
       uint32   _frame;           // Frame counter, increased after each present
       bool     needNewSurface;
+      bool     verticalSync;
 
       CommonWindow();
       

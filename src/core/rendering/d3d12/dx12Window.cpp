@@ -71,6 +71,9 @@ namespace en
            settings.format == Format::RGBA_8 ||
            settings.format == Format::RGBA_16_hf );
 
+   // More details about presentation modes:
+   // https://www.youtube.com/watch?v=E3wTajGZOsA
+   //
    DXGI_SWAP_CHAIN_DESC1 desc;
    desc.Width              = swapChainResolution.width;
    desc.Height             = swapChainResolution.height;
@@ -81,11 +84,12 @@ namespace en
    desc.BufferUsage        = DXGI_USAGE_RENDER_TARGET_OUTPUT;    // DXGI_USAGE_BACK_BUFFER ?
    desc.BufferCount        = swapChainImages;
    desc.Scaling            = enableScaling ? DXGI_SCALING_ASPECT_RATIO_STRETCH : DXGI_SCALING_NONE; // Will use DWM scaling.
-   desc.SwapEffect         = DXGI_SWAP_EFFECT_FLIP_DISCARD;      // Optimal, and compatible with UWP
+   desc.SwapEffect         = DXGI_SWAP_EFFECT_FLIP_DISCARD;      // Flip discard is optimal, and compatible with UWP
    desc.AlphaMode          = DXGI_ALPHA_MODE_IGNORE;             // DXGI_ALPHA_MODE_STRAIGHT
    desc.Flags              = 0;                                  // We want Vsync'ed presentment with discarding extra frames.
                                                                  // DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING - disables VSync
 
+   // TODO: Query Display refresh rate!
    DXGI_SWAP_CHAIN_FULLSCREEN_DESC descFullscreen;
    descFullscreen.RefreshRate.Numerator   = 60;                  // Assume 60Hz display
    descFullscreen.RefreshRate.Denominator = 1;
@@ -213,7 +217,11 @@ namespace en
       parameters.pScrollRect     = nullptr;
       parameters.pScrollOffset   = nullptr;
 
-      swapChain->Present1(0, DXGI_PRESENT_RESTART, &parameters);
+      if (verticalSync & _frame > 0)
+         swapChain->Present1(1, 0, &parameters);
+      else
+         swapChain->Present1(0, DXGI_PRESENT_RESTART, &parameters);
+
       needNewSurface = true;
       _frame++;
 
