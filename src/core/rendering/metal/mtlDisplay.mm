@@ -74,6 +74,16 @@ namespace en
    // Alternative for primary display:
    // CGDirectDisplayID displayID = CGMainDisplayID();
 
+   // Query display Refresh Rate
+#if defined(EN_PLATFORM_OSX)
+   CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displayID);
+   frequency = uint32(CGDisplayModeGetRefreshRate(mode));
+#endif
+#if defined(EN_PLATFORM_IOS)
+   frequency = [UIScreen maximumFramesPerSecond];
+#endif
+
+   // Configure Display Link
    CVReturn result = CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
    assert( result == kCVReturnSuccess );
 

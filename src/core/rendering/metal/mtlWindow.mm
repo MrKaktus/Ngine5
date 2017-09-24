@@ -51,7 +51,9 @@ namespace en
    uint32v2 resolution;
    if (settings.display)
       {
-      DisplayMTL* ptr = raw_reinterpret_cast<DisplayMTL>(&settings.display);
+      _display = ptr_reinterpret_cast<CommonDisplay>(&settings.display);
+      
+      DisplayMTL* ptr = raw_reinterpret_cast<DisplayMTL>(&_display);
       handle     = ptr->handle;
       resolution = ptr->_resolution;
       //NSRect info = [handle convertRectToBacking:[handle frame]];
@@ -62,7 +64,9 @@ namespace en
    else
       {
       // Primary display handle and properties
-      handle = ptr_dynamic_cast<DisplayMTL, Display>(gpu->display(0u))->handle;
+      _display = ptr_dynamic_cast<CommonDisplay, Display>(gpu->display(0u));
+      
+      handle = raw_reinterpret_cast<DisplayMTL>(&_display)->handle;
       NSRect info = [handle convertRectToBacking:[handle frame]];
       resolution.width  = static_cast<uint32>(info.size.width);
       resolution.height = static_cast<uint32>(info.size.height);
@@ -215,7 +219,7 @@ namespace en
    // Reposition window.
    // Position is from lower-left corner of the screen in OSX.
    // Both position and resolution are in points, not pixels.
-   Ptr<DisplayMTL> metalDisplay = ptr_reinterpret_cast<DisplayMTL>(&_display);
+   DisplayMTL* metalDisplay = raw_reinterpret_cast<DisplayMTL>(&_display);
    
    NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
@@ -232,7 +236,7 @@ namespace en
       
    // Resize window.
    // Both position and resolution are in points, not pixels.
-   Ptr<DisplayMTL> metalDisplay = ptr_reinterpret_cast<DisplayMTL>(&_display);
+   DisplayMTL* metalDisplay = raw_reinterpret_cast<DisplayMTL>(&_display);
    
    NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
@@ -304,6 +308,29 @@ namespace en
       
       deallocateObjectiveC(framebuffer->handle);
       deallocateObjectiveC(drawable);
+
+      if (verticalSync)
+         {
+         DisplayMTL* metalDisplay = raw_reinterpret_cast<DisplayMTL>(&_display);
+         Time nextVSyncTime = metalDisplay->nextVSyncTime;
+         
+         // It's possible that prediction of next VSync is not ready yet
+         if (nextVSyncTime < currentTime())
+            {
+            // Some displays may not return their refresh rate,
+            // in such case 60Hz is a safety fallback
+            uint32 frequency = metalDisplay->refreshRate();
+            if (frequency == 0)
+               frequency = 60;
+               
+            Time frameTime;
+            frameTime.seconds(1.0 / double(frequency));
+            nextVSyncTime += frameTime;
+            }
+            
+         // TODO: Sleep here until VSync
+         sleepUntil(nextVSyncTime);
+         }
 
       needNewSurface = true;
       _frame++;

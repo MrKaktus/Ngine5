@@ -257,6 +257,46 @@ namespace en
    return newtime - time;
    }
 
+   Time currentTime(void)
+   {
+   Time current;
+   
+#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY)
+   struct timespec now;
+   clock_gettime(CLOCK_MONOTONIC, &now);
+   current.nanoseconds( (static_cast<uint64>(now.tv_sec) * 1000000000LL) + static_cast<uint64>(now.tv_nsec) );
+#endif
+#if defined(EN_PLATFORM_IOS)
+   current.microseconds( static_cast<uint64>( [NSDate timeIntervalSinceReferenceDate] * 1000000.0 ) );
+#endif
+#if defined(EN_PLATFORM_OSX)
+   if (timebase.denom == 0 )
+      mach_timebase_info(&timebase);
+   current.nanoseconds( mach_absolute_time() * timebase.numer / timebase.denom );
+#endif
+#if defined(EN_PLATFORM_WINDOWS)
+   LARGE_INTEGER frequency;
+   LARGE_INTEGER offset;
+
+   QueryPerformanceFrequency(&frequency);
+   QueryPerformanceCounter(&offset);
+   current.microseconds( static_cast<uint64>(offset.QuadPart * (1000000.0 / static_cast<double>(frequency.QuadPart))) );
+#endif
+
+   return current;
+   }
+
+   void sleepUntil(Time time)
+   {
+#if defined(EN_PLATFORM_OSX)
+   if (timebase.denom == 0 )
+      mach_timebase_info(&timebase);
+   uint64 machAbsoluteTime = time.nanoseconds() * timebase.denom / timebase.numer;
+   mach_wait_until(machAbsoluteTime);
+#else
+   assert( 0 );
+#endif
+   }
 }
 
 

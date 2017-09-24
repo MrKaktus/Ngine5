@@ -26,9 +26,10 @@ namespace en
       {
       public:
 
-      virtual uint32v2 position(void) = 0;   // Position on Virtual Desktop
-      virtual uint32v2 resolution(void) = 0; // Native resolution
-
+      virtual uint32v2 position(void) = 0;    // Position on Virtual Desktop
+      virtual uint32v2 resolution(void) = 0;  // Native resolution
+      virtual uint32   refreshRate(void) = 0; // Display refresh rate
+      
       virtual ~Display() {};   // Polymorphic deletes require a virtual base destructor
       };
    }

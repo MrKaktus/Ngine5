@@ -29,7 +29,8 @@ namespace en
       _resolution(0, 0),
       observedResolution(),
       modeResolution(nullptr),
-      modesCount(0)
+      modesCount(0),
+      frequency(0)
    {
    }
 
@@ -46,6 +47,11 @@ namespace en
    uint32v2 CommonDisplay::resolution(void)
    {
    return _resolution;
+   }
+
+   uint32 CommonDisplay::refreshRate(void)
+   {
+   return frequency;
    }
    
    }

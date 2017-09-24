@@ -68,6 +68,9 @@ namespace en
          void start(void);    // Starts counting time
          Time elapsed(void);  // Returns current elapsed time
          };
+   
+   Time currentTime(void);
+   void sleepUntil(Time time);
 }
 
 #endif
