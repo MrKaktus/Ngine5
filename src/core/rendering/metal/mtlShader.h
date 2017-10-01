@@ -30,11 +30,22 @@ namespace en
    class ShaderMTL : public Shader
       {
       public:
-      // TODO: In future separate library objects for reuse and batching of functions
-      id <MTLLibrary> library;
+      id<MTLFunction> function;
       
-      ShaderMTL(id <MTLLibrary> library);
+      ShaderMTL(id<MTLFunction> function);
       virtual ~ShaderMTL();
+      };
+      
+   class ShaderLibraryMTL : public ShaderLibrary
+      {
+      public:
+      id<MTLLibrary> library;
+      
+      ShaderLibraryMTL(id<MTLLibrary> library);
+      virtual ~ShaderLibraryMTL();
+
+      virtual Ptr<Shader> createShader(const ShaderStage stage,
+                                       const string& entrypoint);
       };
    }
 }

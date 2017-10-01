@@ -16,6 +16,9 @@
 #ifndef ENG_CORE_RENDERING_SHADER
 #define ENG_CORE_RENDERING_SHADER
 
+#include <string.h>
+using namespace std;
+
 #include "core/types.h"
 #include "core/rendering/state.h"
 #include "core/utilities/TintrusivePointer.h"
@@ -51,11 +54,19 @@ namespace en
    {
    return static_cast<ShaderStages>(underlyingType(a) | underlyingType(b));
    }
- 
+      
    class Shader : public SafeObject<Shader>
       {
       public:
       virtual ~Shader() {};
+      };
+      
+   class ShaderLibrary : public SafeObject<ShaderLibrary>
+      {
+      public:
+      virtual Ptr<Shader> createShader(const ShaderStage stage,
+                                       const string& entrypoint) = 0;
+      virtual ~ShaderLibrary() {};
       };
    }
 }

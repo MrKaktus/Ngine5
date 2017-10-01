@@ -110,38 +110,13 @@ namespace en
    assert( pipelineState.shader[4] ||
            (!pipelineState.shader[4] && !raster->enableRasterization) );
    
-   // Extract entry point functions from shader libraries
-   // TODO: This may not be optimal?
-   NSError* error = nil;
-   string entrypoint = pipelineState.function[0];
-   Ptr<ShaderMTL> vertexShader = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[0]);
-   id <MTLFunction> functionVertex = [vertexShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
-   if (error)
-      {
-      Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
-      return Ptr<Pipeline>(nullptr);
-      }
-      
-   entrypoint = pipelineState.function[4];
-   id <MTLFunction> functionFragment = nil;
-   if (pipelineState.shader[4])
-      {
-      Ptr<ShaderMTL> fragmentShader = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[4]);
-      functionFragment = [fragmentShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
-      if (error)
-         {
-         Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
-         
-         deallocateObjectiveC(functionVertex);
-            
-         return Ptr<Pipeline>(nullptr);
-         }
-      }
+   Ptr<ShaderMTL> vertexShader   = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[0]);
+   Ptr<ShaderMTL> fragmentShader = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[4]);
       
    // Pipeline state
    MTLRenderPipelineDescriptor* pipeDesc = allocateObjectiveC(MTLRenderPipelineDescriptor);
-   pipeDesc.vertexFunction               = functionVertex;
-   pipeDesc.fragmentFunction             = pipelineState.shader[4] ? functionFragment : nil;
+   pipeDesc.vertexFunction               = vertexShader->function;
+   pipeDesc.fragmentFunction             = pipelineState.shader[4] ? fragmentShader->function : nil;
    pipeDesc.vertexDescriptor             = input->desc;
    pipeDesc.sampleCount                  = 1;
    pipeDesc.alphaToCoverageEnabled       = NO;
@@ -183,7 +158,7 @@ namespace en
       pipeDesc.inputPrimitiveTopology       = TranslateDrawableTopology[input->primitive];
 
    // Create Pipeline
-   error = nullptr;
+   NSError* error = nil;
    pipeline = new PipelineMTL(device, pipeDesc, &error);
    
    deallocateObjectiveC(pipeDesc);

@@ -24,8 +24,17 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #endif
+#include <sys/kdebug_signpost.h>
 
 #include "core/utilities/memory.h"
+
+// In plist, kTraceCode is calculated as value << 2 + 0x210A0000
+#define EN_SIGNPOST_DISPLAY_LINK 0x00000010
+
+//kdebug_signpost_start(SignPostCode.download.rawValue, UInt(index), 0, 0, SignPostColor.orange.rawValue)
+//// perform download
+//kdebug_signpost_end(SignPostCode.download.rawValue, UInt(index), 0, 0, SignPostColor.orange.rawValue)
+//To mark a single moment in time, we can just use kdebug_signpost:
 
 namespace en
 {
@@ -39,7 +48,12 @@ namespace en
                                 CVOptionFlags *flagsOut,
                                 void *displayLinkContext)
    {
-   // System (mach) times of this callback and next V-Sync
+   // Mark the moment when Display Link callback is fired, to relate it to VSync
+   kdebug_signpost(EN_SIGNPOST_DISPLAY_LINK, 0, 0, 0, 0);
+
+   // System (mach) times of this callback and next predicted VSync.
+   // Predicted VSync may be reported for 2 VSync's in advance (so
+   // that it's not the next one that will happen but one after that).
    uint64_t machCallbackTime  = inNow->hostTime;
    uint64_t machNextVSyncTime = inOutputTime->hostTime;
 
@@ -50,8 +64,14 @@ namespace en
    DisplayMTL* display = reinterpret_cast<DisplayMTL*>(displayLinkContext);
    
    // System time is in nanoseconds granularity
-   display->callbackTime.nanoseconds( machCallbackTime * timebase.numer / timebase.denom );
-   display->nextVSyncTime.nanoseconds( machNextVSyncTime * timebase.numer / timebase.denom );
+   Time callbackTime;
+   Time nextVSyncTime;
+   callbackTime.nanoseconds( machCallbackTime * timebase.numer / timebase.denom );
+   nextVSyncTime.nanoseconds( machNextVSyncTime * timebase.numer / timebase.denom );
+
+   // Cache of two VSync times
+   display->nextVSyncTime[0] = display->nextVSyncTime[1];
+   display->nextVSyncTime[1] = nextVSyncTime;
 
    // TODO: Registered VSync time, should be used by async threads
    //       to calculate how many frames ago that thread started it's

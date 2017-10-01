@@ -19,29 +19,32 @@
 
 namespace en
 {
+   // stringWithUTF8String - returns autoreleased object
+   // initWithUTF8String   - returns retained object
+   
    NSString* stringTo_NSString(const string& in)
    {
-   return [NSString stringWithUTF8String:in.c_str()];
+   return [[NSString alloc] initWithUTF8String:in.c_str()];
    }
 
    double stringTo_f64(const string& in)
    {
-   return [[NSString stringWithUTF8String:in.c_str()] doubleValue];
+   return [[[NSString alloc] initWithUTF8String:in.c_str()] doubleValue];
    }
    
    float stringTo_f32(const string& in)
    {
-   return [[NSString stringWithUTF8String:in.c_str()] floatValue];
+   return [[[NSString alloc] initWithUTF8String:in.c_str()] floatValue];
    }
 
    sint32 stringTo_s32(const string& in)
    {
-   return [[NSString stringWithUTF8String:in.c_str()] intValue];
+   return [[[NSString alloc] initWithUTF8String:in.c_str()] intValue];
    }
 
    uint32 stringTo_u32(const string& in)
    {
-   return static_cast<uint32>([[NSString stringWithUTF8String:in.c_str()] longLongValue]);
+   return static_cast<uint32>([[[NSString alloc] initWithUTF8String:in.c_str()] longLongValue]);
    }
 }
 #endif

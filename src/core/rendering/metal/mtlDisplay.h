@@ -31,13 +31,12 @@ namespace en
    class DisplayMTL : public CommonDisplay
       {
       public:
-      NSScreen*        handle;        // Pointer to screen in [NSScreen screens] array
-      CVDisplayLinkRef displayLink;   // Custom VSync tracking through DisplayLink
-      Time             callbackTime;  // Time last callback occured
-      Time             nextVSyncTime; // Predicted time next VSync will happen.
-                                      // It's possible that it will point to a past time from
-                                      // now, in such situation it means that VSync already
-                                      // happened, but prediction for the next one didn't yet.
+      NSScreen*        handle;           // Pointer to screen in [NSScreen screens] array
+      CVDisplayLinkRef displayLink;      // Custom VSync tracking through DisplayLink
+      Time             nextVSyncTime[2]; // Predicted time when next two VSync's will happen.
+                                         // It's possible that one of them will point to a past
+                                         // time from now, in such situation second prediction
+                                         // will store next Vsync time.
 
       DisplayMTL(NSScreen* handle);
      ~DisplayMTL();

@@ -80,10 +80,30 @@ namespace en
    FramebufferMTL* framebuffer = raw_reinterpret_cast<FramebufferMTL>(&_framebuffer);
    
    // Patch Texture handles
+   bool layeredRendering = false;
+   uint32 minLayersCount = 2048;
    for(uint32 i=0; i<gpu->support.maxColorAttachments; ++i)
       {
       renderPass->desc.colorAttachments[i].texture        = framebuffer->color[i];
       renderPass->desc.colorAttachments[i].resolveTexture = framebuffer->resolve[i];
+      
+      // Determine amount of layers shared by all attachments
+      if (framebuffer->color[i].textureType == MTLTextureType2DArray)
+         {
+         layeredRendering = true;
+         if (framebuffer->color[i].arrayLength < minLayersCount)
+            minLayersCount = framebuffer->color[i].arrayLength;
+         }
+      else // TODO: Uncomment once 2DMSArray is supported
+      if (0 /* framebuffer->color[i].textureType == MTLTextureType2DMultisampleArray */)
+         {
+         layeredRendering = true;
+         if (framebuffer->color[i].arrayLength < minLayersCount)
+            minLayersCount = framebuffer->color[i].arrayLength;
+            
+         assert( framebuffer->resolve[i].textureType == MTLTextureType2DArray );
+         assert( framebuffer->resolve[i].arrayLength >= framebuffer->color[i].arrayLength );
+         }
       }
    renderPass->desc.depthAttachment.texture   = framebuffer->depthStencil[0];
    renderPass->desc.stencilAttachment.texture = framebuffer->depthStencil[1];
@@ -91,6 +111,36 @@ namespace en
    renderPass->desc.depthAttachment.resolveTexture = framebuffer->depthStencil[2];
 #endif
 
+   // Determine amount of layers shared by all attachments (include depth and stencil ones)
+   if (framebuffer->depthStencil[0].textureType == MTLTextureType2DArray)
+      {
+      layeredRendering = true;
+      if (framebuffer->depthStencil[0].arrayLength < minLayersCount)
+         minLayersCount = framebuffer->depthStencil[0].arrayLength;
+      }
+   if (framebuffer->depthStencil[1])
+      if (framebuffer->depthStencil[1].textureType == MTLTextureType2DArray)
+         {
+         layeredRendering = true;
+         if (framebuffer->depthStencil[1].arrayLength < minLayersCount)
+            minLayersCount = framebuffer->depthStencil[1].arrayLength;
+         }
+#if defined(EN_PLATFORM_IOS)
+   // TODO: Uncomment once 2DMSArray is supported
+   if (0 /* framebuffer->depthStencil[0].textureType == MTLTextureType2DMultisampleArray */)
+      {
+      layeredRendering = true;
+      if (framebuffer->depthStencil[0].arrayLength < minLayersCount)
+         minLayersCount = framebuffer->depthStencil[0].arrayLength;
+         
+      assert( framebuffer->depthStencil[2].textureType == MTLTextureType2DArray );
+      assert( framebuffer->depthStencil[2].arrayLength >= framebuffer->color[i].arrayLength );
+      }
+#endif
+
+   if (layeredRendering)
+      renderPass->desc.renderTargetArrayLength = minLayersCount;
+   
    renderEncoder = [handle renderCommandEncoderWithDescriptor:renderPass->desc];
    }
    

@@ -72,13 +72,10 @@ namespace en
       
       virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
       
-      virtual Ptr<Shader>  createShader(const ShaderStage stage,
-                                        const string& source);
-
-      virtual Ptr<Shader>  createShader(const ShaderStage stage,
-                                        const uint8* data,
-                                        const uint64 size);
+      virtual Ptr<ShaderLibrary> createShaderLibrary(const string& source);
       
+      virtual Ptr<ShaderLibrary> createShaderLibrary(const uint8* data, const uint64 size);
+         
       virtual uint32 queues(const QueueType type) const;
       
       virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,

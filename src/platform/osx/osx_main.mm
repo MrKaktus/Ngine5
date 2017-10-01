@@ -67,9 +67,6 @@ namespace en
 #undef main
 #define ConsoleMain   main
 
-
-
-
 // Entry point for console applications
 int ConsoleMain(int argc, const char* argv[]) 
 {

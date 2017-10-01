@@ -1,5 +1,16 @@
 
 #include "core/config/config.h"
+
+#if defined(EN_PLATFORM_OSX)
+#ifdef aligned
+#undef aligned
+#endif
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+
+static mach_timebase_info_data_t timebase = { 0, 0 };
+#endif
+
 #include "platform/system.h"
 #include "threading/mutex.h"
 
@@ -157,6 +168,31 @@ namespace en
    {
    Log << "Starting module: Thread-Pool Scheduler." << endl;
 
+   // TODO: Move it to per worker thread initialization step, and propagate for all OS'es
+#if defined(EN_PLATFORM_OSX)
+   // Set high thread priority, to prevent timers coalescing.
+   const int64_t nanoSecondsPerSecond = 1000 * 1000 * 1000;
+   mach_timebase_info(&timebase);
+   const int64_t HZ = ( nanoSecondsPerSecond * timebase.numer ) / timebase.denom;
+      
+   // Thread needs to run with 90Hz candence (to match classic refrsh rate of HMD's).
+   // In each cycle it need's 1/4th of that time to do calculations, and they need to
+   // be finished no later than in half time of single frame.
+   //
+   // TODO: In future set it only for pacing threads, or figure out if whole frame time
+   //       may be reserved by single thread.
+   struct thread_time_constraint_policy ttcpolicy;
+   ttcpolicy.period      = HZ / 90;  // 90Hz
+   ttcpolicy.computation = HZ / 360; // 360Hz - need 1/4 of the next 90Hz
+   ttcpolicy.constraint  = HZ / 180; // 180Hz - our 1/4 of 90Hz must be w/in 1/2 of the 90Hz
+   ttcpolicy.preemptible = 1;
+      
+   thread_port_t threadport = pthread_mach_thread_np( pthread_self() );
+   kern_return_t result = thread_policy_set( threadport, THREAD_TIME_CONSTRAINT_POLICY, (thread_policy_t)&ttcpolicy, THREAD_TIME_CONSTRAINT_POLICY_COUNT );
+   if (result != KERN_SUCCESS)
+      en::Log << "Warning! Couldn't set main thread real-time priority!\n";
+#endif
+      
    // Create Thread Local Storage that will direct each thread to 
    // its corresponding descriptor structure.
    currentState.create();

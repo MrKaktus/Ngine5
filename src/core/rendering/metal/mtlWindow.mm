@@ -312,8 +312,12 @@ namespace en
       if (verticalSync)
          {
          DisplayMTL* metalDisplay = raw_reinterpret_cast<DisplayMTL>(&_display);
-         Time nextVSyncTime = metalDisplay->nextVSyncTime;
-         
+
+         Time current = currentTime();
+         Time nextVSyncTime = metalDisplay->nextVSyncTime[0];
+         if (nextVSyncTime < current)
+            nextVSyncTime = metalDisplay->nextVSyncTime[1];
+
          // It's possible that prediction of next VSync is not ready yet
          if (nextVSyncTime < currentTime())
             {
@@ -328,7 +332,7 @@ namespace en
             nextVSyncTime += frameTime;
             }
             
-         // TODO: Sleep here until VSync
+         // Sleep here until VSync
          sleepUntil(nextVSyncTime);
          }
 
