@@ -27,21 +27,6 @@ namespace en
              const gpu::Format format,             // Expected format of surface
              const gpu::LinearAlignment layout,    // Expected memory layout of read data
              const bool invertHorizontal = false); // Determines if image should be flipped Horizontally
-
-   bool load(Ptr<en::gpu::Texture> dst, 
-             const uint16 layer, 
-             const string& filename, 
-             const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear, 
-             bool invertHorizontal = false);
-   //bool load(Ptr<en::gpu::Texture> dst, 
-   //          const gpu::TextureFace face, 
-   //          const uint16 layer,
-   //          const string& filename, 
-   //          const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear, 
-   //          bool invertHorizontal = false);
-   Ptr<en::gpu::Texture> load(const string& filename, 
-                         const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear, 
-                         const bool invertHorizontal = false);
    }
 }
 

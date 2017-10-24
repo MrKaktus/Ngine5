@@ -510,30 +510,6 @@ namespace en
    return ptr_reinterpret_cast<Heap>(&heap);
    }
 
-   bool TextureMTL::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
-   {
-   // Check if specified mipmap and layer are correct
-   if (state.mipmaps <= mipmap)
-      return false;
-   if (state.type == TextureType::Texture3D)
-      {
-      if (state.depth <= surface)
-         return false;
-      }
-   else
-   if (state.type == TextureType::TextureCubeMap)
-      {
-      if (surface >= 6)
-         return false;
-      }
-   else
-      if (state.layers <= surface)
-         return false;
-
-   // TODO: Read back texture content !!!
-   return false;
-   }
-
    Ptr<TextureView> TextureMTL::view(void) const
    {
    Ptr<TextureViewMTL> result = nullptr;

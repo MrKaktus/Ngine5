@@ -38,7 +38,6 @@ namespace en
       {
       public:
       virtual ~ViewportState() {};                           // Polymorphic deletes require a virtual base destructor
-      // Could make public Viewports and Scissors here for easy modification (to not redo state)
       };
 
    // glViewport() does not clip, unlike the viewport in D3D

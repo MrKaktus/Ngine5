@@ -46,8 +46,6 @@ namespace en
       virtual uint16   layers(void) const;
       virtual uint16   samples(void) const;
 
-      virtual bool     read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const = 0; // Reads texture mipmap to given buffer (app needs to allocate it)
-
       virtual Ptr<TextureView> view(void) const;
       
       virtual ~CommonTexture() {};                         // Polymorphic deletes require a virtual base destructor

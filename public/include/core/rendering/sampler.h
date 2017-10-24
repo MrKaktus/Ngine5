@@ -24,49 +24,6 @@ namespace en
 {
    namespace gpu
    {
-#if defined(EN_MODULE_RENDERER_OPENGL)
-   // Texture Filtering
-   enum TextureFiltering
-      {
-      Nearest                   = 0,
-      NearestMipmaped              , // NearestMipmaped will be the fastest one if texture has mip-maps, otherwise Nearest is the fastest
-      NearestMipmapedSmooth        ,
-      Linear                       ,
-      Bilinear                     ,
-      Trilinear                    ,
-      Anisotropic2x                ,
-      Anisotropic4x                ,
-      Anisotropic8x                ,
-      Anisotropic16x               ,
-      TextureFilteringMethodsCount
-      };
-
-   // Texture border mode
-   enum TextureWraping
-      {
-      Clamp                     = 0,
-      Repeat                       ,
-      RepeatMirrored               ,
-      ClampMirrored                ,
-      ClampToBorder                ,    
-      TextureWrapingMethodsCount
-      };
-
-   // Texture border color
-   enum TextureBorder
-      {
-      OpaqueBlack                 = 0,
-      OpaqueWhite                    ,
-      TransparentBlack               ,
-      TextureBorderColorsCount
-      };
-#endif
-
-
-
-
-
-
    enum class SamplerFilter : uint32
       {
       Nearest                   = 0, // Nearest texel

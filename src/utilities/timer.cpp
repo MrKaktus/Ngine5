@@ -32,9 +32,14 @@
 static mach_timebase_info_data_t timebase = { 0, 0 };
 #endif
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_WINDOWS)
+// More about High-Resolution Time Stamps:
+// https://msdn.microsoft.com/en-us/library/windows/desktop/dn553408(v=vs.85).aspx
+//
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <timeapi.h>
+#include "assert.h"
 #endif
 
 namespace en
@@ -205,56 +210,12 @@ namespace en
 
    void Timer::start(void)
    {
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY)
-   struct timespec now;
-   clock_gettime(CLOCK_MONOTONIC, &now);
-   time.nanoseconds( (static_cast<uint64>(now.tv_sec) * 1000000000LL) + static_cast<uint64>(now.tv_nsec) );
-#endif
-#if defined(EN_PLATFORM_IOS)
-   time.microseconds( static_cast<uint64>( [NSDate timeIntervalSinceReferenceDate] * 1000000.0 ) );
-#endif
-#if defined(EN_PLATFORM_OSX)
-   if (timebase.denom == 0 )
-      mach_timebase_info(&timebase);
-   time.nanoseconds( mach_absolute_time() * timebase.numer / timebase.denom );
-#endif
-#if defined(EN_PLATFORM_WINDOWS)
-   LARGE_INTEGER frequency;
-   LARGE_INTEGER offset;
-
-   QueryPerformanceFrequency(&frequency);
-   QueryPerformanceCounter(&offset);
-   time.microseconds( static_cast<uint64>(offset.QuadPart * (1000000.0 / static_cast<double>(frequency.QuadPart))) );
-#endif
+   time = currentTime();
    }
 
    Time Timer::elapsed(void)
    {
-   Time newtime;
-
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY)
-   struct timespec now;
-   clock_gettime(CLOCK_MONOTONIC, &now);
-   newtime.nanoseconds( (static_cast<uint64>(now.tv_sec) * 1000000000LL) + static_cast<uint64>(now.tv_nsec) );
-#endif
-#if defined(EN_PLATFORM_IOS)
-   newtime.microseconds( static_cast<uint64>( [NSDate timeIntervalSinceReferenceDate] * 1000000.0 ) );
-#endif
-#if defined(EN_PLATFORM_OSX)
-   if (timebase.denom == 0 )
-      mach_timebase_info(&timebase);
-   newtime.nanoseconds( mach_absolute_time() * timebase.numer / timebase.denom );
-#endif
-#if defined(EN_PLATFORM_WINDOWS)
-   LARGE_INTEGER frequency;
-   LARGE_INTEGER offset;
-
-   QueryPerformanceFrequency(&frequency);
-   QueryPerformanceCounter(&offset);
-   newtime.microseconds( static_cast<uint64>(offset.QuadPart * (1000000.0 / static_cast<double>(frequency.QuadPart))) );
-#endif
-
-   return newtime - time;
+   return currentTime() - time;
    }
 
    Time currentTime(void)
@@ -294,6 +255,33 @@ namespace en
    uint64 machAbsoluteTime = time.nanoseconds() * timebase.denom / timebase.numer;
    mach_wait_until(machAbsoluteTime);
 #else
+   // TODO: Windows 
+
+   // Multimedia timers provide higher resolution than 1ms:
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd743609(v=vs.85).aspx
+
+   // Very detailed timer resolution measurements:
+   // http://www.windowstimestamp.com/description
+
+   // Query Timer Resolution (in miliseconds, so not precise enough unfortunately)
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd757633(v=vs.85).aspx
+   TIMECAPS timerCapabilities;
+   MMRESULT result = timeGetDevCaps(&timerCapabilities, sizeof(timerCapabilities));
+   if (result != MMSYSERR_NOERROR)
+      {
+      // TODO: Log Error message!
+      }
+
+   // Increase Timer Resolution to maximum
+   // https://msdn.microsoft.com/en-us/library/dd757624(v=vs.85).aspx
+   //
+   UINT targetResolution = 1; // 1ms
+   UINT timerResolution = min(max(timerCapabilities.wPeriodMin, targetResolution), timerCapabilities.wPeriodMax);
+   result = timeBeginPeriod(timerResolution);
+
+   // TODO: Wait thread here
+
+   result = timeEndPeriod(timerResolution);
    assert( 0 );
 #endif
    }

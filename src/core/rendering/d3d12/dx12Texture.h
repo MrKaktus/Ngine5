@@ -50,19 +50,14 @@ namespace en
       TextureD3D12(Direct3D12Device* gpu,
                    const TextureState& state); // Create texture interface for texture that already exists
 
+      virtual Ptr<Heap>        parent(void) const;
       virtual Ptr<TextureView> view(void) const;
       virtual Ptr<TextureView> view(const TextureType type,
                                     const Format format,
                                     const uint32v2 mipmaps,         
                                     const uint32v2 layers) const;
          
-      virtual Ptr<Heap> parent(void) const;
-
-      // Reads texture mipmap to given buffer (app needs to allocate it)
-      virtual bool read(uint8* buffer,
-                        const uint8 mipmap = 0,
-                        const uint16 surface = 0) const;
-                        
+              
       virtual ~TextureD3D12();
       };
       

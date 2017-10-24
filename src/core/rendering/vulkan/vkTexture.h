@@ -46,9 +46,7 @@ namespace en
 
       TextureVK(VulkanDevice* gpu, const TextureState& state);
  
-      virtual Ptr<Heap> parent(void) const;
-      virtual bool      read(uint8* buffer, const uint8 mipmap = 0, const uint16 surface = 0) const; // Reads texture mipmap to given buffer (app needs to allocate it)
-
+      virtual Ptr<Heap>        parent(void) const;
       virtual Ptr<TextureView> view(void) const;
       virtual Ptr<TextureView> view(const TextureType type,
                                     const Format format,

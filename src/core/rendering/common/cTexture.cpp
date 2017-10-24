@@ -67,6 +67,12 @@ namespace en
    return memcmp(this, &b, ((uint64)&mipmaps - (uint64)this + sizeof(mipmaps)) ) & 1;
    }
 
+   // Direct3D DXGI_FORMAT:    https://msdn.microsoft.com/en-us/library/windows/desktop/bb173059(v=vs.85).aspx
+   // Metal IOS Pixel Formats: https://developer.apple.com/library/prerelease/ios/documentation/Metal/Reference/MetalConstants_Ref/index.html#//apple_ref/c/tdef/MTLPixelFormat
+   // Metal OSX Pixel Formats: https://developer.apple.com/library/mac/documentation/Metal/Reference/MetalConstants_Ref/#//apple_ref/c/tdef/MTLPixelFormat
+   // 
+   // Direct3D D3DFMT:         https://msdn.microsoft.com/en-us/library/windows/desktop/bb172558(v=vs.85).aspx
+
    // API independent texture compression into
    const TextureCompressedBlockInfo TextureCompressionInfo[underlyingType(Format::Count)] =
       {
@@ -547,12 +553,6 @@ namespace en
    uint16 CommonTexture::samples(void) const
    {
    return state.samples;
-   }
-
-   bool CommonTexture::read(uint8* buffer, const uint8 mipmap, const uint16 surface) const
-   {
-   assert( 0 );
-   return false;
    }
    
    Ptr<TextureView> CommonTexture::view() const
