@@ -29,44 +29,14 @@ namespace en
    // SHADER
    //////////////////////////////////////////////////////////////////////////
   
-   ShaderMTL::ShaderMTL(id<MTLFunction> _function) :
-      function(_function)
+   ShaderMTL::ShaderMTL(id <MTLLibrary> library) :
+      library(library)
    {
    }
    
    ShaderMTL::~ShaderMTL()
    {
-   deallocateObjectiveC(function);
-   }
-   
-   // SHADER LIBRARY
-   //////////////////////////////////////////////////////////////////////////
-  
-   ShaderLibraryMTL::ShaderLibraryMTL(id <MTLLibrary> _library) :
-      library(_library)
-   {
-   }
-   
-   ShaderLibraryMTL::~ShaderLibraryMTL()
-   {
    deallocateObjectiveC(library);
-   }
-   
-   Ptr<Shader> ShaderLibraryMTL::createShader(const ShaderStage stage, const string& entrypoint)
-   {
-   Ptr<ShaderMTL> result = nullptr;
-   
-   NSError* error = nil;
-   id <MTLFunction> function = [library newFunctionWithName:stringTo_NSString(entrypoint)];
-   if (!error)
-      result = new ShaderMTL(function);
-   else
-      {
-      Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
-      deallocateObjectiveC(function);
-      }
-      
-   return ptr_reinterpret_cast<Shader>(&result);
    }
    
    // DEVICE
@@ -76,19 +46,12 @@ namespace en
       // Vulkan - entrypoint is specified at Pipeline creation I guess
       // Metal  - has libraries, from which we pick functions as entry points
       
-      
-   Ptr<ShaderLibrary> MetalDevice::createShaderLibrary(const string& source)
+   Ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const string& source)
    {
-   return createShaderLibrary((const uint8*)source.c_str(), source.size());
-   }
-   
-   Ptr<ShaderLibrary> MetalDevice::createShaderLibrary(const uint8* data, const uint64 size)
-   {
-   Ptr<ShaderLibrary> result = nullptr;
-   
-   NSString* code = [[NSString alloc] initWithUTF8String:(const char*)data];
-   assert( [code length] == size );
-   
+   Ptr<ShaderMTL> shader = nullptr;
+
+   NSString* code = stringTo_NSString(source);
+
    MTLCompileOptions* options = allocateObjectiveC(MTLCompileOptions);
    options.preprocessorMacros = nil;
 #if defined(EN_PLATFORM_IOS)
@@ -109,7 +72,7 @@ namespace en
       {
       if ([error code] == MTLLibraryErrorCompileWarning)
          {
-         Log << "Warning! Shader library compiled with warnings:\n";
+         Log << "Warning! Shader compiled with warnings:\n";
          Log << [[error description] UTF8String] << endl;
          }
       else
@@ -123,22 +86,23 @@ namespace en
          Log << [[error description] UTF8String] << endl;
          
          deallocateObjectiveC(options);
-         return result;
+
+         return Ptr<Shader>(nullptr);
          }
       }
     
    deallocateObjectiveC(options);
 
-   result = new ShaderLibraryMTL(library);
-   
-   return ptr_reinterpret_cast<ShaderLibrary>(&result);
+   return ptr_dynamic_cast<Shader, ShaderMTL>(Ptr<ShaderMTL>(new ShaderMTL(library)));
    }
 
+   Ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   {
+   // Unsupported on Metal
+   assert( 0 );
+   return Ptr<Shader>(nullptr);
+   }
 
-
-
-      
-      
 //    NSString* shaderText = [NSString stringWithContentsOfFile:stringTo<NSString*>(filepath) encoding:NSUTF8StringEncoding error:&error];
 //    if (!shaderText)
 //    {

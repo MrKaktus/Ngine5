@@ -160,12 +160,17 @@ namespace en
       // shared backing surface. If not supported on given platform, returns nullptr.
       virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface) = 0;
       
-      virtual Ptr<ShaderLibrary> createShaderLibrary(const string& source) = 0;
+      // TODO:
+      // Vulkan - entrypoint is specified at Pipeline creation I guess
+      // Metal  - has libraries, from which we pick functions as entry points
+      virtual Ptr<Shader> createShader(const ShaderStage stage,
+                                       const string& source) = 0;
 
-      virtual Ptr<ShaderLibrary> createShaderLibrary(const uint8* data,
-                                                     const uint64 size) = 0;
-      
-      
+      virtual Ptr<Shader> createShader(const ShaderStage stage,
+                                       const uint8* data,
+                                       const uint64 size) = 0;
+
+
       // Returns count of available Command Queues of given type
       virtual uint32 queues(const QueueType type) const = 0;
       
