@@ -155,13 +155,13 @@ namespace en
    // clamp value to a range
    float clamp(float in, float min, float max)
    {    
-   return in < min ? min : (in > max ? max : in);
+   return in <= min ? min : (in >= max ? max : in);
    }
    
-   double clamp(double in, double min, double max)
-   {    
-   return in < min ? min : (in > max ? max : in);
-   }
+   //double clamp(double in, double min, double max)
+   //{    
+   //return in <= min ? min : (in >= max ? max : in);
+   //}
    
    // Cross product
    float3 cross(const float3& a, const float3& b)

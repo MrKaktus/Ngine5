@@ -73,12 +73,12 @@ namespace en
    //
    //                       Unreal Engine 4       Unity 5            VRay
    //
-   // Metalness    Linear   x (Metallic?)         -                  -
+   // Metalness    Linear   x (Metallic?)         -                  -       - 
    // Albedo       sRGB     x (Base Color)        -                  -       - FormatBC7_RGBA_sRGB
    // Cavity       sRGB     x (Cavity)            -                  -       - FormatBC4_R (un) sRGB!
    // Gloss        Linear   x (Roughness?)        -                  -       - FormatBC4_R (un)
    // AO           sRGB     x                     x                  x       - FormatBC4_R (un) sRGB!
-   // Normal       Linear   x                     x                  x       - FormatBC5_RG (in tangent space) -> eventually revert to FormatBC1_RGA is not enough memory (2x smaller)
+   // Normal       Linear   x                     x                  x       - FormatBC5_RG (in tangent space) -> eventually revert to FormatBC1_RGA if not enough memory (2x smaller)
    // Displacement Linear   x                     x                  x       - FormatBC4_R (un)
    // GlossBlinn   Linear   -                     x                  x       - FormatBC4_R (un)
    // Diffuse      sRGB     -                     x                  x

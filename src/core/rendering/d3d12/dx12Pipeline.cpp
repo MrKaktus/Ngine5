@@ -174,7 +174,21 @@ namespace en
    desc.RasterizerState.ForcedSampleCount     = 0u;    // Currently unsupported (See dx12Raster.cpp).
 
    // TODO: Use PSO cache/library
-   // ID3D12PipelineLibrary*
+   //       https://msdn.microsoft.com/en-us/library/windows/desktop/mt709145(v=vs.85).aspx
+   // ID3D12PipelineLibrary* lib;
+   // SIZE_T cacheSize = lib->GetSerializedSize();
+   // uint8* buffer = new uint8[cacheSize];
+   // HRESULT lib->Serialize(buffer, cacheSize);
+   //HRESULT lib->LoadGraphicsPipeline(
+   //  [in]        LPCWSTR                            pName,  // Unique PSO name
+   //  [in]  const D3D12_GRAPHICS_PIPELINE_STATE_DESC *pDesc,
+   //              REFIID                             riid,
+   //  [out]       void                               **ppPipelineState  IID_PPV_ARGS(&pipeline)) ) // __uuidof(ID3D12PipelineState), reinterpret_cast<void**>(&pipeline)
+   //);
+   //HRESULT lib->StorePipeline(
+   //  [in, optional] LPCWSTR             pName,   // Unique PSO name
+   //  [in]           ID3D12PipelineState *pPipeline
+   //);
 
    // Create pipeline state object
    ID3D12PipelineState* pipeline = nullptr;

@@ -505,66 +505,66 @@ namespace en
    }
 
 
-   bool save(Ptr<en::gpu::Texture> texture, const string& filename)
-   {
-   using namespace en::storage;
+   //bool save(Ptr<en::gpu::Texture> texture, const string& filename)
+   //{
+   //using namespace en::storage;
 
-   gpu::Format format = texture->format();
-   if (format != gpu::Format::RGB_8 &&
-       format != gpu::Format::RGBA_8)  // Check if shouldn't be RGBA, how GPU returns uncompressed data ?
-      return false;
+   //gpu::Format format = texture->format();
+   //if (format != gpu::Format::RGB_8 &&
+   //    format != gpu::Format::RGBA_8)  // Check if shouldn't be RGBA, how GPU returns uncompressed data ?
+   //   return false;
 
-   // Open image file 
-   Ptr<File> file = Storage->open(filename, en::storage::Write);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
-      if (!file)
-         {
-         Log << en::ResourcesContext.path.screenshots + filename << endl;
-         Log << "ERROR: Cannot create such file!\n";
-         return false;
-         }
-      }
+   //// Open image file 
+   //Ptr<File> file = Storage->open(filename, en::storage::Write);
+   //if (!file)
+   //   {
+   //   file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
+   //   if (!file)
+   //      {
+   //      Log << en::ResourcesContext.path.screenshots + filename << endl;
+   //      Log << "ERROR: Cannot create such file!\n";
+   //      return false;
+   //      }
+   //   }
   
-   uint32 headersSize = sizeof(Header) + sizeof(DIBHeaderOS2);
-   uint32 dataSize    = texture->size();
+   //uint32 headersSize = sizeof(Header) + sizeof(DIBHeaderOS2);
+   //uint32 dataSize    = texture->size();
 
-   // Write file headers
-   Header header;
-   header.signature  = 0x4D42;  
-   header.size       = headersSize + dataSize;
-   header.reserved   = 0;       
-   header.dataOffset = headersSize;
-   file->write(0, 14, &header);
+   //// Write file headers
+   //Header header;
+   //header.signature  = 0x4D42;  
+   //header.size       = headersSize + dataSize;
+   //header.reserved   = 0;       
+   //header.dataOffset = headersSize;
+   //file->write(0, 14, &header);
 
-   DIBHeaderOS2 DIBHeader;
-   DIBHeader.headerSize = sizeof(DIBHeaderOS2);
-   DIBHeader.width      = texture->width();
-   DIBHeader.height     = texture->height();
-   DIBHeader.planes     = 1;
-   if (format == gpu::Format::RGB_8)  DIBHeader.bpp = 24;
-   if (format == gpu::Format::RGBA_8) DIBHeader.bpp = 32;
-   file->write(14, sizeof(DIBHeaderOS2), &DIBHeader);
+   //DIBHeaderOS2 DIBHeader;
+   //DIBHeader.headerSize = sizeof(DIBHeaderOS2);
+   //DIBHeader.width      = texture->width();
+   //DIBHeader.height     = texture->height();
+   //DIBHeader.planes     = 1;
+   //if (format == gpu::Format::RGB_8)  DIBHeader.bpp = 24;
+   //if (format == gpu::Format::RGBA_8) DIBHeader.bpp = 32;
+   //file->write(14, sizeof(DIBHeaderOS2), &DIBHeader);
  
-   // Write texture data
-   uint8* buffer = new uint8[texture->size()];
-   texture->read(buffer);
+   //// Write texture data
+   //uint8* buffer = new uint8[texture->size()];
+   //texture->read(buffer);
 
-   //Swap R and B components - BMP is saved in BGR, BGRA
-   if (format == gpu::Format::RGB_8 ||
-       format == gpu::Format::RGBA_8) 
-      for(uint32 i=0; i<uint32(DIBHeader.width * DIBHeader.height); ++i)
-         {
-         uint8 temp    = buffer[i*4];
-         buffer[i*4]   = buffer[i*4+2]; // R <- B
-         buffer[i*4+2] = temp;          // B -> R
-         }
+   ////Swap R and B components - BMP is saved in BGR, BGRA
+   //if (format == gpu::Format::RGB_8 ||
+   //    format == gpu::Format::RGBA_8) 
+   //   for(uint32 i=0; i<uint32(DIBHeader.width * DIBHeader.height); ++i)
+   //      {
+   //      uint8 temp    = buffer[i*4];
+   //      buffer[i*4]   = buffer[i*4+2]; // R <- B
+   //      buffer[i*4+2] = temp;          // B -> R
+   //      }
 
-   file->write(header.dataOffset, dataSize, buffer);
-   delete [] buffer;
-   return true;
-   }
+   //file->write(header.dataOffset, dataSize, buffer);
+   //delete [] buffer;
+   //return true;
+   //}
 
    bool save(const uint32 width, const uint32 height, const uint8* ptr, const string& filename)
    {

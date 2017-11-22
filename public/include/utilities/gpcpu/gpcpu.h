@@ -50,7 +50,7 @@ namespace en
    bool      any(float3& a);
    bool      any(float4& a);
    float     clamp(float in, float min, float max);
-   double    clamp(double in, double min, double max);
+   //double    clamp(double in, double min, double max);
    float3    cross(const float3& a, const float3& b);
    double3   cross(double3& a, double3& b);
    float     dot(float2& a, float2& b);

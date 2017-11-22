@@ -821,7 +821,8 @@ namespace en
          break;
 
       case ExtensionPNG:
-         texture = png::load(filename, colorSpace, invertHorizontal);
+         // TODO: This whole abstraction needs to be redone to streamer.
+         // texture = png::load(filename, colorSpace, invertHorizontal);
          break;
 
       case ExtensionTGA:
@@ -884,7 +885,8 @@ namespace en
          break;
 
       case ExtensionPNG:
-         result = png::load(dst, layer, filename, colorSpace, invertHorizontal);
+         // TODO: This whole abstraction needs to be redone to streamer.
+         //result = png::load(dst, layer, filename, colorSpace, invertHorizontal);
          break;
 
       case ExtensionTGA:

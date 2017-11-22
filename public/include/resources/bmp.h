@@ -21,7 +21,7 @@ namespace en
    {
    Ptr<en::gpu::Texture> load(const string& filename);
    bool             load(Ptr<en::gpu::Texture> dst, const uint16 layer, const string& filename);
-   bool             save(Ptr<en::gpu::Texture> texture, const string& filename);
+   //bool             save(Ptr<en::gpu::Texture> texture, const string& filename);
    bool             save(const uint32 width, const uint32 height, const uint8* ptr, const string& filename);
 
    en::gpu::TextureState settings(const string& filename);
