@@ -14,6 +14,7 @@
 		8508B68E1CF133E300454423 /* osxStorage.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8508B68D1CF133E300454423 /* osxStorage.mm */; };
 		850C09D51DCB99D700908D56 /* dx12Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 850C09D31DCB99D700908D56 /* dx12Buffer.cpp */; };
 		850C09D61DCB99D700908D56 /* dx12Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 850C09D41DCB99D700908D56 /* dx12Buffer.h */; };
+		850F05601FE2576600BD7BF0 /* sint16v2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 850F055F1FE2576600BD7BF0 /* sint16v2.cpp */; };
 		851A8E931CC5399100272F88 /* mtlBuffer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 851A8E921CC5399100272F88 /* mtlBuffer.mm */; };
 		851A8E951CC539D800272F88 /* mtlBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 851A8E941CC539D800272F88 /* mtlBuffer.h */; };
 		851A8EB91CC5A4AD00272F88 /* vkBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 851A8EB81CC5A4AD00272F88 /* vkBuffer.cpp */; };
@@ -289,6 +290,7 @@
 		8508B68D1CF133E300454423 /* osxStorage.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = osxStorage.mm; sourceTree = "<group>"; };
 		850C09D31DCB99D700908D56 /* dx12Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Buffer.cpp; sourceTree = "<group>"; };
 		850C09D41DCB99D700908D56 /* dx12Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12Buffer.h; sourceTree = "<group>"; };
+		850F055F1FE2576600BD7BF0 /* sint16v2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sint16v2.cpp; sourceTree = "<group>"; };
 		851A8E921CC5399100272F88 /* mtlBuffer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlBuffer.mm; sourceTree = "<group>"; };
 		851A8E941CC539D800272F88 /* mtlBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlBuffer.h; sourceTree = "<group>"; };
 		851A8EB81CC5A4AD00272F88 /* vkBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vkBuffer.cpp; sourceTree = "<group>"; };
@@ -1004,6 +1006,7 @@
 		85917A311C3F66120051382A /* types */ = {
 			isa = PBXGroup;
 			children = (
+				850F055F1FE2576600BD7BF0 /* sint16v2.cpp */,
 				85917A321C3F66120051382A /* double3.cpp */,
 				85917A331C3F66120051382A /* double4.cpp */,
 				85917A341C3F66120051382A /* float2.cpp */,
@@ -1572,6 +1575,7 @@
 				85917B081C3F66F60051382A /* wav.cpp in Sources */,
 				85917B091C3F66F60051382A /* hdr.cpp in Sources */,
 				85917B0A1C3F66F60051382A /* Ncam.cpp in Sources */,
+				850F05601FE2576600BD7BF0 /* sint16v2.cpp in Sources */,
 				85917B0B1C3F66F60051382A /* Noriented.cpp in Sources */,
 				85917B0C1C3F66F60051382A /* axes.cpp in Sources */,
 				85917B0D1C3F66F60051382A /* drawable.cpp in Sources */,
