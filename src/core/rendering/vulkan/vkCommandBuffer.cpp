@@ -125,7 +125,7 @@ namespace en
    info.flags            = 0;
    info.pInheritanceInfo = nullptr; // We don't support secondary Command Buffers for now
 
-   Profile( gpu, vkBeginCommandBuffer(handle, &info) )
+   Validate( gpu, vkBeginCommandBuffer(handle, &info) )
    
    started = true;
    }
@@ -212,7 +212,6 @@ namespace en
                                          const uint64 offset) const
    {
    assert( started );
-   assert( buffer );
    assert( slot < gpu->support.maxInputLayoutBuffersCount );
 
    ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
@@ -516,7 +515,7 @@ namespace en
    assert( !commited );
    
    // Finish Command Buffer encoding.
-   Profile( gpu, vkEndCommandBuffer(handle) )
+   Validate( gpu, vkEndCommandBuffer(handle) )
    
    VkSubmitInfo submitInfo;
    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -563,7 +562,7 @@ namespace en
    // Submit single batch of work to the queue.
    // Each batch can consist of multiple command buffers.
    // Internal fence will be signaled when this work is done.
-   Profile( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) ) 
+   Validate( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) ) 
 
    // Try to clear any CommandBuffers that are no longer executing.
    gpu->clearCommandBuffersQueue();
@@ -603,7 +602,7 @@ namespace en
    // Wait maximum 1 second, then assume GPU hang.
    uint64 gpuWatchDog = 1000000000; // TODO: This should be configurable global
    
-   Profile( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
+   Validate( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
    if (gpu->lastResult[Scheduler.core()] == VK_TIMEOUT)
       {
       Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << endl;   // TODO: File / line doesn't make sense as it will always point this method!
@@ -660,7 +659,7 @@ namespace en
    commandInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Secondary CB's need VK_COMMAND_BUFFER_LEVEL_SECONDARY
    commandInfo.commandBufferCount = 1; // Can create multiple CB's at once
    
-   Profile( this, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
+   Validate( this, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
 
    // Create Fence that will be signaled when the Command Buffer execution is finished.
    VkFence fence = VK_NULL_HANDLE;
@@ -670,7 +669,7 @@ namespace en
    fenceInfo.pNext = nullptr;
    fenceInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT if want to create it in signaled state from start
    
-   Profile( this, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
+   Validate( this, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
 
    // Acquire queue handle (queues are created at device creation time)
    VkQueue queue;

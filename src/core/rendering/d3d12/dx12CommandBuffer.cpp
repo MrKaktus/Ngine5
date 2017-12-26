@@ -312,7 +312,7 @@ namespace en
    assert( started );
    assert( source.length() <= destination.length() );
 
-   copy(source, destination, source->length());
+   copy(source, destination, source.length());
    }
 
    void CommandBufferD3D12::copy(const Buffer& source,

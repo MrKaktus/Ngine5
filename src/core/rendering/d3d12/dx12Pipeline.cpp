@@ -102,8 +102,8 @@ namespace en
    const BlendStateD3D12*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateD3D12*>(pipelineState.blendState.get())
                                                                             : reinterpret_cast<BlendStateD3D12*>(defaultState->blendState.get());
 
-   PipelineLayoutD3D12*     layout               = pipelineState.pipelineLayout ? reinterpret_cast<PipelineLayoutD3D12*>(pipelineState.pipelineLayout.get())
-                                                                                : reinterpret_cast<PipelineLayoutD3D12*>(defaultState->pipelineLayout.get());
+   shared_ptr<PipelineLayoutD3D12> layout        = pipelineState.pipelineLayout ? dynamic_pointer_cast<PipelineLayoutD3D12>(pipelineState.pipelineLayout)
+                                                                                : dynamic_pointer_cast<PipelineLayoutD3D12>(defaultState->pipelineLayout);
 
    // Count amount of shader stages in use
    uint32 stages = 0;
@@ -195,8 +195,7 @@ namespace en
    Validate( this, CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline)) ) // __uuidof(ID3D12PipelineState), reinterpret_cast<void**>(&pipeline)
    if (SUCCEEDED(lastResult[Scheduler.core()]))
       {
-      shared_ptr<PipelineLayoutD3D12> layoutPtr(layout);
-      result = make_shared<PipelineD3D12>(this, pipeline, layoutPtr);
+      result = make_shared<PipelineD3D12>(this, pipeline, layout);
       
       // Defer dynamic state: Viewport & Scissor State 
       const ViewportStateD3D12* viewport = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState.get());

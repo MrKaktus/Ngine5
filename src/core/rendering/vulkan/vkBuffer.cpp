@@ -239,11 +239,11 @@ namespace en
       }
       
    VkBuffer handle = VK_NULL_HANDLE;
-   VulkanDevice* gpu = heap->gpu;
+   VulkanDevice* gpu = heap->gpu.get();
    Validate( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
-      buffer = new BufferVK(gpu, handle, type, size);
+      buffer = make_shared<BufferVK>(gpu, handle, type, size);
       
       // Query buffer requirements
       ValidateNoRet( gpu, vkGetBufferMemoryRequirements(gpu->device, buffer->handle, &buffer->memoryRequirements) )

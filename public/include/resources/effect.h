@@ -12,12 +12,14 @@
 #ifndef ENG_RESOURCES_EFFECT
 #define ENG_RESOURCES_EFFECT
 
-#include "core/rendering/pipeline.h"
-#include "core/rendering/shader.h"
-
 #include <map>
 #include <vector>
 using namespace std;
+
+#include "core/utilities/alignment.h"
+
+#include "core/rendering/pipeline.h"
+#include "core/rendering/shader.h"
 
 #if !defined(EN_PLATFORM_OSX)
 

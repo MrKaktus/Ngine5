@@ -34,9 +34,6 @@ using namespace std;
 #include "input/vive.h"
 #endif
 #include "scene/context.h"
-#include "core/rendering/context.h"
-#include "monetization/context.h"
-
 #include "assert.h"
 
 extern void en::state::HandleEventByState(en::input::Event& event);

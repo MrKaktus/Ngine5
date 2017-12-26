@@ -695,7 +695,7 @@ namespace en
       // Passed in array of Color Attachment descriptors may have empty slots.
       if (color[i])
          {
-         result->colorState[i] = reinterpret_cast<ColorAttachmentD3D12*>(&color[i].get())->state;
+         result->colorState[i] = reinterpret_cast<ColorAttachmentD3D12*>(color[i].get())->state;
          if (result->colorState[i].resolve)
             result->resolve = true;
 

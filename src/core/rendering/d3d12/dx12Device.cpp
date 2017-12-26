@@ -720,7 +720,7 @@ namespace en
       {
       if (SUCCEEDED(D3D12CreateDevice(deviceHandle, D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr)))
          {
-         device[deviceIndex] = new Direct3D12Device(this, deviceIndex, deviceHandle);
+         device[deviceIndex] = make_shared<Direct3D12Device>(this, deviceIndex, deviceHandle);
          ++deviceIndex;
          }
       else

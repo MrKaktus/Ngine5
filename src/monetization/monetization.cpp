@@ -15,8 +15,8 @@
 #include "core/types.h"
 #include "core/log/log.h"
 
-#include "core/rendering/context.h"
 #include "monetization/context.h"
+#include "monetization/monetization.h"
 
 namespace en
 {

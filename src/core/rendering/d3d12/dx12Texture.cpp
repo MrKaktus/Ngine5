@@ -266,7 +266,7 @@ namespace en
    shared_ptr<TextureView> TextureD3D12::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
-      const uint32v2 _layers) const
+      const uint32v2 _layers)
    {
    shared_ptr<TextureViewD3D12> view = make_shared<TextureViewD3D12>(dynamic_pointer_cast<TextureD3D12>(shared_from_this()),
                                                                      _type,

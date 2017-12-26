@@ -341,7 +341,7 @@ namespace en
    const PipelineLayoutD3D12& layout = reinterpret_cast<const PipelineLayoutD3D12&>(_layout);
    const DescriptorSetD3D12&  set    = reinterpret_cast<const DescriptorSetD3D12&>(_set);
 
-   assert( layout->sets > index );
+   assert( layout.sets > index );
 
    // TODO: Support Compute!!!
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
@@ -372,7 +372,7 @@ namespace en
 
    void CommandBufferD3D12::setDescriptors(const PipelineLayout& _layout,
                                            const uint32 count,
-                                           const shared_ptr<DescriptorSet>(&_sets)[],
+                                           const shared_ptr<DescriptorSet>(&sets)[],
                                            const uint32 firstIndex)
    {
    assert( started );
@@ -778,7 +778,7 @@ namespace en
       samplers = allocate<D3D12_STATIC_SAMPLER_DESC>(immutableSamplers);
       for(uint32 i=0; i<immutableSamplers; ++i)
          {
-         SamplerD3D12* ptr = reinterpret_cast<SamplerD3D12*>(sampler.get());
+         SamplerD3D12* ptr = reinterpret_cast<SamplerD3D12*>(sampler[i].get());
 
          // While Vulkan uses the same descriptor for dynamic Samplers and
          // immutable Samplers, D3D12 uses two separate structures for those.

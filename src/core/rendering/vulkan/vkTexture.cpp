@@ -490,7 +490,7 @@ namespace en
    Validate( gpu, vkCreateImage(gpu->device, &textureInfo, nullptr, &handle) )
    if (gpu->lastResult[threadId] == VK_SUCCESS)  
       {
-      texture = new TextureVK(gpu, state);
+      texture = make_shared<TextureVK>(gpu, state);
       texture->handle = handle;
       // texture->heap is assigned higher in call hierarchy
 

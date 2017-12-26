@@ -180,7 +180,7 @@ namespace en
 
    DescriptorSetVK::~DescriptorSetVK()
    {
-   Profile( parent->gpu, vkFreeDescriptorSets(parent->gpu->device, parent->handle, 1u, &handle) )
+   Validate( parent->gpu, vkFreeDescriptorSets(parent->gpu->device, parent->handle, 1u, &handle) )
    parent = nullptr;
    }
    
@@ -328,9 +328,9 @@ namespace en
 
    VkDescriptorSet set = VK_NULL_HANDLE;
 
-   Profile( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, &set) )
+   Validate( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, &set) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = make_shared<DescriptorSetVK>(this, set);
+      result = make_shared<DescriptorSetVK>(dynamic_pointer_cast<DescriptorsVK>(shared_from_this()), set);
 
    return result;
    }
@@ -362,7 +362,7 @@ namespace en
    allocInfo.descriptorSetCount = count;
    allocInfo.pSetLayouts        = layoutHandle;
 
-   Profile( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, setHandle) )
+   Validate( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, setHandle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       // Unpack results
@@ -485,7 +485,7 @@ namespace en
    
    VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
       
-   Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setLayout) )
+   Validate( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setLayout) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       result = make_shared<SetLayoutVK>(this, setLayout);
@@ -550,7 +550,7 @@ namespace en
    
       // Create additional Set and store it immediately in the Sets array
       // TODO: Keep pointer of this set in the layout as well! Otherwise we will leak it!!!!!!!!!!!!!!!!!!!!!!!!
-      Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setsLayouts[sets]) )
+      Validate( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setsLayouts[sets]) )
       assert( lastResult[Scheduler.core()] == VK_SUCCESS );
       }
 
@@ -577,7 +577,7 @@ namespace en
    layoutInfo.pPushConstantRanges    = nullptr; // const VkPushConstantRange*
 
    VkPipelineLayout layout = VK_NULL_HANDLE;
-   Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout) )
+   Validate( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       result = make_shared<PipelineLayoutVK>(this, layout);
@@ -610,7 +610,7 @@ namespace en
    poolInfo.pPoolSizes    = &ranges[0];
 
    VkDescriptorPool handle = VK_NULL_HANDLE;
-   Profile( this, vkCreateDescriptorPool(device, &poolInfo, nullptr, &handle) )
+   Validate( this, vkCreateDescriptorPool(device, &poolInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       result = make_shared<DescriptorsVK>(this, handle);

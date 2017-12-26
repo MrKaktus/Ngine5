@@ -370,8 +370,10 @@ namespace en
    swapChainTexture = new shared_ptr<Texture>[swapChainImages];
    for(uint32 i=0; i<swapChainImages; ++i)
       {
-      swapChainTexture[i] = make_shared<TextureVK>(gpu, textureState);
-      swapChainTexture[i]->handle = swapChainImageHandles[i];
+      shared_ptr<TextureVK> texture = make_shared<TextureVK>(gpu, textureState);
+      texture->handle = swapChainImageHandles[i];
+
+      swapChainTexture[i] = texture;
       }
 
    delete [] swapChainImageHandles;

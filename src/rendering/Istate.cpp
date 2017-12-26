@@ -14,7 +14,6 @@
 */
 
 #include "core/log/log.h"
-#include "core/rendering/context.h"
 #include "utilities/utilities.h"
 #include "utilities/gpcpu/gpcpu.h" // for clamp(...)
 

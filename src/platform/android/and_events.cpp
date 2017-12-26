@@ -13,7 +13,6 @@
 
 #include "core/defines.h"
 
-#include "core/rendering/context.h"
 #include "input/context.h"
 #include "platform/context.h"
 

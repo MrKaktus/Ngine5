@@ -18,12 +18,10 @@
 #include "core/storage/storage.h"
 #include "core/config/context.h"
 #include "core/log/context.h"
-#include "core/rendering/context.h"
 #include "audio/context.h"
 #include "platform/context.h"
 #include "input/context.h"
 #include "scene/context.h"
-#include "monetization/context.h"
 
 #ifdef EN_PLATFORM_BLACKBERRY
 #include "platform/blackberry/bb_main.h"  

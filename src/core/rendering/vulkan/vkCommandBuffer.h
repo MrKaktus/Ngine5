@@ -46,7 +46,7 @@ namespace en
 
       // State cache
 
-      BufferVK*        currentIndexBuffer;
+      const BufferVK* currentIndexBuffer;
 
       // Internal methods
 

@@ -191,7 +191,7 @@ namespace en
    for(uint32 i=0; i<5; ++i)
       if (pipelineState.shader[i])
          {
-         const ShaderVK* shader = reinterpret_cast<const ShaderVK*>(pipelineState.shader[i]);
+         ShaderVK* shader = reinterpret_cast<ShaderVK*>(pipelineState.shader[i].get());
          
          shaderInfo[stage].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
          shaderInfo[stage].pNext  = nullptr;

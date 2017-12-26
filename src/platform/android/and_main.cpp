@@ -18,7 +18,6 @@
 #include "core/storage/storage.h"
 #include "core/config/context.h"
 #include "core/log/context.h"
-#include "core/rendering/context.h"
 #include "audio/context.h"
 #include "input/context.h"
 #include "platform/context.h"

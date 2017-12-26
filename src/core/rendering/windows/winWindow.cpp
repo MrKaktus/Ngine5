@@ -38,7 +38,7 @@ namespace en
    HINSTANCE winWindow::AppInstance = nullptr;  // Application handle (helper handle)
    static uint32    windows = 0;      // Count of currently active windows
 
-   winWindow::winWindow(const Ptr<winDisplay> selectedDisplay,
+   winWindow::winWindow(const shared_ptr<winDisplay> selectedDisplay,
                         const uint32v2 selectedResolution,
                         const WindowSettings& settings,
                         const string title) :
@@ -157,7 +157,7 @@ namespace en
       assert( 0 );
       }
    
-   _display     = ptr_reinterpret_cast<CommonDisplay>(&selectedDisplay);
+   _display     = selectedDisplay;
    _position    = settings.position;
    _size        = selectedResolution;
  //_resolution will be set by child class implementing given Graphics API Swap-Chain

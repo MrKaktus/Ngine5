@@ -37,9 +37,6 @@
     <Filter Include="Source Files\core\rendering\metal">
       <UniqueIdentifier>{6cfa3521-a71b-4a1b-b6f9-a19f73812ed7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\core\rendering\opengl">
-      <UniqueIdentifier>{1772501b-197d-4e19-8249-dcdcee34a960}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\core\rendering\vulkan">
       <UniqueIdentifier>{68dfde65-bd24-4576-8f67-b09cff5a5625}</UniqueIdentifier>
     </Filter>
@@ -171,39 +168,6 @@
     <ClCompile Include="..\src\core\log\log.cpp">
       <Filter>Source Files\core\log</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\api.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\depthStencil.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\framebuffer.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\gpu.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\program.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\raster.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\rendering.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\sampler.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\screen.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\state.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\texture.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\cBlend.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
@@ -221,93 +185,6 @@
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Viewport.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\bind.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\extensions.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\gl30Framebuffer.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\gl31Framebuffer.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\gl32Framebuffer.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\gl33Sampler.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\gl40Framebuffer.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\gl43Texture.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\gl45Framebuffer.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\glState.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\glTexture.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl12.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl13.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl14.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl15.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl20.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl21.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl30.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl31.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl32.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl33.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl40.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl41.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl42.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl43.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl44.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\opengl45.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\unbind.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\vulkan\vkBlend.cpp">
       <Filter>Source Files\core\rendering\vulkan</Filter>
@@ -558,20 +435,11 @@
     <ClCompile Include="..\src\input\winJoystick.cpp">
       <Filter>Source Files\input</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\glBuffer.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\glDevice.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\device.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\glBlend.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\vulkan\vkHeap.cpp">
       <Filter>Source Files\core\rendering\vulkan</Filter>
@@ -606,9 +474,6 @@
     <ClCompile Include="..\src\core\rendering\vulkan\vkSynchronization.cpp">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\ogl_buffer.cpp">
-      <Filter>Source Files\core\rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\inputLayout.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
@@ -617,9 +482,6 @@
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\d3d12\dx12InputLayout.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\rendering\opengl\glInputLayout.cpp">
-      <Filter>Source Files\core\rendering\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Buffer.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
@@ -677,6 +539,15 @@
     </ClCompile>
     <ClCompile Include="..\src\core\types\sint16v2.cpp">
       <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\depthStencil.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\raster.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\sampler.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -755,19 +626,10 @@
     <ClInclude Include="..\public\include\core\rendering\device.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\include\core\rendering\framebuffer.h">
-      <Filter>Header Files\core\rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\core\rendering\gpu.h">
-      <Filter>Header Files\core\rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\core\rendering\multisampling.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\rendering\pipeline.h">
-      <Filter>Header Files\core\rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\core\rendering\program.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\rendering\raster.h">
@@ -824,87 +686,6 @@
     <ClInclude Include="..\src\core\rendering\metal\mtlViewport.h">
       <Filter>Source Files\core\rendering\metal</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\extensions.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\gl30Framebuffer.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\gl31Framebuffer.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\gl32Framebuffer.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\gl33Sampler.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\gl40Framebuffer.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\gl43Texture.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\gl45Framebuffer.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\glState.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\glTexture.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl12.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl13.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl14.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl15.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl20.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl21.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl30.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl31.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl32.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl33.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl40.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl41.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl42.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl43.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl44.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\opengl45.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\core\rendering\vulkan\vkBlend.h">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClInclude>
@@ -937,9 +718,6 @@
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\vulkan\vulkan10.h">
       <Filter>Source Files\core\rendering\vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\context.h">
-      <Filter>Source Files\core\rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\log\context.h">
       <Filter>Source Files\core\log</Filter>
@@ -1196,9 +974,6 @@
     <ClInclude Include="..\public\include\core\rendering\renderPass.h">
       <Filter>Header Files\core\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\include\core\rendering\rendering.hpp">
-      <Filter>Header Files\core\rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\core\rendering\vulkan\vkRenderPass.h">
       <Filter>Source Files\core\rendering\vulkan</Filter>
     </ClInclude>
@@ -1238,23 +1013,11 @@
     <ClInclude Include="..\src\input\winJoystick.h">
       <Filter>Source Files\input</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\glBuffer.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\glDevice.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\core\rendering\common\buffer.h">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\common\device.h">
       <Filter>Source Files\core\rendering\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\glBlend.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\glCache.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\vulkan\vkHeap.h">
       <Filter>Source Files\core\rendering\vulkan</Filter>
@@ -1327,9 +1090,6 @@
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\metal\mtlInputLayout.h">
       <Filter>Source Files\core\rendering\metal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\rendering\opengl\glInputLayout.h">
-      <Filter>Source Files\core\rendering\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Buffer.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>

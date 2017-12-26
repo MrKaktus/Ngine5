@@ -18,6 +18,8 @@
 #include <fstream>
 using namespace std;
 
+#include <assert.h>
+
 namespace en
 {
    namespace storage

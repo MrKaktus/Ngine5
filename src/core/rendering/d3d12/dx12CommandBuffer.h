@@ -50,7 +50,7 @@ namespace en
       
       // State cache
 
-      BufferD3D12*          currentIndexBuffer;
+      const BufferD3D12*    currentIndexBuffer;
 
       // Internal methods
 

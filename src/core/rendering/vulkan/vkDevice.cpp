@@ -1696,7 +1696,7 @@ namespace en
    // Create interfaces for all available physical devices
    device = new shared_ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
-      device[i] = new VulkanDevice(this, i, deviceHandle[i]);
+      device[i] = make_shared<VulkanDevice>(this, i, deviceHandle[i]);
  
    // Register debug callbacks
    //--------------------------

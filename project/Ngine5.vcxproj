@@ -22,8 +22,10 @@
     <ClCompile Include="..\src\audio\audio.cpp" />
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
-    <ClCompile Include="..\src\core\rendering\api.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\depthStencil.cpp" />
     <ClCompile Include="..\src\core\rendering\common\display.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\raster.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\sampler.cpp" />
     <ClCompile Include="..\src\core\rendering\common\window.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12CommandBuffer.cpp" />
@@ -35,7 +37,6 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Shader.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Synchronization.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Window.cpp" />
-    <ClCompile Include="..\src\core\rendering\ogl_buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cTexture.cpp" />
@@ -50,49 +51,6 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Raster.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Texture.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Viewport.cpp" />
-    <ClCompile Include="..\src\core\rendering\depthStencil.cpp" />
-    <ClCompile Include="..\src\core\rendering\framebuffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\gpu.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\bind.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\extensions.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\gl30Framebuffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\gl31Framebuffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\gl32Framebuffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\gl33Sampler.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\gl40Framebuffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\gl43Texture.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\gl45Framebuffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\glBlend.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\glBuffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\glDevice.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\glInputLayout.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\glState.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\glTexture.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl12.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl13.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl14.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl15.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl20.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl21.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl30.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl31.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl32.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl33.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl40.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl41.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl42.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl43.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl44.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\opengl45.cpp" />
-    <ClCompile Include="..\src\core\rendering\opengl\unbind.cpp" />
-    <ClCompile Include="..\src\core\rendering\program.cpp" />
-    <ClCompile Include="..\src\core\rendering\raster.cpp" />
-    <ClCompile Include="..\src\core\rendering\rendering.cpp" />
-    <ClCompile Include="..\src\core\rendering\sampler.cpp" />
-    <ClCompile Include="..\src\core\rendering\screen.cpp" />
-    <ClCompile Include="..\src\core\rendering\state.cpp" />
-    <ClCompile Include="..\src\core\rendering\texture.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkBuffer.cpp" />
     <ClCompile Include="..\src\core\rendering\vulkan\vkCommandBuffer.cpp" />
@@ -203,16 +161,12 @@
     <ClInclude Include="..\public\include\core\rendering\depthStencil.h" />
     <ClInclude Include="..\public\include\core\rendering\device.h" />
     <ClInclude Include="..\public\include\core\rendering\display.h" />
-    <ClInclude Include="..\public\include\core\rendering\framebuffer.h" />
-    <ClInclude Include="..\public\include\core\rendering\gpu.h" />
     <ClInclude Include="..\public\include\core\rendering\heap.h" />
     <ClInclude Include="..\public\include\core\rendering\inputLayout.h" />
     <ClInclude Include="..\public\include\core\rendering\layout.h" />
     <ClInclude Include="..\public\include\core\rendering\multisampling.h" />
     <ClInclude Include="..\public\include\core\rendering\pipeline.h" />
-    <ClInclude Include="..\public\include\core\rendering\program.h" />
     <ClInclude Include="..\public\include\core\rendering\raster.h" />
-    <ClInclude Include="..\public\include\core\rendering\rendering.hpp" />
     <ClInclude Include="..\public\include\core\rendering\renderPass.h" />
     <ClInclude Include="..\public\include\core\rendering\sampler.h" />
     <ClInclude Include="..\public\include\core\rendering\shader.h" />
@@ -321,7 +275,6 @@
     <ClInclude Include="..\src\core\rendering\common\sampler.h" />
     <ClInclude Include="..\src\core\rendering\common\texture.h" />
     <ClInclude Include="..\src\core\rendering\common\window.h" />
-    <ClInclude Include="..\src\core\rendering\context.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Blend.h" />
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Buffer.h" />
@@ -362,38 +315,6 @@
     <ClInclude Include="..\src\core\rendering\metal\mtlTexture.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlViewport.h" />
     <ClInclude Include="..\src\core\rendering\metal\mtlWindow.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\extensions.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\gl30Framebuffer.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\gl31Framebuffer.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\gl32Framebuffer.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\gl33Sampler.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\gl40Framebuffer.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\gl43Texture.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\gl45Framebuffer.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glBlend.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glBuffer.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glCache.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glDevice.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glInputLayout.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glState.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\glTexture.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl12.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl13.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl14.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl15.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl20.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl21.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl30.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl31.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl32.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl33.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl40.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl41.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl42.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl43.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl44.h" />
-    <ClInclude Include="..\src\core\rendering\opengl\opengl45.h" />
     <ClInclude Include="..\src\core\rendering\osxSurface.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkBlend.h" />
     <ClInclude Include="..\src\core\rendering\vulkan\vkBuffer.h" />
@@ -642,7 +563,7 @@
       <Path>.\..\build\win64\$(Configuration)\$(MSBuildProjectName).log</Path>
     </BuildLog>
     <Lib>
-      <AdditionalDependencies>zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalDependencies>zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib;winmm.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x64\ZlibDllRelease;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\x64\Release\VS2015;.\..\middleware\openvr-1.0.3\lib\win64;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\release;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;$(WindowsSDK_LibraryPath_x64);%DXSDK_DIR%\Lib</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>

@@ -32,7 +32,7 @@ namespace en
       static HINSTANCE AppInstance; // Application handle (helper handle)
       HWND hWnd;                    // Window handle
 
-      winWindow(const Ptr<winDisplay> selectedDisplay,
+      winWindow(const shared_ptr<winDisplay> selectedDisplay,
                 const uint32v2 selectedResolution,
                 const WindowSettings& settings,
                 const string title);

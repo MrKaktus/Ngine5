@@ -56,7 +56,7 @@ namespace en
       
       virtual shared_ptr<DescriptorSet> allocate(const shared_ptr<SetLayout> layout);
       virtual bool allocate(const uint32 count,
-                            const shared_ptr<SetLayout(&layouts)[],
+                            const shared_ptr<SetLayout>(&layouts)[],
                             shared_ptr<DescriptorSet>** sets);
          
       DescriptorsVK(VulkanDevice* gpu, VkDescriptorPool handle);

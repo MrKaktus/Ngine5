@@ -323,7 +323,7 @@ namespace en
            _usage == MemoryUsage::Renderable );
    
    // Create texture descriptor
-   shared_ptr<TextureVK> texture = gpu::createTexture(gpu, state);
+   shared_ptr<TextureVK> texture = gpu::createTexture(gpu.get(), state);
    if (!texture)
       return shared_ptr<Texture>(nullptr);
 

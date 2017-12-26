@@ -100,17 +100,17 @@ namespace en
    // Create Swap-Chain connecting Window to Device
    //-----------------------------------------------
    
-   Direct3DAPI* api = raw_reinterpret_cast<Direct3DAPI>(&Graphics);
+   Direct3DAPI* api = reinterpret_cast<Direct3DAPI*>(Graphics.get());
 
    // Engine assumes that queue family handling QueueType::Universal is supporting Present.
    // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
    // TODO: Create Windows explicitly assigned to specific CommandQueue
-   ProfileCom( api->factory->CreateSwapChainForHwnd(gpu->queue[0],
-      hWnd,
-      &desc,
-      settings.mode == WindowMode::Fullscreen ? &descFullscreen : nullptr,
-      nullptr,
-      &swapChain) )
+   ValidateCom( api->factory->CreateSwapChainForHwnd(gpu->queue[0],
+                                                     hWnd,
+                                                     &desc,
+                                                     settings.mode == WindowMode::Fullscreen ? &descFullscreen : nullptr,
+                                                     nullptr,
+                                                     &swapChain) )
 
 #if defined(EN_DEBUG)
    // Name Swap-Chain for debugging
@@ -137,12 +137,12 @@ namespace en
                                             swapChainResolution.width,
                                             swapChainResolution.height);
 
-   swapChainTexture = new Ptr<Texture>[swapChainImages];
+   swapChainTexture = new shared_ptr<Texture>[swapChainImages];
    for(uint32 i=0; i<swapChainImages; ++i)
       {
-      Ptr<TextureD3D12> texture = new TextureD3D12(gpu, textureState);
+      shared_ptr<TextureD3D12> texture = make_shared<TextureD3D12>(gpu, textureState);
       swapChain->GetBuffer(i, IID_PPV_ARGS(&texture->handle));  // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&texture->handle)
-      swapChainTexture[i] = ptr_reinterpret_cast<Texture>(&texture);
+      swapChainTexture[i] = texture;
 
 #if defined(EN_DEBUG)
       // Name Swap-Chain Surface for debugging
@@ -267,7 +267,7 @@ namespace en
          if (!validResolution)
             {
             Log << "Error! Requested window size for Fullscreen mode is not supported by selected display." << endl;
-            return ptr_reinterpret_cast<Window>(&result);
+            return result;
             }
          }
          
@@ -276,7 +276,7 @@ namespace en
           settings.resolution.y != 0)
          {
          Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead." << endl;
-         return ptr_reinterpret_cast<Window>(&result);
+         return result;
          }
       }
 
