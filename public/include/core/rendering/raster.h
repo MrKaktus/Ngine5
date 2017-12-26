@@ -17,9 +17,12 @@
 #ifndef ENG_CORE_RENDERING_RASTER_STATE
 #define ENG_CORE_RENDERING_RASTER_STATE
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
 #include "core/rendering/state.h"
 
 namespace en
@@ -46,7 +49,7 @@ namespace en
       RasterStateInfo();
       };
 
-   class RasterState : public SafeObject<RasterState>
+   class RasterState
       {
       public:
       virtual ~RasterState() {};                           // Polymorphic deletes require a virtual base destructor

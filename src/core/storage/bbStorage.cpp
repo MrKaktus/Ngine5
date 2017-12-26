@@ -92,9 +92,9 @@ namespace en
    return true;
    }
    
-   Ptr<File> BBInterface::open(const string& filename, const FileAccess mode)
+   shared_ptr<File> BBInterface::open(const string& filename, const FileAccess mode)
    {
-   Ptr<BBFile> result = nullptr;
+   shared_ptr<BBFile> result = nullptr;
 
    FILE* handle;
 
@@ -107,9 +107,9 @@ namespace en
       handle = fopen(string("app/native/" + filename).c_str(), "rw");
 
    if (handle)
-      result = new BBFile(handle);
+      result = make_shared<BBFile>(handle);
   
-   return raw_reinterpret_cast<File>(&result);
+   return result;
    }
    
    }

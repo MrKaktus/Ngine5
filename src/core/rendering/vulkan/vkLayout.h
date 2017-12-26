@@ -54,10 +54,10 @@ namespace en
       VulkanDevice*    gpu;
       VkDescriptorPool handle;
       
-      virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout);
+      virtual shared_ptr<DescriptorSet> allocate(const shared_ptr<SetLayout> layout);
       virtual bool allocate(const uint32 count,
-                            const Ptr<SetLayout>* layouts,
-                            Ptr<DescriptorSet>** sets);
+                            const shared_ptr<SetLayout(&layouts)[],
+                            shared_ptr<DescriptorSet>** sets);
          
       DescriptorsVK(VulkanDevice* gpu, VkDescriptorPool handle);
       virtual ~DescriptorsVK();
@@ -68,15 +68,15 @@ namespace en
    class DescriptorSetVK : public DescriptorSet
       {
       public:
-      Ptr<DescriptorsVK> parent; // Reference to Descriptors Pool
+      shared_ptr<DescriptorsVK> parent; // Reference to Descriptors Pool
       VkDescriptorSet    handle;
       
-      DescriptorSetVK(Ptr<DescriptorsVK> parent, VkDescriptorSet handle);
+      DescriptorSetVK(shared_ptr<DescriptorsVK> parent, VkDescriptorSet handle);
       virtual ~DescriptorSetVK();
 
-      virtual void setBuffer(const uint32 slot, const Ptr<Buffer> buffer);
-      virtual void setSampler(const uint32 slot, const Ptr<Sampler> sampler);
-      virtual void setTextureView(const uint32 slot, const Ptr<TextureView> view);
+      virtual void setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer);
+      virtual void setSampler(const uint32 slot, const shared_ptr<Sampler> sampler);
+      virtual void setTextureView(const uint32 slot, const shared_ptr<TextureView> view);
       };
    }
 }

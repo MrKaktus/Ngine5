@@ -151,7 +151,7 @@ namespace en
    }
 
 #ifdef EN_PLATFORM_BLACKBERRY
-   Ptr<monetization::Banner> Interface::Banner::create(const uint32 x,            // Banners upper left corner x position on the screen 
+   shared_ptr<monetization::Banner> Interface::Banner::create(const uint32 x,            // Banners upper left corner x position on the screen 
                                                        const uint32 y,            // Banners upper left corner y position on the screen 
                                                        const uint32 width,        // Width in pixels
                                                        const uint32 height,       // Height in pixels
@@ -164,7 +164,7 @@ namespace en
 //   if (ptr->advertisement)
 //      banners.
 
-   return Ptr<monetization::Banner>((monetization::Banner*) ptr);
+   return shared_ptr<monetization::Banner>((monetization::Banner*) ptr);
    }
 #endif
 

@@ -238,9 +238,9 @@ namespace en
    return false;
    }
    
-   Ptr<File> OSXInterface::open(const string& filename, const FileAccess mode)
+   shared_ptr<File> OSXInterface::open(const string& filename, const FileAccess mode)
    {
-   Ptr<OSXFile> result = nullptr;
+   shared_ptr<OSXFile> result = nullptr;
    
    NSString* path = fileInBundleByName(filename);
 
@@ -265,10 +265,10 @@ namespace en
       //NSData* data = [NSData dataWithContentsOfFile:path];
    
       if ([data length] > 0)
-         result = new OSXFile(data);
+         result = make_shared<OSXFile>(data);
       }
       
-   return raw_reinterpret_cast<File>(&result);
+   return result;
    }
 
    }

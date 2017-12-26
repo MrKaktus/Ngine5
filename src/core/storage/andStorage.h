@@ -46,7 +46,7 @@ namespace en
       AAssetManager* manager;
 
       virtual bool exist(const string& filename); // Check if file exist
-      virtual Ptr<File> open(const string& filename,
+      virtual shared_ptr<File> open(const string& filename,
                              const FileAccess mode = Read);  // Opens file
 
       AndInterface();

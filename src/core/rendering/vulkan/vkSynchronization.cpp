@@ -226,16 +226,14 @@ namespace en
 
 
    // Buffer barrier
-   void CommandBufferVK::barrier(const Ptr<Buffer> _buffer, 
+   void CommandBufferVK::barrier(const Buffer& _buffer,
                                  const BufferAccess initAccess)
    {
-   assert( _buffer );
-
-   BufferVK* buffer = raw_reinterpret_cast<BufferVK>(&_buffer);
+   const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
 
    // Determine buffer initial access
    VkAccessFlags vNewAccess;
-   TranslateBufferAccess(initAccess, buffer->apiType, vNewAccess);
+   TranslateBufferAccess(initAccess, buffer.apiType, vNewAccess);
 
    VkBufferMemoryBarrier barrier;
    barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -244,11 +242,11 @@ namespace en
    barrier.dstAccessMask       = vNewAccess;
    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
-   barrier.buffer              = buffer->handle;
+   barrier.buffer              = buffer.handle;
    barrier.offset              = 0;
-   barrier.size                = buffer->size;
+   barrier.size                = buffer.size;
 
-   ProfileNoRet( gpu, vkCmdPipelineBarrier(handle,
+   ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
                                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,    
                                            0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
@@ -257,25 +255,23 @@ namespace en
                                            0u, nullptr) ) // Image memory barriers
    }
 
-   void CommandBufferVK::barrier(const Ptr<Buffer> buffer, 
+   void CommandBufferVK::barrier(const Buffer& _buffer,
                                  const uint64 offset,
                                  const uint64 size,
                                  const BufferAccess currentAccess,
                                  const BufferAccess newAccess)
    {
-   assert( buffer );
-
-   BufferVK* ptr = raw_reinterpret_cast<BufferVK>(&buffer);
+   const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
 
    // Determine current buffer access bitmask
    VkAccessFlags vOldAccess;
-   TranslateBufferAccess(currentAccess, ptr->apiType, vOldAccess);
+   TranslateBufferAccess(currentAccess, buffer.apiType, vOldAccess);
 
    // Determine buffer new access
    VkAccessFlags vNewAccess;
-   TranslateBufferAccess(newAccess, ptr->apiType, vNewAccess);
+   TranslateBufferAccess(newAccess, buffer.apiType, vNewAccess);
 
-   barrier(buffer, 
+   barrier(_buffer,
            offset, 
            size,
            vOldAccess,
@@ -285,21 +281,19 @@ namespace en
    }
 
    // Texture barrier
-   void CommandBufferVK::barrier(const Ptr<Texture>  _texture, 
+   void CommandBufferVK::barrier(const Texture& _texture,
                                  const TextureAccess initAccess)
    {
-   assert( _texture );
-
-   TextureVK* texture = raw_reinterpret_cast<TextureVK>(&_texture);
+   const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
 
    // Determine texture inital access and layout
    VkAccessFlags vNewAccess;
    VkImageLayout vNewLayout;
-   TranslateTextureAccess(initAccess, texture->state.format, vNewAccess, vNewLayout);
+   TranslateTextureAccess(initAccess, texture.state.format, vNewAccess, vNewLayout);
 
    barrier(_texture, 
-           uint32v2(0, _texture->mipmaps()), 
-           uint32v2(0, _texture->layers()),
+           uint32v2(0, _texture.mipmaps()),
+           uint32v2(0, _texture.layers()),
            0,
            vNewAccess,
            VK_IMAGE_LAYOUT_UNDEFINED,
@@ -308,40 +302,38 @@ namespace en
            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
    }
 
-   void CommandBufferVK::barrier(const Ptr<Texture>  _texture, 
+   void CommandBufferVK::barrier(const Texture& _texture,
                                  const TextureAccess currentAccess,
                                  const TextureAccess newAccess)
    {
    // Vulkan is not gaining anything from this specialized call,
    // as it's already transitioning all subresources in one call.
    barrier(_texture, 
-           uint32v2(0, _texture->mipmaps()), 
-           uint32v2(0, _texture->layers()),
+           uint32v2(0, _texture.mipmaps()),
+           uint32v2(0, _texture.layers()),
            currentAccess,
            newAccess);
    }
 
-   void CommandBufferVK::barrier(const Ptr<Texture>  texture, 
-                                 const uint32v2      mipmaps, 
-                                 const uint32v2      layers,
+   void CommandBufferVK::barrier(const Texture& _texture,
+                                 const uint32v2 mipmaps,
+                                 const uint32v2 layers,
                                  const TextureAccess currentAccess,
                                  const TextureAccess newAccess) 
    {
-   assert( texture );
-
-   TextureVK* ptr = raw_reinterpret_cast<TextureVK>(&texture);
+   const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
 
    // Determine current texture access bitmask and layout type
    VkAccessFlags vOldAccess;
    VkImageLayout vOldLayout;
-   TranslateTextureAccess(currentAccess, ptr->state.format, vOldAccess, vOldLayout);
+   TranslateTextureAccess(currentAccess, texture.state.format, vOldAccess, vOldLayout);
 
    // Determine texture new access and layout
    VkAccessFlags vNewAccess;
    VkImageLayout vNewLayout;
-   TranslateTextureAccess(newAccess, ptr->state.format, vNewAccess, vNewLayout);
+   TranslateTextureAccess(newAccess, texture.state.format, vNewAccess, vNewLayout);
 
-   barrier(texture, 
+   barrier(_texture,
            mipmaps, 
            layers,
            vOldAccess,
@@ -354,7 +346,7 @@ namespace en
 
 
    // Buffer barrier
-   void CommandBufferVK::barrier(const Ptr<Buffer> _buffer, 
+   void CommandBufferVK::barrier(const Buffer& _buffer,
                                  const uint64 offset,
                                  const uint64 size,
                                  const VkAccessFlags currentAccess,
@@ -362,9 +354,7 @@ namespace en
                                  const VkPipelineStageFlags afterStage,  // Transition after this stage
                                  const VkPipelineStageFlags beforeStage) // Transition before this stage
    {
-   assert( _buffer );
-
-   BufferVK* buffer = raw_reinterpret_cast<BufferVK>(&_buffer);
+   const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
 
    VkBufferMemoryBarrier barrier;
    barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -373,21 +363,21 @@ namespace en
    barrier.dstAccessMask       = newAccess;
    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
-   barrier.buffer              = buffer->handle;
+   barrier.buffer              = buffer.handle;
    barrier.offset              = offset;
    barrier.size                = size;
 
-   ProfileNoRet( gpu, vkCmdPipelineBarrier(handle,
-                                           afterStage,
-                                           beforeStage,    
-                                           0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
-                                           0u, nullptr,   // Memory barriers
-                                           1u, &barrier,  // Buffer memory barriers
-                                           0u, nullptr) ) // Image memory barriers
+   ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
+                                            afterStage,
+                                            beforeStage,
+                                            0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ???
+                                            0u, nullptr,   // Memory barriers
+                                            1u, &barrier,  // Buffer memory barriers
+                                            0u, nullptr) ) // Image memory barriers
    }
 
    // Texture barrier
-   void CommandBufferVK::barrier(const Ptr<Texture> _texture, 
+   void CommandBufferVK::barrier(const Texture& _texture,
                                  const uint32v2 mipmaps, 
                                  const uint32v2 layers,
                                  const VkAccessFlags currentAccess,
@@ -397,9 +387,7 @@ namespace en
                                  const VkPipelineStageFlags afterStage,  // Transition after this stage
                                  const VkPipelineStageFlags beforeStage) // Transition before this stage
    {
-   assert( _texture );
-
-   TextureVK* texture = raw_reinterpret_cast<TextureVK>(&_texture);
+   const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
 
    // Transition Swap-Chain surface from rendering destination to presentation layout.
    VkImageMemoryBarrier barrier;
@@ -411,20 +399,20 @@ namespace en
    barrier.newLayout           = newLayout;
    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
-   barrier.image               = texture->handle; 
-   barrier.subresourceRange.aspectMask     = TranslateImageAspect(texture->state.format);
+   barrier.image               = texture.handle;
+   barrier.subresourceRange.aspectMask     = TranslateImageAspect(texture.state.format);
    barrier.subresourceRange.baseMipLevel   = mipmaps.base;
    barrier.subresourceRange.levelCount     = mipmaps.count;
    barrier.subresourceRange.baseArrayLayer = layers.base;
    barrier.subresourceRange.layerCount     = layers.count;
 
-   ProfileNoRet( gpu, vkCmdPipelineBarrier(handle,
-                                           afterStage,
-                                           beforeStage,    
-                                           0u,             // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
-                                           0u, nullptr,    // Memory barriers
-                                           0u, nullptr,    // Buffer memory barriers
-                                           1u, &barrier) ) // Image memory barriers
+   ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
+                                            afterStage,
+                                            beforeStage,
+                                            0u,             // 0 or VK_DEPENDENCY_BY_REGION_BIT ???
+                                            0u, nullptr,    // Memory barriers
+                                            0u, nullptr,    // Buffer memory barriers
+                                            1u, &barrier) ) // Image memory barriers
    }
 
 
@@ -441,17 +429,17 @@ namespace en
    info.pNext = nullptr;
    info.flags = 0u;       // VkSemaphoreCreateFlags - reserved.
 
-   Profile( gpu, vkCreateSemaphore(gpu->device, &info, nullptr, &handle) )
+   Validate( gpu, vkCreateSemaphore(gpu->device, &info, nullptr, &handle) )
    }
 
    SemaphoreVK::~SemaphoreVK()
    {
-   ProfileNoRet( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
    }
 
-   Ptr<Semaphore> VulkanDevice::createSemaphore(void)
+   shared_ptr<Semaphore> VulkanDevice::createSemaphore(void)
    {
-   return Ptr<Semaphore>(new SemaphoreVK(this));
+   return shared_ptr<Semaphore>(new SemaphoreVK(this));
    }
 
 
@@ -496,19 +484,19 @@ namespace en
    info.pNext = nullptr;
    info.flags = 0; // Reserved for future
 
-   Profile( gpu, vkCreateEvent(gpu->device, &info, nullptr, &handle) )
+   Validate( gpu, vkCreateEvent(gpu->device, &info, nullptr, &handle) )
    }
 
    EventVK::~EventVK()
    {
-   ProfileNoRet( gpu, vkDestroyEvent(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroyEvent(gpu->device, handle, nullptr) )
    }
    
    bool EventVK::signaled(void)
    {
    uint32 thread = Scheduler.core();
 
-   Profile( gpu, vkGetEventStatus(gpu->device, handle) )
+   Validate( gpu, vkGetEventStatus(gpu->device, handle) )
    if (gpu->lastResult[thread] == VK_EVENT_SET)
       return true;
 
@@ -517,31 +505,31 @@ namespace en
 
    void EventVK::signal(void)
    {
-   Profile( gpu, vkSetEvent(gpu->device, handle) )
+   Validate( gpu, vkSetEvent(gpu->device, handle) )
    }
 
    void EventVK::unsignal(void)
    {
-   Profile( gpu, vkResetEvent(gpu->device, handle) )
+   Validate( gpu, vkResetEvent(gpu->device, handle) )
    }
 
-   Ptr<Event> CommandBufferVK::signal(void)
+   shared_ptr<Event> CommandBufferVK::signal(void)
    {
-   Ptr<EventVK> result = new EventVK(gpu);
+   shared_ptr<EventVK> result = make_shared<EventVK>(gpu);
 
    // All stages work, before this moment in time, needs to be finished.
    // TODO: Expose way to specify only sub-set of pipeline stages.
    VkPipelineStageFlags flags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-   ProfileNoRet( gpu, vkCmdSetEvent(handle, result->handle, flags) )
+   ValidateNoRet( gpu, vkCmdSetEvent(handle, result->handle, flags) )
 
-   return ptr_reinterpret_cast<Event>(&result);
+   return result;
    }
 
-   void CommandBufferVK::wait(Ptr<Event> eventToWaitFor)
+   void CommandBufferVK::wait(shared_ptr<Event> eventToWaitFor)
    {
-   EventVK* _event = raw_reinterpret_cast<EventVK>(&eventToWaitFor);
+   EventVK* _event = reinterpret_cast<EventVK*>(eventToWaitFor.get());
 
-   ProfileNoRet( gpu, vkCmdWaitEvents(handle,
+   ValidateNoRet( gpu, vkCmdWaitEvents(handle,
                                       1,       // events count
                                       &_event->handle,
                                       VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, // TODO: Expose event sync place in currently executed Pipeline Stage

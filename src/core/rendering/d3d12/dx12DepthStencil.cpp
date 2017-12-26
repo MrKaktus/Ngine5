@@ -71,10 +71,9 @@ namespace en
    reference = static_cast<UINT>(desc.stencil[0].reference);
    }
 
-   Ptr<DepthStencilState> Direct3D12Device::createDepthStencilState(const DepthStencilStateInfo& desc)
+   shared_ptr<DepthStencilState> Direct3D12Device::createDepthStencilState(const DepthStencilStateInfo& desc)
    {
-   Ptr<DepthStencilStateD3D12> ptr = new DepthStencilStateD3D12(desc);
-   return ptr_reinterpret_cast<DepthStencilState>(&ptr);
+   return make_shared<DepthStencilStateD3D12>(desc);
    }
    
    }

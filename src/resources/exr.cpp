@@ -173,12 +173,12 @@ namespace en
    return true;
    }
 
-   Ptr<en::gpu::Texture> load(const string& filename)
+   shared_ptr<en::gpu::Texture> load(const string& filename)
    {
    using namespace en::storage;
 
    // Open image file
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -186,7 +186,7 @@ namespace en
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
-         return Ptr<gpu::Texture>();
+         return shared_ptr<gpu::Texture>();
          }
       }
    
@@ -197,7 +197,7 @@ namespace en
       {
       Log << "ERROR: EXR file header signature incorrect!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>();
+      return shared_ptr<gpu::Texture>();
       }
    
    // TODO: Support multi-part types
@@ -205,7 +205,7 @@ namespace en
       {
       Log << "ERROR: EXR multi-part files are not supported!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>();
+      return shared_ptr<gpu::Texture>();
       }
 
    // If Single Part, determine part type
@@ -227,7 +227,7 @@ namespace en
       {
       Log << "ERROR: Engine supports only scan lined EXR images!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>();
+      return shared_ptr<gpu::Texture>();
       }
 
    // Read Part Headers
@@ -490,7 +490,7 @@ namespace en
          }
    
       // Create texture in gpu
-      Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+      shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
       if (!texture)
          {
          Log << "ERROR: Cannot create texture in GPU!\n";
@@ -605,7 +605,7 @@ namespace en
                Log << "Error: Cannot initialize Zlib decompressor!\n";
                delete [] input;
                delete [] output;
-               return Ptr<gpu::Texture>(nullptr);
+               return shared_ptr<gpu::Texture>(nullptr);
                }
             sint32 ret = 0;
             ret = inflate(&stream, Z_FINISH);
@@ -615,7 +615,7 @@ namespace en
                Log << "Error: Cannot decompress using ZLIB!\n";
                delete [] input;
                delete [] output;
-               return Ptr<gpu::Texture>(nullptr);
+               return shared_ptr<gpu::Texture>(nullptr);
                }
             inflateEnd(&stream);
             delete [] input;
@@ -645,7 +645,7 @@ namespace en
       delete [] offsets;
 
       // Create staging buffer
-      Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, texture->size());
+      shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, texture->size());
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
@@ -670,9 +670,9 @@ namespace en
          type = gpu::QueueType::Transfer;
 
       // Copy data from staging buffer to final texture
-      Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+      shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
       command->start();
-      command->copy(staging, texture, mipmap, slice);
+      command->copy(*staging, *texture, mipmap, slice);
       command->commit();
    
       // TODO:
@@ -689,7 +689,7 @@ namespace en
       return texture;   // TODO: Rework for multipart files!
       }
 
-   return Ptr<gpu::Texture>(nullptr);
+   return shared_ptr<gpu::Texture>(nullptr);
    }
 
 

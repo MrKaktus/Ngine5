@@ -170,14 +170,14 @@ namespace en
    if (device.cache.blend[0].blending != state.cachedBlend[0].blending)
       {
       if (state.cachedBlend[0].blending)
-         Profile( glEnable(GL_BLEND) )
+         Validate( glEnable(GL_BLEND) )
       else
-         Profile( glDisable(GL_BLEND) )
+         Validate( glDisable(GL_BLEND) )
       }
 
    if (bitsChanged(device.cache.blend[0].vector, state.cachedBlend[0].vector, CacheBlendFunctionMask))
       {
-      Profile( glBlendFuncSeparate(state.color[0].srcRGB, 
+      Validate( glBlendFuncSeparate(state.color[0].srcRGB, 
                                    state.color[0].dstRGB, 
                                    state.color[0].srcAlpha,
                                    state.color[0].dstAlpha) )
@@ -186,10 +186,10 @@ namespace en
    if (bitsChanged(device.cache.blend[0].vector, state.cachedBlend[0].vector, CacheBlendEquationMask))
       {
 #if defined(EN_DISCRETE_GPU) && !defined(EN_PLATFORM_OSX)
-      Profile( glBlendEquationSeparateEXT(state.color[0].rgbFunc,
+      Validate( glBlendEquationSeparateEXT(state.color[0].rgbFunc,
                                           state.color[0].alphaFunc) )
 #else // defined(EN_MOBILE_GPU)
-      Profile( glBlendEquationSeparate(state.color[0].rgbFunc,
+      Validate( glBlendEquationSeparate(state.color[0].rgbFunc,
                                        state.color[0].alphaFunc) )
 #endif
       }
@@ -206,16 +206,16 @@ namespace en
          if (device.cache.blend[i].blending != state.cachedBlend[i].blending)
             {
             if (state.cachedBlend[i].blending)
-               Profile( glEnablei(GL_BLEND, i) )
+               Validate( glEnablei(GL_BLEND, i) )
             else
-               Profile( glDisablei(GL_BLEND, i) )
+               Validate( glDisablei(GL_BLEND, i) )
             }
 
          if (bitsChanged(device.cache.blend[0].vector, state.cachedBlend[0].vector, CacheBlendFunctionMask))
             {
             if (device.api.better(OpenGL_4_0))   
                {      
-               Profile( glBlendFuncSeparatei(i, state.color[i].srcRGB,  
+               Validate( glBlendFuncSeparatei(i, state.color[i].srcRGB,  
                                                 state.color[i].dstRGB,  
                                                 state.color[i].srcAlpha,
                                                 state.color[i].dstAlpha ) )
@@ -223,7 +223,7 @@ namespace en
             else
             if (device.support.extension(ARB_draw_buffers_blend))  
                {
-               Profile( glBlendFuncSeparateiARB(i, state.color[i].srcRGB,  
+               Validate( glBlendFuncSeparateiARB(i, state.color[i].srcRGB,  
                                                    state.color[i].dstRGB,  
                                                    state.color[i].srcAlpha,
                                                    state.color[i].dstAlpha ) )
@@ -234,13 +234,13 @@ namespace en
             {
             if (device.api.better(OpenGL_4_0))  
                {   
-               Profile( glBlendEquationSeparatei(i, state.color[i].rgbFunc, 
+               Validate( glBlendEquationSeparatei(i, state.color[i].rgbFunc, 
                                                     state.color[i].alphaFunc) )
                }
             else
             if (device.support.extension(ARB_draw_buffers_blend)) 
                {
-               Profile( glBlendEquationSeparateiARB(i, state.color[i].rgbFunc, 
+               Validate( glBlendEquationSeparateiARB(i, state.color[i].rgbFunc, 
                                                        state.color[i].alphaFunc) )
                }
             }
@@ -255,7 +255,7 @@ namespace en
 
       if (GpuContext.state.dirtyBits.blendColor)
          {
-         Profile( glBlendColor(state.color.r,
+         Validate( glBlendColor(state.color.r,
                                GpuContext.state.output.blendColor.g,
                                GpuContext.state.output.blendColor.b,
                                GpuContext.state.output.blendColor.a) )

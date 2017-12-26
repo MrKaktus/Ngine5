@@ -12,6 +12,8 @@
 
 */
 
+#include "assert.h"
+
 #include "core/config/context.h" 
 #include "core/storage.h" 
 #include "core/utilities/parser.h"
@@ -48,7 +50,7 @@ namespace en
    string filename = EN_CFG_CONFIGURATION_FILE;
 
    // Open config file 
-   Ptr<File> file = Storage->open(filepath + filename);
+   shared_ptr<File> file = Storage->open(filepath + filename);
    if (file)
       {
       // Config file should have max 1MB size

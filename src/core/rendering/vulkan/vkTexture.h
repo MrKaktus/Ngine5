@@ -41,17 +41,17 @@ namespace en
       VulkanDevice* gpu;
       VkImage       handle;        // Vulkan Image ID
       VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
-      Ptr<HeapVK>   heap;          // Memory backing heap
+      shared_ptr<HeapVK>   heap;          // Memory backing heap
       uint64        offset;        // Offset in the heap
 
       TextureVK(VulkanDevice* gpu, const TextureState& state);
  
-      virtual Ptr<Heap>        parent(void) const;
-      virtual Ptr<TextureView> view(void) const;
-      virtual Ptr<TextureView> view(const TextureType type,
-                                    const Format format,
-                                    const uint32v2 mipmaps,         
-                                    const uint32v2 layers) const;
+      virtual shared_ptr<Heap>        parent(void) const;
+      virtual shared_ptr<TextureView> view(void);
+      virtual shared_ptr<TextureView> view(const TextureType type,
+                                           const Format format,
+                                           const uint32v2 mipmaps,
+                                           const uint32v2 layers);
 
 
       virtual ~TextureVK();
@@ -60,23 +60,23 @@ namespace en
    class TextureViewVK : public CommonTextureView
       {
       public:
-      Ptr<TextureVK> texture; // Parent texture
+      shared_ptr<TextureVK> texture; // Parent texture
       VkImageView    handle;  // Vulkan Image View ID
 
-      TextureViewVK(Ptr<TextureVK>    parent,
+      TextureViewVK(shared_ptr<TextureVK>    parent,
                     const VkImageView view,
                     const TextureType type,
                     const Format      format,
                     const uint32v2    mipmaps,
                     const uint32v2    layers);
 
-      Ptr<Texture> parent(void) const;
+      shared_ptr<Texture> parent(void) const;
    
       virtual ~TextureViewVK();
       };
 
    VkImageAspectFlags TranslateImageAspect(const Format format);
-   Ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state);
+   shared_ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state);
    }
 }
 

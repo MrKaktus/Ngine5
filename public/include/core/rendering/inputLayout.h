@@ -16,9 +16,12 @@
 #ifndef ENG_CORE_RENDERING_INPUT_LAYOUT
 #define ENG_CORE_RENDERING_INPUT_LAYOUT
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
 #include "core/rendering/buffer.h"
 
 namespace en
@@ -39,7 +42,7 @@ namespace en
       };                  // (1+) means after how many Instances it should be updated
 
    // Handle for Input Assembler binding specification
-   class InputLayout : public SafeObject<InputLayout>
+   class InputLayout
       {
       public:
       virtual ~InputLayout() {};              // Polymorphic deletes require a virtual base destructor

@@ -9,6 +9,8 @@
 
 */
 
+#include "assert.h"
+
 #include "core/utilities/basicAllocator.h"
 
 namespace en

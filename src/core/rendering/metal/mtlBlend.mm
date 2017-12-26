@@ -76,14 +76,14 @@ namespace en
 
       MTLRenderPipelineColorAttachmentDescriptor* desc = [blendInfo objectAtIndexedSubscript:i];
          
-      [desc setBlendingEnabled:             color[i].blending                      ];
+      [desc setBlendingEnabled:             color[i].mode == BlendMode::BlendOperation ? true : false ];
     //[desc pixelFormat];                   // Pixel Format is patched at Pipeline creation time
-      [desc setSourceRGBBlendFactor:        TranslateBlend[color[i].srcRGB]        ];
-      [desc setDestinationRGBBlendFactor:   TranslateBlend[color[i].dstRGB]        ];
-      [desc setSourceAlphaBlendFactor:      TranslateBlend[color[i].srcAlpha]      ];
-      [desc setDestinationAlphaBlendFactor: TranslateBlend[color[i].dstAlpha]      ];
-      [desc setRgbBlendOperation:           TranslateBlendFunc[color[i].rgbFunc]   ];
-      [desc setAlphaBlendOperation:         TranslateBlendFunc[color[i].alphaFunc] ];
+      [desc setSourceRGBBlendFactor:        TranslateBlend[color[i].srcRGB]    ];
+      [desc setDestinationRGBBlendFactor:   TranslateBlend[color[i].dstRGB]    ];
+      [desc setSourceAlphaBlendFactor:      TranslateBlend[color[i].srcAlpha]  ];
+      [desc setDestinationAlphaBlendFactor: TranslateBlend[color[i].dstAlpha]  ];
+      [desc setRgbBlendOperation:           TranslateBlendFunc[color[i].rgb]   ];
+      [desc setAlphaBlendOperation:         TranslateBlendFunc[color[i].alpha] ];
 
       // TODO: What about color mask ????
       }
@@ -94,16 +94,15 @@ namespace en
    deallocateObjectiveC(blendInfo);
    }
    
-   Ptr<BlendState> MetalDevice::createBlendState(const BlendStateInfo& state,
-                                                 const uint32 attachments,
-                                                 const BlendAttachmentInfo* color)
+   shared_ptr<BlendState> MetalDevice::createBlendState(const BlendStateInfo& state,
+                                                        const uint32 attachments,
+                                                        const BlendAttachmentInfo* color)
    {
    // We don't support Logic Operations for now
    // for(uint32 i=0; i<attachments; ++i)
    //    assert( !(color[0].logicOperation && color[i].blending) );
    
-   Ptr<BlendStateMTL> ptr = new BlendStateMTL(state, attachments, color);
-   return ptr_reinterpret_cast<BlendState>(&ptr);
+   return make_shared<BlendStateMTL>(state, attachments, color);
    }
    
    }

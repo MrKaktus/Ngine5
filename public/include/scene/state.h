@@ -15,9 +15,11 @@
 #ifndef ENG_STATE
 #define ENG_STATE
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 #include "utilities/timer.h"
 #include "input/input.h"
 
@@ -27,7 +29,7 @@ namespace en
    {
    using namespace en::input;
 
-   class State : public SafeObject<State>
+   class State
          {
          public:
          virtual bool init(void) = 0;   

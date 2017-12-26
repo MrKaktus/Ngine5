@@ -21,7 +21,6 @@
 //#include "core/rendering/context.h"
 #include "platform/windows/win_events.h"
 
-//#include "core/utilities/TintrusivePointer.h"
 //#include "utilities/utilities.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -44,14 +43,14 @@ y = pt.y;
 
 LRESULT CALLBACK WinEvents(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-Ptr<WinInterface> input = ptr_dynamic_cast<WinInterface, Interface>(en::Input);
+WinInterface* input = reinterpret_cast<WinInterface*>(en::Input.get());
 
 switch(msg)
    {           
    case WM_KEYDOWN:
       {
       Key key = TranslateKey[(uint8)wParam];
-      Ptr<CommonKeyboard> keyboard = ptr_dynamic_cast<CommonKeyboard, Keyboard>(input->keyboards[0]);
+      CommonKeyboard* keyboard = reinterpret_cast<CommonKeyboard*>(input->keyboards[0].get());
 
       // If key is continuously pressed, don't resend the 'pressed' event
       if (keyboard->keys[underlyingType(key)] == KeyState::Pressed)
@@ -69,7 +68,7 @@ switch(msg)
    case WM_KEYUP:
       {
       Key key = TranslateKey[(uint8)wParam];
-      Ptr<CommonKeyboard> keyboard = ptr_dynamic_cast<CommonKeyboard, Keyboard>(input->keyboards[0]);
+      CommonKeyboard* keyboard = reinterpret_cast<CommonKeyboard*>(input->keyboards[0].get());
 
       // If key is continuously released (which shouldn't happen), don't resend the 'released' event
       if (keyboard->keys[underlyingType(key)] == KeyState::Released)
@@ -87,7 +86,7 @@ switch(msg)
    // TODO: Is Mouse position reported in current display coordinates or virtual display / desktop coordinates ?
    case WM_MOUSEMOVE:
       {
-      Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(input->mouses[0]);
+      CommonMouse* mouse = reinterpret_cast<CommonMouse*>(input->mouses[0].get());
 
       // Convert Window mouse coordinates to Screen coordinates
       ConvertWindowPositionToScreenPosition(hWnd, lParam, mouse->x, mouse->y);
@@ -102,7 +101,7 @@ switch(msg)
 
    case WM_LBUTTONDOWN:
       {
-      Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(input->mouses[0]);
+      CommonMouse* mouse = reinterpret_cast<CommonMouse*>(input->mouses[0].get());
 
       mouse->buttons[underlyingType(MouseButton::Left)] = KeyState::Pressed;
 
@@ -120,7 +119,7 @@ switch(msg)
 
    case WM_LBUTTONUP:
       {
-      Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(input->mouses[0]);
+      CommonMouse* mouse = reinterpret_cast<CommonMouse*>(input->mouses[0].get());
 
       mouse->buttons[underlyingType(MouseButton::Left)] = KeyState::Released;
 
@@ -138,7 +137,7 @@ switch(msg)
 
    case WM_RBUTTONDOWN:
       {
-      Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(input->mouses[0]);
+      CommonMouse* mouse = reinterpret_cast<CommonMouse*>(input->mouses[0].get());
 
       mouse->buttons[underlyingType(MouseButton::Right)] = KeyState::Pressed;
 
@@ -156,7 +155,7 @@ switch(msg)
 
    case WM_RBUTTONUP:
       {
-      Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(input->mouses[0]);
+      CommonMouse* mouse = reinterpret_cast<CommonMouse*>(input->mouses[0].get());
 
       mouse->buttons[underlyingType(MouseButton::Right)] = KeyState::Released;
 
@@ -174,7 +173,7 @@ switch(msg)
 
    case WM_MBUTTONDOWN:
       {
-      Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(input->mouses[0]);
+      CommonMouse* mouse = reinterpret_cast<CommonMouse*>(input->mouses[0].get());
 
       mouse->buttons[underlyingType(MouseButton::Middle)] = KeyState::Pressed;
 
@@ -192,7 +191,7 @@ switch(msg)
 
    case WM_MBUTTONUP:
       {
-      Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(input->mouses[0]);
+      CommonMouse* mouse = reinterpret_cast<CommonMouse*>(input->mouses[0].get());
 
       mouse->buttons[underlyingType(MouseButton::Middle)] = KeyState::Released;
 

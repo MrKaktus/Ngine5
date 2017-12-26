@@ -137,7 +137,7 @@ namespace en
    }
 
    // TODO: Input should be pointer to buffer (ideally Staging buffer on Heap).
-   Ptr<Buffer> FrustumSettings::wireframe(Ptr<Heap> heap) const
+   shared_ptr<Buffer> FrustumSettings::wireframe(shared_ptr<Heap> heap) const
    {
    //assert(Gpu.screen.created());
 
@@ -165,10 +165,10 @@ namespace en
    points[15] = float3( nearEdges.w, -nearEdges.y, nearPlane); // Lower-right connector
 
    // Create geometry buffer for given frustum
-   Ptr<Buffer> buffer = heap->createBuffer(16, Formatting(Attribute::v3f32)); 
+   shared_ptr<Buffer> buffer = heap->createBuffer(16, Formatting(Attribute::v3f32)); 
 
    // Create staging buffer
-   Ptr<Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, 16);
+   shared_ptr<Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, 16);
    assert( staging );
    
    // Save wireframe to temporary buffer
@@ -182,9 +182,9 @@ namespace en
       type = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   Ptr<CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   shared_ptr<CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
-   command->copy(staging, buffer);
+   command->copy(*staging, *buffer);
    command->commit();
    
    // TODO:

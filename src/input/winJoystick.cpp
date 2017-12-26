@@ -182,7 +182,7 @@ namespace en
    if (hr == DI_BUFFEROVERFLOW)
       Log << "WARNING! Joystick event buffer too small!\n";
 
-   Ptr<WinInterface> input = ptr_dynamic_cast<WinInterface, Interface>(en::Input);
+   WinInterface* input = reinterpret_cast<WinInterface*>(en::Input.get());
 
    for(sint32 e=0; e<elements; ++e)
       {

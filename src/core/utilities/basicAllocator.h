@@ -12,14 +12,16 @@
 #ifndef ENG_CORE_UTILITIES_BASIC_ALLOCATOR
 #define ENG_CORE_UTILITIES_BASIC_ALLOCATOR
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
    // Interface for allocation algorith
-   class Allocator : public SafeObject<Allocator>
+   class Allocator
       {
       public:
       virtual bool allocate(const uint64 requestedSize,

@@ -228,7 +228,7 @@
 //          {
 //          public:
 //          ProgramDescriptor* program;   // Pointer to parent program
-//          Ptr<Buffer>        buffer;         // Buffer attached to uniform block
+//          shared_ptr<Buffer>        buffer;         // Buffer attached to uniform block
 //          char*         name;           // Name of parameter
 //          uint32        size;           // Size in bytes
 //          BufferType    type;           // Type of buffers supported by block (UBO or SSBO)
@@ -265,8 +265,8 @@
 //
 //   struct SamplerHandle
 //      {
-//      Ptr<Texture> texture;
-//      Ptr<Sampler> sampler;
+//      shared_ptr<Texture> texture;
+//      shared_ptr<Sampler> sampler;
 //      sint32       location;   // OpenGL index in program parameters array
 //      uint16       type;       // OpenGL sampler type
 //#ifdef EN_DEBUG
@@ -278,8 +278,8 @@
 //
 //   struct TextureSamplerSet
 //      {
-//      Ptr<Texture> texture;    // Used texture
-//      Ptr<Sampler> sampler;    // Used sampler state
+//      shared_ptr<Texture> texture;    // Used texture
+//      shared_ptr<Sampler> sampler;    // Used sampler state
 //      uint16       location;   // Sampler parameter location in program
 //      uint16       slot;       // Texture Unit sampler parameter is bound to
 //      char*        name;       // Sampler name
@@ -467,7 +467,7 @@
 //      #define CheckError( x ) x; en::gpu::gl::IsError( #x );
 //
 //      #ifdef EN_PROFILER_TRACE_GRAPHICS_API
-//      #define Profile( x )                        \
+//      #define Validate( x )                        \
 //              {                                   \
 //              x;                                  \
 //              Log << "OpenGL: " << #x << endl;    \
@@ -475,7 +475,7 @@
 //                 assert(0);                       \
 //              }
 //      #else 
-//      #define Profile( x )                        \
+//      #define Validate( x )                        \
 //              {                                   \
 //              x;                                  \
 //              if (en::gpu::gl::IsError( #x ))     \
@@ -484,7 +484,7 @@
 //      #endif
 //#else
 //      #define CheckError( x ) x; /* Nothing in Release */
-//      #define Profile( x ) x; /* Nothing in Release */
+//      #define Validate( x ) x; /* Nothing in Release */
 //#endif
 //      void GatherDeviceInformation(void);
 //
@@ -518,7 +518,7 @@
 //      void BuffersInit(void);
 //      void BuffersClear(void);
 //      //bool SupportColumnType(const ColumnType type);
-//      //Ptr<Buffer> BufferCreate(const BufferSettings& bufferSettings, void* data);
+//      //shared_ptr<Buffer> BufferCreate(const BufferSettings& bufferSettings, void* data);
 //      //extern void*  BufferMap(BufferDescriptor* buffer);
 //      //bool   BufferUnmap(BufferDescriptor* buffer);
 //      //bool   BufferDestroy(BufferDescriptor* const buffer);
@@ -541,7 +541,7 @@
 //      //void ProgramsInit(void);
 //      //void ProgramsClear(void);
 //      //Program ProgramCreate(const vector<Shader>& shaders);
-//      //bool    ProgramDraw(ProgramDescriptor* program, const Ptr<Buffer> buffer, const Ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize, const uint32 inst);
+//      //bool    ProgramDraw(ProgramDescriptor* program, const shared_ptr<Buffer> buffer, const shared_ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize, const uint32 inst);
 //      //uint32  ProgramParameterSize(uint16 type);
 //      //bool    ProgramParameterIsSampler(uint16 type);
 //      //bool    ProgramParameterUpdate(ParameterDescriptor* parameter);
@@ -563,35 +563,35 @@
 //      //      bool color(                              //      Texture1DArray, Texture2DArray, Texture2DMultisampleArray, Texture3D (for all layers)
 //      //         const DataAccess access,              // Type of action that can be performed on this texture 
 //      //         const uint8 index,                    // Color attachment
-//      //         const Ptr<Texture>& texture,          // Texture
+//      //         const shared_ptr<Texture>& texture,          // Texture
 //      //         const uint8 mipmap = 0);              // Mipmap
 //      //      
 //      //                                               // Use: TextureCubeMap
 //      //      bool color(                              //      TextureCubeMapArray (all layers)
 //      //         const DataAccess access,              // Type of action that can be performed on this texture 
 //      //         const uint8 index,                    // Color attachment
-//      //         const Ptr<Texture>& texture,          // CubeMap Texture
+//      //         const shared_ptr<Texture>& texture,          // CubeMap Texture
 //      //         const TextureFace face,               // CubeMap Face
 //      //         const uint8 mipmap = 0);              // Mipmap
 //      //      
 //      //      bool color(                              // Use: Texture1DArray, Texture2DArray, Texture2DMultisampleArray, Texture3D (for specific layer)
 //      //         const DataAccess access,              // Type of action that can be performed on this texture 
 //      //         const uint8 index,                    // Color attachment
-//      //         const Ptr<Texture>& texture,          // Texture
+//      //         const shared_ptr<Texture>& texture,          // Texture
 //      //         const uint16 layer,                   // Array layer or depth of 3D texture
 //      //         const uint8 mipmap = 0);              // Mipmap
 //      //      
 //      //      bool color(                              // Use: TextureCubeMapArray (for specific layer)
 //      //         const DataAccess access,              // Type of action that can be performed on this texture 
 //      //         const uint8 index,                    // Color attachment
-//      //         const Ptr<Texture>& texture,          // CubeMap Texture
+//      //         const shared_ptr<Texture>& texture,          // CubeMap Texture
 //      //         const TextureFace face,               // CubeMap Face
 //      //         const uint16 layer,                   // Array layer 
 //      //         const uint8 mipmap = 0);              // Mipmap
 //      //      
 //      //      bool depth(
 //      //         const DataAccess access,              // Type of action that can be performed on this texture 
-//      //         const Ptr<Texture>& texture);         // Depth Texture
+//      //         const shared_ptr<Texture>& texture);         // Depth Texture
 //      //      
 //      //      //virtual bool setStencil(
 //      //      //virtual bool setDepthStencil(
@@ -745,7 +745,7 @@
 //             {
 //             struct SamplerCache
 //                {
-//                Ptr<gpu::Sampler> sampler;
+//                shared_ptr<gpu::Sampler> sampler;
 //                SamplerHash  hash;
 //                };
 //          
@@ -756,8 +756,8 @@
 //          // Texture Units state
 //          struct TextureUnits
 //             {
-//             Ptr<gpu::Texture>* texture;
-//             Ptr<gpu::Sampler>* sampler;
+//             shared_ptr<gpu::Texture>* texture;
+//             shared_ptr<gpu::Sampler>* sampler;
 //             uint32*       metric;  // Age of each binding (reset each time it is set)
 //             } textureUnit;
 //

@@ -182,18 +182,18 @@ namespace en
    uint32 CommonDevice::displays(void) const
    {
    // Currently all devices share all available displays
-   Ptr<CommonGraphicAPI> api = ptr_reinterpret_cast<CommonGraphicAPI>(&en::Graphics);
+   CommonGraphicAPI* api = reinterpret_cast<CommonGraphicAPI*>(en::Graphics.get());
    return api->displaysCount;
    }
    
-   Ptr<Display> CommonDevice::display(uint32 index) const
+   shared_ptr<Display> CommonDevice::display(uint32 index) const
    {
    // Currently all devices share all available displays
-   Ptr<CommonGraphicAPI> api = ptr_reinterpret_cast<CommonGraphicAPI>(&en::Graphics);
+   CommonGraphicAPI* api = reinterpret_cast<CommonGraphicAPI*>(en::Graphics.get());
      
    assert( api->displaysCount > index );
    
-   return ptr_reinterpret_cast<Display>(&api->displayArray[index]);
+   return api->displayArray[index];
    }
 
 
@@ -207,16 +207,16 @@ namespace en
    delete defaultState;
    }
    
-   //Ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType,
-   //                                                    const uint32 controlPoints,
-   //                                                    const uint32 usedAttributes,
-   //                                                    const uint32 usedBuffers,
-   //                                                    const AttributeDesc* attributes,
-   //                                                    const BufferDesc* buffers)
+   //shared_ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType,
+   //                                                        const uint32 controlPoints,
+   //                                                        const uint32 usedAttributes,
+   //                                                        const uint32 usedBuffers,
+   //                                                        const AttributeDesc* attributes,
+   //                                                        const BufferDesc* buffers)
    //{
    //// Should be implemented by API
    //assert(0);
-   //return Ptr<InputLayout>(nullptr);
+   //return shared_ptr<InputLayout>(nullptr);
    //}
    
 
@@ -293,7 +293,7 @@ namespace en
    {
    // Create copy of Pipeline State so that app can modify 
    // some of the states without affecting shared default ones.
-   return PipelineState(*raw_reinterpret_cast<PipelineState>(&defaultState));
+   return *defaultState;
    }
 
    CommonGraphicAPI::CommonGraphicAPI() :
@@ -318,8 +318,8 @@ namespace en
       if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
          displaysCount++;
 
-   displayArray = new Ptr<CommonDisplay>[displaysCount];
-   virtualDisplay = new winDisplay();
+   displayArray = new shared_ptr<CommonDisplay>[displaysCount];
+   virtualDisplay = make_shared<winDisplay>();
   
    // Clear structure for next display (to ensure there is no old data)
    memset(&Device, 0, sizeof(Device));
@@ -358,7 +358,7 @@ namespace en
          while(EnumDisplaySettingsEx(Device.DeviceName, modesCount, &DispMode, 0u))
             modesCount++;
 
-         Ptr<winDisplay> currentDisplay = new winDisplay();
+         shared_ptr<winDisplay> currentDisplay = make_shared<winDisplay>();
          
          currentDisplay->modeResolution = new uint32v2[modesCount];
      
@@ -426,7 +426,7 @@ namespace en
             }
        
          // Add active display to the list
-         displayArray[activeId] = ptr_dynamic_cast<CommonDisplay, winDisplay>(currentDisplay);
+         displayArray[activeId] = currentDisplay;
          activeId++;
          }
          
@@ -456,23 +456,23 @@ namespace en
    // Load choosed API for Android & Windows
    
 #if defined(EN_PLATFORM_ANDROID)
-   // Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLESAPI>(Ptr<OpenGLESAPI>(new OpenGLESAPI()));
-   // Graphics = ptr_dynamic_cast<GraphicAPI, VulkanAPI>  (Ptr<VulkanAPI>(new VulkanAPI()));
+   // Graphics = make_shared<OpenGLESAPI>();
+   // Graphics = make_shared<VulkanAPI>();
 #endif
 #if defined(EN_PLATFORM_BLACKBERRY)
-   Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLESAPI>(Ptr<OpenGLESAPI>(new OpenGLESAPI()));
+   Graphics = make_shared<OpenGLESAPI>();
 #endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   Graphics = ptr_dynamic_cast<GraphicAPI, MetalAPI>(Ptr<MetalAPI>(new MetalAPI()));
+   Graphics = make_shared<MetalAPI>();
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
    // API Selection based on config file / terminal parameters
    if (Config.get("g.api", string("d3d12")))
-      Graphics = ptr_dynamic_cast<GraphicAPI, Direct3DAPI>(Ptr<Direct3DAPI>(new Direct3DAPI("Ngine5.0")));
+      Graphics = make_shared<Direct3DAPI>("Ngine5.0");
    else
-      Graphics = ptr_dynamic_cast<GraphicAPI, VulkanAPI>(Ptr<VulkanAPI>(new VulkanAPI("Ngine5.0")));      // TODO: Propagate application name !
+      Graphics = make_shared<VulkanAPI>("Ngine5.0");      // TODO: Propagate application name !
 
-   // Graphics = ptr_dynamic_cast<GraphicAPI, OpenGLAPI>(Ptr<OpenGLAPI>(new OpenGLAPI()));
+   // Graphics = make_shared<OpenGLAPI<();
 #endif
 
    return (Graphics == nullptr) ? false : true;
@@ -480,7 +480,7 @@ namespace en
    
    }
    
-Ptr<gpu::GraphicAPI> Graphics;
+shared_ptr<gpu::GraphicAPI> Graphics;
 }
 
 

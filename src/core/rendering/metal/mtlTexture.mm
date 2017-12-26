@@ -455,7 +455,7 @@ namespace en
    assert( handle != nil );
    }
 
-   TextureMTL::TextureMTL(const id<MTLDevice> device, const Ptr<SharedSurface> backingSurface) :
+   TextureMTL::TextureMTL(const id<MTLDevice> device, const shared_ptr<SharedSurface> backingSurface) :
       ioSurface(nullptr),
       ownsBacking(true)
    {
@@ -464,7 +464,7 @@ namespace en
    assert( 0 );
 #endif
    
-   ioSurface = ptr_reinterpret_cast<SharedSurfaceOSX>(&backingSurface);
+   ioSurface = dynamic_pointer_cast<SharedSurfaceOSX>(backingSurface);
    
    state.type    = TextureType::Texture2D;
    state.format  = Format::BGRA_8;
@@ -505,14 +505,14 @@ namespace en
    ioSurface = nullptr;
    }
 
-   Ptr<Heap> TextureMTL::parent(void) const
+   shared_ptr<Heap> TextureMTL::parent(void) const
    {
-   return ptr_reinterpret_cast<Heap>(&heap);
+   return heap;
    }
 
-   Ptr<TextureView> TextureMTL::view(void) const
+   shared_ptr<TextureView> TextureMTL::view(void)
    {
-   Ptr<TextureViewMTL> result = nullptr;
+   shared_ptr<TextureViewMTL> result = nullptr;
    
    // Metal is not supporting components swizzling.
    
@@ -522,22 +522,23 @@ namespace en
                                          levels:NSMakeRange(0u, state.mipmaps)
                                          slices:NSMakeRange(0u, state.layers)];
    if (view)
-      result = new TextureViewMTL(Ptr<TextureMTL>((TextureMTL*)this),
-                                  view,
-                                  state.type,
-                                  state.format,
-                                  uint32v2(0u, state.mipmaps),
-                                  uint32v2(0u, state.layers));
+      result = make_shared<TextureViewMTL>(dynamic_pointer_cast<TextureMTL>(shared_from_this()),
+                                           view,
+                                           state.type,
+                                           state.format,
+                                           uint32v2(0u, state.mipmaps),
+                                           uint32v2(0u, state.layers));
       
-   return ptr_reinterpret_cast<TextureView>(&result);
+   return result;
    }
    
-   Ptr<TextureView> TextureMTL::view(const TextureType _type,
+   shared_ptr<TextureView> TextureMTL::view(
+      const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
-      const uint32v2 _layers) const
+      const uint32v2 _layers)
    {
-   Ptr<TextureViewMTL> result = nullptr;
+   shared_ptr<TextureViewMTL> result = nullptr;
    
    // Metal is not supporting components swizzling.
    
@@ -547,14 +548,19 @@ namespace en
                                          levels:NSMakeRange(_mipmaps.base, _mipmaps.count)
                                          slices:NSMakeRange(_layers.base, _layers.count)];
    if (view)
-      result = new TextureViewMTL(Ptr<TextureMTL>((TextureMTL*)this),
-                                  view, _type, _format, _mipmaps, _layers);
+      result = make_shared<TextureViewMTL>(dynamic_pointer_cast<TextureMTL>(shared_from_this()),
+                                           view,
+                                           _type,
+                                           _format,
+                                           _mipmaps,
+                                           _layers);
 
-   return ptr_reinterpret_cast<TextureView>(&result);
+   return result;
    }
  
 
-   TextureViewMTL::TextureViewMTL(Ptr<TextureMTL> parent,
+   TextureViewMTL::TextureViewMTL(
+         shared_ptr<TextureMTL> parent,
          id<MTLTexture> view,
          const TextureType _type,
          const Format _format,
@@ -574,9 +580,9 @@ namespace en
    deallocateObjectiveC(handle);
    }
    
-   Ptr<Texture> TextureViewMTL::parent(void) const
+   shared_ptr<Texture> TextureViewMTL::parent(void) const
    {
-   return ptr_reinterpret_cast<Texture>(&texture);
+   return texture;
    }
 
  
@@ -584,14 +590,14 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   LinearAlignment MetalDevice::textureLinearAlignment(const Ptr<Texture> texture,
+   LinearAlignment MetalDevice::textureLinearAlignment(const Texture& texture,
                                                        const uint32 mipmap,
                                                        const uint32 layer)
    {
    LinearAlignment desc;
    
    // Data total size with paddings (Metal doesn't require paddings between lines?)
-   desc.size = texture->size(mipmap);
+   desc.size = texture.size(mipmap);
    
    // Data starting offset alignment
 #if defined(EN_PLATFORM_OSX)
@@ -604,16 +610,15 @@ namespace en
       desc.alignment = 64;
 #endif
 
-   desc.rowSize   = texture->width(mipmap) * genericTexelSize(texture->format());
-   desc.rowsCount = texture->height(mipmap); // TODO: Correct this for compressed textures!
+   desc.rowSize   = texture.width(mipmap) * genericTexelSize(texture.format());
+   desc.rowsCount = texture.height(mipmap); // TODO: Correct this for compressed textures!
    
    return desc;
    }
 
-   Ptr<Texture> MetalDevice::createSharedTexture(Ptr<SharedSurface> backingSurface)
+   shared_ptr<Texture> MetalDevice::createSharedTexture(shared_ptr<SharedSurface> backingSurface)
    {
-   Ptr<TextureMTL> ptr = new TextureMTL(device, backingSurface);
-   return ptr_reinterpret_cast<Texture>(&ptr);
+   return make_shared<TextureMTL>(device, backingSurface);
    }
          
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME

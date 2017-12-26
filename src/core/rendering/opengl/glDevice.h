@@ -47,7 +47,7 @@ namespace en
 }
 
    #ifdef EN_PROFILER_TRACE_GRAPHICS_API
-   #define Profile( x )                        \
+   #define Validate( x )                       \
            {                                   \
            Log << "OpenGL: " << #x << endl;    \
            x;                                  \
@@ -55,7 +55,7 @@ namespace en
               assert(0);                       \
            }
    #else 
-   #define Profile( x )                        \
+   #define Validate( x )                       \
            {                                   \
            x;                                  \
            if (en::gpu::IsError( #x ))         \
@@ -63,7 +63,7 @@ namespace en
            }
    #endif
 #else
-   #define Profile( x ) x; /* Nothing in Release */
+   #define Validate( x ) x; /* Nothing in Release */
 #endif
 
 namespace en
@@ -82,7 +82,7 @@ namespace en
       virtual void init(void);
       bool IsError(const char* function);
       
-      virtual Ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
+      virtual shared_ptr<Buffer> create(const BufferType type, const uint32 size, const void* data = nullptr);
       };
    }
 }

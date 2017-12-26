@@ -49,7 +49,7 @@ namespace en
       public:
       MetalDevice* gpu;
       uint32 setsCount;  // Count of descriptor sets
-      Ptr<SetLayoutMTL>* setLayout;
+      shared_ptr<SetLayoutMTL>* setLayout;
       
       PipelineLayoutMTL(MetalDevice* gpu, const uint32 _setsCount);
       virtual ~PipelineLayoutMTL();
@@ -63,17 +63,17 @@ namespace en
       DescriptorsMTL(MetalDevice* gpu);
       virtual ~DescriptorsMTL();
       
-      virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout);
+      virtual shared_ptr<DescriptorSet> allocate(const shared_ptr<SetLayout> layout);
       virtual bool allocate(const uint32 count,
-                            const Ptr<SetLayout>* layouts,
-                            Ptr<DescriptorSet>** sets);
+                            const shared_ptr<SetLayout>(&layouts)[],
+                            shared_ptr<DescriptorSet>** sets);
       };
       
    class DescriptorSetMTL : public DescriptorSet
       {
       public:
       MetalDevice*      gpu;        // Device backing this buffer memory
-      Ptr<SetLayoutMTL> layout;     // Reference to Layout, that will be used to encode descriptors in backing buffer
+      shared_ptr<SetLayoutMTL> layout; // Reference to Layout, that will be used to encode descriptors in backing buffer
       id<MTLBuffer>     handle;     // MTLBuffer storing descriptors
       
       uint8*            heapId;     // Index to Heap pointer, that backs resource currently bound to given Descriptor Slot
@@ -81,14 +81,14 @@ namespace en
       uint32*           heapsRefs;  // Count of desriptors referencing each Heap
       uint32            heapsCount; // Describes range of slots in Heaps array, used by valid Heaps pointers
       
-      DescriptorSetMTL(MetalDevice* gpu, Ptr<SetLayoutMTL> layout);
+      DescriptorSetMTL(MetalDevice* gpu, shared_ptr<SetLayoutMTL> layout);
       virtual ~DescriptorSetMTL();
       
       void updateResidencyTracking(const uint32 slot, const id<MTLHeap> heap);
       
-      virtual void setBuffer(const uint32 slot, const Ptr<Buffer> buffer);
-      virtual void setSampler(const uint32 slot, const Ptr<Sampler> sampler);
-      virtual void setTextureView(const uint32 slot, const Ptr<TextureView> view);
+      virtual void setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer);
+      virtual void setSampler(const uint32 slot, const shared_ptr<Sampler> sampler);
+      virtual void setTextureView(const uint32 slot, const shared_ptr<TextureView> view);
       };
    }
 }

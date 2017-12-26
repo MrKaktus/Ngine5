@@ -18,15 +18,26 @@
 
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
+#include <memory>
+using namespace std;
+
 #include "core/rendering/state.h"
 
 namespace en
 {
    namespace gpu
    {
-   // Color Buffer blend functions
-   enum BlendFunction
+   // Operation performed by blend stage
+   enum class BlendMode : uint32
+      {
+      Off            = 0,
+      BlendOperation = 1,
+      LogicOperation = 2   // Currently unsupported (equals to Off), as Metal API doesn't support it
+      };
+      
+   // Color Buffer blend factor
+   enum BlendFactor
       {
       Zero                        = 0,
       One                            ,
@@ -50,8 +61,8 @@ namespace en
       BlendFunctionsCount
       };
 
-   // Color Buffer blend equations
-   enum BlendEquation
+   // Color Buffer blend operation
+   enum BlendOperation
       {
       Add                         = 0,
       Subtract                       ,
@@ -103,35 +114,33 @@ namespace en
 
    // Default state:
    //
-   // - blending       = false
-   // - logicOperation = false (unsupported)
-   // - srcRGB         = BlendFunction::One
-   // - dstRGB         = BlendFunction::Zero
-   // - rgbFunc        = BlendEquation::Add
-   // - srcAlpha       = BlendFunction::One
-   // - dstAlpha       = BlendFunction::Zero
-   // - alphaFunc      = BlendEquation::Add
-   // - logic          = NoOperation (unsupported)
+   // - mode           = BlendMode::Off
+   // - srcRGB         = BlendFactor::One
+   // - dstRGB         = BlendFactor::Zero
+   // - rgbFunc        = BlendOperation::Add
+   // - srcAlpha       = BlendFactor::One
+   // - dstAlpha       = BlendFactor::Zero
+   // - alphaFunc      = BlendOperation::Add
+   // - logic          = LogicOperation::NoOperation (ignored, unsupported)
    // - writeMask      = ColorMask::ColorMaskAll
    //
    // Logic Operations are currently ignored as they are unsupported in Metal API.
    struct BlendAttachmentInfo
       {
-      bool           blending;       // Enablers
-      bool           logicOperation;
-      BlendFunction  srcRGB;         // Blend parameters
-      BlendFunction  dstRGB;
-      BlendEquation  rgbFunc;
-      BlendFunction  srcAlpha;
-      BlendFunction  dstAlpha;
-      BlendEquation  alphaFunc;
+      BlendMode      mode;
+      BlendFactor    srcRGB;         // Blend parameters
+      BlendFactor    dstRGB;
+      BlendOperation rgb;
+      BlendFactor    srcAlpha;
+      BlendFactor    dstAlpha;
+      BlendOperation alpha;
       LogicOperation logic;          // Logic operation
       ColorMask      writeMask;
 
       BlendAttachmentInfo();
       };
 
-   class BlendState : public SafeObject<BlendState>
+   class BlendState
       {
       public:
       virtual ~BlendState() {};                           // Polymorphic deletes require a virtual base destructor

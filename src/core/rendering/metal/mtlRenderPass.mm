@@ -186,7 +186,7 @@ namespace en
 //      descStencil.storeAction = MTLStoreActionStoreAndMultisampleResolve; // MTLStoreActionMultisampleResolve;;
    }
    
-//   bool DepthStencilAttachmentMTL::resolve(const Ptr<TextureView> destination,
+//   bool DepthStencilAttachmentMTL::resolve(const shared_ptr<TextureView> destination,
 //      const DepthResolve mode)
 //   {
 //#if defined(EN_PLATFORM_OSX)
@@ -195,7 +195,7 @@ namespace en
 //#if defined(EN_PLATFORM_IOS)
 //   assert( destination );
 //
-//   Ptr<TextureViewMTL> resolveView = ptr_dynamic_cast<TextureViewMTL, TextureView>(destination);
+//   TextureViewMTL* resolveView = reinterpret_cast<TextureViewMTL*>(destination.get());
 //
 //   // Metal is currently not supporting 
 //   // Texture2DMultisampleArray, nor TextureCubeMapArray
@@ -271,13 +271,13 @@ namespace en
    deallocateObjectiveC(desc);
    }
 
-   Ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
-                                                     const uint32 _layers,
-                                                     const uint32 surfaces,
-                                                     const Ptr<TextureView>* surface,
-                                                     const Ptr<TextureView> _depthStencil,
-                                                     const Ptr<TextureView> _stencil,
-                                                     const Ptr<TextureView> _depthResolve)
+   shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
+                                                            const uint32 _layers,
+                                                            const uint32 surfaces,
+                                                            const shared_ptr<TextureView>* surface,
+                                                            const shared_ptr<TextureView> _depthStencil,
+                                                            const shared_ptr<TextureView> _stencil,
+                                                            const shared_ptr<TextureView> _depthResolve)
    {
    // TODO: If there is only one surface view.
    //       If this view is default, and points to one of the Swap-Chain textures of any created Window.
@@ -295,9 +295,9 @@ namespace en
        _depthStencil == nullptr &&
        _stencil      == nullptr &&
        _depthResolve == nullptr)
-      return Ptr<Framebuffer>(nullptr);
+      return shared_ptr<Framebuffer>(nullptr);
 
-   Ptr<FramebufferMTL> framebuffer = new FramebufferMTL(_resolution, _layers);
+   shared_ptr<FramebufferMTL> framebuffer = make_shared<FramebufferMTL>(_resolution, _layers);
 
    // Create patching array
    uint32 index = 0u;
@@ -305,7 +305,7 @@ namespace en
       {
       if (checkBit(usedAttachments, i))
          {
-         TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&surface[index]);
+         TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(surface[index].get());
          framebuffer->color[i] = [view->handle retain];
          index++;
          }
@@ -323,7 +323,7 @@ namespace en
          {
          if (checkBit(usedAttachments, i))
             {
-            TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&surface[index]);
+            TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(surface[index].get());
             framebuffer->resolve[i] = [view->handle retain];
             index++;
             }
@@ -337,7 +337,7 @@ namespace en
       
    if (_depthStencil)
       {
-      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&_depthStencil);
+      TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(_depthStencil.get());
       framebuffer->depthStencil[0u] = [view->handle retain];
       
       // Depth-Stencil textures need to be bound to both slots
@@ -346,12 +346,12 @@ namespace en
       }
    if (_stencil)
       {
-      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&_stencil);
+      TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(_stencil.get());
       framebuffer->depthStencil[1u] = [view->handle retain];
       }
    if (_depthResolve)
       {
-      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&_depthResolve);
+      TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(_depthResolve.get());
       framebuffer->depthStencil[2] = [view->handle retain];
       }
       
@@ -359,23 +359,23 @@ namespace en
    //       resolution and layers count!
    //       Calculation of common resolution and layers should be done by the app !
  
-   return ptr_reinterpret_cast<Framebuffer>(&framebuffer);
+   return framebuffer;
    }
    
-   Ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
-                                                     const Ptr<TextureView> swapChainSurface,
-                                                     const Ptr<TextureView> depthStencil,
-                                                     const Ptr<TextureView> stencil)
+   shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
+                                                            const shared_ptr<TextureView> swapChainSurface,
+                                                            const shared_ptr<TextureView> depthStencil,
+                                                            const shared_ptr<TextureView> stencil)
    {
    uint32 attachments = bitsCount(usedAttachments);
 
    assert( swapChainSurface );
    assert( attachments == 1 );
 
-   Ptr<FramebufferMTL> framebuffer = new FramebufferMTL(_resolution, 1u);
+   shared_ptr<FramebufferMTL> framebuffer = make_shared<FramebufferMTL>(_resolution, 1u);
 
    // Create patching array
-   TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&swapChainSurface);
+   TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(swapChainSurface.get());
    framebuffer->color[0u] = [view->handle retain];
    framebuffer->resolve[0u] = nil;
    
@@ -390,7 +390,7 @@ namespace en
       
    if (depthStencil)
       {
-      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&depthStencil);
+      TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(depthStencil.get());
       framebuffer->depthStencil[0u] = [view->handle retain];
       
       // Depth-Stencil textures need to be bound to both slots
@@ -399,7 +399,7 @@ namespace en
       }
    if (stencil)
       {
-      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&stencil);
+      TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(stencil.get());
       framebuffer->depthStencil[1u] = [view->handle retain];
       }
       
@@ -407,14 +407,14 @@ namespace en
    //       resolution and layers count!
    //       Calculation of common resolution and layers should be done by the app !
  
-   return ptr_reinterpret_cast<Framebuffer>(&framebuffer);
+   return framebuffer;
    }
 
-   Ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
-                                                     const Ptr<TextureView> temporaryMSAA,
-                                                     const Ptr<TextureView> swapChainSurface,
-                                                     const Ptr<TextureView> depthStencil,
-                                                     const Ptr<TextureView> stencil)
+   shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
+                                                            const shared_ptr<TextureView> temporaryMSAA,
+                                                            const shared_ptr<TextureView> swapChainSurface,
+                                                            const shared_ptr<TextureView> depthStencil,
+                                                            const shared_ptr<TextureView> stencil)
    {
    uint32 attachments = bitsCount(usedAttachments);
 
@@ -422,13 +422,13 @@ namespace en
    assert( swapChainSurface );
    assert( attachments == 1 );
 
-   Ptr<FramebufferMTL> framebuffer = new FramebufferMTL(_resolution, 1u);
+   shared_ptr<FramebufferMTL> framebuffer = make_shared<FramebufferMTL>(_resolution, 1u);
 
    // Create patching array
-   TextureViewMTL* viewA = raw_reinterpret_cast<TextureViewMTL>(&temporaryMSAA);
+   TextureViewMTL* viewA = reinterpret_cast<TextureViewMTL*>(temporaryMSAA.get());
    framebuffer->color[0u] = [viewA->handle retain];
 
-   TextureViewMTL* viewB = raw_reinterpret_cast<TextureViewMTL>(&swapChainSurface);
+   TextureViewMTL* viewB = reinterpret_cast<TextureViewMTL*>(swapChainSurface.get());
    framebuffer->resolve[0u] = [viewB->handle retain];
    
    for(uint32 i=1; i<MaxColorAttachmentsCount; ++i)
@@ -442,7 +442,7 @@ namespace en
    
    if (depthStencil)
       {
-      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&depthStencil);
+      TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(depthStencil.get());
       framebuffer->depthStencil[0] = [view->handle retain];
 
       // Depth-Stencil textures need to be bound to both slots
@@ -451,7 +451,7 @@ namespace en
       }
    if (stencil)
       {
-      TextureViewMTL* view = raw_reinterpret_cast<TextureViewMTL>(&stencil);
+      TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(stencil.get());
       framebuffer->depthStencil[1] = [view->handle retain];
       }
       
@@ -459,26 +459,25 @@ namespace en
    //       resolution and layers count!
    //       Calculation of common resolution and layers should be done by the app !
  
-   return ptr_reinterpret_cast<Framebuffer>(&framebuffer);
+   return framebuffer;
    }
 
    // DEVICE
    //////////////////////////////////////////////////////////////////////////
 
    
-   Ptr<ColorAttachment> MetalDevice::createColorAttachment(const Format format, 
-                                                           const uint32 samples)
+   shared_ptr<ColorAttachment> MetalDevice::createColorAttachment(const Format format, 
+                                                                  const uint32 samples)
    {
    assert( format != Format::Unsupported );
    assert( samples > 0u );
    
-   Ptr<ColorAttachmentMTL> ptr = new ColorAttachmentMTL(format, samples);
-   return ptr_reinterpret_cast<ColorAttachment>(&ptr);
+   return make_shared<ColorAttachmentMTL>(format, samples);
    }
    
-   Ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(const Format depthFormat, 
-                                                                         const Format stencilFormat,
-                                                                         const uint32 samples)
+   shared_ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(const Format depthFormat, 
+                                                                                const Format stencilFormat,
+                                                                                const uint32 samples)
    {
    assert( depthFormat   != Format::Unsupported || 
            stencilFormat != Format::Unsupported );
@@ -491,20 +490,19 @@ namespace en
 
    // TODO: In Debug mode check if Format is supported at current HW in Real-Time
    
-   Ptr<DepthStencilAttachmentMTL> ptr = new DepthStencilAttachmentMTL(depthFormat, stencilFormat, samples);
-   return ptr_reinterpret_cast<DepthStencilAttachment>(&ptr);
+   return make_shared<DepthStencilAttachmentMTL>(depthFormat, stencilFormat, samples);
    }
 
-   Ptr<RenderPass> MetalDevice::createRenderPass(const uint32 attachments,
-                                                 const Ptr<ColorAttachment>* color,
-                                                 const Ptr<DepthStencilAttachment> depthStencil)
+   shared_ptr<RenderPass> MetalDevice::createRenderPass(const uint32 attachments,
+                                                        const shared_ptr<ColorAttachment>* color,
+                                                        const shared_ptr<DepthStencilAttachment> depthStencil)
    {
    assert( attachments < MaxColorAttachmentsCount );
    
    // Metal is not supporting Fragment Shaders working only on Side Effect Buffers without classic output ones
    assert( depthStencil || attachments > 0 );
 
-   Ptr<RenderPassMTL> pass = new RenderPassMTL();
+   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
 
    // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
 
@@ -525,7 +523,7 @@ namespace en
          continue;
          }
          
-      ColorAttachmentMTL* mtlColor = raw_reinterpret_cast<ColorAttachmentMTL>(&color[i]);
+      ColorAttachmentMTL* mtlColor = reinterpret_cast<ColorAttachmentMTL*>(color[i].get());
       pass->desc.colorAttachments[i] = mtlColor->desc;
       pass->format[i]  = mtlColor->format;
       pass->samples[i] = mtlColor->samples;
@@ -538,7 +536,7 @@ namespace en
    // Optional Depth-Stencil / Depth / Stencil
    if (depthStencil)
       {
-      DepthStencilAttachmentMTL* mtlDepthStencil = raw_reinterpret_cast<DepthStencilAttachmentMTL>(&depthStencil);
+      DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<DepthStencilAttachmentMTL*>(depthStencil.get());
       pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
       pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
       pass->format[MaxColorAttachmentsCount]   = mtlDepthStencil->depthFormat;
@@ -555,15 +553,15 @@ namespace en
    // Layered Rendering
    pass->desc.renderTargetArrayLength = 0u;  // Set it at RenderPass Start using Framebuffer data
    
-   return ptr_reinterpret_cast<RenderPass>(&pass);
+   return pass;
    }
    
-   Ptr<RenderPass> MetalDevice::createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
-                                                 const Ptr<DepthStencilAttachment> depthStencil)
+   shared_ptr<RenderPass> MetalDevice::createRenderPass(const shared_ptr<ColorAttachment> swapChainSurface,
+                                                        const shared_ptr<DepthStencilAttachment> depthStencil)
    {
    assert( swapChainSurface );
 
-   Ptr<RenderPassMTL> pass = new RenderPassMTL();
+   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
 
    // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
 
@@ -572,7 +570,7 @@ namespace en
       {
       if (i == 0)
          {
-         ColorAttachmentMTL* mtlColor = raw_reinterpret_cast<ColorAttachmentMTL>(&swapChainSurface);
+         ColorAttachmentMTL* mtlColor = reinterpret_cast<ColorAttachmentMTL*>(swapChainSurface.get());
          pass->desc.colorAttachments[0] = mtlColor->desc;
          pass->format[0]  = mtlColor->format;
          pass->samples[0] = mtlColor->samples;
@@ -588,7 +586,7 @@ namespace en
    // Optional Depth-Stencil / Depth / Stencil
    if (depthStencil)
       {
-      DepthStencilAttachmentMTL* mtlDepthStencil = raw_reinterpret_cast<DepthStencilAttachmentMTL>(&depthStencil);
+      DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<DepthStencilAttachmentMTL*>(depthStencil.get());
       pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
       pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
       pass->format[MaxColorAttachmentsCount]   = mtlDepthStencil->depthFormat;
@@ -605,7 +603,7 @@ namespace en
    // Layered Rendering
    pass->desc.renderTargetArrayLength = 0u;  // Set it at RenderPass Start using Framebuffer data
    
-   return ptr_reinterpret_cast<RenderPass>(&pass);
+   return pass;
    }
    
    
@@ -644,8 +642,8 @@ namespace en
 //   // TODO: Separate stencil texture can have different mipmap and layer ?
 //   if (separateStencil || TextureFormatIsDepthStencil(depthFormat) )
 //      {
-////      Ptr<TextureViewMTL> targetStencil = separateStencil ? ptr_dynamic_cast<TextureViewMTL, TextureView>(stencil) :
-////                                                    ptr_dynamic_cast<TextureViewMTL, TextureView>(depth);
+////      TextureViewMTL* targetStencil = separateStencil ? reinterpret_cast<TextureViewMTL*>(stencil.get()) :
+////                                                        reinterpret_cast<TextureViewMTL*>(depth.get());
 ////
 ////      // Separate Stencil must have the same type as Depth attachment.
 ////      assert( targetStencil->viewType == targetDepth->viewType );
@@ -655,24 +653,24 @@ namespace en
    
 //   // Metal is currently not supporting 
 //   // Texture2DMultisampleArray, nor TextureCubeMapArray
-//   Ptr<TextureViewMTL> validate = ptr_dynamic_cast<TextureViewMTL, TextureView>(source);
+//   TextureViewMTL* validate = reinterpret_cast<TextureViewMTL*>(source.get());
 //   assert( validate->viewType != TextureType::Texture2DMultisampleArray );
 //   assert( validate->viewType != TextureType::TextureCubeMapArray );
 //  
 //   // HERE: If in debug layer return nullptr
 
 //   // Metal is currently not supporting Texture2DMultisampleArray, nor TextureCubeMapArray
-//   Ptr<TextureViewMTL> validateDepth   = nullptr;
-//   Ptr<TextureViewMTL> validateStencil = nullptr;
+//   TextureViewMTL* validateDepth   = nullptr;
+//   TextureViewMTL* validateStencil = nullptr;
 //   if (depth)
 //      {
-//      validateDepth = ptr_dynamic_cast<TextureViewMTL, TextureView>(depth);
+//      validateDepth = reinterpret_cast<TextureViewMTL*>(depth.get());
 //      assert( validateDepth->viewType != TextureType::Texture2DMultisampleArray );
 //      assert( validateDepth->viewType != TextureType::TextureCubeMapArray );
 //      }
 //   if (stencil)
 //      {
-//      validateStencil = ptr_dynamic_cast<TextureViewMTL, TextureView>(stencil);
+//      validateStencil = reinterpret_cast<TextureViewMTL*>(stencil.get());
 //      assert( validateStencil->viewType != TextureType::Texture2DMultisampleArray );
 //      assert( validateStencil->viewType != TextureType::TextureCubeMapArray );
 //      }
@@ -696,39 +694,39 @@ namespace en
       
 
 //   // Creates simple render pass with one color destination
-//   Ptr<RenderPass> MetalDevice::createRenderPass(const Ptr<ColorAttachment> color,
-//                                                 const Ptr<DepthStencilAttachment> depthStencil)
+//   shared_ptr<RenderPass> MetalDevice::createRenderPass(const shared_ptr<ColorAttachment> color,
+//                                                 const shared_ptr<DepthStencilAttachment> depthStencil)
 //   {
-//   Ptr<RenderPassMTL> pass = new RenderPassMTL();
+//   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
 //
 //   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
 //
 //   // Color
-//   Ptr<ColorAttachmentMTL> mtlColor = ptr_dynamic_cast<ColorAttachmentMTL, ColorAttachment>(color);
+//   ColorAttachmentMTL* mtlColor = reinterpret_cast<ColorAttachmentMTL*>(color.get());
 //   pass->desc.colorAttachments[0] = mtlColor->desc;
 //   
 //   // Depth & Stencil
-//   Ptr<DepthStencilAttachmentMTL> mtlDepthStencil = ptr_dynamic_cast<DepthStencilAttachmentMTL, DepthStencilAttachment>(depthStencil);
+//   DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<DepthStencilAttachmentMTL*>(depthStencil.get());
 //   pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
 //   pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
 //
 //   // Layered Rendering
 //   pass->desc.renderTargetArrayLength = 0;  // TODO: Pick attachment with smallest count of Layers
 //  
-//   return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
+//   return pass;
 //   }
 
 //   // Creates render pass which's output goes to window framebuffer
-//   Ptr<RenderPass> MetalDevice::createRenderPass(const Ptr<Texture> framebuffer,
-//                                                 const Ptr<DepthStencilAttachment> depthStencil)
+//   shared_ptr<RenderPass> MetalDevice::createRenderPass(const shared_ptr<Texture> framebuffer,
+//                                                 const shared_ptr<DepthStencilAttachment> depthStencil)
 //   {
-//   Ptr<RenderPassMTL> pass = new RenderPassMTL();
+//   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
 //
 //   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
 //
 //   // Color
 //   assert( framebuffer );
-//   Ptr<TextureMTL> fbo  = ptr_dynamic_cast<TextureMTL, Texture>(framebuffer);
+//   TextureMTL* fbo = reinterpret_cast<TextureMTL*>(framebuffer.get());
 //
 //   MTLRenderPassColorAttachmentDescriptor* colorAttachment = pass->desc.colorAttachments[0];
 //   colorAttachment.texture           = fbo->handle;
@@ -744,31 +742,31 @@ namespace en
 //   colorAttachment.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
 //   
 //   // Depth & Stencil
-//   Ptr<DepthStencilAttachmentMTL> mtlDepthStencil = ptr_dynamic_cast<DepthStencilAttachmentMTL, DepthStencilAttachment>(depthStencil);
+//   DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<DepthStencilAttachmentMTL*>(depthStencil.get());
 //   pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
 //   pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
 //
 //   // Layered Rendering
 //   pass->desc.renderTargetArrayLength = 0;
 //   
-//   return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
+//   return pass;
 //   }
 //
 //   // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-//   Ptr<RenderPass> MetalDevice::createRenderPass(const Ptr<Texture> temporaryMSAA,
-//                                                 const Ptr<Texture> framebuffer,
-//                                                 const Ptr<DepthStencilAttachment> depthStencil)
+//   shared_ptr<RenderPass> MetalDevice::createRenderPass(const shared_ptr<Texture> temporaryMSAA,
+//                                                 const shared_ptr<Texture> framebuffer,
+//                                                 const shared_ptr<DepthStencilAttachment> depthStencil)
 //   {
 //   assert( temporaryMSAA );
 //   assert( framebuffer );
 //   
-//   Ptr<RenderPassMTL> pass = new RenderPassMTL();
+//   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
 //
 //   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
 //
 //   // Color
-//   Ptr<TextureMTL> msaa = ptr_dynamic_cast<TextureMTL, Texture>(temporaryMSAA);
-//   Ptr<TextureMTL> fbo  = ptr_dynamic_cast<TextureMTL, Texture>(framebuffer);
+//   TextureMTL* msaa = reinterpret_cast<TextureMTL*>(temporaryMSAA.get());
+//   TextureMTL* fbo  = reinterpret_cast<TextureMTL*>(framebuffer.get());
 //
 //   MTLRenderPassColorAttachmentDescriptor* colorAttachment = pass->desc.colorAttachments[0];
 //   colorAttachment.texture           = msaa->handle;
@@ -784,14 +782,14 @@ namespace en
 //   colorAttachment.clearColor        = MTLClearColorMake(0.0f,0.0f,0.0f,1.0f);
 //   
 //   // Depth & Stencil
-//   Ptr<DepthStencilAttachmentMTL> mtlDepthStencil = ptr_dynamic_cast<DepthStencilAttachmentMTL, DepthStencilAttachment>(depthStencil);
+//   DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<DepthStencilAttachmentMTL*>(depthStencil.get());
 //   pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
 //   pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
 //
 //   // Layered Rendering
 //   pass->desc.renderTargetArrayLength = 0;
 //   
-//   return ptr_dynamic_cast<RenderPass, RenderPassMTL>(pass);
+//   return pass;
 //   }
 
 

@@ -55,7 +55,7 @@ namespace en
    // D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ
    // D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ
 
-   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, ID3D12PipelineState* _handle, Ptr<PipelineLayoutD3D12> _layout) :
+   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, ID3D12PipelineState* _handle, shared_ptr<PipelineLayoutD3D12> _layout) :
       gpu(_gpu),
       handle(_handle),
       layout(_layout),
@@ -69,13 +69,13 @@ namespace en
    layout = nullptr;
 
    assert( handle );
-   ProfileCom(  handle->Release() )
+   ValidateCom(  handle->Release() )
    handle = nullptr;
    }
 
-   Ptr<Pipeline> Direct3D12Device::createPipeline(const PipelineState& pipelineState)
+   shared_ptr<Pipeline> Direct3D12Device::createPipeline(const PipelineState& pipelineState)
    {
-   Ptr<PipelineD3D12> result = nullptr;
+   shared_ptr<PipelineD3D12> result = nullptr;
 
    // Pipeline object is always created against Render Pass, and app responsibility is to
    // provide missing states (ViewportState, Shaders).
@@ -83,27 +83,27 @@ namespace en
    assert( pipelineState.viewportState );
 
    // Cast to D3D12 states
-   const RenderPassD3D12*         renderPass     = raw_reinterpret_cast<RenderPassD3D12>(&pipelineState.renderPass);
+   const RenderPassD3D12*         renderPass     = reinterpret_cast<RenderPassD3D12*>(pipelineState.renderPass.get());
 
-   const InputLayoutD3D12*        input          = pipelineState.inputLayout ? raw_reinterpret_cast<InputLayoutD3D12>(&pipelineState.inputLayout)
-                                                                             : raw_reinterpret_cast<InputLayoutD3D12>(&defaultState->inputLayout);
+   const InputLayoutD3D12*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutD3D12*>(pipelineState.inputLayout.get())
+                                                                             : reinterpret_cast<InputLayoutD3D12*>(defaultState->inputLayout.get());
 
-   const ViewportStateD3D12*      viewport       = raw_reinterpret_cast<ViewportStateD3D12>(&pipelineState.viewportState);
+   const ViewportStateD3D12*      viewport       = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState.get());
 
-   const RasterStateD3D12*        raster         = pipelineState.rasterState ? raw_reinterpret_cast<RasterStateD3D12>(&pipelineState.rasterState)
-                                                                             : raw_reinterpret_cast<RasterStateD3D12>(&defaultState->rasterState);
+   const RasterStateD3D12*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateD3D12*>(pipelineState.rasterState.get())
+                                                                             : reinterpret_cast<RasterStateD3D12*>(defaultState->rasterState.get());
 
-   const MultisamplingStateD3D12* multisampling  = pipelineState.multisamplingState ? raw_reinterpret_cast<MultisamplingStateD3D12>(&pipelineState.multisamplingState)
-                                                                                    : raw_reinterpret_cast<MultisamplingStateD3D12>(&defaultState->multisamplingState);
+   const MultisamplingStateD3D12* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateD3D12*>(pipelineState.multisamplingState.get())
+                                                                                    : reinterpret_cast<MultisamplingStateD3D12*>(defaultState->multisamplingState.get());
       
-   const DepthStencilStateD3D12*  depthStencil   = pipelineState.depthStencilState ? raw_reinterpret_cast<DepthStencilStateD3D12>(&pipelineState.depthStencilState)
-                                                                                   : raw_reinterpret_cast<DepthStencilStateD3D12>(&defaultState->depthStencilState);
+   const DepthStencilStateD3D12*  depthStencil   = pipelineState.depthStencilState ? reinterpret_cast<DepthStencilStateD3D12*>(pipelineState.depthStencilState.get())
+                                                                                   : reinterpret_cast<DepthStencilStateD3D12*>(defaultState->depthStencilState.get());
 
-   const BlendStateD3D12*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateD3D12>(&pipelineState.blendState)
-                                                                            : raw_reinterpret_cast<BlendStateD3D12>(&defaultState->blendState);
+   const BlendStateD3D12*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateD3D12*>(pipelineState.blendState.get())
+                                                                            : reinterpret_cast<BlendStateD3D12*>(defaultState->blendState.get());
 
-   PipelineLayoutD3D12*     layout               = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutD3D12>(&pipelineState.pipelineLayout) 
-                                                                                : raw_reinterpret_cast<PipelineLayoutD3D12>(&defaultState->pipelineLayout);
+   PipelineLayoutD3D12*     layout               = pipelineState.pipelineLayout ? reinterpret_cast<PipelineLayoutD3D12*>(pipelineState.pipelineLayout.get())
+                                                                                : reinterpret_cast<PipelineLayoutD3D12*>(defaultState->pipelineLayout.get());
 
    // Count amount of shader stages in use
    uint32 stages = 0;
@@ -126,11 +126,11 @@ namespace en
    // Pipeline descriptor
    D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
    desc.pRootSignature        = layout->handle;
-   desc.VS                    = pipelineState.shader[0] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[0])->state : noShader;
-   desc.PS                    = pipelineState.shader[4] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[4])->state : noShader;
-   desc.DS                    = pipelineState.shader[2] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[2])->state : noShader;
-   desc.HS                    = pipelineState.shader[1] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[1])->state : noShader;
-   desc.GS                    = pipelineState.shader[3] ? raw_reinterpret_cast<ShaderD3D12>(&pipelineState.shader[3])->state : noShader;
+   desc.VS                    = pipelineState.shader[0] ? reinterpret_cast<ShaderD3D12*>(pipelineState.shader[0].get())->state : noShader;
+   desc.PS                    = pipelineState.shader[4] ? reinterpret_cast<ShaderD3D12*>(pipelineState.shader[4].get())->state : noShader;
+   desc.DS                    = pipelineState.shader[2] ? reinterpret_cast<ShaderD3D12*>(pipelineState.shader[2].get())->state : noShader;
+   desc.HS                    = pipelineState.shader[1] ? reinterpret_cast<ShaderD3D12*>(pipelineState.shader[1].get())->state : noShader;
+   desc.GS                    = pipelineState.shader[3] ? reinterpret_cast<ShaderD3D12*>(pipelineState.shader[3].get())->state : noShader;
    
    // StreamOut is currently unsupported
    desc.StreamOutput.pSODeclaration   = nullptr;
@@ -192,14 +192,14 @@ namespace en
 
    // Create pipeline state object
    ID3D12PipelineState* pipeline = nullptr;
-   Profile( this, CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline)) ) // __uuidof(ID3D12PipelineState), reinterpret_cast<void**>(&pipeline)
+   Validate( this, CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline)) ) // __uuidof(ID3D12PipelineState), reinterpret_cast<void**>(&pipeline)
    if (SUCCEEDED(lastResult[Scheduler.core()]))
       {
-      Ptr<PipelineLayoutD3D12> layoutPtr(layout);
-      result = new PipelineD3D12(this, pipeline, layoutPtr);
+      shared_ptr<PipelineLayoutD3D12> layoutPtr(layout);
+      result = make_shared<PipelineD3D12>(this, pipeline, layoutPtr);
       
       // Defer dynamic state: Viewport & Scissor State 
-      const ViewportStateD3D12* viewport = raw_reinterpret_cast<ViewportStateD3D12>(&pipelineState.viewportState);
+      const ViewportStateD3D12* viewport = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState.get());
       memcpy(&result->viewport[0], &viewport->viewport[0], viewport->count * sizeof(D3D12_VIEWPORT));
       memcpy(&result->scissor[0],  &viewport->scissor[0],  viewport->count * sizeof(D3D12_RECT));
       result->viewportsCount = viewport->count;
@@ -219,7 +219,7 @@ namespace en
          result->topology = (D3D_PRIMITIVE_TOPOLOGY)(underlyingType(result->topology) + input->points - 1);
       }
 
-   return ptr_reinterpret_cast<Pipeline>(&result);
+   return result;
    }
 
    }

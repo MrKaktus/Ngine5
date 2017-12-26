@@ -117,24 +117,24 @@ namespace en
 
       virtual uint32 displays(void) const;
 
-      virtual Ptr<Display> display(uint32 index) const;
+      virtual shared_ptr<Display> display(uint32 index) const;
 
 
-      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                 const uint32 controlPoints = 0u);
+      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                        const uint32 controlPoints = 0u);
 
-      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                 const bool primitiveRestart,
-                                                 const uint32 controlPoints,
-                                                 const Ptr<Buffer> buffer);
+      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                        const bool primitiveRestart,
+                                                        const uint32 controlPoints,
+                                                        const Buffer& buffer);
          
       // Needs to be Declared and Defined to allow calls to it from itself
-      //virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-      //                                              const uint32 controlPoints,
-      //                                              const uint32 usedAttributes,
-      //                                              const uint32 usedBuffers,
-      //                                              const AttributeDesc* attributes,
-      //                                              const BufferDesc* buffers);
+      //virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+      //                                                  const uint32 controlPoints,
+      //                                                  const uint32 usedAttributes,
+      //                                                  const uint32 usedBuffers,
+      //                                                  const AttributeDesc* attributes,
+      //                                                  const BufferDesc* buffers);
          
       virtual PipelineState defaultPipelineState(void);
 
@@ -145,10 +145,10 @@ namespace en
       {
       public:
       // API Independent, OS Dependent - Windowing System
-      Ptr<CommonDisplay>*              displayArray;
-      Ptr<CommonDisplay>               virtualDisplay;
-      uint32                           displaysCount;
-      uint32                           displayPrimary;
+      shared_ptr<CommonDisplay>* displayArray;
+      shared_ptr<CommonDisplay>  virtualDisplay;
+      uint32                     displaysCount;
+      uint32                     displayPrimary;
   
       public:
       CommonGraphicAPI();

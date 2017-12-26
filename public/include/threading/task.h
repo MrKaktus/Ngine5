@@ -6,7 +6,7 @@
 
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/aligment.h"
+#include "core/utilities/alignment.h"
 
 namespace en
 {

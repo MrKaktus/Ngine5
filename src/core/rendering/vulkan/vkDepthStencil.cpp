@@ -76,9 +76,9 @@ namespace en
       }
    }
 
-   Ptr<DepthStencilState> VulkanDevice::createDepthStencilState(const DepthStencilStateInfo& desc)
+   shared_ptr<DepthStencilState> VulkanDevice::createDepthStencilState(const DepthStencilStateInfo& desc)
    {
-   return ptr_reinterpret_cast<DepthStencilState>(&Ptr<DepthStencilStateVK>(new DepthStencilStateVK(desc)));
+   return make_shared<DepthStencilStateVK>(desc);
    }
 
    }

@@ -55,7 +55,7 @@ namespace en
    {
    }
 
-   void CommandBufferMTL::start(const Ptr<Semaphore> waitForSemaphore)
+   void CommandBufferMTL::start(const shared_ptr<Semaphore> waitForSemaphore)
    {
    // In Vulkan app needs to explicitly state when it starts to
    // encode commands to Command Buffer. In Metal we do that when
@@ -72,12 +72,12 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
  
-   void CommandBufferMTL::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer> _framebuffer)
+   void CommandBufferMTL::startRenderPass(const shared_ptr<RenderPass> pass, const shared_ptr<Framebuffer> _framebuffer)
    {
    assert( renderEncoder == nil );
   
-   RenderPassMTL*  renderPass  = raw_reinterpret_cast<RenderPassMTL>(&pass);
-   FramebufferMTL* framebuffer = raw_reinterpret_cast<FramebufferMTL>(&_framebuffer);
+   RenderPassMTL*  renderPass  = reinterpret_cast<RenderPassMTL*>(pass.get());
+   FramebufferMTL* framebuffer = reinterpret_cast<FramebufferMTL*>(_framebuffer.get());
    
    // Patch Texture handles
    bool layeredRendering = false;
@@ -158,7 +158,10 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferMTL::setVertexBuffers(const uint32 count, const uint32 firstSlot, const Ptr<Buffer>* buffers, const uint64* offsets) const
+   void CommandBufferMTL::setVertexBuffers(const uint32 count,
+                                           const uint32 firstSlot,
+                                           const shared_ptr<Buffer>(&buffers)[],
+                                           const uint64* offsets) const
    {
    assert( count );
    // assert( (firstSlot + count) <= gpu->properties.limits.maxVertexInputBindings ); TODO: Populate GPU support field depending on iOS and macOS limitations and check it here
@@ -167,8 +170,7 @@ namespace en
    id<MTLBuffer>* handles = new id<MTLBuffer>[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
    for(uint32 i=0; i<count; ++i)
       {
-      assert( buffers[i] );
-      handles[i] = ptr_dynamic_cast<BufferMTL, Buffer>(buffers[i])->handle;
+      handles[i] = reinterpret_cast<BufferMTL*>(buffers[i].get())->handle;
       }
 
    // Generate default zero offsets array if none is passed
@@ -188,11 +190,13 @@ namespace en
       delete [] finalOffsets;
    }
 
-   void CommandBufferMTL::setVertexBuffer(const uint32 slot, const Ptr<Buffer> buffer, const uint64 offset) const
+   void CommandBufferMTL::setVertexBuffer(const uint32 slot,
+                                          const Buffer& buffer,
+                                          const uint64 offset) const
    {
-   [renderEncoder setVertexBuffer:ptr_dynamic_cast<BufferMTL, Buffer>(buffer)->handle 
+   [renderEncoder setVertexBuffer:reinterpret_cast<const BufferMTL&>(buffer).handle
                            offset:offset 
-						  atIndex:slot];
+                          atIndex:slot];
    }
 
 
@@ -201,69 +205,68 @@ namespace en
 
 
    // Copies content of source buffer to destination buffer
-   void CommandBufferMTL::copy(Ptr<Buffer> source, Ptr<Buffer> destination)
+   void CommandBufferMTL::copy(const Buffer& source, const Buffer& destination)
    {
-   assert( source );
-   assert( destination );
-   assert( source->length() <= destination->length() );
+   assert( source.length() <= destination.length() );
 
-   copy(source, destination, source->length(), 0u, 0u);
+   copy(source, destination, source.length(), 0u, 0u);
    }
    
-   void CommandBufferMTL::copy(Ptr<Buffer> source,
-      Ptr<Buffer> destination,
-      uint64 size,
-      uint64 srcOffset,
-      uint64 dstOffset)
+   void CommandBufferMTL::copy(
+      const Buffer& source,
+      const Buffer& destination,
+      const uint64 size,
+      const uint64 srcOffset,
+      const uint64 dstOffset)
    {
-   assert( source );
-   assert( source->type() == BufferType::Transfer );
-   assert( destination );
-   assert( (srcOffset + size) <= source->length() );
-   assert( (dstOffset + size) <= destination->length() );
+   assert( source.type() == BufferType::Transfer );
+   assert( (srcOffset + size) <= source.length() );
+   assert( (dstOffset + size) <= destination.length() );
    
-   BufferMTL* src = raw_reinterpret_cast<BufferMTL>(&source);
-   BufferMTL* dst = raw_reinterpret_cast<BufferMTL>(&destination);
+   const BufferMTL& src = reinterpret_cast<const BufferMTL&>(source);
+   const BufferMTL& dst = reinterpret_cast<const BufferMTL&>(destination);
 
    @autoreleasepool
       {
       // Blit to Private buffer
       id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
-      [blit copyFromBuffer:src->handle
-              sourceOffset:src->offset + srcOffset
-                  toBuffer:dst->handle
-         destinationOffset:dst->offset + dstOffset
+      [blit copyFromBuffer:src.handle
+              sourceOffset:src.offset + srcOffset
+                  toBuffer:dst.handle
+         destinationOffset:dst.offset + dstOffset
                       size:size];
 
       [blit endEncoding];
       //blit = nil;
       } // autoreleasepool
-   
    }
 
-   void CommandBufferMTL::copy(Ptr<Buffer> transfer, const uint64 srcOffset, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   void CommandBufferMTL::copy(
+       const Buffer& transfer,
+       const uint64 srcOffset,
+       const Texture& texture,
+       const uint32 mipmap,
+       const uint32 layer)
    {
-   assert( transfer );
-   assert( transfer->type() == BufferType::Transfer );
-   assert( texture );
-   assert( texture->mipmaps() > mipmap );
-   assert( texture->layers() > layer );
+   assert( transfer.type() == BufferType::Transfer );
+   assert( texture.mipmaps() > mipmap );
+   assert( texture.layers() > layer );
    
-   BufferMTL*  source      = raw_reinterpret_cast<BufferMTL>(&transfer);
-   TextureMTL* destination = raw_reinterpret_cast<TextureMTL>(&texture);
+   const BufferMTL&  source      = reinterpret_cast<const BufferMTL&>(transfer);
+   const TextureMTL& destination = reinterpret_cast<const TextureMTL&>(texture);
 
-   assert( source->size >= srcOffset + destination->size(mipmap) );
+   assert( source.size >= srcOffset + destination.size(mipmap) );
 
    LinearAlignment layout = gpu->textureLinearAlignment(texture, mipmap, layer);
 
       // Blit to Private buffer
       id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
-      [blit copyFromBuffer:source->handle
-              sourceOffset:source->offset + srcOffset
+      [blit copyFromBuffer:source.handle
+              sourceOffset:source.offset + srcOffset
          sourceBytesPerRow:layout.rowSize
        sourceBytesPerImage:layout.size
-                sourceSize:MTLSizeMake(destination->width(mipmap), destination->height(mipmap), 1)
-                 toTexture:destination->handle
+                sourceSize:MTLSizeMake(destination.width(mipmap), destination.height(mipmap), 1)
+                 toTexture:destination.handle
           destinationSlice:layer
           destinationLevel:mipmap
          destinationOrigin:MTLOriginMake(0, 0, 0)
@@ -275,7 +278,11 @@ namespace en
    }
 
    // Copies content of buffer, to given mipmap and layer of destination texture
-   void CommandBufferMTL::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   void CommandBufferMTL::copy(
+       const Buffer& transfer,
+       const Texture& texture,
+       const uint32 mipmap,
+       const uint32 layer)
    {
    copy(transfer, 0u, texture, mipmap, layer);
    }
@@ -285,19 +292,19 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferMTL::draw(const uint32       elements,
-                               const Ptr<Buffer>  indexBuffer,
-                               const uint32       instances,
-                               const uint32       firstElement,
-                               const sint32       firstVertex,
-                               const uint32       firstInstance)
+   void CommandBufferMTL::draw(const uint32  elements,
+                               const Buffer* indexBuffer,
+                               const uint32  instances,
+                               const uint32  firstElement,
+                               const sint32  firstVertex,
+                               const uint32  firstInstance)
    {
    assert( elements );
  
    // Elements are assembled into Primitives.
    if (indexBuffer)
       {
-      BufferMTL* index = raw_reinterpret_cast<BufferMTL>(&indexBuffer);
+      const BufferMTL* index = reinterpret_cast<const BufferMTL*>(indexBuffer);
       
       assert( index->apiType == BufferType::Index );
       
@@ -345,19 +352,17 @@ namespace en
    }
 
    // IOS 9.0+, OSX 10.11+
-   void CommandBufferMTL::draw(const Ptr<Buffer>  indirectBuffer,
-                               const uint32       firstEntry,
-                               const Ptr<Buffer>  indexBuffer,
-                               const uint32       firstElement)
+   void CommandBufferMTL::draw(const Buffer& indirectBuffer,
+                               const uint32  firstEntry,
+                               const Buffer* indexBuffer,
+                               const uint32  firstElement)
    {
-   assert( indirectBuffer );
-   
-   BufferMTL* indirect = raw_reinterpret_cast<BufferMTL>(&indirectBuffer);
-   assert( indirect->apiType == BufferType::Indirect );
+   const BufferMTL& indirect = reinterpret_cast<const BufferMTL&>(indirectBuffer);
+   assert( indirect.apiType == BufferType::Indirect );
    
    if (indexBuffer)
       {
-      BufferMTL* index = raw_reinterpret_cast<BufferMTL>(&indexBuffer);
+      const BufferMTL* index = reinterpret_cast<const BufferMTL*>(indexBuffer);
       assert( index->apiType == BufferType::Index );
       
       uint32 elementSize = 2;
@@ -373,14 +378,14 @@ namespace en
                                  indexType:indexType
                                indexBuffer:index->handle
                          indexBufferOffset:(firstElement * elementSize)
-                            indirectBuffer:indirect->handle
+                            indirectBuffer:indirect.handle
                       indirectBufferOffset:(firstEntry * sizeof(IndirectIndexedDrawArgument))];
       }
    else
       {
       // IndirectDrawArgument can be directly cast to MTLDrawPrimitivesIndirectArguments
       [renderEncoder drawPrimitives:primitive
-                     indirectBuffer:indirect->handle
+                     indirectBuffer:indirect.handle
                indirectBufferOffset:(firstEntry * sizeof(IndirectDrawArgument))];
       }
    }
@@ -409,7 +414,7 @@ namespace en
 
 
    
-   void CommandBufferMTL::commit(const Ptr<Semaphore> signalSemaphore)
+   void CommandBufferMTL::commit(const shared_ptr<Semaphore> signalSemaphore)
    {
    // TODO: Do we need to synchronize CommandBuffer execution with Swap-Chain ?
    
@@ -434,7 +439,7 @@ namespace en
    deallocateObjectiveC(handle);
    }
 
-   Ptr<CommandBuffer> MetalDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
+   shared_ptr<CommandBuffer> MetalDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
    {
    // Metal exposes only one logical queue that is universal, and handles load balancing on HW queues on it's own.
    assert( type == QueueType::Universal );
@@ -443,12 +448,12 @@ namespace en
    // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers can be recycled / reused !!! )
    // Multiple buffers can be created simultaneously for one queue
    // Buffers are executed in order in queue
-   Ptr<CommandBufferMTL> buffer = new CommandBufferMTL(this);
+   shared_ptr<CommandBufferMTL> buffer = make_shared<CommandBufferMTL>(this);
 
    // Acquired Command Buffer is autoreleased.
    buffer->handle = [queue commandBufferWithUnretainedReferences];
 
-   return ptr_reinterpret_cast<CommandBuffer>(&buffer);
+   return buffer;
    }
    
    }

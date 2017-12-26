@@ -29,18 +29,18 @@ namespace en
    FramebufferGL30::FramebufferGL30()
    {
    assert( GpuContext.screen.created );
-   Profile( glGenFramebuffers(1, &id) )
+   Validate( glGenFramebuffers(1, &id) )
    }
 
    FramebufferGL30::~FramebufferGL30()
    {
    assert( GpuContext.screen.created );
-   Profile( glDeleteFramebuffers(1, &id) )
+   Validate( glDeleteFramebuffers(1, &id) )
    }
 
    // Use: Texture1D, Texture2D, Texture2DRectangle, Texture2DMultisample (single layer)
    //      Texture1DArray, Texture2DArray, Texture2DMultisampleArray, Texture3D, TextureCubeMap, TextureCubeMapArray (all layers)
-   void FramebufferGL30::color(const DataAccess access, const uint8 index, const Ptr<Texture> texture, const uint8 mipmap)
+   void FramebufferGL30::color(const DataAccess access, const uint8 index, const shared_ptr<Texture> texture, const uint8 mipmap)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -64,17 +64,17 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   Profile( glBindFramebuffer(accessType, id) )
+   Validate( glBindFramebuffer(accessType, id) )
    uint16 glType = TranslateTextureType[underlyingType(texture->type())];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
       case TextureType::Texture1D:
-         Profile( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
+         Validate( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
       case TextureType::Texture2D:
-         Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
+         Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
       default:
@@ -85,7 +85,7 @@ namespace en
 
 #ifdef EN_DEBUG
    GLenum result;
-   Profile( result = glCheckFramebufferStatus(accessType) )
+   Validate( result = glCheckFramebufferStatus(accessType) )
    assert( result == GL_FRAMEBUFFER_COMPLETE );
 #endif
    }
@@ -93,7 +93,7 @@ namespace en
    // Use: Texture1D, Texture2D, Texture2DRectangle, Texture2DMultisample
    //      Texture3D, TextureCubeMap (specific depth, face)   
    //      Texture1DArray, Texture2DArray, Texture2DMultisampleArray, TextureCubeMapArray (all layers)
-   void FramebufferGL30::color(const DataAccess access, const uint8 index, const Ptr<Texture> texture, const uint16 layer, const uint8 mipmap)
+   void FramebufferGL30::color(const DataAccess access, const uint8 index, const shared_ptr<Texture> texture, const uint16 layer, const uint8 mipmap)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -115,27 +115,27 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   Profile( glBindFramebuffer(accessType, id) )
+   Validate( glBindFramebuffer(accessType, id) )
    uint16 glType = TranslateTextureType[underlyingType(texture->type())];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
       case TextureType::Texture1D:
-         Profile( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
+         Validate( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
       case TextureType::Texture2D:
-         Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
+         Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
       case TextureType::Texture3D:
          assert( layer < texture->depth() );
-         Profile( glFramebufferTexture3D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap, layer) )
+         Validate( glFramebufferTexture3D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap, layer) )
          break;
 
       case TextureType::TextureCubeMap:
          assert( layer < 6 );
-         Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), TranslateTextureFace[layer], tex->id, mipmap) )
+         Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), TranslateTextureFace[layer], tex->id, mipmap) )
          break;
 
       default:
@@ -146,12 +146,12 @@ namespace en
 
 #ifdef EN_DEBUG
    GLenum result;
-   Profile( result = glCheckFramebufferStatus(accessType) )
+   Validate( result = glCheckFramebufferStatus(accessType) )
    assert( result == GL_FRAMEBUFFER_COMPLETE );
 #endif
    }
 
-   void FramebufferGL30::depth(const DataAccess access, const Ptr<Texture> texture)
+   void FramebufferGL30::depth(const DataAccess access, const shared_ptr<Texture> texture)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -171,18 +171,18 @@ namespace en
       accessType = GL_READ_FRAMEBUFFER;
 
    uint16 glType = TranslateTextureType[underlyingType(texture->type())];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_DEPTH_ATTACHMENT, glType, tex->id, 0) )
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_DEPTH_ATTACHMENT, glType, tex->id, 0) )
 
 #ifdef EN_DEBUG
    GLenum result;
-   Profile( result = glCheckFramebufferStatus(accessType) )
+   Validate( result = glCheckFramebufferStatus(accessType) )
    assert( result == GL_FRAMEBUFFER_COMPLETE );
 #endif
    } 
 
-   void FramebufferGL30::stencil(const DataAccess access, const Ptr<Texture> texture)
+   void FramebufferGL30::stencil(const DataAccess access, const shared_ptr<Texture> texture)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -199,18 +199,18 @@ namespace en
       accessType = GL_READ_FRAMEBUFFER;
 
    uint16 glType = TranslateTextureType[underlyingType(texture->type())];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_STENCIL_ATTACHMENT, glType, tex->id, 0) )
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_STENCIL_ATTACHMENT, glType, tex->id, 0) )
 
 #ifdef EN_DEBUG
    GLenum result;
-   Profile( result = glCheckFramebufferStatus(accessType) )
+   Validate( result = glCheckFramebufferStatus(accessType) )
    assert( result == GL_FRAMEBUFFER_COMPLETE );
 #endif
    } 
 
-   void FramebufferGL30::depthStencil(const DataAccess access, const Ptr<Texture> texture)
+   void FramebufferGL30::depthStencil(const DataAccess access, const shared_ptr<Texture> texture)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -228,13 +228,13 @@ namespace en
       accessType = GL_READ_FRAMEBUFFER;
 
    uint16 glType = TranslateTextureType[underlyingType(texture->type())];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_DEPTH_STENCIL_ATTACHMENT, glType, tex->id, 0) )
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_DEPTH_STENCIL_ATTACHMENT, glType, tex->id, 0) )
 
 #ifdef EN_DEBUG
    GLenum result;
-   Profile( result = glCheckFramebufferStatus(accessType) )
+   Validate( result = glCheckFramebufferStatus(accessType) )
    assert( result == GL_FRAMEBUFFER_COMPLETE );
 #endif
    } 
@@ -242,29 +242,29 @@ namespace en
    void FramebufferGL30::defaultColor(const uint8 index)
    {
    uint16 accessType = GL_DRAW_FRAMEBUFFER;
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), GL_TEXTURE_2D, 0, 0) )
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), GL_TEXTURE_2D, 0, 0) )
    }
 
    void FramebufferGL30::defaultDepth(void)
    {
    uint16 accessType = GL_DRAW_FRAMEBUFFER;
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
    }
 
    void FramebufferGL30::defaultStencil(void)
    {
    uint16 accessType = GL_DRAW_FRAMEBUFFER;
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
    }
 
    void FramebufferGL30::defaultDepthStencil(void)
    {
    uint16 accessType = GL_DRAW_FRAMEBUFFER;
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
    }
 
 
@@ -278,8 +278,8 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), GL_TEXTURE_2D, 0, 0) )
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), GL_TEXTURE_2D, 0, 0) )
    }
 
    void FramebufferGL30::defaultDepth(const DataAccess access)
@@ -289,8 +289,8 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
    }
 
    void FramebufferGL30::defaultStencil(const DataAccess access)
@@ -300,8 +300,8 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
    }
 
    void FramebufferGL30::defaultDepthStencil(const DataAccess access)
@@ -311,8 +311,8 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   Profile( glBindFramebuffer(accessType, id) )
-   Profile( glFramebufferTexture2D(accessType, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
+   Validate( glBindFramebuffer(accessType, id) )
+   Validate( glFramebufferTexture2D(accessType, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0) )
    }
 
    }

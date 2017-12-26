@@ -24,7 +24,10 @@ namespace en
 {
    namespace gpu
    {
-   HeapMTL::HeapMTL(MetalDevice* _gpu, id handle, const MemoryUsage _usage, const uint32 _size) :
+   HeapMTL::HeapMTL(shared_ptr<MetalDevice> _gpu,
+                    id handle,
+                    const MemoryUsage _usage,
+                    const uint32 _size) :
       gpu(_gpu),
       handle(handle),
 #if defined(EN_PLATFORM_OSX)
@@ -44,20 +47,20 @@ namespace en
    }
    
    // Return parent device
-   Ptr<GpuDevice> HeapMTL::device(void) const
+   shared_ptr<GpuDevice> HeapMTL::device(void) const
    {
-   return Ptr<GpuDevice>(gpu);
+   return gpu;
    }
       
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   Ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size)
+   shared_ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size)
    {
    assert( _usage != MemoryUsage::Tiled &&
            _usage != MemoryUsage::Renderable );
    
-   Ptr<BufferMTL> result = nullptr;
+   shared_ptr<BufferMTL> result = nullptr;
    
 #if defined(EN_PLATFORM_OSX)
    // Sub-allocate region from backing MTLBuffer
@@ -71,7 +74,11 @@ namespace en
       if (allocator->allocate(size, 0, offset))
          {
          [handle retain];
-         result = new BufferMTL(Ptr<HeapMTL>(this), handle, type, size, offset);
+         result = make_shared<BufferMTL>(dynamic_pointer_cast<HeapMTL>(shared_from_this()),
+                                         handle,
+                                         type,
+                                         size,
+                                         offset);
          }
       }
    else
@@ -90,29 +97,34 @@ namespace en
                                                  options:options];
          
       if (buffer)
-         result = new BufferMTL(Ptr<HeapMTL>(this), buffer, type, size, 0);
+         result = make_shared<BufferMTL>(dynamic_pointer_cast<HeapMTL>(shared_from_this()),
+                                         buffer,
+                                         type,
+                                         size,
+                                         0);
       }
 
-   return ptr_reinterpret_cast<Buffer>(&result);
+   return result;
    }
  
-   Ptr<Texture> HeapMTL::createTexture(const TextureState state)
+   shared_ptr<Texture> HeapMTL::createTexture(const TextureState state)
    {
    // Textures can be only created on Tiled or Renderable Heaps.
    // (Engine currently is not supporting Linear Textures).
    assert( _usage == MemoryUsage::Tiled ||
            _usage == MemoryUsage::Renderable );
    
-   Ptr<TextureMTL> ptr = new TextureMTL(handle, state);
+   // TODO: Refactor this mess
+   shared_ptr<TextureMTL> ptr = make_shared<TextureMTL>(handle, state);
    if (ptr)
-      ptr->heap = Ptr<HeapMTL>(this);
+      ptr->heap = dynamic_pointer_cast<HeapMTL>(shared_from_this());
    
-   return ptr_reinterpret_cast<Texture>(&ptr);
+   return ptr;
    }
    
-   Ptr<Heap> MetalDevice::createHeap(const MemoryUsage usage, const uint32 size)
+   shared_ptr<Heap> MetalDevice::createHeap(const MemoryUsage usage, const uint32 size)
    {
-   Ptr<HeapMTL> heap = nullptr;
+   shared_ptr<HeapMTL> heap = nullptr;
 
    uint32 roundedSize = roundUp(size, 4096u);
   
@@ -146,9 +158,12 @@ namespace en
          }
          
       if (handle)
-         heap = new HeapMTL(this, handle, usage, roundedSize);
+         heap = make_shared<HeapMTL>(dynamic_pointer_cast<MetalDevice>(shared_from_this()),
+                                     handle,
+                                     usage,
+                                     roundedSize);
 
-      return ptr_reinterpret_cast<Heap>(&heap);
+      return heap;
       }
 #endif
   
@@ -166,11 +181,14 @@ namespace en
    id<MTLHeap> handle = nil;
    handle = [device newHeapWithDescriptor:desc];
    if (handle)
-      heap = new HeapMTL(this, handle, usage, roundedSize);
+      heap = make_shared<HeapMTL>(dynamic_pointer_cast<MetalDevice>(shared_from_this()),
+                                  handle,
+                                  usage,
+                                  roundedSize);
 
    deallocateObjectiveC(desc);
 
-   return ptr_reinterpret_cast<Heap>(&heap);
+   return heap;
    }
       
    }

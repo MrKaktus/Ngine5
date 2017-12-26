@@ -54,7 +54,7 @@ namespace en
 #ifdef EN_DEBUG
    #ifdef EN_PROFILER_TRACE_GRAPHICS_API
 
-   #define Profile( _gpu, command )                                                 \
+   #define Validate( _gpu, command )                                                \
            {                                                                        \
            uint32 thread = Scheduler.core();                                        \
            Log << "[" << setw(2) << thread << "] ";                                 \
@@ -65,7 +65,7 @@ namespace en
            en::gpu::IsWarning(_gpu->lastResult[thread]);                            \
            }
 
-   #define ProfileCom( command )                                                       \
+   #define ValidateCom( command )                                                   \
            {                                                                        \
            uint32 thread = Scheduler.core();                                        \
            Log << "[" << setw(2) << thread << "] ";                                 \
@@ -74,7 +74,7 @@ namespace en
            assert( SUCCEEDED(hr) );                                                 \
            }
 
-   #define ProfileNoRet( _gpu, command )                                            \
+   #define ValidateNoRet( _gpu, command )                                           \
            {                                                                        \
            uint32 thread = Scheduler.core();                                        \
            Log << "[" << setw(2) << thread << "] ";                                 \
@@ -82,7 +82,7 @@ namespace en
            _gpu->device->command;                                                   \
            }
 
-   #define ProfileComNoRet( command )                                                  \
+   #define ValidateComNoRet( command )                                              \
            {                                                                        \
            uint32 thread = Scheduler.core();                                        \
            Log << "[" << setw(2) << thread << "] ";                                 \
@@ -91,7 +91,7 @@ namespace en
            }
    #else 
 
-   #define Profile( _gpu, command )                                                 \
+   #define Validate( _gpu, command )                                                \
            {                                                                        \
            uint32 thread = Scheduler.core();                                        \
            _gpu->lastResult[thread] = _gpu->device->command;                        \
@@ -100,16 +100,16 @@ namespace en
            en::gpu::IsWarning(_gpu->lastResult[thread]);                            \
            }
 
-   #define ProfileCom( command )                                       \
+   #define ValidateCom( command )                                      \
            {                                                           \
            HRESULT hr = command;                                       \
            assert( SUCCEEDED(hr) );                                    \
            }
 
-   #define ProfileNoRet( _gpu, command )                               \
+   #define ValidateNoRet( _gpu, command )                              \
            _gpu->device->command;
 
-   #define ProfileComNoRet( command )                                  \
+   #define ValidateComNoRet( command )                                 \
            command;
 
 
@@ -117,16 +117,16 @@ namespace en
    
 #else // Release
 
-   #define Profile( _gpu, command )                                   \
+   #define Validate( _gpu, command )                                  \
            _gpu->lastResult[Scheduler.core()] = _gpu->device->command;
 
-   #define ProfileCom( command )                                      \
+   #define ValidateCom( command )                                     \
            command;
 
-   #define ProfileNoRet( _gpu, command )                              \
+   #define ValidateNoRet( _gpu, command )                             \
            _gpu->device->command;
 
-   #define ProfileComNoRet( command )                                 \
+   #define ValidateComNoRet( command )                                \
            command;
 
 #endif
@@ -167,7 +167,7 @@ namespace en
       uint32                  currentAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)]; // Specifies currently used Allocator on given thread for given queue
       uint32                  commandBuffersAllocated[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];  // Specifies current amount of CommandBuffers allocated from current allocator
       uint32                  commandBuffersExecuting[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize]; // Count of CommandBuffers still executing per allocator
-      Ptr<CommandBuffer>      commandBuffers[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize][MaxCommandBuffersExecuting];
+      shared_ptr<CommandBuffer> commandBuffers[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize][MaxCommandBuffersExecuting];
       ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize]; // Each thread can encode separate CommandBuffer,
                                                                               // using pool of allocators. This allows them to be reset without CPU-GPU synchronization.
       uint32                  initThreads;                                    // Amount of threads handled by this device
@@ -175,7 +175,7 @@ namespace en
       // Command Buffers Management
       //----------------------------
 
-      void addCommandBufferToQueue(Ptr<CommandBuffer> command);
+      void addCommandBufferToQueue(shared_ptr<CommandBuffer> command);
       void clearCommandBuffersQueue(void);
 
 
@@ -194,90 +194,88 @@ namespace en
 
       virtual void init(void);
 
-      virtual Ptr<Window> createWindow(const WindowSettings& settings, 
-                                       const string title);
+      virtual shared_ptr<Window> createWindow(const WindowSettings& settings,
+                                              const string title);
 
       virtual uint32 queues(const QueueType type) const;
 
-      // Creates Command Buffer from the given Command Queue of given type.
-      // When this buffer is commited for execution it will execute on that queue.
-      virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
-                                                     const uint32 parentQueue = 0u);
+      virtual shared_ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
+                                                            const uint32 parentQueue = 0u);
 
-      virtual Ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
+      virtual shared_ptr<Heap>    createHeap(const MemoryUsage usage, const uint32 size);
 
-      virtual Ptr<Sampler> createSampler(const SamplerState& state);
+      virtual shared_ptr<Sampler> createSampler(const SamplerState& state);
       
-      virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface);
+      virtual shared_ptr<Texture> createSharedTexture(shared_ptr<SharedSurface> backingSurface);
 
-      virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
+      virtual shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
-      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                 const bool primitiveRestart,
-                                                 const uint32 controlPoints,
-                                                 const uint32 usedAttributes,
-                                                 const uint32 usedBuffers,
-                                                 const AttributeDesc* attributes,
-                                                 const BufferDesc* buffers);
+      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                        const bool primitiveRestart,
+                                                        const uint32 controlPoints,
+                                                        const uint32 usedAttributes,
+                                                        const uint32 usedBuffers,
+                                                        const AttributeDesc* attributes,
+                                                        const BufferDesc* buffers);
 
       // TODO:
-      virtual Ptr<Shader>  createShader(const ShaderStage stage,
-                                        const string& source);
+      virtual shared_ptr<Shader>  createShader(const ShaderStage stage,
+                                               const string& source);
 
-      virtual Ptr<Shader> createShader(const ShaderStage stage,
-                                       const uint8* data,
-                                       const uint64 size);
+      virtual shared_ptr<Shader> createShader(const ShaderStage stage,
+                                              const uint8* data,
+                                              const uint64 size);
 
-      virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
-                                                         const uint32 samples = 1u);
+      virtual shared_ptr<ColorAttachment> createColorAttachment(const Format format, 
+                                                                const uint32 samples = 1u);
 
-      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
-                                                                       const Format stencilFormat = Format::Unsupported,
-                                                                       const uint32 samples = 1u);
+      virtual shared_ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
+                                                                              const Format stencilFormat = Format::Unsupported,
+                                                                              const uint32 samples = 1u);
 
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
+      virtual shared_ptr<RenderPass> createRenderPass(const shared_ptr<ColorAttachment> swapChainSurface,
+                                                      const shared_ptr<DepthStencilAttachment> depthStencil);
 
-      virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
-                                               const Ptr<ColorAttachment>* color,
-                                               const Ptr<DepthStencilAttachment> depthStencil);
+      virtual shared_ptr<RenderPass> createRenderPass(const uint32 attachments,
+                                                      const shared_ptr<ColorAttachment>* color,
+                                                      const shared_ptr<DepthStencilAttachment> depthStencil);
 
-      virtual Ptr<Semaphore> createSemaphore(void);
+      virtual shared_ptr<Semaphore> createSemaphore(void);
 
 
          
 
-      virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
-                                             const ResourceGroup* group,
-                                             const ShaderStages stagesMask = ShaderStages::All);
+      virtual shared_ptr<SetLayout> createSetLayout(const uint32 count, 
+                                                    const ResourceGroup* group,
+                                                    const ShaderStages stagesMask = ShaderStages::All);
 
-      virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
-                                                       const Ptr<SetLayout>* set,
-                                                       const uint32 immutableSamplers = 0u,
-                                                       const Ptr<Sampler>* sampler = nullptr,
-                                                       const ShaderStages stagesMask = ShaderStages::All);
+      virtual shared_ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
+                                                              const shared_ptr<SetLayout>* set,
+                                                              const uint32 immutableSamplers = 0u,
+                                                              const shared_ptr<Sampler>* sampler = nullptr,
+                                                              const ShaderStages stagesMask = ShaderStages::All);
 
-      virtual Ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
-                                                     const uint32 (&count)[underlyingType(ResourceType::Count)]);
+      virtual shared_ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
+                                                            const uint32 (&count)[underlyingType(ResourceType::Count)]);
 
 
-      virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state);
+      virtual shared_ptr<RasterState>        createRasterState(const RasterStateInfo& state);
 
-      virtual Ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
-                                                               const bool enableAlphaToCoverage,
-                                                               const bool enableAlphaToOne);
+      virtual shared_ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
+                                                                      const bool enableAlphaToCoverage,
+                                                                      const bool enableAlphaToOne);
 
-      virtual Ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc);
+      virtual shared_ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc);
       
-      virtual Ptr<BlendState>         createBlendState(const BlendStateInfo& state,
-                                                       const uint32 attachments,
-                                                       const BlendAttachmentInfo* color);
+      virtual shared_ptr<BlendState>         createBlendState(const BlendStateInfo& state,
+                                                              const uint32 attachments,
+                                                              const BlendAttachmentInfo* color);
 
-      virtual Ptr<ViewportState> createViewportState(const uint32 count,
-                                                     const ViewportStateInfo* viewports,
-                                                     const ScissorStateInfo* scissors);
+      virtual shared_ptr<ViewportState> createViewportState(const uint32 count,
+                                                            const ViewportStateInfo* viewports,
+                                                            const ScissorStateInfo* scissors);
 
-      virtual LinearAlignment textureLinearAlignment(const Ptr<Texture> texture, 
+      virtual LinearAlignment textureLinearAlignment(const Texture& texture, 
                                                      const uint32 mipmap, 
                                                      const uint32 layer);
       };
@@ -292,7 +290,7 @@ namespace en
 
       ID3D12Debug*           debugController;
       IDXGIFactory5*         factory;         // Application Direct3D API Factory
-      Ptr<Direct3D12Device>* device;          // Physical Device Interfaces
+      shared_ptr<Direct3D12Device>* device;   // Physical Device Interfaces
       uint32                 devicesCount;
 
       public:
@@ -303,11 +301,11 @@ namespace en
 
       // TODO: Those could be moved to CommonGraphicAPI
       virtual uint32 devices(void) const;
-      virtual Ptr<GpuDevice> primaryDevice(void) const;
+      virtual shared_ptr<GpuDevice> primaryDevice(void) const;
 
       virtual uint32 displays(void) const;
-      virtual Ptr<Display> primaryDisplay(void) const;
-      virtual Ptr<Display> display(uint32 index) const;
+      virtual shared_ptr<Display> primaryDisplay(void) const;
+      virtual shared_ptr<Display> display(uint32 index) const;
       };
    }
 }

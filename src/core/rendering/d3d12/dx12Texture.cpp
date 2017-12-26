@@ -214,7 +214,7 @@ namespace en
    return MipSlice + ArraySlice * MipLevels + PlaneSlice * MipLevels * ArraySize;
    }
 
-   TextureD3D12::TextureD3D12(Ptr<HeapD3D12> _heap,
+   TextureD3D12::TextureD3D12(shared_ptr<HeapD3D12> _heap,
                               ID3D12Resource* _handle,
                               uint64 _offset,
                               uint64 _size,
@@ -241,7 +241,7 @@ namespace en
    TextureD3D12::~TextureD3D12()
    {
    assert( handle );
-   ProfileCom( handle->Release() )
+   ValidateCom( handle->Release() )
    handle = nullptr;
    
    // Textures backed with Swap-Chain surfaces have no backing heap.
@@ -253,22 +253,26 @@ namespace en
       }
    }
    
-   Ptr<Heap> TextureD3D12::parent(void) const
+   shared_ptr<Heap> TextureD3D12::parent(void) const
    {
-   return ptr_reinterpret_cast<Heap>(&heap);
+   return heap;
    }
 
-   Ptr<TextureView> TextureD3D12::view(void) const
+   shared_ptr<TextureView> TextureD3D12::view(void)
    {
    return view(state.type, state.format, uint32v2(0, state.mipmaps), uint32v2(0, state.layers));
    }
 
-   Ptr<TextureView> TextureD3D12::view(const TextureType _type,
+   shared_ptr<TextureView> TextureD3D12::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
       const uint32v2 _layers) const
    {
-   TextureViewD3D12* view = new TextureViewD3D12(Ptr<TextureD3D12>((TextureD3D12*)this), _type, _format, _mipmaps, _layers);
+   shared_ptr<TextureViewD3D12> view = make_shared<TextureViewD3D12>(dynamic_pointer_cast<TextureD3D12>(shared_from_this()),
+                                                                     _type,
+                                                                     _format,
+                                                                     _mipmaps,
+                                                                     _layers);
    
    //// Cache mipmaps and layers range, if View
    //// of other underlying type will be needed.
@@ -381,13 +385,12 @@ namespace en
    //       and recreate view with bumping up this value every mip upload!
    //       Hmmm, but then, why not just use MostDetailedMip for that ???
    
-   Ptr<TextureViewD3D12> result = view;
-   return ptr_reinterpret_cast<TextureView>(&result);
+   return view;
    }
    
-   Ptr<Texture> HeapD3D12::createTexture(const TextureState state)
+   shared_ptr<Texture> HeapD3D12::createTexture(const TextureState state)
    {
-   Ptr<TextureD3D12> result = nullptr;
+   shared_ptr<TextureD3D12> result = nullptr;
    
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
@@ -458,7 +461,7 @@ namespace en
                             static_cast<uint64>(allocInfo.Alignment),
                             offset))
       {
-      return Ptr<Texture>(nullptr);
+      return result;
       }
 
    // Optimized clear value (completly not matching other abstractions)
@@ -489,7 +492,7 @@ namespace en
    
 	ID3D12Resource* textureHandle = nullptr;
 	
-	Profile( gpu, CreatePlacedResource(handle,
+	Validate( gpu, CreatePlacedResource(handle,
                                       static_cast<UINT64>(offset),
                                       &desc,
                                       initState,
@@ -497,16 +500,16 @@ namespace en
                                       IID_PPV_ARGS(&textureHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&textureHandle)
       
    if ( SUCCEEDED(gpu->lastResult[Scheduler.core()]) )
-      result = new TextureD3D12(Ptr<HeapD3D12>(this),
-                                textureHandle,
-                                offset,
-                                static_cast<uint64>(allocInfo.SizeInBytes),
-                                state);
+      result = make_shared<TextureD3D12>(dynamic_pointer_cast<HeapD3D12>(shared_from_this()),
+                                         textureHandle,
+                                         offset,
+                                         static_cast<uint64>(allocInfo.SizeInBytes),
+                                         state);
 
-   return ptr_reinterpret_cast<Texture>(&result);
+   return result;
    }
 
-   TextureViewD3D12::TextureViewD3D12(Ptr<TextureD3D12> parent,
+   TextureViewD3D12::TextureViewD3D12(shared_ptr<TextureD3D12> parent,
          const TextureType _type,
          const Format _format,
          const uint32v2 _mipmaps,
@@ -522,9 +525,9 @@ namespace en
    texture = nullptr;
    }
 
-   Ptr<Texture> TextureViewD3D12::parent(void) const
+   shared_ptr<Texture> TextureViewD3D12::parent(void) const
    {
-   return ptr_reinterpret_cast<Texture>(&texture);
+   return texture;
    }
    
  
@@ -532,40 +535,39 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   LinearAlignment Direct3D12Device::textureLinearAlignment(const Ptr<Texture> texture, 
+   LinearAlignment Direct3D12Device::textureLinearAlignment(const Texture& texture,
                                                             const uint32 mipmap, 
                                                             const uint32 layer)
    {
-   assert( texture );
-   assert( texture->mipmaps() > mipmap );
-   assert( texture->layers() > layer );
+   assert( texture.mipmaps() > mipmap );
+   assert( texture.layers() > layer );
    
-   TextureD3D12* destination = raw_reinterpret_cast<TextureD3D12>(&texture);
+   const TextureD3D12& destination = reinterpret_cast<const TextureD3D12&>(texture);
 
-   D3D12_RESOURCE_DESC desc = destination->handle->GetDesc();
+   D3D12_RESOURCE_DESC desc = destination.handle->GetDesc();
 
    // Based on amount of mip-maps and layers, calculates
    // index of subresource to modify.
    UINT subresource = D3D12CalcSubresource(mipmap,
                                            layer,
                                            0u,
-                                           destination->state.mipmaps,
-                                           destination->state.layers);
+                                           destination.state.mipmaps,
+                                           destination.state.layers);
    
    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
    UINT                               linesCount = 0;
    UINT64                             lineSize = 0;
    UINT64                             requiredUploadBufferSize = 0;
 
-   ProfileNoRet( this, GetCopyableFootprints(&desc,
-                                            subresource, // First subresource to modify
-                                            1,           // Subresources count
-                                            0,
-                                            &layout,
-                                            &linesCount, // Count of lines in given subresource
-                                            &lineSize,   // Size of line in bytes
-                                            &requiredUploadBufferSize) )
-
+   ValidateNoRet( this, GetCopyableFootprints(&desc,
+                                              subresource, // First subresource to modify
+                                              1,           // Subresources count
+                                              0,
+                                              &layout,
+                                              &linesCount, // Count of lines in given subresource
+                                              &lineSize,   // Size of line in bytes
+                                              &requiredUploadBufferSize) )
+ 
    LinearAlignment result;
    result.size      = requiredUploadBufferSize;
    result.alignment = 256;

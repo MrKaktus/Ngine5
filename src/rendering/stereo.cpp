@@ -18,8 +18,8 @@ using namespace en::system;
 
 namespace en
 {
-//   Stereoscopy::Stereoscopy(Ptr<HMD> hmd) : 
-//      device(ptr_dynamic_cast<OculusX, HMD>(hmd)),
+//   Stereoscopy::Stereoscopy(shared_ptr<HMD> hmd) : 
+//      device(dynamic_pointer_cast<OculusX>(hmd)),
 //      program(nullptr),
 //      sampler(0),
 //      eyeToSourceUVScale(nullptr),
@@ -128,7 +128,7 @@ namespace en
 //   return settings[eye].viewport;
 //   }
 //   
-//   void Stereoscopy::source(Ptr<Texture> src)
+//   void Stereoscopy::source(shared_ptr<Texture> src)
 //   {
 //   assert( device ); 
 //

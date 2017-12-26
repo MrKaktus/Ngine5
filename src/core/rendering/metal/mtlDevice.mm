@@ -307,24 +307,23 @@ namespace en
    uint32 MetalDevice::displays(void) const
    {
    // Currently all Metal devices share all available displays
-   Ptr<MetalAPI> api = ptr_reinterpret_cast<MetalAPI>(&en::Graphics);
+   MetalAPI* api = reinterpret_cast<MetalAPI*>(en::Graphics.get());
    return api->displaysCount;
    }
    
-   Ptr<Display> MetalDevice::display(uint32 index) const
+   shared_ptr<Display> MetalDevice::display(uint32 index) const
    {
    // Currently all Metal devices share all available displays
-   Ptr<MetalAPI> api = ptr_reinterpret_cast<MetalAPI>(&en::Graphics);
+   MetalAPI* api = reinterpret_cast<MetalAPI*>(en::Graphics.get());
      
    assert( api->displaysCount > index );
    
-   return ptr_reinterpret_cast<Display>(&api->_display[index]);
+   return api->_display[index];
    }
 
-   Ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const string title)
+   shared_ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const string title)
    {
-   Ptr<WindowMTL> ptr = new WindowMTL(this, settings, title);
-   return ptr_reinterpret_cast<Window>(&ptr);
+   return make_shared<WindowMTL>(this, settings, title);
    }
 
    uint32 MetalDevice::queues(const QueueType type) const
@@ -354,8 +353,8 @@ namespace en
       if (Screen)
          displaysCount++;
 
-   _display = new Ptr<CommonDisplay>[displaysCount];
-   virtualDisplay = new CommonDisplay();
+   _display = new shared_ptr<CommonDisplay>[displaysCount];
+   virtualDisplay = make_shared<CommonDisplay>();
    
    // Gather information about available displays.
    uint32 displayId = 0;
@@ -364,7 +363,7 @@ namespace en
          {
          NSRect info = [handle convertRectToBacking:[handle frame]];
          
-         Ptr<DisplayMTL> currentDisplay = new DisplayMTL(handle);
+         shared_ptr<DisplayMTL> currentDisplay = make_shared<DisplayMTL>(handle);
  
          currentDisplay->_position.x        = static_cast<uint32>(info.origin.x);
          currentDisplay->_position.y        = static_cast<uint32>(info.origin.y);
@@ -401,7 +400,7 @@ namespace en
                virtualDisplay->_resolution.height = currentBottomBorder - virtualDisplay->_position.y;
             }
             
-         _display[displayId] = ptr_reinterpret_cast<CommonDisplay>(&currentDisplay);
+         _display[displayId] = currentDisplay;
          displayId++;
          }
 
@@ -475,13 +474,13 @@ namespace en
 #endif
 
    // Create device interfaces
-   Ptr<MetalDevice> ptr = new MetalDevice(primaryDevice);
-   device[0] = ptr_reinterpret_cast<GpuDevice>(&ptr);
+   device[0] = make_shared<MetalDevice>(primaryDevice);
+   // TODO: Why no init() call on device 0 ?
    if (supportingDevice)
       {
-      Ptr<MetalDevice> ptr = new MetalDevice(supportingDevice);
+      shared_ptr<MetalDevice> ptr = make_shared<MetalDevice>(supportingDevice);
       ptr->init();
-      device[1] = ptr_reinterpret_cast<GpuDevice>(&ptr);
+      device[1] = ptr;
       }
 
 
@@ -505,7 +504,7 @@ namespace en
    return devicesCount;
    }
       
-   Ptr<GpuDevice> MetalAPI::primaryDevice(void) const
+   shared_ptr<GpuDevice> MetalAPI::primaryDevice(void) const
    {
    return device[0];
    }
@@ -515,15 +514,15 @@ namespace en
    return displaysCount;
    }
 
-   Ptr<Display> MetalAPI::primaryDisplay(void) const
+   shared_ptr<Display> MetalAPI::primaryDisplay(void) const
    {
-   return ptr_reinterpret_cast<Display>(&_display[0]);
+   return _display[0];
    }
    
-   Ptr<Display> MetalAPI::display(uint32 index) const
+   shared_ptr<Display> MetalAPI::display(uint32 index) const
    {
    assert( index < displaysCount );
-   return ptr_reinterpret_cast<Display>(&_display[index]);
+   return _display[index];
    }
 
    MetalAPI::~MetalAPI() 

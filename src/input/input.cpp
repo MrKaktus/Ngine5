@@ -156,24 +156,27 @@ namespace en
    bool Interface::create(void)
    {
    #if defined(EN_PLATFORM_ANDROID)
-   Input = ptr_dynamic_cast<Interface, AndInterface>(Ptr<AndInterface>(new AndInterface()));
+   Input = make_shared<AndInterface>();
    return true;
    #elif defined(EN_PLATFORM_BLACKBERRY)
-   Input = ptr_dynamic_cast<Interface, BBInterface>(Ptr<BBInterface>(new BBInterface()));
+   Input = make_shared<BBInterface>();
    return true;
    #elif defined(EN_PLATFORM_IOS)
-   Input = ptr_dynamic_cast<Interface, IOSInterface>(Ptr<IOSInterface>(new IOSInterface()));
+   Input = make_shared<IOSInterface>();
    return true;
    #elif defined(EN_PLATFORM_OSX)
-   Input = ptr_dynamic_cast<Interface, OSXInterface>(Ptr<OSXInterface>(new OSXInterface()));
+   Input = make_shared<OSXInterface>();
    return true;
    #elif defined(EN_PLATFORM_WINDOWS)
-   Input = ptr_dynamic_cast<Interface, WinInterface>(Ptr<WinInterface>(new WinInterface()));
-   raw_reinterpret_cast<CommonInterface>(&Input)->init(); // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
+   Input = make_shared<WinInterface>();
+   
+   // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
+   reinterpret_cast<CommonInterface*>(Input.get())->init();
+   
    return true;
    #else
    // How did we ended up here?
-   Input = ptr_dynamic_cast<Interface, CommonInterface>(Ptr<CommonInterface>(new CommonInterface()));
+   Input = make_shared<CommonInterface>();
    return false;
    #endif
    }
@@ -218,9 +221,9 @@ namespace en
    {
    }
  
-   Ptr<Display> CommonMouse::display(void) const
+   shared_ptr<Display> CommonMouse::display(void) const
    {
-   return ptr_reinterpret_cast<Display>(&_display);
+   return _display;
    }
    
    float2 CommonMouse::position(void) const
@@ -298,50 +301,50 @@ namespace en
    return count[underlyingType(type)];
    }
    
-   Ptr<Keyboard> CommonInterface::keyboard(uint8 index) const
+   shared_ptr<Keyboard> CommonInterface::keyboard(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Keyboard)])
-      return Ptr<Keyboard>(nullptr);
+      return shared_ptr<Keyboard>(nullptr);
       
    return keyboards[index];
    }
 
-   Ptr<Mouse> CommonInterface::mouse(uint8 index) const
+   shared_ptr<Mouse> CommonInterface::mouse(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Mouse)])
-      return Ptr<Mouse>(nullptr);
+      return shared_ptr<Mouse>(nullptr);
       
    return mouses[index];
    }
    
-   Ptr<Joystick> CommonInterface::joystick(uint8 index) const
+   shared_ptr<Joystick> CommonInterface::joystick(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Joystick)])
-      return Ptr<Joystick>(nullptr);
+      return shared_ptr<Joystick>(nullptr);
       
    return joysticks[index];
    }
 
-   Ptr<HMD> CommonInterface::hmd(uint8 index) const
+   shared_ptr<HMD> CommonInterface::hmd(uint8 index) const
    {
    if (index >= count[underlyingType(IO::HMD)])
-      return Ptr<HMD>(nullptr);
+      return shared_ptr<HMD>(nullptr);
       
    return hmds[index];
    }
 
-   Ptr<Controller> CommonInterface::controller(uint8 index) const
+   shared_ptr<Controller> CommonInterface::controller(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Controller)])
-      return Ptr<Controller>(nullptr);
+      return shared_ptr<Controller>(nullptr);
       
    return controllers[index];
    }
    
-   Ptr<Camera> CommonInterface::camera(uint8 index) const
+   shared_ptr<Camera> CommonInterface::camera(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Camera)])
-      return Ptr<Camera>(nullptr);
+      return shared_ptr<Camera>(nullptr);
       
    return cameras[index];
    }
@@ -924,7 +927,7 @@ namespace en
 
 #if 1
 
-Ptr<input::Interface> Input;
+shared_ptr<input::Interface> Input;
 
 #else
 input::Context   InputContext;

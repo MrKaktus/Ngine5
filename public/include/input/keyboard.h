@@ -13,9 +13,11 @@
 #ifndef ENG_INPUT_KEYBOARD
 #define ENG_INPUT_KEYBOARD
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
@@ -147,7 +149,7 @@ namespace en
       TurnedOn                ,
       };
       
-   class Keyboard : public SafeObject<Keyboard>
+   class Keyboard
       {
       public:
       virtual bool pressed(const Key key) const = 0;

@@ -114,9 +114,9 @@ namespace en
    return true;
    }
    
-   Ptr<File> WinInterface::open(const string& filename, const FileAccess mode)
+   shared_ptr<File> WinInterface::open(const string& filename, const FileAccess mode)
    {
-   Ptr<WinFile> result = nullptr;
+   shared_ptr<WinFile> result = nullptr;
    
    fstream* handle = nullptr;
 
@@ -128,11 +128,11 @@ namespace en
       handle = new fstream(filename.c_str(), ios::in  | ios::out | ios::binary);
 
    if (handle->good())
-      result = new WinFile(handle);
+      result = make_shared<WinFile>(handle);
    else
       delete handle;
 
-   return raw_reinterpret_cast<File>(&result);
+   return result;
    }
 
 #else
@@ -209,9 +209,9 @@ namespace en
          !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
    }
 
-   Ptr<File> WinInterface::open(const string& filename, const FileAccess mode)
+   shared_ptr<File> WinInterface::open(const string& filename, const FileAccess mode)
    {
-   Ptr<WinFile> result = nullptr;
+   shared_ptr<WinFile> result = nullptr;
    
    HANDLE handle = nullptr;
 
@@ -241,11 +241,11 @@ namespace en
                           nullptr);
 
    if (handle != INVALID_HANDLE_VALUE)
-      result = new WinFile(handle);
+      result = make_shared<WinFile>(handle);
    else
       CloseHandle(handle);
 
-   return raw_reinterpret_cast<File>(&result);
+   return result;
    }
 
 //OF_CREATE

@@ -17,16 +17,19 @@
 #ifndef ENG_CORE_RENDERING_MULTISAMPLING_STATE
 #define ENG_CORE_RENDERING_MULTISAMPLING_STATE
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
 #include "core/rendering/state.h"
 
 namespace en
 {
    namespace gpu
    {
-   class MultisamplingState : public SafeObject<MultisamplingState>
+   class MultisamplingState
       {
       public:
       virtual ~MultisamplingState() {};                           // Polymorphic deletes require a virtual base destructor

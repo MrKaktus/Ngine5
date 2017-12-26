@@ -97,45 +97,45 @@ namespace en
 
    //       struct Emmisive
    //              {
-   //              Ptr<en::gpu::Texture> map;       // Ke emmisive coefficients for each point of surface
+   //              shared_ptr<en::gpu::Texture> map;       // Ke emmisive coefficients for each point of surface
    //              float3           color;     // Ke default emissive coefficient 
    //              } emmisive;
    //      
    //       struct Ambient
    //              {
-   //              Ptr<en::gpu::Texture> map;       // Ka incoming irradiance coefficients for each point of surface in Phong/Lambert models
+   //              shared_ptr<en::gpu::Texture> map;       // Ka incoming irradiance coefficients for each point of surface in Phong/Lambert models
    //              float3           color;     // Ka default incoming irradiance coefficient in Phong/Lambert models
    //              } ambient;
  
    //       struct Diffuse   
    //              {
-   //              Ptr<en::gpu::Texture> map;       // Kd leaving irradiance coefficients for each point of surface in Phong/Lambert models
+   //              shared_ptr<en::gpu::Texture> map;       // Kd leaving irradiance coefficients for each point of surface in Phong/Lambert models
    //              float3           color;     // Kd base color of material, it's albedo, or diffuse term in Phong/Lambert models
    //              } diffuse;      
 
    //       struct Specular 
    //              {
-   //              Ptr<en::gpu::Texture> map;       // Ks reflection coefficients for each point of surface in Phong model
+   //              shared_ptr<en::gpu::Texture> map;       // Ks reflection coefficients for each point of surface in Phong model
    //              float3           color;     // Ks default reflection coefficient in Phong model
    //              float            exponent;  // Specular exponent "shininess" factor for specular equation
    //              } specular;
    //      
    //       struct Transparency
    //              {
-   //              Ptr<en::gpu::Texture> map;       // Transparency coefficients for each point of surface
+   //              shared_ptr<en::gpu::Texture> map;       // Transparency coefficients for each point of surface
    //              float3           color;     // Transparency default coefficient
    //              bool             on;        // Is transparency enabled ?
    //              } transparency;
    //      
    //       struct Normal
    //              {
-   //              Ptr<en::gpu::Texture> map;       // Normal vector for each point of surface
+   //              shared_ptr<en::gpu::Texture> map;       // Normal vector for each point of surface
    //              } normal;
    //      
    //       struct Displacement
    //              {
-   //              Ptr<en::gpu::Texture> map;       // Displacement value for each point of surface
-   //              Ptr<en::gpu::Texture> vectors;   // Vector Displacement map for each point of surface
+   //              shared_ptr<en::gpu::Texture> map;       // Displacement value for each point of surface
+   //              shared_ptr<en::gpu::Texture> vectors;   // Vector Displacement map for each point of surface
    //              } displacement;
 
    //       Material();                        // Inits material with default resources provided by engine
@@ -165,7 +165,7 @@ namespace en
       };
 
    // Material interface
-   class IMaterial : public SafeObject<IMaterial>
+   class IMaterial
       {
       string name;
       MaterialType type;
@@ -177,7 +177,7 @@ namespace en
    // Flexible description that allows any combination of surface layers as well as their packing in shared textures.
    class EMaterial : public IMaterial
       {
-      Ptr<en::gpu::Texture> layer[9];
+      shared_ptr<en::gpu::Texture> layer[9];
 
       struct Albedo
          {
@@ -238,16 +238,16 @@ namespace en
    //// Release Material
    //class Material : public IMaterial
    //   {
-   //   Ptr<en::gpu::Texture> layer0; // [sRGB] Albedo , optional [Linear] Alpha/Opacity
+   //   shared_ptr<en::gpu::Texture> layer0; // [sRGB] Albedo , optional [Linear] Alpha/Opacity
    //
-   //   Ptr<en::gpu::Texture> metallic;     // 
-   //   Ptr<en::gpu::Texture> cavity;       // 
-   //   Ptr<en::gpu::Texture> roughness;    // 
-   //   Ptr<en::gpu::Texture> AO;           // 
-   //   Ptr<en::gpu::Texture> normal;       // 
-   //   Ptr<en::gpu::Texture> displacement; // 
-   //   Ptr<en::gpu::Texture> vector;       // Vector displacement map
-   //   Ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
+   //   shared_ptr<en::gpu::Texture> metallic;     // 
+   //   shared_ptr<en::gpu::Texture> cavity;       // 
+   //   shared_ptr<en::gpu::Texture> roughness;    // 
+   //   shared_ptr<en::gpu::Texture> AO;           // 
+   //   shared_ptr<en::gpu::Texture> normal;       // 
+   //   shared_ptr<en::gpu::Texture> displacement; // 
+   //   shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
+   //   shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
    //
    //   };
 
@@ -268,16 +268,16 @@ namespace en
       { 
       string name;                       // Material name
 
-      Ptr<en::gpu::Texture> albedo;       // Leaving irradiance coefficients for each point of surface 
-      Ptr<en::gpu::Texture> metallic;     // 
-      Ptr<en::gpu::Texture> cavity;       // 
-      Ptr<en::gpu::Texture> roughness;    // 
-      Ptr<en::gpu::Texture> AO;           // 
-      Ptr<en::gpu::Texture> normal;       // 
-      Ptr<en::gpu::Texture> displacement; // 
-      Ptr<en::gpu::Texture> vector;       // Vector displacement map
-      Ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
-      Ptr<en::gpu::Texture> opacity;      //
+      shared_ptr<en::gpu::Texture> albedo;       // Leaving irradiance coefficients for each point of surface 
+      shared_ptr<en::gpu::Texture> metallic;     // 
+      shared_ptr<en::gpu::Texture> cavity;       // 
+      shared_ptr<en::gpu::Texture> roughness;    // 
+      shared_ptr<en::gpu::Texture> AO;           // 
+      shared_ptr<en::gpu::Texture> normal;       // 
+      shared_ptr<en::gpu::Texture> displacement; // 
+      shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
+      shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
+      shared_ptr<en::gpu::Texture> opacity;      //
       
       Material();                        // Inits material with default resources provided by engine
       };
@@ -298,14 +298,14 @@ namespace en
 
       struct Geometry
              {
-             Ptr<gpu::Buffer> buffer;   // VBO with vertices/control points
+             shared_ptr<gpu::Buffer> buffer;   // VBO with vertices/control points
              uint32           begin;    // First vertice in VBO describing this mesh
              uint32           end;      // Last vertice in VBO describing this mesh (for ranged drawing)
              } geometry;
       
       struct Elements
              {
-             Ptr<gpu::Buffer>  buffer;  // IBO with vertices/control points assembly order
+             shared_ptr<gpu::Buffer>  buffer;  // IBO with vertices/control points assembly order
              gpu::DrawableType type;    // Type of geometry primitives
              uint32            cps;     // Control Points count (for Patch primitives)
              uint32            offset;  // Offset to starting index in buffer
@@ -317,7 +317,7 @@ namespace en
      ~Mesh();      
       };
 
-   class Model : public SafeObject<Model>
+   class Model
       {
       public:
       string       name; // Name
@@ -327,16 +327,16 @@ namespace en
                          // of one mesh that uses different materials.
       
       Model();
-      Model(Ptr<gpu::Buffer> buffer, gpu::DrawableType type); // Create model from custom buffer
+      Model(shared_ptr<gpu::Buffer> buffer, gpu::DrawableType type); // Create model from custom buffer
      ~Model();
       };
 
 
-   class Font : public SafeObject<Font>
+   class Font
       {
       public:
-      virtual Ptr<en::gpu::Texture> texture(void) const = 0;            // Returns texture used by font
-      virtual Ptr<Mesh> text(const string text, const bool screenspace = false) const = 0;  // Creates mesh that contains geometry representing
+      virtual shared_ptr<en::gpu::Texture> texture(void) const = 0;            // Returns texture used by font
+      virtual shared_ptr<Mesh> text(const string text, const bool screenspace = false) const = 0;  // Creates mesh that contains geometry representing
                                                        // passed text. Upper left corner of first letter of 
                                                        // text lays in position (0,0). Text is aligned to X
                                                        // axis. If created in World Space (default), Y axis
@@ -397,15 +397,15 @@ namespace en
           {
           struct Load
                  {
-                 Ptr<Font>  font(const string& filename); 
-                 Ptr<Model> model(const string& filename, const string& name);  // For multi-model files and nameless model files like *.obj
-                 Ptr<Model> model(const string& filename);                           
+                 shared_ptr<Font>  font(const string& filename); 
+                 shared_ptr<Model> model(const string& filename, const string& name);  // For multi-model files and nameless model files like *.obj
+                 shared_ptr<Model> model(const string& filename);                           
                  //Material material(const string& filename, const string& name); // For multi-material files like *.mtl
                  //Material material(const string& filename);                     // For single-material files like *.material
-                 Ptr<en::audio::Sample> sound(const string& filename);
-                 Ptr<en::gpu::Texture>  texture(const string& filename, 
+                 shared_ptr<en::audio::Sample> sound(const string& filename);
+                 shared_ptr<en::gpu::Texture>  texture(const string& filename, 
                                           const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear);
-                 bool             texture(Ptr<gpu::Texture> dst, 
+                 bool             texture(shared_ptr<gpu::Texture> dst, 
                                           const uint16 layer, 
                                           const string& filename, 
                                           const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear); // Load image to given texture layer

@@ -71,9 +71,9 @@ namespace en
    //                                                                    // https://www.opengl.org/registry/specs/ARB/point_parameters.txt
    }
 
-   Ptr<RasterState> VulkanDevice::createRasterState(const RasterStateInfo& state)
+   shared_ptr<RasterState> VulkanDevice::createRasterState(const RasterStateInfo& state)
    {
-   return ptr_reinterpret_cast<RasterState>(&Ptr<RasterStateVK>(new RasterStateVK(state)));
+   return make_shared<RasterStateVK>(state);
    }
 
    }

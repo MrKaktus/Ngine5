@@ -112,7 +112,7 @@ namespace en
    //             float  width;  // Width of character
    //             } table[256];  // Table of characters
    //      float  height;        // Characters height
-   //      Ptr<gpu::Texture> texture; // Texture used by font
+   //      shared_ptr<gpu::Texture> texture; // Texture used by font
    //      gpu::Program program; // Program used by font
    //      //Material material;   // Material used by font
  
@@ -138,10 +138,10 @@ namespace en
     //float     base;       // Text base in line (bottom alignment of characters)
       float     height;     // Total height of line (default distance between lines, if there is no spacing)
 
-      Ptr<en::gpu::Texture> resource;
+      shared_ptr<en::gpu::Texture> resource;
 
-      virtual Ptr<en::gpu::Texture> texture(void) const;            // Returns texture used by font
-      virtual Ptr<Mesh> text(const string text, const bool screenspace = false) const;  // Creates mesh that contains geometry representing
+      virtual shared_ptr<en::gpu::Texture> texture(void) const;            // Returns texture used by font
+      virtual shared_ptr<Mesh> text(const string text, const bool screenspace = false) const;  // Creates mesh that contains geometry representing
     
       FontImp();
      ~FontImp();
@@ -169,41 +169,41 @@ namespace en
 
           struct Defaults
                  {
-//                 Ptr<gpu::Pipeline> pipeline;            // Default program for materials
-//                 Ptr<gpu::Shader>   vertex;
-//                 Ptr<gpu
-                 Ptr<gpu::Heap>    enHeapBuffers;
-                 Ptr<gpu::Heap>    enHeapTextures;
-                 Ptr<gpu::Heap>    enStagingHeap;
-                 Ptr<gpu::Texture> enAlbedoMap;
-                 Ptr<gpu::Texture> enMetallicMap;
-                 Ptr<gpu::Texture> enCavityMap;
-                 Ptr<gpu::Texture> enRoughnessMap;
-                 Ptr<gpu::Texture> enAOMap;
-                 Ptr<gpu::Texture> enNormalMap;
-                 Ptr<gpu::Texture> enDisplacementMap;
-                 Ptr<gpu::Texture> enVectorDisplacementMap;
-                 Ptr<gpu::Texture> enEmmisiveMap;
-                 Ptr<gpu::Texture> enOpacityMap;
-                 // Ptr<gpu::Texture> enEmmisiveMap;
-                 // Ptr<gpu::Texture> enAmbientMap;
-                 // Ptr<gpu::Texture> enDiffuseMap;
-                 // Ptr<gpu::Texture> enSpecularMap;
-                 // Ptr<gpu::Texture> enTransparencyMap;
-                 // Ptr<gpu::Texture> enNormalMap;
-                 // Ptr<gpu::Texture> enDisplacementMap;
-                 // Ptr<gpu::Texture> enVectorsMap;
-                 Ptr<gpu::Buffer>  enAxes;             // Default axes buffer
+//                 shared_ptr<gpu::Pipeline> pipeline;            // Default program for materials
+//                 shared_ptr<gpu::Shader>   vertex;
+//                 shared_ptr<gpu
+                 shared_ptr<gpu::Heap>    enHeapBuffers;
+                 shared_ptr<gpu::Heap>    enHeapTextures;
+                 shared_ptr<gpu::Heap>    enStagingHeap;
+                 shared_ptr<gpu::Texture> enAlbedoMap;
+                 shared_ptr<gpu::Texture> enMetallicMap;
+                 shared_ptr<gpu::Texture> enCavityMap;
+                 shared_ptr<gpu::Texture> enRoughnessMap;
+                 shared_ptr<gpu::Texture> enAOMap;
+                 shared_ptr<gpu::Texture> enNormalMap;
+                 shared_ptr<gpu::Texture> enDisplacementMap;
+                 shared_ptr<gpu::Texture> enVectorDisplacementMap;
+                 shared_ptr<gpu::Texture> enEmmisiveMap;
+                 shared_ptr<gpu::Texture> enOpacityMap;
+                 // shared_ptr<gpu::Texture> enEmmisiveMap;
+                 // shared_ptr<gpu::Texture> enAmbientMap;
+                 // shared_ptr<gpu::Texture> enDiffuseMap;
+                 // shared_ptr<gpu::Texture> enSpecularMap;
+                 // shared_ptr<gpu::Texture> enTransparencyMap;
+                 // shared_ptr<gpu::Texture> enNormalMap;
+                 // shared_ptr<gpu::Texture> enDisplacementMap;
+                 // shared_ptr<gpu::Texture> enVectorsMap;
+                 shared_ptr<gpu::Buffer>  enAxes;             // Default axes buffer
 
                  Defaults();
                 ~Defaults();
                  } defaults;
 
-          map<string, Ptr<FontImp> >       fonts;
-          map<string, Ptr<Model> >         models;
+          map<string, shared_ptr<FontImp> >       fonts;
+          map<string, shared_ptr<Model> >         models;
           map<string, Material>            materials;
-          map<string, Ptr<gpu::Texture> >  textures;
-          map<string, Ptr<audio::Sample> > sounds;
+          map<string, shared_ptr<gpu::Texture> >  textures;
+          map<string, shared_ptr<audio::Sample> > sounds;
 
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
           FbxManager*           fbxManager;           // FBX Memory Manager

@@ -54,7 +54,7 @@ namespace en
 
          void set(const float4 tangents);
          void set(const float vFov, const float aspect);
-         Ptr<Buffer> wireframe(Ptr<Heap> heap) const;
+         shared_ptr<Buffer> wireframe(shared_ptr<Heap> heap) const;
          float4x4 projection(void);
          };
 

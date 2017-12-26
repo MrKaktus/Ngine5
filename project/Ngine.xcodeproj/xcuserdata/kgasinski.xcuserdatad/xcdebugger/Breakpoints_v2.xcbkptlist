@@ -15,8 +15,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "551"
             endingLineNumber = "551"
-            landmarkName = "unknown"
-            landmarkType = "0">
+            landmarkName = "TextureMTL::view( const TextureType _type, const Format _format, const uint32v2 _mipmaps, const uint32v2 _layers)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

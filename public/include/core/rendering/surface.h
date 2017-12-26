@@ -18,8 +18,10 @@
 #ifndef ENG_CORE_RENDERING_SURFACE
 #define ENG_CORE_RENDERING_SURFACE
 
+#include <memory>
+using namespace std;
+
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
@@ -27,7 +29,7 @@ namespace en
    {
    // Surface that can be shared between processes and API's
    // (by using it as backing surface for API specific Textures).
-   class SharedSurface : public SafeObject<SharedSurface>
+   class SharedSurface
       {
       public:
       virtual ~SharedSurface() {};
@@ -39,7 +41,7 @@ namespace en
    class OpenGLContext
       {
       public:
-      virtual uint32 createSharedTexture(Ptr<SharedSurface> backingSurface) = 0;
+      virtual uint32 createSharedTexture(shared_ptr<SharedSurface> backingSurface) = 0;
       virtual void destroySharedTexture(const uint32 handle) = 0;
       
       virtual ~OpenGLContext() {};

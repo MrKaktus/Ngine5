@@ -71,7 +71,7 @@ namespace en
    PipelineLayoutD3D12::~PipelineLayoutD3D12()
    {
    assert( handle );
-   ProfileCom( handle->Release() )
+   ValidateCom( handle->Release() )
    handle = nullptr;
 
    if (setBindingIndex)
@@ -82,7 +82,7 @@ namespace en
    // DESCRIPTOR SET
    //////////////////////////////////////////////////////////////////////////
 
-   DescriptorSetD3D12::DescriptorSetD3D12(Direct3D12Device* _gpu, Ptr<DescriptorsD3D12> _parent, const uint64* _offsets, const uint32* _slots, RangeMapping* const _mappings, uint32 _mappingsCount) :
+   DescriptorSetD3D12::DescriptorSetD3D12(Direct3D12Device* _gpu, shared_ptr<DescriptorsD3D12> _parent, const uint64* _offsets, const uint32* _slots, RangeMapping* const _mappings, uint32 _mappingsCount) :
       gpu(_gpu),
       parent(_parent),
       mappings(_mappings),
@@ -125,7 +125,7 @@ namespace en
    return found;
    }
 
-   void DescriptorSetD3D12::setBuffer(const uint32 slot, const Ptr<Buffer> _buffer)
+   void DescriptorSetD3D12::setBuffer(const uint32 slot, const shared_ptr<Buffer> _buffer)
    {
    assert( _buffer );
 
@@ -134,17 +134,17 @@ namespace en
    if (!translateSlot(slot, heapSlot))
       return;
 
-   BufferD3D12* buffer = raw_reinterpret_cast<BufferD3D12>(&_buffer);
+   BufferD3D12* buffer = reinterpret_cast<BufferD3D12*>(_buffer.get());
 
    // TODO: In future expose true BufferViews, allowing mapping ranges into descriptor
    D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
    desc.BufferLocation = buffer->handle->GetGPUVirtualAddress();
    desc.SizeInBytes    = static_cast<UINT>(buffer->size);
 
-   ProfileNoRet( gpu, CreateConstantBufferView(&desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
+   ValidateNoRet( gpu, CreateConstantBufferView(&desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
    }
 
-   void DescriptorSetD3D12::setSampler(const uint32 slot, const Ptr<Sampler> _sampler)
+   void DescriptorSetD3D12::setSampler(const uint32 slot, const shared_ptr<Sampler> _sampler)
    {
    assert( _sampler );
 
@@ -155,11 +155,11 @@ namespace en
 
    // Sampler objects are created in D3D12 by encoding their state directly 
    // into Descriptor in DescriptorSet's backing DescriptorPool (Heap)
-   SamplerD3D12* sampler = raw_reinterpret_cast<SamplerD3D12>(&_sampler);
-   ProfileNoRet( gpu, CreateSampler(&sampler->state, parent->pointerToSamplerDescriptorOnCPU(heapSlot)) )
+   SamplerD3D12* sampler = reinterpret_cast<SamplerD3D12*>(_sampler.get());
+   ValidateNoRet( gpu, CreateSampler(&sampler->state, parent->pointerToSamplerDescriptorOnCPU(heapSlot)) )
    }
 
-   void DescriptorSetD3D12::setTextureView(const uint32 slot, const Ptr<TextureView> _view)
+   void DescriptorSetD3D12::setTextureView(const uint32 slot, const shared_ptr<TextureView> _view)
    {
    assert( _view );
 
@@ -170,8 +170,8 @@ namespace en
 
    // Views are created in D3D12 by encoding them directly into 
    // Descriptor in DescriptorSet's backing DescriptorPool (Heap)
-   TextureViewD3D12* view = raw_reinterpret_cast<TextureViewD3D12>(&_view);
-   ProfileNoRet( gpu, CreateShaderResourceView(view->texture->handle, &view->desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
+   TextureViewD3D12* view = reinterpret_cast<TextureViewD3D12*>(_view.get());
+   ValidateNoRet( gpu, CreateShaderResourceView(view->texture->handle, &view->desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
    }
 
    // DESCRIPTOR POOL
@@ -194,7 +194,7 @@ namespace en
       {
       if (handle[i])
          {
-         ProfileCom( handle[i]->Release() )
+         ValidateCom( handle[i]->Release() )
          handle[i] = nullptr;
          }
 
@@ -238,13 +238,13 @@ namespace en
    return firstHandle;
    }
 
-   Ptr<DescriptorSet> DescriptorsD3D12::allocate(const Ptr<SetLayout> _layout)
+   shared_ptr<DescriptorSet> DescriptorsD3D12::allocate(const shared_ptr<SetLayout> _layout)
    {
-   Ptr<DescriptorSetD3D12> result = nullptr;
+   shared_ptr<DescriptorSetD3D12> result = nullptr;
 
    assert( _layout );
    
-   SetLayoutD3D12* layout = raw_reinterpret_cast<SetLayoutD3D12>(&_layout);
+   SetLayoutD3D12* layout = reinterpret_cast<SetLayoutD3D12*>(_layout.get());
 
    // In Vulkan there are 11 different types of Descriptors. Each type has separate range in pool, 
    // from which it is allocated, but they all share single pool/heap. In D3D12 there are 4 different 
@@ -277,7 +277,7 @@ namespace en
       }
 
    if (!allocated)
-      return ptr_reinterpret_cast<DescriptorSet>(&result);
+      return result;
 
    uint32 rangesCount = layout->mappingsCount;
 
@@ -292,15 +292,22 @@ namespace en
    for(uint32 i=0; i<rangesCount; ++i)
       mappings[i].heapOffset += descriptorIndex[mappings[i].heap];
 
-   result = new DescriptorSetD3D12(gpu, Ptr<DescriptorsD3D12>(this), &descriptorIndex[0], &layout->descriptors[0], mappings, rangesCount);
+   result = make_shared<DescriptorSetD3D12>(gpu,
+                                            dynamic_pointer_cast<DescriptorsD3D12>(shared_from_this()),
+                                            &descriptorIndex[0],
+                                            &layout->descriptors[0],
+                                            mappings,
+                                            rangesCount);
 
-   return ptr_reinterpret_cast<DescriptorSet>(&result);
+   return result;
    }
    
-   bool DescriptorsD3D12::allocate(const uint32 count, const Ptr<SetLayout>* layouts, Ptr<DescriptorSet>** sets)
+   bool DescriptorsD3D12::allocate(const uint32 count,
+                                   const shared_ptr<SetLayout>(&layouts)[],
+                                   shared_ptr<DescriptorSet>** sets)
    {
    // Allocate group of Descriptor Sets from Desriptor Pool
-   *sets = new Ptr<DescriptorSet>[count];
+   *sets = new shared_ptr<DescriptorSet>[count];
    for(uint32 i=0; i<count; ++i)
       {
       (*sets)[i] = allocate(layouts[i]);
@@ -325,17 +332,14 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::setDescriptors(const Ptr<PipelineLayout> _layout, 
-                                           const Ptr<DescriptorSet> _set,
+   void CommandBufferD3D12::setDescriptors(const PipelineLayout& _layout,
+                                           const DescriptorSet& _set,
                                            const uint32 index)
    {
    assert( started );
 
-   assert( _layout );
-   assert( _set );
-
-   PipelineLayoutD3D12* layout = raw_reinterpret_cast<PipelineLayoutD3D12>(&_layout);
-   DescriptorSetD3D12*  set    = raw_reinterpret_cast<DescriptorSetD3D12>(&_set);
+   const PipelineLayoutD3D12& layout = reinterpret_cast<const PipelineLayoutD3D12&>(_layout);
+   const DescriptorSetD3D12&  set    = reinterpret_cast<const DescriptorSetD3D12&>(_set);
 
    assert( layout->sets > index );
 
@@ -344,8 +348,8 @@ namespace en
 
    // There are only two Heaps that can be set at a time, general and for Samplers.
    // Each change of those Heaps, removes previously bound ones.
-   ID3D12DescriptorHeap* ppHeaps[] = {set->parent->handle[0], set->parent->handle[1] };
-   ProfileComNoRet( command->SetDescriptorHeaps(2, ppHeaps ) )  // (ID3D12DescriptorHeap*const*)(&set->parent->handle[0])
+   ID3D12DescriptorHeap* ppHeaps[] = {set.parent->handle[0], set.parent->handle[1] };
+   ValidateComNoRet( command->SetDescriptorHeaps(2, ppHeaps ) )  // (ID3D12DescriptorHeap*const*)(&set->parent->handle[0])
 
    // Each DescriptorSet may be backed by up to two D3D12 Descriptor Tables pointing
    // into two separate D3D12 Descriptor Heaps, depending on the fact if it is keeping 
@@ -355,31 +359,29 @@ namespace en
    // layout creation time.
    uint32 bindIndex = 0;
    if (index > 0)
-      bindIndex = layout->setBindingIndex[index];
+      bindIndex = layout.setBindingIndex[index];
 
-   if (set->slots[0])
+   if (set.slots[0])
       {
-      ProfileComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToDescriptorOnGPU(set->offset[0])) )
+      ValidateComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set.parent->pointerToDescriptorOnGPU(set.offset[0])) )
       bindIndex++;
       }
-   if (set->slots[1])
-      ProfileComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToSamplerDescriptorOnGPU(set->offset[1])) )
+   if (set.slots[1])
+      ValidateComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set.parent->pointerToSamplerDescriptorOnGPU(set.offset[1])) )
    }
 
-   void CommandBufferD3D12::setDescriptors(const Ptr<PipelineLayout> _layout, 
+   void CommandBufferD3D12::setDescriptors(const PipelineLayout& _layout,
                                            const uint32 count,
-                                           const Ptr<DescriptorSet>* sets,
+                                           const shared_ptr<DescriptorSet>(&_sets)[],
                                            const uint32 firstIndex)
    {
    assert( started );
 
-   assert( _layout );
    assert( count );
-   assert( sets );
 
-   PipelineLayoutD3D12* layout = raw_reinterpret_cast<PipelineLayoutD3D12>(&_layout);
+   const PipelineLayoutD3D12& layout = reinterpret_cast<const PipelineLayoutD3D12&>(_layout);
 
-   assert( layout->sets >= firstIndex + count );
+   assert( layout.sets >= firstIndex + count );
 
    // TODO: Support Compute!!!
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
@@ -393,19 +395,19 @@ namespace en
    uint32 bindIndex = 0;
    for(uint32 i=0; i<count; ++i)
       {
-      DescriptorSetD3D12* set = raw_reinterpret_cast<DescriptorSetD3D12>(&sets[i]);
+      DescriptorSetD3D12* set = reinterpret_cast<DescriptorSetD3D12*>(sets[i].get());
 
       uint32 index = firstIndex + i;
       if (index > 0)
-         bindIndex = layout->setBindingIndex[index];
+         bindIndex = layout.setBindingIndex[index];
       
       if (set->slots[0])
          {
-         ProfileComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToDescriptorOnGPU(set->offset[0])) )
+         ValidateComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToDescriptorOnGPU(set->offset[0])) )
          bindIndex++;
          }
       if (set->slots[1])
-         ProfileComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToSamplerDescriptorOnGPU(set->offset[1])) )
+         ValidateComNoRet( command->SetGraphicsRootDescriptorTable(bindIndex, set->parent->pointerToSamplerDescriptorOnGPU(set->offset[1])) )
       }
    }
 
@@ -426,14 +428,14 @@ namespace en
    //   D3D12_SHADER_VISIBILITY_PIXEL                  // Fragment
    //   };
          
-   Ptr<SetLayout> Direct3D12Device::createSetLayout(const uint32 count, 
-                                                    const ResourceGroup* group,
-                                                    const ShaderStages stageMask)
+   shared_ptr<SetLayout> Direct3D12Device::createSetLayout(const uint32 count, 
+                                                           const ResourceGroup* group,
+                                                           const ShaderStages stageMask)
    {
    assert( count );
    assert( group );
 
-   Ptr<SetLayoutD3D12> result = new SetLayoutD3D12();
+   shared_ptr<SetLayoutD3D12> result = make_shared<SetLayoutD3D12>();
 
    // Total count of descriptors per Descriptor Table
    uint32 descriptors[2];
@@ -714,16 +716,16 @@ namespace en
          break;
       };
       
-   return ptr_reinterpret_cast<SetLayout>(&result);
+   return result;
    }
 
-   Ptr<PipelineLayout> Direct3D12Device::createPipelineLayout(const uint32 sets,
-                                                              const Ptr<SetLayout>* set,
+   shared_ptr<PipelineLayout> Direct3D12Device::createPipelineLayout(const uint32 sets,
+                                                              const shared_ptr<SetLayout>* set,
                                                               const uint32 immutableSamplers,
-                                                              const Ptr<Sampler>* sampler,
+                                                              const shared_ptr<Sampler>* sampler,
                                                               const ShaderStages stageMask)
    {
-   Ptr<PipelineLayoutD3D12> result = nullptr; 
+   shared_ptr<PipelineLayoutD3D12> result = nullptr; 
 
    // Root Signature 1.1:
    // https://msdn.microsoft.com/en-us/library/windows/desktop/mt709473(v=vs.85).aspx
@@ -776,7 +778,7 @@ namespace en
       samplers = allocate<D3D12_STATIC_SAMPLER_DESC>(immutableSamplers);
       for(uint32 i=0; i<immutableSamplers; ++i)
          {
-         SamplerD3D12* ptr = raw_reinterpret_cast<SamplerD3D12>(&sampler);
+         SamplerD3D12* ptr = reinterpret_cast<SamplerD3D12*>(sampler.get());
 
          // While Vulkan uses the same descriptor for dynamic Samplers and
          // immutable Samplers, D3D12 uses two separate structures for those.
@@ -823,7 +825,7 @@ namespace en
       // Count amount of backing Descriptor Tables
       for(uint32 i=0; i<sets; ++i)
          {
-         SetLayoutD3D12* ptr = raw_reinterpret_cast<SetLayoutD3D12>(&set[i]);
+         SetLayoutD3D12* ptr = reinterpret_cast<SetLayoutD3D12*>(set[i].get());
          tablesCount += ptr->tablesCount;
          }
 
@@ -832,7 +834,7 @@ namespace en
     //tables = new D3D12_ROOT_PARAMETER1[tablesCount]; // v1.1
       for(uint32 i=0; i<sets; ++i)
          {
-         SetLayoutD3D12* ptr = raw_reinterpret_cast<SetLayoutD3D12>(&set[i]);
+         SetLayoutD3D12* ptr = reinterpret_cast<SetLayoutD3D12*>(set[i].get());
          
          if (i > 0)
             setBindingIndex[i] = tableIndex;
@@ -912,31 +914,31 @@ namespace en
    // Serialize Root Signature
    ID3DBlob* signature = nullptr;
    ID3DBlob* error     = nullptr;
-   ProfileCom( D3D12SerializeVersionedRootSignature(&desc, &signature, &error) )
+   ValidateCom( D3D12SerializeVersionedRootSignature(&desc, &signature, &error) )
    if (error)
       {
       // TODO: Log Serialization error blob
       }
       
    ID3D12RootSignature* handle = nullptr;
-   Profile( this, CreateRootSignature(0u,
+   Validate( this, CreateRootSignature(0u,
                                       signature->GetBufferPointer(),
                                       signature->GetBufferSize(),
                                       IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12RootSignature), reinterpret_cast<void**>(&handle)
    if (SUCCEEDED(lastResult[Scheduler.core()]))
-      result = new PipelineLayoutD3D12(handle, sets, setBindingIndex);
+      result = make_shared<PipelineLayoutD3D12>(handle, sets, setBindingIndex);
 
    if (sets)
       deallocate<D3D12_ROOT_PARAMETER>(tables);
    if (immutableSamplers)
       deallocate<D3D12_STATIC_SAMPLER_DESC>(samplers);
    
-   return ptr_reinterpret_cast<PipelineLayout>(&result);
+   return result;
    }
 
-   Ptr<Descriptors> Direct3D12Device::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
+   shared_ptr<Descriptors> Direct3D12Device::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
    {
-   Ptr<DescriptorsD3D12> result = nullptr;
+   shared_ptr<DescriptorsD3D12> result = nullptr;
    
    // All resources except of Samplers share the same heap in D3D12.
    // We set D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE to indicate that
@@ -959,10 +961,10 @@ namespace en
       desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
       desc.NodeMask       = 0u; // TODO: Set bit to current GPU index in SLI
    
-      Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&samplersHandle)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handleSamplers)
+      Validate( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&samplersHandle)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handleSamplers)
       if (!SUCCEEDED(lastResult[Scheduler.core()]))
          {
-         return ptr_reinterpret_cast<Descriptors>(&result);
+         return result;
          }
       }
       
@@ -982,21 +984,21 @@ namespace en
       desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
       desc.NodeMask       = 0u; // TODO: Set bit to current GPU index in SLI
    
-      Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handle)
+      Validate( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handle)
       if (!SUCCEEDED(lastResult[Scheduler.core()]))
          {
-         return ptr_reinterpret_cast<Descriptors>(&result);
+         return result;
          }
       }
 
    // D3D12 has no limit of Descriptor Sets that can be allocated from it.
-   result = new DescriptorsD3D12(this);
+   result = make_shared<DescriptorsD3D12>(this);
    result->handle[0]    = handle;
    result->handle[1]    = samplersHandle;
    result->allocator[0] = new BasicAllocator(slots);
    result->allocator[1] = new BasicAllocator(count[underlyingType(ResourceType::Sampler)]);
 
-   return ptr_reinterpret_cast<Descriptors>(&result);
+   return result;
    }
 
    }

@@ -15,7 +15,7 @@
 
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/aligment.h"
+#include "core/utilities/alignment.h"
 #include "core/threading/atomics.h"
 
 // Base of class that implements object managed

@@ -745,18 +745,18 @@
 //      uint16 srcType    = gl::TextureFormat[textureState.format].srcType; 
 //
 //      // Generate empty texture in driver
-//      Profile( glGenTextures(1, (GLuint*)&texture->id) );
-//      Profile( glBindTexture(texType, texture->id) );
+//      Validate( glGenTextures(1, (GLuint*)&texture->id) );
+//      Validate( glBindTexture(texType, texture->id) );
 //      if (textureState.type != Texture2DRectangle)
 //         {
-//         Profile( glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
-//         Profile( glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
-//         Profile( glTexParameteri(texType, GL_TEXTURE_WRAP_R, GL_REPEAT) );
+//         Validate( glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
+//         Validate( glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
+//         Validate( glTexParameteri(texType, GL_TEXTURE_WRAP_R, GL_REPEAT) );
 //         }
-//      Profile( glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
-//      Profile( glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
+//      Validate( glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
+//      Validate( glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
 //           
-//      Profile( glGenBuffers(1, &texture->pbo) );
+//      Validate( glGenBuffers(1, &texture->pbo) );
 //    
 //      // Reserve memory for texture completness (OpenGL 2.0+)
 //      if (textureState.type == Texture1D)
@@ -764,7 +764,7 @@
 //         uint16 width = textureState.width;
 //         for (uint8 i=0; width != 0; ++i)
 //             {
-//             Profile( glTexImage1D(GL_TEXTURE_1D, i, dstFormat, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage1D(GL_TEXTURE_1D, i, dstFormat, width, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //             width = width >> 1;
 //             }
@@ -775,7 +775,7 @@
 //         uint16 height = textureState.height;
 //         for (uint8 i=0; ; ++i)
 //             {
-//             Profile( glTexImage2D(GL_TEXTURE_2D, i, dstFormat, width, height, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_2D, i, dstFormat, width, height, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //      
 //             if ( (width  == 1) && 
@@ -792,7 +792,7 @@
 //         uint16 depth  = textureState.depth;
 //         for (uint8 i=0; ; ++i)
 //             {
-//             Profile( glTexImage3D(GL_TEXTURE_3D, i, dstFormat, width, height, depth, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage3D(GL_TEXTURE_3D, i, dstFormat, width, height, depth, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //      
 //             if ( (width  == 1) && 
@@ -809,12 +809,12 @@
 //         uint16 width = textureState.width;
 //         for (uint8 i=0; width != 0; ++i)
 //             {
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //             width = width >> 1;
 //             }
@@ -826,7 +826,7 @@
 //         uint16 width  = textureState.width;
 //         for (uint8 i=0; width != 0; ++i)
 //             {
-//             Profile( glTexImage2D(GL_TEXTURE_1D_ARRAY, i, dstFormat, width, textureState.layers, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_1D_ARRAY, i, dstFormat, width, textureState.layers, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //             width = width >> 1;
 //             }
@@ -837,7 +837,7 @@
 //         uint16 height = textureState.height;
 //         for (uint8 i=0; ; ++i)
 //             {
-//             Profile( glTexImage3D(GL_TEXTURE_2D_ARRAY, i, dstFormat, width, height, textureState.layers, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage3D(GL_TEXTURE_2D_ARRAY, i, dstFormat, width, height, textureState.layers, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //                 
 //             if ( (width  == 1) && 
@@ -851,7 +851,7 @@
 //      // Reserve memory for texture completness (OpenGL 3.1+)
 //      if (textureState.type == Texture2DRectangle)
 //         {
-//         Profile( glTexImage2D(GL_TEXTURE_RECTANGLE, 0, dstFormat, textureState.width, textureState.height, 0, srcFormat, srcType, NULL) );
+//         Validate( glTexImage2D(GL_TEXTURE_RECTANGLE, 0, dstFormat, textureState.width, textureState.height, 0, srcFormat, srcType, NULL) );
 //         texture->mipmaps = 1;
 //         }
 //      
@@ -865,14 +865,14 @@
 //      if (textureState.type == Texture2DMultisample)
 //         {
 //         // TODO: Check samples count (depth/color/integer), destination format must be (color/depth/stencil)-renderable
-//         Profile( glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, textureState.samples, dstFormat, textureState.width, textureState.height, GL_TRUE) );
+//         Validate( glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, textureState.samples, dstFormat, textureState.width, textureState.height, GL_TRUE) );
 //         texture->mipmaps = 1;
 //         }
 //      
 //      if (textureState.type == Texture2DMultisampleArray)
 //         {
 //         // TODO: Check samples count (depth/color/integer), destination format must be (color/depth/stencil)-renderable
-//         Profile( glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, textureState.samples, dstFormat, textureState.width, textureState.height, textureState.layers, GL_TRUE) );
+//         Validate( glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, textureState.samples, dstFormat, textureState.width, textureState.height, textureState.layers, GL_TRUE) );
 //         texture->mipmaps = 1;
 //         }
 //      
@@ -882,12 +882,12 @@
 //         uint16 width = textureState.width;
 //         for (uint8 i=0; width != 0; ++i)
 //             {
-//             Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, dstFormat, width, width, textureState.layers, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //             width = width >> 1;
 //             }
@@ -991,9 +991,9 @@
 //         {
 //         // Discard previous PBO data to prevent CPU-GPU synchronization.
 //         void* ptr;
-//         Profile( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, texture->pbo) );
-//         Profile( glBufferData( GL_PIXEL_UNPACK_BUFFER, surface->size, 0, GL_STREAM_DRAW) );
-//         Profile( ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY) );
+//         Validate( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, texture->pbo) );
+//         Validate( glBufferData( GL_PIXEL_UNPACK_BUFFER, surface->size, 0, GL_STREAM_DRAW) );
+//         Validate( ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY) );
 //
 //         // Mark texture as mapped
 //         texture->surface = surface;
@@ -1053,9 +1053,9 @@
 //         {
 //         // Discard previous PBO data to prevent CPU-GPU synchronization.
 //         void* ptr;
-//         Profile( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, texture->pbo) );
-//         Profile( glBufferData( GL_PIXEL_UNPACK_BUFFER, surface->size, 0, GL_STREAM_DRAW) );
-//         Profile( ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY) );
+//         Validate( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, texture->pbo) );
+//         Validate( glBufferData( GL_PIXEL_UNPACK_BUFFER, surface->size, 0, GL_STREAM_DRAW) );
+//         Validate( ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY) );
 //
 //         // Mark texture as mapped
 //         texture->surface = surface;
@@ -1097,46 +1097,46 @@
 //      
 //      // Unmount PBO after all data is written to it
 //      if (GpuContext.screen.support(OpenGL_2_1))
-//         Profile( glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER) );
+//         Validate( glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER) );
 //
 //      // Send texture to GPU. If PBO is supported, texture
 //      // data will be transferred from it using DMA. Otherwise
 //      // it wil be copied in traditional way from client memory.
 //      // In both ways it is correct to pass surface->pointer
 //      // as data source, as in PBO case it will resolve to 0 offset.
-//      Profile( glBindTexture(texType, texture->id) );
+//      Validate( glBindTexture(texType, texture->id) );
 //      
 //      if (texture->type == Texture1D)
 //         {
 //         if (compressed)
-//            Profile( glCompressedTexSubImage1D(GL_TEXTURE_1D, surface->mipmap, 0, surface->width, srcFormat, surface->size, surface->pointer) )
+//            Validate( glCompressedTexSubImage1D(GL_TEXTURE_1D, surface->mipmap, 0, surface->width, srcFormat, surface->size, surface->pointer) )
 //         else
-//            Profile( glTexSubImage1D(GL_TEXTURE_1D, surface->mipmap, 0, surface->width, srcFormat, srcType, surface->pointer) );
+//            Validate( glTexSubImage1D(GL_TEXTURE_1D, surface->mipmap, 0, surface->width, srcFormat, srcType, surface->pointer) );
 //         }
 //      
 //      if (texture->type == Texture2D)
 //         {
 //         if (compressed)
-//            Profile( glCompressedTexSubImage2D(GL_TEXTURE_2D, surface->mipmap, 0, 0, surface->width, surface->height, srcFormat, surface->size, surface->pointer) )
+//            Validate( glCompressedTexSubImage2D(GL_TEXTURE_2D, surface->mipmap, 0, 0, surface->width, surface->height, srcFormat, surface->size, surface->pointer) )
 //         else
-//            Profile( glTexSubImage2D(GL_TEXTURE_2D, surface->mipmap, 0, 0, surface->width, surface->height, srcFormat, srcType, surface->pointer) );
+//            Validate( glTexSubImage2D(GL_TEXTURE_2D, surface->mipmap, 0, 0, surface->width, surface->height, srcFormat, srcType, surface->pointer) );
 //         }
 //      
 //      if (texture->type == Texture3D)
 //         {
 //         if (compressed)
-//            Profile( glCompressedTexSubImage3D(GL_TEXTURE_3D, surface->mipmap, 0, 0, 0, surface->width, surface->height, surface->depth, srcFormat, surface->size, surface->pointer) )
+//            Validate( glCompressedTexSubImage3D(GL_TEXTURE_3D, surface->mipmap, 0, 0, 0, surface->width, surface->height, surface->depth, srcFormat, surface->size, surface->pointer) )
 //         else
-//            Profile( glTexSubImage3D(GL_TEXTURE_3D, surface->mipmap, 0, 0, 0, surface->width, surface->height, surface->depth, srcFormat, srcType, surface->pointer) );    
+//            Validate( glTexSubImage3D(GL_TEXTURE_3D, surface->mipmap, 0, 0, 0, surface->width, surface->height, surface->depth, srcFormat, srcType, surface->pointer) );    
 //         }
 //      
 //      if (texture->type == TextureCubeMap)
 //         {
 //         uint16 texFace = gl::TextureFace[surface->face];
 //         if (compressed)
-//            Profile( glCompressedTexSubImage2D(texFace, surface->mipmap, 0, 0, surface->width, surface->width, srcFormat, surface->size, surface->pointer) )
+//            Validate( glCompressedTexSubImage2D(texFace, surface->mipmap, 0, 0, surface->width, surface->width, srcFormat, surface->size, surface->pointer) )
 //         else    
-//            Profile( glTexSubImage2D(texFace, surface->mipmap, 0, 0, surface->width, surface->width, srcFormat, srcType, surface->pointer) );
+//            Validate( glTexSubImage2D(texFace, surface->mipmap, 0, 0, surface->width, surface->width, srcFormat, srcType, surface->pointer) );
 //         }
 //
 //      // Other texture types are not supported in OpenGL 2.0.
@@ -1145,7 +1145,7 @@
 //      if (texture->type == Texture2DArray)
 //         {
 //         if (compressed)
-//            Profile( glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, 
+//            Validate( glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, 
 //                                               surface->mipmap, 
 //                                               0, 0,                  // x,y,z - location
 //                                               surface->layer, 
@@ -1156,7 +1156,7 @@
 //                                               surface->size, 
 //                                               surface->pointer) )
 //         else
-//            Profile( glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 
+//            Validate( glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 
 //                                     surface->mipmap, 
 //                                     0, 0,                 // x,y,z - location
 //                                     surface->layer, 
@@ -1170,7 +1170,7 @@
 //    
 //      // Unbind PBO restoring standard pixel operations.
 //      if (GpuContext.screen.support(OpenGL_2_1))
-//         Profile( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0) );
+//         Validate( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0) );
 //
 //      // Free surface descriptor and finish
 //      if (GpuContext.screen.support(OpenGL_2_1))
@@ -1374,14 +1374,14 @@
 //      uint16 srcType    = gl::TextureFormat[texture->format].srcType; 
 //
 //      // Read texture content to RAM
-//      Profile( glBindTexture(texType, texture->id) )
-//      Profile( glGetTexImage(texType, mipmap, srcFormat, srcType, buffer) )
+//      Validate( glBindTexture(texType, texture->id) )
+//      Validate( glGetTexImage(texType, mipmap, srcFormat, srcType, buffer) )
 //      }
 //
 //      bool TextureDestroy(TextureDescriptor* const texture)
 //      {    
 //      // Frees texture in driver
-//      Profile( glDeleteTextures(1, &texture->id) )
+//      Validate( glDeleteTextures(1, &texture->id) )
 //      texture->id = 0;
 //      
 //      // Fill program with null pointer
@@ -1404,16 +1404,16 @@
 //      if (textureDescriptor->type != Texture2DRectangle)
 //         {
 //         //if (sampler->dirty.wrapS)
-//            Profile( glTexParameteri(type, GL_TEXTURE_WRAP_S, gl::TextureWraping[sampler->wrapS].wraping) );           
+//            Validate( glTexParameteri(type, GL_TEXTURE_WRAP_S, gl::TextureWraping[sampler->wrapS].wraping) );           
 //         //if (sampler->dirty.wrapT)                                                                         
-//            Profile( glTexParameteri(type, GL_TEXTURE_WRAP_T, gl::TextureWraping[sampler->wrapT].wraping) );           
+//            Validate( glTexParameteri(type, GL_TEXTURE_WRAP_T, gl::TextureWraping[sampler->wrapT].wraping) );           
 //         //if (sampler->dirty.wrapR)                                                                         
-//            Profile( glTexParameteri(type, GL_TEXTURE_WRAP_R, gl::TextureWraping[sampler->wrapR].wraping) );            
+//            Validate( glTexParameteri(type, GL_TEXTURE_WRAP_R, gl::TextureWraping[sampler->wrapR].wraping) );            
 //         }     
 //     // if (sampler->dirty.magFilter)
-//         Profile( glTexParameteri(type, GL_TEXTURE_MAG_FILTER, gl::TextureFiltering[sampler->magFilter].filtering) );  
+//         Validate( glTexParameteri(type, GL_TEXTURE_MAG_FILTER, gl::TextureFiltering[sampler->magFilter].filtering) );  
 //     // if (sampler->dirty.magFilter)
-//         Profile( glTexParameteri(type, GL_TEXTURE_MIN_FILTER, gl::TextureFiltering[sampler->minFilter].filtering) );  
+//         Validate( glTexParameteri(type, GL_TEXTURE_MIN_FILTER, gl::TextureFiltering[sampler->minFilter].filtering) );  
 //     
 //      // Sampler state updated
 //    //  sampler->dirty.value = 0;
@@ -1459,12 +1459,12 @@
 //      uint16 srcType    = gl::TextureFormat[textureState.format].srcType; 
 //
 //      // Generate empty texture in driver
-//      Profile( glGenTextures(1, (GLuint*)&texture->id) );
-//      Profile( glBindTexture(texType, texture->id) );
-//      Profile( glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
-//      Profile( glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
-//      Profile( glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
-//      Profile( glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
+//      Validate( glGenTextures(1, (GLuint*)&texture->id) );
+//      Validate( glBindTexture(texType, texture->id) );
+//      Validate( glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
+//      Validate( glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
+//      Validate( glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
+//      Validate( glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
 //      
 //      // Reserve memory for texture completness (OpenGL ES 2.0+)
 //      if (textureState.type == Texture2D)
@@ -1473,7 +1473,7 @@
 //         uint16 height = textureState.height;
 //         for (uint8 i=0; ; ++i)
 //             {
-//             Profile( glTexImage2D(GL_TEXTURE_2D, i, dstFormat, width, height, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_2D, i, dstFormat, width, height, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //      
 //             if ( (width  == 1) && 
@@ -1488,12 +1488,12 @@
 //         uint16 width = textureState.width;
 //         for (uint8 i=0; width != 0; ++i)
 //             {
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
-//             Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
+//             Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, dstFormat, width, width, 0, srcFormat, srcType, NULL) );
 //             texture->mipmaps++;
 //             width = width >> 1;
 //             }
@@ -1523,23 +1523,23 @@
 //      uint16 srcType    = gl::TextureFormat[texture->format].srcType; 
 //      
 //      // Send texture to gpu using traditional methods
-//      Profile( glBindTexture(texType, texture->id) )
+//      Validate( glBindTexture(texType, texture->id) )
 //      
 //      if (texture->type == Texture2D)
 //         {
 //         if (compressed)
-//            Profile( glCompressedTexSubImage2D(GL_TEXTURE_2D, surface->mipmap, 0, 0, texture->width, texture->height, srcFormat, surface->size, surface->pointer) )
+//            Validate( glCompressedTexSubImage2D(GL_TEXTURE_2D, surface->mipmap, 0, 0, texture->width, texture->height, srcFormat, surface->size, surface->pointer) )
 //         else
-//            Profile( glTexSubImage2D(GL_TEXTURE_2D, surface->mipmap, 0, 0, texture->width, texture->height, srcFormat, srcType, surface->pointer) )
+//            Validate( glTexSubImage2D(GL_TEXTURE_2D, surface->mipmap, 0, 0, texture->width, texture->height, srcFormat, srcType, surface->pointer) )
 //         }
 //      
 //      if (texture->type == TextureCubeMap)
 //         {
 //         uint16 texFace = gl::TextureFace[surface->face];
 //         if (compressed)
-//            Profile( glCompressedTexSubImage2D(texFace, surface->mipmap, 0, 0, texture->width, texture->width, srcFormat, surface->size, surface->pointer) )
+//            Validate( glCompressedTexSubImage2D(texFace, surface->mipmap, 0, 0, texture->width, texture->width, srcFormat, surface->size, surface->pointer) )
 //         else    
-//            Profile( glTexSubImage2D(texFace, surface->mipmap, 0, 0, texture->width, texture->width, srcFormat, srcType, surface->pointer) )
+//            Validate( glTexSubImage2D(texFace, surface->mipmap, 0, 0, texture->width, texture->width, srcFormat, srcType, surface->pointer) )
 //         }
 //      // Other texture types are not supported in OpenGL ES 2.0.
 //      // Future versions of OpenGL ES uses PBO implementation for
@@ -1564,13 +1564,13 @@
 //      TextureDescriptor* textureDescriptor = *(TextureDescriptor**)&sampler->texture;
 //      uint16 type = gl::TextureType[textureDescriptor->type].type;
 //      if (sampler->dirty.wrapS)
-//         Profile( glTexParameteri(type, GL_TEXTURE_WRAP_S, gl::TextureWraping[sampler->wrapS].wraping) )
+//         Validate( glTexParameteri(type, GL_TEXTURE_WRAP_S, gl::TextureWraping[sampler->wrapS].wraping) )
 //      if (sampler->dirty.wrapT)
-//         Profile( glTexParameteri(type, GL_TEXTURE_WRAP_T, gl::TextureWraping[sampler->wrapT].wraping) )       
+//         Validate( glTexParameteri(type, GL_TEXTURE_WRAP_T, gl::TextureWraping[sampler->wrapT].wraping) )       
 //      if (sampler->dirty.magFilter)
-//         Profile( glTexParameteri(type, GL_TEXTURE_MAG_FILTER, gl::TextureFiltering[sampler->magFilter].filtering) )
+//         Validate( glTexParameteri(type, GL_TEXTURE_MAG_FILTER, gl::TextureFiltering[sampler->magFilter].filtering) )
 //      if (sampler->dirty.magFilter)
-//         Profile( glTexParameteri(type, GL_TEXTURE_MIN_FILTER, gl::TextureFiltering[sampler->minFilter].filtering) )
+//         Validate( glTexParameteri(type, GL_TEXTURE_MIN_FILTER, gl::TextureFiltering[sampler->minFilter].filtering) )
 //     
 //      // Sampler state updated
 //      sampler->dirty.value = 0;

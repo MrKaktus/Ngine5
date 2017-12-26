@@ -16,8 +16,11 @@
 #ifndef ENG_CORE_RENDERING_SAMPLER
 #define ENG_CORE_RENDERING_SAMPLER
 
+#include <memory>
+using namespace std;
+
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
 #include "core/rendering/state.h"
 
 namespace en
@@ -88,7 +91,7 @@ namespace en
       };
 
    // Sampler is immutable after it is created.
-   class Sampler : public SafeObject<Sampler>
+   class Sampler
       {
       public:   
       virtual ~Sampler();                              // Polymorphic deletes require a virtual base destructor

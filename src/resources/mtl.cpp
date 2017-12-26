@@ -30,7 +30,7 @@ namespace en
    //   return ResourcesContext.materials[name];
 
    // Open MTL file 
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.materials + filename);

@@ -97,14 +97,14 @@ namespace en
 
    for(uint32 i=0; i<min(attachments, MaxColorAttachmentsCount); ++i)
       {
-      desc.RenderTarget[i].BlendEnable           = color[i].blending;
+      desc.RenderTarget[i].BlendEnable           = color[i].mode == BlendMode::BlendOperation ? true : false;
       desc.RenderTarget[i].LogicOpEnable         = false;                                  // color[i].logicOperation;
       desc.RenderTarget[i].SrcBlend              = TranslateBlend[color[i].srcRGB];
       desc.RenderTarget[i].DestBlend             = TranslateBlend[color[i].dstRGB];
-      desc.RenderTarget[i].BlendOp               = static_cast<D3D12_BLEND_OP>(underlyingType(color[i].rgbFunc) + 1);   // Optimisation of: TranslateBlendFunc[color[i].rgbFunc];
+      desc.RenderTarget[i].BlendOp               = static_cast<D3D12_BLEND_OP>(underlyingType(color[i].rgb) + 1);   // Optimisation of: TranslateBlendFunc[color[i].rgb];
       desc.RenderTarget[i].SrcBlendAlpha         = TranslateBlend[color[i].srcAlpha];
       desc.RenderTarget[i].DestBlendAlpha        = TranslateBlend[color[i].dstAlpha];
-      desc.RenderTarget[i].BlendOpAlpha          = static_cast<D3D12_BLEND_OP>(underlyingType(color[i].alphaFunc) + 1); // Optimisation of: TranslateBlendFunc[color[i].alphaFunc];
+      desc.RenderTarget[i].BlendOpAlpha          = static_cast<D3D12_BLEND_OP>(underlyingType(color[i].alpha) + 1); // Optimisation of: TranslateBlendFunc[color[i].alpha];
       desc.RenderTarget[i].LogicOp               = TranslateLogicOperation[NoOperation];   // TranslateLogicOperation[color[i].logic];
       // Translate Color Write Mask
       desc.RenderTarget[i].RenderTargetWriteMask = static_cast<UINT8>(underlyingType(color[i].writeMask));
@@ -137,16 +137,15 @@ namespace en
       }
    }
    
-   Ptr<BlendState> Direct3D12Device::createBlendState(const BlendStateInfo& state,
-                                                      const uint32 attachments,
-                                                      const BlendAttachmentInfo* color)
+   shared_ptr<BlendState> Direct3D12Device::createBlendState(const BlendStateInfo& state,
+                                                             const uint32 attachments,
+                                                             const BlendAttachmentInfo* color)
    {
    // We don't support Logic Operations for now
    // for(uint32 i=0; i<attachments; ++i)
    //    assert( !(color[0].logicOperation && color[i].blending) );
    
-   Ptr<BlendStateD3D12> ptr = new BlendStateD3D12(state, attachments, color);
-   return ptr_reinterpret_cast<BlendState>(&ptr);
+   return make_shared<BlendStateD3D12>(state, attachments, color);
    }
 
 

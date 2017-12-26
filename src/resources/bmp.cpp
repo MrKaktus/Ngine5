@@ -69,12 +69,12 @@ namespace en
           }; 
    aligndefault
 
-   bool load(Ptr<en::gpu::Texture> dst, const uint16 layer, const string& filename)
+   bool load(shared_ptr<en::gpu::Texture> dst, const uint16 layer, const string& filename)
    {
    using namespace en::storage;
 
    // Open image file
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -178,7 +178,7 @@ namespace en
       return false;
 
    // Create staging buffer
-   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
+   shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -197,9 +197,9 @@ namespace en
       type = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
-   command->copy(staging, dst, 0u, layer);
+   command->copy(*staging, *dst, 0u, layer);
    command->commit();
    
    // TODO:
@@ -216,7 +216,7 @@ namespace en
    return true;
    }
 
-   Ptr<en::gpu::Texture> load(const string& filename)
+   shared_ptr<en::gpu::Texture> load(const string& filename)
    {
    using namespace en::storage;
 
@@ -225,7 +225,7 @@ namespace en
       return ResourcesContext.textures[filename];
 
    // Open image file
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -233,7 +233,7 @@ namespace en
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
-         return Ptr<gpu::Texture>(nullptr);
+         return shared_ptr<gpu::Texture>(nullptr);
          }
       }
    
@@ -244,7 +244,7 @@ namespace en
       {
       Log << "ERROR: BMP file header signature incorrect!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
    
    // Read file header
@@ -254,7 +254,7 @@ namespace en
       {
       Log << "ERROR: BMP file header incorrect!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
    
    // Read DIB header
@@ -270,7 +270,7 @@ namespace en
       {
       Log << "ERROR: Unsupported DIB header!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }    
    
    // Check if image is not compressed
@@ -278,7 +278,7 @@ namespace en
       {
       Log << "ERROR: Compressed BMP files are not supported!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
    
    // Determine texture parameters
@@ -294,7 +294,7 @@ namespace en
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
    
    // Determine texture type
@@ -314,7 +314,7 @@ namespace en
       dataSize = lineSize * DIBHeader.height;
 
    // Create texture in gpu
-   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+   shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
@@ -323,7 +323,7 @@ namespace en
       }
       
    // Create staging buffer
-   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
+   shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -346,9 +346,9 @@ namespace en
       type = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
-   command->copy(staging, texture, mipmap, slice);
+   command->copy(*staging, *texture, mipmap, slice);
    command->commit();
    
    // TODO:
@@ -363,7 +363,7 @@ namespace en
    staging = nullptr;
  
    // Update list of loaded textures
-   ResourcesContext.textures.insert(pair<string, Ptr<en::gpu::Texture> >(filename, texture));
+   ResourcesContext.textures.insert(pair<string, shared_ptr<en::gpu::Texture> >(filename, texture));
     
    return texture;
    }
@@ -373,7 +373,7 @@ namespace en
    using namespace en::storage;
 
    // Open image file 
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -468,7 +468,7 @@ namespace en
      return false;
    
    // Open image file 
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -505,7 +505,7 @@ namespace en
    }
 
 
-   //bool save(Ptr<en::gpu::Texture> texture, const string& filename)
+   //bool save(shared_ptr<en::gpu::Texture> texture, const string& filename)
    //{
    //using namespace en::storage;
 
@@ -515,7 +515,7 @@ namespace en
    //   return false;
 
    //// Open image file 
-   //Ptr<File> file = Storage->open(filename, en::storage::Write);
+   //shared_ptr<File> file = Storage->open(filename, en::storage::Write);
    //if (!file)
    //   {
    //   file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
@@ -576,7 +576,7 @@ namespace en
       return false;
 
    // Open image file 
-   Ptr<File> file = Storage->open(filename, en::storage::Write);
+   shared_ptr<File> file = Storage->open(filename, en::storage::Write);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);

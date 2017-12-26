@@ -32,7 +32,7 @@ namespace en
 
    // Use: Texture1D, Texture2D, Texture2DRectangle, Texture2DMultisample (single layer)
    //      Texture1DArray, Texture2DArray, Texture2DMultisampleArray, Texture3D, TextureCubeMap, TextureCubeMapArray (all layers)
-   void FramebufferGL45::color(const DataAccess access, const uint8 index, const Ptr<Texture> texture, const uint8 mipmap)
+   void FramebufferGL45::color(const DataAccess access, const uint8 index, const shared_ptr<Texture> texture, const uint8 mipmap)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -47,7 +47,7 @@ namespace en
 #endif
 
    uint16 glType = TranslateTextureType[texture->type()];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
       case Texture1D:
@@ -60,7 +60,7 @@ namespace en
       case Texture3D:
       case TextureCubeMap:
       case TextureCubeMapArray:
-         Profile( glNamedFramebufferTexture(id, (GL_COLOR_ATTACHMENT0 + index), tex->id, mipmap) )
+         Validate( glNamedFramebufferTexture(id, (GL_COLOR_ATTACHMENT0 + index), tex->id, mipmap) )
          break;
 
       default:
@@ -73,7 +73,7 @@ namespace en
    // Use: Texture1D, Texture2D, Texture2DRectangle, Texture2DMultisample
    //      Texture3D, TextureCubeMap (specific depth, face)   
    //      Texture1DArray, Texture2DArray, Texture2DMultisampleArray, TextureCubeMapArray (all layers)
-   void FramebufferGL45::color(const DataAccess access, const uint8 index, const Ptr<Texture> texture, const uint16 layer, const uint8 mipmap)
+   void FramebufferGL45::color(const DataAccess access, const uint8 index, const shared_ptr<Texture> texture, const uint16 layer, const uint8 mipmap)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -93,7 +93,7 @@ namespace en
       accessType = GL_READ_FRAMEBUFFER;
 
    uint16 glType = TranslateTextureType[texture->type()];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
       case Texture1D:
@@ -104,20 +104,20 @@ namespace en
       case Texture2DMultisample:
       case Texture2DMultisampleArray:
       case TextureCubeMapArray:
-         Profile( glNamedFramebufferTexture(id, (GL_COLOR_ATTACHMENT0 + index), tex->id, mipmap) )
+         Validate( glNamedFramebufferTexture(id, (GL_COLOR_ATTACHMENT0 + index), tex->id, mipmap) )
          break;
 
       // Single layer binding
       case Texture3D:
          assert( layer < texture->depth() );
-         Profile( glBindFramebuffer(accessType, id) )
-         Profile( glFramebufferTexture3D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap, layer) )
+         Validate( glBindFramebuffer(accessType, id) )
+         Validate( glFramebufferTexture3D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap, layer) )
          break;
 
       case TextureCubeMap:
          assert( layer < 6 );
-         Profile( glBindFramebuffer(accessType, id) )
-         Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), TranslateTextureFace[layer], tex->id, mipmap) )
+         Validate( glBindFramebuffer(accessType, id) )
+         Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), TranslateTextureFace[layer], tex->id, mipmap) )
          break;
 
       default:

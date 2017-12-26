@@ -13,7 +13,6 @@
 
 #include "core/storage.h"
 #include "core/log/log.h"
-#include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/device.h"
 #include "resources/context.h" 
 #include "resources/font.h" 
@@ -186,7 +185,7 @@ namespace en
 
    // Create staging buffer
    uint32 stagingSize = 14u;
-   Ptr<gpu::Buffer> staging = defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   shared_ptr<gpu::Buffer> staging = defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
    assert( staging );
 
    // Read texture to temporary buffer
@@ -200,9 +199,9 @@ namespace en
       queueType = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
    command->start();
-   command->copy(staging, defaults.enAxes);
+   command->copy(*staging,*defaults.enAxes);
    command->commit();
    
    // TODO:
@@ -475,7 +474,7 @@ namespace en
    {
    }
 
-   Model::Model(Ptr<gpu::Buffer> buffer, gpu::DrawableType type) :
+   Model::Model(shared_ptr<gpu::Buffer> buffer, gpu::DrawableType type) :
       name("custom")
    {
    Mesh temp;
@@ -619,7 +618,7 @@ namespace en
 
 
 
-   Ptr<Model> Interface::Load::model(const string& filename, const string& name)
+   shared_ptr<Model> Interface::Load::model(const string& filename, const string& name)
    {
    sint64 found;
    uint64 length = filename.length();
@@ -648,7 +647,7 @@ namespace en
         found == (length - 4) )
       return fbx::load(filename, name);
 
-   return Ptr<Model>(NULL);
+   return shared_ptr<Model>(NULL);
    }
 
    //Material Interface::Load::material(const string& filename, const string& name)
@@ -701,9 +700,9 @@ namespace en
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   map<string, Ptr<en::resource::Model> >::iterator it = ResourcesContext.models.find(name);
+   map<string, shared_ptr<en::resource::Model> >::iterator it = ResourcesContext.models.find(name);
    if (it != ResourcesContext.models.end())
-      if (it->second->references == 1)
+      if (it->second.unique())
          it->second = NULL;
    }
 
@@ -719,7 +718,7 @@ namespace en
    //      it->second = NULL;
    //}
 
-   Ptr<audio::Sample> Interface::Load::sound(const string& filename)
+   shared_ptr<audio::Sample> Interface::Load::sound(const string& filename)
    {
    sint64 found;
    uint64 length = filename.length();
@@ -734,7 +733,7 @@ namespace en
         found == (length - 4) )
       return wav::load(filename);
 
-   return Ptr<audio::Sample>(NULL);
+   return shared_ptr<audio::Sample>(NULL);
    }
 
    enum FileExtension
@@ -765,7 +764,7 @@ namespace en
       { string(".TGA"), ExtensionTGA }
       };
 
-   Ptr<en::gpu::Texture> Interface::Load::texture(const string& filename, const gpu::ColorSpace colorSpace)
+   shared_ptr<en::gpu::Texture> Interface::Load::texture(const string& filename, const gpu::ColorSpace colorSpace)
    {
    uint64 length = filename.length();
 
@@ -782,7 +781,7 @@ namespace en
 //   bool invertHorizontal = false;
 //#endif
 
-   Ptr<gpu::Texture> texture = nullptr;
+   shared_ptr<gpu::Texture> texture = nullptr;
 
    // Iterate over all registered file extensions and execute proper loading function
    FileExtension type = ExtensionUnknown;
@@ -842,7 +841,7 @@ namespace en
    return texture;
    }
 
-   bool Interface::Load::texture(Ptr<gpu::Texture> dst, const uint16 layer, const string& filename, const gpu::ColorSpace colorSpace)
+   bool Interface::Load::texture(shared_ptr<gpu::Texture> dst, const uint16 layer, const string& filename, const gpu::ColorSpace colorSpace)
    {
    uint64 length = filename.length();
 
@@ -935,7 +934,7 @@ namespace en
    return result;
    }
 
-//   bool Interface::Load::texture(Ptr<gpu::Texture> dst, const gpu::TextureFace face, const uint16 layer, const string& filename, const gpu::ColorSpace colorSpace)
+//   bool Interface::Load::texture(shared_ptr<gpu::Texture> dst, const gpu::TextureFace face, const uint16 layer, const string& filename, const gpu::ColorSpace colorSpace)
 //   {
 //  uint32 found;
 //   uint32 length = filename.length();
@@ -967,9 +966,9 @@ namespace en
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   map<string, Ptr<audio::Sample> >::iterator it = ResourcesContext.sounds.find(filename);
+   map<string, shared_ptr<audio::Sample> >::iterator it = ResourcesContext.sounds.find(filename);
    if (it != ResourcesContext.sounds.end())
-      if (it->second.references() == 1)
+      if (it->second.unique())
          it->second = NULL;
    }
 
@@ -979,9 +978,9 @@ namespace en
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   map<string, Ptr<gpu::Texture> >::iterator it = ResourcesContext.textures.find(filename);
+   map<string, shared_ptr<gpu::Texture> >::iterator it = ResourcesContext.textures.find(filename);
    if (it != ResourcesContext.textures.end())
-      if (it->second.references() == 1)
+      if (it->second.unique())
          it->second = NULL;
    }
 

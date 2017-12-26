@@ -16,11 +16,13 @@
 #ifndef ENG_CORE_RENDERING_BUFFER
 #define ENG_CORE_RENDERING_BUFFER
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
+
 #include "core/rendering/state.h"
-#include "core/utilities/Tproxy.h"
-#include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/texture.h"
 
 namespace en
@@ -180,7 +182,9 @@ namespace en
       public:
       Attribute column[MaxInputLayoutAttributesCount]; // Format of each data column
       
-      // Create data formatting layout by passing at least one data column format
+      // Create data formatting layout by passing at least one data column format.
+      // If more than eight input attributes need to be specified, they can be
+      // directly set on column variable.
       Formatting();
       Formatting(const Attribute col0,
                  const Attribute col1  = Attribute::None,
@@ -189,15 +193,7 @@ namespace en
                  const Attribute col4  = Attribute::None,
                  const Attribute col5  = Attribute::None,
                  const Attribute col6  = Attribute::None,
-                 const Attribute col7  = Attribute::None,                                                                
-                 const Attribute col8  = Attribute::None,
-                 const Attribute col9  = Attribute::None,
-                 const Attribute col10 = Attribute::None,
-                 const Attribute col11 = Attribute::None,
-                 const Attribute col12 = Attribute::None,
-                 const Attribute col13 = Attribute::None,
-                 const Attribute col14 = Attribute::None,
-                 const Attribute col15 = Attribute::None
+                 const Attribute col7  = Attribute::None
                  );
          
       // Size of all attributes combined together, with platform specific padding.
@@ -209,7 +205,7 @@ namespace en
       
    class BufferView;
    
-   class Buffer : public SafeObject<Buffer>
+   class Buffer
       {
       public:
       virtual uint64 length(void) const = 0;
@@ -221,8 +217,8 @@ namespace en
       virtual void* map(const uint64 offset, const uint64 size) = 0;
       virtual void  unmap(void) = 0;
       
-//      virtual Ptr<BufferView> view(void) = 0;  // Default buffer view, if it was created with formatting
-//      virtual Ptr<BufferView> view(const uint32 elements, 
+//      virtual shared_ptr<BufferView> view(void) = 0;  // Default buffer view, if it was created with formatting
+//      virtual shared_ptr<BufferView> view(const uint32 elements, 
 //                                   const Formatting& formatting, 
 //                                   const uint32 step = 0,
 //                                   const uint32 offset = 0) = 0; // New buffer view with specified formatting
@@ -231,7 +227,7 @@ namespace en
       };
       
    // Buffer formatted View
-   class BufferView : public SafeObject<BufferView>
+   class BufferView
       {
       public:
       virtual uint64 offset(void) const = 0;

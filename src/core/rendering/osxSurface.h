@@ -44,7 +44,7 @@ namespace en
                        const uint32v2 resolution);
       virtual ~SharedSurfaceOSX();
       };
-      
+/*
    class osxOpenGLContext : OpenGLContext
       {
       public:
@@ -54,9 +54,10 @@ namespace en
       osxOpenGLContext();
       virtual ~osxOpenGLContext();
      
-      virtual uint32 createSharedTexture(Ptr<SharedSurface> backingSurface);
+      virtual uint32 createSharedTexture(shared_ptr<SharedSurface> backingSurface);
       virtual void destroySharedTexture(const uint32 handle);
       };
+*/
    }
 }
 #endif

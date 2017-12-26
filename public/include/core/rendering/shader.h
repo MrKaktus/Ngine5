@@ -16,9 +16,12 @@
 #ifndef ENG_CORE_RENDERING_SHADER
 #define ENG_CORE_RENDERING_SHADER
 
+#include <memory>
+using namespace std;
+
 #include "core/types.h"
+
 #include "core/rendering/state.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
@@ -52,7 +55,7 @@ namespace en
    return static_cast<ShaderStages>(underlyingType(a) | underlyingType(b));
    }
       
-   class Shader : public SafeObject<Shader>
+   class Shader
       {
       public:
       virtual ~Shader() {};

@@ -16,9 +16,11 @@
 #ifndef ENG_CORE_RENDERING_HEAP
 #define ENG_CORE_RENDERING_HEAP
 
+#include <memory>
+using namespace std;
+
 #include "core/rendering/buffer.h"
 #include "core/rendering/texture.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
@@ -28,7 +30,7 @@ namespace en
    //
    // Linear     - Fastest possible GPU read and write. There is no CPU access to this kind of memory,
    //              thus all resources need to be populated using Staging buffers from Upload heap.
-   //              Linear memry usage is dedicated for Buffers allocation.
+   //              Linear memory usage is dedicated for Buffers allocation.
    // Tiled      - Similar to Linear memory usage, but this one is dedicated to Textures allocation and
    //              allows them to be backed by Tiled and Compressed memory.
    // Renderable - Similar to Linear memory usage, but dedicated to allocation of Render Targets.
@@ -53,31 +55,31 @@ namespace en
 
    class GpuDevice;
 
-   class Heap : public SafeObject<Heap>
+   class Heap : public enable_shared_from_this<Heap>
       {
       public:
       virtual uint32 size(void) const = 0;
 
       // Return parent device
-      virtual Ptr<GpuDevice> device(void) const = 0;
+      virtual shared_ptr<GpuDevice> device(void) const = 0;
 
       // Create formatted Vertex buffer that can be bound to InputLayout.
-      virtual Ptr<Buffer> createBuffer(const uint32 elements,
-                                       const Formatting& formatting,
-                                       const uint32 step = 0u) = 0;
+      virtual shared_ptr<Buffer> createBuffer(const uint32 elements,
+                                              const Formatting& formatting,
+                                              const uint32 step = 0u) = 0;
         
       // Create formatted Index buffer that can be bound to InputLayout.
-      virtual Ptr<Buffer> createBuffer(const uint32 elements,
-                                       const Attribute format) = 0;
+      virtual shared_ptr<Buffer> createBuffer(const uint32 elements,
+                                              const Attribute format) = 0;
 
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
-      virtual Ptr<Buffer> createBuffer(const BufferType type,
-                                       const uint32 size) = 0;
+      virtual shared_ptr<Buffer> createBuffer(const BufferType type,
+                                              const uint32 size) = 0;
 
       // Creates textures on Heaps with MemoryUsage::Static.
-      virtual Ptr<Texture> createTexture(const TextureState state) = 0;
+      virtual shared_ptr<Texture> createTexture(const TextureState state) = 0;
 
       virtual ~Heap() {};                           // Polymorphic deletes require a virtual base destructor
       };

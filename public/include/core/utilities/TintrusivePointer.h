@@ -13,7 +13,7 @@
 #define ENG_CORE_UTILITIES_TINTRUSIVEPOINTER
 
 #include "core/defines.h"
-#include "core/utilities/aligment.h"
+#include "core/utilities/alignment.h"
 #include "core/threading/atomics.h"
 
 // TODO: In future replace all that stuff with C++11 shared_ptr & weak_ptr

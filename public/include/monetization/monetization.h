@@ -14,15 +14,17 @@
 #ifndef ENG_MONETIZATION
 #define ENG_MONETIZATION
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
    namespace monetization
    {
-   class Banner : public SafeObject<Banner>
+   class Banner
          {
          public:
          virtual ~Banner();              // Polymorphic deletes require a virtual base destructor
@@ -33,7 +35,7 @@ namespace en
           struct Banner
                  {
 #ifdef EN_PLATFORM_BLACKBERRY
-                 Ptr<monetization::Banner> create(const uint32 x,            // Banners upper left corner x position on the screen 
+                 shared_ptr<monetization::Banner> create(const uint32 x,            // Banners upper left corner x position on the screen 
                                                   const uint32 y,            // Banners upper left corner y position on the screen 
                                                   const uint32 width,        // Width in pixels
                                                   const uint32 height,       // Height in pixels

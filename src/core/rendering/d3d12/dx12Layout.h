@@ -80,10 +80,10 @@ namespace en
       D3D12_CPU_DESCRIPTOR_HANDLE pointerToSamplerDescriptorOnCPU(uint32 index);
       D3D12_GPU_DESCRIPTOR_HANDLE pointerToSamplerDescriptorOnGPU(uint32 index);
 
-      virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout);
+      virtual shared_ptr<DescriptorSet> allocate(const shared_ptr<SetLayout> layout);
       virtual bool allocate(const uint32 count,
-                            const Ptr<SetLayout>* layouts,
-                            Ptr<DescriptorSet>** sets);
+                            const shared_ptr<SetLayout>(&layouts)[],
+                            shared_ptr<DescriptorSet>** sets);
          
       DescriptorsD3D12(Direct3D12Device* gpu);
       virtual ~DescriptorsD3D12();
@@ -93,21 +93,21 @@ namespace en
       {
       public:
       Direct3D12Device*     gpu;
-      Ptr<DescriptorsD3D12> parent;    // Reference to Descriptors Pool
+      shared_ptr<DescriptorsD3D12> parent;    // Reference to Descriptors Pool
       uint64                offset[2]; // Index of first Descriptor Slot for given allocation
       uint32                slots[2];
       RangeMapping* const   mappings;  // Mappings of Layout slots to backing Heap sub-allocations
       uint32                mappingsCount;
 
-      DescriptorSetD3D12(Direct3D12Device* gpu, Ptr<DescriptorsD3D12> parent, const uint64* offsets, const uint32* slots, RangeMapping* const mappings, uint32 mappingsCount);
+      DescriptorSetD3D12(Direct3D12Device* gpu, shared_ptr<DescriptorsD3D12> parent, const uint64* offsets, const uint32* slots, RangeMapping* const mappings, uint32 mappingsCount);
       virtual ~DescriptorSetD3D12();
 
       // Helper method translating layout slot index into backing heap index
       bool translateSlot(const uint32 slot, uint32& heapSlot);
 
-      virtual void setBuffer(const uint32 slot, const Ptr<Buffer> buffer);
-      virtual void setSampler(const uint32 slot, const Ptr<Sampler> sampler);
-      virtual void setTextureView(const uint32 slot, const Ptr<TextureView> view);
+      virtual void setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer);
+      virtual void setSampler(const uint32 slot, const shared_ptr<Sampler> sampler);
+      virtual void setTextureView(const uint32 slot, const shared_ptr<TextureView> view);
       };
    }
 }

@@ -40,12 +40,12 @@ namespace en
    resource = nullptr;
    }
 
-   Ptr<en::gpu::Texture> FontImp::texture(void) const
+   shared_ptr<en::gpu::Texture> FontImp::texture(void) const
    {
    return resource;
    }
 
-   Ptr<Mesh> FontImp::text(const string text, const bool screenspace) const
+   shared_ptr<Mesh> FontImp::text(const string text, const bool screenspace) const
    {
    using namespace gpu;
 
@@ -124,14 +124,14 @@ namespace en
 
    // Create buffer in GPU (CCW Triangles)
    Formatting formatting(Attribute::v2f32, Attribute::v2f32); // inPosition, inTexCoord0
-   Ptr<Buffer> vertex = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting);
+   shared_ptr<Buffer> vertex = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting);
    
    // TODO: !!! populate vertex with data
    
    delete [] data;
 
    // Create mesh with text geometry
-   Ptr<Mesh> mesh = new Mesh();
+   shared_ptr<Mesh> mesh = make_shared<Mesh>();
    mesh->name = "text";
    mesh->material.albedo = resource;
    mesh->geometry.buffer = vertex;
@@ -154,19 +154,19 @@ namespace en
    // sint16 offsetY;
    // uint16 advance;
 
-   Ptr<en::resource::Font> loadFont(const string& filename)
+   shared_ptr<en::resource::Font> loadFont(const string& filename)
    {
    using namespace en::storage;
 
    // Open .fnt file
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.fonts + filename);
       if (!file)
          {
          Log << string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
-         return Ptr<en::resource::Font>(nullptr);
+         return shared_ptr<en::resource::Font>(nullptr);
          }
       }
 
@@ -177,19 +177,19 @@ namespace en
    if (!buffer)
       {
       Log << "ERROR: Not enough memory!\n";
-      return Ptr<en::resource::Font>(nullptr);
+      return shared_ptr<en::resource::Font>(nullptr);
       }
    
    // Read file to buffer and close file
    if (!file->read(buffer))
       {
       Log << "ERROR: Cannot read whole font file!\n";
-      return Ptr<en::resource::Font>(nullptr);
+      return shared_ptr<en::resource::Font>(nullptr);
       }    
    file = nullptr;
 
    // Create new font
-   Ptr<FontImp> font = new FontImp();
+   shared_ptr<FontImp> font = make_shared<FontImp>();
    
    // Create parser to quickly process text from file
    Nparser text(buffer, size);
@@ -269,7 +269,7 @@ namespace en
                        {
                        font = nullptr;
                        Log << "ERROR: Cannot load Font texture!\n";
-                       return Ptr<Font>(nullptr);
+                       return shared_ptr<Font>(nullptr);
                        }
                     }
                  }
@@ -345,7 +345,7 @@ namespace en
         text.skipToNextLine();
         }
 
-   return ptr_dynamic_cast<Font, FontImp>(font);
+   return font;
 
 
 
@@ -365,7 +365,7 @@ namespace en
    //if (line != "version 1.0")
    //   {
    //   Log << "ERROR: Font file corrupted!";
-   //   return Ptr<en::resource::Font>(nullptr);
+   //   return shared_ptr<en::resource::Font>(nullptr);
    //   }      
 
    //// Load texture used by font
@@ -374,7 +374,7 @@ namespace en
    //if (!text.readLine(textureName))
    //   {
    //   Log << "ERROR: Font file corrupted!";
-   //   return Ptr<en::resource::Font>(nullptr);
+   //   return shared_ptr<en::resource::Font>(nullptr);
    //   }
 
    ////gpu::Texture texture = Resources.load.texture(string("resources/textures/" + textureName));
@@ -500,14 +500,14 @@ namespace en
    //return en::resource::Font(font);
    }
 
-   Ptr<Font> Interface::Load::font(const string& filename)
+   shared_ptr<Font> Interface::Load::font(const string& filename)
    {
    sint64 found;
    uint64 length = filename.length();
 
    // Try to reuse already loaded models
    if (ResourcesContext.fonts.find(filename) != ResourcesContext.fonts.end())
-      return ptr_dynamic_cast<Font, FontImp>(ResourcesContext.fonts[filename]);
+      return ResourcesContext.fonts[filename];
 
    found = filename.rfind(".fnt");
    if ( found != string::npos &&
@@ -519,7 +519,7 @@ namespace en
         found == (length - 4) )
       return loadFont(filename);
 
-   return Ptr<Font>(nullptr);
+   return shared_ptr<Font>(nullptr);
    }
 
    void Interface::Free::font(const string& name)
@@ -528,9 +528,9 @@ namespace en
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   map<string, Ptr<FontImp> >::iterator it = ResourcesContext.fonts.find(name);
+   map<string, shared_ptr<FontImp> >::iterator it = ResourcesContext.fonts.find(name);
    if (it != ResourcesContext.fonts.end())
-      if (it->second.references() == 1)
+      if (it->second.unique())
          it->second = nullptr;
    }
 

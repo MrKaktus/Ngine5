@@ -147,7 +147,7 @@ namespace en
    return false;
    }
 
-   bool Program::sampler(const uint32 location, Ptr<gpu::Sampler> sampler)
+   bool Program::sampler(const uint32 location, shared_ptr<gpu::Sampler> sampler)
    {
    assert(pointer);
    assert( location < pointer->samplers );
@@ -156,7 +156,7 @@ namespace en
    return true;
    }
 
-   bool Program::texture(const uint32 location, Ptr<Texture> texture)
+   bool Program::texture(const uint32 location, shared_ptr<Texture> texture)
    {
    assert(pointer);
    assert( location < pointer->samplers );
@@ -185,13 +185,13 @@ namespace en
    return gl20::ProgramDraw(pointer, nullptr, nullptr, type, patchSize, inst);
    }
 
-   bool Program::draw(const Ptr<Buffer> buffer, const DrawableType type, const uint32 patchSize, const uint32 inst)
+   bool Program::draw(const shared_ptr<Buffer> buffer, const DrawableType type, const uint32 patchSize, const uint32 inst)
    {
    assert(pointer);
    return gl20::ProgramDraw(pointer, buffer, nullptr, type, patchSize, inst);
    }
 
-   bool Program::draw(const Ptr<Buffer> buffer, const Ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize, const uint32 inst)
+   bool Program::draw(const shared_ptr<Buffer> buffer, const shared_ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize, const uint32 inst)
    {
    assert(pointer);
    return gl20::ProgramDraw(pointer, buffer, indexBuffer, type, patchSize, inst);
@@ -522,7 +522,7 @@ namespace en
          return Program(NULL);
       
       // Create program in driver
-      Profile( program->id = glCreateProgram() );
+      Validate( program->id = glCreateProgram() );
       
       // Attach shaders to program
       ShaderDescriptor* shader;
@@ -531,7 +531,7 @@ namespace en
          // Extracts ShaderDescriptor from its interface
          shader = *(ShaderDescriptor**)&shaders[i];
       
-         Profile( glAttachShader(program->id, shader->id) );
+         Validate( glAttachShader(program->id, shader->id) );
          //if (CheckError("glAttachShader"))
          //   {
          //   Log << "Error! Cannot attach shader to program!\n"; 
@@ -543,22 +543,22 @@ namespace en
       
       // Compile program
       sint32 ret = 0;
-      Profile( glLinkProgram(program->id) );
-      Profile( glGetProgramiv(program->id, GL_LINK_STATUS, (GLint*)&ret) );
+      Validate( glLinkProgram(program->id) );
+      Validate( glGetProgramiv(program->id, GL_LINK_STATUS, (GLint*)&ret) );
       if (ret == GL_FALSE)
          {
          Log << "Error! Program linking failed!\n";
       
          // Obtaining compilation log
          sint32 length = 0;
-         Profile( glGetProgramiv(program->id, GL_INFO_LOG_LENGTH, (GLint*)&length) );
+         Validate( glGetProgramiv(program->id, GL_INFO_LOG_LENGTH, (GLint*)&length) );
          if (length > 1)
             {
             char* buffer = new char[length];
             if (buffer)
                {
                // Compilation log
-               Profile( glGetProgramInfoLog(program->id, length, NULL, buffer) );
+               Validate( glGetProgramInfoLog(program->id, length, NULL, buffer) );
                string info = string("Program compilation log:\n");
                info.append(buffer);
                info.append("\n");
@@ -568,7 +568,7 @@ namespace en
                }
             }
       
-         Profile( glDeleteProgram(program->id) );
+         Validate( glDeleteProgram(program->id) );
          GpuContext.programs.free(program);
          return Program(NULL);
          }
@@ -580,9 +580,9 @@ namespace en
       sint32 nameMaxLength = 0;
       sint32 nameLength = 0;
       char*  name = NULL;
-      Profile( glGetProgramiv(program->id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, (GLint*)&maxAttribLength) )
-      Profile( glGetProgramiv(program->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, (GLint*)&maxUniformLength) )
-      Profile( glGetProgramiv(program->id, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, (GLint*)&maxUniformBlockLength) )
+      Validate( glGetProgramiv(program->id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, (GLint*)&maxAttribLength) )
+      Validate( glGetProgramiv(program->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, (GLint*)&maxUniformLength) )
+      Validate( glGetProgramiv(program->id, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, (GLint*)&maxUniformBlockLength) )
       nameMaxLength = max(max(maxAttribLength, maxUniformLength), maxUniformBlockLength); //maxAttribLength > maxUniformLength ? maxAttribLength : maxUniformLength;
       name = new char[nameMaxLength];
       
@@ -590,14 +590,14 @@ namespace en
       uint32 total    = 0;
       sint32 elements = 0;
       uint32 type     = 0;
-      Profile( glGetProgramiv(program->id, GL_ACTIVE_ATTRIBUTES, (GLint*)&program->inputs.count) )
-      Profile( glGetProgramiv(program->id, GL_ACTIVE_UNIFORMS, (GLint*)&total) )
-      Profile( glGetProgramiv(program->id, GL_ACTIVE_UNIFORM_BLOCKS, (GLint*)&program->blocks.count) )
+      Validate( glGetProgramiv(program->id, GL_ACTIVE_ATTRIBUTES, (GLint*)&program->inputs.count) )
+      Validate( glGetProgramiv(program->id, GL_ACTIVE_UNIFORMS, (GLint*)&total) )
+      Validate( glGetProgramiv(program->id, GL_ACTIVE_UNIFORM_BLOCKS, (GLint*)&program->blocks.count) )
 
       program->samplers = 0;
       for(uint32 i=0; i<total; ++i)
          {
-         Profile( glGetActiveUniform(program->id, i, nameMaxLength, (GLsizei*)&nameLength, (GLint*)&elements, (GLenum*)&type, name) );
+         Validate( glGetActiveUniform(program->id, i, nameMaxLength, (GLsizei*)&nameLength, (GLint*)&elements, (GLenum*)&type, name) );
          if (ProgramParameterIsSampler(type))
             program->samplers++;
          else
@@ -618,7 +618,7 @@ namespace en
       InputDescriptor* input;
       for(uint32 i=0; i<program->inputs.count; ++i)
          {
-         Profile( glGetActiveAttrib(program->id, i, nameMaxLength, (GLsizei*)&nameLength, (GLint*)&elements, (GLenum*)&type, name) );
+         Validate( glGetActiveAttrib(program->id, i, nameMaxLength, (GLsizei*)&nameLength, (GLint*)&elements, (GLenum*)&type, name) );
          name[nameLength] = 0;
       
          // Input parameters can be returned out of order.
@@ -629,7 +629,7 @@ namespace en
          input->elements = elements;
          input->name     = new char[nameLength+1];
          memcpy(input->name, name, nameLength+1);
-         Profile( input->location = glGetAttribLocation(program->id, name) );
+         Validate( input->location = glGetAttribLocation(program->id, name) );
          input->type     = type;
       
          // Assing input to it's name 
@@ -643,13 +643,13 @@ namespace en
       uint32 samplersSet = 0;
       for(uint32 i=0; i<total; ++i)
          {
-         Profile( glGetActiveUniform(program->id, i, nameMaxLength, (GLsizei*)&nameLength, (GLint*)&elements, (GLenum*)&type, name) );
+         Validate( glGetActiveUniform(program->id, i, nameMaxLength, (GLsizei*)&nameLength, (GLint*)&elements, (GLenum*)&type, name) );
          name[nameLength] = 0;
          if (ProgramParameterIsSampler(type))
             {
             // Describe sampler
             TextureSamplerSet& sampler = program->sampler[samplersSet];
-            Profile( sampler.location = glGetUniformLocation(program->id, name) );
+            Validate( sampler.location = glGetUniformLocation(program->id, name) );
             sampler.name = new char[nameLength+1];
             memcpy(sampler.name, name, nameLength+1);
 
@@ -659,7 +659,7 @@ namespace en
             //sampler->name     = new char[nameLength+1];
             //memcpy(sampler->name, name, nameLength+1);
             //sampler->elements = elements;
-            //Profile( sampler->location = glGetUniformLocation(program->id, name) );
+            //Validate( sampler->location = glGetUniformLocation(program->id, name) );
             //sampler->type     = type;
       
             // Assing sampler to it's name and mark as initially dirty
@@ -676,7 +676,7 @@ namespace en
             parameter->name     = new char[nameLength+1];
             memcpy(parameter->name, name, nameLength+1);
             parameter->elements = elements;
-            Profile( parameter->location = glGetUniformLocation(program->id, name) );
+            Validate( parameter->location = glGetUniformLocation(program->id, name) );
             parameter->type     = type;
       
             // Assing parameter to it's name and mark as initially dirty
@@ -690,7 +690,7 @@ namespace en
       BlockDescriptor* block;
       for(uint32 i=0; i<program->blocks.count; ++i)
          {
-         Profile( glGetActiveUniformBlockName(program->id, i, nameMaxLength, (GLint*)&nameLength, name) )
+         Validate( glGetActiveUniformBlockName(program->id, i, nameMaxLength, (GLint*)&nameLength, name) )
          name[nameLength] = 0;
 
          // Describe block
@@ -698,8 +698,8 @@ namespace en
          block->program = program;
          block->name    = new char[nameLength+1];
          memcpy(block->name, name, nameLength+1);
-         Profile( block->id = glGetUniformBlockIndex(program->id, name) )
-         Profile( glGetActiveUniformBlockiv( program->id, block->id, GL_UNIFORM_BLOCK_DATA_SIZE, (GLint*)&block->size ) )
+         Validate( block->id = glGetUniformBlockIndex(program->id, name) )
+         Validate( glGetActiveUniformBlockiv( program->id, block->id, GL_UNIFORM_BLOCK_DATA_SIZE, (GLint*)&block->size ) )
 
          // Assing block to it's name 
          program->blocks.names[string(name, nameLength)] = block;
@@ -714,8 +714,8 @@ namespace en
 
       // Draws geometry from input buffer using selected program
       bool ProgramDraw(ProgramDescriptor* program, 
-         const Ptr<Buffer> buffer,
-         const Ptr<Buffer> indexBuffer,
+         const shared_ptr<Buffer> buffer,
+         const shared_ptr<Buffer> indexBuffer,
          const DrawableType type, 
          const uint32 patchSize, 
          const uint32 inst )
@@ -741,7 +741,7 @@ namespace en
 #endif
 
       // Assign program to use
-      Profile( glUseProgram(program->id) );
+      Validate( glUseProgram(program->id) );
       
       // Update program parameters
       for(uint16 i=0; i<program->parameters.dirty; ++i)
@@ -760,7 +760,7 @@ namespace en
          {
          BlockDescriptor&  block  = program->blocks.list[i];
          assert(block.buffer);
-         Ptr<BufferGL> buffer = ptr_dynamic_cast<BufferGL, Buffer>(block.buffer);
+         shared_ptr<BufferGL> buffer = ptr_dynamic_cast<BufferGL, Buffer>(block.buffer);
 
          // In future we should minimise amount of UBO/SSBO bindings
          // by reusing their previously bound locations from range
@@ -787,7 +787,7 @@ namespace en
       //for(uint16 i=0; i<program->samplers.dirty; ++i)
       //   {
       //   SamplerDescriptor* sampler = program->samplers.update[i];
-      //   Profile( glUniform1i(program->samplers.update[i]->location, i) );
+      //   Validate( glUniform1i(program->samplers.update[i]->location, i) );
       //   sampler->dirty = false;
       //   }
       //program->samplers.dirty = 0;
@@ -848,7 +848,7 @@ namespace en
          if (found)
             {
             sampler.slot = id;
-            Profile( glUniform1i(sampler.location, sampler.slot) )
+            Validate( glUniform1i(sampler.location, sampler.slot) )
 
             // Decrease age of used texture unit
             --GpuContext.textureUnit.metric[sampler.slot];
@@ -860,20 +860,20 @@ namespace en
          sampler.slot = oldestId;
          if (GpuContext.textureUnit.texture[oldestId] != sampler.texture)
             {
-            Ptr<TextureGL> textureGL = ptr_dynamic_cast<TextureGL, Texture>(sampler.texture);
+            shared_ptr<TextureGL> textureGL = ptr_dynamic_cast<TextureGL, Texture>(sampler.texture);
             uint16 glType = TranslateTextureType[underlyingType(textureGL->type())];
 
-            Profile( glActiveTexture(GL_TEXTURE0 + oldestId) )
-            Profile( glBindTexture(glType, textureGL->id ) )
+            Validate( glActiveTexture(GL_TEXTURE0 + oldestId) )
+            Validate( glBindTexture(glType, textureGL->id ) )
             }
          if (GpuContext.textureUnit.sampler[oldestId] != sampler.sampler)
             {
-            Ptr<SamplerGL33> samplerGL = ptr_dynamic_cast<SamplerGL33, Sampler>(sampler.sampler);
+            shared_ptr<SamplerGL33> samplerGL = ptr_dynamic_cast<SamplerGL33, Sampler>(sampler.sampler);
 
-            Profile( glBindSampler( oldestId, samplerGL->id ) )
+            Validate( glBindSampler( oldestId, samplerGL->id ) )
             }
 
-         Profile( glUniform1i(sampler.location, sampler.slot) ) 
+         Validate( glUniform1i(sampler.location, sampler.slot) ) 
 
          // Decrease age of used texture unit
          --GpuContext.textureUnit.metric[sampler.slot];
@@ -924,8 +924,8 @@ namespace en
 //      
 //         TextureDescriptor* textureDescriptor = *(TextureDescriptor**)&samplerUnit->texture;
 //         uint16 type = gl::TextureType[textureDescriptor->type].type;
-//         Profile( glActiveTexture(GL_TEXTURE0 + i) );
-//         Profile( glBindTexture(type, textureDescriptor->id) );
+//         Validate( glActiveTexture(GL_TEXTURE0 + i) );
+//         Validate( glBindTexture(type, textureDescriptor->id) );
 //#ifdef EN_OPENGL_DESKTOP
 //         SamplerUnitUpdate(samplerUnit);
 //#endif
@@ -938,18 +938,18 @@ namespace en
       // In such situation instances count specifies 
       // amount of Vertex Shader invocations.
       if (!buffer)
-         Profile( glBindVertexArray(GpuContext.emptyVAO) )
+         Validate( glBindVertexArray(GpuContext.emptyVAO) )
       else
          {
-         Ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
+         shared_ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
 
          // For each active program input, search proper buffer
          // column by name or by location. If column cannot be
          // found, try to use default value specified for
          // input parameter name or return error (TODO).
          if (GpuContext.screen.support(OpenGL_3_0))
-            Profile( glBindVertexArray(glBuffer->vao) )
-         Profile( glBindBuffer(GL_ARRAY_BUFFER, glBuffer->handle) )
+            Validate( glBindVertexArray(glBuffer->vao) )
+         Validate( glBindBuffer(GL_ARRAY_BUFFER, glBuffer->handle) )
          uint64 offset = 0;
          for(uint8 i=0; i<program->inputs.count; ++i)
             {
@@ -968,19 +968,19 @@ namespace en
 //                     uint16 channels   = gl::TranslateAttribute[underlyingType(format)].channels;
 //                     bool   normalized = gl::TranslateAttribute[underlyingType(format)].normalized;
 //                     
-//                     Profile( glEnableVertexAttribArray( input.location ) );
+//                     Validate( glEnableVertexAttribArray( input.location ) );
 //                     if (gl::TranslateAttribute[underlyingType(format)].qword)
 //                        {
-//                        Profile( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
+//                        Validate( glVertexAttribLPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
 //                        }
 //                     else
 //                     if (gl::TranslateAttribute[underlyingType(format)].integer)
 //                        {
-//                        Profile( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
+//                        Validate( glVertexAttribIPointer(input.location, channels, type, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
 //                        }
 //                     else
 //                        {
-//                        Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
+//                        Validate( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, reinterpret_cast<const GLvoid*>(buffer->offset[j]) ) );
 //                        }
 //         
 //                     found = true;
@@ -1000,19 +1000,19 @@ namespace en
                uint16 channels   = TranslateAttribute[underlyingType(format)].channels;
                bool   normalized = TranslateAttribute[underlyingType(format)].normalized;
                
-               Profile( glEnableVertexAttribArray( input.location ) );
+               Validate( glEnableVertexAttribArray( input.location ) );
                if (TranslateAttribute[underlyingType(format)].qword)
                   {
-                  Profile( glVertexAttribLPointer(input.location, channels, type, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
+                  Validate( glVertexAttribLPointer(input.location, channels, type, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
                else
                if (TranslateAttribute[underlyingType(format)].integer)
                   {
-                  Profile( glVertexAttribIPointer(input.location, channels, type, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
+                  Validate( glVertexAttribIPointer(input.location, channels, type, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
                else
                   {
-                  Profile( glVertexAttribPointer(input.location, channels, type, normalized, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
+                  Validate( glVertexAttribPointer(input.location, channels, type, normalized, elementSize, reinterpret_cast<const GLvoid*>(offset) ) );
                   }
          
                offset += size;
@@ -1035,19 +1035,19 @@ namespace en
          if (indexBuffer &&
              indexBuffer->type() == BufferType::Index)
             {
-            Ptr<BufferGL> glIndex = ptr_dynamic_cast<BufferGL, Buffer>(indexBuffer);
-            Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndex->handle) )
-            Profile( glDrawElementsInstanced(gl::Drawable[type].type, glIndex->elements, TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr, inst) )
+            shared_ptr<BufferGL> glIndex = ptr_dynamic_cast<BufferGL, Buffer>(indexBuffer);
+            Validate( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndex->handle) )
+            Validate( glDrawElementsInstanced(gl::Drawable[type].type, glIndex->elements, TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr, inst) )
             }
          else
          if (buffer &&
              buffer->type() == BufferType::Vertex)
             {
-            Ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
-            Profile( glDrawArraysInstanced(gl::Drawable[type].type, 0, glBuffer->elements, inst) )
+            shared_ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
+            Validate( glDrawArraysInstanced(gl::Drawable[type].type, 0, glBuffer->elements, inst) )
             }
          else
-            Profile( glDrawArrays(gl::Drawable[type].type, 0, inst) )
+            Validate( glDrawArrays(gl::Drawable[type].type, 0, inst) )
          }
       else
          {
@@ -1056,25 +1056,25 @@ namespace en
          if (indexBuffer &&
              indexBuffer->type() == BufferType::Index)
             {
-            Ptr<BufferGL> glIndex = ptr_dynamic_cast<BufferGL, Buffer>(indexBuffer);
-            Profile( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndex->handle) )
-            Profile( glDrawElements(gl::Drawable[type].type, glIndex->elements, TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr) )
+            shared_ptr<BufferGL> glIndex = ptr_dynamic_cast<BufferGL, Buffer>(indexBuffer);
+            Validate( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndex->handle) )
+            Validate( glDrawElements(gl::Drawable[type].type, glIndex->elements, TranslateAttribute[underlyingType(glIndex->formatting.column[0])].type, nullptr) )
             }
          else
          if (buffer &&
              buffer->type() == BufferType::Vertex)
             {
-            Ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
+            shared_ptr<BufferGL> glBuffer = ptr_dynamic_cast<BufferGL, Buffer>(buffer);
             
-            Profile( glDrawArrays(gl::Drawable[type].type, 0, glBuffer->elements) )
+            Validate( glDrawArrays(gl::Drawable[type].type, 0, glBuffer->elements) )
             }
          else
-            Profile( glDrawArrays(gl::Drawable[type].type, 0, inst) )
+            Validate( glDrawArrays(gl::Drawable[type].type, 0, inst) )
          }
      
       // Clean after drawing
-      Profile( glBindBuffer(GL_ARRAY_BUFFER, 0) )
-      Profile( glBindVertexArray(0) )
+      Validate( glBindBuffer(GL_ARRAY_BUFFER, 0) )
+      Validate( glBindVertexArray(0) )
       return true;
       } 
 
@@ -1299,47 +1299,47 @@ namespace en
       bool ProgramParameterUpdate(ParameterDescriptor* parameter)
       {
       // OpenGL 2.0 uniform types
-      if ( parameter->type == GL_FLOAT             ) { Profile( glUniform1fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_VEC2        ) { Profile( glUniform2fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_VEC3        ) { Profile( glUniform3fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_VEC4        ) { Profile( glUniform4fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_INT               ) { Profile( glUniform1iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
-      if ( parameter->type == GL_INT_VEC2          ) { Profile( glUniform2iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
-      if ( parameter->type == GL_INT_VEC3          ) { Profile( glUniform3iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
-      if ( parameter->type == GL_INT_VEC4          ) { Profile( glUniform4iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
+      if ( parameter->type == GL_FLOAT             ) { Validate( glUniform1fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_VEC2        ) { Validate( glUniform2fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_VEC3        ) { Validate( glUniform3fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_VEC4        ) { Validate( glUniform4fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_INT               ) { Validate( glUniform1iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
+      if ( parameter->type == GL_INT_VEC2          ) { Validate( glUniform2iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
+      if ( parameter->type == GL_INT_VEC3          ) { Validate( glUniform3iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
+      if ( parameter->type == GL_INT_VEC4          ) { Validate( glUniform4iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
       if ( parameter->type == GL_BOOL              ) { return false; }
       if ( parameter->type == GL_BOOL_VEC2         ) { return false; }
       if ( parameter->type == GL_BOOL_VEC3         ) { return false; }
       if ( parameter->type == GL_BOOL_VEC4         ) { return false; }
-      if ( parameter->type == GL_FLOAT_MAT2        ) { Profile( glUniformMatrix2fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_MAT3        ) { Profile( glUniformMatrix3fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_MAT4        ) { Profile( glUniformMatrix4fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_MAT2        ) { Validate( glUniformMatrix2fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_MAT3        ) { Validate( glUniformMatrix3fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_MAT4        ) { Validate( glUniformMatrix4fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
       // OpenGL 2.1 uniform types
-      if ( parameter->type == GL_FLOAT_MAT2x3      ) { Profile( glUniformMatrix2x3fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_FLOAT_MAT2x4      ) { Profile( glUniformMatrix2x4fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_FLOAT_MAT3x2      ) { Profile( glUniformMatrix3x2fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_FLOAT_MAT3x4      ) { Profile( glUniformMatrix3x4fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_FLOAT_MAT4x2      ) { Profile( glUniformMatrix4x2fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_FLOAT_MAT4x3      ) { Profile( glUniformMatrix4x3fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_FLOAT_MAT2x3      ) { Validate( glUniformMatrix2x3fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_FLOAT_MAT2x4      ) { Validate( glUniformMatrix2x4fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_FLOAT_MAT3x2      ) { Validate( glUniformMatrix3x2fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_FLOAT_MAT3x4      ) { Validate( glUniformMatrix3x4fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_FLOAT_MAT4x2      ) { Validate( glUniformMatrix4x2fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_FLOAT_MAT4x3      ) { Validate( glUniformMatrix4x3fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }  
       // OpenGL 3.0 uniform types
-      if ( parameter->type == GL_UNSIGNED_INT      ) { Profile( glUniform1uiv(parameter->location, parameter->elements, (GLuint*)parameter->value) )  return true; }  
-      if ( parameter->type == GL_UNSIGNED_INT_VEC2 ) { Profile( glUniform2uiv(parameter->location, parameter->elements, (GLuint*)parameter->value) )  return true; }  
-      if ( parameter->type == GL_UNSIGNED_INT_VEC3 ) { Profile( glUniform3uiv(parameter->location, parameter->elements, (GLuint*)parameter->value) )  return true; }  
-      if ( parameter->type == GL_UNSIGNED_INT_VEC4 ) { Profile( glUniform4uiv(parameter->location, parameter->elements, (GLuint*)parameter->value) )  return true; }
+      if ( parameter->type == GL_UNSIGNED_INT      ) { Validate( glUniform1uiv(parameter->location, parameter->elements, (GLuint*)parameter->value) )  return true; }  
+      if ( parameter->type == GL_UNSIGNED_INT_VEC2 ) { Validate( glUniform2uiv(parameter->location, parameter->elements, (GLuint*)parameter->value) )  return true; }  
+      if ( parameter->type == GL_UNSIGNED_INT_VEC3 ) { Validate( glUniform3uiv(parameter->location, parameter->elements, (GLuint*)parameter->value) )  return true; }  
+      if ( parameter->type == GL_UNSIGNED_INT_VEC4 ) { Validate( glUniform4uiv(parameter->location, parameter->elements, (GLuint*)parameter->value) )  return true; }
       // OpenGL 4.0 uniform types
-      if ( parameter->type == GL_DOUBLE            ) { Profile( glUniform1dv(parameter->location, parameter->elements, (GLdouble*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_DOUBLE_VEC2       ) { Profile( glUniform2dv(parameter->location, parameter->elements, (GLdouble*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_DOUBLE_VEC3       ) { Profile( glUniform3dv(parameter->location, parameter->elements, (GLdouble*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_DOUBLE_VEC4       ) { Profile( glUniform4dv(parameter->location, parameter->elements, (GLdouble*)parameter->value) ) return true; }  
-      if ( parameter->type == GL_DOUBLE_MAT2       ) { Profile( glUniformMatrix2dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
-      if ( parameter->type == GL_DOUBLE_MAT3       ) { Profile( glUniformMatrix3dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
-      if ( parameter->type == GL_DOUBLE_MAT4       ) { Profile( glUniformMatrix4dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
-      if ( parameter->type == GL_DOUBLE_MAT2x3     ) { Profile( glUniformMatrix2x3dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
-      if ( parameter->type == GL_DOUBLE_MAT2x4     ) { Profile( glUniformMatrix2x4dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
-      if ( parameter->type == GL_DOUBLE_MAT3x2     ) { Profile( glUniformMatrix3x2dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
-      if ( parameter->type == GL_DOUBLE_MAT3x4     ) { Profile( glUniformMatrix3x4dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
-      if ( parameter->type == GL_DOUBLE_MAT4x2     ) { Profile( glUniformMatrix4x2dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
-      if ( parameter->type == GL_DOUBLE_MAT4x3     ) { Profile( glUniformMatrix4x3dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE            ) { Validate( glUniform1dv(parameter->location, parameter->elements, (GLdouble*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_DOUBLE_VEC2       ) { Validate( glUniform2dv(parameter->location, parameter->elements, (GLdouble*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_DOUBLE_VEC3       ) { Validate( glUniform3dv(parameter->location, parameter->elements, (GLdouble*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_DOUBLE_VEC4       ) { Validate( glUniform4dv(parameter->location, parameter->elements, (GLdouble*)parameter->value) ) return true; }  
+      if ( parameter->type == GL_DOUBLE_MAT2       ) { Validate( glUniformMatrix2dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE_MAT3       ) { Validate( glUniformMatrix3dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE_MAT4       ) { Validate( glUniformMatrix4dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE_MAT2x3     ) { Validate( glUniformMatrix2x3dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE_MAT2x4     ) { Validate( glUniformMatrix2x4dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE_MAT3x2     ) { Validate( glUniformMatrix3x2dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE_MAT3x4     ) { Validate( glUniformMatrix3x4dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE_MAT4x2     ) { Validate( glUniformMatrix4x2dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
+      if ( parameter->type == GL_DOUBLE_MAT4x3     ) { Validate( glUniformMatrix4x3dv(parameter->location, parameter->elements, false, (GLdouble*)parameter->value) ) return true; }
      
       // Unsupported parameter type
       return false;
@@ -1388,21 +1388,21 @@ namespace en
       bool ProgramParameterUpdate(ParameterDescriptor* parameter)
       {
       // OpenGL ES 2.0 uniform types
-      if ( parameter->type == GL_FLOAT             ) { Profile( glUniform1fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_VEC2        ) { Profile( glUniform2fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_VEC3        ) { Profile( glUniform3fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_VEC4        ) { Profile( glUniform4fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_INT               ) { Profile( glUniform1iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
-      if ( parameter->type == GL_INT_VEC2          ) { Profile( glUniform2iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
-      if ( parameter->type == GL_INT_VEC3          ) { Profile( glUniform3iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
-      if ( parameter->type == GL_INT_VEC4          ) { Profile( glUniform4iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
+      if ( parameter->type == GL_FLOAT             ) { Validate( glUniform1fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_VEC2        ) { Validate( glUniform2fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_VEC3        ) { Validate( glUniform3fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_VEC4        ) { Validate( glUniform4fv(parameter->location, parameter->elements, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_INT               ) { Validate( glUniform1iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
+      if ( parameter->type == GL_INT_VEC2          ) { Validate( glUniform2iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
+      if ( parameter->type == GL_INT_VEC3          ) { Validate( glUniform3iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
+      if ( parameter->type == GL_INT_VEC4          ) { Validate( glUniform4iv(parameter->location, parameter->elements, (GLint*)parameter->value) )   return true; }
       if ( parameter->type == GL_BOOL              ) { return false; }
       if ( parameter->type == GL_BOOL_VEC2         ) { return false; }
       if ( parameter->type == GL_BOOL_VEC3         ) { return false; }
       if ( parameter->type == GL_BOOL_VEC4         ) { return false; }
-      if ( parameter->type == GL_FLOAT_MAT2        ) { Profile( glUniformMatrix2fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_MAT3        ) { Profile( glUniformMatrix3fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
-      if ( parameter->type == GL_FLOAT_MAT4        ) { Profile( glUniformMatrix4fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_MAT2        ) { Validate( glUniformMatrix2fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_MAT3        ) { Validate( glUniformMatrix3fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
+      if ( parameter->type == GL_FLOAT_MAT4        ) { Validate( glUniformMatrix4fv(parameter->location, parameter->elements, false, (GLfloat*)parameter->value) ) return true; }
   
       // Unsupported parameter type
       return false;
@@ -1413,7 +1413,7 @@ namespace en
       bool ProgramDestroy(ProgramDescriptor* const program)
       {
       // Frees program in driver
-      Profile( glDeleteProgram(program->id) );
+      Validate( glDeleteProgram(program->id) );
       GpuContext.programs.free(program);
       return true; 
       }
@@ -1435,12 +1435,12 @@ namespace en
       // Perform shader compilation
       const char* pointer = code.c_str();
       shader->id = glCreateShader(gl::PipelineStage[stage].type);
-      Profile( glShaderSource(shader->id, 1, (const GLchar**)&pointer, nullptr) );
-      Profile( glCompileShader(shader->id) ); 
+      Validate( glShaderSource(shader->id, 1, (const GLchar**)&pointer, nullptr) );
+      Validate( glCompileShader(shader->id) ); 
 
       //Check compilation status
       sint32 ret = 0;
-      Profile( glGetShaderiv(shader->id, GL_COMPILE_STATUS, (GLint*)&ret) );
+      Validate( glGetShaderiv(shader->id, GL_COMPILE_STATUS, (GLint*)&ret) );
       if (ret == GL_FALSE)
          {
          // Error message
@@ -1450,14 +1450,14 @@ namespace en
 
          // Obtaining compilation log
          sint32 length = 0;
-         Profile( glGetShaderiv(shader->id, GL_INFO_LOG_LENGTH, (GLint*)&length) );
+         Validate( glGetShaderiv(shader->id, GL_INFO_LOG_LENGTH, (GLint*)&length) );
          if (length > 1)
             {
             char* buffer = new char[length];
             if (buffer)
                {
                // Compilation log
-               Profile( glGetShaderInfoLog(shader->id, length, nullptr, buffer) );
+               Validate( glGetShaderInfoLog(shader->id, length, nullptr, buffer) );
                info = string("Shader compilation log:\n");
                info.append(buffer);
                info.append("\n");
@@ -1466,7 +1466,7 @@ namespace en
                }
             }
      
-         Profile( glDeleteShader(shader->id) );
+         Validate( glDeleteShader(shader->id) );
          GpuContext.shaders.free(shader);
          return Shader(nullptr);
          }
@@ -1496,13 +1496,13 @@ namespace en
 
       // Perform shader compilation
       shader->id = glCreateShader(gl::PipelineStage[stage].type);
-      Profile( glShaderSource(shader->id, static_cast<sint32>(code.size()), (const GLchar**)pointer, NULL) );
-      Profile( glCompileShader(shader->id) ); 
+      Validate( glShaderSource(shader->id, static_cast<sint32>(code.size()), (const GLchar**)pointer, NULL) );
+      Validate( glCompileShader(shader->id) ); 
       delete [] pointer;
 
       //Check compilation status
       sint32 ret = 0;
-      Profile( glGetShaderiv(shader->id, GL_COMPILE_STATUS, (GLint*)&ret) );
+      Validate( glGetShaderiv(shader->id, GL_COMPILE_STATUS, (GLint*)&ret) );
       if (ret == GL_FALSE)
          {
          // Error message
@@ -1516,14 +1516,14 @@ namespace en
 
          // Obtaining compilation log
          sint32 length = 0;
-         Profile( glGetShaderiv(shader->id, GL_INFO_LOG_LENGTH, (GLint*)&length) );
+         Validate( glGetShaderiv(shader->id, GL_INFO_LOG_LENGTH, (GLint*)&length) );
          if (length > 1)
             {
             char* buffer = new char[length];
             if (buffer)
                {
                // Compilation log
-               Profile( glGetShaderInfoLog(shader->id, length, NULL, buffer) );
+               Validate( glGetShaderInfoLog(shader->id, length, NULL, buffer) );
                info = string("Shader compilation log:\n");
                info.append(buffer);
                info.append("\n");
@@ -1532,7 +1532,7 @@ namespace en
                }
             }
      
-         Profile( glDeleteShader(shader->id) );
+         Validate( glDeleteShader(shader->id) );
          GpuContext.shaders.free(shader);
          return Shader(NULL);
          }
@@ -1544,7 +1544,7 @@ namespace en
       bool ShaderDestroy(ShaderDescriptor* const shader)
       {  
       // Frees shader in driver
-      Profile( glDeleteShader(shader->id) )
+      Validate( glDeleteShader(shader->id) )
       GpuContext.shaders.free(shader);
       return true; 
       }

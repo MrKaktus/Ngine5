@@ -58,7 +58,7 @@ namespace en
 
    SetLayoutVK::~SetLayoutVK()
    {
-   ProfileNoRet( gpu, vkDestroyDescriptorSetLayout(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroyDescriptorSetLayout(gpu->device, handle, nullptr) )
    }
 
    PipelineLayoutVK::PipelineLayoutVK(VulkanDevice* _gpu, VkPipelineLayout _handle) :
@@ -69,7 +69,7 @@ namespace en
 
    PipelineLayoutVK::~PipelineLayoutVK()
    {
-   ProfileNoRet( gpu, vkDestroyPipelineLayout(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroyPipelineLayout(gpu->device, handle, nullptr) )
    }
 
 
@@ -115,7 +115,7 @@ namespace en
 //
 //   
 //   {
-//   Ptr<Layout> result = nullptr;
+//   shared_ptr<Layout> result = nullptr;
 //   
 //   uint32 descriptorSets = 0; // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers
 //   
@@ -172,7 +172,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   DescriptorSetVK::DescriptorSetVK(Ptr<DescriptorsVK> _parent, VkDescriptorSet _handle) :
+   DescriptorSetVK::DescriptorSetVK(shared_ptr<DescriptorsVK> _parent, VkDescriptorSet _handle) :
       parent(_parent),
       handle(_handle)
    {
@@ -206,13 +206,13 @@ namespace en
 
 
 
-   void DescriptorSetVK::setBuffer(const uint32 slot, const Ptr<Buffer> _buffer)
+   void DescriptorSetVK::setBuffer(const uint32 slot, const shared_ptr<Buffer> _buffer)
    {
    assert( _buffer );
 
    VulkanDevice* gpu = parent->gpu;
 
-   BufferVK* src = raw_reinterpret_cast<BufferVK>(&_buffer);
+   BufferVK* src = reinterpret_cast<BufferVK*>(_buffer.get());
 
    assert( src->apiType == BufferType::Uniform ||
            src->apiType == BufferType::Storage );
@@ -234,16 +234,16 @@ namespace en
    writeDesc.pBufferInfo      = &bufferInfo; // Array of buffer descriptors
    writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
 
-   ProfileNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
+   ValidateNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
    }
 
-   void DescriptorSetVK::setSampler(const uint32 slot, const Ptr<Sampler> _sampler)
+   void DescriptorSetVK::setSampler(const uint32 slot, const shared_ptr<Sampler> _sampler)
    {
    assert( _sampler );
 
    VulkanDevice* gpu = parent->gpu;
 
-   SamplerVK* src = raw_reinterpret_cast<SamplerVK>(&_sampler);
+   SamplerVK* src = reinterpret_cast<SamplerVK*>(_sampler.get());
 
    VkDescriptorImageInfo imageInfo;
    imageInfo.sampler     = src->handle;
@@ -262,16 +262,16 @@ namespace en
    writeDesc.pBufferInfo      = nullptr; 
    writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
 
-   ProfileNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
+   ValidateNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
    }
 
-   void DescriptorSetVK::setTextureView(const uint32 slot, const Ptr<TextureView> _view)
+   void DescriptorSetVK::setTextureView(const uint32 slot, const shared_ptr<TextureView> _view)
    {
    assert( _view );
 
    VulkanDevice* gpu = parent->gpu;
 
-   TextureViewVK* src = raw_reinterpret_cast<TextureViewVK>(&_view);
+   TextureViewVK* src = reinterpret_cast<TextureViewVK*>(_view.get());
 
    VkDescriptorImageInfo imageInfo;
    imageInfo.sampler     = VK_NULL_HANDLE;
@@ -296,7 +296,7 @@ namespace en
    writeDesc.pBufferInfo      = nullptr; 
    writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
 
-   ProfileNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
+   ValidateNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
    }
 
    
@@ -312,30 +312,32 @@ namespace en
 
    DescriptorsVK::~DescriptorsVK()
    {
-   ProfileNoRet( gpu, vkDestroyDescriptorPool(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroyDescriptorPool(gpu->device, handle, nullptr) )
    }
 
-   Ptr<DescriptorSet> DescriptorsVK::allocate(const Ptr<SetLayout> layout)
+   shared_ptr<DescriptorSet> DescriptorsVK::allocate(const shared_ptr<SetLayout> layout)
    {
-   Ptr<DescriptorSetVK> result = nullptr;
+   shared_ptr<DescriptorSetVK> result = nullptr;
 
    VkDescriptorSetAllocateInfo allocInfo;
    allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
    allocInfo.pNext              = nullptr;
    allocInfo.descriptorPool     = handle;
    allocInfo.descriptorSetCount = 1u;
-   allocInfo.pSetLayouts        = &raw_reinterpret_cast<SetLayoutVK>(&layout)->handle;
+   allocInfo.pSetLayouts        = &reinterpret_cast<SetLayoutVK*>(layout.get())->handle;
 
    VkDescriptorSet set = VK_NULL_HANDLE;
 
    Profile( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, &set) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = new DescriptorSetVK(this, set);
+      result = make_shared<DescriptorSetVK>(this, set);
 
-   return ptr_reinterpret_cast<DescriptorSet>(&result);
+   return result;
    }
    
-   bool DescriptorsVK::allocate(const uint32 count, const Ptr<SetLayout>* layouts, Ptr<DescriptorSet>** sets)
+   bool DescriptorsVK::allocate(const uint32 count,
+                                const shared_ptr<SetLayout>(&layouts)[],
+                                shared_ptr<DescriptorSet>** sets)
    {
    bool result = false;
    
@@ -348,7 +350,7 @@ namespace en
    assert( layoutHandle );
    for(uint32 i=0; i<count; ++i)
       {
-      SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(&layouts[i]);
+      SetLayoutVK* ptr = reinterpret_cast<SetLayoutVK*>(layouts[i].get());
       layoutHandle[i] = ptr->handle;
       setHandle[i]    = VK_NULL_HANDLE;
       }
@@ -364,12 +366,10 @@ namespace en
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       // Unpack results
-      *sets = new Ptr<DescriptorSet>[count];
+      *sets = new shared_ptr<DescriptorSet>[count];
       for(uint32 i=0; i<count; ++i)
-         {
-         Ptr<DescriptorSetVK> ptr = new DescriptorSetVK(this, setHandle[i]);
-         (*sets)[i] = raw_reinterpret_cast<DescriptorSet>(&ptr);
-         }
+         (*sets)[i] = make_shared<DescriptorSetVK>(dynamic_pointer_cast<DescriptorsVK>(shared_from_this()),
+                                                   setHandle[i]);
          
       result = true;
       }
@@ -391,16 +391,14 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::setDescriptors(const Ptr<PipelineLayout> _layout, 
-                                        const Ptr<DescriptorSet> _set,
+   void CommandBufferVK::setDescriptors(const PipelineLayout& _layout,
+                                        const DescriptorSet& _set,
                                         const uint32 index)
    {
    assert( started );
-   assert( _layout );
-   assert( _set );
 
-   PipelineLayoutVK* layout = raw_reinterpret_cast<PipelineLayoutVK>(&_layout);
-   DescriptorSetVK*  set    = raw_reinterpret_cast<DescriptorSetVK>(&_set);
+   const PipelineLayoutVK& layout = reinterpret_cast<const PipelineLayoutVK&>(_layout);
+   const DescriptorSetVK&  set    = reinterpret_cast<const DescriptorSetVK&>(_set);
 
    VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
@@ -409,27 +407,25 @@ namespace en
    //   bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
 
    // TODO: Support for Dynamic Offsets - offsets in Dynamic Uniform/Storage buffers
-   ProfileNoRet( gpu, vkCmdBindDescriptorSets(handle, bindPoint, layout->handle, index, 1, &set->handle, 0, nullptr) )
+   ValidateNoRet( gpu, vkCmdBindDescriptorSets(handle, bindPoint, layout.handle, index, 1, &set.handle, 0, nullptr) )
    }
 
-   void CommandBufferVK::setDescriptors(const Ptr<PipelineLayout> _layout, 
+   void CommandBufferVK::setDescriptors(const PipelineLayout& _layout,
                                         const uint32 count,
-                                        const Ptr<DescriptorSet>* sets,
+                                        const shared_ptr<DescriptorSet>(&sets)[],
                                         const uint32 firstIndex)
    {
    assert( started );
-   assert( _layout );
    assert( count );
-   assert( sets );
 
-   PipelineLayoutVK* layout = raw_reinterpret_cast<PipelineLayoutVK>(&_layout);
+   const PipelineLayoutVK& layout = reinterpret_cast<const PipelineLayoutVK&>(_layout);
 
    // Pack sets handles
    VkDescriptorSet* setHandles = new VkDescriptorSet[count];
    assert( setHandles );
    for(uint32 i=0; i<count; ++i)
       {
-      DescriptorSetVK* ptr = raw_reinterpret_cast<DescriptorSetVK>(&sets[i]);
+      DescriptorSetVK* ptr = reinterpret_cast<DescriptorSetVK*>(sets[i].get());
       setHandles[i] = ptr->handle;
       }
 
@@ -440,7 +436,7 @@ namespace en
    //   bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
 
    // TODO: Support for Dynamic Offsets - offsets in Dynamic Uniform/Storage buffers
-   ProfileNoRet( gpu, vkCmdBindDescriptorSets(handle, bindPoint, layout->handle, firstIndex, count, setHandles, 0, nullptr) )
+   ValidateNoRet( gpu, vkCmdBindDescriptorSets(handle, bindPoint, layout.handle, firstIndex, count, setHandles, 0, nullptr) )
 
    delete [] setHandles;
    }
@@ -450,14 +446,14 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
       
-   Ptr<SetLayout> VulkanDevice::createSetLayout(const uint32 count, 
+   shared_ptr<SetLayout> VulkanDevice::createSetLayout(const uint32 count, 
                                                 const ResourceGroup* group,
                                                 const ShaderStages stageMask)
    {
    assert( count );
    assert( group );
    
-   Ptr<SetLayoutVK> result = nullptr;
+   shared_ptr<SetLayoutVK> result = nullptr;
 
    // TODO: Those slots are numerated separately per each resource type in D3D12, but have shared binding pool in Vulkan.
    //       Verify if D3D12 implementation is consistent with that.
@@ -492,19 +488,19 @@ namespace en
    Profile( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setLayout) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
-      result = new SetLayoutVK(this, setLayout);
+      result = make_shared<SetLayoutVK>(this, setLayout);
       }
     
-   return ptr_reinterpret_cast<SetLayout>(&result);
+   return result;
    }
 
-   Ptr<PipelineLayout> VulkanDevice::createPipelineLayout(const uint32 sets,
-                                                          const Ptr<SetLayout>* set,
+   shared_ptr<PipelineLayout> VulkanDevice::createPipelineLayout(const uint32 sets,
+                                                          const shared_ptr<SetLayout>* set,
                                                           const uint32 immutableSamplers,
-                                                          const Ptr<Sampler>* sampler,
+                                                          const shared_ptr<Sampler>* sampler,
                                                           const ShaderStages stageMask)
    {
-   Ptr<PipelineLayoutVK> result = nullptr; 
+   shared_ptr<PipelineLayoutVK> result = nullptr; 
 
    // We gather all Immutable Samplers into additional Descriptor Set to match Direct3D12 behavior.
    uint32 totalSets = sets;
@@ -517,7 +513,7 @@ namespace en
       setsLayouts = new VkDescriptorSetLayout[totalSets];
    for(uint32 i=0; i<sets; ++i)
       {
-      SetLayoutVK* ptr = raw_reinterpret_cast<SetLayoutVK>(&set[i]);
+      SetLayoutVK* ptr = reinterpret_cast<SetLayoutVK*>(set[i].get());
       setsLayouts[i] = ptr->handle;
       }
       
@@ -532,7 +528,7 @@ namespace en
       VkSampler* immutable = new VkSampler[immutableSamplers];
       for(uint32 i=0; i<sets; ++i)
          {
-         SamplerVK* ptr = raw_reinterpret_cast<SamplerVK>(&sampler[i]);
+         SamplerVK* ptr = reinterpret_cast<SamplerVK*>(sampler[i].get());
          immutable[i] = ptr->handle;
          }
       
@@ -584,17 +580,17 @@ namespace en
    Profile( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
-      result = new PipelineLayoutVK(this, layout);
+      result = make_shared<PipelineLayoutVK>(this, layout);
       }
 
    delete [] setsLayouts;
 
-   return ptr_reinterpret_cast<PipelineLayout>(&result);
+   return result;
    }
 
-   Ptr<Descriptors> VulkanDevice::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
+   shared_ptr<Descriptors> VulkanDevice::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
    {
-   Ptr<DescriptorsVK> result = nullptr;
+   shared_ptr<DescriptorsVK> result = nullptr;
    
    uint32 resourceTypesCount = underlyingType(ResourceType::Count);
    
@@ -617,10 +613,10 @@ namespace en
    Profile( this, vkCreateDescriptorPool(device, &poolInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
       {
-      result = new DescriptorsVK(this, handle);
+      result = make_shared<DescriptorsVK>(this, handle);
       }
 
-   return ptr_reinterpret_cast<Descriptors>(&result);
+   return result;
    }
 
    }

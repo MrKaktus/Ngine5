@@ -16,8 +16,10 @@
 #ifndef ENG_CORE_RENDERING_TEXTURE
 #define ENG_CORE_RENDERING_TEXTURE
 
+#include <memory>
+using namespace std;
+
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
@@ -308,10 +310,10 @@ namespace en
    class Heap;
    class TextureView;
    
-   class Texture : public SafeObject<Texture>
+   class Texture : public enable_shared_from_this<Texture>
       {
       public:
-      virtual Ptr<Heap> parent(void) const = 0;
+      virtual shared_ptr<Heap> parent(void) const = 0;
       virtual TextureType type(void) const = 0;
       virtual Format   format(void) const = 0;
       virtual uint32   mipmaps(void) const = 0;
@@ -324,24 +326,24 @@ namespace en
       virtual uint16   layers(void) const = 0;
       virtual uint16   samples(void) const = 0;
 
-      virtual Ptr<TextureView> view(void) const = 0;                  // Default view representing this texture
+      virtual shared_ptr<TextureView> view(void) = 0;                  // Default view representing this texture
       
       // "layer" parameter can pass specific information, for specific texture types:
       // - for 3D it represents "depth" slice
       // - for CubeMap it represents "face" surface
       // - for CubeMapArray it represents "layer-face" surface
-      virtual Ptr<TextureView> view(const TextureType type,           // Creates new texture view with given
-                                    const Format format,              // type, format, base mipmap and mipmaps count
-                                    const uint32v2 mipmaps,           // as well as base layer and layers count
-                                    const uint32v2 layers) const = 0;
+      virtual shared_ptr<TextureView> view(const TextureType type,     // Creates new texture view with given
+                                           const Format format,        // type, format, base mipmap and mipmaps count
+                                           const uint32v2 mipmaps,     // as well as base layer and layers count
+                                           const uint32v2 layers) = 0;
       
       virtual ~Texture() {};                           // Polymorphic deletes require a virtual base destructor
       };
 
-   class TextureView : public SafeObject<TextureView>
+   class TextureView
       {
       public:
-      virtual Ptr<Texture> parent(void) const = 0;
+      virtual shared_ptr<Texture> parent(void) const = 0;
       virtual TextureType  type(void) const = 0;
       virtual Format       format(void) const = 0;
       virtual uint32v2 parentMipmaps(void) const = 0;    // Sub-set of parent texture mipmaps, creating this view

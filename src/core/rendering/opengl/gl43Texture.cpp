@@ -51,58 +51,58 @@ namespace en
 #endif
 
    // Generate texture descriptor with default state
-   Profile( glGenTextures(1, (GLuint*)&id) );
-   Profile( glBindTexture(glType, id) );
+   Validate( glGenTextures(1, (GLuint*)&id) );
+   Validate( glBindTexture(glType, id) );
    if ( (state.type != TextureType::Texture2DMultisample) &&
         (state.type != TextureType::Texture2DMultisampleArray) )
       {
     //if (state.type != TextureType::Texture2DRectangle)
          {
-         Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
-         Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
-         Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_R, GL_REPEAT) );
+         Validate( glTexParameteri(glType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
+         Validate( glTexParameteri(glType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
+         Validate( glTexParameteri(glType, GL_TEXTURE_WRAP_R, GL_REPEAT) );
          }
-      Profile( glTexParameteri(glType, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
-      Profile( glTexParameteri(glType, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
+      Validate( glTexParameteri(glType, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
+      Validate( glTexParameteri(glType, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
       }
 
    // Generate PBO
-   Profile( glGenBuffers(1, &desc.pbo) );
+   Validate( glGenBuffers(1, &desc.pbo) );
 
    // Reserve memory for texture completness (OpenGL 4.2 or ARB_texture_storage) 
    switch(state.type)
       {
       case TextureType::Texture1D:
-         Profile( glTexStorage1D(glType, mipmaps, glInternalFormat, width) );
+         Validate( glTexStorage1D(glType, mipmaps, glInternalFormat, width) );
          break;
    
       case TextureType::Texture1DArray:
-         Profile( glTexStorage2D(glType, mipmaps, glInternalFormat, width, layers) );
+         Validate( glTexStorage2D(glType, mipmaps, glInternalFormat, width, layers) );
          break;
    
       case TextureType::Texture2D:
-         Profile( glTexStorage2D(glType, mipmaps, glInternalFormat, width, height) );
+         Validate( glTexStorage2D(glType, mipmaps, glInternalFormat, width, height) );
          break;
    
       case TextureType::Texture2DArray:
-         Profile( glTexStorage3D(glType, mipmaps, glInternalFormat, width, height, layers) );
+         Validate( glTexStorage3D(glType, mipmaps, glInternalFormat, width, height, layers) );
          break;
    
     //case TextureType::Texture2DRectangle:
-    //   Profile( glTexStorage2D(glType, 1, glInternalFormat, width, height) );
+    //   Validate( glTexStorage2D(glType, 1, glInternalFormat, width, height) );
     //   break;
 
 #ifndef EN_PLATFORM_OSX
       // OpenGL 4.3  or  ARB_texture_storage_multisample
       case Texture2DMultisample:
          // TODO: Check samples count (depth/color/integer)???
-         Profile( glTexStorage2DMultisample(glType, samples, glInternalFormat, width, height, GL_TRUE) );
+         Validate( glTexStorage2DMultisample(glType, samples, glInternalFormat, width, height, GL_TRUE) );
          break;
    
       // OpenGL 4.3  or  ARB_texture_storage_multisample
       case Texture2DMultisampleArray:
          // TODO: Check samples count (depth/color/integer)???
-         Profile( glTexStorage3DMultisample(glType, samples, glInternalFormat, width, height, layers, GL_TRUE) );
+         Validate( glTexStorage3DMultisample(glType, samples, glInternalFormat, width, height, layers, GL_TRUE) );
          break;
 #endif
 
@@ -111,15 +111,15 @@ namespace en
     //   break;
    
       case TextureType::Texture3D:
-         Profile( glTexStorage3D(glType, mipmaps, glInternalFormat, width, height, depth) );
+         Validate( glTexStorage3D(glType, mipmaps, glInternalFormat, width, height, depth) );
          break;
    
       case TextureType::TextureCubeMap:
-         Profile( glTexStorage2D(glType, mipmaps, glInternalFormat, width, width) );
+         Validate( glTexStorage2D(glType, mipmaps, glInternalFormat, width, width) );
          break;
    
       case TextureType::TextureCubeMapArray:
-         Profile( glTexStorage3D(glType, mipmaps, glInternalFormat, width, width, layers) );
+         Validate( glTexStorage3D(glType, mipmaps, glInternalFormat, width, width, layers) );
          break;
    
       default:

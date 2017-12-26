@@ -25,10 +25,10 @@ namespace en
 //   class Stereoscopy
 //         {
 //         private:   
-//         Ptr<OculusX> device;
+//         shared_ptr<OculusX> device;
 //
 //         // GPU Resource handles
-//         Ptr<Model>  model;
+//         shared_ptr<Model>  model;
 //         Program     program;
 //         uint32      sampler;
 //         Parameter   eyeToSourceUVScale;
@@ -51,14 +51,14 @@ namespace en
 //         float3    rotation;
 //   
 //         // Debug:
-//         Ptr<Texture> texture;
+//         shared_ptr<Texture> texture;
 //         
 //         Timer     timerR, timerS;
 //         Time      rendering; // real frame time
 //         Time      syncing;   // SDK sync time
 //   
 //         public:
-//         Stereoscopy(Ptr<HMD> hmd);  
+//         Stereoscopy(shared_ptr<HMD> hmd);  
 //        ~Stereoscopy();
 //   
 //         //void screenshot(void);
@@ -68,7 +68,7 @@ namespace en
 //         bool     enabled(void);
 //         void     startFrame(const uint32 frameIndex = 0); // Beginning of frame rendering, returns orientation of HMD as Euler angles 
 //         uint32v4 viewport(uint8 eye);                     // Get viewport for current eye
-//         void     source(Ptr<Texture> texture);                 // Allows adjusting render target size every frame, need to be called at least once to set source for distortion
+//         void     source(shared_ptr<Texture> texture);                 // Allows adjusting render target size every frame, need to be called at least once to set source for distortion
 //         bool     display(void);                           // End of frame rendering, performs distortion reprojection, VSync and buffer swap
 //         };
 }

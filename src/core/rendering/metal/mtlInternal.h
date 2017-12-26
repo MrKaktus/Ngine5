@@ -35,7 +35,7 @@ namespace en
 {
    namespace gpu
    {
-   extern Ptr<SharedSurface> createSharedSurface(const uint32v2 resolution);
+   extern shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolution);
    }
 }
 #endif

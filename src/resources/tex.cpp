@@ -71,19 +71,19 @@ namespace en
    return false;
    }
 
-   bool save(Ptr<gpu::Texture> texture, const string& filename)
+   bool save(shared_ptr<gpu::Texture> texture, const string& filename)
    {
    // TODO: Finish
    return false;
    }
 
-   Ptr<gpu::Texture> load(const string& filename)
+   shared_ptr<gpu::Texture> load(const string& filename)
    {
    using namespace en::storage;
    using namespace en::gpu;
 
    // Open image file 
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -123,7 +123,7 @@ namespace en
    TextureHeader_v1* textures = new TextureHeader_v1[header.textures];
    uint32 datasize = sizeof(TextureHeader_v1) * header.textures;
    file->read(20, datasize, textures);
-   Ptr<gpu::Texture>* out = new Ptr<gpu::Texture>[header.textures];
+   shared_ptr<gpu::Texture>* out = new shared_ptr<gpu::Texture>[header.textures];
 
    // Process textures
    for(uint32 i=0; i<header.textures; ++i)
@@ -154,7 +154,7 @@ namespace en
       for(uint16 j=0; j<textures[i].surfaces; ++j)
          {
          // Create staging buffer
-         Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, (uint32)surfaces[j].size);
+         shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, (uint32)surfaces[j].size);
          if (!staging)
             {
             Log << "ERROR: Cannot create staging buffer!\n";
@@ -173,9 +173,9 @@ namespace en
             type = gpu::QueueType::Transfer;
 
          // Copy data from staging buffer to final texture
-         Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+         shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
          command->start();
-         command->copy(staging, out[i], surfaces[j].mipmap, surfaces[j].layer);
+         command->copy(*staging, *out[i], surfaces[j].mipmap, surfaces[j].layer);
          command->commit();
          
          // TODO:

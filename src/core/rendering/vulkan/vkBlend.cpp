@@ -98,13 +98,13 @@ namespace en
    for(uint32 i=0; i<min(attachments, MaxColorAttachmentsCount); ++i)
       {
       //assert( !(color[0].logicOperation && color[i].blending) );
-      blendInfo[i].blendEnable         = color[i].blending;
+      blendInfo[i].blendEnable         = color[i].mode == BlendMode::BlendOperation ? true : false;
       blendInfo[i].srcColorBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].srcRGB));   // Optimisation: TranslateBlend[color[i].srcRGB];
       blendInfo[i].dstColorBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].dstRGB));   // Optimisation: TranslateBlend[color[i].dstRGB];
-      blendInfo[i].colorBlendOp        = static_cast<VkBlendOp>(underlyingType(color[i].rgbFunc));      // Optimisation: TranslateBlendFunc[color[i].rgbFunc];
+      blendInfo[i].colorBlendOp        = static_cast<VkBlendOp>(underlyingType(color[i].rgb));          // Optimisation: TranslateBlendFunc[color[i].rgb];
       blendInfo[i].srcAlphaBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].srcAlpha)); // Optimisation: TranslateBlend[color[i].srcAlpha];
       blendInfo[i].dstAlphaBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].dstAlpha)); // Optimisation: TranslateBlend[color[i].dstAlpha];
-      blendInfo[i].alphaBlendOp        = static_cast<VkBlendOp>(underlyingType(color[i].alphaFunc));    // Optimisation: TranslateBlendFunc[color[i].alphaFunc];
+      blendInfo[i].alphaBlendOp        = static_cast<VkBlendOp>(underlyingType(color[i].alpha));        // Optimisation: TranslateBlendFunc[color[i].alpha];
       // Translate Color Write Mask
       blendInfo[i].colorWriteMask      = color[i].writeMask;
       // Optimisation:
@@ -119,11 +119,11 @@ namespace en
       }
    }
 
-   Ptr<BlendState> VulkanDevice::createBlendState(const BlendStateInfo& state,
-                                                  const uint32 attachments,
-                                                  const BlendAttachmentInfo* color)
+   shared_ptr<BlendState> VulkanDevice::createBlendState(const BlendStateInfo& state,
+                                                         const uint32 attachments,
+                                                         const BlendAttachmentInfo* color)
    {
-   return ptr_reinterpret_cast<BlendState>(&Ptr<BlendStateVK>(new BlendStateVK(state, attachments, color)));
+   return make_shared<BlendStateVK>(state, attachments, color);
    }
 
    }

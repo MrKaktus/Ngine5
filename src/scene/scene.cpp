@@ -46,7 +46,7 @@ namespace en
    //
    // 7 - As object can be part of many subsystems, it will call it's destruction in
    //     all that subsystems when it's destructor is called. This means Scene cannot 
-   //     hold safe "strong" pointer Ptr<Entity> but regular "weak" pointer to object.
+   //     hold safe "strong" pointer shared_ptr<Entity> but regular "weak" pointer to object.
    //
    // 8 - (7)-> As object can request it's destruction from subsystem at any moment,
    //     subsystem needs to be ALWAYS able to destroy it. So in Scene, calling remove
@@ -96,7 +96,7 @@ namespace en
    // We got OBJECT POINTER to remove.
    // We have access to everything that this object has access to.
    // Let's search for object in object's list (list of pointers). -> It is vector sorted by pointer adresses!
-   // vector< { Ptr<Entity> adres, level, index } > -> it points one way into global arrays:
+   // vector< { shared_ptr<Entity> adres, level, index } > -> it points one way into global arrays:
    // vector< vector< { childs, {all entity data in other arrays at the same place} } >index >level
    // POD's referenced by pointers cannot be in vectors, as they can move in memory!
    
@@ -132,7 +132,7 @@ namespace en
    // It is now being attached to scene, which creates resources for it, and attaches them to pointers.
    // Creation can fail (if parent object is not present) (!) 
    // -> This is why we cannot attach object to scene at Construction time!
-   //    -> Except if we will pass Ptr<> or Reference to parent ! -> But reference requires it to be present!
+   //    -> Except if we will pass shared_ptr<> or Reference to parent ! -> But reference requires it to be present!
 
 
 
@@ -152,7 +152,7 @@ namespace en
    Layer::~Layer()
    {
    for(uint32 i=0; i<entity.size; ++i)
-      entity[i].~Ptr();
+      entity[i] = nullptr; // TODO: Is it enough to spawn desctructor from shared_ptr ?
    }
 
    Scene::Scene(uint32 entities) :
@@ -189,7 +189,7 @@ namespace en
          assert(success);
 
          for(uint32 j=0; j<size; ++j)
-            new (&layers[i].entity[j]) Ptr<Entity>(NULL);
+            new (&layers[i].entity[j]) shared_ptr<Entity>(NULL);
 
          if (size > 1)
             size /= 2;
@@ -219,7 +219,7 @@ namespace en
    assert(success);
 
    for(uint32 j=(size/2); j<size; ++j)
-      new (&layers[i].entity[j]) Ptr<Entity>(NULL);
+      new (&layers[i].entity[j]) shared_ptr<Entity>(NULL);
 
    // Update entities direct pointers to data
    for(uint32 j=0; j<layers[i].count; ++j)
@@ -233,7 +233,7 @@ namespace en
       }
    }
    
-   bool Scene::add(Ptr<Entity> object)
+   bool Scene::add(shared_ptr<Entity> object)
    {
    // Check if object is not already attached to some scene
    if (object->pScene)
@@ -291,7 +291,7 @@ namespace en
    return true;
    }
    
-   bool Scene::add(Ptr<Entity> object, Ptr<Entity> parent)
+   bool Scene::add(shared_ptr<Entity> object, shared_ptr<Entity> parent)
    {
    // Check if object is not already attached to some scene
    if (object->pScene)
@@ -441,7 +441,7 @@ namespace en
          local.m[2] *= s.x;   local.m[6] *= s.y;   local.m[10] *= s.z;   local.m[14] = static_cast<float>( p.z );
 
          // Parent world matrix
-         Ptr<Entity> parent = layers[layer].entity[index]->parent;
+         shared_ptr<Entity> parent = layers[layer].entity[index]->parent;
          uint32 parentIndex = entities[ parent->handle ].index;
          float4x4& parentMatrix = layers[layer - 1].worldMatrix[parentIndex];
    

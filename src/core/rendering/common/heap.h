@@ -33,19 +33,19 @@ namespace en
       virtual uint32 size(void) const;
 
       // Create formatted Vertex buffer that can be bound to InputLayout.
-      virtual Ptr<Buffer> createBuffer(const uint32 elements,
-                                       const Formatting& formatting,
-                                       const uint32 step = 0u);
+      virtual shared_ptr<Buffer> createBuffer(const uint32 elements,
+                                              const Formatting& formatting,
+                                              const uint32 step = 0u);
         
       // Create formatted Index buffer that can be bound to InputLayout.
-      virtual Ptr<Buffer> createBuffer(const uint32 elements,
-                                       const Attribute format);
+      virtual shared_ptr<Buffer> createBuffer(const uint32 elements,
+                                              const Attribute format);
 
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
-      virtual Ptr<Buffer> createBuffer(const BufferType type,
-                                       const uint32 size);
+      virtual shared_ptr<Buffer> createBuffer(const BufferType type,
+                                              const uint32 size);
 
       virtual ~CommonHeap() {};                           // Polymorphic deletes require a virtual base destructor
       };

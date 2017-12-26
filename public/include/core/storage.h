@@ -13,13 +13,12 @@
 #ifndef ENG_STORAGE
 #define ENG_STORAGE
 
-#include "core/defines.h"
-#include "core/types.h"
-
+#include <memory>
 #include <string>
 using namespace std;
 
-#include "core/utilities/TintrusivePointer.h"
+#include "core/defines.h"
+#include "core/types.h"
 
 namespace en
 {
@@ -32,7 +31,7 @@ namespace en
       ReadWrite
       };
 
-   class File : public SafeObject<File>
+   class File
       {
       public:
       virtual uint64 size(void) = 0;                 // File size in bytes
@@ -62,14 +61,14 @@ namespace en
       virtual ~File() {};                            // Polymorphic deletes require a virtual base destructor
       };
 
-   class Interface : public SafeObject<Interface>
+   class Interface
       {
       public:
       static bool create(void);                       // Creates instance of this class (OS specific) and assigns it to "Storage".
 
       virtual bool exist(const string& filename) = 0; // Check if file exist
-      virtual Ptr<File> open(const string& filename,
-                             const FileAccess mode = Read) = 0;  // Opens file
+      virtual shared_ptr<File> open(const string& filename,
+                                    const FileAccess mode = Read) = 0;  // Opens file
          
       virtual uint64 read(const string& filename,
                           string& dst) = 0;          // Convenience method for reading whole file as string
@@ -78,7 +77,7 @@ namespace en
       };
    }
 
-extern Ptr<storage::Interface> Storage;
+extern shared_ptr<storage::Interface> Storage;
 }
 
 #endif

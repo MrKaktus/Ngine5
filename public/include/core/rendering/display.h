@@ -16,13 +16,16 @@
 #ifndef ENG_CORE_RENDERING_DISPLAY
 #define ENG_CORE_RENDERING_DISPLAY
 
-#include "core/utilities/TintrusivePointer.h" 
+#include <memory>
+using namespace std;
+
+#include "core/types.h"
 
 namespace en
 {
    namespace gpu
    {
-   class Display : public SafeObject<Display>
+   class Display
       {
       public:
 

@@ -31,7 +31,7 @@ namespace en
 {
    namespace gpu
    {
-   Ptr<Sampler> Interface::ISampler::create(const SamplerState& state)
+   shared_ptr<Sampler> Interface::ISampler::create(const SamplerState& state)
    {
    // API independent debug validation
    assert( TextureWrapingSupported[state.coordU] );
@@ -59,7 +59,7 @@ namespace en
          return GpuContext.sampler.cache[i].sampler;
 
    // Create new sampler
-   Ptr<gpu::Sampler> sampler = nullptr;
+   shared_ptr<gpu::Sampler> sampler = nullptr;
 #ifdef EN_OPENGL_DESKTOP
    if ( GpuContext.screen.support(OpenGL_3_3) )
       {
@@ -94,7 +94,7 @@ namespace en
    }
 
 
-   Ptr<Texture> Interface::ITexture::create(const TextureState& state)
+   shared_ptr<Texture> Interface::ITexture::create(const TextureState& state)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -172,7 +172,7 @@ namespace en
       }
 #endif
 
-   Ptr<gpu::Texture> texture = nullptr;
+   shared_ptr<gpu::Texture> texture = nullptr;
 
 #ifdef EN_OPENGL_DESKTOP
    if ( GpuContext.screen.support(OpenGL_4_3) )
@@ -208,7 +208,7 @@ namespace en
    void Interface::Culling::on(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glEnable(GL_CULL_FACE) )
+   Validate( glEnable(GL_CULL_FACE) )
 #else
    GpuContext.state.culling.enabled = true;
    
@@ -224,7 +224,7 @@ namespace en
    void Interface::Culling::off(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDisable(GL_CULL_FACE) )
+   Validate( glDisable(GL_CULL_FACE) )
 #else
    GpuContext.state.culling.enabled = false;
    
@@ -240,7 +240,7 @@ namespace en
    void Interface::Culling::front(const NormalCalculationMethod function)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glFrontFace(gl::NormalCalculationMethod[function]) ) 
+   Validate( glFrontFace(gl::NormalCalculationMethod[function]) ) 
 #else
    GpuContext.state.culling.function = gl::NormalCalculationMethod[function];
  
@@ -256,7 +256,7 @@ namespace en
    void Interface::Culling::face(const Face face)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glCullFace(gl::Face[face]) ) 
+   Validate( glCullFace(gl::Face[face]) ) 
 #else
    GpuContext.state.culling.face = gl::Face[face];
 
@@ -272,7 +272,7 @@ namespace en
    void Interface::Scissor::on(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glEnable(GL_SCISSOR_TEST) )
+   Validate( glEnable(GL_SCISSOR_TEST) )
 #else
    GpuContext.state.scissor.enabled = true;
 
@@ -288,7 +288,7 @@ namespace en
    void Interface::Scissor::off(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDisable(GL_SCISSOR_TEST) )
+   Validate( glDisable(GL_SCISSOR_TEST) )
 #else
    GpuContext.state.scissor.enabled = false;
 
@@ -304,7 +304,7 @@ namespace en
    void Interface::Scissor::rect(const uint32 left, const uint32 bottom, const uint32 width, const uint32 height)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glScissor(left, bottom, width, height) )
+   Validate( glScissor(left, bottom, width, height) )
 #else
    GpuContext.state.scissor.left    = left;
    GpuContext.state.scissor.bottom  = bottom;
@@ -323,7 +323,7 @@ namespace en
    void Interface::Depth::Buffer::on(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDepthMask(true) )
+   Validate( glDepthMask(true) )
 #else
    GpuContext.state.depth.writing = true;
 
@@ -339,7 +339,7 @@ namespace en
    void Interface::Depth::Buffer::off(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDepthMask(false) )
+   Validate( glDepthMask(false) )
 #else
    GpuContext.state.depth.writing = false;
 
@@ -356,10 +356,10 @@ namespace en
    {
 #ifdef GPU_IMMEDIATE_MODE
    #ifdef EN_OPENGL_DESKTOP
-   Profile( glClearDepth(clamp(depth, 0.0, 1.0)) )
+   Validate( glClearDepth(clamp(depth, 0.0, 1.0)) )
    #endif
    #ifdef EN_OPENGL_MOBILE
-   Profile( glClearDepthf((float)clamp(depth, 0.0, 1.0)) )
+   Validate( glClearDepthf((float)clamp(depth, 0.0, 1.0)) )
    #endif
 #else
    GpuContext.state.depth.clear = clamp(depth, 0.0, 1.0);
@@ -371,10 +371,10 @@ namespace en
    {
 #ifdef GPU_IMMEDIATE_MODE
    #ifdef EN_OPENGL_DESKTOP
-   Profile( glClearDepth((double)clamp(depth, 0.0f, 1.0f)) )
+   Validate( glClearDepth((double)clamp(depth, 0.0f, 1.0f)) )
    #endif
    #ifdef EN_OPENGL_MOBILE
-   Profile( glClearDepthf(clamp(depth, 0.0f, 1.0f)) )
+   Validate( glClearDepthf(clamp(depth, 0.0f, 1.0f)) )
    #endif
 #else
    GpuContext.state.depth.clear = (double)clamp(depth, 0.0f, 1.0f);
@@ -385,7 +385,7 @@ namespace en
    void Interface::Depth::Buffer::clear(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glClear(GL_DEPTH_BUFFER_BIT) )
+   Validate( glClear(GL_DEPTH_BUFFER_BIT) )
 #else
    // Add to deffered list 
    if (!GpuContext.state.dirtyBits.depthClear)
@@ -399,7 +399,7 @@ namespace en
    void Interface::Depth::Test::on(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glEnable(GL_DEPTH_TEST) )
+   Validate( glEnable(GL_DEPTH_TEST) )
 #else
    GpuContext.state.depth.testing = true;
 
@@ -415,7 +415,7 @@ namespace en
    void Interface::Depth::Test::off(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDisable(GL_DEPTH_TEST) )
+   Validate( glDisable(GL_DEPTH_TEST) )
 #else
    GpuContext.state.depth.testing = false;
 
@@ -431,7 +431,7 @@ namespace en
    void Interface::Depth::Test::function(const CompareMethod function)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDepthFunc(en::gpu::TranslateCompareMethod[function]) )
+   Validate( glDepthFunc(en::gpu::TranslateCompareMethod[function]) )
 #else
    GpuContext.state.depth.function = gl::TranslateCompareMethod[function];
   
@@ -447,8 +447,8 @@ namespace en
    void Interface::Depth::Test::operator() (const CompareMethod function)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDepthFunc(TranslateCompareMethod[function]) )
-   Profile( glEnable(GL_DEPTH_TEST) )
+   Validate( glDepthFunc(TranslateCompareMethod[function]) )
+   Validate( glEnable(GL_DEPTH_TEST) )
 #else
    GpuContext.state.depth.function = gl::TranslateCompareMethod[function];
    GpuContext.state.depth.testing  = true;  
@@ -470,7 +470,7 @@ namespace en
    void Interface::Stencil::Buffer::clearValue(const uint8 stencil)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glClearStencil(stencil) )
+   Validate( glClearStencil(stencil) )
 #else
    GpuContext.state.stencil.clear = stencil;
    GpuContext.state.dirtyBits.stencilClearValue = true;
@@ -480,7 +480,7 @@ namespace en
    void Interface::Stencil::Buffer::clear(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glClear(GL_STENCIL_BUFFER_BIT) )
+   Validate( glClear(GL_STENCIL_BUFFER_BIT) )
 #else
    // Add to deffered list 
    if (!GpuContext.state.dirtyBits.stencilClear)
@@ -494,7 +494,7 @@ namespace en
    void Interface::Stencil::Buffer::on(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glStencilMaskSeparate(GL_FRONT_AND_BACK, 0xFFFFFFFF) )
+   Validate( glStencilMaskSeparate(GL_FRONT_AND_BACK, 0xFFFFFFFF) )
 #else
    GpuContext.state.stencil.writing = true;
 
@@ -510,7 +510,7 @@ namespace en
    void Interface::Stencil::Buffer::off(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glStencilMaskSeparate(GL_FRONT_AND_BACK, 0x00000000) )
+   Validate( glStencilMaskSeparate(GL_FRONT_AND_BACK, 0x00000000) )
 #else
    GpuContext.state.stencil.writing = false;
 
@@ -526,7 +526,7 @@ namespace en
    void Interface::Stencil::Test::on(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glEnable(GL_STENCIL_TEST) )
+   Validate( glEnable(GL_STENCIL_TEST) )
 #else
    GpuContext.state.stencil.testing = true;
 
@@ -542,7 +542,7 @@ namespace en
    void Interface::Stencil::Test::off(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDisable(GL_STENCIL_TEST) )
+   Validate( glDisable(GL_STENCIL_TEST) )
 #else
    GpuContext.state.stencil.testing = false;
 
@@ -560,11 +560,11 @@ namespace en
                                             const StencilModification whenDepthTestPassed)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glStencilOpSeparate(GL_FRONT, 
+   Validate( glStencilOpSeparate(GL_FRONT, 
                                 gl::StencilModification[whenStencilTestFailed],
                                 gl::StencilModification[whenDepthTestFailed],
                                 gl::StencilModification[whenDepthTestPassed]) )
-   Profile( glStencilOpSeparate(GL_BACK, 
+   Validate( glStencilOpSeparate(GL_BACK, 
                                 gl::StencilModification[whenStencilTestFailed],
                                 gl::StencilModification[whenDepthTestFailed],
                                 gl::StencilModification[whenDepthTestPassed]) )
@@ -597,12 +597,12 @@ namespace en
    {
 #ifdef GPU_IMMEDIATE_MODE
    if ( face == FrontFace || face == BothFaces )
-      Profile( glStencilOpSeparate(GL_FRONT, 
+      Validate( glStencilOpSeparate(GL_FRONT, 
                                    gl::StencilModification[whenStencilTestFailed],
                                    gl::StencilModification[whenDepthTestFailed],
                                    gl::StencilModification[whenDepthTestPassed]) )
    if ( face == BackFace || face == BothFaces )
-      Profile( glStencilOpSeparate(GL_BACK, 
+      Validate( glStencilOpSeparate(GL_BACK, 
                                    gl::StencilModification[whenStencilTestFailed],
                                    gl::StencilModification[whenDepthTestFailed],
                                    gl::StencilModification[whenDepthTestPassed]) )
@@ -641,8 +641,8 @@ namespace en
    void Interface::Stencil::Test::function(const CompareMethod compare, const sint32 reference, const uint8 mask)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glStencilFuncSeparate(GL_FRONT, TranslateCompareMethod[compare], reference, mask) )
-   Profile( glStencilFuncSeparate(GL_BACK,  TranslateCompareMethod[compare], reference, mask) )
+   Validate( glStencilFuncSeparate(GL_FRONT, TranslateCompareMethod[compare], reference, mask) )
+   Validate( glStencilFuncSeparate(GL_BACK,  TranslateCompareMethod[compare], reference, mask) )
 #else
    GpuContext.state.stencil.front.function  = gl::TranslateCompareMethod[compare];
    GpuContext.state.stencil.front.reference = reference;
@@ -669,9 +669,9 @@ namespace en
    {
 #ifdef GPU_IMMEDIATE_MODE
    if ( face == FrontFace || face == BothFaces )
-      Profile( glStencilFuncSeparate(GL_FRONT, TranslateCompareMethod[compare], reference, mask) )
+      Validate( glStencilFuncSeparate(GL_FRONT, TranslateCompareMethod[compare], reference, mask) )
    if ( face == BackFace  || face == BothFaces )
-      Profile( glStencilFuncSeparate(GL_BACK,  TranslateCompareMethod[compare], reference, mask) )
+      Validate( glStencilFuncSeparate(GL_BACK,  TranslateCompareMethod[compare], reference, mask) )
 #else
    if ( face == FrontFace || 
         face == BothFaces )
@@ -707,7 +707,7 @@ namespace en
    void Interface::Color::Buffer::on(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glColorMask(true, true, true, true) )
+   Validate( glColorMask(true, true, true, true) )
 #else
    GpuContext.state.color.enabled[0] = true;
    GpuContext.state.color.enabled[1] = true;
@@ -726,7 +726,7 @@ namespace en
    void Interface::Color::Buffer::mask(const bool r, const bool g, const bool b, const bool a)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glColorMask(r, g, b, a) )
+   Validate( glColorMask(r, g, b, a) )
 #else
    GpuContext.state.color.enabled[0] = r;
    GpuContext.state.color.enabled[1] = g;
@@ -745,7 +745,7 @@ namespace en
    void Interface::Color::Buffer::off(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glColorMask(false, false, false, false) )
+   Validate( glColorMask(false, false, false, false) )
 #else
    GpuContext.state.color.enabled[0] = false;
    GpuContext.state.color.enabled[1] = false;
@@ -764,7 +764,7 @@ namespace en
    void Interface::Color::Buffer::clearValue(const float4 color)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glClearColor(color.r, color.g, color.b, color.a) )
+   Validate( glClearColor(color.r, color.g, color.b, color.a) )
 #else
    GpuContext.state.color.clear.r = color.r;
    GpuContext.state.color.clear.g = color.g;
@@ -778,7 +778,7 @@ namespace en
    void Interface::Color::Buffer::clearValue(const float r, const float g, const float b, const float a)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glClearColor(r, g, b, a) )
+   Validate( glClearColor(r, g, b, a) )
 #else
    GpuContext.state.color.clear.r = r;
    GpuContext.state.color.clear.g = g;
@@ -792,7 +792,7 @@ namespace en
    void Interface::Color::Buffer::clear(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glClear(GL_COLOR_BUFFER_BIT) )
+   Validate( glClear(GL_COLOR_BUFFER_BIT) )
 #else
    // Add to deffered list 
    if (!GpuContext.state.dirtyBits.colorClear)
@@ -809,7 +809,7 @@ namespace en
    void Interface::Output::Blend::on(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glEnable(GL_BLEND) )
+   Validate( glEnable(GL_BLEND) )
 #else
    GpuContext.state.output.color[0].blend.on = true;
 
@@ -826,7 +826,7 @@ namespace en
       const BlendFunction dstRGBA)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glBlendFuncSeparate(gl::BlendFunction[srcRGBA].type, 
+   Validate( glBlendFuncSeparate(gl::BlendFunction[srcRGBA].type, 
                                 gl::BlendFunction[dstRGBA].type, 
                                 gl::BlendFunction[srcRGBA].type,
                                 gl::BlendFunction[dstRGBA].type) )
@@ -857,7 +857,7 @@ namespace en
       const BlendFunction dstA)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glBlendFuncSeparate(gl::BlendFunction[srcRGB].type, 
+   Validate( glBlendFuncSeparate(gl::BlendFunction[srcRGB].type, 
                                 gl::BlendFunction[dstRGB].type,
                                 gl::BlendFunction[srcA].type, 
                                 gl::BlendFunction[dstA].type) )
@@ -896,9 +896,9 @@ namespace en
    #endif
 #ifdef GPU_IMMEDIATE_MODE
 #if defined(EN_DISCRETE_GPU) && !defined(EN_PLATFORM_OSX)
-   Profile( glBlendEquationSeparateEXT(gl::BlendEquation[rgba], gl::BlendEquation[rgba]) )
+   Validate( glBlendEquationSeparateEXT(gl::BlendEquation[rgba], gl::BlendEquation[rgba]) )
 #else // EN_OPENGL_MOBILE
-   Profile( glBlendEquationSeparate(gl::BlendEquation[rgba], gl::BlendEquation[rgba]) )
+   Validate( glBlendEquationSeparate(gl::BlendEquation[rgba], gl::BlendEquation[rgba]) )
 #endif
 #else
    GpuContext.state.output.color[0].blend.equationRGB = gl::BlendEquation[rgba];
@@ -927,9 +927,9 @@ namespace en
    #endif
 #ifdef GPU_IMMEDIATE_MODE
 #if defined(EN_DISCRETE_GPU) && !defined(EN_PLATFORM_OSX)
-   Profile( glBlendEquationSeparateEXT(gl::BlendEquation[rgb], gl::BlendEquation[a]) )
+   Validate( glBlendEquationSeparateEXT(gl::BlendEquation[rgb], gl::BlendEquation[a]) )
 #else // EN_OPENGL_MOBILE
-   Profile( glBlendEquationSeparate(gl::BlendEquation[rgb], gl::BlendEquation[a]) )
+   Validate( glBlendEquationSeparate(gl::BlendEquation[rgb], gl::BlendEquation[a]) )
 #endif
 #else
    GpuContext.state.output.color[0].blend.equationRGB = gl::BlendEquation[rgb];
@@ -948,7 +948,7 @@ namespace en
    void Interface::Output::Blend::off(void)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glDisable(GL_BLEND) )
+   Validate( glDisable(GL_BLEND) )
 #else
    GpuContext.state.output.color[0].blend.on = false;
 
@@ -968,7 +968,7 @@ namespace en
       return false;
 
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glEnablei(GL_BLEND, n) )
+   Validate( glEnablei(GL_BLEND, n) )
 #else
    GpuContext.state.output.color[n].blend.on = true;
 
@@ -989,7 +989,7 @@ namespace en
 #ifdef GPU_IMMEDIATE_MODE
    if (GpuContext.screen.support(OpenGL_4_0))   
        {      
-       Profile( glBlendFuncSeparatei(n, gl::BlendFunction[srcRGBA].type, 
+       Validate( glBlendFuncSeparatei(n, gl::BlendFunction[srcRGBA].type, 
                                         gl::BlendFunction[dstRGBA].type, 
                                         gl::BlendFunction[srcRGBA].type,
                                         gl::BlendFunction[dstRGBA].type) )
@@ -997,7 +997,7 @@ namespace en
     else
     if (GpuContext.support.extension(ARB_draw_buffers_blend))  
        {
-       Profile( glBlendFuncSeparateiARB(n, gl::BlendFunction[srcRGBA].type, 
+       Validate( glBlendFuncSeparateiARB(n, gl::BlendFunction[srcRGBA].type, 
                                            gl::BlendFunction[dstRGBA].type, 
                                            gl::BlendFunction[srcRGBA].type,
                                            gl::BlendFunction[dstRGBA].type) )
@@ -1049,7 +1049,7 @@ namespace en
 #ifdef GPU_IMMEDIATE_MODE
    if (GpuContext.screen.support(OpenGL_4_0))   
        {      
-       Profile( glBlendFuncSeparatei(n, gl::BlendFunction[srcRGB].type, 
+       Validate( glBlendFuncSeparatei(n, gl::BlendFunction[srcRGB].type, 
                                         gl::BlendFunction[dstRGB].type,
                                         gl::BlendFunction[srcA].type, 
                                         gl::BlendFunction[dstA].type) )
@@ -1057,7 +1057,7 @@ namespace en
     else
     if (GpuContext.support.extension(ARB_draw_buffers_blend))  
        {
-       Profile( glBlendFuncSeparateiARB(n, gl::BlendFunction[srcRGB].type,  
+       Validate( glBlendFuncSeparateiARB(n, gl::BlendFunction[srcRGB].type,  
                                            gl::BlendFunction[dstRGB].type,
                                            gl::BlendFunction[srcA].type,
                                            gl::BlendFunction[dstA].type) )
@@ -1096,13 +1096,13 @@ namespace en
 #ifdef EN_OPENGL_DESKTOP
    if (GpuContext.screen.support(OpenGL_4_0))  
       {   
-      Profile( glBlendEquationSeparatei(n, gl::BlendEquation[rgba], 
+      Validate( glBlendEquationSeparatei(n, gl::BlendEquation[rgba], 
                                            gl::BlendEquation[rgba]) )
       }
    else
    if (GpuContext.support.extension(ARB_draw_buffers_blend)) 
       {
-      Profile( glBlendEquationSeparateiARB(n, gl::BlendEquation[rgba], 
+      Validate( glBlendEquationSeparateiARB(n, gl::BlendEquation[rgba], 
                                               gl::BlendEquation[rgba]) )
       }
 #endif
@@ -1141,13 +1141,13 @@ namespace en
 #ifdef EN_OPENGL_DESKTOP
    if (GpuContext.screen.support(OpenGL_4_0))  
       {   
-      Profile( glBlendEquationSeparatei(n, gl::BlendEquation[rgb], 
+      Validate( glBlendEquationSeparatei(n, gl::BlendEquation[rgb], 
                                            gl::BlendEquation[a]) )
       }
    else
    if (GpuContext.support.extension(ARB_draw_buffers_blend)) 
       {
-      Profile( glBlendEquationSeparateiARB(n, gl::BlendEquation[rgb], 
+      Validate( glBlendEquationSeparateiARB(n, gl::BlendEquation[rgb], 
                                               gl::BlendEquation[a]) )
       }
 #endif
@@ -1173,7 +1173,7 @@ namespace en
 
 #ifdef GPU_IMMEDIATE_MODE
 #ifdef EN_OPENGL_DESKTOP
-   Profile( glDisablei(GL_BLEND, n) )
+   Validate( glDisablei(GL_BLEND, n) )
 #endif
 #else
    GpuContext.state.output.color[n].blend.on = false;
@@ -1191,7 +1191,7 @@ namespace en
    void Interface::Output::Blend::color(const float4 color)    
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glBlendColor(color.r, color.g, color.b, color.a) )
+   Validate( glBlendColor(color.r, color.g, color.b, color.a) )
 #else
    GpuContext.state.output.blendColor = color;
 
@@ -1209,7 +1209,7 @@ namespace en
       const float a)
    {
 #ifdef GPU_IMMEDIATE_MODE
-   Profile( glBlendColor(r, g, b, a) )
+   Validate( glBlendColor(r, g, b, a) )
 #else
    GpuContext.state.output.blendColor.r = r;
    GpuContext.state.output.blendColor.g = g;
@@ -1224,7 +1224,7 @@ namespace en
 #endif
    }
 
-   Ptr<Framebuffer> Interface::Output::Buffer::create(void)
+   shared_ptr<Framebuffer> Interface::Output::Buffer::create(void)
    {
    assert( GpuContext.screen.created );
 
@@ -1242,23 +1242,23 @@ namespace en
    return ptr_dynamic_cast<Framebuffer, FramebufferGL30>(new FramebufferGL30());
 #elif  EN_OPENGL_MOBILE
    // TODO: OpenGL ES 3.0 Framebuffer creation
-   return Ptr<Framebuffer>(nullptr);
+   return shared_ptr<Framebuffer>(nullptr);
 #endif
 
    //if (GpuContext.device.api.better(OpenGL_3_0))
-   //   return Ptr<FramebufferGL45>((gpu::Framebuffer*) new gpu::gl30::Framebuffer()); 
-   //return Ptr<gpu::Framebuffer>(NULL);
+   //   return shared_ptr<FramebufferGL45>((gpu::Framebuffer*) new gpu::gl30::Framebuffer()); 
+   //return shared_ptr<gpu::Framebuffer>(NULL);
    }
 
-   bool Interface::Output::Buffer::set(const Ptr<gpu::Framebuffer> framebuffer)
+   bool Interface::Output::Buffer::set(const shared_ptr<gpu::Framebuffer> framebuffer)
    {
    assert( GpuContext.screen.created );
    assert( framebuffer );
   
    if ( GpuContext.screen.support(OpenGL_3_0) )
       {
-      Ptr<FramebufferGL30> fbo = ptr_dynamic_cast<FramebufferGL30, Framebuffer>(framebuffer);
-      Profile( glBindFramebuffer(GL_FRAMEBUFFER, fbo->id) );
+      shared_ptr<FramebufferGL30> fbo = ptr_dynamic_cast<FramebufferGL30, Framebuffer>(framebuffer);
+      Validate( glBindFramebuffer(GL_FRAMEBUFFER, fbo->id) );
       return true;
       }
 
@@ -1267,14 +1267,14 @@ namespace en
 //      gpu::gl30::Framebuffer* fbo = *((gpu::gl30::Framebuffer**)(&framebuffer)); 
 //
 //#ifdef GPU_IMMEDIATE_MODE
-//      Profile( glBindFramebuffer(GL_FRAMEBUFFER, fbo->id) );
+//      Validate( glBindFramebuffer(GL_FRAMEBUFFER, fbo->id) );
 //#else
 //      if (GpuContext.state.output.framebuffer.read  != fbo->id ||
 //          GpuContext.state.output.framebuffer.write != fbo->id)
 //         {
 //         GpuContext.state.output.framebuffer.read  = fbo->id;
 //         GpuContext.state.output.framebuffer.write = fbo->id;
-//         Profile( glBindFramebuffer(GL_FRAMEBUFFER, fbo->id) );
+//         Validate( glBindFramebuffer(GL_FRAMEBUFFER, fbo->id) );
 //         }
 //#endif
 //      return true;
@@ -1283,14 +1283,14 @@ namespace en
    return false;
    }
 
-   bool Interface::Output::Buffer::setRead(const Ptr<gpu::Framebuffer> framebuffer)
+   bool Interface::Output::Buffer::setRead(const shared_ptr<gpu::Framebuffer> framebuffer)
    {
    assert( GpuContext.screen.created );
 
    if ( GpuContext.screen.support(OpenGL_3_0) )
       {
-      Ptr<FramebufferGL30> fbo = ptr_dynamic_cast<FramebufferGL30, Framebuffer>(framebuffer);
-      Profile( glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id) );
+      shared_ptr<FramebufferGL30> fbo = ptr_dynamic_cast<FramebufferGL30, Framebuffer>(framebuffer);
+      Validate( glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id) );
       return true;
       }
 
@@ -1299,12 +1299,12 @@ namespace en
 //      gpu::gl30::Framebuffer* fbo = *((gpu::gl30::Framebuffer**)(&framebuffer)); 
 //
 //#ifdef GPU_IMMEDIATE_MODE
-//      Profile( glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id) );
+//      Validate( glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id) );
 //#else
 //      if (GpuContext.state.output.framebuffer.read != fbo->id)
 //         {
 //         GpuContext.state.output.framebuffer.read = fbo->id;
-//         Profile( glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id) )
+//         Validate( glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id) )
 //         }
 //#endif
 //      return true;
@@ -1313,14 +1313,14 @@ namespace en
    return false;
    }
 
-   bool Interface::Output::Buffer::setWrite(const Ptr<gpu::Framebuffer> framebuffer)
+   bool Interface::Output::Buffer::setWrite(const shared_ptr<gpu::Framebuffer> framebuffer)
    {
    assert( GpuContext.screen.created );
 
    if ( GpuContext.screen.support(OpenGL_3_0) )
       {
-      Ptr<FramebufferGL30> fbo = ptr_dynamic_cast<FramebufferGL30, Framebuffer>(framebuffer);
-      Profile( glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo->id) );
+      shared_ptr<FramebufferGL30> fbo = ptr_dynamic_cast<FramebufferGL30, Framebuffer>(framebuffer);
+      Validate( glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo->id) );
       return true;
       }
 
@@ -1329,12 +1329,12 @@ namespace en
 //      gpu::gl30::Framebuffer* fbo = *((gpu::gl30::Framebuffer**)(&framebuffer)); 
 //
 //#ifdef GPU_IMMEDIATE_MODE
-//      Profile( glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo->id) );
+//      Validate( glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo->id) );
 //#else
 //      if (GpuContext.state.output.framebuffer.write != fbo->id)
 //         {
 //         GpuContext.state.output.framebuffer.write = fbo->id;
-//         Profile( glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo->id) )
+//         Validate( glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo->id) )
 //         }
 //#endif
 //      return true;
@@ -1346,7 +1346,7 @@ namespace en
    void Interface::Output::Buffer::setDefault(void)
    {
    assert( GpuContext.screen.created );
-   Profile( glBindFramebuffer(GL_FRAMEBUFFER, 0) )
+   Validate( glBindFramebuffer(GL_FRAMEBUFFER, 0) )
    GpuContext.state.output.framebuffer.read  = 0;
    GpuContext.state.output.framebuffer.write = 0;
    }
@@ -1354,14 +1354,14 @@ namespace en
    void Interface::Output::Buffer::setDefaultRead(void)
    {
    assert( GpuContext.screen.created );
-   Profile( glBindFramebuffer(GL_READ_FRAMEBUFFER, 0) )
+   Validate( glBindFramebuffer(GL_READ_FRAMEBUFFER, 0) )
    GpuContext.state.output.framebuffer.read  = 0;
    }
 
    void Interface::Output::Buffer::setDefaultWrite(void)
    { 
    assert( GpuContext.screen.created );
-   Profile( glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0) )
+   Validate( glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0) )
    GpuContext.state.output.framebuffer.write = 0;
    }
 
@@ -1383,7 +1383,7 @@ namespace en
    assert( GpuContext.screen.created );
    assert( GpuContext.device.api.better(OpenGL_3_0) );
 
-   Profile(  glBlitFramebuffer(srcRange.x, srcRange.y, srcRange.z, srcRange.w,
+   Validate(  glBlitFramebuffer(srcRange.x, srcRange.y, srcRange.z, srcRange.w,
                                dstRange.x, dstRange.y, dstRange.z, dstRange.w,
                                GL_COLOR_BUFFER_BIT, 
                                TranslateSamplerMagnification[underlyingType(filtering)]) );
@@ -1392,15 +1392,15 @@ namespace en
    void Interface::Output::mode(const ColorSpace mode)
    {
    assert( GpuContext.screen.created );
-   if (mode == ColorSpaceLinear) Profile( glEnable(GL_FRAMEBUFFER_SRGB) )
-   if (mode == ColorSpaceSRGB)   Profile( glDisable(GL_FRAMEBUFFER_SRGB) )
+   if (mode == ColorSpaceLinear) Validate( glEnable(GL_FRAMEBUFFER_SRGB) )
+   if (mode == ColorSpaceSRGB)   Validate( glDisable(GL_FRAMEBUFFER_SRGB) )
    }
 
    void Interface::waitForIdle(void)
    {
    assert( GpuContext.screen.created );
-   Profile( glFlush() )
-   Profile( glFinish() )
+   Validate( glFlush() )
+   Validate( glFinish() )
    }
 
    }

@@ -555,7 +555,7 @@ namespace en
    return state.samples;
    }
    
-   Ptr<TextureView> CommonTexture::view() const
+   shared_ptr<TextureView> CommonTexture::view()
    {
    // Should be implemented by specialization class.
    // Texture cannot keep pointer to it's "default" view,
@@ -564,7 +564,7 @@ namespace en
    // it from beeing released. Thus default view needs to
    // always be created on the fly.
    assert( 0 );
-   return Ptr<TextureView>(nullptr);
+   return shared_ptr<TextureView>(nullptr);
    }
 
    CommonTextureView::CommonTextureView(const TextureType _type,

@@ -215,17 +215,15 @@ namespace en
    }
 
 
-   void CommandBufferD3D12::barrier(const Ptr<Buffer> _buffer, 
+   void CommandBufferD3D12::barrier(const Buffer& _buffer,
                                     const BufferAccess initAccess)
    {
-   assert( _buffer );
-
-   BufferD3D12* buffer = raw_reinterpret_cast<BufferD3D12>(&_buffer);
+   const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
 
    // TODO: Ensure this Command Buffer is Graphic one !
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 
-   MemoryUsage heapUsage = buffer->heap->_usage;
+   MemoryUsage heapUsage = buffer.heap->_usage;
 
    // If buffer was created on Upload or Immediate Heap,
    // it's initial state is General, and it needs to 
@@ -234,7 +232,7 @@ namespace en
        heapUsage == MemoryUsage::Immediate)
       return;
 
-   D3D12_RESOURCE_STATES dstState =TranslateBufferAccess(initAccess, buffer->apiType);
+   D3D12_RESOURCE_STATES dstState =TranslateBufferAccess(initAccess, buffer.apiType);
 
    // If app tries to init Buffer as TransferDestination,
    // and it already is in this state due to D3D12 resource
@@ -249,25 +247,23 @@ namespace en
    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
                 // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
                 // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends  
-   barrier.Transition.pResource   = buffer->handle;
+   barrier.Transition.pResource   = buffer.handle;
    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
    barrier.Transition.StateAfter  = dstState;
    
-   ProfileComNoRet( command->ResourceBarrier(1, &barrier) )
+   ValidateComNoRet( command->ResourceBarrier(1, &barrier) )
    }
 
-   void CommandBufferD3D12::barrier(const Ptr<Buffer> _buffer, 
+   void CommandBufferD3D12::barrier(const Buffer& _buffer,
                                     const uint64 offset,
                                     const uint64 size,
                                     const BufferAccess currentAccess,
                                     const BufferAccess newAccess)
    {
-   assert( _buffer );
+   const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
 
-   BufferD3D12* buffer = raw_reinterpret_cast<BufferD3D12>(&_buffer);
-
-   MemoryUsage heapUsage = buffer->heap->_usage;
+   MemoryUsage heapUsage = buffer.heap->_usage;
 
    // If buffer was created on Upload or Immediate Heap,
    // it's initial state is General, and it needs to 
@@ -284,12 +280,12 @@ namespace en
    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
                 // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
                 // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends  
-   barrier.Transition.pResource   = buffer->handle;
+   barrier.Transition.pResource   = buffer.handle;
    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-   barrier.Transition.StateBefore = TranslateBufferAccess(currentAccess, buffer->apiType);
-   barrier.Transition.StateAfter  = TranslateBufferAccess(newAccess, buffer->apiType);
+   barrier.Transition.StateBefore = TranslateBufferAccess(currentAccess, buffer.apiType);
+   barrier.Transition.StateAfter  = TranslateBufferAccess(newAccess, buffer.apiType);
    
-   ProfileComNoRet( command->ResourceBarrier(1, &barrier) )
+   ValidateComNoRet( command->ResourceBarrier(1, &barrier) )
    }
 
    // Vulkan tries to hide barrier latency by specifying after completion of which pipeline stage it should start, and before which it should end.
@@ -297,12 +293,10 @@ namespace en
    // (see: http://www.gamedev.net/topic/676655-how-could-we-benefit-from-using-split-barriers/ )
 
 
-   void CommandBufferD3D12::barrier(const Ptr<Texture>  _texture, 
+   void CommandBufferD3D12::barrier(const Texture& _texture,
                                     const TextureAccess initAccess) 
    {
-   assert( _texture );
-
-   TextureD3D12* texture = raw_reinterpret_cast<TextureD3D12>(&_texture);
+   const TextureD3D12& texture = reinterpret_cast<const TextureD3D12&>(_texture);
 
    // TODO: Ensure this Command Buffer is Graphic one !
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
@@ -312,21 +306,19 @@ namespace en
    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
                 // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
                 // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends  
-   barrier.Transition.pResource   = texture->handle;
+   barrier.Transition.pResource   = texture.handle;
    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
-   barrier.Transition.StateAfter  = TranslateTextureAccess(initAccess, texture->state.format);
+   barrier.Transition.StateAfter  = TranslateTextureAccess(initAccess, texture.state.format);
    
-   ProfileComNoRet( command->ResourceBarrier(1, &barrier) )
+   ValidateComNoRet( command->ResourceBarrier(1, &barrier) )
    }
 
-   void CommandBufferD3D12::barrier(const Ptr<Texture>  _texture, 
+   void CommandBufferD3D12::barrier(const Texture& _texture,
                                     const TextureAccess currentAccess,
                                     const TextureAccess newAccess) 
    {
-   assert( _texture );
-
-   TextureD3D12* texture = raw_reinterpret_cast<TextureD3D12>(&_texture);
+   const TextureD3D12& texture = reinterpret_cast<const TextureD3D12&>(_texture);
 
    // TODO: Ensure this Command Buffer is Graphic one !
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
@@ -336,23 +328,21 @@ namespace en
    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
                 // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
                 // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends  
-   barrier.Transition.pResource   = texture->handle;
+   barrier.Transition.pResource   = texture.handle;
    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-   barrier.Transition.StateBefore = TranslateTextureAccess(currentAccess, texture->state.format);
-   barrier.Transition.StateAfter  = TranslateTextureAccess(newAccess, texture->state.format);
+   barrier.Transition.StateBefore = TranslateTextureAccess(currentAccess, texture.state.format);
+   barrier.Transition.StateAfter  = TranslateTextureAccess(newAccess, texture.state.format);
    
-   ProfileComNoRet( command->ResourceBarrier(1, &barrier) )
+   ValidateComNoRet( command->ResourceBarrier(1, &barrier) )
    }
 
-   void CommandBufferD3D12::barrier(const Ptr<Texture>  _texture, 
-                                    const uint32v2      mipmaps, 
-                                    const uint32v2      layers,
+   void CommandBufferD3D12::barrier(const Texture& _texture,
+                                    const uint32v2 mipmaps,
+                                    const uint32v2 layers,
                                     const TextureAccess currentAccess,
                                     const TextureAccess newAccess) 
    {
-   assert( _texture );
-
-   TextureD3D12* texture = raw_reinterpret_cast<TextureD3D12>(&_texture);
+   const TextureD3D12& texture = reinterpret_cast<const TextureD3D12&>(_texture);
 
    // TODO: Ensure this Command Buffer is Graphic one !
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
@@ -370,21 +360,21 @@ namespace en
       
             UINT subresource = D3D12CalcSubresource(mipmaps.base + mipmap,
                                                     layers.base  + layer,
-                                                    0u,                      // Plane Slice - DepthStencil formats have two slices
-                                                    texture->state.mipmaps,
-                                                    texture->state.layers);  // D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES for whole texture
+                                                    0u,                     // Plane Slice - DepthStencil formats have two slices
+                                                    texture.state.mipmaps,
+                                                    texture.state.layers);  // D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES for whole texture
       
             barrier[index].Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
             barrier[index].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
                                 // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
                                 // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends
-            barrier[index].Transition.pResource   = texture->handle;
+            barrier[index].Transition.pResource   = texture.handle;
             barrier[index].Transition.Subresource = subresource;
-            barrier[index].Transition.StateBefore = TranslateTextureAccess(currentAccess, texture->state.format);
-            barrier[index].Transition.StateAfter  = TranslateTextureAccess(newAccess, texture->state.format);
+            barrier[index].Transition.StateBefore = TranslateTextureAccess(currentAccess, texture.state.format);
+            barrier[index].Transition.StateAfter  = TranslateTextureAccess(newAccess, texture.state.format);
             }
 
-      ProfileComNoRet( command->ResourceBarrier(barriersCount, barrier) )
+      ValidateComNoRet( command->ResourceBarrier(barriersCount, barrier) )
 
       delete [] barrier;
       }
@@ -392,21 +382,21 @@ namespace en
       {
       UINT subresource = D3D12CalcSubresource(mipmaps.base,
                                               layers.base,
-                                              0u,                      // Plane Slice - DepthStencil formats have two slices
-                                              texture->state.mipmaps,
-                                              texture->state.layers);  // D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES for whole texture
+                                              0u,                     // Plane Slice - DepthStencil formats have two slices
+                                              texture.state.mipmaps,
+                                              texture.state.layers);  // D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES for whole texture
       
       D3D12_RESOURCE_BARRIER barrier;
       barrier.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
       barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
                    // D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY - marks place in command buffer where transition begins
                    // D3D12_RESOURCE_BARRIER_FLAG_END_ONLY   - marks place in command buffer where transition ends  
-      barrier.Transition.pResource   = texture->handle;
+      barrier.Transition.pResource   = texture.handle;
       barrier.Transition.Subresource = subresource;
-      barrier.Transition.StateBefore = TranslateTextureAccess(currentAccess, texture->state.format);
-      barrier.Transition.StateAfter  = TranslateTextureAccess(newAccess, texture->state.format);
+      barrier.Transition.StateBefore = TranslateTextureAccess(currentAccess, texture.state.format);
+      barrier.Transition.StateAfter  = TranslateTextureAccess(newAccess, texture.state.format);
       
-      ProfileComNoRet( command->ResourceBarrier(1, &barrier) )
+      ValidateComNoRet( command->ResourceBarrier(1, &barrier) )
       }
    }
 
@@ -441,9 +431,9 @@ namespace en
    fence = nullptr;
    }
 
-   Ptr<Semaphore> Direct3D12Device::createSemaphore(void)
+   shared_ptr<Semaphore> Direct3D12Device::createSemaphore(void)
    {
-   return Ptr<Semaphore>(new SemaphoreD3D12(this));
+   return make_shared<SemaphoreD3D12>(this);
    }
 
    }

@@ -219,7 +219,7 @@ namespace en
    //                     const AttributeFormat attributes[16]
    //                     );
 
-   //Ptr<Buffer> Interface::IBuffer::Create()
+   //shared_ptr<Buffer> Interface::IBuffer::Create()
    //{
 
    //}
@@ -261,7 +261,7 @@ namespace en
 //uint32 usedAttributes;
 //uint32 usedBuffers;
 //Attribute*   attributes,   // Pointer to array specifying each vertex attribute, and it's source buffer
-//Ptr<Buffer>* buffers)      // Array of buffer handles that will be used
+//shared_ptr<Buffer>* buffers)      // Array of buffer handles that will be used
 
 
    // Inits Input Assembler with default set of buffers to use.
@@ -314,7 +314,7 @@ namespace en
       {
       VkVertexInputBindingDescription* desc = (VkVertexInputBindingDescription*)(&state.pVertexBindingDescriptions[i]);
 
-      //Ptr<BufferVK> buffer = ptr_dynamic_cast<BufferVK, Buffer>(buffers[i]);
+      //BufferVK* buffer = reinterpret_cast<BufferVK*>(buffers[i].get());
       //buffer->id;    // THis should be buffer binding slot to decouple buffers!
       
       desc->binding   = i;                      // Described binding slot.  [0 .. VkPhysicalDeviceLimits::maxVertexInputBindings)
@@ -335,22 +335,26 @@ namespace en
    }
    
    // Implemented by CommonDevice
-   // Ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
-   //                                                  const bool primitiveRestart,
-   //                                                  const uint32 controlPoints,
-   //                                                  const Ptr<Buffer> buffer)
+   // shared_ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+   //                                                         const bool primitiveRestart,
+   //                                                         const uint32 controlPoints,
+   //                                                         const Buffer* buffer)
       
-   Ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
-                                                    const bool primitiveRestart,
-                                                    const uint32 controlPoints,
-                                                    const uint32 usedAttributes,
-                                                    const uint32 usedBuffers,
-                                                    const AttributeDesc* attributes,
-                                                    const BufferDesc* buffers)
+   shared_ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+                                                           const bool primitiveRestart,
+                                                           const uint32 controlPoints,
+                                                           const uint32 usedAttributes,
+                                                           const uint32 usedBuffers,
+                                                           const AttributeDesc* attributes,
+                                                           const BufferDesc* buffers)
    {
-   Ptr<InputLayoutVK> input = Ptr<InputLayoutVK>(new InputLayoutVK(primitiveType, primitiveRestart, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
-
-   return ptr_reinterpret_cast<InputLayout>(&input);
+   return make_shared<InputLayoutVK>(primitiveType,
+                                     primitiveRestart,
+                                     controlPoints,
+                                     usedAttributes,
+                                     usedBuffers,
+                                     attributes,
+                                     buffers);
    }
 
    }

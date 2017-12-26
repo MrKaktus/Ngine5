@@ -207,7 +207,7 @@ namespace en
          state.samples = 1;
          state.mipmaps = 1;
 
-         swap[i][j] = ptr_dynamic_cast<Texture, TextureGL>(Ptr<TextureGL>(new TextureGL(state, handle)));
+         swap[i][j] = make_shared<TextureGL>(state, handle);
          }
       // >>>>> OpenGL Specific code section - END 
       }
@@ -235,7 +235,7 @@ namespace en
    uint32 handle;
    result = ovr_GetMirrorTextureBufferGL(session, mirrorTexture, &handle);
 
-   mirror = ptr_dynamic_cast<Texture, TextureGL>(Ptr<TextureGL>(new TextureGL(state, handle)));
+   mirror = make_shared<TextureGL>(state, handle);
    // >>>>> OpenGL Specific code section - END
 
    // Create Framebuffer to use with mirroring
@@ -345,16 +345,16 @@ namespace en
                  info.DefaultEyeFov[i].RightTan ); 
    }
 
-   //Ptr<en::resource::Model> OculusDK2::distortionModel(DistortionSettings* settings)
+   //shared_ptr<en::resource::Model> OculusDK2::distortionModel(DistortionSettings* settings)
    //{
    //#if !OCULUS_SDK_RENDERING
    //using namespace en::gpu;
    //using namespace en::resource;
    //
    //if (!Gpu.screen.created())
-   //   return Ptr<Model>(nullptr);
+   //   return shared_ptr<Model>(nullptr);
    //
-   //Ptr<en::resource::Model> model = new en::resource::Model();
+   //shared_ptr<en::resource::Model> model = new en::resource::Model();
    //model->name = string("Oculus Distortion Mesh");
    //model->mesh.resize(2);
    //
@@ -422,7 +422,7 @@ namespace en
    //
    //return model;
    //#endif
-   //return Ptr<en::resource::Model>(nullptr);
+   //return shared_ptr<en::resource::Model>(nullptr);
    //}
    //
    //void OculusDK2::distortionUVScaleOffset(DistortionSettings* settings)
@@ -567,7 +567,7 @@ namespace en
    return float3( &EyeRenderDesc[eye].HmdToEyeOffset.x );
    }
 
-   Ptr<Texture> OculusDK2::color(Eye eye) const
+   shared_ptr<Texture> OculusDK2::color(Eye eye) const
    {
    assert( enabled );
    
@@ -575,7 +575,7 @@ namespace en
    return swap[index][currentIndex];
    }
           
-   //Ptr<Texture> OculusDK2::framebuffer(void) const
+   //shared_ptr<Texture> OculusDK2::framebuffer(void) const
    //{
    //assert( enabled );
    //
@@ -718,8 +718,8 @@ namespace en
       }
 
    // Register Oculus HMD
-   Ptr<CommonInterface> input = ptr_dynamic_cast<CommonInterface, Interface>(en::Input);
-   input->hmds.push_back(Ptr<HMD>(new OculusDK2(0)));
+   CommonInterface* input = reinterpret_cast<CommonInterface*>(en::Input.get());
+   input->hmds.push_back(make_shared<OculusDK2>(0));
    }
 
    void CloseOculusSDK(void)

@@ -40,11 +40,11 @@ namespace en
    return InputContext.camera.device.size();
    }
 
-   Ptr<input::Camera> Interface::Camera::get(uint8 index) const
+   shared_ptr<input::Camera> Interface::Camera::get(uint8 index) const
    {
    if (index < InputContext.camera.device.size())
       return InputContext.camera.device[index];
-   return Ptr<input::Camera>(nullptr);
+   return shared_ptr<input::Camera>(nullptr);
    }
 
 
@@ -827,7 +827,7 @@ namespace en
 
             // Add Depth Camera to cameras list
             CreativeDepthCamera* dev = new CreativeDepthCamera(device.size(), ptr, info);
-            device.push_back(Ptr<input::Camera>(dev));
+            device.push_back(shared_ptr<input::Camera>(dev));
 
             Log << "    Device[" << deviceId << "]: " << stringFromWchar((wchar_t*)&info.name, 1024) << "\n"; 
             }
@@ -862,7 +862,7 @@ namespace en
    
       // Add Kinect to cameras list
       input::Kinect* dev = new input::Kinect(device.size(), sensor);
-      device.push_back(Ptr<input::Camera>(dev));
+      device.push_back(shared_ptr<input::Camera>(dev));
 
       Log << "    Device[" << i << "]: KinectForXbox360\n"; 
       }
@@ -929,7 +929,7 @@ namespace en
 //            for(uint32 p=0; ; ++p) 
 //               {
 //               PXCCapture::VideoStream::ProfileInfo profile;
-//               if (vstream->QueryProfile(p, &profile) != PXC_STATUS_NO_ERROR) 
+//               if (vstream->QueryValidate(p, &profile) != PXC_STATUS_NO_ERROR) 
 //                  break;
 //
 //               Log << "Stream[" << i << "] Profile[" << p << "]:" << endl;
@@ -945,7 +945,7 @@ namespace en
 //            for(uint32 p=0; p<256; ++p) 
 //               {
 //               PXCCapture::VideoStream::ProfileInfo profile;
-//               if (vstream->QueryProfile(p, &profile) != PXC_STATUS_NO_ERROR) 
+//               if (vstream->QueryValidate(p, &profile) != PXC_STATUS_NO_ERROR) 
 //                  break;
 // 
 //               float minFPS = 0.0f;
@@ -962,7 +962,7 @@ namespace en
 //                      profile.imageInfo.height == 720 &&
 //                      minFPS == 30.0 &&
 //                      maxFPS == 30.0 )
-//                     if (vstream->SetProfile(&profile) == PXC_STATUS_NO_ERROR)
+//                     if (vstream->SetValidate(&profile) == PXC_STATUS_NO_ERROR)
 //                        if (vstream->ReadStreamAsync(&dev->colorImage, &dev->colorSync) == PXC_STATUS_NO_ERROR)
 //                           {
 //                            Wait 1 milisecond to give camera time to init the stream
@@ -986,7 +986,7 @@ namespace en
 //                      profile.imageInfo.height == 240 &&
 //                      minFPS == 60.0 &&
 //                      maxFPS == 60.0 )
-//                     if (vstream->SetProfile(&profile) == PXC_STATUS_NO_ERROR)
+//                     if (vstream->SetValidate(&profile) == PXC_STATUS_NO_ERROR)
 //                        if (vstream->ReadStreamAsync(&dev->depthImage, &dev->depthSync) == PXC_STATUS_NO_ERROR)
 //                           {
 //                            Wait 1 milisecond to give camera time to init the stream

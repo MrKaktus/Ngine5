@@ -26,20 +26,20 @@ namespace en
    namespace gpu
    { 
    WindowVK::WindowVK(VulkanDevice* _gpu,
-                      const Ptr<CommonDisplay> selectedDisplay,
+                      const shared_ptr<CommonDisplay> selectedDisplay,
                       const uint32v2 selectedResolution,
                       const WindowSettings& settings,
                       const string title) :
       gpu(_gpu),
       // Create native OS window or assert.
 #if defined(EN_PLATFORM_ANDROID)
-      andWindow(ptr_dynamic_cast<andDisplay, CommonDisplay>(selectedDisplay), selectedResolution, settings, title)
+      andWindow(dynamic_pointer_cast<andDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
 #if defined(EN_PLATFORM_LINUX)
-      linWindow(ptr_dynamic_cast<linDisplay, CommonDisplay>(selectedDisplay), selectedResolution, settings, title)
+      linWindow(dynamic_pointer_cast<linDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
-      winWindow(ptr_dynamic_cast<winDisplay, CommonDisplay>(selectedDisplay), selectedResolution, settings, title)
+      winWindow(dynamic_pointer_cast<winDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
    {
    swapChainTexture           = nullptr;
@@ -53,7 +53,7 @@ namespace en
    //                    Disabled for now.
    //
    // Be sure device is idle before creating Swap-Chain
-   //Profile( gpu, vkDeviceWaitIdle(gpu->device) )
+   //Validate( gpu, vkDeviceWaitIdle(gpu->device) )
 
    // Create Swap-Chain surface attached to Window
    //----------------------------------------------
@@ -68,8 +68,8 @@ namespace en
    winCreateInfo.hinstance = winWindow::AppInstance; // HINSTANCE
    winCreateInfo.hwnd      = hWnd;        // HWND
 
-   VulkanAPI* api = raw_reinterpret_cast<VulkanAPI>(&en::Graphics);
-   Profile( api, vkCreateWin32SurfaceKHR(api->instance,
+   VulkanAPI* api = reinterpret_cast<VulkanAPI*>(en::Graphics.get());
+   Validate( api, vkCreateWin32SurfaceKHR(api->instance,
                                          &winCreateInfo, nullptr, &swapChainSurface) )
 #else
    // TODO: Implement OS Specific part for other platforms.
@@ -77,7 +77,7 @@ namespace en
 #endif
 
    // Query capabilities of Swap-Chain surface for this device
-   Profile( api, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->handle, swapChainSurface, &swapChainCapabilities) )
+   Validate( api, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->handle, swapChainSurface, &swapChainCapabilities) )
    if (api->lastResult[0] != VK_SUCCESS)  // TODO FIXME! Assumes Thread 0 !
       {
       string info;
@@ -90,7 +90,7 @@ namespace en
 
    // Verify that queue family picked to handle QueueType::Universal is supporting present calls on this Window.
    VkBool32 supportPresent = VK_FALSE;
-   Profile( api, vkGetPhysicalDeviceSurfaceSupportKHR(gpu->handle, gpu->queueTypeToFamily[underlyingType(QueueType::Universal)], swapChainSurface, &supportPresent) )
+   Validate( api, vkGetPhysicalDeviceSurfaceSupportKHR(gpu->handle, gpu->queueTypeToFamily[underlyingType(QueueType::Universal)], swapChainSurface, &supportPresent) )
    if (supportPresent == VK_FALSE)
       {
       string info;
@@ -102,7 +102,7 @@ namespace en
 
    // Engine assumes that queue family handling QueueType::Universal is supporting Present.
    // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
-   ProfileNoRet( gpu, vkGetDeviceQueue(gpu->device, gpu->queueTypeToFamily[underlyingType(QueueType::Universal)], 0u, &presentQueue) )
+   ValidateNoRet( gpu, vkGetDeviceQueue(gpu->device, gpu->queueTypeToFamily[underlyingType(QueueType::Universal)], 0u, &presentQueue) )
 
    // Calculate amount of backing images in Swap-Chain
    //--------------------------------------------------
@@ -125,7 +125,7 @@ namespace en
       
    // Query count of available Pixel Formats supported by this device, and matching destination Window
    uint32 formats = 0;
-   Profile( api, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, nullptr) )
+   Validate( api, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, nullptr) )
    if ( (api->lastResult[0] != VK_SUCCESS) ||   // TODO FIXME! Assumes Thread 0 !
         (formats == 0) )
       {
@@ -139,7 +139,7 @@ namespace en
 
    // Query types of all available device Pixel Formats for that surface
    VkSurfaceFormatKHR* deviceFormats = new VkSurfaceFormatKHR[formats];
-   Profile( api, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, &deviceFormats[0]) )
+   Validate( api, vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->handle, swapChainSurface, &formats, &deviceFormats[0]) )
    if (api->lastResult[0] != VK_SUCCESS)   // TODO FIXME! Assumes Thread 0 !
       {
       delete [] deviceFormats;
@@ -245,7 +245,7 @@ namespace en
    VkPresentModeKHR* presentationMode = nullptr;
    
    // Query device Presentation Modes count
-   Profile( api, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, nullptr) )
+   Validate( api, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, nullptr) )
    if ( (api->lastResult[0] != VK_SUCCESS) ||    // TODO FIXME! Assumes Thread 0 !
         (modes == 0) )
       {
@@ -259,7 +259,7 @@ namespace en
 
    // Query device Presentation Modes details
    presentationMode = new VkPresentModeKHR[modes];
-   Profile( api, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, &presentationMode[0]) )
+   Validate( api, vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->handle, swapChainSurface, &modes, &presentationMode[0]) )
    if (api->lastResult[0] != VK_SUCCESS)   // TODO FIXME! Assumes Thread 0 !
       {
       delete [] presentationMode;
@@ -346,19 +346,19 @@ namespace en
    createInfo.clipped               = VK_TRUE;
    createInfo.oldSwapchain          = VK_NULL_HANDLE;
  
-   Profile( gpu, vkCreateSwapchainKHR(gpu->device, &createInfo, nullptr, &swapChain) )
+   Validate( gpu, vkCreateSwapchainKHR(gpu->device, &createInfo, nullptr, &swapChain) )
 
    // Create array of textures backed by Swap-Chain images
    //------------------------------------------------------
  
    // Ensure that amount of images in swap-chain is equal to requested one
    uint32 swapChainActualImagesCount = 0;
-   Profile( gpu, vkGetSwapchainImagesKHR(gpu->device, swapChain, &swapChainActualImagesCount, nullptr) )
+   Validate( gpu, vkGetSwapchainImagesKHR(gpu->device, swapChain, &swapChainActualImagesCount, nullptr) )
    assert( swapChainActualImagesCount == swapChainImages );
 
    // Request handles to swap-chain images
    VkImage* swapChainImageHandles = new VkImage[swapChainImages];
-   Profile( gpu, vkGetSwapchainImagesKHR(gpu->device, swapChain, &swapChainImages, swapChainImageHandles) )
+   Validate( gpu, vkGetSwapchainImagesKHR(gpu->device, swapChain, &swapChainImages, swapChainImageHandles) )
 
    // Create textures backed with handles
    TextureState textureState = TextureState(TextureType::Texture2D, 
@@ -367,12 +367,11 @@ namespace en
                                             swapChainResolution.width,
                                             swapChainResolution.height);
 
-   swapChainTexture = new Ptr<Texture>[swapChainImages];
+   swapChainTexture = new shared_ptr<Texture>[swapChainImages];
    for(uint32 i=0; i<swapChainImages; ++i)
       {
-      Ptr<TextureVK> texture = new TextureVK(gpu, textureState);
-      texture->handle = swapChainImageHandles[i];
-      swapChainTexture[i] = ptr_reinterpret_cast<Texture>(&texture);
+      swapChainTexture[i] = make_shared<TextureVK>(gpu, textureState);
+      swapChainTexture[i]->handle = swapChainImageHandles[i];
       }
 
    delete [] swapChainImageHandles;
@@ -385,7 +384,7 @@ namespace en
    fenceInfo.pNext = nullptr;
    fenceInfo.flags = 0u; 
          
-   Profile( gpu, vkCreateFence(gpu->device, &fenceInfo, nullptr, &presentationFence) )
+   Validate( gpu, vkCreateFence(gpu->device, &fenceInfo, nullptr, &presentationFence) )
 
    _resolution = swapChainResolution;
    }
@@ -393,15 +392,15 @@ namespace en
    WindowVK::~WindowVK()
    {
    // Be sure device is idle before destroying the Window connection
-   Profile( gpu, vkDeviceWaitIdle(gpu->device) )
+   Validate( gpu, vkDeviceWaitIdle(gpu->device) )
 
    // Release presentation fence
-   ProfileNoRet( gpu, vkDestroyFence(gpu->device, presentationFence, nullptr) )
+   ValidateNoRet( gpu, vkDestroyFence(gpu->device, presentationFence, nullptr) )
 
    // Detach swap-chain surfaces from texture containers
    // TODO: Do we need to present/release currently acquired surface first ?
    //for(uint32 i=0; i<swapChainImages; ++i)
-   //   ptr_reinterpret_cast<TextureVK>(&swapChainTexture[i])->handle = VK_NULL_HANDLE;
+   //   reinterpret_cast<TextureVK*>(swapChainTexture[i].get())->handle = VK_NULL_HANDLE;
  
    // TODO: Do we release swap-chain surfaces in any particular way?
 
@@ -411,13 +410,13 @@ namespace en
    // Destroy Swap-Chain
 
    // TODO: FIXME: WA: NVIDIA Driver crashes on it!
-   //ProfileNoRet( gpu, vkDestroySwapchainKHR(gpu->device, swapChain, nullptr) )
+   //ValidateNoRet( gpu, vkDestroySwapchainKHR(gpu->device, swapChain, nullptr) )
 
 
    // Destroy Surface
-   VulkanAPI* api = raw_reinterpret_cast<VulkanAPI>(&en::Graphics);
+   VulkanAPI* api = reinterpret_cast<VulkanAPI*>(en::Graphics.get());
 
-   ProfileNoRet( api, vkDestroySurfaceKHR(api->instance, swapChainSurface, nullptr) )
+   ValidateNoRet( api, vkDestroySurfaceKHR(api->instance, swapChainSurface, nullptr) )
    }
    
    void WindowVK::resize(const uint32v2 size)
@@ -426,7 +425,7 @@ namespace en
    assert( 0 );
    }
 
-   Ptr<Texture> WindowVK::surface(const Ptr<Semaphore> signalSemaphore)
+   shared_ptr<Texture> WindowVK::surface(const shared_ptr<Semaphore> signalSemaphore)
    {
    if (needNewSurface)
       {
@@ -473,10 +472,10 @@ namespace en
          //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,     // Transition after this stage
          //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);    // Transition before this stage
          //
-         SemaphoreVK* signal = raw_reinterpret_cast<SemaphoreVK>(&signalSemaphore);
+         SemaphoreVK* signal = reinterpret_cast<SemaphoreVK*>(signalSemaphore.get());
 
          // Acquire one of the Swap-Chain surfaces for rendering
-         Profile( gpu, vkAcquireNextImageKHR(gpu->device, 
+         Validate( gpu, vkAcquireNextImageKHR(gpu->device, 
                                              swapChain, 
                                              UINT64_MAX,     // wait time in nanoseconds
                                              signal->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
@@ -490,11 +489,11 @@ namespace en
          //gpu->lastResult[thread] = VK_NOT_READY;
          //while(gpu->lastResult[thread] != VK_SUCCESS)
          //   {
-         //   Profile( gpu, vkGetFenceStatus(gpu->device, presentationFence) )
+         //   Validate( gpu, vkGetFenceStatus(gpu->device, presentationFence) )
          //   }
 
          //// Reset fence for reuse
-         //Profile( gpu, vkResetFences(gpu->device, 1u, &presentationFence) )
+         //Validate( gpu, vkResetFences(gpu->device, 1u, &presentationFence) )
 
          needNewSurface = false;
          }
@@ -508,7 +507,7 @@ namespace en
    // Data needed to transition to present :
    //
    // command buffer handle
-   // const Ptr<Texture> _texture, 
+   // const shared_ptr<Texture> _texture, 
    // barrier.srcAccessMask 
    // barrier.oldLayout     
    // VkPipelineStageFlags afterStage;  // Transition after this stage
@@ -516,7 +515,7 @@ namespace en
 
 
    // Presents current surface, after all work encoded on given Commnad Buffer is done
-   void WindowVK::present(const Ptr<Semaphore> waitForSemaphore) // const Ptr<CommandBuffer> command ? <- pass command buffer in ??
+   void WindowVK::present(const shared_ptr<Semaphore> waitForSemaphore) // const shared_ptr<CommandBuffer> command ? <- pass command buffer in ??
    {
    surfaceAcquire.lock();
    if (!needNewSurface)
@@ -541,7 +540,7 @@ namespace en
       //                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,     // Transition after this stage
       //                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);    // Transition before this stage
       // 
-      // Ptr<Semaphore> waitForSemaphore = gpu->createSemaphore();
+      // shared_ptr<Semaphore> waitForSemaphore = gpu->createSemaphore();
       // command->commit(waitForSemaphore);
       // window->present(preSemaphore); // Wait on semaphore
 
@@ -564,13 +563,13 @@ namespace en
 
       if (waitForSemaphore)
          {
-         SemaphoreVK* wait = raw_reinterpret_cast<SemaphoreVK>(&waitForSemaphore);
+         SemaphoreVK* wait = reinterpret_cast<SemaphoreVK*>(waitForSemaphore.get());
          
          info.waitSemaphoreCount = 1u;
          info.pWaitSemaphores    = &wait->handle;
          }
 
-      Profile( gpu, vkQueuePresentKHR(presentQueue, &info) )
+      Validate( gpu, vkQueuePresentKHR(presentQueue, &info) )
       needNewSurface = true;
       _frame++;
 
@@ -580,16 +579,16 @@ namespace en
    }
 
 
-   Ptr<Window> VulkanDevice::createWindow(const WindowSettings& settings, const string title)
+   shared_ptr<Window> VulkanDevice::createWindow(const WindowSettings& settings, const string title)
    {
-   Ptr<WindowVK> result = nullptr;
+   shared_ptr<WindowVK> result = nullptr;
 
    // Select destination display
-   Ptr<CommonDisplay> display;
+   shared_ptr<CommonDisplay> display = nullptr;
    if (settings.display)
-      display = ptr_dynamic_cast<CommonDisplay, Display>(settings.display);
+      display = dynamic_pointer_cast<CommonDisplay>(settings.display);
    else
-      display = ptr_dynamic_cast<CommonDisplay, Display>(Graphics->primaryDisplay());
+      display = dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay());
       
    // Checking if app wants to use default resolution
    bool useNativeResolution = false;
@@ -617,7 +616,7 @@ namespace en
          if (!validResolution)
             {
             Log << "Error! Requested window size for Fullscreen mode is not supported by selected display." << endl;
-            return ptr_reinterpret_cast<Window>(&result);
+            return result;
             }
          }
          
@@ -626,13 +625,13 @@ namespace en
           settings.resolution.y != 0)
          {
          Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead." << endl;
-         return ptr_reinterpret_cast<Window>(&result);
+         return result;
          }
       }
 
-   result = new WindowVK(this, display, selectedResolution, settings, title);
+   result = make_shared<WindowVK>(this, display, selectedResolution, settings, title);
 
-   return ptr_reinterpret_cast<Window>(&result);
+   return result;
    }
 
    }

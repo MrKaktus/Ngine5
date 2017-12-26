@@ -46,7 +46,7 @@ namespace en
    struct Context
           {
 #ifdef EN_PLATFORM_BLACKBERRY
-          vector< Ptr<Banner> > banners;
+          vector< shared_ptr<Banner> > banners;
 #endif
 
           Context();

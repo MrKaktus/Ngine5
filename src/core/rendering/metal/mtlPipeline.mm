@@ -73,9 +73,9 @@ namespace en
    deallocateObjectiveC(handle);
    }
  
-   Ptr<Pipeline> MetalDevice::createPipeline(const PipelineState& pipelineState)
+   shared_ptr<Pipeline> MetalDevice::createPipeline(const PipelineState& pipelineState)
    {
-   Ptr<PipelineMTL> pipeline = nullptr;
+   shared_ptr<PipelineMTL> pipeline = nullptr;
 
    // Pipeline object is always created against Render Pass, and app responsibility is to
    // provide missing states (ViewportState, Shaders).
@@ -83,22 +83,22 @@ namespace en
    assert( pipelineState.viewportState );
 
    // Cast to D3D12 states
-   const RenderPassMTL*         renderPass     = raw_reinterpret_cast<RenderPassMTL>(&pipelineState.renderPass);
+   const RenderPassMTL*         renderPass     = reinterpret_cast<RenderPassMTL*>(pipelineState.renderPass.get());
 
-   const InputLayoutMTL*        input          = pipelineState.inputLayout ? raw_reinterpret_cast<InputLayoutMTL>(&pipelineState.inputLayout)
-                                                                           : raw_reinterpret_cast<InputLayoutMTL>(&defaultState->inputLayout);
+   const InputLayoutMTL*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutMTL*>(pipelineState.inputLayout.get())
+                                                                           : reinterpret_cast<InputLayoutMTL*>(defaultState->inputLayout.get());
 
-   const RasterStateMTL*        raster         = pipelineState.rasterState ? raw_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState)
-                                                                           : raw_reinterpret_cast<RasterStateMTL>(&defaultState->rasterState);
+   const RasterStateMTL*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateMTL*>(pipelineState.rasterState.get())
+                                                                           : reinterpret_cast<RasterStateMTL*>(defaultState->rasterState.get());
 
-   const MultisamplingStateMTL* multisampling  = pipelineState.multisamplingState ? raw_reinterpret_cast<MultisamplingStateMTL>(&pipelineState.multisamplingState)
-                                                                                  : raw_reinterpret_cast<MultisamplingStateMTL>(&defaultState->multisamplingState);
+   const MultisamplingStateMTL* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateMTL*>(pipelineState.multisamplingState.get())
+                                                                                  : reinterpret_cast<MultisamplingStateMTL*>(defaultState->multisamplingState.get());
       
-   const BlendStateMTL*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateMTL>(&pipelineState.blendState)
-                                                                          : raw_reinterpret_cast<BlendStateMTL>(&defaultState->blendState);
+   const BlendStateMTL*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateMTL*>(pipelineState.blendState.get())
+                                                                          : reinterpret_cast<BlendStateMTL*>(defaultState->blendState.get());
 
-   const PipelineLayoutMTL*     layout         = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutMTL>(&pipelineState.pipelineLayout)
-                                                                              : raw_reinterpret_cast<PipelineLayoutMTL>(&defaultState->pipelineLayout);
+   const PipelineLayoutMTL*     layout         = pipelineState.pipelineLayout ? reinterpret_cast<PipelineLayoutMTL*>(pipelineState.pipelineLayout.get())
+                                                                              : reinterpret_cast<PipelineLayoutMTL*>(defaultState->pipelineLayout.get());
 
    // Minimum Vertex Shader is required (Tessellation and Geometry Shaders are not supported by Metal)
    assert( pipelineState.shader[0] );
@@ -114,19 +114,19 @@ namespace en
    // TODO: This may not be optimal?
    NSError* error = nil;
    string entrypoint = pipelineState.function[0];
-   Ptr<ShaderMTL> vertexShader = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[0]);
-   id <MTLFunction> functionVertex = [vertexShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
+   ShaderMTL* vertexShader = reinterpret_cast<ShaderMTL*>(pipelineState.shader[0].get());
+   id<MTLFunction> functionVertex = [vertexShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
    if (error)
       {
       Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
-      return Ptr<Pipeline>(nullptr);
+      return shared_ptr<Pipeline>(nullptr);
       }
       
    entrypoint = pipelineState.function[4];
-   id <MTLFunction> functionFragment = nil;
+   id<MTLFunction> functionFragment = nil;
    if (pipelineState.shader[4])
       {
-      Ptr<ShaderMTL> fragmentShader = ptr_reinterpret_cast<ShaderMTL>(&pipelineState.shader[4]);
+      ShaderMTL* fragmentShader = reinterpret_cast<ShaderMTL*>(pipelineState.shader[4].get());
       functionFragment = [fragmentShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
       if (error)
          {
@@ -134,7 +134,7 @@ namespace en
          
          deallocateObjectiveC(functionVertex);
             
-         return Ptr<Pipeline>(nullptr);
+         return shared_ptr<Pipeline>(nullptr);
          }
       }
   
@@ -158,7 +158,7 @@ namespace en
       pipeDesc.colorAttachments[i].pixelFormat = TranslateTextureFormat[underlyingType(renderPass->format[i])];
 
    // Optional Multisample State
-   if (multisampling != raw_reinterpret_cast<MultisamplingStateMTL>(&defaultState->multisamplingState))
+   if (multisampling != reinterpret_cast<MultisamplingStateMTL*>(defaultState->multisamplingState.get()))
       {
       pipeDesc.sampleCount               = multisampling->samples;
       pipeDesc.alphaToCoverageEnabled    = multisampling->alphaToCoverage;
@@ -184,7 +184,7 @@ namespace en
 
    // Create Pipeline
    error = nil;
-   pipeline = new PipelineMTL(device, pipeDesc, &error);
+   pipeline = make_shared<PipelineMTL>(device, pipeDesc, &error);
    
    deallocateObjectiveC(pipeDesc);
       
@@ -198,26 +198,26 @@ namespace en
       {
       Log << "Error! Failed to create pipeline. Error code %u\n" << [error code];
       Log << [[error description] UTF8String] << endl;
-      return Ptr<Pipeline>(nullptr);
+      return shared_ptr<Pipeline>(nullptr);
       }
    else // Populate Pipeline with Metal dynamic states
       {
-      pipeline->depthStencil = ptr_reinterpret_cast<DepthStencilStateMTL>(&pipelineState.depthStencilState);
-      pipeline->raster       = *ptr_reinterpret_cast<RasterStateMTL>(&pipelineState.rasterState);
-      pipeline->viewport     = *ptr_reinterpret_cast<ViewportStateMTL>(&pipelineState.viewportState);
+      pipeline->depthStencil = dynamic_pointer_cast<DepthStencilStateMTL>(pipelineState.depthStencilState);
+      pipeline->raster       = *reinterpret_cast<RasterStateMTL*>(pipelineState.rasterState.get());
+      pipeline->viewport     = *reinterpret_cast<ViewportStateMTL*>(pipelineState.viewportState.get());
       pipeline->primitive    = TranslateDrawableType[input->primitive];
       }
 
-   return ptr_reinterpret_cast<Pipeline>(&pipeline);
+   return pipeline;
    }
 
 
 
-   void CommandBufferMTL::setPipeline(const Ptr<Pipeline> pipeline)
+   void CommandBufferMTL::setPipeline(const Pipeline& _pipeline)
    {
-   Ptr<PipelineMTL> ptr = ptr_dynamic_cast<PipelineMTL, Pipeline>(pipeline);
+   const PipelineMTL& pipeline = reinterpret_cast<const PipelineMTL&>(_pipeline);
    
-   [renderEncoder setRenderPipelineState: ptr->handle];
+   [renderEncoder setRenderPipelineState: pipeline.handle];
    
    // Dynamic States:
    
@@ -235,28 +235,28 @@ namespace en
    // creation time.
    //
    // Thus Vulkan behavior needs to be followed.
-   primitive = ptr->primitive;
+   primitive = pipeline.primitive;
 
    // Rasterization State
-   [renderEncoder setFrontFacingWinding: ptr->raster.frontFace];
-   [renderEncoder setCullMode: ptr->raster.culling];
-   [renderEncoder setDepthClipMode: ptr->raster.depthClamp]; // IOS 9.0+
-   [renderEncoder setDepthBias: ptr->raster.depthBiasConstantFactor
-                    slopeScale: ptr->raster.depthBiasSlopeFactor
-                         clamp: ptr->raster.depthBiasClamp];
-   [renderEncoder setTriangleFillMode: ptr->raster.fillMode];
+   [renderEncoder setFrontFacingWinding: pipeline.raster.frontFace];
+   [renderEncoder setCullMode: pipeline.raster.culling];
+   [renderEncoder setDepthClipMode: pipeline.raster.depthClamp]; // IOS 9.0+
+   [renderEncoder setDepthBias: pipeline.raster.depthBiasConstantFactor
+                    slopeScale: pipeline.raster.depthBiasSlopeFactor
+                         clamp: pipeline.raster.depthBiasClamp];
+   [renderEncoder setTriangleFillMode: pipeline.raster.fillMode];
 
    // Depth-Stencil State
-   [renderEncoder setDepthStencilState:ptr->depthStencil->state];
+   [renderEncoder setDepthStencilState:pipeline.depthStencil->state];
  //if (!support.separateStencilReferenceValue)
- //   [renderEncoder setStencilReferenceValue: ptr->depthStencil->reference.x ];
+ //   [renderEncoder setStencilReferenceValue: pipeline.depthStencil->reference.x ];
  //else
-      [renderEncoder setStencilFrontReferenceValue: ptr->depthStencil->reference.x    // IOS 9.0+
-                                backReferenceValue: ptr->depthStencil->reference.y];
+      [renderEncoder setStencilFrontReferenceValue: pipeline.depthStencil->reference.x    // IOS 9.0+
+                                backReferenceValue: pipeline.depthStencil->reference.y];
 
    // Scissor & Viewport (TODO: in which order is executed ?)
-   [renderEncoder setViewport:ptr->viewport.viewport];
-   [renderEncoder setScissorRect:ptr->viewport.scissor];
+   [renderEncoder setViewport:pipeline.viewport.viewport];
+   [renderEncoder setScissorRect:pipeline.viewport.scissor];
    }
 
 

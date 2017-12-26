@@ -27,13 +27,13 @@ namespace en
 {
    namespace gpu
    {
-   Ptr<Semaphore> MetalDevice::createSemaphore(void)
+   shared_ptr<Semaphore> MetalDevice::createSemaphore(void)
    {
    // TODO: Analyze how Metal synchronizes Command Buffers execution and Swap-Chain
-   return Ptr<Semaphore>(nullptr);
+   return shared_ptr<Semaphore>(nullptr);
    }
 
-   void CommandBufferMTL::barrier(const Ptr<Buffer> buffer, 
+   void CommandBufferMTL::barrier(const Buffer& buffer,
                                   const BufferAccess initAccess)
    {
    // Direct3D12 and Vulkan requires explicit transition barriers
@@ -41,7 +41,7 @@ namespace en
    // management automaticly, thus this is a no-op.
    }
 
-   void CommandBufferMTL::barrier(const Ptr<Buffer> buffer, 
+   void CommandBufferMTL::barrier(const Buffer& buffer,
                                   const uint64 offset,
                                   const uint64 size,
                                   const BufferAccess currentAccess,
@@ -52,7 +52,7 @@ namespace en
    // management automaticly, thus this is a no-op.
    }
 
-   void CommandBufferMTL::barrier(const Ptr<Texture>  texture,
+   void CommandBufferMTL::barrier(const Texture& texture,
                                   const TextureAccess initAccess)
    {
    // Direct3D12 and Vulkan requires explicit transition barriers
@@ -60,7 +60,7 @@ namespace en
    // management automaticly, thus this is a no-op.
    }
       
-   void CommandBufferMTL::barrier(const Ptr<Texture>  _texture, 
+   void CommandBufferMTL::barrier(const Texture& texture,
                                   const TextureAccess currentAccess,
                                   const TextureAccess newAccess)
    {
@@ -71,9 +71,9 @@ namespace en
    // TODO: Check textureBarrier call.
    }
 
-   void CommandBufferMTL::barrier(const Ptr<Texture>  texture,
-                                  const uint32v2      mipmaps,
-                                  const uint32v2      layers,
+   void CommandBufferMTL::barrier(const Texture& texture,
+                                  const uint32v2 mipmaps,
+                                  const uint32v2 layers,
                                   const TextureAccess currentAccess,
                                   const TextureAccess newAccess)
    {

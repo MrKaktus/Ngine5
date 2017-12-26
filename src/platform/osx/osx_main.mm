@@ -203,22 +203,22 @@ return returnValue;
 //   settings.size     = uint32v2(1440, 900);
 //   settings.mode     = Windowed;
 //
-//   Ptr<GpuDevice> gpu = Graphics->primaryDevice();
+//   shared_ptr<GpuDevice> gpu = Graphics->primaryDevice();
 //
-//   Ptr<class Window> window = gpu->create(settings, string("Ngine 5.0"));   // remove "class" when old Rendering API Abstraction is removed
+//   shared_ptr<class Window> window = gpu->create(settings, string("Ngine 5.0"));   // remove "class" when old Rendering API Abstraction is removed
 //   window->active();
 //   
-//   Ptr<CommandBuffer> command = gpu->createCommandBuffer();
+//   shared_ptr<CommandBuffer> command = gpu->createCommandBuffer();
 //   
 //   TextureState state(Texture2DRectangle, FormatSD_8_32_f, settings.size.width, settings.size.height);
-//   Ptr<Texture> zbuffer = gpu->create(state);
+//   shared_ptr<Texture> zbuffer = gpu->create(state);
 //
-//   Ptr<ColorAttachment> attachment = gpu->createColorAttachment(window->surface());
+//   shared_ptr<ColorAttachment> attachment = gpu->createColorAttachment(window->surface());
 //   attachment->onLoad(LoadOperation::Clear, float4(1.0f, 0.5f, 0.0f, 0.0f));
 //   
-//   Ptr<DepthStencilAttachment> depthStencil = gpu->createDepthStencilAttachment(zbuffer, nullptr);
+//   shared_ptr<DepthStencilAttachment> depthStencil = gpu->createDepthStencilAttachment(zbuffer, nullptr);
 // 
-//   Ptr<RenderPass> pass = gpu->create(attachment, depthStencil); //window->surface()
+//   shared_ptr<RenderPass> pass = gpu->create(attachment, depthStencil); //window->surface()
 //
 //   command->start();
 //   command->startRenderPass(pass);
@@ -241,7 +241,7 @@ return returnValue;
 //printf("Running on Thread 0 !!!!\n");
 //
 //
-//   Ptr<Keyboard> keyboard = nullptr;
+//   shared_ptr<Keyboard> keyboard = nullptr;
 //   if (Input->available(IO::Keyboard))
 //      keyboard = Input->keyboard();
 //   

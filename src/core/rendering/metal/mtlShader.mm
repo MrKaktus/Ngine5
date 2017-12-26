@@ -46,9 +46,9 @@ namespace en
       // Vulkan - entrypoint is specified at Pipeline creation I guess
       // Metal  - has libraries, from which we pick functions as entry points
       
-   Ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const string& source)
+   shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const string& source)
    {
-   Ptr<ShaderMTL> shader = nullptr;
+   shared_ptr<ShaderMTL> shader = nullptr;
 
    NSString* code = stringTo_NSString(source);
 
@@ -87,20 +87,20 @@ namespace en
          
          deallocateObjectiveC(options);
 
-         return Ptr<Shader>(nullptr);
+         return shared_ptr<Shader>(nullptr);
          }
       }
     
    deallocateObjectiveC(options);
 
-   return ptr_dynamic_cast<Shader, ShaderMTL>(Ptr<ShaderMTL>(new ShaderMTL(library)));
+   return make_shared<ShaderMTL>(library);
    }
 
-   Ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
    {
    // Unsupported on Metal
    assert( 0 );
-   return Ptr<Shader>(nullptr);
+   return shared_ptr<Shader>(nullptr);
    }
 
 //    NSString* shaderText = [NSString stringWithContentsOfFile:stringTo<NSString*>(filepath) encoding:NSUTF8StringEncoding error:&error];

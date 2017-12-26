@@ -47,15 +47,14 @@ namespace en
    // desc.Flags            = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE; // D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_TILED_RESOURCE
    // desc.NumQualityLevels = 0;  // Query for this number
    // 
-   // Profile( this, CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &desc, sizeof(D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS)) )
+   // Validate( this, CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &desc, sizeof(D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS)) )
    }
    
-   Ptr<MultisamplingState> Direct3D12Device::createMultisamplingState(const uint32 samples,
+   shared_ptr<MultisamplingState> Direct3D12Device::createMultisamplingState(const uint32 samples,
                                                                       const bool enableAlphaToCoverage,
                                                                       const bool enableAlphaToOne)
    {
-   Ptr<MultisamplingStateD3D12> ptr = new MultisamplingStateD3D12(samples, enableAlphaToCoverage, enableAlphaToOne);
-   return ptr_reinterpret_cast<MultisamplingState>(&ptr);
+   return make_shared<MultisamplingStateD3D12>(samples, enableAlphaToCoverage, enableAlphaToOne);
    }
    
    }

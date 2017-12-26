@@ -152,31 +152,31 @@ namespace en
    if (state.borderColor == TransparentBlack)
       color = &borderTransparentBlack;
 
-   Profile( glGenSamplers(1, &id) )
-   Profile( glSamplerParameteri(id, GL_TEXTURE_MAG_FILTER, TranslateSamplerMagnification[underlyingType(state.magnification)]) )
-   Profile( glSamplerParameteri(id, GL_TEXTURE_MIN_FILTER, TranslateSamplerMinification(state.minification, state.mipmap)) )
-   Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_S, TranslateTextureWraping[state.coordU]) )
-   Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_T, TranslateTextureWraping[state.coordV]) )
-   Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_R, TranslateTextureWraping[state.coordW]) )
-   Profile( glSamplerParameterfv(id, GL_TEXTURE_BORDER_COLOR, reinterpret_cast<const GLfloat*>(color)) )
-   Profile( glSamplerParameteri(id, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE) )  // GL_NONE
-   Profile( glSamplerParameteri(id, GL_TEXTURE_COMPARE_FUNC, TranslateCompareMethod[underlyingType(state.compare)]) )
-   Profile( glSamplerParameterf(id, GL_TEXTURE_LOD_BIAS, state.LodBias) )
-   Profile( glSamplerParameterf(id, GL_TEXTURE_MIN_LOD, state.minLod) )
-   Profile( glSamplerParameterf(id, GL_TEXTURE_MAX_LOD, state.maxLod) )
+   Validate( glGenSamplers(1, &id) )
+   Validate( glSamplerParameteri(id, GL_TEXTURE_MAG_FILTER, TranslateSamplerMagnification[underlyingType(state.magnification)]) )
+   Validate( glSamplerParameteri(id, GL_TEXTURE_MIN_FILTER, TranslateSamplerMinification(state.minification, state.mipmap)) )
+   Validate( glSamplerParameteri(id, GL_TEXTURE_WRAP_S, TranslateTextureWraping[state.coordU]) )
+   Validate( glSamplerParameteri(id, GL_TEXTURE_WRAP_T, TranslateTextureWraping[state.coordV]) )
+   Validate( glSamplerParameteri(id, GL_TEXTURE_WRAP_R, TranslateTextureWraping[state.coordW]) )
+   Validate( glSamplerParameterfv(id, GL_TEXTURE_BORDER_COLOR, reinterpret_cast<const GLfloat*>(color)) )
+   Validate( glSamplerParameteri(id, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE) )  // GL_NONE
+   Validate( glSamplerParameteri(id, GL_TEXTURE_COMPARE_FUNC, TranslateCompareMethod[underlyingType(state.compare)]) )
+   Validate( glSamplerParameterf(id, GL_TEXTURE_LOD_BIAS, state.LodBias) )
+   Validate( glSamplerParameterf(id, GL_TEXTURE_MIN_LOD, state.minLod) )
+   Validate( glSamplerParameterf(id, GL_TEXTURE_MAX_LOD, state.maxLod) )
 
    if (GpuContext.support.extension(EXT_texture_filter_anisotropic))
-      Profile( glSamplerParameterf(id, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(state.anisotropy, GpuContext.support.maxAnisotropy)) )
+      Validate( glSamplerParameterf(id, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(state.anisotropy, GpuContext.support.maxAnisotropy)) )
    }
 
 //   void SamplerGL33::filtering(const TextureFiltering filtering)
 //   {
 //   state.filtering = filtering;
 //
-//   Profile( glSamplerParameteri(id, GL_TEXTURE_MAG_FILTER, TranslateTextureFiltering[state.filtering].magnification)  )
-//   Profile( glSamplerParameteri(id, GL_TEXTURE_MIN_FILTER, TranslateTextureFiltering[state.filtering].minification)  )
+//   Validate( glSamplerParameteri(id, GL_TEXTURE_MAG_FILTER, TranslateTextureFiltering[state.filtering].magnification)  )
+//   Validate( glSamplerParameteri(id, GL_TEXTURE_MIN_FILTER, TranslateTextureFiltering[state.filtering].minification)  )
 //   if (GpuContext.support.extension(EXT_texture_filter_anisotropic))
-//      Profile( glSamplerParameterf(id, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(TranslateTextureFiltering[state.filtering].anisotropy, GpuContext.support.maxAnisotropy)) )
+//      Validate( glSamplerParameterf(id, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(TranslateTextureFiltering[state.filtering].anisotropy, GpuContext.support.maxAnisotropy)) )
 //   }
 //   
 //   void SamplerGL33::wraping(const TextureWraping coordU, const TextureWraping coordV, const TextureWraping coordW)
@@ -191,9 +191,9 @@ namespace en
 //   state.coordV = coordV;
 //   state.coordW = coordW;
 //
-//   Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_S, TranslateTextureWraping[state.coordU]) )
-//   Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_T, TranslateTextureWraping[state.coordV]) )
-//   Profile( glSamplerParameteri(id, GL_TEXTURE_WRAP_R, TranslateTextureWraping[state.coordW]) )
+//   Validate( glSamplerParameteri(id, GL_TEXTURE_WRAP_S, TranslateTextureWraping[state.coordU]) )
+//   Validate( glSamplerParameteri(id, GL_TEXTURE_WRAP_T, TranslateTextureWraping[state.coordV]) )
+//   Validate( glSamplerParameteri(id, GL_TEXTURE_WRAP_R, TranslateTextureWraping[state.coordW]) )
 //   }
 //
 //   void SamplerGL33::border(const enum TextureBorder color)
@@ -207,13 +207,13 @@ namespace en
 //      ptr = &borderOpaqueWhite;
 //   if (state.borderColor == TransparentBlack)
 //      ptr = &borderTransparentBlack;
-//   Profile( glSamplerParameterfv(id, GL_TEXTURE_BORDER_COLOR, ptr) )
+//   Validate( glSamplerParameterfv(id, GL_TEXTURE_BORDER_COLOR, ptr) )
 //   }
 //
 //   bool SamplerGL33::bias(const float bias)
 //   {
 //   state.LODbias = bias;
-//   Profile( glSamplerParameterf(id, GL_TEXTURE_LOD_BIAS, state.LODbias) )
+//   Validate( glSamplerParameterf(id, GL_TEXTURE_LOD_BIAS, state.LODbias) )
 //   return true;
 //   }
 //
@@ -221,19 +221,19 @@ namespace en
 //   {
 //   state.minLOD = lod;
 //
-//   Profile( glSamplerParameterf(id, GL_TEXTURE_MIN_LOD, state.minLOD) )
+//   Validate( glSamplerParameterf(id, GL_TEXTURE_MIN_LOD, state.minLOD) )
 //   }
 //
 //   void SamplerGL33::minLOD(const float lod)
 //   {
 //   state.maxLOD = lod;
 //
-//   Profile( glSamplerParameterf(id, GL_TEXTURE_MAX_LOD, state.maxLOD) )
+//   Validate( glSamplerParameterf(id, GL_TEXTURE_MAX_LOD, state.maxLOD) )
 //   }
 
    SamplerGL33::~SamplerGL33()
    {
-   Profile( glDeleteSamplers(1, &id) )
+   Validate( glDeleteSamplers(1, &id) )
    }
 
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME

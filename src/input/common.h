@@ -41,17 +41,17 @@ namespace en
    class CommonMouse : public Mouse
       {
       public:
-      Ptr<CommonDisplay> _display;   // Current screen on which mouse pointer is visible
+      shared_ptr<CommonDisplay> _display;   // Current screen on which mouse pointer is visible
       KeyState buttons[underlyingType(MouseButton::Count)]; // States of mouse buttons
       uint32 x;
       uint32 y;
 
       public:
-      virtual Ptr<Display> display(void) const;
+      virtual shared_ptr<Display> display(void) const;
       virtual float2 position(void) const;
       virtual uint32 position(const Axis axis) const;
       virtual bool   position(const uint32 x, const uint32 y) = 0;
-      virtual bool   position(const Ptr<Display> display, const uint32 x, const uint32 y) = 0;
+      virtual bool   position(const shared_ptr<Display> display, const uint32 x, const uint32 y) = 0;
       virtual uint32v2 virtualPosition(void) const = 0;     
       virtual bool     virtualPosition(const uint32 x, const uint32 y) = 0;
       virtual bool   pressed(const MouseButton button) const;
@@ -67,24 +67,24 @@ namespace en
       public:
       // General
       uint32 count[underlyingType(IO::Count)];
-      vector< Ptr<Keyboard> >   keyboards;
-      vector< Ptr<Mouse> >      mouses;
-      vector< Ptr<Joystick> >   joysticks;
-      vector< Ptr<HMD> >        hmds;
-      vector< Ptr<Controller> > controllers;
-      vector< Ptr<Camera> >     cameras;
+      vector< shared_ptr<Keyboard> >   keyboards;
+      vector< shared_ptr<Mouse> >      mouses;
+      vector< shared_ptr<Joystick> >   joysticks;
+      vector< shared_ptr<HMD> >        hmds;
+      vector< shared_ptr<Controller> > controllers;
+      vector< shared_ptr<Camera> >     cameras;
       
       // Events
       EventHandlingFuncPtr callback[InputEventsCount];    // Callback per event type
       
       public:
       virtual uint8           available(IO type) const;          // Count of available peripherials of given type
-      virtual Ptr<Keyboard>   keyboard(uint8 index = 0) const;   // N'th Keyboard
-      virtual Ptr<Mouse>      mouse(uint8 index = 0) const;      // N'th Mouse
-      virtual Ptr<Joystick>   joystick(uint8 index = 0) const;   // N'th Joystick
-      virtual Ptr<HMD>        hmd(uint8 index = 0) const;        // N'th Head Mounted Display (VR/AR)
-      virtual Ptr<Controller> controller(uint8 index = 0) const; // N'th Motion Controller
-      virtual Ptr<Camera>     camera(uint8 index = 0) const;     // N'th Camera (Color, Depth, IR, or other)
+      virtual shared_ptr<Keyboard>   keyboard(uint8 index = 0) const;   // N'th Keyboard
+      virtual shared_ptr<Mouse>      mouse(uint8 index = 0) const;      // N'th Mouse
+      virtual shared_ptr<Joystick>   joystick(uint8 index = 0) const;   // N'th Joystick
+      virtual shared_ptr<HMD>        hmd(uint8 index = 0) const;        // N'th Head Mounted Display (VR/AR)
+      virtual shared_ptr<Controller> controller(uint8 index = 0) const; // N'th Motion Controller
+      virtual shared_ptr<Camera>     camera(uint8 index = 0) const;     // N'th Camera (Color, Depth, IR, or other)
 
       virtual void update(void);                                 // Gets actual input state, call function handling cached events
          

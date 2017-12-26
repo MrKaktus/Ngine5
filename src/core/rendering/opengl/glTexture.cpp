@@ -678,23 +678,23 @@ namespace en
    uint32 samples          = state.samples;
 
    // Generate texture descriptor with default state
-   Profile( glGenTextures(1, (GLuint*)&id) );
-   Profile( glBindTexture(glType, id) );
+   Validate( glGenTextures(1, (GLuint*)&id) );
+   Validate( glBindTexture(glType, id) );
    if ( (state.type != TextureType::Texture2DMultisample) &&
         (state.type != TextureType::Texture2DMultisampleArray) )
       {
     //if (state.type != TextureType::Texture2DRectangle)
          {
-         Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
-         Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
-         Profile( glTexParameteri(glType, GL_TEXTURE_WRAP_R, GL_REPEAT) );
+         Validate( glTexParameteri(glType, GL_TEXTURE_WRAP_S, GL_REPEAT) );
+         Validate( glTexParameteri(glType, GL_TEXTURE_WRAP_T, GL_REPEAT) );
+         Validate( glTexParameteri(glType, GL_TEXTURE_WRAP_R, GL_REPEAT) );
          }
-      Profile( glTexParameteri(glType, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
-      Profile( glTexParameteri(glType, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
+      Validate( glTexParameteri(glType, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
+      Validate( glTexParameteri(glType, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
       }
 
    if (GpuContext.screen.support(OpenGL_2_1))
-      Profile( glGenBuffers(1, &desc.pbo) );
+      Validate( glGenBuffers(1, &desc.pbo) );
 
    // Reserve memory for texture completness (OpenGL legacy way)   
    if (TextureCompressionInfo[underlyingType(state.format)].compressed)
@@ -705,7 +705,7 @@ namespace en
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
-               Profile( glCompressedTexImage1D(glType, mipmap, glInternalFormat, width, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage1D(glType, mipmap, glInternalFormat, width, 0, size(mipmap), nullptr) );
                }
             break;
       
@@ -713,7 +713,7 @@ namespace en
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
-               Profile( glCompressedTexImage2D(glType, mipmap, glInternalFormat, width, layers, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage2D(glType, mipmap, glInternalFormat, width, layers, 0, size(mipmap), nullptr) );
                }
             break;
       
@@ -722,7 +722,7 @@ namespace en
                {
                uint16 width  = max(1U, this->width(mipmap));
                uint16 height = max(1U, this->height(mipmap));
-               Profile( glCompressedTexImage2D(glType, mipmap, glInternalFormat, width, height, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage2D(glType, mipmap, glInternalFormat, width, height, 0, size(mipmap), nullptr) );
                }
             break;
       
@@ -731,7 +731,7 @@ namespace en
                {
                uint16 width  = max(1U, this->width(mipmap));
                uint16 height = max(1U, this->height(mipmap));
-               Profile( glCompressedTexImage3D(glType, mipmap, glInternalFormat, width, height, layers, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage3D(glType, mipmap, glInternalFormat, width, height, layers, 0, size(mipmap), nullptr) );
                }
             break;
        
@@ -741,7 +741,7 @@ namespace en
                uint16 width  = max(1U, this->width(mipmap));
                uint16 height = max(1U, this->height(mipmap));
                uint16 depth  = max(1U, this->depth(mipmap));
-               Profile( glTexImage3D(glType, mipmap, glInternalFormat, width, height, depth, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(glType, mipmap, glInternalFormat, width, height, depth, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
       
@@ -749,12 +749,12 @@ namespace en
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
-               Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, mipmap, glInternalFormat, width, width, 0, size(mipmap), nullptr) );
                }
             break;
       
@@ -762,12 +762,12 @@ namespace en
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
-               Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
-               Profile( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
+               Validate( glCompressedTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, mipmap, glInternalFormat, width, width, layers, 0, size(mipmap), nullptr) );
                }
             break;
       
@@ -790,7 +790,7 @@ namespace en
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
-               Profile( glTexImage1D(glType, mipmap, glInternalFormat, width, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage1D(glType, mipmap, glInternalFormat, width, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
       
@@ -798,7 +798,7 @@ namespace en
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
-               Profile( glTexImage2D(glType, mipmap, glInternalFormat, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage2D(glType, mipmap, glInternalFormat, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
       
@@ -807,7 +807,7 @@ namespace en
                {
                uint16 width  = max(1U, this->width(mipmap));
                uint16 height = max(1U, this->height(mipmap));
-               Profile( glTexImage2D(glType, mipmap, glInternalFormat, width, height, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage2D(glType, mipmap, glInternalFormat, width, height, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
       
@@ -816,22 +816,22 @@ namespace en
                {
                uint16 width  = max(1U, this->width(mipmap));
                uint16 height = max(1U, this->height(mipmap));
-               Profile( glTexImage3D(glType, mipmap, glInternalFormat, width, height, layers, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(glType, mipmap, glInternalFormat, width, height, layers, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
       
        //case TextureType::Texture2DRectangle:
-       //   Profile( glTexImage2D(glType, 0, glInternalFormat, width(), height(), 0, glSourceFormat, glSourceType, nullptr) );
+       //   Validate( glTexImage2D(glType, 0, glInternalFormat, width(), height(), 0, glSourceFormat, glSourceType, nullptr) );
        //   break;
       
          case TextureType::Texture2DMultisample:
             // TODO: Check samples count (depth/color/integer)???
-            Profile( glTexImage2DMultisample(glType, samples, glInternalFormat, width(), height(), GL_TRUE) );
+            Validate( glTexImage2DMultisample(glType, samples, glInternalFormat, width(), height(), GL_TRUE) );
             break;
          
          case TextureType::Texture2DMultisampleArray:
             // TODO: Check samples count (depth/color/integer)???
-            Profile( glTexImage3DMultisample(glType, samples, glInternalFormat, width(), height(), layers, GL_TRUE) );
+            Validate( glTexImage3DMultisample(glType, samples, glInternalFormat, width(), height(), layers, GL_TRUE) );
             break;
       
        //case TextureType::TextureBuffer:
@@ -844,7 +844,7 @@ namespace en
                uint16 width  = max(1U, this->width(mipmap));
                uint16 height = max(1U, this->height(mipmap));
                uint16 depth  = max(1U, this->depth(mipmap));
-               Profile( glTexImage3D(glType, mipmap, glInternalFormat, width, height, depth, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(glType, mipmap, glInternalFormat, width, height, depth, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
       
@@ -852,12 +852,12 @@ namespace en
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
-               Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, mipmap, glInternalFormat, width, width, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
       
@@ -865,12 +865,12 @@ namespace en
             for(uint8 mipmap=0; mipmap<mipmapsCount; ++mipmap)
                {
                uint16 width  = max(1U, this->width(mipmap));
-               Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
-               Profile( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
+               Validate( glTexImage3D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, mipmap, glInternalFormat, width, width, layers, 0, glSourceFormat, glSourceType, nullptr) );
                }
             break;
       
@@ -890,9 +890,9 @@ namespace en
 
    TextureGL::~TextureGL()
    {
-   Profile( glDeleteTextures(1, &id) );
+   Validate( glDeleteTextures(1, &id) );
    if (GpuContext.screen.support(OpenGL_2_1))
-      Profile( glDeleteBuffers(1, &desc.pbo) );
+      Validate( glDeleteBuffers(1, &desc.pbo) );
    }
 
    void* TextureGL::map(const uint8 mipmap, const uint16 surface)
@@ -929,11 +929,11 @@ namespace en
          return nullptr;
 
       // Discard previous PBO data to prevent CPU-GPU synchronization.
-      Profile( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, desc.pbo) );
-      Profile( glBufferData( GL_PIXEL_UNPACK_BUFFER, size(mipmap), 0, GL_STREAM_DRAW) );
+      Validate( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, desc.pbo) );
+      Validate( glBufferData( GL_PIXEL_UNPACK_BUFFER, size(mipmap), 0, GL_STREAM_DRAW) );
 
       // Map PBO memory for upload to GPU.
-      Profile( desc.ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY) );
+      Validate( desc.ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY) );
       }
    else
       {
@@ -968,7 +968,7 @@ namespace en
          return false;
 
       // Unmap PBO after all data is written to it.
-      Profile( glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER) )
+      Validate( glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER) )
       desc.ptr = nullptr;
       }
    else
@@ -995,7 +995,7 @@ namespace en
    // Send texture to GPU. If PBO is supported, texture data 
    // will be transferred using DMA. Otherwise it will be 
    // copied from client memory stalling CPU. 
-   Profile( glBindTexture(glType, id) )
+   Validate( glBindTexture(glType, id) )
 
    // This switch could be avoided if there would be typed texture objects.
    // Because wrapper design decision was to have unified texture object,
@@ -1005,33 +1005,33 @@ namespace en
       switch(state.type)
          {
          case TextureType::Texture1D:
-            Profile( glCompressedTexSubImage1D(GL_TEXTURE_1D, mipmap, 0, width, glInternalFormat, size, ptr) )
+            Validate( glCompressedTexSubImage1D(GL_TEXTURE_1D, mipmap, 0, width, glInternalFormat, size, ptr) )
             break;
 
          case TextureType::Texture1DArray:
-            Profile( glCompressedTexSubImage2D(GL_TEXTURE_1D_ARRAY, mipmap, 0, 0, width, layer, glInternalFormat, size, ptr) )
+            Validate( glCompressedTexSubImage2D(GL_TEXTURE_1D_ARRAY, mipmap, 0, 0, width, layer, glInternalFormat, size, ptr) )
             break;
 
          case TextureType::Texture2D:
-            Profile( glCompressedTexSubImage2D(GL_TEXTURE_2D, mipmap, 0, 0, width, height, glInternalFormat, size, ptr) )
+            Validate( glCompressedTexSubImage2D(GL_TEXTURE_2D, mipmap, 0, 0, width, height, glInternalFormat, size, ptr) )
             break;
 
          case TextureType::Texture2DArray:
-            Profile( glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, mipmap, 0, 0, layer, width, height, 1, glInternalFormat, size, ptr) )
+            Validate( glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, mipmap, 0, 0, layer, width, height, 1, glInternalFormat, size, ptr) )
             break;
 
          case TextureType::Texture3D:
-            Profile( glCompressedTexSubImage3D(GL_TEXTURE_3D, mipmap, 0, 0, depth, width, height, 1, glInternalFormat, size, ptr) )
+            Validate( glCompressedTexSubImage3D(GL_TEXTURE_3D, mipmap, 0, 0, depth, width, height, 1, glInternalFormat, size, ptr) )
             break;
 
          case TextureType::TextureCubeMap:
             uint16 glFace;
             glFace = TranslateTextureFace[desc.layer];
-            Profile( glCompressedTexSubImage2D(glFace, mipmap, 0, 0, width, width, glInternalFormat, size, ptr) )
+            Validate( glCompressedTexSubImage2D(glFace, mipmap, 0, 0, width, width, glInternalFormat, size, ptr) )
             break;
 
          case TextureType::TextureCubeMapArray:
-            Profile( glCompressedTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mipmap, 0, 0, layer, width, height, 1, glInternalFormat, size, ptr) )
+            Validate( glCompressedTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mipmap, 0, 0, layer, width, height, 1, glInternalFormat, size, ptr) )
             break;
 
        //case TextureType::Texture2DRectangle:        // Rectangle compressed textures are not supported
@@ -1049,33 +1049,33 @@ namespace en
       switch(state.type)
          {
          case TextureType::Texture1D:
-            Profile( glTexSubImage1D(GL_TEXTURE_1D, mipmap, 0, width, srcFormat, srcType, ptr) )
+            Validate( glTexSubImage1D(GL_TEXTURE_1D, mipmap, 0, width, srcFormat, srcType, ptr) )
             break;
 
          case TextureType::Texture1DArray:
-            Profile( glTexSubImage2D(GL_TEXTURE_1D_ARRAY, mipmap, 0, 0, width, layer, srcFormat, srcType, ptr) )
+            Validate( glTexSubImage2D(GL_TEXTURE_1D_ARRAY, mipmap, 0, 0, width, layer, srcFormat, srcType, ptr) )
             break;
 
          case TextureType::Texture2D:
-            Profile( glTexSubImage2D(GL_TEXTURE_2D, mipmap, 0, 0, width, height, srcFormat, srcType, ptr) )
+            Validate( glTexSubImage2D(GL_TEXTURE_2D, mipmap, 0, 0, width, height, srcFormat, srcType, ptr) )
             break;
 
          case TextureType::Texture2DArray:
-            Profile( glTexSubImage3D(GL_TEXTURE_2D_ARRAY, mipmap, 0, 0, layer, width, height, 1, srcFormat, srcType, ptr) )
+            Validate( glTexSubImage3D(GL_TEXTURE_2D_ARRAY, mipmap, 0, 0, layer, width, height, 1, srcFormat, srcType, ptr) )
             break;
 
          case TextureType::Texture3D:
-            Profile( glTexSubImage3D(GL_TEXTURE_3D, mipmap, 0, 0, depth, width, height, 1, srcFormat, srcType, ptr) )
+            Validate( glTexSubImage3D(GL_TEXTURE_3D, mipmap, 0, 0, depth, width, height, 1, srcFormat, srcType, ptr) )
             break;
 
          case TextureType::TextureCubeMap:
             uint16 glFace;
             glFace = TranslateTextureFace[desc.layer];
-            Profile( glTexSubImage2D(glFace, mipmap, 0, 0, width, width, srcFormat, srcType, ptr) )
+            Validate( glTexSubImage2D(glFace, mipmap, 0, 0, width, width, srcFormat, srcType, ptr) )
             break;
 
          case TextureType::TextureCubeMapArray:
-            Profile( glTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mipmap, 0, 0, layer, width, height, 1, srcFormat, srcType, ptr) )
+            Validate( glTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mipmap, 0, 0, layer, width, height, 1, srcFormat, srcType, ptr) )
             break;
 
        //case TextureType::Texture2DRectangle:        // Rectangle compressed textures are not supported
@@ -1093,7 +1093,7 @@ namespace en
    if (GpuContext.screen.support(OpenGL_2_1))
       {
       // Unbind PBO restoring standard pixel operations.
-      Profile( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0) )
+      Validate( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0) )
       GpuContext.textureUpload.unlock();
       }
    else
@@ -1144,8 +1144,8 @@ namespace en
    // TODO: Reading formats are limited. If texture type is not supported for reading, should get from user format he wants data to be returned!
 
    // Read texture content to RAM
-   Profile( glBindTexture(glType, id) )
-   Profile( glGetTexImage(glType, mipmap, srcFormat, srcType, buffer) )
+   Validate( glBindTexture(glType, id) )
+   Validate( glGetTexImage(glType, mipmap, srcFormat, srcType, buffer) )
    return true;
    }
 

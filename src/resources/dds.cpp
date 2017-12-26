@@ -581,7 +581,7 @@ namespace en
    return false;
    }
 
-   Ptr<gpu::Texture> load(const string& filename)
+   shared_ptr<gpu::Texture> load(const string& filename)
    {
    using namespace en::storage;
    using namespace en::gpu;
@@ -590,7 +590,7 @@ namespace en
    uint64 offset = 0;
 
    // Open file
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -598,7 +598,7 @@ namespace en
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
-         return Ptr<gpu::Texture>(nullptr);
+         return shared_ptr<gpu::Texture>(nullptr);
          }
       }
  
@@ -607,7 +607,7 @@ namespace en
       {
       Log << "ERROR: DDS file size is incorrect, file corrupted!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Verify DDS file signature 'DDS ' -> 0x20534444
@@ -617,7 +617,7 @@ namespace en
       {
       Log << "ERROR: DDS file header signature is incorrect!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }   
 
    // Verify file header struct size
@@ -628,7 +628,7 @@ namespace en
       {
       Log << "ERROR: DDS file header size is incorrect!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Read default file header, and check if additional DX10/DX11 
@@ -646,7 +646,7 @@ namespace en
             {
             Log << "ERROR: DDS file size is incorrect, file corrupted!\n";
             file = nullptr;
-            return Ptr<gpu::Texture>(nullptr);
+            return shared_ptr<gpu::Texture>(nullptr);
             }
 
          file->read(offset, 20, &header10);
@@ -660,7 +660,7 @@ namespace en
       {
       Log << "ERROR: DDS texture type unsupported!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Determine texture format stored in DDS
@@ -669,7 +669,7 @@ namespace en
       {
       Log << "ERROR: DDS texture format unsupported!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Determine texture state
@@ -698,12 +698,12 @@ namespace en
       settings.layers *= 6;
 
    // Create texture in GPU
-   Ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+   shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>(nullptr);
+      return shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Load layers and mipmaps of texture to GPU
@@ -718,7 +718,7 @@ namespace en
             uint64 surfaceSize = texture->size(mipmap);
             
             // Create staging buffer
-            Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, static_cast<uint32>(surfaceSize));
+            shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, static_cast<uint32>(surfaceSize));
             if (!staging)
                {
                Log << "ERROR: Cannot create staging buffer!\n";
@@ -737,9 +737,9 @@ namespace en
                type = gpu::QueueType::Transfer;
 
             // Copy data from staging buffer to final texture
-            Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+            shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
             command->start();
-            command->copy(staging, texture, mipmap, slice);
+            command->copy(*staging, *texture, mipmap, slice);
             command->commit();
             
             // TODO:

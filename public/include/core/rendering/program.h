@@ -73,7 +73,7 @@ namespace en
 
    //      const char* name(void);
    //      uint32      size(void);
-   //      bool set(const Ptr<Buffer> buffer);
+   //      bool set(const shared_ptr<Buffer> buffer);
    //      };
 
    //// Shader
@@ -99,15 +99,15 @@ namespace en
    //      uint32    samplers(void);                                        // Samplers count
    //      //const char* name(const uint32 location);                       // Get name of given sampler
    //      bool      samplerLocation(const char* name, uint32& location);   // Get samplers location
-   //      bool      sampler(const uint32 location, Ptr<Sampler> sampler);  // Set sampler state
-   //      bool      texture(const uint32 location, Ptr<Texture> texture);  // Set texture used by sampler
+   //      bool      sampler(const uint32 location, shared_ptr<Sampler> sampler);  // Set sampler state
+   //      bool      texture(const uint32 location, shared_ptr<Texture> texture);  // Set texture used by sampler
 
    //      //Sampler   sampler(const uint32 id);
    //      //Sampler   sampler(const string& name);
 
    //      bool      draw(const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
-   //      bool      draw(const Ptr<Buffer> buffer, const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
-   //      bool      draw(const Ptr<Buffer> buffer, const Ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
+   //      bool      draw(const shared_ptr<Buffer> buffer, const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
+   //      bool      draw(const shared_ptr<Buffer> buffer, const shared_ptr<Buffer> indexBuffer, const DrawableType type, const uint32 patchSize = 3, const uint32 inst = 1);
    //      };
    }
 }

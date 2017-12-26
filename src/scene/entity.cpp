@@ -29,6 +29,7 @@
 
 */
 
+#include "assert.h"
 #include "scene/entity.h"
 
 namespace en
@@ -48,8 +49,7 @@ namespace en
       pWorldMatrix( new float4x4() ),
       pBoundingSphere( new float4() ),
       pWorldBoundingSphere( new float4() ),
-      pScene(nullptr),
-      SafeObject()
+      pScene(nullptr)
    {
    // Local allocations need to be successfull!
    assert( pPosition );

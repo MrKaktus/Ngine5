@@ -47,9 +47,9 @@ namespace en
    void InitOpenVR(void)
    {
    // Register OpenVR Head Mounted Display
-   Ptr<CommonInterface> input = ptr_reinterpret_cast<CommonInterface>(&en::Input);
+   CommonInterface* input = reinterpret_cast<CommonInterface*>(en::Input.get());
    if (vr::VR_IsHmdPresent())
-      input->hmds.push_back(Ptr<input::HMD>(new ValveHMD(0u)));
+      input->hmds.push_back(make_shared<ValveHMD>(0u));
    }
 
    void CloseOpenVR(void)
@@ -293,7 +293,7 @@ namespace en
    // Create distortion model
    distortionModel();
 
-   Ptr<GpuDevice> gpu = Graphics->primaryDevice();
+   shared_ptr<GpuDevice> gpu = Graphics->primaryDevice();
 
 
    // TODO: Create pipeline and shaders !
@@ -470,7 +470,7 @@ namespace en
 
    assert( model == nullptr );
 
-   model = new en::resource::Model();
+   model = make_shared<en::resource::Model>();
    model->name = string("OpenVR Distortion Mesh");
    model->mesh.resize(2);
 
@@ -506,7 +506,7 @@ namespace en
 
       // Create staging vertex buffer
       uint32 stagingSize = vertices * formatting.elementSize();
-      Ptr<gpu::Buffer> stagingVertex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      shared_ptr<gpu::Buffer> stagingVertex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
       if (!stagingVertex)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
@@ -564,7 +564,7 @@ namespace en
       model->mesh[eye].elements.indexes = indices;
 
       // Create staging index buffer
-      Ptr<gpu::Buffer> stagingIndex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, indices * 2u);
+      shared_ptr<gpu::Buffer> stagingIndex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, indices * 2u);
       if (!stagingIndex)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
@@ -595,10 +595,10 @@ namespace en
          queueType = gpu::QueueType::Transfer;
 
       // Copy data from staging buffer to final texture
-      Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
       command->start();
-      command->copy(stagingVertex, model->mesh[eye].geometry.buffer);
-      command->copy(stagingIndex, model->mesh[eye].elements.buffer);
+      command->copy(*stagingVertex, *model->mesh[eye].geometry.buffer);
+      command->copy(*stagingIndex, *model->mesh[eye].elements.buffer);
       command->commit();
       
       // TODO:
@@ -641,13 +641,13 @@ namespace en
 // };
 
 
-   pair< Ptr<en::resource::Model>, Ptr<Texture> > ValveHMD::controllerModel(const string name)
+   pair< shared_ptr<en::resource::Model>, shared_ptr<Texture> > ValveHMD::controllerModel(const string name)
    {
-   Ptr<en::resource::Model> model = nullptr;
-   Ptr<Texture> texture = nullptr;
+   shared_ptr<en::resource::Model> model = nullptr;
+   shared_ptr<Texture> texture = nullptr;
 
    // Check if needed model is not already in the cache
-   map<string, pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> > >::iterator it = modelCache.find(name);
+   map<string, pair< shared_ptr<en::resource::Model>, shared_ptr<en::gpu::Texture> > >::iterator it = modelCache.find(name);
    if (it != modelCache.end())
       return it->second;
 
@@ -655,11 +655,11 @@ namespace en
    if (!renderModels->LoadRenderModel_Async(name.c_str(), &tempModel))
       {
       Log << "Unable to load render model " << name << endl;
-      return pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> >(model, texture);
+      return pair< shared_ptr<en::resource::Model>, shared_ptr<en::gpu::Texture> >(model, texture);
       }
 
    // Create model for rendering
-   model = new en::resource::Model();
+   model = make_shared<en::resource::Model>();
    model->name = string("OpenVR Controller Mesh - " + name);
    model->mesh.resize(1);
    
@@ -669,14 +669,14 @@ namespace en
                          Attribute::v2f32); // inTexCoord0
       
    uint32 vertices = tempModel->unVertexCount;
-   Ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeap->createBuffer(vertices, formatting, 0u);
+   shared_ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeap->createBuffer(vertices, formatting, 0u);
    model->mesh[0u].geometry.buffer  = vbo;
    model->mesh[0u].geometry.begin   = 0u;
    model->mesh[0u].geometry.end     = vertices;
    
    // Create staging vertex buffer
    uint32 stagingSize = vertices * formatting.elementSize();
-   Ptr<gpu::Buffer> stagingVertex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+   shared_ptr<gpu::Buffer> stagingVertex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
    if (!stagingVertex)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -696,7 +696,7 @@ namespace en
    model->mesh[0u].elements.indexes = indices;
    
    // Create staging index buffer
-   Ptr<gpu::Buffer> stagingIndex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, indices * 2u);
+   shared_ptr<gpu::Buffer> stagingIndex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, indices * 2u);
    if (!stagingIndex)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -714,10 +714,10 @@ namespace en
       queueType = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final buffers
-   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
    command->start();
-   command->copy(stagingVertex, model->mesh[0u].geometry.buffer);
-   command->copy(stagingIndex, model->mesh[0u].elements.buffer);
+   command->copy(*stagingVertex, *model->mesh[0u].geometry.buffer);
+   command->copy(*stagingIndex, *model->mesh[0u].elements.buffer);
    command->commit();
       
       // TODO:
@@ -751,7 +751,7 @@ namespace en
       
       // Create staging texture buffer
       uint32 stagingSize = tempTexture->unWidth * tempTexture->unHeight * 4u;
-      Ptr<gpu::Buffer> stagingTexture = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      shared_ptr<gpu::Buffer> stagingTexture = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
       if (!stagingTexture)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
@@ -764,9 +764,9 @@ namespace en
       stagingTexture->unmap();
 
       // Copy data from staging buffer to final texture
-      Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
       command->start();
-      command->copy(stagingTexture, texture, 0u, 0u);
+      command->copy(*stagingTexture, *texture, 0u, 0u);
       command->commit();
       command->waitUntilCompleted();
       command = nullptr;
@@ -779,9 +779,9 @@ namespace en
    renderModels->FreeRenderModel(tempModel);
    
    // Add new model-texture pair to the cache
-   modelCache.insert(pair<string, pair< Ptr<en::resource::Model>, Ptr<Texture> > >(name, pair< Ptr<en::resource::Model>, Ptr<Texture> >(model, texture) ));
+   modelCache.insert(pair<string, pair< shared_ptr<en::resource::Model>, shared_ptr<Texture> > >(name, pair< shared_ptr<en::resource::Model>, shared_ptr<Texture> >(model, texture) ));
  
-   return pair< Ptr<en::resource::Model>, Ptr<Texture> >(model, texture);
+   return pair< shared_ptr<en::resource::Model>, shared_ptr<Texture> >(model, texture);
    }
 
    void ValveHMD::activateController(vr::TrackedDeviceIndex_t deviceId)
@@ -790,16 +790,16 @@ namespace en
 
    // Acquire pointers to controller representation
    std::string name = deviceString(context, deviceId, vr::Prop_RenderModelName_String);
-   pair< Ptr<en::resource::Model>, Ptr<en::gpu::Texture> > assets = controllerModel(name);
+   pair< shared_ptr<en::resource::Model>, shared_ptr<en::gpu::Texture> > assets = controllerModel(name);
    
    // Create interface for detected controller
-   handle[deviceId] = new ValveController(context, 
-                                          &poseRender[deviceId], 
-                                        //&poseGameplay[deviceId],   // TOOD: Pass also predicted pose for gameplay
-                                          &controller[deviceId], 
-                                          assets.first,           // Mesh
-                                          assets.second,          // Texture
-                                          deviceId);
+   handle[deviceId] = make_shared<ValveController>(context,
+                                                  &poseRender[deviceId],
+                                                //&poseGameplay[deviceId],   // TOOD: Pass also predicted pose for gameplay
+                                                  &controller[deviceId],
+                                                   assets.first,           // Mesh
+                                                   assets.second,          // Texture
+                                                   deviceId);
    }
 
    void ValveHMD::startFrame(const uint32 frameIndex)
@@ -849,7 +849,7 @@ namespace en
          }
       }
 
-   CommonInterface* interface = raw_reinterpret_cast<CommonInterface>(&en::Input);
+   CommonInterface* interface = reinterpret_cast<CommonInterface*>(en::Input.get());
 
    // Process SteamVR events
    vr::VREvent_t vrevent;
@@ -878,7 +878,7 @@ namespace en
             
             // Send event with new controller
             ControllerEvent outEvent(ControllerActivated);
-            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            outEvent.pointer = dynamic_pointer_cast<Controller>(handle[deviceId]);
             interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
    
             Log << "Device " << deviceId << " attached.\n";
@@ -894,7 +894,7 @@ namespace en
 
             // Send event to discard controller
             ControllerEvent outEvent(ControllerDeactivated);
-            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            outEvent.pointer = dynamic_pointer_cast<Controller>(handle[deviceId]);
             interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
 
             // Remove controller
@@ -931,7 +931,7 @@ namespace en
                activateController(deviceId);
 
             ControllerEvent outEvent(ControllerButtonPressed);
-            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            outEvent.pointer = dynamic_pointer_cast<Controller>(handle[deviceId]);
             interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
@@ -941,7 +941,7 @@ namespace en
             vr::TrackedDeviceIndex_t deviceId = vrevent.trackedDeviceIndex;
             
             ControllerEvent outEvent(ControllerButtonReleased);
-            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            outEvent.pointer = dynamic_pointer_cast<Controller>(handle[deviceId]);
             interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
@@ -954,7 +954,7 @@ namespace en
                activateController(deviceId);
 
             ControllerEvent outEvent(ControllerButtonTouched);
-            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            outEvent.pointer = dynamic_pointer_cast<Controller>(handle[deviceId]);
             interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
@@ -964,7 +964,7 @@ namespace en
             vr::TrackedDeviceIndex_t deviceId = vrevent.trackedDeviceIndex;
             
             ControllerEvent outEvent(ControllerButtonUntouched);
-            outEvent.pointer = ptr_reinterpret_cast<Controller>(&handle[deviceId]);
+            outEvent.pointer = dynamic_pointer_cast<Controller>(handle[deviceId]);
             interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
@@ -1478,7 +1478,7 @@ namespace en
    return eyeVector[static_cast<uint32>(eye)];
    }
 
-   Ptr<Texture> ValveHMD::color(Eye eye) const
+   shared_ptr<Texture> ValveHMD::color(Eye eye) const
    {
    assert( enabled );
    
@@ -1486,7 +1486,7 @@ namespace en
    return swap[index][ currentIndex ];
    }
 
-   //Ptr<Texture> ValveHMD::framebuffer(void) const
+   //shared_ptr<Texture> ValveHMD::framebuffer(void) const
    //{
    //assert( enabled );
    //
@@ -1549,7 +1549,7 @@ namespace en
    
    
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
-      TextureD3D12* tex = raw_reinterpret_cast<TextureD3D12>(&swap[index][currentIndex]);
+      TextureD3D12* tex = reinterpret_cast<TextureD3D12*>(swap[index][currentIndex].get());
 
       textureDesc[eye].handle      = &tex->handle;
       textureDesc[eye].eType       = vr::API_DirectX;
@@ -1565,7 +1565,7 @@ namespace en
 #endif
 
 #if defined(EN_MODULE_RENDERER_OPENGL)
-      TextureGL* tex = raw_reinterpret_cast<TextureGL>(&swap[index][currentIndex]);
+      TextureGL* tex = reinterpret_cast<TextureGL*>(swap[index][currentIndex].get());
 
       textureDesc[eye].handle      = &tex->id;
       textureDesc[eye].eType       = vr::API_OpenGL;
@@ -1573,7 +1573,7 @@ namespace en
 #endif
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
-      TextureVK* tex = raw_reinterpret_cast<TextureVK>(&swap[index][currentIndex]);
+      TextureVK* tex = reinterpret_cast<TextureVK*>(swap[index][currentIndex].get());
 
       textureDesc[eye].m_nImage          = tex->handle;
       textureDesc[eye].m_pDevice         = &tex->gpu->device;
@@ -1618,8 +1618,8 @@ namespace en
    ValveController::ValveController(vr::IVRSystem* vrContext, 
                                     vr::TrackedDevicePose_t* poseRender, 
                                     vr::VRControllerState_t* state, 
-                                    Ptr<en::resource::Model> model, 
-                                    Ptr<en::gpu::Texture> texture, 
+                                    shared_ptr<en::resource::Model> model, 
+                                    shared_ptr<en::gpu::Texture> texture, 
                                     uint32 discoveredId) :
       context(vrContext),
       controllerId(discoveredId),
@@ -1744,12 +1744,12 @@ namespace en
    return float4x4();
    }
 
-   Ptr<en::resource::Model> ValveController::model(void) const
+   shared_ptr<en::resource::Model> ValveController::model(void) const
    {
    return controllerModel;
    }
 
-   Ptr<en::gpu::Texture> ValveController::texture(void) const
+   shared_ptr<en::gpu::Texture> ValveController::texture(void) const
    {
    return albedo;
    }

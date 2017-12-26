@@ -96,7 +96,7 @@ namespace en
 //
 //      class Input // VertexAssemble
 //            {
-//            Ptr<Buffer> bind[16];    // OpenGL vbo bindings
+//            shared_ptr<Buffer> bind[16];    // OpenGL vbo bindings
 //            uint32      divisor[16]; // OpenGL attribute divisor
 //            uint8       column[16];  // OpenGL vbo column to bind and it's format to use
 //            uint32      vao;         // OpenGL vao
@@ -132,13 +132,13 @@ namespace en
 //      vao = 0;
 //      }
 //
-//      Profile( glGetProgramiv(program->id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, (GLint*)&maxAttribLength) );
-//      Profile( glGetProgramiv(program->id, GL_ACTIVE_ATTRIBUTES, (GLint*)&program->inputs.count) );
+//      Validate( glGetProgramiv(program->id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, (GLint*)&maxAttribLength) );
+//      Validate( glGetProgramiv(program->id, GL_ACTIVE_ATTRIBUTES, (GLint*)&program->inputs.count) );
 //      // Describe inputs
 //      InputDescriptor* input;
 //      for(uint32 i=0; i<program->inputs.count; ++i)
 //         {
-//         Profile( glGetActiveAttrib(program->id, i, nameMaxLength, (GLsizei*)&nameLength, (GLint*)&elements, (GLenum*)&type, name) );
+//         Validate( glGetActiveAttrib(program->id, i, nameMaxLength, (GLsizei*)&nameLength, (GLint*)&elements, (GLenum*)&type, name) );
 //         name[nameLength] = 0;
 //      
 //         // Input parameters can be returned out of order.
@@ -149,7 +149,7 @@ namespace en
 //         input->elements = elements;
 //         input->name     = new char[nameLength+1];
 //         memcpy(input->name, name, nameLength+1);
-//         Profile( input->location = glGetAttribLocation(program->id, name) );
+//         Validate( input->location = glGetAttribLocation(program->id, name) );
 //         input->type     = type;
 //      
 //         // Assing input to it's name 
@@ -161,8 +161,8 @@ namespace en
 //      // column by name or by location. If column cannot be
 //      // found, try to use default value specified for
 //      // input parameter name or return error (TODO).
-//      Profile( glBindVertexArray(buffer->vao) )
-//      Profile( glBindBuffer(GL_ARRAY_BUFFER, buffer->id) )
+//      Validate( glBindVertexArray(buffer->vao) )
+//      Validate( glBindBuffer(GL_ARRAY_BUFFER, buffer->id) )
 //      uint32 offset = 0;
 //      for(uint8 i=0; i<program->inputs.count; ++i)
 //         {
@@ -181,8 +181,8 @@ namespace en
 //                  uint16 channels   = gl::BufferColumn[columnType].channels;
 //                  bool   normalized = gl::BufferColumn[columnType].normalized;
 //                  
-//                  Profile( glEnableVertexAttribArray( input.location ) );
-//                  Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, (const GLvoid*)buffer->offset[j]) );
+//                  Validate( glEnableVertexAttribArray( input.location ) );
+//                  Validate( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, (const GLvoid*)buffer->offset[j]) );
 //   
 //                  found = true;
 //                  break;
@@ -200,8 +200,8 @@ namespace en
 //            uint16 channels   = gl::BufferColumn[columnType].channels;
 //            bool   normalized = gl::BufferColumn[columnType].normalized;
 //            
-//            Profile( glEnableVertexAttribArray( input.location ) );
-//            Profile( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, (const GLvoid*)offset) );
+//            Validate( glEnableVertexAttribArray( input.location ) );
+//            Validate( glVertexAttribPointer(input.location, channels, type, normalized, buffer->rowSize, (const GLvoid*)offset) );
 //            offset += size;
 //            }
 //         }
@@ -308,7 +308,7 @@ namespace en
 //
 //         if (buffer->type == VertexBuffer)
 //            if (GpuContext.screen.support(OpenGL_3_0))            
-//               Profile( glGenVertexArrays(1, &buffer->vao) )
+//               Validate( glGenVertexArrays(1, &buffer->vao) )
 //
 //         buffer->elements = bufferSettings.elements;             
 //         buffer->columns  = columns; 
@@ -321,10 +321,10 @@ namespace en
 //      uint16 bufferType = gl::BufferType[bufferSettings.type].type;
 //      
 //      // Generate corresponding VBO or IBO in driver and reserve memory
-//      Profile( glGenBuffers(1, &buffer->id) )
-//      Profile( glBindBuffer(bufferType, buffer->id) )
-//      Profile( glBufferData(bufferType, buffer->size, data, GL_STATIC_DRAW) )
-//      Profile( glBindBuffer(bufferType, 0) )
+//      Validate( glGenBuffers(1, &buffer->id) )
+//      Validate( glBindBuffer(bufferType, buffer->id) )
+//      Validate( glBufferData(bufferType, buffer->size, data, GL_STATIC_DRAW) )
+//      Validate( glBindBuffer(bufferType, 0) )
 //
 //      // Return buffers interface
 //      return Buffer(buffer);
@@ -359,9 +359,9 @@ namespace en
 //      if ( buffer->type == VertexBuffer ||
 //           buffer->type == IndexBuffer )
 //         {
-//         Profile( glBindBuffer(type, buffer->id) )
-//         Profile( glBufferData(type, buffer->elements * buffer->rowSize, buffer->block->pointer, GL_STATIC_DRAW) )
-//         Profile( glBindBuffer(type, 0) )
+//         Validate( glBindBuffer(type, buffer->id) )
+//         Validate( glBufferData(type, buffer->elements * buffer->rowSize, buffer->block->pointer, GL_STATIC_DRAW) )
+//         Validate( glBindBuffer(type, 0) )
 //
 //         // Free DataBlockDescriptor and its local memory
 //         delete [] static_cast<uint8*>(buffer->block->pointer);
@@ -376,11 +376,11 @@ namespace en
 //      bool BufferDestroy(BufferDescriptor* const buffer)
 //      {         
 //      // Frees corresponding buffer in driver
-//      Profile( glDeleteBuffers(1, &buffer->id) )
+//      Validate( glDeleteBuffers(1, &buffer->id) )
 //
 //      if (buffer->type == BufferType::Vertex)
 //         if (GpuContext.screen.support(OpenGL_3_0))            
-//            Profile( glDeleteVertexArrays(1, &buffer->vao) )
+//            Validate( glDeleteVertexArrays(1, &buffer->vao) )
 //
 //      // Fill program with null pointer
 //      GpuContext.buffers.free(buffer);

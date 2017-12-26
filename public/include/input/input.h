@@ -185,7 +185,7 @@ namespace en
       
    struct ControllerEvent : public Event
           {
-          Ptr<Controller> pointer;
+          shared_ptr<Controller> pointer;
           
           ControllerEvent(EventType type);
           };
@@ -357,15 +357,15 @@ namespace en
       Count
       };
 
-   class Mouse : public SafeObject<Mouse>
+   class Mouse
       {
       public:
-      virtual Ptr<Display> display(void) const = 0;             // Current screen on which mouse is located
+      virtual shared_ptr<Display> display(void) const = 0;             // Current screen on which mouse is located
       virtual float2       position(void) const = 0;            // Mouse normalized position on current screen (coordinate origin at upper-left corner)
       virtual uint32       position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
       virtual bool         position(const uint32 x, 
                                     const uint32 y) = 0;        // Sets mouse position on current screen (coordinate origin at upper-left corner)
-      virtual bool         position(const Ptr<Display> display, // Sets mouse position on given screen
+      virtual bool         position(const shared_ptr<Display> display, // Sets mouse position on given screen
                                     const uint32 x, 
                                     const uint32 y) = 0;
 
@@ -380,7 +380,7 @@ namespace en
       virtual ~Mouse() {};                             // Polymorphic deletes require a virtual base destructor
       };
       
-   class Joystick : public SafeObject<Joystick>
+   class Joystick
       {
       public:
       virtual bool        on(void) = 0;                // Turns joystick on
@@ -393,7 +393,7 @@ namespace en
       virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
       };
       
-   class Camera : public SafeObject<Camera>
+   class Camera
       {
       public:
       virtual bool        on(void) = 0;                // Turns camera on
@@ -407,18 +407,18 @@ namespace en
       virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
       };
       
-   class Interface : public SafeObject<Interface>
+   class Interface
       {
       public:
       static bool create(void);                      // Creates instance of this class (OS specific) and assigns it to "Input".
 
       virtual uint8           available(IO type) const = 0;          // Count of available peripherials of given type
-      virtual Ptr<Keyboard>   keyboard(uint8 index = 0) const = 0;   // N'th Keyboard
-      virtual Ptr<Mouse>      mouse(uint8 index = 0) const = 0;      // N'th Mouse
-      virtual Ptr<Joystick>   joystick(uint8 index = 0) const = 0;   // N'th Joystick
-      virtual Ptr<HMD>        hmd(uint8 index = 0) const = 0;        // N'th Head Mounted Display (VR/AR)
-      virtual Ptr<Controller> controller(uint8 index = 0) const = 0; // N'th Motion Controller
-      virtual Ptr<Camera>     camera(uint8 index = 0) const = 0;     // N'th Camera (Color, Depth, IR, or other)
+      virtual shared_ptr<Keyboard>   keyboard(uint8 index = 0) const = 0;   // N'th Keyboard
+      virtual shared_ptr<Mouse>      mouse(uint8 index = 0) const = 0;      // N'th Mouse
+      virtual shared_ptr<Joystick>   joystick(uint8 index = 0) const = 0;   // N'th Joystick
+      virtual shared_ptr<HMD>        hmd(uint8 index = 0) const = 0;        // N'th Head Mounted Display (VR/AR)
+      virtual shared_ptr<Controller> controller(uint8 index = 0) const = 0; // N'th Motion Controller
+      virtual shared_ptr<Camera>     camera(uint8 index = 0) const = 0;     // N'th Camera (Color, Depth, IR, or other)
 
       virtual void update(void) = 0;                                 // Gets actual input state, call function handling cached events
       
@@ -462,7 +462,7 @@ namespace en
           struct Joystick
                  {
                  uint8           available(void) const;       // Returns count of available joysticks's
-                 Ptr<input::Joystick> get(uint8 index = 0) const;  // Get pointer to N'th available joystick interface
+                 shared_ptr<input::Joystick> get(uint8 index = 0) const;  // Get pointer to N'th available joystick interface
                  } joystick;
 
           //struct Joystick
@@ -579,21 +579,21 @@ namespace en
           struct Camera
                  {
                  uint8           available(void) const;       // Returns count of available camera's
-                 Ptr<input::Camera> get(uint8 index = 0) const;  // Get pointer to N'th available camera interface
+                 shared_ptr<input::Camera> get(uint8 index = 0) const;  // Get pointer to N'th available camera interface
                  } camera;
 
           // Head Mounted Display
           struct HMD
                  {
                  uint8           available(void) const;       // Returns count of available HMD's
-                 Ptr<input::HMD> get(uint8 index = 0) const;  // Get pointer to N'th available HMD interface
+                 shared_ptr<input::HMD> get(uint8 index = 0) const;  // Get pointer to N'th available HMD interface
                  } hmd;
 
           // VR Haptic Controller
           struct Controller
                  {
                  uint8                  available(void) const;       // Returns count of available Controllers at given moment
-                 Ptr<input::Controller> get(uint8 index = 0) const;  // Get pointer to N'th available Controller interface
+                 shared_ptr<input::Controller> get(uint8 index = 0) const;  // Get pointer to N'th available Controller interface
                  };
 
           // Events handling function callbacks
@@ -610,7 +610,7 @@ namespace en
    }
 
 
-extern Ptr<input::Interface> Input;   // New dynamic Interface allowing inherited implementation
+extern shared_ptr<input::Interface> Input;   // New dynamic Interface allowing inherited implementation
 
 #if 0
 extern input::Interface Input;

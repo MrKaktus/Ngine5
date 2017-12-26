@@ -19,11 +19,11 @@ namespace en
 {
    namespace dds
    {
-   //Ptr<gpu::Texture> load(const string& filename, 
+   //shared_ptr<gpu::Texture> load(const string& filename, 
    //                      const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear, 
    //                      const bool invertHorizontal = false);
 
-   Ptr<gpu::Texture> load(const string& filename);
+   shared_ptr<gpu::Texture> load(const string& filename);
    }
 }
 

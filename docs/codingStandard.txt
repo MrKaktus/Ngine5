@@ -75,3 +75,28 @@ Ntimer   vs NTimer
 Nthread     NThread
 Nparser     NParser
 }
+
+
+
+Instead of:
+
+   shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
+                                                            const uint32 _layers,
+                                                            const uint32 surfaces,
+                                                            const shared_ptr<TextureView>* surface,
+                                                            const shared_ptr<TextureView> _depthStencil,
+                                                            const shared_ptr<TextureView> _stencil,
+                                                            const shared_ptr<TextureView> _depthResolve)
+
+Do:
+
+   shared_ptr<Framebuffer> 
+   RenderPassMTL::createFramebuffer(
+      const uint32v2 _resolution,
+      const uint32 _layers,
+      const uint32 surfaces,
+      const shared_ptr<TextureView>* surface,
+      const shared_ptr<TextureView> _depthStencil,
+      const shared_ptr<TextureView> _stencil,
+      const shared_ptr<TextureView> _depthResolve)
+

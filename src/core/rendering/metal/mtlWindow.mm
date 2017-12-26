@@ -51,9 +51,9 @@ namespace en
    uint32v2 resolution;
    if (settings.display)
       {
-      _display = ptr_reinterpret_cast<CommonDisplay>(&settings.display);
+      _display = dynamic_pointer_cast<CommonDisplay>(settings.display);
       
-      DisplayMTL* ptr = raw_reinterpret_cast<DisplayMTL>(&_display);
+      DisplayMTL* ptr = reinterpret_cast<DisplayMTL*>(_display.get());
       handle     = ptr->handle;
       resolution = ptr->_resolution;
       //NSRect info = [handle convertRectToBacking:[handle frame]];
@@ -64,9 +64,9 @@ namespace en
    else
       {
       // Primary display handle and properties
-      _display = ptr_dynamic_cast<CommonDisplay, Display>(gpu->display(0u));
+      _display = dynamic_pointer_cast<CommonDisplay>(gpu->display(0u));
       
-      handle = raw_reinterpret_cast<DisplayMTL>(&_display)->handle;
+      handle = reinterpret_cast<DisplayMTL*>(_display.get())->handle;
       NSRect info = [handle convertRectToBacking:[handle frame]];
       resolution.width  = static_cast<uint32>(info.size.width);
       resolution.height = static_cast<uint32>(info.size.height);
@@ -192,7 +192,7 @@ namespace en
                       settings.size.width,
                       settings.size.height);
       
-   framebuffer = new TextureMTL(nullptr, state, false);
+   framebuffer = make_shared<TextureMTL>(nullptr, state, false);
    }
    
    WindowMTL::~WindowMTL()
@@ -219,7 +219,7 @@ namespace en
    // Reposition window.
    // Position is from lower-left corner of the screen in OSX.
    // Both position and resolution are in points, not pixels.
-   DisplayMTL* metalDisplay = raw_reinterpret_cast<DisplayMTL>(&_display);
+   DisplayMTL* metalDisplay = reinterpret_cast<DisplayMTL*>(_display.get());
    
    NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
@@ -236,7 +236,7 @@ namespace en
       
    // Resize window.
    // Both position and resolution are in points, not pixels.
-   DisplayMTL* metalDisplay = raw_reinterpret_cast<DisplayMTL>(&_display);
+   DisplayMTL* metalDisplay = reinterpret_cast<DisplayMTL*>(_display.get());
    
    NSScreen* screen = metalDisplay->handle;
    NSRect frame = [screen convertRectToBacking:[window frame]];
@@ -274,7 +274,7 @@ namespace en
    [window setOpaque:YES];
    }
    
-   Ptr<Texture> WindowMTL::surface(const Ptr<Semaphore> signalSemaphore)
+   shared_ptr<Texture> WindowMTL::surface(const shared_ptr<Semaphore> signalSemaphore)
    {
    // signalSemaphore is ignored, as Metal API waits for presentation
    // engine to finish reading from given surface before returning it
@@ -294,10 +294,10 @@ namespace en
       surfaceAcquire.unlock();
       }
 
-   return ptr_reinterpret_cast<Texture>(&framebuffer);
+   return framebuffer;
    }
    
-   void WindowMTL::present(const Ptr<Semaphore> waitForSemaphore)
+   void WindowMTL::present(const shared_ptr<Semaphore> waitForSemaphore)
    {
    // Does Metal ensure that CommandBuffers on Queue will be executed ?
    
@@ -311,7 +311,7 @@ namespace en
 
       if (verticalSync)
          {
-         DisplayMTL* metalDisplay = raw_reinterpret_cast<DisplayMTL>(&_display);
+         DisplayMTL* metalDisplay = reinterpret_cast<DisplayMTL*>(_display.get());
 
          Time current = currentTime();
          Time nextVSyncTime = metalDisplay->nextVSyncTime[0];

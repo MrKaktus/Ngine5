@@ -18,8 +18,10 @@
 #ifndef ENG_CORE_RENDERING_SYNCHRONIZATION
 #define ENG_CORE_RENDERING_SYNCHRONIZATION
 
+#include <memory>
+using namespace std;
+
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
@@ -68,7 +70,7 @@ namespace en
    }
 
    // Synchronization primitive. Used to sync CommandBuffers between Queues and each other.
-   class Semaphore : public SafeObject<Semaphore>
+   class Semaphore
       {
       public:
       virtual ~Semaphore() {};

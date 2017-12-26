@@ -136,12 +136,12 @@ namespace en
 
    PipelineVK::~PipelineVK()
    {
-   ProfileNoRet( gpu, vkDestroyPipeline(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroyPipeline(gpu->device, handle, nullptr) )
    }
 
-   Ptr<Pipeline> VulkanDevice::createPipeline(const PipelineState& pipelineState)
+   shared_ptr<Pipeline> VulkanDevice::createPipeline(const PipelineState& pipelineState)
    {
-   Ptr<PipelineVK> result = nullptr;
+   shared_ptr<PipelineVK> result = nullptr;
 
    // Pipeline object is always created against Render Pass, and app responsibility is to
    // provide missing states (ViewportState, Shaders).
@@ -149,27 +149,27 @@ namespace en
    assert( pipelineState.viewportState );
 
    // Cast to Vulkan states
-   const RenderPassVK*         renderPass     = raw_reinterpret_cast<RenderPassVK>(&pipelineState.renderPass);
+   const RenderPassVK*         renderPass     = reinterpret_cast<RenderPassVK*>(pipelineState.renderPass.get());
 
-   const InputLayoutVK*        input          = pipelineState.inputLayout ? raw_reinterpret_cast<InputLayoutVK>(&pipelineState.inputLayout)
-                                                                          : raw_reinterpret_cast<InputLayoutVK>(&defaultState->inputLayout);
+   const InputLayoutVK*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutVK*>(pipelineState.inputLayout.get())
+                                                                          : reinterpret_cast<InputLayoutVK*>(defaultState->inputLayout.get());
 
-   const ViewportStateVK*      viewport       = raw_reinterpret_cast<ViewportStateVK>(&pipelineState.viewportState);
+   const ViewportStateVK*      viewport       = reinterpret_cast<ViewportStateVK*>(pipelineState.viewportState.get());
 
-   const RasterStateVK*        raster         = pipelineState.rasterState ? raw_reinterpret_cast<RasterStateVK>(&pipelineState.rasterState)
-                                                                          : raw_reinterpret_cast<RasterStateVK>(&defaultState->rasterState);
+   const RasterStateVK*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateVK*>(pipelineState.rasterState.get())
+                                                                          : reinterpret_cast<RasterStateVK*>(defaultState->rasterState.get());
 
-   const MultisamplingStateVK* multisampling  = pipelineState.multisamplingState ? raw_reinterpret_cast<MultisamplingStateVK>(&pipelineState.multisamplingState)
-                                                                                 : raw_reinterpret_cast<MultisamplingStateVK>(&defaultState->multisamplingState);
+   const MultisamplingStateVK* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateVK*>(pipelineState.multisamplingState.get())
+                                                                                 : reinterpret_cast<MultisamplingStateVK*>(defaultState->multisamplingState.get());
       
-   const DepthStencilStateVK*  depthStencil   = pipelineState.depthStencilState ? raw_reinterpret_cast<DepthStencilStateVK>(&pipelineState.depthStencilState)
-                                                                                : raw_reinterpret_cast<DepthStencilStateVK>(&defaultState->depthStencilState);
+   const DepthStencilStateVK*  depthStencil   = pipelineState.depthStencilState ? reinterpret_cast<DepthStencilStateVK*>(pipelineState.depthStencilState.get())
+                                                                                : reinterpret_cast<DepthStencilStateVK*>(defaultState->depthStencilState.get());
 
-   const BlendStateVK*         blend          = pipelineState.blendState ? raw_reinterpret_cast<BlendStateVK>(&pipelineState.blendState)
-                                                                         : raw_reinterpret_cast<BlendStateVK>(&defaultState->blendState);
+   const BlendStateVK*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateVK*>(pipelineState.blendState.get())
+                                                                         : reinterpret_cast<BlendStateVK*>(defaultState->blendState.get());
 
-   const PipelineLayoutVK*     layout         = pipelineState.pipelineLayout ? raw_reinterpret_cast<PipelineLayoutVK>(&pipelineState.pipelineLayout) 
-                                                                             : raw_reinterpret_cast<PipelineLayoutVK>(&defaultState->pipelineLayout);
+   const PipelineLayoutVK*     layout         = pipelineState.pipelineLayout ? reinterpret_cast<PipelineLayoutVK*>(pipelineState.pipelineLayout.get())
+                                                                             : reinterpret_cast<PipelineLayoutVK*>(defaultState->pipelineLayout.get());
 
 
 
@@ -191,7 +191,7 @@ namespace en
    for(uint32 i=0; i<5; ++i)
       if (pipelineState.shader[i])
          {
-         const Ptr<ShaderVK> shader = ptr_reinterpret_cast<ShaderVK>(&pipelineState.shader[i]);
+         const ShaderVK* shader = reinterpret_cast<const ShaderVK*>(pipelineState.shader[i]);
          
          shaderInfo[stage].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
          shaderInfo[stage].pNext  = nullptr;
@@ -236,13 +236,13 @@ namespace en
 
    // Create pipeline state object
    VkPipeline pipeline = VK_NULL_HANDLE;
-   Profile( this, vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) )  // pipelineCache
+   Validate( this, vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) )  // pipelineCache
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = new PipelineVK(this, pipeline, true);
+      result = make_shared<PipelineVK>(this, pipeline, true);
 
    delete [] shaderInfo;
 
-   return ptr_reinterpret_cast<Pipeline>(&result);
+   return result;
    }
 
    }

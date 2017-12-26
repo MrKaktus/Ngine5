@@ -27,7 +27,7 @@ namespace en
    class CommonWindow : public Window
       {
       public:
-      Ptr<CommonDisplay> _display;
+      shared_ptr<CommonDisplay> _display;
       uint32v2 _position;
       uint32v2 _size;
       uint32v2 _resolution;
@@ -39,7 +39,7 @@ namespace en
 
       CommonWindow();
       
-      virtual Ptr<Display> display(void) const;   // Display on which window's center point is currently located
+      virtual shared_ptr<Display> display(void) const;   // Display on which window's center point is currently located
       virtual uint32v2 position(void) const;
       virtual uint32v2 size(void) const;
       virtual uint32v2 resolution(void) const;

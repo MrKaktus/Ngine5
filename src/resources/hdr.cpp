@@ -52,13 +52,13 @@ namespace en
    return out;
    }
 
-   Ptr<en::gpu::Texture> load(const string& filename)
+   shared_ptr<en::gpu::Texture> load(const string& filename)
    {
    using namespace en::storage;
    using namespace en::gpu;
 
    // Open image file
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -66,7 +66,7 @@ namespace en
          {
          Log << en::ResourcesContext.path.textures + filename << endl;
          Log << "ERROR: There is no such file!\n";
-         return Ptr<gpu::Texture>();
+         return shared_ptr<gpu::Texture>();
          }
       }
    
@@ -78,13 +78,13 @@ namespace en
       {
       Log << "ERROR: Not HDR file!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>();
+      return shared_ptr<gpu::Texture>();
       }
    if (strcmp(radiance, header) != 0)
       {
       Log << "ERROR: HDR file header signature incorrect!\n";
       file = nullptr;
-      return Ptr<gpu::Texture>();
+      return shared_ptr<gpu::Texture>();
       }
 
 
@@ -175,7 +175,7 @@ namespace en
       Log << "ERROR: Cannot read HDR file to memory!\n";
       deallocate<uint8>(raw);
       file = nullptr;
-      return Ptr<gpu::Texture>();
+      return shared_ptr<gpu::Texture>();
       }
 
    // Texture is compressed using RLE one scan line at a time
@@ -341,20 +341,20 @@ namespace en
    settings.type   = TextureType::Texture2D;
 
    // Create texture in gpu
-   Ptr<Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+   shared_ptr<Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
-      return Ptr<Texture>(nullptr);
+      return shared_ptr<Texture>(nullptr);
       }
    
    // Create staging buffer
    uint32 stagingSize = texture->size();
-   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+   shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
-      return Ptr<Texture>(nullptr);
+      return shared_ptr<Texture>(nullptr);
       }
 
    // Recompress texture directly to gpu memory
@@ -443,9 +443,9 @@ namespace en
       type = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
-   command->copy(staging, texture, 0u, 0u);
+   command->copy(*staging, *texture, 0u, 0u);
    command->commit();
    
    // TODO:

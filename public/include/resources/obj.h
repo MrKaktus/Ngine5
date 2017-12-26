@@ -22,7 +22,7 @@ namespace en
    extern bool optimizeIndexSize;   // Reduces index size UInt -> UShort -> UByte
    extern bool optimizeIndexOrder;  // Optimizes indexes order for Post-Transform Vertex Cache Size
 
-   Ptr<en::resource::Model> load(const string& filename, const string& name);
+   shared_ptr<en::resource::Model> load(const string& filename, const string& name);
    }
 }
 

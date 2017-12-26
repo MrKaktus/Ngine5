@@ -69,33 +69,33 @@ namespace en
    {
    glType = TranslateBufferType[underlyingType(type)];
    
-   Profile( glGenBuffers(1, static_cast<GLuint *>(&handle)) )
-   Profile( glBindBuffer(glType, handle) )
-   Profile( glBufferData(glType, size, data, GL_STATIC_DRAW) )
-   Profile( glBindBuffer(glType, 0) )
+   Validate( glGenBuffers(1, static_cast<GLuint *>(&handle)) )
+   Validate( glBindBuffer(glType, handle) )
+   Validate( glBufferData(glType, size, data, GL_STATIC_DRAW) )
+   Validate( glBindBuffer(glType, 0) )
    }
    
    BufferGL::~BufferGL()
    {
-   Profile( glDeleteBuffers(1, static_cast<GLuint *>(&handle)) );
+   Validate( glDeleteBuffers(1, static_cast<GLuint *>(&handle)) );
    if (vao)
-      Profile( glDeleteVertexArrays(1, &vao) )
+      Validate( glDeleteVertexArrays(1, &vao) )
    }
    
 #ifdef EN_OPENGL_DESKTOP
    void* BufferGL::map(const DataAccess access)
    {
    void* pointer = nullptr;
-   Profile( glBindBuffer(glType, handle) );
-   Profile( pointer = glMapBuffer(glType, TranslateDataAccess[access]) )
+   Validate( glBindBuffer(glType, handle) );
+   Validate( pointer = glMapBuffer(glType, TranslateDataAccess[access]) )
    return pointer;
    }
 
    void BufferGL::unmap(void)
    {
    // We don't care if it was mapped or not
-   Profile( glBindBuffer(glType, handle) )
-   Profile( glUnmapBuffer(glType) )
+   Validate( glBindBuffer(glType, handle) )
+   Validate( glUnmapBuffer(glType) )
    }
 #endif
 
@@ -103,8 +103,8 @@ namespace en
    void* BufferGL::map(const DataAccess access)
    {
    void* pointer = nullptr;
-   Profile( glBindBuffer(glType, handle) );
-   Profile( pointer = glMapBuffer(glType, TranslateDataAccess[access]) )
+   Validate( glBindBuffer(glType, handle) );
+   Validate( pointer = glMapBuffer(glType, TranslateDataAccess[access]) )
    return pointer;
    }
 
@@ -112,8 +112,8 @@ namespace en
    {
    // We don't care if it was mapped or not
    bool success = false;
-   Profile( glBindBuffer(glType, handle) )
-   Profile( success = static_cast<bool>(glUnmapBuffer(glType)) )
+   Validate( glBindBuffer(glType, handle) )
+   Validate( success = static_cast<bool>(glUnmapBuffer(glType)) )
    return success;
    }
 #endif
@@ -129,7 +129,7 @@ namespace en
          support.attribute.set(i);
    }
 
-   Ptr<Buffer> OpenGLDevice::create(const BufferType type, const uint32 size, const void* data)
+   shared_ptr<Buffer> OpenGLDevice::create(const BufferType type, const uint32 size, const void* data)
    {
    assert( size );
    assert( type != BufferType::Count );
@@ -137,14 +137,14 @@ namespace en
    // TODO: OpenGL Context needs to be tied to a window
    // assert(GpuContext.screen.created);
    
-   Ptr<BufferGL> buffer = new BufferGL(type, size, data);
+   shared_ptr<BufferGL> buffer = make_shared<BufferGL>(type, size, data);
    if (buffer)
       {
       if (api.better(OpenGL_3_0))
-         Profile( glGenVertexArrays(1, &buffer->vao) )
+         Validate( glGenVertexArrays(1, &buffer->vao) )
       }
       
-   return ptr_dynamic_cast<Buffer, BufferGL>(buffer);
+   return buffer;
    }
       
    }
@@ -322,7 +322,7 @@ namespace en
   
 
 
-   Ptr<Buffer> create(const VertexBufferSettings& settings, const void* data)
+   shared_ptr<Buffer> create(const VertexBufferSettings& settings, const void* data)
    {
    assert( GpuContext.screen.created );
    assert( GpuContext.screen.support(OpenGL_1_5) );
@@ -338,7 +338,7 @@ namespace en
             if (settings.column[j].type != None)
                {
                DebugLog( "ERROR: Vertex Buffer cannot have gaps between columns!" << endl );
-               return Ptr<Buffer>(NULL);
+               return shared_ptr<Buffer>(NULL);
                }
 
    // Check if column types are supported
@@ -346,12 +346,12 @@ namespace en
       if (!gl::BufferColumnSupported[settings.column[i].type])
          {
          DebugLog( "ERROR: Buffer column of type: \"" << gl::BufferColumnName[settings.column[i].type] << "\" is not supported in this context!" << endl );
-         return Ptr<Buffer>(NULL);
+         return shared_ptr<Buffer>(NULL);
          }
  
    BufferGL15* buffer = new BufferGL15();
    if (!buffer)
-      return Ptr<Buffer>(NULL);
+      return shared_ptr<Buffer>(NULL);
 
    buffer->capacity  = size;
    buffer->glType    = GL_ARRAY_BUFFER;
@@ -377,11 +377,11 @@ namespace en
       buffer->rowSize        += gl::BufferColumn[buffer->column[i].type].size;
       } 
 
-   Profile( glGenBuffers(1, &id) );
-   Profile( glBindBuffer(buffer->glType, id) );
-   Profile( glBufferData(buffer->glType, size, data, buffer->glUsage) );
+   Validate( glGenBuffers(1, &id) );
+   Validate( glBindBuffer(buffer->glType, id) );
+   Validate( glBufferData(buffer->glType, size, data, buffer->glUsage) );
 
-   return Ptr<Buffer>(static_cast<gpu::Buffer*>(buffer));
+   return shared_ptr<Buffer>(static_cast<gpu::Buffer*>(buffer));
    };
 
 
@@ -410,15 +410,15 @@ namespace en
    assert( GpuContext.screen.created );
    assert( src );
 
-   Profile( glBindBuffer(glType, id) );
+   Validate( glBindBuffer(glType, id) );
    if (allocated)
       {
       assert( (offset + size) <= capacity );
-      Profile( glBufferSubData(glType, offset, size ? size : capacity, src) );
+      Validate( glBufferSubData(glType, offset, size ? size : capacity, src) );
       }
    else
       {
-      Profile( glBufferData(glType, size , src, glUsage) );
+      Validate( glBufferData(glType, size , src, glUsage) );
       capacity = size;
       allocated = true;
       }
@@ -430,13 +430,13 @@ namespace en
    assert( size );
    assert( src );
 
-   Profile( glBindBuffer(glType, id) );
+   Validate( glBindBuffer(glType, id) );
    if (allocated)
-      Profile( glBufferData(glType, capacity, NULL, glUsage) );
+      Validate( glBufferData(glType, capacity, NULL, glUsage) );
 
 
 
-   Profile( glBufferData(glType, size , src, glUsage) );
+   Validate( glBufferData(glType, size , src, glUsage) );
    capacity = size;
    allocated = true;
    }
@@ -444,8 +444,8 @@ namespace en
    void BufferGL15::invalidate(void)
    {
    assert( GpuContext.screen.created );
-   Profile( glBindBuffer(glType, id) );
-   Profile( glBufferData(glType, capacity, NULL, glUsage) );
+   Validate( glBindBuffer(glType, id) );
+   Validate( glBufferData(glType, capacity, NULL, glUsage) );
    allocated = false;
    }
 

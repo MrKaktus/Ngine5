@@ -37,25 +37,25 @@ namespace en
       {
       public:
       ID3D12Resource*   handle;      // Vulkan Image ID
-      Ptr<HeapD3D12>    heap;        // Memory backing heap
+      shared_ptr<HeapD3D12> heap;    // Memory backing heap
       uint64            offset;      // Offset in the heap
       uint64            textureSize; // Texture total size in memory (all mips and layers)
       
-      TextureD3D12(Ptr<HeapD3D12>    heap,
-                   ID3D12Resource*   handle,
-                   uint64            offset,
-                   uint64            size,
+      TextureD3D12(shared_ptr<HeapD3D12> heap,
+                   ID3D12Resource* handle,
+                   uint64 offset,
+                   uint64 size,
                    const TextureState& state);
                    
       TextureD3D12(Direct3D12Device* gpu,
                    const TextureState& state); // Create texture interface for texture that already exists
 
-      virtual Ptr<Heap>        parent(void) const;
-      virtual Ptr<TextureView> view(void) const;
-      virtual Ptr<TextureView> view(const TextureType type,
-                                    const Format format,
-                                    const uint32v2 mipmaps,         
-                                    const uint32v2 layers) const;
+      virtual shared_ptr<Heap>        parent(void) const;
+      virtual shared_ptr<TextureView> view(void);
+      virtual shared_ptr<TextureView> view(const TextureType type,
+                                           const Format format,
+                                           const uint32v2 mipmaps,
+                                           const uint32v2 layers);
          
               
       virtual ~TextureD3D12();
@@ -64,16 +64,16 @@ namespace en
    class TextureViewD3D12 : public CommonTextureView
       {
       public:
-      Ptr<TextureD3D12> texture;            // Parent texture
+      shared_ptr<TextureD3D12> texture;     // Parent texture
       D3D12_SHADER_RESOURCE_VIEW_DESC desc; // View descriptor
 
-      TextureViewD3D12(Ptr<TextureD3D12> parent,
+      TextureViewD3D12(shared_ptr<TextureD3D12> parent,
                        const TextureType _type,
                        const Format _format,
                        const uint32v2 _mipmaps,
                        const uint32v2 _layers);
 
-      Ptr<Texture> parent(void) const;
+      shared_ptr<Texture> parent(void) const;
    
       virtual ~TextureViewD3D12();
       };

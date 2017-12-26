@@ -18,7 +18,7 @@ namespace en
 {
    namespace wav
    {
-   Ptr<audio::Sample> load(const string& filename);
+   shared_ptr<audio::Sample> load(const string& filename);
    }
 }
 

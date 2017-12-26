@@ -19,8 +19,8 @@ namespace en
 {
    namespace tga
    {
-   bool load(Ptr<en::gpu::Texture> dst, const uint16 layer, const string& filename);
-   Ptr<en::gpu::Texture> load(const string& filename);
+   bool load(shared_ptr<en::gpu::Texture> dst, const uint16 layer, const string& filename);
+   shared_ptr<en::gpu::Texture> load(const string& filename);
    }
 }
 

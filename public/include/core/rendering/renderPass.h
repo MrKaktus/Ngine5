@@ -17,9 +17,12 @@
 #ifndef ENG_CORE_RENDERING_RENDER_PASS
 #define ENG_CORE_RENDERING_RENDER_PASS
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
 #include "core/rendering/state.h"
 #include "core/rendering/texture.h"
 
@@ -52,7 +55,7 @@ namespace en
       Count
       };
       
-   class ColorAttachment : public SafeObject<ColorAttachment>
+   class ColorAttachment
       {
       public:
       // On tiled renderers we can specify additional actions
@@ -75,14 +78,14 @@ namespace en
       // all color attachments in the Render Pass need to be resolved
       // as well. Content of destination surface for resolve operation
       // is not modified in any way before resolve operation occurs.
-      //virtual bool resolve(const Ptr<TextureView> destination) = 0;
+      //virtual bool resolve(const shared_ptr<TextureView> destination) = 0;
 
       virtual ~ColorAttachment() {};                  // Polymorphic deletes require a virtual base destructor
       };
 
    // If you don't want to use Depth, nor Stencil surfaces, just
    // don't assign this object at all at Render Pass creation time.
-   class DepthStencilAttachment : public SafeObject<DepthStencilAttachment>
+   class DepthStencilAttachment
       {
       public:
       // By default content of depth and stencil is not changed.
@@ -104,37 +107,37 @@ namespace en
       virtual ~DepthStencilAttachment() {};           // Polymorphic deletes require a virtual base destructor
       };
 
-   class Framebuffer : public SafeObject<Framebuffer>
+   class Framebuffer
       {
       public:
       virtual ~Framebuffer() {};  // Polymorphic deletes require a virtual base destructor
       };
 
-   class RenderPass : public SafeObject<RenderPass>
+   class RenderPass
       {
       public:
-      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                 const uint32   layers,
-                                                 const uint32   attachments,
-                                                 const Ptr<TextureView>* attachment,
-                                                 const Ptr<TextureView> depthStencil = nullptr,
-                                                 const Ptr<TextureView> stencil      = nullptr,
-                                                 const Ptr<TextureView> depthResolve = nullptr) = 0;
+      virtual shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
+                                                        const uint32   layers,
+                                                        const uint32   attachments,
+                                                        const shared_ptr<TextureView>* attachment,
+                                                        const shared_ptr<TextureView> depthStencil = nullptr,
+                                                        const shared_ptr<TextureView> stencil      = nullptr,
+                                                        const shared_ptr<TextureView> depthResolve = nullptr) = 0;
 
       // Creates framebuffer using window Swap-Chain surface.
-      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                 const Ptr<TextureView> swapChainSurface,
-                                                 const Ptr<TextureView> depthStencil = nullptr,
-                                                 const Ptr<TextureView> stencil      = nullptr) = 0;
+      virtual shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
+                                                        const shared_ptr<TextureView> swapChainSurface,
+                                                        const shared_ptr<TextureView> depthStencil = nullptr,
+                                                        const shared_ptr<TextureView> stencil      = nullptr) = 0;
       
       // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
       // window Swap-Chain surface. Depth-Stencil can still be nullptr, but that need to be 
       // explicitly stated by the application (to prevent ambiguous call).
-      virtual Ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                 const Ptr<TextureView> temporaryMSAA,
-                                                 const Ptr<TextureView> swapChainSurface,
-                                                 const Ptr<TextureView> depthStencil,
-                                                 const Ptr<TextureView> stencil) = 0;
+      virtual shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
+                                                        const shared_ptr<TextureView> temporaryMSAA,
+                                                        const shared_ptr<TextureView> swapChainSurface,
+                                                        const shared_ptr<TextureView> depthStencil,
+                                                        const shared_ptr<TextureView> stencil) = 0;
           
       virtual ~RenderPass() {};   // Polymorphic deletes require a virtual base destructor
       };

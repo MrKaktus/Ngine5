@@ -106,20 +106,20 @@ namespace en
    return false;
    }
    
-   Ptr<File> AndInterface::open(const string& filename, const FileAccess mode)
+   shared_ptr<File> AndInterface::open(const string& filename, const FileAccess mode)
    {
-   Ptr<AndFile> result = nullptr;
+   shared_ptr<AndFile> result = nullptr;
       
    // TODO: Open for writing
    assert( mode == Read );
 
    AAsset* asset = AAssetManager_open(manager, filename.c_str(), AASSET_MODE_STREAMING);
    if (asset)
-      result = new AndFile(asset);
+      result = make_shared<AndFile>(asset);
    else
       Log << string("Couldn't open file " + filename + "!"); 
 
-   return raw_reinterpret_cast<File>(&result);
+   return result;
    }
 
 

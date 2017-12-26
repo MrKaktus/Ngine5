@@ -72,7 +72,7 @@ namespace en
    PipelineLayoutMTL::PipelineLayoutMTL(MetalDevice* _gpu, const uint32 _setsCount) :
       gpu(_gpu),
       setsCount(_setsCount),
-      setLayout(new Ptr<SetLayoutMTL>[_setsCount])
+      setLayout(new shared_ptr<SetLayoutMTL>[_setsCount])
    {
    }
    
@@ -91,7 +91,7 @@ namespace en
    
    #define InvalidSlot 255
    
-   DescriptorSetMTL::DescriptorSetMTL(MetalDevice* _gpu, Ptr<SetLayoutMTL> _layout) :
+   DescriptorSetMTL::DescriptorSetMTL(MetalDevice* _gpu, shared_ptr<SetLayoutMTL> _layout) :
       gpu(_gpu),
       layout(_layout),
       handle(nullptr),
@@ -202,7 +202,7 @@ namespace en
    heapsCount++;
    }
 
-   void DescriptorSetMTL::setBuffer(const uint32 slot, const Ptr<Buffer> buffer)
+   void DescriptorSetMTL::setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer)
    {
    // TODO: Shouldn't above global slot be recomputed to local Buffer slot?
    //       Is this "bind point index" global or local?
@@ -214,7 +214,7 @@ namespace en
    
    // If buffer is suballocated from other buffer (emulating staging heap),
    // it's offset in that parent buffer needs to be applied.
-   BufferMTL* ptr = raw_reinterpret_cast<BufferMTL>(&buffer);
+   BufferMTL* ptr = reinterpret_cast<BufferMTL*>(buffer.get());
    [layout->handle setBuffer:ptr->handle offset:ptr->offset atIndex:slot];
    
    // TODO: Unlock layout mutex
@@ -224,7 +224,7 @@ namespace en
    updateResidencyTracking(slot, ptr->heap->handle);
    }
    
-   void DescriptorSetMTL::setSampler(const uint32 slot, const Ptr<Sampler> sampler)
+   void DescriptorSetMTL::setSampler(const uint32 slot, const shared_ptr<Sampler> sampler)
    {
    // TODO: Shouldn't above global slot be recomputed to local Sampler slot?
    //       Is this "bind point index" global or local?
@@ -232,13 +232,13 @@ namespace en
    // TODO: Layout mutex lock, to prevent of other thread corrupting currently set buffer for encoding
    [layout->handle setArgumentBuffer:handle offset:0];
    
-   SamplerMTL* ptr = raw_reinterpret_cast<SamplerMTL>(&sampler);
+   SamplerMTL* ptr = reinterpret_cast<SamplerMTL*>(sampler.get());
    [layout->handle setSamplerState:ptr->handle atIndex:slot];
 
    // TODO: Unlock layout mutex
    }
    
-   void DescriptorSetMTL::setTextureView(const uint32 slot, const Ptr<TextureView> view)
+   void DescriptorSetMTL::setTextureView(const uint32 slot, const shared_ptr<TextureView> view)
    {
    // TODO: Shouldn't above global slot be recomputed to local TextureView slot?
    //       Is this "bind point index" global or local?
@@ -246,7 +246,7 @@ namespace en
    // TODO: Layout mutex lock, to prevent of other thread corrupting currently set buffer for encoding
    [layout->handle setArgumentBuffer:handle offset:0];
    
-   TextureViewMTL* ptr = raw_reinterpret_cast<TextureViewMTL>(&view);
+   TextureViewMTL* ptr = reinterpret_cast<TextureViewMTL*>(view.get());
    [layout->handle setTexture:ptr->handle atIndex:slot];
    
    // TODO: Unlock layout mutex
@@ -255,7 +255,7 @@ namespace en
    }
    
    // TODO: Consider in future exposing API that allows binding N resources at the same time
-   //void DescriptorSetMTL::setTextureViews(const uint32 slot, const uint32 count, const Ptr<TextureView>* views)
+   //void DescriptorSetMTL::setTextureViews(const uint32 slot, const uint32 count, const shared_ptr<TextureView>* views)
    //{
    //assert( views );
    //[layout->handle setBuffers:(const id <MTLBuffer> __nullable [__nonnull])buffers offsets:(const NSUInteger [__nonnull])offsets withRange:NSMakeRange(slot, count)];
@@ -277,24 +277,20 @@ namespace en
    {
    }
    
-   Ptr<DescriptorSet> DescriptorsMTL::allocate(const Ptr<SetLayout> layout)
+   shared_ptr<DescriptorSet> DescriptorsMTL::allocate(const shared_ptr<SetLayout> layout)
    {
-   Ptr<DescriptorSetMTL> result = nullptr;
-   
    // TODO: In Metal, we allocate DescriptorSets directly from Device memory,
    //       thus Descriptors container is not needed. Consider hiding this
    //       abstraction from API, the same way like CommandAllocators.
-   result = new DescriptorSetMTL(gpu, ptr_reinterpret_cast<SetLayoutMTL>(&layout));
-   
-   return ptr_reinterpret_cast<DescriptorSet>(&result);
+   return make_shared<DescriptorSetMTL>(gpu, dynamic_pointer_cast<SetLayoutMTL>(layout));
    }
    
    bool DescriptorsMTL::allocate(const uint32 count,
-                                 const Ptr<SetLayout>* layouts,
-                                 Ptr<DescriptorSet>** sets)
+                                 const shared_ptr<SetLayout>(&layouts)[],
+                                 shared_ptr<DescriptorSet>** sets)
    {
    // Allocate group of Descriptor Sets from Desriptor Pool
-   *sets = new Ptr<DescriptorSet>[count];
+   *sets = new shared_ptr<DescriptorSet>[count];
    for(uint32 i=0; i<count; ++i)
       {
       (*sets)[i] = allocate(layouts[i]);
@@ -319,39 +315,37 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
    
-   void CommandBufferMTL::setDescriptors(const Ptr<PipelineLayout> _layout,
-                                         const Ptr<DescriptorSet> _set,
+   void CommandBufferMTL::setDescriptors(const PipelineLayout& _layout,
+                                         const DescriptorSet& _set,
                                          const uint32 index)
    {
    assert( renderEncoder );
-   assert( _layout );
-   assert( _set );
-   
-   PipelineLayoutMTL* layout = raw_reinterpret_cast<PipelineLayoutMTL>(&_layout);
-   DescriptorSetMTL*  set    = raw_reinterpret_cast<DescriptorSetMTL>(&_set);
+
+   const PipelineLayoutMTL& layout = reinterpret_cast<const PipelineLayoutMTL&>(_layout);
+   const DescriptorSetMTL&  set    = reinterpret_cast<const DescriptorSetMTL&>(_set);
    
    // Verify that index is in range of the layout
-   assert( layout->setsCount > index );
+   assert( layout.setsCount > index );
    
    // Verify that set is based on setLayout that matches N'th setLayout from PipelineLayout
-   assert( layout->setLayout[index] == set->layout );
+   assert( layout.setLayout[index] == set.layout );
    
    // TODO: Optimize upload of descriptors to VRAM
 #if defined(EN_PLATFORM_OSX)
-   [set->handle didModifyRange:NSMakeRange(0, [set->layout->handle encodedLength])];
+   [set.handle didModifyRange:NSMakeRange(0, [set.layout->handle encodedLength])];
 #endif
 
    // Bind descriptor set only to pipeline stage it is visible in
-   uint32 mask = underlyingType(set->layout->stageMask);
+   uint32 mask = underlyingType(set.layout->stageMask);
    if (checkBitmask(mask, underlyingType(ShaderStages::Vertex)))
       {
-      [renderEncoder setVertexBuffer:set->handle
+      [renderEncoder setVertexBuffer:set.handle
                               offset:0
                              atIndex:30 - index]; // Metal shares "argument table" between Input Assembler and standard binding slots!!! WTF??!!
       }
    if (checkBitmask(mask, underlyingType(ShaderStages::Fragment)))
       {
-      [renderEncoder setFragmentBuffer:set->handle
+      [renderEncoder setFragmentBuffer:set.handle
                                 offset:0
                                atIndex:30 - index]; // Metal shares "argument table" between Input Assembler and standard binding slots!!! WTF??!!
       }
@@ -360,19 +354,19 @@ namespace en
    // setBuffer:offset:atIndex:
                           
    // Ensure that Heaps that are backing all bound resources are resident in GPU VRAM
-   for(uint32 i=0; i<set->heapsCount; ++i)
-      if (set->heapsUsed[i] != nullptr)
+   for(uint32 i=0; i<set.heapsCount; ++i)
+      if (set.heapsUsed[i] != nullptr)
          {
-         if ([set->heapsUsed[i] conformsToProtocol:@protocol(MTLHeap)])
-            [renderEncoder useHeap:set->heapsUsed[i]];
+         if ([set.heapsUsed[i] conformsToProtocol:@protocol(MTLHeap)])
+            [renderEncoder useHeap:set.heapsUsed[i]];
          else
-            [renderEncoder useResource:(id<MTLResource>)set->heapsUsed[i] usage:MTLResourceUsageRead];
+            [renderEncoder useResource:(id<MTLResource>)set.heapsUsed[i] usage:MTLResourceUsageRead];
          }
    }
                                   
-   void CommandBufferMTL::setDescriptors(const Ptr<PipelineLayout> layout,
+   void CommandBufferMTL::setDescriptors(const PipelineLayout& layout,
                                          const uint32 count,
-                                         const Ptr<DescriptorSet>* sets,
+                                         const shared_ptr<DescriptorSet>(&sets)[],
                                          const uint32 firstIndex)
    {
    // TODO: Finish!
@@ -386,14 +380,14 @@ namespace en
    
    
    // stageMask is ignored in Metal
-   Ptr<SetLayout> MetalDevice::createSetLayout(const uint32 count,
+   shared_ptr<SetLayout> MetalDevice::createSetLayout(const uint32 count,
                                                const ResourceGroup* group,
                                                const ShaderStages stageMask)
    {
    assert( count );
    assert( group );
    
-   Ptr<SetLayoutMTL> result = nullptr;
+   shared_ptr<SetLayoutMTL> result = nullptr;
    
    uint32 slot = 0;
       
@@ -428,24 +422,24 @@ namespace en
    // Create arguments encoder (Descriptors Layout)
    id<MTLArgumentEncoder> encoder = [device newArgumentEncoderWithArguments:arguments];
    if (encoder)
-      result = new SetLayoutMTL(encoder, stageMask, slot);
+      result = make_shared<SetLayoutMTL>(encoder, stageMask, slot);
       
-   return ptr_reinterpret_cast<SetLayout>(&result);
+   return result;
    }
    
-   Ptr<PipelineLayout> MetalDevice::createPipelineLayout(const uint32 sets,
-                                                         const Ptr<SetLayout>* set,
-                                                         const uint32 immutableSamplers,
-                                                         const Ptr<Sampler>* sampler,
-                                                         const ShaderStages stageMask)
+   shared_ptr<PipelineLayout> MetalDevice::createPipelineLayout(const uint32 sets,
+                                                                const shared_ptr<SetLayout>* set,
+                                                                const uint32 immutableSamplers,
+                                                                const shared_ptr<Sampler>* sampler,
+                                                                const ShaderStages stageMask)
    {
-   Ptr<PipelineLayoutMTL> result = nullptr;
+   shared_ptr<PipelineLayoutMTL> result = nullptr;
    
    MTLMutability mutability = MTLMutabilityImmutable;
 
-   result = new PipelineLayoutMTL(this, sets);
+   result = make_shared<PipelineLayoutMTL>(this, sets);
    for(uint32 i=0; i<sets; ++i)
-      result->setLayout[i] = ptr_reinterpret_cast<SetLayoutMTL>(&set[i]);
+      result->setLayout[i] = dynamic_pointer_cast<SetLayoutMTL>(set[i]);
    
    //  MTLArgumentBuffersTier argumentBuffersSupport
    
@@ -459,20 +453,16 @@ namespace en
    
    // TODO: Finish / Emulate !
    
-   return ptr_reinterpret_cast<PipelineLayout>(&result);
+   return result;
    }
    
-   Ptr<Descriptors> MetalDevice::createDescriptorsPool(const uint32 maxSets,
+   shared_ptr<Descriptors> MetalDevice::createDescriptorsPool(const uint32 maxSets,
                                                        const uint32 (&count)[underlyingType(ResourceType::Count)])
    {
-   Ptr<DescriptorsMTL> result = nullptr;
-   
    // TODO: In Metal, we allocate DescriptorSets directly from Device memory,
    //       thus Descriptors container is not needed. Consider hiding this
    //       abstraction from API, the same way like CommandAllocators.
-   result = new DescriptorsMTL(this);
-   
-   return ptr_reinterpret_cast<Descriptors>(&result);
+   return make_shared<DescriptorsMTL>(this);
    }
    
    }

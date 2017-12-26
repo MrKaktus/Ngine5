@@ -65,15 +65,14 @@ namespace en
 
    // TODO: Compare with OpenGL, Vulkan, Metal default states
    BlendAttachmentInfo::BlendAttachmentInfo() :
-      blending(false),
-    //logicOperation(false),
+      mode(BlendMode::Off),
       srcRGB(One),
       dstRGB(Zero),
-      rgbFunc(Add),
+      rgb(Add),
       srcAlpha(One),
       dstAlpha(Zero),
-      alphaFunc(Add),
-    //logic(NoOperation),
+      alpha(Add),
+      logic(NoOperation),
       writeMask(ColorMaskAll)
    {
    }

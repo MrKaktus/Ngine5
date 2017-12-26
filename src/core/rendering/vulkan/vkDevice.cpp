@@ -88,7 +88,7 @@ namespace en
    #define LoadDeviceFunction(function)                                          \
    {                                                                             \
    /* We don't need to do this. api is already declared in Device.               \ 
-   VulkanAPI* api = raw_reinterpret_cast<VulkanAPI>(&Graphics); */               \
+   VulkanAPI* api = reinterpret_cast<VulkanAPI*>(Graphics.get()); */             \
    function = (PFN_##function) api->vkGetDeviceProcAddr(device, #function);      \
    if (function == nullptr)                                                      \
       {                                                                          \
@@ -307,9 +307,9 @@ namespace en
    defaultAllocCallbacks.pfnInternalFree       = defaultIntFree;
 
    // Gather Device Capabilities
-   ProfileNoRet( api, vkGetPhysicalDeviceFeatures(handle, &features) )
-   ProfileNoRet( api, vkGetPhysicalDeviceProperties(handle, &properties) )
-   ProfileNoRet( api, vkGetPhysicalDeviceMemoryProperties(handle, &memory) )
+   ValidateNoRet( api, vkGetPhysicalDeviceFeatures(handle, &features) )
+   ValidateNoRet( api, vkGetPhysicalDeviceProperties(handle, &properties) )
+   ValidateNoRet( api, vkGetPhysicalDeviceMemoryProperties(handle, &memory) )
 
     for(uint32_t i=0; i<memory.memoryHeapCount; ++i)
        {
@@ -341,16 +341,16 @@ namespace en
 
 
  // TODO: Gather even more information
- //ProfileNoRet( api, vkGetPhysicalDeviceFormatProperties(handle, VkFormat format, VkFormatProperties* pFormatProperties) )
- //ProfileNoRet( api, vkGetPhysicalDeviceImageFormatProperties(handle, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties) )
+ //ValidateNoRet( api, vkGetPhysicalDeviceFormatProperties(handle, VkFormat format, VkFormatProperties* pFormatProperties) )
+ //ValidateNoRet( api, vkGetPhysicalDeviceImageFormatProperties(handle, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties) )
 
    // Queue Families, Queues
    //------------------------
 
    // Gather information about Queue Families supported by this device
-   ProfileNoRet( api, vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, nullptr) )
+   ValidateNoRet( api, vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, nullptr) )
    queueFamily = new VkQueueFamilyProperties[queueFamiliesCount];
-   ProfileNoRet( api, vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, queueFamily) )
+   ValidateNoRet( api, vkGetPhysicalDeviceQueueFamilyProperties(handle, &queueFamiliesCount, queueFamily) )
 
    // Generate list of all Queue Family indices.
    // This list will be passed during resource creation time for resources that need to be populated first.
@@ -460,14 +460,14 @@ namespace en
    //-------------------
 
    // Acquire list of Device extensions
-   Profile( api, vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, nullptr) )
+   Validate( api, vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, nullptr) )
    if (IsWarning(api->lastResult[Scheduler.core()]))
       assert( 0 );
 
    if (globalExtensionsCount > 0)
       {
       globalExtension = new VkExtensionProperties[globalExtensionsCount];
-      Profile( api, vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, globalExtension) )
+      Validate( api, vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, globalExtension) )
       }
 
    // While creating device, we can choose to init as many Queue Families as we want (but each only once).
@@ -547,7 +547,7 @@ namespace en
    // TODO: In the future provide our own allocation callbacks to track
    //       and analyze drivers system memory usage (&defaultAllocCallbacks).
 
-   Profile( api, vkCreateDevice(handle, &deviceInfo, nullptr, &device) )
+   Validate( api, vkCreateDevice(handle, &deviceInfo, nullptr, &device) )
 
    // Bind Device Functions
    loadDeviceFunctionPointers();
@@ -581,7 +581,7 @@ namespace en
          poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT; // To reuse CB's use VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
          poolInfo.queueFamilyIndex = queueFamilyId;
          
-         Profile( this, vkCreateCommandPool(device, &poolInfo, nullptr, (VkCommandPool*)(&commandPool[thread][i])) )
+         Validate( this, vkCreateCommandPool(device, &poolInfo, nullptr, (VkCommandPool*)(&commandPool[thread][i])) )
          }
 
    // <<<< Per Thread Section
@@ -592,7 +592,7 @@ namespace en
    // // Resets Command Pool, frees all resources encoded on all CB's created from this pool. CB's are reset to initial state.
    // uint32 thread = 0; 
    // uint32 type = 0;
-   // Profile( vkResetCommandPool(VkDevice device, commandPool[thread][type], VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT) )
+   // Validate( vkResetCommandPool(VkDevice device, commandPool[thread][type], VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT) )
 
 
    // Pipeline Cache
@@ -610,7 +610,7 @@ namespace en
    cacheInfo.initialDataSize = cacheSize; // Cache size will never be greater than 4GB
    cacheInfo.pInitialData    = cacheData;
 
-   Profile( this, vkCreatePipelineCache(device, &cacheInfo, nullptr, &pipelineCache) )
+   Validate( this, vkCreatePipelineCache(device, &cacheInfo, nullptr, &pipelineCache) )
 
    // Release temporary buffer
    delete [] cacheData;
@@ -638,7 +638,7 @@ namespace en
    // Try to reuse pipeline cache from disk. 
    // It is assumed that devices are always enumerated in the same order.
    string filename = string("gpu") + stringFrom(index) + string("pipelineCache.data");
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       return nullptr;
 
@@ -663,7 +663,7 @@ namespace en
 
    // Read size of driver cache in RAM (should be at least size of a header)
    uint64 cacheSize = 0u;
-   Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), nullptr) )
+   Validate( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), nullptr) )
    if (cacheSize < sizeof(PipelineCacheHeader))
       {
       file = nullptr;
@@ -673,7 +673,7 @@ namespace en
    // Read driver cache header
    PipelineCacheHeader driverHeader;
    uint64 headerSize = sizeof(PipelineCacheHeader);
-   Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&headerSize), &driverHeader) )
+   Validate( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&headerSize), &driverHeader) )
 
    // Ensure that both headers match. This means that cache stored on 
    // disk is still valid (headers won't match after drivers update, GPU change, etc.).
@@ -729,7 +729,7 @@ namespace en
 
    VulkanDevice::~VulkanDevice()
    {
-   Profile( this, vkDeviceWaitIdle(device) )
+   Validate( this, vkDeviceWaitIdle(device) )
    
    // If requested recreate pipeline cache on disk
    if (rebuildCache)
@@ -745,7 +745,7 @@ namespace en
 
       // Read size of driver cache
       uint64 cacheSize = 0u;
-      Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), nullptr) )
+      Validate( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), nullptr) )
       
       // Try to reuse Pipeline objects from the previous application run (read from drivers cache on the disk).
       if (cacheSize > 0u)
@@ -755,10 +755,10 @@ namespace en
             cacheSize = PipelineCacheMaximumSize;
 
          uint8* cacheData = new uint8[cacheSize];
-         Profile( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), cacheData) )
+         Validate( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), cacheData) )
 
          string filename = string("gpu") + stringFrom(index) + string("pipelineCache.data");
-         Ptr<File> file = Storage->open(filename, FileAccess::Write);
+         shared_ptr<File> file = Storage->open(filename, FileAccess::Write);
          if (file)
             {
             file->write(cacheSize, cacheData);
@@ -769,7 +769,7 @@ namespace en
          }
       }
 
-   ProfileNoRet( this, vkDestroyPipelineCache(device, pipelineCache, nullptr) )
+   ValidateNoRet( this, vkDestroyPipelineCache(device, pipelineCache, nullptr) )
 
    // Release CommandBuffers in flight once they are done
    bool stillExecuting;
@@ -781,7 +781,7 @@ namespace en
       uint32 executing = commandBuffersExecuting[thread];
       for(uint32 i=0; i<executing; ++i)
          {
-         CommandBufferVK* command = raw_reinterpret_cast<CommandBufferVK>(&commandBuffers[thread][i]);
+         CommandBufferVK* command = reinterpret_cast<CommandBufferVK*>(commandBuffers[thread][i].get());
          if (command->isCompleted())
             {
             // Safely release Command Buffer object
@@ -808,12 +808,12 @@ namespace en
    // Release all Command Pools used by this thread for Commands submission
    for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
       if (queuesCount[i] > 0)
-         ProfileNoRet( this, vkDestroyCommandPool(device, commandPool[thread][i], nullptr) )
+         ValidateNoRet( this, vkDestroyCommandPool(device, commandPool[thread][i], nullptr) )
 
    // <<<< Per Thread Section
 
    if (device != VK_NULL_HANDLE)
-      ProfileNoRet( this, vkDestroyDevice(device, nullptr) )  // Instance or Device function ?
+      ValidateNoRet( this, vkDestroyDevice(device, nullptr) )  // Instance or Device function ?
 
    delete [] queueFamily;
    delete [] queueFamilyIndices;
@@ -1152,12 +1152,12 @@ namespace en
    return queuesCount[underlyingType(type)];  //Need translation table from (Type, N) -> (Family, Index)
    }
 
-   Ptr<Texture> VulkanDevice::createSharedTexture(Ptr<SharedSurface> backingSurface)
+   shared_ptr<Texture> VulkanDevice::createSharedTexture(shared_ptr<SharedSurface> backingSurface)
    {
    // Vulkan is not supporting cross-API / cross-process surfaces for now.
    // Implement it in the future.
    assert( 0 );
-   return Ptr<Texture>(nullptr);
+   return shared_ptr<Texture>(nullptr);
    }
 
 
@@ -1190,7 +1190,7 @@ namespace en
    //   allocInfo.memoryTypeIndex = index;
    //   
    //   // Profile will block here !!! FIXME !!!
-   //   Profile( this, vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
+   //   Validate( this, vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
    //   if (lastResult[Scheduler.core()] == VK_SUCCESS)
    //      return handle;
    //   }
@@ -1490,20 +1490,20 @@ namespace en
    //------------------------------------
 
    // Acquire list of Vulkan extensions 
-   Profile( this, vkEnumerateInstanceExtensionProperties(nullptr, &globalExtensionsCount, nullptr) )
+   Validate( this, vkEnumerateInstanceExtensionProperties(nullptr, &globalExtensionsCount, nullptr) )
    if (IsWarning(lastResult[0]))
       assert( 0 );
 
    if (globalExtensionsCount > 0)
       {
       globalExtension = new VkExtensionProperties[globalExtensionsCount];
-      Profile( this, vkEnumerateInstanceExtensionProperties(nullptr, &globalExtensionsCount, globalExtension) )
+      Validate( this, vkEnumerateInstanceExtensionProperties(nullptr, &globalExtensionsCount, globalExtension) )
       }
       
    // Gather available Vulkan Instance Layers & Layers Extensions
    //-------------------------------------------------------------
 
-   Profile( this, vkEnumerateInstanceLayerProperties(&layersCount, nullptr) )
+   Validate( this, vkEnumerateInstanceLayerProperties(&layersCount, nullptr) )
    if (IsWarning(lastResult[0]))
       assert( 0 );
 
@@ -1511,7 +1511,7 @@ namespace en
    if (layersCount > 0)
       {
       VkLayerProperties* layerProperties = new VkLayerProperties[layersCount];
-      Profile( this, vkEnumerateInstanceLayerProperties(&layersCount, layerProperties) )
+      Validate( this, vkEnumerateInstanceLayerProperties(&layersCount, layerProperties) )
       
       layer = new LayerDescriptor[layersCount];
 
@@ -1520,14 +1520,14 @@ namespace en
          {
          layer[i].properties = layerProperties[i];
 
-         Profile( this, vkEnumerateInstanceExtensionProperties(layer[i].properties.layerName, &layer[i].extensionsCount, nullptr) )
+         Validate( this, vkEnumerateInstanceExtensionProperties(layer[i].properties.layerName, &layer[i].extensionsCount, nullptr) )
          if (IsWarning(lastResult[0]))
             assert( 0 );
 
          if (layer[i].extensionsCount > 0)
             {
             layer[i].extension = new VkExtensionProperties[layer[i].extensionsCount];
-            Profile( this, vkEnumerateInstanceExtensionProperties(layer[i].properties.layerName, &layer[i].extensionsCount, layer[i].extension) )
+            Validate( this, vkEnumerateInstanceExtensionProperties(layer[i].properties.layerName, &layer[i].extensionsCount, layer[i].extension) )
             }
          }
 
@@ -1677,7 +1677,7 @@ namespace en
    // TODO: In the future provide our own allocation callbacks to track
    //       and analyze drivers system memory usage (&defaultAllocCallbacks).
 
-   Profile( this, vkCreateInstance(&instInfo, nullptr, &instance) )
+   Validate( this, vkCreateInstance(&instInfo, nullptr, &instance) )
 
    // Bind Interface functions
    loadInterfaceFunctionPointers();
@@ -1689,12 +1689,12 @@ namespace en
    //-----------------------
 
    // Enumerate available physical devices
-   Profile( this, vkEnumeratePhysicalDevices(instance, &devicesCount, nullptr) )
+   Validate( this, vkEnumeratePhysicalDevices(instance, &devicesCount, nullptr) )
    VkPhysicalDevice* deviceHandle = new VkPhysicalDevice[devicesCount];
-   Profile( this, vkEnumeratePhysicalDevices(instance, &devicesCount, deviceHandle) )
+   Validate( this, vkEnumeratePhysicalDevices(instance, &devicesCount, deviceHandle) )
 
    // Create interfaces for all available physical devices
-   device = new Ptr<VulkanDevice>[devicesCount];
+   device = new shared_ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
       device[i] = new VulkanDevice(this, i, deviceHandle[i]);
  
@@ -1710,7 +1710,7 @@ namespace en
    debugInfo.pfnCallback = vulkanDebugCallbackLogger;
    debugInfo.pUserData   = nullptr;
 
-   Profile( this, vkCreateDebugReportCallbackEXT(instance, &debugInfo, nullptr, &debugCallbackHandle) )
+   Validate( this, vkCreateDebugReportCallbackEXT(instance, &debugInfo, nullptr, &debugCallbackHandle) )
 #endif
 
    delete [] deviceHandle;
@@ -1731,7 +1731,7 @@ namespace en
    
    // Release Vulkan instance
    if (instance != VK_NULL_HANDLE)
-      ProfileNoRet( this, vkDestroyInstance(instance, nullptr) )
+      ValidateNoRet( this, vkDestroyInstance(instance, nullptr) )
  
    // Clear Vulkan function pointers
    clearInterfaceFunctionPointers();
@@ -1816,9 +1816,9 @@ namespace en
    return devicesCount;
    }
          
-   Ptr<GpuDevice> VulkanAPI::primaryDevice(void) const
+   shared_ptr<GpuDevice> VulkanAPI::primaryDevice(void) const
    {
-   return ptr_reinterpret_cast<GpuDevice>(&device[0]);
+   return device[0];
    }
 
    uint32 VulkanAPI::displays(void) const
@@ -1826,15 +1826,15 @@ namespace en
    return displaysCount;
    }
    
-   Ptr<Display> VulkanAPI::primaryDisplay(void) const
+   shared_ptr<Display> VulkanAPI::primaryDisplay(void) const
    {
-   return ptr_reinterpret_cast<Display>(&displayArray[0]);
+   return displayArray[0];
    }
    
-   Ptr<Display> VulkanAPI::display(uint32 index) const
+   shared_ptr<Display> VulkanAPI::display(uint32 index) const
    {
    assert( index < displaysCount );
-   return ptr_reinterpret_cast<Display>(&displayArray[index]);   
+   return displayArray[index];   
    }
 
 

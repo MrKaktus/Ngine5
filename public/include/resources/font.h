@@ -11,9 +11,11 @@
 #ifndef ENG_RESOURCES_FONT
 #define ENG_RESOURCES_FONT
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 namespace en
 {
@@ -21,7 +23,7 @@ namespace en
    {
 
 
-   Ptr<Font> load(const string& filename);
+   shared_ptr<Font> load(const string& filename);
    }*/
 }
 

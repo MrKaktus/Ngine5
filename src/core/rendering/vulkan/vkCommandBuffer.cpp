@@ -67,11 +67,11 @@ namespace en
    // which will remove it automatically, when completion is signaled through Fence.
 
    // Release fence
-   ProfileNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
+   ValidateNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
    
    // Release Command Buffer
    uint32 thread = Scheduler.core();
-   ProfileNoRet( gpu, vkFreeCommandBuffers(gpu->device, gpu->commandPool[thread][underlyingType(queueType)], 1, &handle) )
+   ValidateNoRet( gpu, vkFreeCommandBuffers(gpu->device, gpu->commandPool[thread][underlyingType(queueType)], 1, &handle) )
    }
 
 
@@ -108,12 +108,12 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
 
-   void CommandBufferVK::start(const Ptr<Semaphore> waitForSemaphore)
+   void CommandBufferVK::start(const shared_ptr<Semaphore> waitForSemaphore)
    {
    assert( !started );
 
    if (waitForSemaphore)
-      semaphore = ptr_reinterpret_cast<SemaphoreVK>(&waitForSemaphore);
+      semaphore = dynamic_pointer_cast<SemaphoreVK>(waitForSemaphore);
 
    // In Metal API we need to create Render Command Encoder.
    // In Vulkan API CommandBuffer needs to be started first,
@@ -130,7 +130,7 @@ namespace en
    started = true;
    }
    
-   void CommandBufferVK::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer> _framebuffer)
+   void CommandBufferVK::startRenderPass(const shared_ptr<RenderPass> pass, const shared_ptr<Framebuffer> _framebuffer)
    {
    assert( started );
    assert( !encoding );
@@ -138,8 +138,8 @@ namespace en
    assert( pass );
    assert( _framebuffer );
 
-   RenderPassVK*  renderPass  = raw_reinterpret_cast<RenderPassVK>(&pass);
-   FramebufferVK* framebuffer = raw_reinterpret_cast<FramebufferVK>(&_framebuffer);
+   RenderPassVK*  renderPass  = reinterpret_cast<RenderPassVK*>(pass.get());
+   FramebufferVK* framebuffer = reinterpret_cast<FramebufferVK*>(_framebuffer.get());
 
    // Begin encoding commands for this Render Pass
    VkRenderPassBeginInfo beginInfo;
@@ -151,7 +151,7 @@ namespace en
    beginInfo.clearValueCount = renderPass->surfaces;
    beginInfo.pClearValues    = renderPass->clearValues;
 
-   ProfileNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )
+   ValidateNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )
    
    encoding = true;
    }
@@ -162,7 +162,7 @@ namespace en
    assert( encoding );
 
    // End encoding commands for this Render Pass
-   ProfileNoRet( gpu, vkCmdEndRenderPass(handle) )
+   ValidateNoRet( gpu, vkCmdEndRenderPass(handle) )
     
    encoding = false;
    }
@@ -172,11 +172,13 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::setVertexBuffers(const uint32 count, const uint32 firstSlot, const Ptr<Buffer>* buffers, const uint64* offsets) const
+   void CommandBufferVK::setVertexBuffers(const uint32 count,
+                                          const uint32 firstSlot,
+                                          const shared_ptr<Buffer>(&buffers)[],
+                                          const uint64* offsets) const
    {
    assert( started );
    assert( count );
-   assert( buffers );
    assert( (firstSlot + count) <= gpu->support.maxInputLayoutBuffersCount );
 
    // Extract Vulkan buffer handles
@@ -184,7 +186,7 @@ namespace en
    for(uint32 i=0; i<count; ++i)
       {
       assert( buffers[i] );
-      handles[i] = ptr_dynamic_cast<BufferVK, Buffer>(buffers[i])->handle;
+      handles[i] = reinterpret_cast<BufferVK*>(buffers[i].get())->handle;
       }
 
    // Generate default zero offsets array if none is passed
@@ -195,26 +197,28 @@ namespace en
 	  memset(finalOffsets, 0, sizeof(uint64)*count);
 	  }
 
-   ProfileNoRet( gpu, vkCmdBindVertexBuffers(handle, 
-                                             firstSlot, 
-                                             count, 
-                                             handles, 
-                                             static_cast<const VkDeviceSize*>(finalOffsets)) )
+   ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
+                                              firstSlot,
+                                              count,
+                                              handles,
+                                              static_cast<const VkDeviceSize*>(finalOffsets)) )
    delete [] handles;
    if (!offsets)
       delete [] finalOffsets;
    }
 
-   void CommandBufferVK::setVertexBuffer(const uint32 slot, const Ptr<Buffer> buffer, const uint64 offset) const
+   void CommandBufferVK::setVertexBuffer(const uint32 slot,
+                                         const Buffer& buffer,
+                                         const uint64 offset) const
    {
    assert( started );
    assert( buffer );
    assert( slot < gpu->support.maxInputLayoutBuffersCount );
 
-   ProfileNoRet( gpu, vkCmdBindVertexBuffers(handle, 
-                                             slot, 1,
-                                             &raw_reinterpret_cast<BufferVK>(&buffer)->handle, 
-                                             static_cast<const VkDeviceSize*>(&offset)) )
+   ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
+                                              slot, 1,
+                                              &reinterpret_cast<const BufferVK&>(buffer).handle,
+                                              static_cast<const VkDeviceSize*>(&offset)) )
    }
 
 
@@ -222,61 +226,65 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::copy(Ptr<Buffer> source, Ptr<Buffer> destination)
+   void CommandBufferVK::copy(const Buffer& source, const Buffer& destination)
    {
    assert( started );
-   assert( source );
-   assert( destination );
+   assert( source.length() <= destination.length() );
 
-   copy(source, destination, source->length());
+   copy(source, destination, source.length());
    }
    
-   void CommandBufferVK::copy(Ptr<Buffer> source,
-      Ptr<Buffer> destination,
-      uint64 size,
-      uint64 srcOffset,
-      uint64 dstOffset)
+   void CommandBufferVK::copy(
+      const Buffer& source,
+      const Buffer& destination,
+      const uint64 size,
+      const uint64 srcOffset,
+      const uint64 dstOffset)
    {
    assert( started );
-   assert( source );
-   assert( destination );
-
-   BufferVK* src = raw_reinterpret_cast<BufferVK>(&source);
-   BufferVK* dst = raw_reinterpret_cast<BufferVK>(&destination);
+   assert( source.type() == BufferType::Transfer );
+   assert( (srcOffset + size) <= source.length() );
+   assert( (dstOffset + size) <= destination.length() );
+   
+   const BufferVK& src = reinterpret_cast<const BufferVK&>(source);
+   const BufferVK& dst = reinterpret_cast<const BufferVK&>(destination);
 
    VkBufferCopy region;
    region.srcOffset = srcOffset;
    region.dstOffset = dstOffset;
    region.size      = size;
 
-   ProfileNoRet( gpu, vkCmdCopyBuffer(handle,
-                                      src->handle,
-                                      dst->handle,
+   ValidateNoRet( gpu, vkCmdCopyBuffer(handle,
+                                      src.handle,
+                                      dst.handle,
                                       1u,
                                       &region) )
    }
 
-   void CommandBufferVK::copy(Ptr<Buffer> transfer, const uint64 srcOffset, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   void CommandBufferVK::copy(
+       const Buffer& transfer,
+       const uint64 srcOffset,
+       const Texture& texture,
+       const uint32 mipmap,
+       const uint32 layer)
    {
    assert( started );
-   assert( transfer );
-   assert( transfer->type() == BufferType::Transfer );
-   assert( texture );
-   assert( texture->mipmaps() > mipmap );
-   assert( texture->layers() > layer );
+   assert( transfer.type() == BufferType::Transfer );
+   assert( texture.mipmaps() > mipmap );
+   assert( texture.layers() > layer );
    
-   BufferVK*  source      = raw_reinterpret_cast<BufferVK>(&transfer);
-   TextureVK* destination = raw_reinterpret_cast<TextureVK>(&texture);
+   const BufferVK&  source      = reinterpret_cast<const BufferVK&>(transfer);
+   const TextureVK& destination = reinterpret_cast<const TextureVK&>(texture);
 
-   assert( source->size >= srcOffset + destination->size(mipmap) );
+   assert( source.size >= srcOffset + destination.size(mipmap) );
    
    VkImageSubresourceLayers layersInfo;
-   layersInfo.aspectMask     = TranslateImageAspect(destination->state.format);
+   layersInfo.aspectMask     = TranslateImageAspect(destination.state.format);
    layersInfo.mipLevel       = mipmap;
    layersInfo.baseArrayLayer = layer;
    layersInfo.layerCount     = 1u;
    
-   assert( source->size < 0xFFFFFFFF );
+   assert( source.size < 0xFFFFFFFF );
 
    VkBufferImageCopy regionInfo;
    regionInfo.bufferOffset      = srcOffset;
@@ -284,17 +292,21 @@ namespace en
    regionInfo.bufferImageHeight = 0u;
    regionInfo.imageSubresource  = layersInfo;
    regionInfo.imageOffset       = { 0u, 0u, 0u };
-   regionInfo.imageExtent       = { destination->width(mipmap), destination->height(mipmap), 1 };
+   regionInfo.imageExtent       = { destination.width(mipmap), destination.height(mipmap), 1 };
    
-   ProfileNoRet( gpu, vkCmdCopyBufferToImage(handle,
-                                             source->handle,
-                                             destination->handle,
+   ValidateNoRet( gpu, vkCmdCopyBufferToImage(handle,
+                                             source.handle,
+                                             destination.handle,
                                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                              1, &regionInfo) )
 
    }
 
-   void CommandBufferVK::copy(Ptr<Buffer> transfer, Ptr<Texture> texture, const uint32 mipmap, const uint32 layer)
+   void CommandBufferVK::copy(
+       const Buffer& transfer,
+       const Texture& texture,
+       const uint32 mipmap,
+       const uint32 layer)
    {
    copy(transfer, 0u, texture, mipmap, layer);
    }
@@ -367,18 +379,17 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::setPipeline(const Ptr<Pipeline> pipeline)
+   void CommandBufferVK::setPipeline(const Pipeline& _pipeline)
    {
    assert( started );
-   assert( pipeline );
-
-   PipelineVK* ptr = raw_reinterpret_cast<PipelineVK>(&pipeline);
+   
+   const PipelineVK& pipeline = reinterpret_cast<const PipelineVK&>(_pipeline);
 
    VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-   if (!ptr->graphics)
+   if (!pipeline.graphics)
       bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
 
-   ProfileNoRet( gpu, vkCmdBindPipeline(handle, bindPoint, ptr->handle) )
+   ValidateNoRet( gpu, vkCmdBindPipeline(handle, bindPoint, pipeline.handle) )
    }
 
 
@@ -386,12 +397,12 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::draw(const uint32       elements,
-                              const Ptr<Buffer>  indexBuffer,
-                              const uint32       instances,
-                              const uint32       firstElement,
-                              const sint32       firstVertex,
-                              const uint32       firstInstance)
+   void CommandBufferVK::draw(const uint32  elements,
+                              const Buffer* indexBuffer,
+                              const uint32  instances,
+                              const uint32  firstElement,
+                              const sint32  firstVertex,
+                              const uint32  firstInstance)
    {
    assert( started );
    assert( encoding );
@@ -400,7 +411,7 @@ namespace en
    // Elements are assembled into Primitives.
    if (indexBuffer)
       {
-      BufferVK* index = raw_reinterpret_cast<BufferVK>(&indexBuffer);
+      const BufferVK* index = reinterpret_cast<const BufferVK*>(indexBuffer);
       
       assert( index->apiType == BufferType::Index );
       
@@ -414,46 +425,45 @@ namespace en
          // Index Buffer remains bound to Command Buffer after this call,
          // but because there is no other way to do indexed draw than to
          // go through this API, it's safe to leave it bounded.
-         ProfileNoRet( gpu, vkCmdBindIndexBuffer(handle,
-                                                 index->handle,
-                                                 0,             // Offset In Index Buffer is calculated at draw call.
-                                                 indexType) )
+         ValidateNoRet( gpu, vkCmdBindIndexBuffer(handle,
+                                                  index->handle,
+                                                  0,             // Offset In Index Buffer is calculated at draw call.
+                                                  indexType) )
 
          currentIndexBuffer = index;
          }
 
-      ProfileNoRet( gpu, vkCmdDrawIndexed(handle,
-                                          elements,
-                                          max(1U, instances),
-                                          firstElement,    // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
-                                          firstVertex,     // VertexID of first processed vertex
-                                          firstInstance) ) // InstanceID of first processed instance
+      ValidateNoRet( gpu, vkCmdDrawIndexed(handle,
+                                           elements,
+                                           max(1U, instances),
+                                           firstElement,    // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
+                                           firstVertex,     // VertexID of first processed vertex
+                                           firstInstance) ) // InstanceID of first processed instance
       }
    else
       {
-      ProfileNoRet( gpu, vkCmdDraw(handle,
-                                   elements,
-                                   max(1U, instances),
-                                   firstElement,       // Index of first vertex to draw (offset in buffer, VertexID == 0)
-                                   firstInstance) )
+      ValidateNoRet( gpu, vkCmdDraw(handle,
+                                    elements,
+                                    max(1U, instances),
+                                    firstElement,       // Index of first vertex to draw (offset in buffer, VertexID == 0)
+                                    firstInstance) )
       }
    }
 
-   void CommandBufferVK::draw(const Ptr<Buffer>  indirectBuffer,
-                              const uint32       firstEntry,
-                              const Ptr<Buffer>  indexBuffer,
-                              const uint32       firstElement)
+   void CommandBufferVK::draw(const Buffer& indirectBuffer,
+                              const uint32  firstEntry,
+                              const Buffer* indexBuffer,
+                              const uint32  firstElement)
    {
    assert( started );
    assert( encoding );
-   assert( indirectBuffer );
-   
-   BufferVK* indirect = raw_reinterpret_cast<BufferVK>(&indirectBuffer);
-   assert( indirect->apiType == BufferType::Indirect );
+
+   const BufferVK& indirect = reinterpret_cast<const BufferVK&>(indirectBuffer);
+   assert( indirect.apiType == BufferType::Indirect );
    
    if (indexBuffer)
       {
-      BufferVK* index = raw_reinterpret_cast<BufferVK>(&indexBuffer);
+      const BufferVK* index = reinterpret_cast<const BufferVK*>(indexBuffer);
       assert( index->apiType == BufferType::Index );
       
       uint32 elementSize = 2;
@@ -467,30 +477,30 @@ namespace en
       // Index Buffer remains bound to Command Buffer after this call,
       // but because there is no other way to do indexed draw than to
       // go through this API, it's safe to leave it bounded.
-      ProfileNoRet( gpu, vkCmdBindIndexBuffer(handle,
-                                              index->handle,
-                                              (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indeges groups in one GPU Buffer
-                                              indexType) )
+      ValidateNoRet( gpu, vkCmdBindIndexBuffer(handle,
+                                               index->handle,
+                                               (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indeges groups in one GPU Buffer
+                                               indexType) )
 
       // IndirectIndexedDrawArgument can be directly cast to VkDrawIndexedIndirectCommand.
 
       // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-      ProfileNoRet( gpu, vkCmdDrawIndexedIndirect(handle,
-                                                  indirect->handle,
-                                                  (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
-                                                  (indirect->size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
-                                                  sizeof(VkDrawIndexedIndirectCommand)) )
+      ValidateNoRet( gpu, vkCmdDrawIndexedIndirect(handle,
+                                                   indirect.handle,
+                                                   (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
+                                                   (indirect.size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
+                                                   sizeof(VkDrawIndexedIndirectCommand)) )
       }
    else
       {
       // IndirectDrawArgument can be directly cast to VkDrawIndirectCommand.
       
       // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-      ProfileNoRet( gpu, vkCmdDrawIndirect(handle,
-                                           indirect->handle,
-                                           (firstEntry * sizeof(VkDrawIndirectCommand)),
-                                           (indirect->size / sizeof(VkDrawIndirectCommand)) - firstEntry,
-                                           sizeof(VkDrawIndirectCommand)) )
+      ValidateNoRet( gpu, vkCmdDrawIndirect(handle,
+                                            indirect.handle,
+                                            (firstEntry * sizeof(VkDrawIndirectCommand)),
+                                            (indirect.size / sizeof(VkDrawIndirectCommand)) - firstEntry,
+                                            sizeof(VkDrawIndirectCommand)) )
       }
    }
    
@@ -499,7 +509,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::commit(const Ptr<Semaphore> signalSemaphore)
+   void CommandBufferVK::commit(const shared_ptr<Semaphore> signalSemaphore)
    {
    assert( started );
    assert( !encoding );
@@ -544,7 +554,7 @@ namespace en
    // Signal semaphore for future synchronization.
    if (signalSemaphore)
       {
-      SemaphoreVK* signal = raw_reinterpret_cast<SemaphoreVK>(&signalSemaphore);
+      SemaphoreVK* signal = reinterpret_cast<SemaphoreVK*>(signalSemaphore.get());
 
       submitInfo.signalSemaphoreCount = 1u;   
       submitInfo.pSignalSemaphores    = &signal->handle;        
@@ -561,7 +571,7 @@ namespace en
    // Add this CommandBuffer to device's array of CB's in flight.
    // This will ensure that CommandBuffer won't be destroyed until
    // fence is not signaled.
-   gpu->addCommandBufferToQueue(Ptr<CommandBuffer>(this));
+   gpu->addCommandBufferToQueue(shared_from_this());
 
    commited = true;
    }
@@ -629,7 +639,7 @@ namespace en
    // 
    }
    
-   Ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
+   shared_ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
    {
    assert( queuesCount[underlyingType(type)] > parentQueue );
    
@@ -664,12 +674,12 @@ namespace en
 
    // Acquire queue handle (queues are created at device creation time)
    VkQueue queue;
-   ProfileNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
+   ValidateNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
-   return ptr_dynamic_cast<CommandBuffer, CommandBufferVK>(Ptr<CommandBufferVK>(new CommandBufferVK(this, queue, type, handle, fence)));
+   return make_shared<CommandBufferVK>(this, queue, type, handle, fence);
    }
 
-   void VulkanDevice::addCommandBufferToQueue(Ptr<CommandBuffer> command)
+   void VulkanDevice::addCommandBufferToQueue(shared_ptr<CommandBuffer> command)
    {
    uint32 thread    = Scheduler.core();
    uint32 executing = commandBuffersExecuting[thread];
@@ -687,7 +697,7 @@ namespace en
    uint32 executing = commandBuffersExecuting[thread];
    for(uint32 i=0; i<executing; ++i)
       {
-      CommandBufferVK* command = raw_reinterpret_cast<CommandBufferVK>(&commandBuffers[thread][i]);
+      CommandBufferVK* command = reinterpret_cast<CommandBufferVK*>(commandBuffers[thread][i].get());
       if (command->isCompleted())
          {
          // Safely release Command Buffer object

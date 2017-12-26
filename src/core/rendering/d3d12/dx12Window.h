@@ -37,19 +37,19 @@ namespace en
       IDXGISwapChain1*  swapChain;
       IDXGISwapChain4*  swapChain4;
 
-      Ptr<Texture>*  swapChainTexture;
+      shared_ptr<Texture>* swapChainTexture;
       uint32         swapChainImages;
       uint32         swapChainCurrentImageIndex;
 
       WindowD3D12(Direct3D12Device* gpu,
-                  const Ptr<CommonDisplay> selectedDisplay,
+                  const shared_ptr<CommonDisplay> selectedDisplay,
                   const uint32v2 selectedResolution,
                   const WindowSettings& settings,
                   const string title);
 
       virtual void resize(const uint32v2 size);
-      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr);
-      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr);
+      virtual shared_ptr<Texture> surface(const shared_ptr<Semaphore> signalSemaphore = nullptr);
+      virtual void present(const shared_ptr<Semaphore> waitForSemaphore = nullptr);
       
       virtual ~WindowD3D12();
       };

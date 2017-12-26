@@ -34,11 +34,11 @@ namespace en
    class MetalAPI : public GraphicAPI
       {
       public:
-      Ptr<GpuDevice> device[2];  // Primary and Supporting GPU
+      shared_ptr<GpuDevice> device[2];  // Primary and Supporting GPU
       uint32         devicesCount;
       bool           preferLowPowerGPU; // If set and two GPU's are available, low-power GPU will be choosed over discreete one
-      Ptr<CommonDisplay>* _display;
-      Ptr<CommonDisplay>  virtualDisplay;
+      shared_ptr<CommonDisplay>* _display;
+      shared_ptr<CommonDisplay>  virtualDisplay;
       uint32         displaysCount;
   
 
@@ -47,11 +47,11 @@ namespace en
       virtual RenderingAPI type(void) const;
 
       virtual uint32         devices(void) const;
-      virtual Ptr<GpuDevice> primaryDevice(void) const;
+      virtual shared_ptr<GpuDevice> primaryDevice(void) const;
 
       virtual uint32         displays(void) const;       // Screens count the device can render to
-      virtual Ptr<Display>   primaryDisplay(void) const;
-      virtual Ptr<Display>   display(uint32 index) const;   // Return N'th screen handle
+      virtual shared_ptr<Display>   primaryDisplay(void) const;
+      virtual shared_ptr<Display>   display(uint32 index) const;   // Return N'th screen handle
       
       virtual ~MetalAPI();
       };

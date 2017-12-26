@@ -42,10 +42,6 @@ namespace en
                                       const ViewportStateInfo* viewports,
                                       const ScissorStateInfo* scissors)
    {
-   assert( count );
-   assert( viewports );
-   assert( scissors );
-   
    viewport.originX = static_cast<double>(viewports[0].rect.x);
    viewport.originY = static_cast<double>(viewports[0].rect.y);
    viewport.width   = static_cast<double>(viewports[0].rect.z);
@@ -63,12 +59,15 @@ namespace en
    }
    
       
-   Ptr<ViewportState> MetalDevice::createViewportState(const uint32 count,
-                                                       const ViewportStateInfo* viewports,
-                                                       const ScissorStateInfo* scissors)
+   shared_ptr<ViewportState> MetalDevice::createViewportState(const uint32 count,
+                                                              const ViewportStateInfo* viewports,
+                                                              const ScissorStateInfo* scissors)
    {
-   Ptr<ViewportStateMTL> ptr = new ViewportStateMTL(count, viewports, scissors);
-   return ptr_reinterpret_cast<ViewportState>(&ptr);
+   assert( count );
+   assert( viewports );
+   assert( scissors );
+   
+   return make_shared<ViewportStateMTL>(count, viewports, scissors);
    }
    
    }

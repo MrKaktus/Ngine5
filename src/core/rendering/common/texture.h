@@ -46,7 +46,7 @@ namespace en
       virtual uint16   layers(void) const;
       virtual uint16   samples(void) const;
 
-      virtual Ptr<TextureView> view(void) const;
+      virtual shared_ptr<TextureView> view(void);
       
       virtual ~CommonTexture() {};                         // Polymorphic deletes require a virtual base destructor
       };

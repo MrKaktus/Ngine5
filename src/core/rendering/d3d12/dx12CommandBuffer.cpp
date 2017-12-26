@@ -60,7 +60,7 @@ namespace en
 
    // Release Command Buffer
    assert( handle );
-   ProfileCom( handle->Release() )
+   ValidateCom( handle->Release() )
    handle = nullptr;
    queue = nullptr;
    gpu = nullptr;
@@ -71,14 +71,14 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
 
-   void CommandBufferD3D12::start(const Ptr<Semaphore> waitForSemaphore)
+   void CommandBufferD3D12::start(const shared_ptr<Semaphore> waitForSemaphore)
    {
    assert( !started );
 
    // Remember fence and it's value, for which this CommandBuffer execution should wait for.
    if (waitForSemaphore)
       {
-      SemaphoreD3D12* semaphore = raw_reinterpret_cast<SemaphoreD3D12>(&waitForSemaphore);
+      SemaphoreD3D12* semaphore = reinterpret_cast<SemaphoreD3D12*>(waitForSemaphore.get());
       fence        = semaphore->fence;
       waitForValue = semaphore->waitForValue;
       }
@@ -86,7 +86,7 @@ namespace en
    started = true;
    }
 
-   void CommandBufferD3D12::startRenderPass(const Ptr<RenderPass> pass, const Ptr<Framebuffer> _framebuffer)
+   void CommandBufferD3D12::startRenderPass(const shared_ptr<RenderPass> pass, const shared_ptr<Framebuffer> _framebuffer)
    {
    assert( started );
    assert( !encoding );
@@ -94,8 +94,8 @@ namespace en
    assert( pass );
    assert( _framebuffer );
    
-   renderPass  = ptr_reinterpret_cast<RenderPassD3D12>(&pass);
-   framebuffer = ptr_reinterpret_cast<FramebufferD3D12>(&_framebuffer);
+   renderPass  = dynamic_pointer_cast<RenderPassD3D12>(pass);
+   framebuffer = dynamic_pointer_cast<FramebufferD3D12>(_framebuffer);
 
    // Descriptor for empty Color Attachment output
    D3D12_RENDER_TARGET_VIEW_DESC nullColorDesc;
@@ -120,31 +120,31 @@ namespace en
       if (checkBit(renderPass->usedAttachments, i))
          {
          lastUsedIndex = i;
-         ProfileNoRet( gpu, CreateRenderTargetView(framebuffer->colorHandle[i]->texture->handle,
-                                                  &framebuffer->colorDesc[i],
-                                                   gpu->handleRTV[i]) )
+         ValidateNoRet( gpu, CreateRenderTargetView(framebuffer->colorHandle[i]->texture->handle,
+                                                   &framebuffer->colorDesc[i],
+                                                    gpu->handleRTV[i]) )
          ++index;
          }
       else
          {
          // Clear binding. To ensure proper shader behavior (reading 0's, writes are discarded)
-         ProfileNoRet( gpu, CreateRenderTargetView(nullptr,
-                                                  &nullColorDesc,
-                                                   gpu->handleRTV[i]) )
+         ValidateNoRet( gpu, CreateRenderTargetView(nullptr,
+                                                   &nullColorDesc,
+                                                    gpu->handleRTV[i]) )
          }
    
    // Create Depth-Stencil View
    if (renderPass->depthStencil)
       {
-      ProfileNoRet( gpu, CreateDepthStencilView(framebuffer->depthHandle->texture->handle,
-                                               &framebuffer->depthDesc,
-                                                gpu->handleDSV) )
+      ValidateNoRet( gpu, CreateDepthStencilView(framebuffer->depthHandle->texture->handle,
+                                                &framebuffer->depthDesc,
+                                                 gpu->handleDSV) )
       }
    else
       {
-      ProfileNoRet( gpu, CreateDepthStencilView(nullptr,
-                                               &nullDepthDesc,
-                                                gpu->handleDSV) )
+      ValidateNoRet( gpu, CreateDepthStencilView(nullptr,
+                                                &nullDepthDesc,
+                                                 gpu->handleDSV) )
       }
    
    // RTV and DSV handles could be sourced from Framebuffer (if preallocated).
@@ -158,22 +158,22 @@ namespace en
    for(uint32 i=0; i<=lastUsedIndex; ++i)
       if (checkBit(renderPass->usedAttachments, i))
          if (renderPass->colorState[i].loadOp == LoadOperation::Clear)
-            ProfileComNoRet( command->ClearRenderTargetView(gpu->handleRTV[i],
-                                                            reinterpret_cast<const FLOAT*>(&renderPass->colorState[i].clearValue),
-                                                            0, nullptr) )
+            ValidateComNoRet( command->ClearRenderTargetView(gpu->handleRTV[i],
+                                                             reinterpret_cast<const FLOAT*>(&renderPass->colorState[i].clearValue),
+                                                             0, nullptr) )
       
    // Clear Depth-Stencil Attachment
    if (renderPass->depthStencil)
       if (renderPass->depthState.clearFlags > 0)
-         ProfileComNoRet( command->ClearDepthStencilView(gpu->handleDSV,
-                                                         renderPass->depthState.clearFlags,
-                                                         renderPass->depthState.clearDepth,
-                                                         renderPass->depthState.clearStencil,
-                                                         0, nullptr) )
+         ValidateComNoRet( command->ClearDepthStencilView(gpu->handleDSV,
+                                                          renderPass->depthState.clearFlags,
+                                                          renderPass->depthState.clearDepth,
+                                                          renderPass->depthState.clearStencil,
+                                                          0, nullptr) )
 
    // Always fill up all consecutive descriptors, from first one to
    // the last one that is used, thus TRUE can be passed in third parameter.
-   ProfileComNoRet( command->OMSetRenderTargets((lastUsedIndex + 1), gpu->handleRTV, TRUE, &gpu->handleDSV) )
+   ValidateComNoRet( command->OMSetRenderTargets((lastUsedIndex + 1), gpu->handleRTV, TRUE, &gpu->handleDSV) )
 
    encoding = true;
    }
@@ -226,11 +226,11 @@ namespace en
                                                           layers); 
 
                // Resolves original resources (on top of which Views for rendering were created)
-               ProfileComNoRet( command->ResolveSubresource(framebuffer->resolveHandle[i]->texture->handle,
-                                                            dstSubresource,
-                                                            framebuffer->colorHandle[i]->texture->handle,
-                                                            srcSubresource,
-                                                            format) )
+               ValidateComNoRet( command->ResolveSubresource(framebuffer->resolveHandle[i]->texture->handle,
+                                                             dstSubresource,
+                                                             framebuffer->colorHandle[i]->texture->handle,
+                                                             srcSubresource,
+                                                             format) )
                }
 
       // D3D12 doesn't support Depth, nor Stencil resolves
@@ -248,11 +248,13 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::setVertexBuffers(const uint32 count, const uint32 firstSlot, const Ptr<Buffer>* buffers, const uint64* offsets) const
+   void CommandBufferD3D12::setVertexBuffers(const uint32 count,
+                                             const uint32 firstSlot,
+                                             const shared_ptr<Buffer>(&buffers)[],
+                                             const uint64* offsets) const
    {
    assert( started );
    assert( count );
-   assert( buffers );
    assert( (firstSlot + count) <= gpu->support.maxInputLayoutBuffersCount );
 
    // TODO: Ensure this Command Buffer is Graphic one !
@@ -263,7 +265,7 @@ namespace en
    for(uint32 i=0; i<count; ++i)
       {
       assert( buffers[i] );
-      BufferD3D12* bufferD3D12 = raw_reinterpret_cast<BufferD3D12>(&buffers[i]);
+      BufferD3D12* bufferD3D12 = reinterpret_cast<BufferD3D12*>(buffers[i].get());
       ID3D12Resource* resource = bufferD3D12->handle;
       
       // Populate Buffer View
@@ -272,30 +274,31 @@ namespace en
       views[i].StrideInBytes  = bufferD3D12->formatting.elementSize();
       }
 
-   ProfileComNoRet( command->IASetVertexBuffers(firstSlot, count, views) )
+   ValidateComNoRet( command->IASetVertexBuffers(firstSlot, count, views) )
 
    delete [] views;
    }
 
-   void CommandBufferD3D12::setVertexBuffer(const uint32 slot, const Ptr<Buffer> buffer, const uint64 offset) const
+   void CommandBufferD3D12::setVertexBuffer(const uint32 slot,
+                                            const Buffer& _buffer,
+                                            const uint64 offset) const
    {
    assert( started );
-   assert( buffer );
    assert( slot < gpu->support.maxInputLayoutBuffersCount );
 
-   BufferD3D12* bufferD3D12 = raw_reinterpret_cast<BufferD3D12>(&buffer);
-   ID3D12Resource* resource = bufferD3D12->handle;
+   const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
+   ID3D12Resource* resource = buffer.handle;
       
    // Populate Buffer View
    D3D12_VERTEX_BUFFER_VIEW view;
    view.BufferLocation = resource->GetGPUVirtualAddress() + offset;  // Final location is Base Buffer Adress + current Offset
-   view.SizeInBytes    = buffer->length();
-   view.StrideInBytes  = bufferD3D12->formatting.elementSize();
+   view.SizeInBytes    = buffer.length();
+   view.StrideInBytes  = buffer.formatting.elementSize();
 
    // TODO: Ensure this Command Buffer is Graphic one !
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 
-   ProfileComNoRet( command->IASetVertexBuffers(slot, 1, &view) )
+   ValidateComNoRet( command->IASetVertexBuffers(slot, 1, &view) )
    }
 
 
@@ -303,106 +306,104 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::copy(Ptr<Buffer> source,
-                                 Ptr<Buffer> destination)
+   void CommandBufferD3D12::copy(const Buffer& source,
+                                 const Buffer& destination)
    {
    assert( started );
-   assert( source );
-   assert( destination );
+   assert( source.length() <= destination.length() );
 
    copy(source, destination, source->length());
    }
 
-   void CommandBufferD3D12::copy(Ptr<Buffer> source,
-                                 Ptr<Buffer> destination,
-                                 uint64 size,
-                                 uint64 srcOffset,
-                                 uint64 dstOffset)
+   void CommandBufferD3D12::copy(const Buffer& source,
+                                 const Buffer& destination,
+                                 const uint64 size,
+                                 const uint64 srcOffset,
+                                 const uint64 dstOffset)
    {
    assert( started );
-   assert( source );
-   assert( destination );
-
-   BufferD3D12* src = raw_reinterpret_cast<BufferD3D12>(&source);
-   BufferD3D12* dst = raw_reinterpret_cast<BufferD3D12>(&destination);
+   assert( source.type() == BufferType::Transfer );
+   assert( (srcOffset + size) <= source.length() );
+   assert( (dstOffset + size) <= destination.length() );
+   
+   const BufferD3D12& src = reinterpret_cast<const BufferD3D12&>(source);
+   const BufferD3D12& dst = reinterpret_cast<const BufferD3D12&>(destination);
 
    // TODO: Check if graphics or compute!  
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 
-   ProfileComNoRet( command->CopyBufferRegion(dst->handle,
-                                              dstOffset,
-                                              src->handle,
-                                              srcOffset,
-                                              size) )
+   ValidateComNoRet( command->CopyBufferRegion(dst.handle,
+                                               dstOffset,
+                                               src.handle,
+                                               srcOffset,
+                                               size) )
    }
          
-   void CommandBufferD3D12::copy(Ptr<Buffer> transfer, 
+   void CommandBufferD3D12::copy(const Buffer& transfer,
                                  const uint64 srcOffset, 
-                                 Ptr<Texture> texture, 
+                                 const Texture& texture,
                                  const uint32 mipmap, 
                                  const uint32 layer)
    {
    assert( started );
-   assert( transfer );
-   assert( transfer->type() == BufferType::Transfer );
-   assert( texture );
-   assert( texture->mipmaps() > mipmap );
-   assert( texture->layers() > layer );
+   assert( transfer.type() == BufferType::Transfer );
+   assert( texture.mipmaps() > mipmap );
+   assert( texture.layers() > layer );
    
-   BufferD3D12*  source      = raw_reinterpret_cast<BufferD3D12>(&transfer);
-   TextureD3D12* destination = raw_reinterpret_cast<TextureD3D12>(&texture);
+   const BufferD3D12&  source      = reinterpret_cast<const BufferD3D12&>(transfer);
+   const TextureD3D12& destination = reinterpret_cast<const TextureD3D12&>(texture);
 
-   assert( source->size >= destination->size(mipmap) );
+   assert( source.size >= srcOffset + destination.size(mipmap) );
 
    // TODO: Check if graphics or compute!  
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 
    // Get information about buffer layout for upload
-   D3D12_RESOURCE_DESC desc = destination->handle->GetDesc();
+   D3D12_RESOURCE_DESC desc = destination.handle->GetDesc();
 
    // Based on amount of mip-maps and layers, calculates
    // index of subresource to modify.
    UINT subresource = D3D12CalcSubresource(mipmap,
                                            layer,
                                            0u,
-                                           destination->state.mipmaps,
-                                           destination->state.layers);
+                                           destination.state.mipmaps,
+                                           destination.state.layers);
    
    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
    UINT64                             requiredUploadBufferSize = 0;
 
-   ProfileNoRet( gpu, GetCopyableFootprints(&desc,
-                                            subresource, // First subresource to modify
-                                            1,           // Subresources count
-                                            0,
-                                            &layout,
-                                            nullptr,
-                                            nullptr,
-                                            &requiredUploadBufferSize) )
+   ValidateNoRet( gpu, GetCopyableFootprints(&desc,
+                                             subresource, // First subresource to modify
+                                             1,           // Subresources count
+                                             0,
+                                             &layout,
+                                             nullptr,
+                                             nullptr,
+                                             &requiredUploadBufferSize) )
 
    // Verify that source buffer has enough storage to read from specified offset.
    // (application should properly fill it will all requred paddings).
-   assert( srcOffset + requiredUploadBufferSize <= source->size );
+   assert( srcOffset + requiredUploadBufferSize <= source.size );
 
    // Take into notice offset in source buffer
    layout.Offset = srcOffset;
 
    // Copy from Buffer with given alignments
    D3D12_TEXTURE_COPY_LOCATION srcLocation;
-   srcLocation.pResource       = source->handle;
+   srcLocation.pResource       = source.handle;
    srcLocation.Type            = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
    srcLocation.PlacedFootprint = layout;
 
    // Copy to given subresource of destination texture
    D3D12_TEXTURE_COPY_LOCATION dstLocation;
-   dstLocation.pResource        = destination->handle;
+   dstLocation.pResource        = destination.handle;
    dstLocation.Type             = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
    dstLocation.SubresourceIndex = subresource;
 
-   ProfileComNoRet( command->CopyTextureRegion(&dstLocation,
-                                               0, 0, 0,      // Upper-Left corner of destination region
-                                               &srcLocation,
-                                               nullptr) )    // Size of source region/volume to copy (in Texture-Texture copy)
+   ValidateComNoRet( command->CopyTextureRegion(&dstLocation,
+                                                0, 0, 0,      // Upper-Left corner of destination region
+                                                &srcLocation,
+                                                nullptr) )    // Size of source region/volume to copy (in Texture-Texture copy)
    }
 
 
@@ -422,8 +423,8 @@ namespace en
 
 
 
-   void CommandBufferD3D12::copy(Ptr<Buffer> transfer,
-                                 Ptr<Texture> texture,
+   void CommandBufferD3D12::copy(const Buffer& transfer,
+                                 const Texture& texture,
                                  const uint32 mipmap,
                                  const uint32 layer)
    {
@@ -435,32 +436,31 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::setPipeline(const Ptr<Pipeline> _pipeline)
+   void CommandBufferD3D12::setPipeline(const Pipeline& _pipeline)
    {
    assert( started );
-   assert( _pipeline );
 
-   PipelineD3D12* pipeline = raw_reinterpret_cast<PipelineD3D12>(&_pipeline);
+   const PipelineD3D12& pipeline = reinterpret_cast<const PipelineD3D12&>(_pipeline);
 
    // TODO: Check if graphics or compute!  
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 
-   ProfileComNoRet( command->SetGraphicsRootSignature(pipeline->layout->handle) )
+   ValidateComNoRet( command->SetGraphicsRootSignature(pipeline.layout->handle) )
         
-   ProfileComNoRet( command->SetPipelineState(pipeline->handle) )
+   ValidateComNoRet( command->SetPipelineState(pipeline.handle) )
 
    // Dynamic States:
    // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899196(v=vs.85).aspx
 
    // Stream Out is currently unsupported:
-   // - ProfileComNoRet( command->SOSetTargets() )
+   // - ValidateComNoRet( command->SOSetTargets() )
 
-   ProfileComNoRet( command->RSSetViewports(pipeline->viewportsCount, &pipeline->viewport[0]) )
-   ProfileComNoRet( command->RSSetScissorRects(pipeline->viewportsCount, &pipeline->scissor[0]) )
+   ValidateComNoRet( command->RSSetViewports(pipeline.viewportsCount, &pipeline.viewport[0]) )
+   ValidateComNoRet( command->RSSetScissorRects(pipeline.viewportsCount, &pipeline.scissor[0]) )
 
-   ProfileComNoRet( command->OMSetBlendFactor(pipeline->blendColor) )
+   ValidateComNoRet( command->OMSetBlendFactor(pipeline.blendColor) )
 
-   ProfileComNoRet( command->OMSetStencilRef(pipeline->stencilRef) )
+   ValidateComNoRet( command->OMSetStencilRef(pipeline.stencilRef) )
 
    // Metal needs primitive topology type to be specified at
    // PSO creation time, when layered rendering is enabled, and
@@ -476,7 +476,7 @@ namespace en
    // creation time.
    //
    // Thus Vulkan behavior needs to be followed.
-   ProfileComNoRet( command->IASetPrimitiveTopology(pipeline->topology) )
+   ValidateComNoRet( command->IASetPrimitiveTopology(pipeline.topology) )
 
    // TODO: Check at runtime if given states really change, to prevent their constant rebinding with each PSO.
    // TODO: Decide, which of the states below, can be promoted to be dynamic and set explicitly on CommandBuffer
@@ -489,12 +489,12 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::draw(const uint32       elements,
-                                 const Ptr<Buffer>  indexBuffer,
-                                 const uint32       instances,
-                                 const uint32       firstElement,
-                                 const sint32       firstVertex,
-                                 const uint32       firstInstance)
+   void CommandBufferD3D12::draw(const uint32  elements,
+                                 const Buffer* indexBuffer,
+                                 const uint32  instances,
+                                 const uint32  firstElement,
+                                 const sint32  firstVertex,
+                                 const uint32  firstInstance)
    {
    assert( started );
    assert( encoding );
@@ -509,7 +509,7 @@ namespace en
    // Elements are assembled into Primitives.
    if (indexBuffer)
       {
-      BufferD3D12* index = raw_reinterpret_cast<BufferD3D12>(&indexBuffer);
+      const BufferD3D12* index = reinterpret_cast<const BufferD3D12*>(indexBuffer);
       assert( index->apiType == BufferType::Index );
       
       // Prevent binding the same IBO several times in row
@@ -525,7 +525,7 @@ namespace en
          // Index Buffer remains bound to Command Buffer after this call,
          // but because there is no other way to do indexed draw than to
          // go through this API, it's safe to leave it bounded.
-         ProfileComNoRet( command->IASetIndexBuffer(&desc) )
+         ValidateComNoRet( command->IASetIndexBuffer(&desc) )
 
          currentIndexBuffer = index;
          }
@@ -533,32 +533,31 @@ namespace en
       // TODO: Do I correctly interprete BaseVertexLocation & StartInstanceLocation?
       //       Are they equal to starting VertexID and InstanceID?
 
-      ProfileComNoRet( command->DrawIndexedInstanced(elements,           // Number of indices to use for draw
-                                                     max(1U, instances), // Number of instances to draw
-                                                     firstElement,       // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
-                                                     firstVertex,        // BaseVertexLocation - A value added to each index before reading a vertex from the vertex buffer.
-                                                     firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
+      ValidateComNoRet( command->DrawIndexedInstanced(elements,           // Number of indices to use for draw
+                                                      max(1U, instances), // Number of instances to draw
+                                                      firstElement,       // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
+                                                      firstVertex,        // BaseVertexLocation - A value added to each index before reading a vertex from the vertex buffer.
+                                                      firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
       }
    else
       {
-      ProfileComNoRet( command->DrawInstanced(elements,           // Number of vertices to draw
-                                              max(1U, instances), // Number of instances to draw
-                                              firstVertex,        // Index of first vertex to draw
-                                              firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
+      ValidateComNoRet( command->DrawInstanced(elements,           // Number of vertices to draw
+                                               max(1U, instances), // Number of instances to draw
+                                               firstVertex,        // Index of first vertex to draw
+                                               firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
       }
    }
 
-   void CommandBufferD3D12::draw(const Ptr<Buffer>  indirectBuffer,
-                                 const uint32       firstEntry,
-                                 const Ptr<Buffer>  indexBuffer,
-                                 const uint32       firstElement)
+   void CommandBufferD3D12::draw(const Buffer& indirectBuffer,
+                                 const uint32  firstEntry,
+                                 const Buffer* indexBuffer,
+                                 const uint32  firstElement)
    {
    assert( started );
    assert( encoding );
-   assert( indirectBuffer );
-   
-   BufferD3D12* indirect = raw_reinterpret_cast<BufferD3D12>(&indirectBuffer);
-   assert( indirect->apiType == BufferType::Indirect );
+
+   const BufferD3D12& indirect = reinterpret_cast<const BufferD3D12&>(indirectBuffer);
+   assert( indirect.apiType == BufferType::Indirect );
    
    // TODO: Check if graphics or compute!  
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
@@ -586,7 +585,7 @@ namespace en
 
    if (indexBuffer)
       {
-      BufferD3D12* index = raw_reinterpret_cast<BufferD3D12>(&indexBuffer);
+      const BufferD3D12* index = reinterpret_cast<const BufferD3D12*>(indexBuffer);
       assert( index->apiType == BufferType::Index );
       
       // Prevent binding the same IBO several times in row
@@ -602,32 +601,32 @@ namespace en
          // Index Buffer remains bound to Command Buffer after this call,
          // but because there is no other way to do indexed draw than to
          // go through this API, it's safe to leave it bounded.
-         ProfileComNoRet( command->IASetIndexBuffer(&desc) )
+         ValidateComNoRet( command->IASetIndexBuffer(&desc) )
 
          currentIndexBuffer = index;
          }
 
-      MaxCommandCount      = indirect->length() / sizeof(IndirectIndexedDrawArgument);
+      MaxCommandCount      = indirect.length() / sizeof(IndirectIndexedDrawArgument);
       ArgumentBufferOffset = firstEntry * sizeof(IndirectIndexedDrawArgument);
 
-      ProfileComNoRet( command->ExecuteIndirect(indirect->signatureIndexed,
-                                                MaxCommandCount - firstEntry,
-                                                indirect->handle,
-                                                ArgumentBufferOffset,
-                                                nullptr,
-                                                0) )
+      ValidateComNoRet( command->ExecuteIndirect(indirect.signatureIndexed,
+                                                 MaxCommandCount - firstEntry,
+                                                 indirect.handle,
+                                                 ArgumentBufferOffset,
+                                                 nullptr,
+                                                 0) )
       }
    else
       {
-      MaxCommandCount      = indirect->length() / sizeof(IndirectDrawArgument);
+      MaxCommandCount      = indirect.length() / sizeof(IndirectDrawArgument);
       ArgumentBufferOffset = firstEntry * sizeof(IndirectDrawArgument);
 
-      ProfileComNoRet( command->ExecuteIndirect(indirect->signature,
-                                                MaxCommandCount - firstEntry,
-                                                indirect->handle,
-                                                ArgumentBufferOffset,
-                                                nullptr,
-                                                0) )
+      ValidateComNoRet( command->ExecuteIndirect(indirect.signature,
+                                                 MaxCommandCount - firstEntry,
+                                                 indirect.handle,
+                                                 ArgumentBufferOffset,
+                                                 nullptr,
+                                                 0) )
       }
    }
 
@@ -640,7 +639,7 @@ namespace en
    // fenceSignalingEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
    // fence->SetEventOnCompletion(acquiredValue, fenceSignalingEvent); 
 
-   void CommandBufferD3D12::commit(const Ptr<Semaphore> signalSemaphore)
+   void CommandBufferD3D12::commit(const shared_ptr<Semaphore> signalSemaphore)
    {
    assert( started );
    assert( !encoding );
@@ -681,7 +680,7 @@ namespace en
       {
       // This Semaphore can be now used, to synchronize any Queue
       // execution with this particular fence, and it's value.
-      SemaphoreD3D12* semaphore = raw_reinterpret_cast<SemaphoreD3D12>(&signalSemaphore);
+      SemaphoreD3D12* semaphore = reinterpret_cast<SemaphoreD3D12*>(signalSemaphore.get());
       semaphore->fence        = gpu->fence[queueIndex];
       semaphore->waitForValue = commitValue;
       }
@@ -692,7 +691,7 @@ namespace en
    // Add this CommandBuffer to device's array of CB's in flight.
    // This will ensure that CommandBuffer won't be destroyed until
    // fence is not signaled.
-   gpu->addCommandBufferToQueue(Ptr<CommandBuffer>(this));
+   gpu->addCommandBufferToQueue(shared_from_this());
 
    commited = true;
    }
@@ -738,7 +737,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   Ptr<CommandBuffer> Direct3D12Device::createCommandBuffer(const QueueType type, const uint32 parentQueue)
+   shared_ptr<CommandBuffer> Direct3D12Device::createCommandBuffer(const QueueType type, const uint32 parentQueue)
    {
    // Each thread creates it's Command Buffers from separate Command Allocator
    uint32 thread    = Scheduler.core();
@@ -747,18 +746,18 @@ namespace en
 
    assert( queuesCount[queueType] > parentQueue );
    
-   Ptr<CommandBufferD3D12> result = nullptr;
+   shared_ptr<CommandBufferD3D12> result = nullptr;
 
    ID3D12CommandList* handle = nullptr;
    
-   Profile( this, CreateCommandList(0u,      /* No Multi-GPU support for now */
-                                    TranslateQueueType[queueType],
-                                    commandAllocator[thread][queueType][cacheId],
-                                    nullptr, /* No initial PipelineState for now */
-                                    IID_PPV_ARGS(&handle)) )
+   Validate( this, CreateCommandList(0u,      /* No Multi-GPU support for now */
+                                     TranslateQueueType[queueType],
+                                     commandAllocator[thread][queueType][cacheId],
+                                     nullptr, /* No initial PipelineState for now */
+                                     IID_PPV_ARGS(&handle)) )
    if ( SUCCEEDED(lastResult[thread]) )
       {
-      result = new CommandBufferD3D12(this, queue[queueType], queueType, handle);
+      result = make_shared<CommandBufferD3D12>(this, queue[queueType], queueType, handle);
 
 #if defined(EN_DEBUG)
       // Name CommandBuffer for debugging
@@ -789,12 +788,12 @@ namespace en
    // https://msdn.microsoft.com/en-us/library/windows/desktop/dn903537(v=vs.85).aspx
    // and alows all types of operations (draws, dispatches & copies)
 
-   return ptr_reinterpret_cast<CommandBuffer>(&result);
+   return result;
    }
    
-   void Direct3D12Device::addCommandBufferToQueue(Ptr<CommandBuffer> command)
+   void Direct3D12Device::addCommandBufferToQueue(shared_ptr<CommandBuffer> command)
    {
-   CommandBufferD3D12* ptr = raw_reinterpret_cast<CommandBufferD3D12>(&command);
+   CommandBufferD3D12* ptr = reinterpret_cast<CommandBufferD3D12*>(command.get());
 
    uint32 thread    = Scheduler.core();
    uint32 queueType = ptr->queueIndex;
@@ -817,7 +816,7 @@ namespace en
          uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
          for(uint32 i=0; i<executing; ++i)
             {
-            CommandBufferD3D12* command = raw_reinterpret_cast<CommandBufferD3D12>(&commandBuffers[thread][queueType][cacheId][i]);
+            CommandBufferD3D12* command = reinterpret_cast<CommandBufferD3D12*>(commandBuffers[thread][queueType][cacheId][i].get());
 
             // Assume that CommandBuffer is finished, after next Fence event is passed (so with one event of delay).
             // This way driver has time to clean-up, and is not throwing Debug errors that we reset CommandAllocator

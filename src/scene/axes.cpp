@@ -184,7 +184,7 @@ namespace en
    
    StereoFeatureLevel stereoMode = StereoClipping; 
 
-   Ptr<CommonDevice> gpu = ptr_dynamic_cast<CommonDevice, GpuDevice>(Graphics->primaryDevice());
+   CommonDevice* gpu = reinterpret_cast<CommonDevice*>(Graphics->primaryDevice().get());
 
    // Determine supported Stereoscopic Rendering mode (when using OpenGL backend)
    if (gpu->api.better(OpenGL_1_0))
@@ -290,7 +290,7 @@ namespace en
 #endif
    }
    
-   void Axes::draw(const Ptr<Buffer> sceneParameters, const uint32 instances)
+   void Axes::draw(const shared_ptr<Buffer> sceneParameters, const uint32 instances)
    {
    //enModelMatrix.set(*pWorldMatrix);
    //enScene.set(sceneParameters);

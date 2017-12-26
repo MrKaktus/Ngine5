@@ -16,9 +16,12 @@
 #ifndef ENG_CORE_RENDERING_RESOURCE_LAYOUT
 #define ENG_CORE_RENDERING_RESOURCE_LAYOUT
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
 #include "core/rendering/buffer.h"
 #include "core/rendering/sampler.h"
 #include "core/rendering/texture.h"
@@ -113,38 +116,38 @@ namespace en
       };
       
    // Layout of resources in Descriptors Set
-   class SetLayout : public SafeObject<SetLayout>
+   class SetLayout
       {
       public:
       virtual ~SetLayout() {};                                   // Polymorphic deletes require a virtual base destructor
       };
 
    // Layout of all resources used by the Pipeline object
-   class PipelineLayout : public SafeObject<PipelineLayout>
+   class PipelineLayout
       {
       public:
       virtual ~PipelineLayout() {};                              // Polymorphic deletes require a virtual base destructor
       };
 
    // Set of Descriptors, handles to resources of different kind
-   class DescriptorSet : public SafeObject<DescriptorSet>
+   class DescriptorSet
       {
       public:
-      virtual void setBuffer(const uint32 slot, const Ptr<Buffer> buffer) = 0;
-      virtual void setSampler(const uint32 slot, const Ptr<Sampler> sampler) = 0;
-      virtual void setTextureView(const uint32 slot, const Ptr<TextureView> view) = 0;
+      virtual void setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer) = 0;
+      virtual void setSampler(const uint32 slot, const shared_ptr<Sampler> sampler) = 0;
+      virtual void setTextureView(const uint32 slot, const shared_ptr<TextureView> view) = 0;
 
       virtual ~DescriptorSet() {};
       };
       
    // Range of Descriptors that can be used, to allocated from it set of Descriptors
-   class Descriptors : public SafeObject<Descriptors>
+   class Descriptors : public enable_shared_from_this<Descriptors>
       {
       public:
-      virtual Ptr<DescriptorSet> allocate(const Ptr<SetLayout> layout) = 0;
+      virtual shared_ptr<DescriptorSet> allocate(const shared_ptr<SetLayout> layout) = 0;
       virtual bool allocate(const uint32 count,
-                            const Ptr<SetLayout>* layouts,
-                            Ptr<DescriptorSet>** sets) = 0; 
+                            const shared_ptr<SetLayout>(&layouts)[],
+                            shared_ptr<DescriptorSet>** sets) = 0; 
 
       virtual ~Descriptors() {};
       };

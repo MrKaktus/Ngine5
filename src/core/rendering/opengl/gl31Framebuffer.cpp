@@ -32,7 +32,7 @@ namespace en
 
    // Use: Texture1D, Texture2D, Texture2DRectangle, Texture2DMultisample (single layer)
    //      Texture1DArray, Texture2DArray, Texture2DMultisampleArray, Texture3D, TextureCubeMap, TextureCubeMapArray (all layers)
-   void FramebufferGL31::color(const DataAccess access, const uint8 index, const Ptr<Texture> texture, const uint8 mipmap)
+   void FramebufferGL31::color(const DataAccess access, const uint8 index, const shared_ptr<Texture> texture, const uint8 mipmap)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -58,18 +58,18 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   Profile( glBindFramebuffer(accessType, id) )
+   Validate( glBindFramebuffer(accessType, id) )
    uint16 glType = TranslateTextureType[underlyingType(texture->type())];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
       case TextureType::Texture1D:
-         Profile( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
+         Validate( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
       case TextureType::Texture2D:
     //case TextureType::Texture2DRectangle:
-         Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
+         Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
       default:
@@ -80,7 +80,7 @@ namespace en
 
 #ifdef EN_DEBUG
    GLenum result;
-   Profile( result = glCheckFramebufferStatus(accessType) )
+   Validate( result = glCheckFramebufferStatus(accessType) )
    assert( result == GL_FRAMEBUFFER_COMPLETE );
 #endif
    }
@@ -88,7 +88,7 @@ namespace en
    // Use: Texture1D, Texture2D, Texture2DRectangle, Texture2DMultisample
    //      Texture3D, TextureCubeMap (specific depth, face)   
    //      Texture1DArray, Texture2DArray, Texture2DMultisampleArray, TextureCubeMapArray (all layers)
-   void FramebufferGL31::color(const DataAccess access, const uint8 index, const Ptr<Texture> texture, const uint16 layer, const uint8 mipmap)
+   void FramebufferGL31::color(const DataAccess access, const uint8 index, const shared_ptr<Texture> texture, const uint16 layer, const uint8 mipmap)
    {
    // API independent debug validation layer
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
@@ -112,28 +112,28 @@ namespace en
    if (access == Read)
       accessType = GL_READ_FRAMEBUFFER;
 
-   Profile( glBindFramebuffer(accessType, id) )
+   Validate( glBindFramebuffer(accessType, id) )
    uint16 glType = TranslateTextureType[underlyingType(texture->type())];
-   Ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
+   shared_ptr<TextureGL> tex = ptr_dynamic_cast<TextureGL, Texture>(texture);
    switch(texture->type())
       {
       case TextureType::Texture1D:
-         Profile( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
+         Validate( glFramebufferTexture1D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
       case TextureType::Texture2D:
     //case Texture2DRectangle:
-         Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
+         Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap) )
          break;
 
       case TextureType::Texture3D:
          assert( layer < texture->depth() );
-         Profile( glFramebufferTexture3D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap, layer) )
+         Validate( glFramebufferTexture3D(accessType, (GL_COLOR_ATTACHMENT0 + index), glType, tex->id, mipmap, layer) )
          break;
 
       case TextureType::TextureCubeMap:
          assert( layer < 6 );
-         Profile( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), TranslateTextureFace[layer], tex->id, mipmap) )
+         Validate( glFramebufferTexture2D(accessType, (GL_COLOR_ATTACHMENT0 + index), TranslateTextureFace[layer], tex->id, mipmap) )
          break;
 
       default:
@@ -144,7 +144,7 @@ namespace en
 
 #ifdef EN_DEBUG
    GLenum result;
-   Profile( result = glCheckFramebufferStatus(accessType) )
+   Validate( result = glCheckFramebufferStatus(accessType) )
    assert( result == GL_FRAMEBUFFER_COMPLETE );
 #endif
    }

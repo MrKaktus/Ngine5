@@ -17,7 +17,6 @@
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
-#include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/vulkan/vkDevice.h"
 #include "utilities/utilities.h" // For underlyingType()
 
@@ -34,10 +33,10 @@ namespace en
 
    ShaderVK::~ShaderVK()
    {
-   ProfileNoRet( gpu, vkDestroyShaderModule(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroyShaderModule(gpu->device, handle, nullptr) )
    }
 
-   Ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const string& source)
+   shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const string& source)
    {
    // VK_NV_glsl_shader - allows passing in GLSL instead of SPIR-V
    //                     (we can compile GLSL to SPIRV offline)
@@ -45,9 +44,9 @@ namespace en
    return createShader(stage,(const uint8*)source.c_str(), source.size());
    }
 
-   Ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
    {
-   Ptr<ShaderVK> shader = nullptr;
+   shared_ptr<ShaderVK> shader = nullptr;
 
    VkShaderModuleCreateInfo createInfo;
    createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -57,13 +56,13 @@ namespace en
    createInfo.pCode    = (const uint32_t*)data;
 
    VkShaderModule handle = VK_NULL_HANDLE;
-   Profile( this, vkCreateShaderModule(device, &createInfo, nullptr, &handle) )
+   Validate( this, vkCreateShaderModule(device, &createInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      shader = new ShaderVK(this, handle, stage);
+      shader = make_shared<ShaderVK>(this, handle, stage);
 
    // In Debug mode, VK_EXT_debug_report will handle logging of initial compilation errors.
 
-   return ptr_reinterpret_cast<Shader>(&shader);
+   return shader;
    }
 
    }

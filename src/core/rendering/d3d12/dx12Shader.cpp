@@ -97,9 +97,9 @@ namespace en
         "fs_5_1"   // Fragment
         };
 
-   Ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const string& source)
+   shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const string& source)
    {
-   Ptr<ShaderD3D12> result = nullptr; 
+   shared_ptr<ShaderD3D12> result = nullptr; 
 
 #if defined(EN_DEBUG)
    // Enable better shader debugging with the graphics debugging tools
@@ -114,7 +114,7 @@ namespace en
    ID3DBlob* errors = nullptr;
 
    // Compile shader from HLSL
-   ProfileCom( D3DCompile(source.c_str(),
+   ValidateCom( D3DCompile(source.c_str(),
                           source.length(),
                           nullptr,            // Optional: Shader source name for debugging
                           nullptr,            // Optional: Shader macros - D3D_SHADER_MACRO Shader_Macros[] = { "zero", "0", NULL, NULL };
@@ -136,16 +136,16 @@ namespace en
       }
    else
    if (binary)
-      result = new ShaderD3D12(stage, reinterpret_cast<const uint8*>(binary->GetBufferPointer()), binary->GetBufferSize());
+      result = make_shared<ShaderD3D12>(stage,
+                                        reinterpret_cast<const uint8*>(binary->GetBufferPointer()),
+                                        binary->GetBufferSize());
 
-   return ptr_reinterpret_cast<Shader>(&result);
+   return result;
    }
 
-   Ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
    {
-   Ptr<ShaderD3D12> result = new ShaderD3D12(stage, data, size);
-
-   return ptr_reinterpret_cast<Shader>(&result);
+   return make_shared<ShaderD3D12>(stage, data, size);
    }
 
    }

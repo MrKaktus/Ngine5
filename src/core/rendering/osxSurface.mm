@@ -41,13 +41,11 @@ namespace en
    CFRelease(surface);
    }
 
-   Ptr<SharedSurface> createSharedSurface(const uint32v2 resolution)
+   shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolution)
    {
    assert( resolution.width );
    assert( resolution.height );
    
-   Ptr<SharedSurfaceOSX> result = nullptr;
-
    // Create backing IOSurface
    NSDictionary *surfaceDict = @{ (id)kIOSurfaceWidth           : @((int)resolution.width),
                                   (id)kIOSurfaceHeight          : @((int)resolution.height),
@@ -55,15 +53,13 @@ namespace en
                                   (id)kIOSurfaceBytesPerElement : @(4)
                                 };
       
-   result = new SharedSurfaceOSX(IOSurfaceCreate((CFDictionaryRef)surfaceDict), resolution);
-
-   return ptr_reinterpret_cast<SharedSurface>(&result);
+   return make_shared<SharedSurfaceOSX>(IOSurfaceCreate((CFDictionaryRef)surfaceDict), resolution);
    }
       
       
    // DUMMY OPENGL CONTEXT FOR SHARED TEXTURE HANDLE CREATON
    ///////////////////////////////////////////////////////////
-   
+/*
    
    osxOpenGLContext::osxOpenGLContext()
    {
@@ -92,10 +88,10 @@ namespace en
    deallocateObjectiveC(context);
    }
 
-   uint32 osxOpenGLContext::createSharedTexture(Ptr<SharedSurface> backingSurface)
+   uint32 osxOpenGLContext::createSharedTexture(shared_ptr<SharedSurface> backingSurface)
    {
-   // TODO: In future it should be part of OpenGLDevice and return Ptr<Texture>
-   //Ptr<TextureGL> result = nullptr;
+   // TODO: In future it should be part of OpenGLDevice and return shared_ptr<Texture>
+   //shared_ptr<TextureGL> result = nullptr;
    
 #if defined(EN_PLATFORM_IOS)
    // IOSurfaces are not supported on iOS
@@ -103,7 +99,7 @@ namespace en
 #endif
 
 #if defined(EN_PLATFORM_OSX)
-   Ptr<SharedSurfaceOSX> ioSurface = ptr_reinterpret_cast<SharedSurfaceOSX>(&backingSurface);
+   SharedSurfaceOSX* ioSurface = reinterpret_cast<SharedSurfaceOSX*>(backingSurface.get());
    
    [context makeCurrentContext];
     
@@ -128,7 +124,7 @@ namespace en
 #endif
 
    return glHandle;
-   //return ptr_reinterpret_cast<Texture>(&result);
+   //return result;
    }
    
    void osxOpenGLContext::destroySharedTexture(const uint32 handle)
@@ -140,6 +136,6 @@ namespace en
    {
    return reinterpret_cast<OpenGLContext*>(new osxOpenGLContext());
    }
-   
+*/
    }
 }

@@ -25,13 +25,13 @@ namespace en
    class Axes : public Drawable
          {
          public:
-         Ptr<Buffer>   buffer;
-         Ptr<Pipeline> pipeline;
+         shared_ptr<Buffer>   buffer;
+         shared_ptr<Pipeline> pipeline;
         
          //Parameter enModelMatrix;
    
          Axes();
-         void draw(const Ptr<Buffer> sceneParameters, const uint32 instances = 1U);
+         void draw(const shared_ptr<Buffer> sceneParameters, const uint32 instances = 1U);
          };
    }
 }

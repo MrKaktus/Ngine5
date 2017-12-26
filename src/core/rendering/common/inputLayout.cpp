@@ -35,15 +35,7 @@ namespace en
       const Attribute col4,
       const Attribute col5,
       const Attribute col6,
-      const Attribute col7,                                                                
-      const Attribute col8,
-      const Attribute col9,
-      const Attribute col10,
-      const Attribute col11,
-      const Attribute col12,
-      const Attribute col13,
-      const Attribute col14,
-      const Attribute col15)
+      const Attribute col7)
    {
    column[0]  = col0;
    column[1]  = col1;
@@ -53,18 +45,11 @@ namespace en
    column[5]  = col5;
    column[6]  = col6;
    column[7]  = col7;
-   column[8]  = col8;
-   column[9]  = col9;
-   column[10] = col10;
-   column[11] = col11;
-   column[12] = col12;
-   column[13] = col13;
-   column[14] = col14;
-   column[15] = col15;
    
-   // This shouldn't be neccessary, all attributes should default to None 
-   if (MaxInputLayoutAttributesCount > 16)
-      for(uint32 i=16; i<MaxInputLayoutAttributesCount; ++i)
+   // This shouldn't be neccessary, all attributes should default
+   // to None when allocated on memset memory.
+   if (MaxInputLayoutAttributesCount > 8)
+      for(uint32 i=8; i<MaxInputLayoutAttributesCount; ++i)
          column[i] = Attribute::None;
    }
 
@@ -86,21 +71,22 @@ namespace en
    {
    }
 
-   Ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType, const uint32 controlPoints)
+   shared_ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType, const uint32 controlPoints)
    {
    return ((GpuDevice*)this)->createInputLayout(primitiveType, false, controlPoints, 0u, 0u, nullptr, nullptr);
    }
 
-   Ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType, const bool primitiveRestart, const uint32 controlPoints, const Ptr<Buffer> buffer)
+   shared_ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType,
+                                                           const bool primitiveRestart,
+                                                           const uint32 controlPoints,
+                                                           const Buffer& buffer)
    {
-   assert( buffer );
-   
-   CommonBuffer* common = raw_reinterpret_cast<CommonBuffer>(&buffer);
+   const CommonBuffer& common = reinterpret_cast<const CommonBuffer&>(buffer);
    
    // Compute amount of used attributes
    uint32 usedAttributes = 0;
    for(; usedAttributes<support.maxInputLayoutAttributesCount; ++usedAttributes)
-      if (common->formatting.column[usedAttributes] == Attribute::None)
+      if (common.formatting.column[usedAttributes] == Attribute::None)
          break;
 
    // Compute amount of used buffers
@@ -111,7 +97,7 @@ namespace en
    AttributeDesc* attributes = new AttributeDesc[usedAttributes];
    for(uint32 i=0; i<usedAttributes; ++i)
       {
-      Attribute attribute = common->formatting.column[i];
+      Attribute attribute = common.formatting.column[i];
       attributes[i].format = attribute;
       attributes[i].buffer = 0;
       attributes[i].offset = offsetInElement;
@@ -121,12 +107,12 @@ namespace en
    BufferDesc* buffers = new BufferDesc[usedBuffers];
    for(uint32 i=0; i<usedBuffers; ++i)
       {
-      // Ptr<CommonBuffer> common = ptr_dynamic_cast<CommonBuffer, Buffer>(buffer[i]);
-      buffers[i].elementSize = common->formatting.elementSize();
-      buffers[i].stepRate    = common->step;
+      // CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer[i].get());
+      buffers[i].elementSize = common.formatting.elementSize();
+      buffers[i].stepRate    = common.step;
       }
 
-   Ptr<InputLayout> inputLayout = ((GpuDevice*)this)->createInputLayout(primitiveType, primitiveRestart, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
+   shared_ptr<InputLayout> inputLayout = ((GpuDevice*)this)->createInputLayout(primitiveType, primitiveRestart, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
 
    // Free temporary buffers
    delete [] attributes;

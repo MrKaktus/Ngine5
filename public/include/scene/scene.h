@@ -45,7 +45,7 @@ namespace en
           array<float4x4> rotation;
           array<float3>   scale;
           array<float4>   boundingSphere;
-          array< Ptr<Entity> > entity;
+          array< shared_ptr<Entity> > entity;
        
           // Destination      
           array<float4x4> worldMatrix; 
@@ -76,8 +76,8 @@ namespace en
          Scene(uint32 entities = 16384);
         ~Scene();
 
-         bool add(Ptr<Entity> object);                     // Add new entity to the scene
-         bool add(Ptr<Entity> object, Ptr<Entity> parent); // Add new entity to the scene as child object
+         bool add(shared_ptr<Entity> object);                     // Add new entity to the scene
+         bool add(shared_ptr<Entity> object, shared_ptr<Entity> parent); // Add new entity to the scene as child object
          bool remove(uint32 handle);                       // Remove entity from scene
          void update(void);                                // Update scene
          };

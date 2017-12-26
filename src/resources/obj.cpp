@@ -106,7 +106,7 @@ namespace en
    // - reduces identical vertices inside mesh
    // - reduces index buffer size
    // - optimizes indices order
-   Ptr<en::resource::Model> load(const string& filename, const string& name)
+   shared_ptr<en::resource::Model> load(const string& filename, const string& name)
    {
    using namespace en::storage;
 
@@ -115,7 +115,7 @@ namespace en
       return ResourcesContext.models[name];
         
    // Open model file
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.models + filename);
@@ -123,7 +123,7 @@ namespace en
          {
          Log << en::ResourcesContext.path.models + filename << endl;
          Log << "ERROR: There is no such file!\n";
-         return Ptr<en::resource::Model>(NULL);
+         return shared_ptr<en::resource::Model>(NULL);
          }
       }
    
@@ -134,14 +134,14 @@ namespace en
    if (!buffer)
       {
       Log << "ERROR: Not enough memory!\n";
-      return Ptr<en::resource::Model>(NULL);
+      return shared_ptr<en::resource::Model>(NULL);
       }
    
    // Read file to buffer and close file
    if (!file->read(buffer))
       {
       Log << "ERROR: Cannot read whole obj file!\n";
-      return Ptr<en::resource::Model>(NULL);
+      return shared_ptr<en::resource::Model>(NULL);
       }    
    file = nullptr;
    
@@ -413,12 +413,12 @@ namespace en
    //if (model == NULL)
    //   {
    //   Log << "ERROR: Models pool is full!\n";
-   //   return Ptr<en::resource::Model>(NULL);
+   //   return shared_ptr<en::resource::Model>(NULL);
    //   } 
    //model->mesh   = new en::resource::Mesh*[meshes.size()];
    //model->meshes = meshes.size();
     
-   Ptr<en::resource::Model> model = new en::resource::Model();
+   shared_ptr<en::resource::Model> model = make_shared<en::resource::Model>();
    assert(model);
 
    // Generate meshes
@@ -603,15 +603,15 @@ namespace en
                }
             }
          }
-      Ptr<gpu::Buffer> vertexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertexes, formatting, 0u);
+      shared_ptr<gpu::Buffer> vertexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertexes, formatting, 0u);
 
       // Create staging buffer
       uint32 stagingSize = vertexes * rowSize;
-      Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
-         return Ptr<en::resource::Model>(nullptr);
+         return shared_ptr<en::resource::Model>(nullptr);
          }
 
       // Read texture to temporary buffer
@@ -625,9 +625,9 @@ namespace en
          queueType = gpu::QueueType::Transfer;
 
       // Copy data from staging buffer to final texture
-      Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
       command->start();
-      command->copy(staging, vertexBuffer);
+      command->copy(*staging, *vertexBuffer);
       command->commit();
       
       // TODO:
@@ -694,14 +694,14 @@ namespace en
             srcIndex = ibo;
             }
          }
-      Ptr<gpu::Buffer> indexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexes, formatting, 0u);
+      shared_ptr<gpu::Buffer> indexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexes, formatting, 0u);
       
       // Create staging buffer
       staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
-         return Ptr<en::resource::Model>(nullptr);
+         return shared_ptr<en::resource::Model>(nullptr);
          }
 
       // Read buffer to temporary buffer
@@ -712,7 +712,7 @@ namespace en
       // Copy data from staging buffer to final texture
       command = Graphics->primaryDevice()->createCommandBuffer(queueType);
       command->start();
-      command->copy(staging, vertexBuffer);
+      command->copy(*staging, *vertexBuffer);
       command->commit();
       
       // TODO:
@@ -745,7 +745,7 @@ namespace en
       }
     
    // Update list of loaded models
-   ResourcesContext.models.insert(pair<string, Ptr<en::resource::Model> >(name, model));
+   ResourcesContext.models.insert(pair<string, shared_ptr<en::resource::Model> >(name, model));
  
    // Return model interface
    return model;

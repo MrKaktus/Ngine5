@@ -35,7 +35,7 @@ namespace en
       public:
       Direct3D12Device* gpu;
       ID3D12PipelineState* handle;
-      Ptr<PipelineLayoutD3D12> layout; // Reference to Pipeline Layout
+      shared_ptr<PipelineLayoutD3D12> layout; // Reference to Pipeline Layout
 
       // Dynamic - Set on CommandBuffer
       FLOAT blendColor[4];
@@ -45,7 +45,7 @@ namespace en
       D3D_PRIMITIVE_TOPOLOGY topology;
       UINT stencilRef;
 
-      PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle, Ptr<PipelineLayoutD3D12> layout);
+      PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle, shared_ptr<PipelineLayoutD3D12> layout);
       virtual ~PipelineD3D12();
       };
 

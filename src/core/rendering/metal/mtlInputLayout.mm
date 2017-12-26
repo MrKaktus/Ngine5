@@ -173,21 +173,25 @@ namespace en
    deallocateObjectiveC(desc);
    }
 
-   Ptr<InputLayout> MetalDevice::createInputLayout(const DrawableType primitiveType,
-                                                   const bool primitiveRestart,
-                                                   const uint32 controlPoints,
-                                                   const uint32 usedAttributes,
-                                                   const uint32 usedBuffers,
-                                                   const AttributeDesc* attributes,
-                                                   const BufferDesc* buffers)
+   shared_ptr<InputLayout> MetalDevice::createInputLayout(const DrawableType primitiveType,
+                                                          const bool primitiveRestart,
+                                                          const uint32 controlPoints,
+                                                          const uint32 usedAttributes,
+                                                          const uint32 usedBuffers,
+                                                          const AttributeDesc* attributes,
+                                                          const BufferDesc* buffers)
    {
-   Ptr<InputLayoutMTL> input = new InputLayoutMTL(primitiveType, primitiveRestart, controlPoints, usedAttributes, usedBuffers, attributes, buffers);
-
-   return ptr_reinterpret_cast<InputLayout>(&input);
+   return make_shared<InputLayoutMTL>(primitiveType,
+                                      primitiveRestart,
+                                      controlPoints,
+                                      usedAttributes,
+                                      usedBuffers,
+                                      attributes,
+                                      buffers);
    }
 
 
-//   Ptr<InputLayout> MetalDevice::create(Ptr<BufferView> buffer)
+//   shared_ptr<InputLayout> MetalDevice::create(shared_ptr<BufferView> buffer)
 //   {
 //   AttributeDesc* attributes = new AttributeDesc[buffer->attributes];
 //   
@@ -195,27 +199,27 @@ namespace en
 //   buffers.elementSize = buffer->elementSize;
 //   buffers.stepRate = 0;
 //
-//   Ptr<InputLayoutMTL> input = nullptr;
+//   shared_ptr<InputLayoutMTL> input = nullptr;
 //   
-//   input = new InputLayoutMTL(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
+//   input = make_shared<InputLayoutMTL>(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
 //   
 //   delete [] attributes;
 //   
-//   return ptr_dynamic_cast<InputAssember, InputLayoutMTL>(input);
+//   return input;
 //   }
 //
-//   Ptr<InputLayout> MetalDevice::create(InputLayoutSettings& attributes)
+//   shared_ptr<InputLayout> MetalDevice::create(InputLayoutSettings& attributes)
 //   {
-//   Ptr<InputLayoutMTL> input = nullptr;
+//   shared_ptr<InputLayoutMTL> input = nullptr;
 //   
-//   input = new InputLayoutMTL(primitiveType, controlPoints,
+//   input = make_shared<InputLayoutMTL>(primitiveType, controlPoints,
 // 
 //                                        const uint32 usedAttributes, 
 //                                        const uint32 usedBuffers, 
 //                                        const AttributeDesc* attributes,  
 //                                        const BufferDesc* buffers
 //   
-//   return ptr_dynamic_cast<InputAssember, InputLayoutMTL>(input);
+//   return input;
 //   }
 
 
@@ -223,10 +227,10 @@ namespace en
 
 
 
-   //  Ptr<InputLayout> Create(AttributeInfo& attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-   //                             Ptr<Buffer>    buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
+   //  shared_ptr<InputLayout> Create(AttributeInfo& attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
+   //                             shared_ptr<Buffer>    buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
    //  {
-   //  Ptr<InputLayoutMTL> state = new InputLayoutMTL();
+   //  shared_ptr<InputLayoutMTL> state = make_shared<InputLayoutMTL>();
    //  
    //  // Create array describing buffers used by Vertex Fetch.
    //  uint32 buffers = 0;
@@ -240,7 +244,7 @@ namespace en
    //     // as we can pass the same data using regular buffer and sample
    //     // it from any shader. There is also no real life case scenario
    //     // to set "default" const values for missing buffers.
-   //     Ptr<BufferMTL> src = ptr_dynamic_cast<BufferMTL, Buffer>(buffer[buffers]);
+   //     BufferMTL* src = reinterpret_cast<BufferMTL*>(buffer[buffers].get());
    //     if (src->step == 0)
    //        {
    //        state->desc.layouts[buffers].stepFunction = MTLVertexStepFunctionPerVertex;
@@ -280,7 +284,7 @@ namespace en
    //     offset[ attribute[i].buffer ] += attributeSize;
    //     }
    //  
-   //  return ptr_dynamic_cast<InputLayout, InputLayoutMTL>(state);
+   //  return state;
    //  }
 
    }

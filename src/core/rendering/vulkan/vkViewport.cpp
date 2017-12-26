@@ -55,11 +55,11 @@ namespace en
    state.pScissors     = scissor;
    }
 
-   Ptr<ViewportState> VulkanDevice::createViewportState(const uint32 count,
-                                                        const ViewportStateInfo* viewports,
-                                                        const ScissorStateInfo* scissors)
+   shared_ptr<ViewportState> VulkanDevice::createViewportState(const uint32 count,
+                                                               const ViewportStateInfo* viewports,
+                                                               const ScissorStateInfo* scissors)
    {
-   return ptr_dynamic_cast<ViewportState, ViewportStateVK>(Ptr<ViewportStateVK>(new ViewportStateVK(count, viewports, scissors)));
+   return make_shared<ViewportStateVK>(count, viewports, scissors);
    }
 
    }

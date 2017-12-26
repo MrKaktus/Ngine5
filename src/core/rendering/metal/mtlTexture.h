@@ -38,8 +38,8 @@ namespace en
       {
       public:
       id<MTLTexture>        handle;      // Metal texture ID
-      Ptr<HeapMTL>          heap;        // Memory backing heap
-      Ptr<SharedSurfaceOSX> ioSurface;   // Texture object may own backing, but this backing may be in form of shared IOSurface
+      shared_ptr<HeapMTL>          heap;        // Memory backing heap
+      shared_ptr<SharedSurfaceOSX> ioSurface;   // Texture object may own backing, but this backing may be in form of shared IOSurface
       bool                  ownsBacking; // Is this texture container the owner of backing surface (no for Swap-Chain surfaces)
       
       TextureMTL(const id<MTLHeap> heap,
@@ -51,14 +51,14 @@ namespace en
       
       // Creates Texture backed by IOSurface, that can be shared between processes.
       TextureMTL(const id<MTLDevice> device,
-                 const Ptr<SharedSurface> backingSurface);
+                 const shared_ptr<SharedSurface> backingSurface);
       
-      virtual Ptr<Heap>        parent(void) const;
-      virtual Ptr<TextureView> view(void) const;
-      virtual Ptr<TextureView> view(const TextureType type,
-                                    const Format format,
-                                    const uint32v2 mipmaps,
-                                    const uint32v2 layers) const;
+      virtual shared_ptr<Heap>        parent(void) const;
+      virtual shared_ptr<TextureView> view(void);
+      virtual shared_ptr<TextureView> view(const TextureType type,
+                                           const Format format,
+                                           const uint32v2 mipmaps,
+                                           const uint32v2 layers);
                             
       virtual ~TextureMTL();
       };
@@ -66,17 +66,17 @@ namespace en
    class TextureViewMTL : public CommonTextureView
       {
       public:
-      Ptr<TextureMTL> texture; // Parent texture
+      shared_ptr<TextureMTL> texture; // Parent texture
       id<MTLTexture>  handle;  // Vulkan Image View ID
 
-      TextureViewMTL(Ptr<TextureMTL>   parent,
+      TextureViewMTL(shared_ptr<TextureMTL> parent,
                      id<MTLTexture>    view,
                      const TextureType type,
                      const Format      format,
                      const uint32v2    mipmaps,
                      const uint32v2    layers);
          
-      Ptr<Texture> parent(void) const;
+      shared_ptr<Texture> parent(void) const;
    
       virtual ~TextureViewMTL();
       };

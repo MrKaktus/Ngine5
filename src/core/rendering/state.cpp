@@ -169,29 +169,29 @@ namespace en
       GpuContext.support.maxInputLayoutAttributesCount = 16;
 
       // Pipeline State - Misc
-      Profile( glGetIntegerv(GL_MAX_DRAW_BUFFERS,        (GLint*)&GpuContext.support.maxRenderTargets) );  // Maximum supported Render Targets count  
-      Profile( glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS,   (GLint*)&GpuContext.support.maxFramebufferColorAttachments) ); // Maximum supported Render Targets in FBO count
-      Profile( glGetIntegerv(GL_MAX_PATCH_VERTICES,      (GLint*)&GpuContext.support.maxPatchSize) );	
-      Profile( glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint*)&GpuContext.support.maxTextureUnits) )
+      Validate( glGetIntegerv(GL_MAX_DRAW_BUFFERS,        (GLint*)&GpuContext.support.maxRenderTargets) );  // Maximum supported Render Targets count  
+      Validate( glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS,   (GLint*)&GpuContext.support.maxFramebufferColorAttachments) ); // Maximum supported Render Targets in FBO count
+      Validate( glGetIntegerv(GL_MAX_PATCH_VERTICES,      (GLint*)&GpuContext.support.maxPatchSize) );	
+      Validate( glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint*)&GpuContext.support.maxTextureUnits) )
 
       // Buffer
 // glGetIntegerv(GL_MAX_ELEMENTS_INDICES,           (GLint*)&m_maxElementIndices);
 // glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,          (GLint*)&m_maxElementVerices);
 
       // Texture
-      Profile( glGetIntegerv(GL_MAX_TEXTURE_SIZE,           (GLint*)&GpuContext.support.maxTextureSize) )
-    //Profile( glGetIntegerv(GL_MAX_RECTANGLE_TEXTURE_SIZE, (GLint*)&GpuContext.support.maxTextureRectSize) )
-      Profile( glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE,  (GLint*)&GpuContext.support.maxTextureCubeSize) )
-      Profile( glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE,        (GLint*)&GpuContext.support.maxTexture3DSize) )
-      Profile( glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS,   (GLint*)&GpuContext.support.maxTextureLayers) )
-      Profile( glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,    (GLint*)&GpuContext.support.maxTextureBufferSize) )
-      Profile( glGetFloatv(GL_MAX_TEXTURE_LOD_BIAS,         (GLfloat*)&GpuContext.support.maxTextureLodBias) )
+      Validate( glGetIntegerv(GL_MAX_TEXTURE_SIZE,           (GLint*)&GpuContext.support.maxTextureSize) )
+    //Validate( glGetIntegerv(GL_MAX_RECTANGLE_TEXTURE_SIZE, (GLint*)&GpuContext.support.maxTextureRectSize) )
+      Validate( glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE,  (GLint*)&GpuContext.support.maxTextureCubeSize) )
+      Validate( glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE,        (GLint*)&GpuContext.support.maxTexture3DSize) )
+      Validate( glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS,   (GLint*)&GpuContext.support.maxTextureLayers) )
+      Validate( glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,    (GLint*)&GpuContext.support.maxTextureBufferSize) )
+      Validate( glGetFloatv(GL_MAX_TEXTURE_LOD_BIAS,         (GLfloat*)&GpuContext.support.maxTextureLodBias) )
 #endif
 
       // Maximum anisotropic filtering samples count
       GpuContext.support.maxAnisotropy = 0.0f;
       if (GpuContext.support.extension(EXT_texture_filter_anisotropic))
-         Profile( glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, (GLfloat*)&GpuContext.support.maxAnisotropy) )
+         Validate( glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, (GLfloat*)&GpuContext.support.maxAnisotropy) )
 
 
       // TODO: Finish !
@@ -255,9 +255,9 @@ namespace en
       if (checkBit(GpuContext.state.dirtyBits.blend, 0))
          {
          if (GpuContext.state.output.color[0].blend.on)
-            Profile( glEnable(GL_BLEND) )
+            Validate( glEnable(GL_BLEND) )
          else
-            Profile( glDisable(GL_BLEND) )
+            Validate( glDisable(GL_BLEND) )
          clearBit(GpuContext.state.dirtyBits.blend, 0);
          }
 
@@ -267,9 +267,9 @@ namespace en
          if (checkBit(GpuContext.state.dirtyBits.blend, i))
             {
             if (GpuContext.state.output.color[i].blend.on)
-               Profile( glEnablei(GL_BLEND, i) )
+               Validate( glEnablei(GL_BLEND, i) )
             else
-               Profile( glDisablei(GL_BLEND, i) )
+               Validate( glDisablei(GL_BLEND, i) )
             }  
 #endif
 
@@ -281,7 +281,7 @@ namespace en
       // Default color buffer 
       if (checkBit(GpuContext.state.dirtyBits.blendFunction, 0))
          {
-         Profile( glBlendFuncSeparate(GpuContext.state.output.color[0].blend.srcFuncRGB, 
+         Validate( glBlendFuncSeparate(GpuContext.state.output.color[0].blend.srcFuncRGB, 
                                       GpuContext.state.output.color[0].blend.dstFuncRGB, 
                                       GpuContext.state.output.color[0].blend.srcFuncA,
                                       GpuContext.state.output.color[0].blend.dstFuncA) )
@@ -295,7 +295,7 @@ namespace en
             {
             if (GpuContext.screen.support(OpenGL_4_0))   
                {      
-               Profile( glBlendFuncSeparatei(i, GpuContext.state.output.color[i].blend.srcFuncRGB, 
+               Validate( glBlendFuncSeparatei(i, GpuContext.state.output.color[i].blend.srcFuncRGB, 
                                                 GpuContext.state.output.color[i].blend.dstFuncRGB, 
                                                 GpuContext.state.output.color[i].blend.srcFuncA,
                                                 GpuContext.state.output.color[i].blend.dstFuncA) )
@@ -303,7 +303,7 @@ namespace en
             else
             if (GpuContext.support.extension(ARB_draw_buffers_blend))  
                {
-               Profile( glBlendFuncSeparateiARB(i, GpuContext.state.output.color[i].blend.srcFuncRGB, 
+               Validate( glBlendFuncSeparateiARB(i, GpuContext.state.output.color[i].blend.srcFuncRGB, 
                                                    GpuContext.state.output.color[i].blend.dstFuncRGB, 
                                                    GpuContext.state.output.color[i].blend.srcFuncA,
                                                    GpuContext.state.output.color[i].blend.dstFuncA) )
@@ -320,10 +320,10 @@ namespace en
       if (checkBit(GpuContext.state.dirtyBits.blendEquation, 0))
          {
 #if defined(EN_DISCRETE_GPU) && !defined(EN_PLATFORM_OSX)
-         Profile( glBlendEquationSeparateEXT(GpuContext.state.output.color[0].blend.equationRGB,
+         Validate( glBlendEquationSeparateEXT(GpuContext.state.output.color[0].blend.equationRGB,
                                              GpuContext.state.output.color[0].blend.equationA) )
 #else // defined(EN_MOBILE_GPU)
-         Profile( glBlendEquationSeparate(GpuContext.state.output.color[0].blend.equationRGB, 
+         Validate( glBlendEquationSeparate(GpuContext.state.output.color[0].blend.equationRGB, 
                                           GpuContext.state.output.color[0].blend.equationA) )
 #endif
          clearBit(GpuContext.state.dirtyBits.blendEquation, 0);
@@ -336,13 +336,13 @@ namespace en
             {
             if (GpuContext.screen.support(OpenGL_4_0))  
                {   
-               Profile( glBlendEquationSeparatei(i, GpuContext.state.output.color[i].blend.equationRGB, 
+               Validate( glBlendEquationSeparatei(i, GpuContext.state.output.color[i].blend.equationRGB, 
                                                     GpuContext.state.output.color[i].blend.equationA) )
                }
             else
             if (GpuContext.support.extension(ARB_draw_buffers_blend)) 
                {
-               Profile( glBlendEquationSeparateiARB(i, GpuContext.state.output.color[i].blend.equationRGB, 
+               Validate( glBlendEquationSeparateiARB(i, GpuContext.state.output.color[i].blend.equationRGB, 
                                                        GpuContext.state.output.color[i].blend.equationA) )
                }
             }
@@ -355,7 +355,7 @@ namespace en
       {
       if (GpuContext.state.dirtyBits.blendColor)
          {
-         Profile( glBlendColor(GpuContext.state.output.blendColor.r,
+         Validate( glBlendColor(GpuContext.state.output.blendColor.r,
                                GpuContext.state.output.blendColor.g,
                                GpuContext.state.output.blendColor.b,
                                GpuContext.state.output.blendColor.a) )
@@ -366,28 +366,28 @@ namespace en
       void CullingUpdate(void)
       {
       if (GpuContext.state.culling.enabled)
-         Profile( glEnable(GL_CULL_FACE) )
+         Validate( glEnable(GL_CULL_FACE) )
       else
-         Profile( glDisable(GL_CULL_FACE) )
+         Validate( glDisable(GL_CULL_FACE) )
       
       GpuContext.state.dirtyBits.culling = false;
       }
 
       void CullingFunctionUpdate(void)
       {
-      Profile( glFrontFace(GpuContext.state.culling.function) ) 
+      Validate( glFrontFace(GpuContext.state.culling.function) ) 
       GpuContext.state.dirtyBits.cullingFunction = false;
       }
 
       void CullingFaceUpdate(void)
       {
-      Profile( glCullFace(GpuContext.state.culling.face) ) 
+      Validate( glCullFace(GpuContext.state.culling.face) ) 
       GpuContext.state.dirtyBits.cullingFace = false;
       }
 
       void ScissorRectUpdate(void)
       {
-      Profile( glScissor(GpuContext.state.scissor.left, 
+      Validate( glScissor(GpuContext.state.scissor.left, 
                          GpuContext.state.scissor.bottom, 
                          GpuContext.state.scissor.width, 
                          GpuContext.state.scissor.height) )
@@ -397,41 +397,41 @@ namespace en
       void ScissorUpdate(void)
       {
       if (GpuContext.state.scissor.enabled)
-         Profile( glEnable(GL_SCISSOR_TEST) )
+         Validate( glEnable(GL_SCISSOR_TEST) )
       else
-         Profile( glDisable(GL_SCISSOR_TEST) )
+         Validate( glDisable(GL_SCISSOR_TEST) )
       
       GpuContext.state.dirtyBits.scissor = false;
       }
 
       void DepthWritingUpdate(void)
       {
-      Profile( glDepthMask(GpuContext.state.depth.writing) )
+      Validate( glDepthMask(GpuContext.state.depth.writing) )
       GpuContext.state.dirtyBits.depthWriting = false;
       }
 
       void DepthTestingUpdate(void)
       {
       if (GpuContext.state.depth.testing)
-         Profile( glEnable(GL_DEPTH_TEST) )
+         Validate( glEnable(GL_DEPTH_TEST) )
       else
-         Profile( glDisable(GL_DEPTH_TEST) )
+         Validate( glDisable(GL_DEPTH_TEST) )
       
       GpuContext.state.dirtyBits.depthTesting = false;
       }
 
       void DepthFunctionUpdate(void)
       {
-      Profile( glDepthFunc(GpuContext.state.depth.function) )
+      Validate( glDepthFunc(GpuContext.state.depth.function) )
       GpuContext.state.dirtyBits.depthFunction = false;
       } 
 
       void StencilWritingUpdate(void)
       {
       if (GpuContext.state.stencil.writing)
-         Profile( glStencilMaskSeparate(GL_FRONT_AND_BACK, 0xFFFFFFFF) )
+         Validate( glStencilMaskSeparate(GL_FRONT_AND_BACK, 0xFFFFFFFF) )
       else
-         Profile( glStencilMaskSeparate(GL_FRONT_AND_BACK, 0x00000000) )
+         Validate( glStencilMaskSeparate(GL_FRONT_AND_BACK, 0x00000000) )
 
       GpuContext.state.dirtyBits.stencilWriting = false;
       }
@@ -439,9 +439,9 @@ namespace en
       void StencilTestingUpdate(void)
       {
       if (GpuContext.state.stencil.testing)
-         Profile( glEnable(GL_STENCIL_TEST) )
+         Validate( glEnable(GL_STENCIL_TEST) )
       else
-         Profile( glDisable(GL_STENCIL_TEST) )
+         Validate( glDisable(GL_STENCIL_TEST) )
       
       GpuContext.state.dirtyBits.stencilTesting = false;
       }
@@ -450,7 +450,7 @@ namespace en
       {
       if (GpuContext.state.dirtyBits.stencilFrontOps)
          {
-         Profile( glStencilOpSeparate(GL_FRONT, 
+         Validate( glStencilOpSeparate(GL_FRONT, 
                      GpuContext.state.stencil.front.operation[0],
                      GpuContext.state.stencil.front.operation[1],
                      GpuContext.state.stencil.front.operation[2]) )
@@ -460,7 +460,7 @@ namespace en
 
       if (GpuContext.state.dirtyBits.stencilBackOps)
          {
-         Profile( glStencilOpSeparate(GL_BACK, 
+         Validate( glStencilOpSeparate(GL_BACK, 
                      GpuContext.state.stencil.back.operation[0],
                      GpuContext.state.stencil.back.operation[1],
                      GpuContext.state.stencil.back.operation[2]) )
@@ -473,7 +473,7 @@ namespace en
       {
       if (GpuContext.state.dirtyBits.stencilFrontFunc)
          {
-         Profile( glStencilFuncSeparate(GL_FRONT, 
+         Validate( glStencilFuncSeparate(GL_FRONT, 
                      GpuContext.state.stencil.front.function, 
                      GpuContext.state.stencil.front.reference, 
                      GpuContext.state.stencil.front.mask) )
@@ -483,7 +483,7 @@ namespace en
 
       if (GpuContext.state.dirtyBits.stencilBackFunc)
          {
-         Profile( glStencilFuncSeparate(GL_BACK, 
+         Validate( glStencilFuncSeparate(GL_BACK, 
                      GpuContext.state.stencil.back.function, 
                      GpuContext.state.stencil.back.reference, 
                      GpuContext.state.stencil.back.mask) )
@@ -494,7 +494,7 @@ namespace en
   
       void ColorWritingUpdate(void)
       {   
-      Profile( glColorMask(GpuContext.state.color.enabled[0],
+      Validate( glColorMask(GpuContext.state.color.enabled[0],
                            GpuContext.state.color.enabled[1],
                            GpuContext.state.color.enabled[2],
                            GpuContext.state.color.enabled[3]) )
@@ -510,7 +510,7 @@ namespace en
       if (GpuContext.state.dirtyBits.colorClearValue &&
           GpuContext.state.dirtyBits.colorClear)
          {
-         Profile( glClearColor(GpuContext.state.color.clear.r,
+         Validate( glClearColor(GpuContext.state.color.clear.r,
                                GpuContext.state.color.clear.g,
                                GpuContext.state.color.clear.b,
                                GpuContext.state.color.clear.a) )
@@ -523,10 +523,10 @@ namespace en
           GpuContext.state.dirtyBits.depthClear)
          {
          #ifdef EN_OPENGL_DESKTOP
-         Profile( glClearDepth(GpuContext.state.depth.clear) )
+         Validate( glClearDepth(GpuContext.state.depth.clear) )
          #endif
          #ifdef EN_OPENGL_MOBILE
-         Profile( glClearDepthf((float)GpuContext.state.depth.clear) )
+         Validate( glClearDepthf((float)GpuContext.state.depth.clear) )
          #endif
 
          GpuContext.state.dirtyBits.depthClearValue = false;
@@ -537,7 +537,7 @@ namespace en
       if (GpuContext.state.dirtyBits.stencilClearValue &&
           GpuContext.state.dirtyBits.stencilClear)
          {
-         Profile( glClearStencil(GpuContext.state.stencil.clear) )
+         Validate( glClearStencil(GpuContext.state.stencil.clear) )
          GpuContext.state.dirtyBits.stencilClearValue = false;
          }
                
@@ -560,7 +560,7 @@ namespace en
       
       // Clear buffers 
       if (mask)
-         Profile( glClear(mask) )
+         Validate( glClear(mask) )
       }
   
       }

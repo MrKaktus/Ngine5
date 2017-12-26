@@ -373,7 +373,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    return true;
    }
 
-   bool LoadMaterialPropertyMap(FbxSurfaceMaterial* material, const char* fbxPropertyName, Ptr<en::gpu::Texture> map)
+   bool LoadMaterialPropertyMap(FbxSurfaceMaterial* material, const char* fbxPropertyName, shared_ptr<en::gpu::Texture> map)
    {
    const FbxProperty fbxProperty = material->FindProperty( fbxPropertyName );
    if (!fbxProperty.IsValid())
@@ -928,11 +928,11 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
          }
       }
 
-   Ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting, 0u);
+   shared_ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting, 0u);
 
    // Create staging buffer
    uint32 stagingSize = vertices * rowSize;
-   Ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -950,9 +950,9 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       queueType = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   Ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
    command->start();
-   command->copy(staging, vbo);
+   command->copy(*staging, *vbo);
    command->commit();
    
    // TODO:
@@ -1019,7 +1019,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
       vboBegin += unpackedMesh[mesh].vertices.size();
       }
-   Ptr<gpu::Buffer> ibo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexCount, format);
+   shared_ptr<gpu::Buffer> ibo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexCount, format);
 
    // Create staging buffer
    stagingSize = indexCount * indexSize;
@@ -1043,7 +1043,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    // Copy data from staging buffer to final texture
    command = Graphics->primaryDevice()->createCommandBuffer(queueType);
    command->start();
-   command->copy(staging, vbo);
+   command->copy(*staging, *vbo);
    command->commit();
    
    // TODO:
@@ -1098,7 +1098,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
 
 
-   Ptr<en::resource::Model> load(const string& filename, const string& name)
+   shared_ptr<en::resource::Model> load(const string& filename, const string& name)
    {
    using namespace en::storage;
 
@@ -1111,7 +1111,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    if (!fbxImporter) 
       {
       Log << "ERROR: Cannot create FBX importer!\n";
-      return Ptr<en::resource::Model>(NULL);
+      return shared_ptr<en::resource::Model>(NULL);
       }
 
    // Load FBX file to importer
@@ -1119,7 +1119,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       if (!fbxImporter->Initialize((ResourcesContext.path.models + filename).c_str(), -1, ResourcesContext.fbxManager->GetIOSettings())) 
          {
          Log << string("ERROR: FBX importer initialization failed with error: " + string(fbxImporter->GetStatus().GetErrorString()) + "\n");
-         return Ptr<en::resource::Model>(NULL);
+         return shared_ptr<en::resource::Model>(NULL);
          }
       
    // Create local scene for imported model
@@ -1147,14 +1147,14 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       if (!fileTexture)
          {
          Log << string("ERROR: FBX file has corrupted texture description!\n");
-         return Ptr<en::resource::Model>(NULL);
+         return shared_ptr<en::resource::Model>(NULL);
          }
 
       // Check if texture is resident in FBX
       if (fileTexture->GetUserDataPtr())
          {
          Log << string("ERROR: Engine doesn't support import of textures resident in FBX files!\n");
-         return Ptr<en::resource::Model>(NULL);
+         return shared_ptr<en::resource::Model>(NULL);
          }
 
       // Load texture from file
@@ -1202,7 +1202,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
 
    // Create model
-   Ptr<en::resource::Model> model = new en::resource::Model();
+   shared_ptr<en::resource::Model> model = make_shared<en::resource::Model>();
    model->name = string(fbxScene->GetName());
 
    // (x) Load skeleton

@@ -496,17 +496,17 @@ namespace en
       CommonInterface()
    {
    // Register keyboard
-   keyboards.push_back(Ptr<Keyboard>(new CommonKeyboard()));
+   keyboards.push_back(make_shared<CommonKeyboard>());
    count[underlyingType(IO::Keyboard)]++;
    stateFlags = 0;
    
    // Register mouse (or Touchpad pretending to be mouse)
-   mouses.push_back(Ptr<Mouse>(new OSXMouse()));
+   mouses.push_back(make_shared<OSXMouse>());
    count[underlyingType(IO::Mouse)]++;
    
    // Register touchpad
    // TODO: Detect MacBook or Magic Touch Pad and add it's support
-   // touchpads.push_back(Ptr<TouchPad>(new OSXTouchPad()));
+   // touchpads.push_back(make_shared<OSXTouchPad>());
    // count[underlyingType(IO::TouchPad)]++;
    }
    
@@ -543,7 +543,8 @@ namespace en
          // https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/EventOverview/HandlingMouseEvents/HandlingMouseEvents.html#//apple_ref/doc/uid/10000060i-CH6
          case NSEventTypeLeftMouseDown:
             {
-            ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Left)] = KeyState::Pressed;
+            CommonMouse* mouse = reinterpret_cast<CommonMouse*>(mouses[0].get());
+            mouse->buttons[underlyingType(MouseButton::Left)] = KeyState::Pressed;
 
             // Call event handling function
             MouseEvent outEvent(MouseButtonPressed);
@@ -554,7 +555,8 @@ namespace en
             
          case NSEventTypeLeftMouseUp:
             {
-            ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Left)] = KeyState::Released;
+            CommonMouse* mouse = reinterpret_cast<CommonMouse*>(mouses[0].get());
+            mouse->buttons[underlyingType(MouseButton::Left)] = KeyState::Released;
             
             // Call event handling function
             MouseEvent outEvent(MouseButtonReleased);
@@ -565,7 +567,8 @@ namespace en
             
          case NSEventTypeRightMouseDown:
             {
-            ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Right)] = KeyState::Pressed;
+            CommonMouse* mouse = reinterpret_cast<CommonMouse*>(mouses[0].get());
+            mouse->buttons[underlyingType(MouseButton::Right)] = KeyState::Pressed;
 
             // Call event handling function
             MouseEvent outEvent(MouseButtonPressed);
@@ -576,7 +579,8 @@ namespace en
             
          case NSEventTypeRightMouseUp:
             {
-            ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0])->buttons[underlyingType(MouseButton::Right)] = KeyState::Released;
+            CommonMouse* mouse = reinterpret_cast<CommonMouse*>(mouses[0].get());
+            mouse->buttons[underlyingType(MouseButton::Right)] = KeyState::Released;
             
             // Call event handling function
             MouseEvent outEvent(MouseButtonReleased);
@@ -587,7 +591,7 @@ namespace en
             
          case NSEventTypeMouseMoved:
             {
-            Ptr<CommonMouse> mouse = ptr_dynamic_cast<CommonMouse, Mouse>(mouses[0u]);
+            CommonMouse* mouse = reinterpret_cast<CommonMouse*>(mouses[0].get());
                
             NSPoint eventLocation = [event locationInWindow];
 
@@ -595,7 +599,7 @@ namespace en
             // - if so, update screen pointer it lays on
             
             // WA: FIXME: For now, always position on main display.
-            mouse->_display = ptr_dynamic_cast<CommonDisplay, Display>(Graphics->primaryDisplay()); // CGMainDisplayID();
+            mouse->_display = dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay()); // CGMainDisplayID();
             
             
             // Requires mouse position in global screen coordinates, we get it in window coordinates.
@@ -607,7 +611,7 @@ namespace en
             if ([event window] == nil)
                {
                // Convert event location to per pixel location on the screen on which mouse is located
-               NSScreen* handle = ptr_dynamic_cast<DisplayMTL, CommonDisplay>(mouse->_display)->handle;
+               NSScreen* handle = reinterpret_cast<DisplayMTL*>(mouse->_display.get())->handle;
                NSRect frame = NSMakeRect(eventLocation.x, (eventLocation.y - 1.0f), 0.0f, 0.0f);
                NSRect info = [handle convertRectToBacking:frame];  // [handle frame] - Screen resolution
                mouse->x = static_cast<uint32>(info.origin.x);
@@ -686,13 +690,13 @@ namespace en
                
                if ([event type] == NSEventTypeKeyDown)
                   {
-                  ptr_reinterpret_cast<CommonKeyboard>(&keyboards[0])->keys[underlyingType(key)] = KeyState::Pressed;
+                  reinterpret_cast<CommonKeyboard*>(keyboards[0].get())->keys[underlyingType(key)] = KeyState::Pressed;
                   outEvent.type = KeyPressed;
                   }
                else
                if ([event type] == NSEventTypeKeyUp)
                   {
-                  ptr_reinterpret_cast<CommonKeyboard>(&keyboards[0])->keys[underlyingType(key)] = KeyState::Released;
+                  reinterpret_cast<CommonKeyboard*>(keyboards[0].get())->keys[underlyingType(key)] = KeyState::Released;
                   outEvent.type = KeyReleased;
                   }
    
@@ -720,7 +724,7 @@ namespace en
             // Each key state change is reported as separate system event
             uint32 newStateFlags = static_cast<uint32>([event modifierFlags]);
             
-            Ptr<CommonKeyboard> ptr = ptr_dynamic_cast<CommonKeyboard, Keyboard>(keyboards[0]);
+            CommonKeyboard* ptr = reinterpret_cast<CommonKeyboard*>(keyboards[0].get());
             
             // CapsLock
             if (bitsChanged(newStateFlags, stateFlags, NSAlphaShiftKeyMask))
@@ -820,7 +824,7 @@ namespace en
    {
    // http://stackoverflow.com/questions/1236498/how-to-get-the-display-name-with-the-display-id-in-mac-os-x
    assert( _display );
-   Ptr<DisplayMTL> ptr = ptr_reinterpret_cast<DisplayMTL>(&_display);
+   DisplayMTL* ptr = reinterpret_cast<DisplayMTL*>(_display.get());
    NSScreen* handle = ptr->handle;
    
    assert( handle );
@@ -833,11 +837,11 @@ namespace en
    return true;
    }
 
-   bool OSXMouse::position(const Ptr<Display> __display, const uint32 x, const uint32 y)
+   bool OSXMouse::position(const shared_ptr<Display> __display, const uint32 x, const uint32 y)
    {
    assert( __display );
-   _display = ptr_reinterpret_cast<CommonDisplay>(&__display);
-   Ptr<DisplayMTL> ptr = ptr_reinterpret_cast<DisplayMTL>(&_display);
+   _display = dynamic_pointer_cast<CommonDisplay>(__display);
+   DisplayMTL* ptr = reinterpret_cast<DisplayMTL*>(_display.get());
    NSScreen* handle = ptr->handle;
    
    assert( handle );

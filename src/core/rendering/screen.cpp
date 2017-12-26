@@ -154,8 +154,8 @@ namespace en
    uint32 height = GpuContext.screen.height;
    uint8* data = new uint8[width * height * 3];
 
-   Profile( glPixelStorei(GL_UNPACK_ALIGNMENT, 1) )
-   Profile( glReadPixels(0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, data) )
+   Validate( glPixelStorei(GL_UNPACK_ALIGNMENT, 1) )
+   Validate( glReadPixels(0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, data) )
 
    bool result = en::bmp::save(width, height, data, string(filename + ".bmp"));
    
@@ -176,14 +176,14 @@ namespace en
    {
    if (!GpuContext.screen.created)
       return;
-   Profile( glViewport(x, y, width, height) )
+   Validate( glViewport(x, y, width, height) )
    }
 
    void Interface::Screen::view(uint32v4 viewport)
    {
    if (!GpuContext.screen.created)
       return;
-   Profile( glViewport(viewport.x, viewport.y, viewport.width, viewport.height) )
+   Validate( glViewport(viewport.x, viewport.y, viewport.width, viewport.height) )
    }
 
    // Tells if screen is created
@@ -1117,7 +1117,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       glGetError();
       
       // Set default viewport
-      Profile( glViewport(0, 0, GpuContext.screen.width, GpuContext.screen.height) );
+      Validate( glViewport(0, 0, GpuContext.screen.width, GpuContext.screen.height) );
 
       // Creating default resources
       ResourcesContext.create();
@@ -1989,15 +1989,15 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       glGetError();
 
       // Set default viewport
-      Profile( glViewport(0, 0, GpuContext.screen.width, GpuContext.screen.height) )
+      Validate( glViewport(0, 0, GpuContext.screen.width, GpuContext.screen.height) )
       
       // Create empty VAO for draw calls without input buffers
       if (GpuContext.screen.support(OpenGL_3_0))
-         Profile( glGenVertexArrays(1, &GpuContext.emptyVAO) )
+         Validate( glGenVertexArrays(1, &GpuContext.emptyVAO) )
 
       // Enable seamless texture filering
       if (GpuContext.screen.support(OpenGL_3_2))
-         Profile( glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS) )
+         Validate( glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS) )
 
 // <<<<<< NEW GPU CONTEXT IMPLEMENTATION
 
@@ -2007,8 +2007,8 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
       memset(GpuContext.sampler.cache, 0, sizeof(Context::Sampler::SamplerCache) * GpuContext.sampler.cacheSize);
 
       // Init texture units cache
-      GpuContext.textureUnit.texture = new Ptr<Texture>[GpuContext.support.maxTextureUnits];
-      GpuContext.textureUnit.sampler = new Ptr<Sampler>[GpuContext.support.maxTextureUnits];
+      GpuContext.textureUnit.texture = new shared_ptr<Texture>[GpuContext.support.maxTextureUnits];
+      GpuContext.textureUnit.sampler = new shared_ptr<Sampler>[GpuContext.support.maxTextureUnits];
       GpuContext.textureUnit.metric  = new uint32[GpuContext.support.maxTextureUnits];
       memset(GpuContext.textureUnit.metric, 0, sizeof(uint32) * GpuContext.support.maxTextureUnits);
 
@@ -2030,7 +2030,7 @@ const char* Context::Device::Screen::windowGroupName = "NgineDefaultWindowGroup"
      
       // Destroy default empty VAO
       if (GpuContext.screen.support(OpenGL_3_0))
-         Profile( glDeleteVertexArrays(1, &GpuContext.emptyVAO) )
+         Validate( glDeleteVertexArrays(1, &GpuContext.emptyVAO) )
 
       // Free all resources connected to gpu
       ResourcesContext.destroy();

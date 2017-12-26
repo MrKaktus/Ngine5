@@ -131,7 +131,7 @@ namespace en
    
    uint64 CommonInterface::read(const string& filename, string& dst)
    {
-   Ptr<File> file = open(filename);
+   shared_ptr<File> file = open(filename);
    if (!file)
       {
       dst.empty();
@@ -172,23 +172,22 @@ namespace en
    //Log << "Starting module: Storage.\n";
 
 #if defined(EN_PLATFORM_ANDROID)
-   Ptr<AndInterface> ptr = new AndInterface();
+   Storage = make_shared<AndInterface>();
 #endif
 #if defined(EN_PLATFORM_BLACKBERRY)
-   Ptr<BBInterface> ptr = new BBInterface();
+   Storage = make_shared<BBInterface>();
 #endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   Ptr<OSXInterface> ptr = new OSXInterface();
+   Storage = make_shared<OSXInterface>();
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
-   Ptr<WinInterface> ptr = new WinInterface();
+   Storage = make_shared<WinInterface>();
 #endif
 
-   Storage = raw_reinterpret_cast<Interface>(&ptr);
    return (Storage == nullptr) ? false : true;
    }
 
    }
    
-Ptr<storage::Interface> Storage = nullptr;
+shared_ptr<storage::Interface> Storage = nullptr;
 }

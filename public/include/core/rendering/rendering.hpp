@@ -171,8 +171,8 @@ namespace en
 
           struct IInputLayout
              {
-             //Ptr<en::gpu::InputLayout> Create(Attribute& attributes[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-             //                                    Ptr<Buffer>    buffer[MaxInputLayoutAttributesCount]);  // Array of buffer handles that will be used
+             //shared_ptr<en::gpu::InputLayout> Create(Attribute& attributes[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
+             //                                    shared_ptr<Buffer>    buffer[MaxInputLayoutAttributesCount]);  // Array of buffer handles that will be used
              };
 
 // <<<<< -- NEW RENDERING INTERFACE - END
@@ -186,14 +186,14 @@ namespace en
           struct ITexture
                  {
                  // Creates texture 
-                 Ptr<en::gpu::Texture> create(const TextureState& textureState);
+                 shared_ptr<en::gpu::Texture> create(const TextureState& textureState);
                  uint16 bitsPerTexel(const en::gpu::Format format);
                  } texture;
 
           struct ISampler
                  {
                  // Creates sampler states 
-                 Ptr<en::gpu::Sampler> create(const SamplerState& state);
+                 shared_ptr<en::gpu::Sampler> create(const SamplerState& state);
                  } sampler;
           
           //struct Shader
@@ -347,11 +347,11 @@ namespace en
                  // Attaching textures as render targets
                  struct Buffer
                         {
-                        Ptr<Framebuffer> create(void);
+                        shared_ptr<Framebuffer> create(void);
 
-                        bool set(const Ptr<Framebuffer> framebuffer);
-                        bool setRead(const Ptr<Framebuffer> framebuffer);
-                        bool setWrite(const Ptr<Framebuffer> framebuffer);
+                        bool set(const shared_ptr<Framebuffer> framebuffer);
+                        bool setRead(const shared_ptr<Framebuffer> framebuffer);
+                        bool setWrite(const shared_ptr<Framebuffer> framebuffer);
                         void setDefault(void);
                         void setDefaultRead(void);
                         void setDefaultWrite(void);

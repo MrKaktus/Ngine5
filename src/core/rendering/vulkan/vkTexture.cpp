@@ -322,9 +322,9 @@ namespace en
 
 
 
-   Ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state)
+   shared_ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state)
    {
-   Ptr<TextureVK> texture = nullptr;
+   shared_ptr<TextureVK> texture = nullptr;
 
    VkImageCreateInfo textureInfo = {};
    textureInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -466,7 +466,7 @@ namespace en
    // Query additional info about Format required for this Texture to validate it
    VkImageFormatProperties formatInfo;
 
-   Profile( gpu->api, vkGetPhysicalDeviceImageFormatProperties(gpu->handle, 
+   Validate( gpu->api, vkGetPhysicalDeviceImageFormatProperties(gpu->handle, 
       textureInfo.format,
       textureInfo.imageType,
       textureInfo.tiling,
@@ -487,7 +487,7 @@ namespace en
 
    VkImage handle = VK_NULL_HANDLE;
 
-   Profile( gpu, vkCreateImage(gpu->device, &textureInfo, nullptr, &handle) )
+   Validate( gpu, vkCreateImage(gpu->device, &textureInfo, nullptr, &handle) )
    if (gpu->lastResult[threadId] == VK_SUCCESS)  
       {
       texture = new TextureVK(gpu, state);
@@ -495,7 +495,7 @@ namespace en
       // texture->heap is assigned higher in call hierarchy
 
       // Query image requirements and validate if it can be created on this device
-      ProfileNoRet( gpu, vkGetImageMemoryRequirements(gpu->device, handle, &texture->memoryRequirements) )
+      ValidateNoRet( gpu, vkGetImageMemoryRequirements(gpu->device, handle, &texture->memoryRequirements) )
       assert( texture->memoryRequirements.size <= formatInfo.maxResourceSize );
       }
 
@@ -513,7 +513,7 @@ namespace en
 
    TextureVK::~TextureVK()
    {
-   ProfileNoRet( gpu, vkDestroyImage(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroyImage(gpu->device, handle, nullptr) )
    handle = VK_NULL_HANDLE;
 
    // Textures backed with Swap-Chain surfaces have no backing heap.
@@ -525,14 +525,14 @@ namespace en
       }
    }
  
-   Ptr<Heap> TextureVK::parent(void) const
+   shared_ptr<Heap> TextureVK::parent(void) const
    {
-   return ptr_reinterpret_cast<Heap>(&heap);
+   return heap;
    }
 
-   Ptr<TextureView> TextureVK::view(void) const
+   shared_ptr<TextureView> TextureVK::view(void)
    {
-   Ptr<TextureViewVK> result = nullptr;
+   shared_ptr<TextureViewVK> result = nullptr;
    
    // Default view is not swizzling anything
    VkComponentMapping components = {};
@@ -560,22 +560,26 @@ namespace en
 
    VkImageView viewHandle = VK_NULL_HANDLE;
 
-   Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
+   Validate( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
-      Ptr<TextureVK> parent((TextureVK*)this);
-      result = new TextureViewVK(parent, viewHandle, state.type, state.format, uint32v2(0, state.mipmaps), uint32v2(0, state.layers));
+      result = make_shared<TextureViewVK>(dynamic_pointer_cast<TextureVK>(shared_from_this()),
+                                          viewHandle,
+                                          state.type,
+                                          state.format,
+                                          uint32v2(0, state.mipmaps),
+                                          uint32v2(0, state.layers));
       }
 
-   return ptr_reinterpret_cast<TextureView>(&result);
+   return result;
    }
 
-   Ptr<TextureView> TextureVK::view(const TextureType _type,
+   shared_ptr<TextureView> TextureVK::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
-      const uint32v2 _layers) const
+      const uint32v2 _layers)
    {
-   Ptr<TextureView> result = nullptr;
+   shared_ptr<TextureView> result = nullptr;
    
    // Engine is not supporting swizzling (as Metal doesn't support it)
    VkComponentMapping components = {};
@@ -603,19 +607,22 @@ namespace en
 
    VkImageView viewHandle = VK_NULL_HANDLE;
 
-   Profile( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
+   Validate( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
-      Ptr<TextureVK> parent((TextureVK*)this);
-      Ptr<TextureViewVK> ptr = new TextureViewVK(parent, viewHandle, _type, _format, _mipmaps, _layers);
-      result = ptr_reinterpret_cast<TextureView>(&ptr);
+      result = make_shared<TextureViewVK>(dynamic_pointer_cast<TextureVK>(shared_from_this()),
+                                          viewHandle,
+                                          _type,
+                                          _format,
+                                          _mipmaps,
+                                          _layers);
       }
       
    return result;
    }
  
  
-   TextureViewVK::TextureViewVK(Ptr<TextureVK> parent,
+   TextureViewVK::TextureViewVK(shared_ptr<TextureVK> parent,
          const VkImageView view,
          const TextureType _type,
          const Format _format,
@@ -629,13 +636,13 @@ namespace en
    
    TextureViewVK::~TextureViewVK()
    {
-   ProfileNoRet( texture->gpu, vkDestroyImageView(texture->gpu->device, handle, nullptr) )
+   ValidateNoRet( texture->gpu, vkDestroyImageView(texture->gpu->device, handle, nullptr) )
    texture = nullptr;
    }
    
-   Ptr<Texture> TextureViewVK::parent(void) const
+   shared_ptr<Texture> TextureViewVK::parent(void) const
    {
-   return ptr_reinterpret_cast<Texture>(&texture);
+   return texture;
    }
 
  
@@ -643,24 +650,23 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   LinearAlignment VulkanDevice::textureLinearAlignment(const Ptr<Texture> texture, 
+   LinearAlignment VulkanDevice::textureLinearAlignment(const Texture& texture,
                                                         const uint32 mipmap, 
                                                         const uint32 layer)
    {
-   assert( texture );
-   assert( texture->mipmaps() > mipmap );
-   assert( texture->layers() > layer );
+   assert( texture.mipmaps() > mipmap );
+   assert( texture.layers() > layer );
 
-   TextureVK* destination = raw_reinterpret_cast<TextureVK>(&texture);
+   const TextureVK& destination = reinterpret_cast<const TextureVK&>(texture);
 
    // Looks like Vulkan has no restrictions regarding rows padding or inital alignment like
    // Direct3D12 does, or D3D12 just enforces them to ensure most optimal data transfer 
    // while Vulkan can handle unoptimal ones.
    LinearAlignment result;
-   result.size      = texture->size(mipmap);
+   result.size      = texture.size(mipmap);
    result.alignment = 256;
-   result.rowSize   = texture->width(mipmap) * texelSize(destination->state.format);
-   result.rowsCount = texture->height(mipmap); // TODO: Correct it for compressed textures !
+   result.rowSize   = texture.width(mipmap) * texelSize(destination.state.format);
+   result.rowsCount = texture.height(mipmap); // TODO: Correct it for compressed textures !
 
    return result;
    }

@@ -17,9 +17,12 @@
 #ifndef ENG_CORE_RENDERING_DEPTH_STENCIL_STATE
 #define ENG_CORE_RENDERING_DEPTH_STENCIL_STATE
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
 #include "core/rendering/state.h"
 
 namespace en
@@ -49,7 +52,7 @@ namespace en
       DepthStencilStateInfo();
       };
 
-   class DepthStencilState : public SafeObject<DepthStencilState>
+   class DepthStencilState
       {
       public:
       virtual ~DepthStencilState() {};                           // Polymorphic deletes require a virtual base destructor

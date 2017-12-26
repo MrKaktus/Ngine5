@@ -16,7 +16,9 @@
 #ifndef ENG_CORE_RENDERING_WINDOW
 #define ENG_CORE_RENDERING_WINDOW
 
-#include "core/utilities/TintrusivePointer.h" 
+#include <memory>
+using namespace std;
+
 #include "core/rendering/texture.h"
 
 namespace en
@@ -36,7 +38,7 @@ namespace en
    struct WindowSettings
       {
       WindowMode   mode;         // Mode in which we create surface (BorderlessWindow by default).
-      Ptr<Display> display;      // Display on which window will be created, if not specified, primary display is selected.
+      shared_ptr<Display> display; // Display on which window will be created, if not specified, primary display is selected.
       uint32v2     position;     // Position on the display in pixels from Upper-Left corner. Ignored in Fullscreen mode.
       uint32v2     size;         // Window size in pixels of the screen native resolution (if zeros are set, native
                                  // resolution will be assumed). In Fullscreen mode, if size is set, it need to match
@@ -52,14 +54,16 @@ namespace en
                                  // In Fullscreen mode, this field should be set to zeroes (default), and you should 
                                  // use size instead to obtain the same results.
       bool         verticalSync; // If enabled (by default), will block rendering thread until VSync occurs.
+      
+                                 // TODO: Should block rendering thread on present call, only if previous frame VSync didn't occur yet.
 
       WindowSettings();
       };
 
-   class Window : public SafeObject<Window>
+   class Window
       {
       public:
-      virtual Ptr<Display> display(void) const = 0;   // Display on which window's center point is currently located
+      virtual shared_ptr<Display> display(void) const = 0;   // Display on which window's center point is currently located
       virtual uint32v2 position(void) const = 0;
       virtual uint32v2 size(void) const = 0;          // Size in displays native resolution pixels
       virtual uint32v2 resolution(void) const = 0;    // Resolution of backing image
@@ -71,8 +75,8 @@ namespace en
       virtual void active(void) = 0;
       virtual void transparent(const float opacity) = 0;
       virtual void opaque(void) = 0;
-      virtual Ptr<Texture> surface(const Ptr<Semaphore> signalSemaphore = nullptr) = 0; // Will signal this semaphore, once Swap-Chain surface is presented, and can be reused
-      virtual void present(const Ptr<Semaphore> waitForSemaphore = nullptr) = 0;        // Will wait for semaphore to signal, when rendering to Swap-Chain surface is being done, and then will present
+      virtual shared_ptr<Texture> surface(const shared_ptr<Semaphore> signalSemaphore = nullptr) = 0; // Will signal this semaphore, once Swap-Chain surface is presented, and can be reused
+      virtual void present(const shared_ptr<Semaphore> waitForSemaphore = nullptr) = 0;        // Will wait for semaphore to signal, when rendering to Swap-Chain surface is being done, and then will present
                                                                                         // Presenting is always performed from first queue of type QueueType::Universal (queue 0).
       
       virtual ~Window() {};                               // Polymorphic deletes require a virtual base destructor

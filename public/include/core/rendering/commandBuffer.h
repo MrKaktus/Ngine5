@@ -16,9 +16,11 @@
 #ifndef ENG_CORE_RENDERING_COMMAND_BUFFER
 #define ENG_CORE_RENDERING_COMMAND_BUFFER
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 #include "core/rendering/buffer.h"
 #include "core/rendering/texture.h"
@@ -53,90 +55,90 @@ namespace en
       uint32 firstInstance;   // Starting InstanceID
       } IndirectIndexedDrawArgument;
    
-   class CommandBuffer : public SafeObject<CommandBuffer>
+   class CommandBuffer : public enable_shared_from_this<CommandBuffer>
       {
       public:
-      virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr) = 0;
+      virtual void start(const shared_ptr<Semaphore> waitForSemaphore = nullptr) = 0;
 
-      virtual void startRenderPass(const Ptr<RenderPass> pass, 
-                                   const Ptr<Framebuffer> framebuffer) = 0;
+      virtual void startRenderPass(const shared_ptr<RenderPass> pass, 
+                                   const shared_ptr<Framebuffer> framebuffer) = 0;
 
-      virtual void setDescriptors(const Ptr<PipelineLayout> layout, 
-                                  const Ptr<DescriptorSet> set,
+      virtual void setDescriptors(const PipelineLayout& layout,
+                                  const DescriptorSet& set,
                                   const uint32 index = 0u) = 0;
 
-      virtual void setDescriptors(const Ptr<PipelineLayout> layout, 
+      virtual void setDescriptors(const PipelineLayout& layout, 
                                   const uint32 count,
-                                  const Ptr<DescriptorSet>* sets,
+                                  const shared_ptr<DescriptorSet>(&sets)[],
                                   const uint32 firstIndex = 0u) = 0;
 
-      virtual void setPipeline(const Ptr<Pipeline> pipeline) = 0;
+      virtual void setPipeline(const Pipeline& pipeline) = 0;
       
       // Assigns Vertex Buffers to specified input attachment slots.
       // Optionally starting offsets in those buffers can be specified.
       virtual void setVertexBuffers(const uint32 count, 
                                     const uint32 firstSlot, 
-                                    const Ptr<Buffer>* buffers, 
+                                    const shared_ptr<Buffer>(&buffers)[],
                                     const uint64* offsets = nullptr) const = 0;
 
       // Helper method simplifying setting of single Vertex Buffer.
       virtual void setVertexBuffer(const uint32 slot, 
-                                   const Ptr<Buffer> buffer, 
+                                   const Buffer& buffer, 
                                    const uint64 offset = 0u) const = 0;
 
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> destination) = 0;
+      virtual void copy(const Buffer& source,
+                        const Buffer& destination) = 0;
          
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> destination,
-                        uint64 size,
-                        uint64 srcOffset = 0u,
-                        uint64 dstOffset = 0u) = 0;
+      virtual void copy(const Buffer& source,
+                        const Buffer& destination,
+                        const uint64 size,
+                        const uint64 srcOffset = 0u,
+                        const uint64 dstOffset = 0u) = 0;
 
       // Before copying data from staging buffer to destination texture
       // application should use below GpuDevice method to obtain alignment
       // and padding layout of data in that staging buffer:
       //
-      // LinearAlignment textureLinearAlignment(const Ptr<Texture> texture, 
+      // LinearAlignment textureLinearAlignment(const Texture& texture, 
       //                                        const uint32 mipmap, 
       //                                        const uint32 layer);
       //
-      virtual void copy(Ptr<Buffer> source,
+      virtual void copy(const Buffer& source,
                         const uint64 srcOffset,
-                        Ptr<Texture> texture,
+                        const Texture& texture,
                         const uint32 mipmap,
                         const uint32 layer) = 0;
 
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Texture> texture,
+      virtual void copy(const Buffer& source,
+                        const Texture& texture,
                         const uint32 mipmap,
                         const uint32 layer) = 0;
          
-                                                                   // Primitive Type is specified in bound Pipeline State Object
-      virtual void draw(const uint32       elements,               // Elements to process (they are assembled into Primitives)
-                        const Ptr<Buffer>  indexBuffer   = Ptr<Buffer>(nullptr), // Optional Index buffer
-                        const uint32       instances     = 1,      // Instances to draw
-                        const uint32       firstElement  = 0,      // First element to process (or index in Index buffer if specified)
-                        const sint32       firstVertex   = 0,      // First Per-Vertex entry in VBO from which numeration should start (can be negative)
-                        const uint32       firstInstance = 0) = 0; // First Per-Instance entry in VBO from which numeration should start
+                                                               // Primitive Type is specified in bound Pipeline State Object
+      virtual void draw(const uint32  elements,                // Elements to process (they are assembled into Primitives)
+                        const Buffer* indexBuffer   = nullptr, // Optional Index buffer
+                        const uint32  instances     = 1,       // Instances to draw
+                        const uint32  firstElement  = 0,       // First element to process (or index in Index buffer if specified)
+                        const sint32  firstVertex   = 0,       // First Per-Vertex entry in VBO from which numeration should start (can be negative)
+                        const uint32  firstInstance = 0) = 0;  // First Per-Instance entry in VBO from which numeration should start
          
-                                                                   // Primitive Type is specified in bound Pipeline State Object
-      virtual void draw(const Ptr<Buffer>  indirectBuffer,         // Buffer from which Draw parameters are sourced
-                        const uint32       firstEntry   = 0,       // First entry to process in Indirect buffer
-                        const Ptr<Buffer>  indexBuffer  = Ptr<Buffer>(nullptr), // Optional Index buffer
-                        const uint32       firstElement = 0) = 0;  // First index to process in Index buffer (if specified)
+                                                              // Primitive Type is specified in bound Pipeline State Object
+      virtual void draw(const Buffer& indirectBuffer,         // Buffer from which Draw parameters are sourced
+                        const uint32  firstEntry   = 0,       // First entry to process in Indirect buffer
+                        const Buffer* indexBuffer  = nullptr, // Optional Index buffer
+                        const uint32  firstElement = 0) = 0;  // First index to process in Index buffer (if specified)
 
       virtual void endRenderPass(void) = 0;
 
       // For each newly created buffer resource, initial
       // barrier need to be called to transfer it to valid
       // access state.
-      virtual void barrier(const Ptr<Buffer> buffer, 
+      virtual void barrier(const Buffer& buffer,
                            const BufferAccess initAccess) = 0;
 
       // Optimize the way buffer is beeing accessed during 
       // different operation types, by different units in GPU.
-      virtual void barrier(const Ptr<Buffer> buffer, 
+      virtual void barrier(const Buffer& buffer,
                            const uint64 offset,
                            const uint64 size,
                            const BufferAccess currentAccess,
@@ -145,13 +147,13 @@ namespace en
       // For each newly created texture resource, initial
       // barrier need to be called to transfer it to valid
       // access state.
-      virtual void barrier(const Ptr<Texture>  texture, 
+      virtual void barrier(const Texture& texture,
                            const TextureAccess initAccess) = 0;
 
       // Optimize the way texture is internally stored in memory,
       // by describing the way it was used in the past, and the 
       // way it will be used now.
-      virtual void barrier(const Ptr<Texture>  _texture, 
+      virtual void barrier(const Texture& texture,
                            const TextureAccess currentAccess,
                            const TextureAccess newAccess) = 0;
 
@@ -159,13 +161,13 @@ namespace en
       // by describing the way it was used in the past, and the 
       // way it will be used now. Specifies only subset of mipmaps
       // and layers to transition (or single mipmap).
-      virtual void barrier(const Ptr<Texture>  texture, 
-                           const uint32v2      mipmaps, 
-                           const uint32v2      layers,
+      virtual void barrier(const Texture& texture,
+                           const uint32v2 mipmaps,
+                           const uint32v2 layers,
                            const TextureAccess currentAccess,
                            const TextureAccess newAccess) = 0;
 
-      virtual void commit(const Ptr<Semaphore> signalSemaphore = nullptr) = 0;
+      virtual void commit(const shared_ptr<Semaphore> signalSemaphore = nullptr) = 0;
       
       // Incurrs full CPU-GPU synchronization.
       virtual void waitUntilCompleted(void) = 0;

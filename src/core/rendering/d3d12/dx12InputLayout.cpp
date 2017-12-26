@@ -345,17 +345,21 @@ namespace en
    delete [] state.pInputElementDescs;
    }
 
-   Ptr<InputLayout> Direct3D12Device::createInputLayout(const DrawableType primitiveType,
-                                                        const bool primitiveRestart,
-                                                        const uint32 controlPoints,
-                                                        const uint32 usedAttributes,
-                                                        const uint32 usedBuffers,
-                                                        const AttributeDesc* attributes,
-                                                        const BufferDesc* buffers)
+   shared_ptr<InputLayout> Direct3D12Device::createInputLayout(const DrawableType primitiveType,
+                                                               const bool primitiveRestart,
+                                                               const uint32 controlPoints,
+                                                               const uint32 usedAttributes,
+                                                               const uint32 usedBuffers,
+                                                               const AttributeDesc* attributes,
+                                                               const BufferDesc* buffers)
    {
-   Ptr<InputLayoutD3D12> input = Ptr<InputLayoutD3D12>(new InputLayoutD3D12(primitiveType, primitiveRestart, controlPoints, usedAttributes, usedBuffers, attributes, buffers));
-
-   return ptr_reinterpret_cast<InputLayout>(&input);
+   return make_shared<InputLayoutD3D12>(primitiveType,
+                                        primitiveRestart,
+                                        controlPoints,
+                                        usedAttributes,
+                                        usedBuffers,
+                                        attributes,
+                                        buffers);
    }
 
    }

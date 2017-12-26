@@ -26,13 +26,13 @@ namespace en
    namespace gpu
    { 
    WindowD3D12::WindowD3D12(Direct3D12Device* _gpu,
-      const Ptr<CommonDisplay> selectedDisplay,
+      const shared_ptr<CommonDisplay> selectedDisplay,
       const uint32v2 selectedResolution,
       const WindowSettings& settings,
       const string title) :
       gpu(_gpu),
       // Create native OS window or assert.
-      winWindow(ptr_dynamic_cast<winDisplay, CommonDisplay>(selectedDisplay), selectedResolution, settings, title)
+      winWindow(dynamic_pointer_cast<winDisplay>(selectedDisplay), selectedResolution, settings, title)
    {
    // Calculate amount of backing images in Swap-Chain
    //--------------------------------------------------
@@ -184,7 +184,7 @@ namespace en
    assert( 0 );
    }
 
-   Ptr<Texture> WindowD3D12::surface(const Ptr<Semaphore> signalSemaphore)
+   shared_ptr<Texture> WindowD3D12::surface(const shared_ptr<Semaphore> signalSemaphore)
    {
    // TODO: Is there a way to sync on GPU side CB execution with Swap-Chain ?
 
@@ -204,7 +204,7 @@ namespace en
    return swapChainTexture[swapChainCurrentImageIndex];
    }
 
-   void WindowD3D12::present(const Ptr<Semaphore> waitForSemaphore)
+   void WindowD3D12::present(const shared_ptr<Semaphore> waitForSemaphore)
    {
    // TODO: Is there a way to sync on GPU side CB execution with Swap-Chain ?
 
@@ -230,16 +230,16 @@ namespace en
    surfaceAcquire.unlock();
    }
       
-   Ptr<Window> Direct3D12Device::createWindow(const WindowSettings& settings, const string title)
+   shared_ptr<Window> Direct3D12Device::createWindow(const WindowSettings& settings, const string title)
    {
-   Ptr<WindowD3D12> result = nullptr;
+   shared_ptr<WindowD3D12> result = nullptr;
 
    // Select destination display
-   Ptr<CommonDisplay> display;
+   shared_ptr<CommonDisplay> display;
    if (settings.display)
-      display = ptr_dynamic_cast<CommonDisplay, Display>(settings.display);
+      display = dynamic_pointer_cast<CommonDisplay>(settings.display);
    else
-      display = ptr_dynamic_cast<CommonDisplay, Display>(Graphics->primaryDisplay());
+      display = dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay());
       
    // Checking if app wants to use default resolution
    bool useNativeResolution = false;
@@ -280,9 +280,9 @@ namespace en
          }
       }
 
-   result = new WindowD3D12(this, display, selectedResolution, settings, title);
+   result = make_shared<WindowD3D12>(this, display, selectedResolution, settings, title);
 
-   return ptr_reinterpret_cast<Window>(&result);
+   return result;
    }
 
    }

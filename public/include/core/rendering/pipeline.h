@@ -16,9 +16,11 @@
 #ifndef ENG_CORE_RENDERING_PIPELINE
 #define ENG_CORE_RENDERING_PIPELINE
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
 
 // For PipelineState 
 #include <string>
@@ -79,7 +81,7 @@ namespace en
    //
 
    // Handle for Pipeline State Object binding specification
-   class Pipeline : public SafeObject<Pipeline>
+   class Pipeline
       {
       public:
       virtual ~Pipeline() {};                            // Polymorphic deletes require a virtual base destructor
@@ -90,16 +92,16 @@ namespace en
    // Helper structure for Pipeline object creation.
    struct PipelineState
       {
-      Ptr<RenderPass>         renderPass;
-      Ptr<InputLayout>        inputLayout;
-      Ptr<ViewportState>      viewportState;
-      Ptr<RasterState>        rasterState;
-      Ptr<MultisamplingState> multisamplingState;
-      Ptr<DepthStencilState>  depthStencilState;
-      Ptr<BlendState>         blendState;
-      Ptr<Shader>             shader[5];
+      shared_ptr<RenderPass>         renderPass;
+      shared_ptr<InputLayout>        inputLayout;
+      shared_ptr<ViewportState>      viewportState;
+      shared_ptr<RasterState>        rasterState;
+      shared_ptr<MultisamplingState> multisamplingState;
+      shared_ptr<DepthStencilState>  depthStencilState;
+      shared_ptr<BlendState>         blendState;
+      shared_ptr<Shader>             shader[5];
       std::string             function[5];
-      Ptr<PipelineLayout>     pipelineLayout;
+      shared_ptr<PipelineLayout>     pipelineLayout;
 
       PipelineState();
       PipelineState(const PipelineState& src);  // Copy constructor

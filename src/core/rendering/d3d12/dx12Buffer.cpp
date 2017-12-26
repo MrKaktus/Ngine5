@@ -23,7 +23,7 @@ namespace en
 {
    namespace gpu
    {
-   BufferD3D12::BufferD3D12(Ptr<HeapD3D12> _heap,
+   BufferD3D12::BufferD3D12(shared_ptr<HeapD3D12> _heap,
                             ID3D12Resource* _handle,
                             const BufferType _type,
                             const uint64 _offset,
@@ -62,9 +62,9 @@ namespace en
          
          // Engine currently doesn't support updates of DescriptorSets. 
          // When it will, RootSignature pointer needs to be passed here.
-         Profile( heap->gpu, CreateCommandSignature(&desc,
-                                                    nullptr,  
-                                                    IID_PPV_ARGS(&signatureIndexed)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
+         Validate( heap->gpu, CreateCommandSignature(&desc,
+                                                     nullptr,
+                                                     IID_PPV_ARGS(&signatureIndexed)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
          }
 
       // Signature for Indirect draws
@@ -84,9 +84,9 @@ namespace en
          
          // Engine currently doesn't support updates of DescriptorSets. 
          // When it will, RootSignature pointer needs to be passed here.
-         Profile( heap->gpu, CreateCommandSignature(&desc,
-                                                    nullptr,  
-                                                    IID_PPV_ARGS(&signature)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
+         Validate( heap->gpu, CreateCommandSignature(&desc,
+                                                     nullptr,
+                                                     IID_PPV_ARGS(&signature)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
          }
       
       delete [] argDescs;
@@ -97,19 +97,19 @@ namespace en
    {
    if (apiType == BufferType::Indirect)
       {
-      ProfileCom( signature->Release() )
+      ValidateCom( signature->Release() )
       signature = nullptr;
 
-      ProfileCom( signatureIndexed->Release() )
+      ValidateCom( signatureIndexed->Release() )
       signatureIndexed = nullptr;
       }
 
    assert( handle );
-   ProfileCom( handle->Release() )
+   ValidateCom( handle->Release() )
    handle = nullptr;
    
    // Deallocate from the Heap (let Heap allocator know that memory region is available again)
-   raw_reinterpret_cast<HeapD3D12>(&heap)->allocator->deallocate(offset, size);
+   reinterpret_cast<HeapD3D12*>(heap.get())->allocator->deallocate(offset, size);
    heap = nullptr;
    }
       
@@ -140,22 +140,22 @@ namespace en
    range.End   = static_cast<SIZE_T>(_offset + _size);
 
    void* pointer = nullptr;
-   ProfileCom( handle->Map(0, &range, &pointer) )
+   ValidateCom( handle->Map(0, &range, &pointer) )
    
    return pointer;
    }
    
    void BufferD3D12::unmap(void)
    {
-   ProfileComNoRet( handle->Unmap(0, &range) )
+   ValidateComNoRet( handle->Unmap(0, &range) )
    }
    
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   Ptr<Buffer> HeapD3D12::createBuffer(const BufferType type, const uint32 size)
+   shared_ptr<Buffer> HeapD3D12::createBuffer(const BufferType type, const uint32 size)
    {
-   Ptr<BufferD3D12> result = nullptr;
+   shared_ptr<BufferD3D12> result = nullptr;
 
    // Buffers cannot be created in Heaps dedicated to Texture storage
    assert( _usage != MemoryUsage::Tiled   &&
@@ -185,7 +185,7 @@ namespace en
    if (!allocator->allocate(static_cast<uint64>(allocInfo.SizeInBytes),
                             static_cast<uint64>(allocInfo.Alignment),
                             offset))
-      return ptr_reinterpret_cast<Buffer>(&result);
+      return result;
 
    // Patch descriptor with proper alignment and rounded-up size
    desc.Alignment          = allocInfo.Alignment;
@@ -203,21 +203,21 @@ namespace en
 
    ID3D12Resource* bufferHandle = nullptr;
 
-   Profile( gpu, CreatePlacedResource(handle,
-                                      static_cast<UINT64>(offset),
-                                      &desc,
-                                      initState,
-                                      nullptr,                       // Clear value - currently not supported
-                                      IID_PPV_ARGS(&bufferHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&bufferHandle)
+   Validate( gpu, CreatePlacedResource(handle,
+                                       static_cast<UINT64>(offset),
+                                       &desc,
+                                       initState,
+                                       nullptr,                       // Clear value - currently not supported
+                                       IID_PPV_ARGS(&bufferHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&bufferHandle)
       
    if ( SUCCEEDED(gpu->lastResult[Scheduler.core()]) )
-      result = new BufferD3D12(Ptr<HeapD3D12>(this),
-                               bufferHandle,
-                               type,
-                               offset,
-                               static_cast<uint64>(allocInfo.SizeInBytes) );
+      result = make_shared<BufferD3D12>(dynamic_pointer_cast<HeapD3D12>(shared_from_this()),
+                                        bufferHandle,
+                                        type,
+                                        offset,
+                                        static_cast<uint64>(allocInfo.SizeInBytes) );
 
-   return ptr_reinterpret_cast<Buffer>(&result);
+   return result;
    }
    
    }

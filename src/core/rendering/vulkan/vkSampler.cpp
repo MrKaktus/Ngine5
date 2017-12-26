@@ -80,12 +80,12 @@ namespace en
   
    SamplerVK::~SamplerVK()
    {
-   ProfileNoRet( gpu, vkDestroySampler(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroySampler(gpu->device, handle, nullptr) )
    }
 
-   Ptr<Sampler> VulkanDevice::createSampler(const SamplerState& state)
+   shared_ptr<Sampler> VulkanDevice::createSampler(const SamplerState& state)
    {
-   Ptr<SamplerVK> sampler = nullptr;
+   shared_ptr<SamplerVK> sampler = nullptr;
    
    VkSamplerCreateInfo samplerInfo = {};
    samplerInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -108,11 +108,11 @@ namespace en
    samplerInfo.unnormalizedCoordinates = VK_FALSE;  // TODO: Unnormalized coordinates are not supported for now. (both supported by Vulkan & Metal)
 
    VkSampler handle = VK_NULL_HANDLE;
-   Profile( this, vkCreateSampler(device, &samplerInfo, nullptr, &handle) )
+   Validate( this, vkCreateSampler(device, &samplerInfo, nullptr, &handle) )
    if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      sampler = new SamplerVK(this, handle);
+      sampler = make_shared<SamplerVK>(this, handle);
 
-   return ptr_reinterpret_cast<Sampler>(&sampler);
+   return sampler;
    };
 
    }

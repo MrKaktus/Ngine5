@@ -521,7 +521,7 @@ namespace en
    using namespace en::gpu;
 
    // Open file 
-   Ptr<File> file = Storage->open(filename);
+   shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);

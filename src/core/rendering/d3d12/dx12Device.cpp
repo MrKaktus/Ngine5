@@ -144,7 +144,7 @@ namespace en
 
    // Try to create device with 12.1 feature level, if not supported fallback to 12.0
    if (!SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)))) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
-      ProfileCom( D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)) ) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
+      ValidateCom( D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)) ) // __uuidof(ID3D12Device), reinterpret_cast<void**>(&device)
 
 #if defined(EN_DEBUG)
    // Name Device for debugging
@@ -183,7 +183,7 @@ namespace en
       desc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;       // Can use D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT
       desc.NodeMask = 0u;                                  // No Multi-GPU support.
      
-      Profile( this, CreateCommandQueue(&desc, IID_PPV_ARGS(&queue[type])) ) // __uuidof(ID3D12CommandQueue), reinterpret_cast<void**>(&queue[type])
+      Validate( this, CreateCommandQueue(&desc, IID_PPV_ARGS(&queue[type])) ) // __uuidof(ID3D12CommandQueue), reinterpret_cast<void**>(&queue[type])
 
 #if defined(EN_DEBUG)
       // Name CommandQueue for debugging
@@ -196,7 +196,7 @@ namespace en
 
       // Each queue has matching fence, to synchronize it's CommandBuffers
       // TODO: Consider sharing across all adapters with D3D12_FENCE_FLAG_SHARED_CROSS_ADAPTER
-      Profile( this, CreateFence(0, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&fence[type])) ) // __uuidof(ID3D12Fence), reinterpret_cast<void**>(&fence)
+      Validate( this, CreateFence(0, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&fence[type])) ) // __uuidof(ID3D12Fence), reinterpret_cast<void**>(&fence)
 
 #if defined(EN_DEBUG)
       // Name Fence for debugging
@@ -222,7 +222,7 @@ namespace en
             //   currently recording command list at a time, . . . "
             //
             commandAllocator[thread][type][cache] = nullptr;
-            Profile( this, CreateCommandAllocator(TranslateQueueType[type],
+            Validate( this, CreateCommandAllocator(TranslateQueueType[type],
                                                   IID_PPV_ARGS(&(commandAllocator[thread][type][cache]) )) ) // __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&commandAllocator[thread][type][cache])
          
             // TODO: BUG: FIXME: Why it fails to create more allocators than 8 ????? 
@@ -269,7 +269,7 @@ namespace en
    desc.NodeMask       = 0u;                              // TODO: Set bit to current GPU index
 
    // Allocate global Color Attachment descriptors heap
-   Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heapRTV)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&heapRTV)
+   Validate( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heapRTV)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&heapRTV)
 
 #if defined(EN_DEBUG)
    // Name RTV Heap for debugging
@@ -281,7 +281,7 @@ namespace en
    desc.NumDescriptors = 1;
    
    // Allocate global Depth-Stencil Attachment descriptor heap
-   Profile( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heapDSV)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&heapDSV)
+   Validate( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heapDSV)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&heapDSV)
 
 #if defined(EN_DEBUG)
    // Name DSV Heap for debugging
@@ -324,7 +324,7 @@ namespace en
             uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
             for(uint32 i=0; i<executing; ++i)
                {
-               CommandBufferD3D12* command = raw_reinterpret_cast<CommandBufferD3D12>(&commandBuffers[thread][queueType][cacheId][i]);
+               CommandBufferD3D12* command = reinterpret_cast<CommandBufferD3D12*>(commandBuffers[thread][queueType][cacheId][i].get());
                if (command->isCompleted())
                   {
                   // Safely release Command Buffer object
@@ -645,12 +645,12 @@ namespace en
    return queuesCount[underlyingType(type)];
    }
 
-   Ptr<Texture> Direct3D12Device::createSharedTexture(Ptr<SharedSurface> backingSurface)
+   shared_ptr<Texture> Direct3D12Device::createSharedTexture(shared_ptr<SharedSurface> backingSurface)
    {
    // Engine is not supporting cross-API / cross-process surfaces in Direct3D12 currently.
    // Implement it in the future.
    assert( 0 );
-   return Ptr<Texture>(nullptr);
+   return shared_ptr<Texture>(nullptr);
    }
    
 
@@ -686,7 +686,7 @@ namespace en
 #endif
 
    // Factory handles all physical GPU's (adapters)
-   ProfileCom( CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)) ) // __uuidof(IDXGIFactory5), reinterpret_cast<void**>(&factory)
+   ValidateCom( CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)) ) // __uuidof(IDXGIFactory5), reinterpret_cast<void**>(&factory)
 
 #if defined(EN_DEBUG)
    // Name Factory for debugging
@@ -711,7 +711,7 @@ namespace en
       deviceHandle = nullptr;
       }
 
-   device = new Ptr<Direct3D12Device>[devicesCount];
+   device = new shared_ptr<Direct3D12Device>[devicesCount];
 
    // Create interfaces for all physical devices supporting D3D12
    uint32 index = 0;
@@ -755,13 +755,13 @@ namespace en
    delete [] device;
 
    // Release Direct3D factory
-   ProfileCom( factory->Release() )
+   ValidateCom( factory->Release() )
    factory = nullptr;
 
    // Release Debug Controller
    if (debugController)
       {
-      ProfileCom( debugController->Release() )
+      ValidateCom( debugController->Release() )
       debugController = nullptr;
       }
    }
@@ -776,9 +776,9 @@ namespace en
    return devicesCount;
    }
 
-   Ptr<GpuDevice> Direct3DAPI::primaryDevice(void) const
+   shared_ptr<GpuDevice> Direct3DAPI::primaryDevice(void) const
    {
-   return ptr_reinterpret_cast<GpuDevice>(&device[0]);
+   return device[0];
    }
 
    uint32 Direct3DAPI::displays(void) const
@@ -786,15 +786,15 @@ namespace en
    return displaysCount;
    }
 
-   Ptr<Display> Direct3DAPI::primaryDisplay(void) const
+   shared_ptr<Display> Direct3DAPI::primaryDisplay(void) const
    {
-   return ptr_reinterpret_cast<Display>(&displayArray[0]);
+   return displayArray[0];
    }
 
-   Ptr<Display> Direct3DAPI::display(uint32 index) const
+   shared_ptr<Display> Direct3DAPI::display(uint32 index) const
    {
    assert( index < displaysCount );
-   return ptr_reinterpret_cast<Display>(&displayArray[index]);  
+   return displayArray[index];  
    }
 
    }

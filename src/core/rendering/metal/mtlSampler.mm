@@ -139,10 +139,9 @@ namespace en
    deallocateObjectiveC(handle);
    }
 
-   Ptr<Sampler> MetalDevice::createSampler(const SamplerState& state)
+   shared_ptr<Sampler> MetalDevice::createSampler(const SamplerState& state)
    {
-   Ptr<SamplerMTL> sampler = new SamplerMTL(this, state);
-   return ptr_reinterpret_cast<Sampler>(&sampler);
+   return make_shared<SamplerMTL>(this, state);
    };
 
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME

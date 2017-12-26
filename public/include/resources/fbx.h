@@ -21,7 +21,7 @@ namespace en
    {
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    // Compatible with Autodesk FBX SDK 2014.1
-   Ptr<en::resource::Model> load(const string& filename, const string& name);
+   shared_ptr<en::resource::Model> load(const string& filename, const string& name);
 #endif
    }
 }

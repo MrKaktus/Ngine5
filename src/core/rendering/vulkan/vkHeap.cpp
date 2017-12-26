@@ -17,7 +17,6 @@
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
-#include "core/utilities/TintrusivePointer.h"
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
 #include "core/rendering/vulkan/vkBuffer.h" 
 #include "core/rendering/vulkan/vkTexture.h"   
@@ -253,7 +252,7 @@ namespace en
 // There are also functions for mapping/unmapping/invalidating memory etc.
 
 
-   HeapVK::HeapVK(VulkanDevice* _gpu,
+   HeapVK::HeapVK(shared_ptr<VulkanDevice> _gpu,
                   const VkDeviceMemory _handle,
                   const uint32 _memoryType,
                   const MemoryUsage _usage,
@@ -268,33 +267,33 @@ namespace en
 
    HeapVK::~HeapVK()
    {
-   ProfileNoRet( gpu, vkFreeMemory(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkFreeMemory(gpu->device, handle, nullptr) )
    
    delete allocator;
    }
 
    // Return parent device
-   Ptr<GpuDevice> HeapVK::device(void) const
+   shared_ptr<GpuDevice> HeapVK::device(void) const
    {
-   return Ptr<GpuDevice>(gpu);
+   return gpu;
    }
 
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   Ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
+   shared_ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
    {
    // Create buffer descriptor
-   Ptr<BufferVK> buffer = gpu::createBuffer(this, type, size);
+   shared_ptr<BufferVK> buffer = gpu::createBuffer(this, type, size);
    if (!buffer)
-      return Ptr<Buffer>(nullptr);
+      return shared_ptr<Buffer>(nullptr);
 
    // Check if created buffer can be backed by this Heap memory
    if (!checkBit(buffer->memoryRequirements.memoryTypeBits, memoryType))
       {
       // Destroy texture descriptor
       buffer = nullptr;
-      return Ptr<Buffer>(nullptr);
+      return shared_ptr<Buffer>(nullptr);
       }
 
    // Find memory region in the Heap where this buffer can be placed.
@@ -306,17 +305,17 @@ namespace en
       {
       // Destroy buffer descriptor
       buffer = nullptr;
-      return Ptr<Buffer>(nullptr);
+      return shared_ptr<Buffer>(nullptr);
       }
 
-   Profile( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
-   buffer->heap   = Ptr<HeapVK>(this);
+   Validate( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
+   buffer->heap   = dynamic_pointer_cast<HeapVK>(shared_from_this());
    buffer->offset = offset;
    
-   return ptr_reinterpret_cast<Buffer>(&buffer);
+   return buffer;
    }
    
-   Ptr<Texture> HeapVK::createTexture(const TextureState state)
+   shared_ptr<Texture> HeapVK::createTexture(const TextureState state)
    {
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
@@ -324,16 +323,16 @@ namespace en
            _usage == MemoryUsage::Renderable );
    
    // Create texture descriptor
-   Ptr<TextureVK> texture = gpu::createTexture(gpu, state);
+   shared_ptr<TextureVK> texture = gpu::createTexture(gpu, state);
    if (!texture)
-      return Ptr<Texture>(nullptr);
+      return shared_ptr<Texture>(nullptr);
 
    // Check if created texture can be backed by this Heap memory
    if (!checkBit(texture->memoryRequirements.memoryTypeBits, memoryType))
       {
       // Destroy texture descriptor
       texture = nullptr;
-      return Ptr<Texture>(nullptr);
+      return shared_ptr<Texture>(nullptr);
       }
   
    // Find memory region in the Heap where this texture can be placed.
@@ -345,14 +344,14 @@ namespace en
       {
       // Destroy texture descriptor
       texture = nullptr;
-      return Ptr<Texture>(nullptr);
+      return shared_ptr<Texture>(nullptr);
       }
 
-   Profile( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )
-   texture->heap   = Ptr<HeapVK>(this);
+   Validate( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )
+   texture->heap   = dynamic_pointer_cast<HeapVK>(shared_from_this());
    texture->offset = offset;
    
-   return ptr_reinterpret_cast<Texture>(&texture);
+   return texture;
    }
   
   
@@ -442,7 +441,7 @@ namespace en
       }
    }
 
-   Ptr<Heap> VulkanDevice::createHeap(const MemoryUsage usage, const uint32 size)
+   shared_ptr<Heap> VulkanDevice::createHeap(const MemoryUsage usage, const uint32 size)
    {
    uint32 roundedSize = roundUp(size, 4096u);
    
@@ -460,15 +459,18 @@ namespace en
       allocInfo.memoryTypeIndex = memoryTypePerUsage[usageIndex][i];
       
       VkDeviceMemory handle;
-      Profile( this, vkAllocateMemory(device, &allocInfo, nullptr, &handle) )
+      Validate( this, vkAllocateMemory(device, &allocInfo, nullptr, &handle) )
       if (lastResult[Scheduler.core()] == VK_SUCCESS)
          {
-         Ptr<HeapVK> heap = new HeapVK(this, handle, memoryTypePerUsage[usageIndex][i], usage, roundedSize);
-         return ptr_reinterpret_cast<Heap>(&heap);
+         return make_shared<HeapVK>(dynamic_pointer_cast<VulkanDevice>(shared_from_this()),
+                                    handle,
+                                    memoryTypePerUsage[usageIndex][i],
+                                    usage,
+                                    roundedSize);
          }
       }
 
-   return Ptr<Heap>(nullptr);
+   return shared_ptr<Heap>(nullptr);
    }
 
    }

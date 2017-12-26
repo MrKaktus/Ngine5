@@ -23,7 +23,7 @@ namespace en
       {
       public:
       bool   position(const uint32 x, const uint32 y);
-      bool   position(const Ptr<Display> display, const uint32 x, const uint32 y);
+      bool   position(const shared_ptr<Display> display, const uint32 x, const uint32 y);
       uint32v2 virtualPosition(void) const;     
       bool     virtualPosition(const uint32 x, const uint32 y);
       void   show(void);

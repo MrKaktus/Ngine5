@@ -94,7 +94,7 @@ static void* mainGameThread(void* ptr)
    //  Send to main app thread info about request to quit.
    // App should register this event and return control to this thread, then on it's thread close itself and return.
    Event event(AppClose);
-   //Ptr<en::input::OSXInterface> ptr = en::ptr_reinterpret_cast<en::input::OSXInterface>(&Input);
+   //shared_ptr<en::input::OSXInterface> ptr = en::ptr_reinterpret_cast<en::input::OSXInterface>(&Input);
    //ptr->callback(event);
 
    // TODO: There should be 2 types of events.

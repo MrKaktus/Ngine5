@@ -17,9 +17,12 @@
 #ifndef ENG_CORE_RENDERING_VIEWPORT_STENCIL_STATE
 #define ENG_CORE_RENDERING_VIEWPORT_STENCIL_STATE
 
+#include <memory>
+using namespace std;
+
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/TintrusivePointer.h"
+
 #include "core/rendering/state.h"
 
 namespace en
@@ -34,7 +37,7 @@ namespace en
 
    typedef uint32v4 ScissorStateInfo;
 
-   class ViewportState : public SafeObject<ViewportState>
+   class ViewportState
       {
       public:
       virtual ~ViewportState() {};                           // Polymorphic deletes require a virtual base destructor

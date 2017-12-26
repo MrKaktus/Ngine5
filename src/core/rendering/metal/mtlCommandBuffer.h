@@ -40,92 +40,92 @@ namespace en
       
       MTLPrimitiveType primitive;
          
-      virtual void start(const Ptr<Semaphore> waitForSemaphore = nullptr);
+      virtual void start(const shared_ptr<Semaphore> waitForSemaphore = nullptr);
 
-      virtual void startRenderPass(const Ptr<RenderPass> pass, 
-                                   const Ptr<Framebuffer> framebuffer);
+      virtual void startRenderPass(const shared_ptr<RenderPass> pass, 
+                                   const shared_ptr<Framebuffer> framebuffer);
                                    
-      virtual void setDescriptors(const Ptr<PipelineLayout> layout,
-                                  const Ptr<DescriptorSet> set,
+      virtual void setDescriptors(const PipelineLayout& layout,
+                                  const DescriptorSet& set,
                                   const uint32 index = 0u);
                                   
-      virtual void setDescriptors(const Ptr<PipelineLayout> layout,
+      virtual void setDescriptors(const PipelineLayout& layout,
                                   const uint32 count,
-                                  const Ptr<DescriptorSet>* sets,
+                                  const shared_ptr<DescriptorSet>(&sets)[],
                                   const uint32 firstIndex = 0u);
                                   
-      virtual void setPipeline(const Ptr<Pipeline> pipeline);
+      virtual void setPipeline(const Pipeline& pipeline);
       
 
 
 
       virtual void setVertexBuffers(const uint32 count, 
                                     const uint32 firstSlot, 
-                                    const Ptr<Buffer>* buffers, 
+                                    const shared_ptr<Buffer>(&buffers)[],
                                     const uint64* offsets = nullptr) const;
 
       virtual void setVertexBuffer(const uint32 slot, 
-                                   const Ptr<Buffer> buffer, 
+                                   const Buffer& buffer, 
                                    const uint64 offset = 0u) const;
 
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> destintion);
+      virtual void copy(const Buffer& source,
+                        const Buffer& destintion);
          
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Buffer> destination,
-                        uint64 size,
-                        uint64 srcOffset = 0u,
-                        uint64 dstOffset = 0u);
+      virtual void copy(const Buffer& source,
+                        const Buffer& destination,
+                        const uint64 size,
+                        const uint64 srcOffset = 0u,
+                        const uint64 dstOffset = 0u);
                         
-      virtual void copy(Ptr<Buffer> source,
+      virtual void copy(const Buffer& source,
                         const uint64 srcOffset,
-                        Ptr<Texture> texture,
+                        const Texture& texture,
                         const uint32 mipmap,
                         const uint32 layer);
 
-      virtual void copy(Ptr<Buffer> source,
-                        Ptr<Texture> texture,
+      virtual void copy(const Buffer& source,
+                        const Texture& texture,
                         const uint32 mipmap,
                         const uint32 layer);
          
-      virtual void draw(const uint32       elements,            // Elements to process (they are assembled into Primitives)
-                        const Ptr<Buffer>  indexBuffer   = nullptr, // Optional Index buffer
-                        const uint32       instances     = 1,   // Instances to draw
-                        const uint32       firstElement  = 0,   // First element to process (or index in Index buffer if specified)
-                        const sint32       firstVertex   = 0,   // VertexID from which numeration should start (can be negative)
-                        const uint32       firstInstance = 0);  // InstanceID from which numeration should start
+      virtual void draw(const uint32  elements,            // Elements to process (they are assembled into Primitives)
+                        const Buffer* indexBuffer   = nullptr, // Optional Index buffer
+                        const uint32  instances     = 1,   // Instances to draw
+                        const uint32  firstElement  = 0,   // First element to process (or index in Index buffer if specified)
+                        const sint32  firstVertex   = 0,   // VertexID from which numeration should start (can be negative)
+                        const uint32  firstInstance = 0);  // InstanceID from which numeration should start
          
-      virtual void draw(const Ptr<Buffer>  indirectBuffer,      // Buffer from which Draw parameters are sourced
-                        const uint32       firstEntry   = 0,    // First entry to process in Indirect buffer
-                        const Ptr<Buffer>  indexBuffer  = nullptr, // Optional Index buffer
-                        const uint32       firstElement = 0);   // First index to process in Index buffer (if specified)
+      virtual void draw(const Buffer& indirectBuffer,      // Buffer from which Draw parameters are sourced
+                        const uint32  firstEntry   = 0,    // First entry to process in Indirect buffer
+                        const Buffer* indexBuffer  = nullptr, // Optional Index buffer
+                        const uint32  firstElement = 0);   // First index to process in Index buffer (if specified)
 
 
       virtual void endRenderPass(void);
       
-      virtual void barrier(const Ptr<Buffer> buffer, 
+      virtual void barrier(const Buffer& buffer,
                            const BufferAccess initAccess);
 
-      virtual void barrier(const Ptr<Buffer> buffer, 
+      virtual void barrier(const Buffer& buffer,
                            const uint64 offset,
                            const uint64 size,
                            const BufferAccess currentAccess,
                            const BufferAccess newAccess);
 
-      virtual void barrier(const Ptr<Texture>  texture, 
+      virtual void barrier(const Texture& texture,
                            const TextureAccess initAccess);
 
-      virtual void barrier(const Ptr<Texture>  _texture, 
+      virtual void barrier(const Texture& texture,
                            const TextureAccess currentAccess,
                            const TextureAccess newAccess);
 
-      virtual void barrier(const Ptr<Texture>  texture, 
-                           const uint32v2      mipmaps, 
-                           const uint32v2      layers,
+      virtual void barrier(const Texture& texture,
+                           const uint32v2 mipmaps,
+                           const uint32v2 layers,
                            const TextureAccess currentAccess,
                            const TextureAccess newAccess);
 
-      virtual void commit(const Ptr<Semaphore> signalSemaphore = nullptr);
+      virtual void commit(const shared_ptr<Semaphore> signalSemaphore = nullptr);
       
       virtual void waitUntilCompleted(void);
    

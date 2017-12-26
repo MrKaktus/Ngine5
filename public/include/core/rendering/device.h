@@ -16,8 +16,9 @@
 #ifndef ENG_CORE_RENDERING_DEVICE
 #define ENG_CORE_RENDERING_DEVICE
 
+#include <memory>
 #include <string>
-#include "core/utilities/TintrusivePointer.h" 
+using namespace std;
 
 #include "core/rendering/inputLayout.h"
 #include "core/rendering/blend.h"
@@ -38,9 +39,6 @@
 #include "core/rendering/layout.h"
 #include "core/rendering/synchronization.h"
 #include "utilities/Nversion.h"
-
-
-using namespace std;
 
 namespace en
 {
@@ -139,36 +137,36 @@ namespace en
       };
       
    // Per device context that can be used to perform operations on GPU
-   class GpuDevice : public SafeObject<GpuDevice>
+   class GpuDevice : public enable_shared_from_this<GpuDevice>
       {
       public:
       virtual uint32 displays(void) const = 0;            // Screens the device can render to
-      virtual Ptr<Display> display(uint32 id) const = 0;  // Return N'th display handle
+      virtual shared_ptr<Display> display(uint32 id) const = 0;  // Return N'th display handle
 
 
-      virtual Ptr<Window> createWindow(const WindowSettings& settings,  
-                                       const string title) = 0; // Create window
+      virtual shared_ptr<Window> createWindow(const WindowSettings& settings,
+                                              const string title) = 0;
                
       // Create Heap from which GPU resources can be sub-allocated.
-      virtual Ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;
+      virtual shared_ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;
       
-      virtual Ptr<Sampler> createSampler(const SamplerState& state) = 0;
+      virtual shared_ptr<Sampler> createSampler(const SamplerState& state) = 0;
       
       // Buffers and Textures are allocated from the Heaps.
       
       // Create texture that can be shared between processes and API's through
       // shared backing surface. If not supported on given platform, returns nullptr.
-      virtual Ptr<Texture> createSharedTexture(Ptr<SharedSurface> backingSurface) = 0;
+      virtual shared_ptr<Texture> createSharedTexture(shared_ptr<SharedSurface> backingSurface) = 0;
       
       // TODO:
       // Vulkan - entrypoint is specified at Pipeline creation I guess
       // Metal  - has libraries, from which we pick functions as entry points
-      virtual Ptr<Shader> createShader(const ShaderStage stage,
-                                       const string& source) = 0;
+      virtual shared_ptr<Shader> createShader(const ShaderStage stage,
+                                              const string& source) = 0;
 
-      virtual Ptr<Shader> createShader(const ShaderStage stage,
-                                       const uint8* data,
-                                       const uint64 size) = 0;
+      virtual shared_ptr<Shader> createShader(const ShaderStage stage,
+                                              const uint8* data,
+                                              const uint64 size) = 0;
 
 
       // Returns count of available Command Queues of given type
@@ -176,13 +174,13 @@ namespace en
       
       // Creates Command Buffer from the given Command Queue of given type.
       // When this buffer is commited for execution it will execute on that queue.
-      virtual Ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
-                                                     const uint32 parentQueue = 0u) = 0;
+      virtual shared_ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
+                                                            const uint32 parentQueue = 0u) = 0;
 
 
       // Creates empty input layout for Programmable Vertex Fetch.
-      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                 const uint32 controlPoints = 0u) = 0;
+      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                        const uint32 controlPoints = 0u) = 0;
 
       // Input Layout Primitive Restart feature note:
       //
@@ -202,19 +200,19 @@ namespace en
       
       // Creates InputLayout description based on single Vertex buffer.
       // Buffer needs to have specified internal formatting.
-      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                 const bool primitiveRestart,
-                                                 const uint32 controlPoints,
-                                                 const Ptr<Buffer> buffer) = 0;
+      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                        const bool primitiveRestart,
+                                                        const uint32 controlPoints,
+                                                        const Buffer& buffer) = 0;
 
       // Specialized function for creation of any type of InputAssember description.
-      virtual Ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                 const bool primitiveRestart,
-                                                 const uint32 controlPoints,
-                                                 const uint32 usedAttributes,
-                                                 const uint32 usedBuffers,
-                                                 const AttributeDesc* attributes,
-                                                 const BufferDesc* buffers) = 0;
+      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
+                                                        const bool primitiveRestart,
+                                                        const uint32 controlPoints,
+                                                        const uint32 usedAttributes,
+                                                        const uint32 usedBuffers,
+                                                        const AttributeDesc* attributes,
+                                                        const BufferDesc* buffers) = 0;
 
       // TODO: API differences:
       // - D3D12  - allows picking only one stage (or all) to access this Descriptor Set
@@ -231,18 +229,18 @@ namespace en
       // to it.
       //
       // TODO: Could this be done on the D3D12/Metal backend side instead?
-      virtual Ptr<SetLayout> createSetLayout(const uint32 count, 
-                                             const ResourceGroup* group,
-                                             const ShaderStages stagesMask = ShaderStages::All) = 0;
+      virtual shared_ptr<SetLayout> createSetLayout(const uint32 count, 
+                                                    const ResourceGroup* group,
+                                                    const ShaderStages stagesMask = ShaderStages::All) = 0;
 
-      virtual Ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
-                                                       const Ptr<SetLayout>* set,
-                                                       const uint32 immutableSamplers = 0u,
-                                                       const Ptr<Sampler>* sampler = nullptr,
-                                                       const ShaderStages stagesMask = ShaderStages::All) = 0;
+      virtual shared_ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
+                                                              const shared_ptr<SetLayout>* set,
+                                                              const uint32 immutableSamplers = 0u,
+                                                              const shared_ptr<Sampler>* sampler = nullptr,
+                                                              const ShaderStages stagesMask = ShaderStages::All) = 0;
 
-      virtual Ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
-                                                     const uint32 (&count)[underlyingType(ResourceType::Count)]) = 0;
+      virtual shared_ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
+                                                            const uint32 (&count)[underlyingType(ResourceType::Count)]) = 0;
  
 
       // TODO: Those methods should be reworked to accept TextureView,
@@ -261,28 +259,28 @@ namespace en
  
       // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
       // similarly when binding CubeMap texture, pass it's "face" through "layer".
-      virtual Ptr<ColorAttachment> createColorAttachment(const Format format, 
-                                                         const uint32 samples = 1u) = 0;
+      virtual shared_ptr<ColorAttachment> createColorAttachment(const Format format, 
+                                                                const uint32 samples = 1u) = 0;
 
       // By default, Load operation is set to Load, and Store operation is set to Store.
-      virtual Ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
-                                                                       const Format stencilFormat = Format::Unsupported,
-                                                                       const uint32 samples = 1u) = 0;
+      virtual shared_ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
+                                                                              const Format stencilFormat = Format::Unsupported,
+                                                                              const uint32 samples = 1u) = 0;
 
       // Creates render pass with Swap-Chain surface as destination.
       // Swap-Chain surface may be destination of MSAA resolve operation.
-      virtual Ptr<RenderPass> createRenderPass(const Ptr<ColorAttachment> swapChainSurface,
-                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
+      virtual shared_ptr<RenderPass> createRenderPass(const shared_ptr<ColorAttachment> swapChainSurface,
+                                                      const shared_ptr<DepthStencilAttachment> depthStencil) = 0;
 
       // Creates render pass. Entries in "color" array, match output
       // color attachment slots in Fragment Shader. Entries in this 
       // array may be set to nullptr, which means that given output
       // color attachment slot has no bound resource descriptor.
-      virtual Ptr<RenderPass> createRenderPass(const uint32 attachments,
-                                               const Ptr<ColorAttachment>* color,
-                                               const Ptr<DepthStencilAttachment> depthStencil) = 0;
+      virtual shared_ptr<RenderPass> createRenderPass(const uint32 attachments,
+                                                      const shared_ptr<ColorAttachment>* color,
+                                                      const shared_ptr<DepthStencilAttachment> depthStencil) = 0;
 
-      virtual Ptr<Semaphore> createSemaphore(void) = 0;
+      virtual shared_ptr<Semaphore> createSemaphore(void) = 0;
 
       
 
@@ -292,21 +290,21 @@ namespace en
 
 
  
-      virtual Ptr<RasterState>        createRasterState(const RasterStateInfo& state) = 0;
+      virtual shared_ptr<RasterState>        createRasterState(const RasterStateInfo& state) = 0;
 
-      virtual Ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
-                                                               const bool enableAlphaToCoverage,
-                                                               const bool enableAlphaToOne) = 0;
+      virtual shared_ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
+                                                                      const bool enableAlphaToCoverage,
+                                                                      const bool enableAlphaToOne) = 0;
 
-      virtual Ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc) = 0;
+      virtual shared_ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc) = 0;
 
-      virtual Ptr<BlendState>         createBlendState(const BlendStateInfo& state,
-                                                       const uint32 attachments,
-                                                       const BlendAttachmentInfo* color) = 0;
+      virtual shared_ptr<BlendState>         createBlendState(const BlendStateInfo& state,
+                                                              const uint32 attachments,
+                                                              const BlendAttachmentInfo* color) = 0;
       
-      virtual Ptr<ViewportState>      createViewportState(const uint32 count,
-                                                          const ViewportStateInfo* viewports,
-                                                          const ScissorStateInfo* scissors) = 0;
+      virtual shared_ptr<ViewportState>      createViewportState(const uint32 count,
+                                                                 const ViewportStateInfo* viewports,
+                                                                 const ScissorStateInfo* scissors) = 0;
  
       // Returns default Pipeline state helper structure, that can be easily
       // modified and passed to Pipeline object creation call. All states are
@@ -316,7 +314,7 @@ namespace en
       // App still needs to set Viewport State and assign Shaders.
       virtual PipelineState defaultPipelineState(void) = 0;
 
-      virtual Ptr<Pipeline> createPipeline(const PipelineState& pipelineState) = 0;
+      virtual shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState) = 0;
 
 
       // Capabilities query
@@ -327,7 +325,7 @@ namespace en
 
       // Provides description of staging buffer alignment and padding required
       // for given texture layer data upload.
-      virtual LinearAlignment textureLinearAlignment(const Ptr<Texture> texture, 
+      virtual LinearAlignment textureLinearAlignment(const Texture& texture, 
                                                      const uint32 mipmap, 
                                                      const uint32 layer) = 0;
 
@@ -335,7 +333,7 @@ namespace en
       };
       
    // Per graphic API context, initialized depending on API choosed at runtime
-   class GraphicAPI : public SafeObject<GraphicAPI>
+   class GraphicAPI
       {
       public:
       
@@ -344,11 +342,11 @@ namespace en
       virtual RenderingAPI type(void) const = 0;
 
       virtual uint32 devices(void) const = 0;
-      virtual Ptr<GpuDevice> primaryDevice(void) const = 0;
+      virtual shared_ptr<GpuDevice> primaryDevice(void) const = 0;
 
       virtual uint32 displays(void) const = 0;
-      virtual Ptr<Display> primaryDisplay(void) const = 0;
-      virtual Ptr<Display> display(uint32 index) const = 0;
+      virtual shared_ptr<Display> primaryDisplay(void) const = 0;
+      virtual shared_ptr<Display> display(uint32 index) const = 0;
 
       virtual ~GraphicAPI() {};                           // Polymorphic deletes require a virtual base destructor
       };
@@ -357,7 +355,7 @@ namespace en
 
    }
 
-extern Ptr<gpu::GraphicAPI> Graphics;
+extern shared_ptr<gpu::GraphicAPI> Graphics;
 }
 
 
@@ -371,7 +369,7 @@ extern Ptr<gpu::GraphicAPI> Graphics;
 //      // to 0 which means buffer will be iterated on per vertex rate. If value is greater, it describes 
 //      // by how many Draw Instances each structured element is shared, before Input Assembler should 
 //      // proceed to next one. 
-//      virtual Ptr<Buffer>  create(const BufferState& state, 
+//      virtual shared_ptr<Buffer>  create(const BufferState& state, 
 //                                  const Formatting& formatting, 
 //                                  const uint32 step = 0) = 0;
 

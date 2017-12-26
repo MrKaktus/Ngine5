@@ -13,6 +13,8 @@
  
  */
 
+#include "assert.h"
+
 #include "core/rendering/common/buffer.h"
 #include "core/rendering/common/inputLayout.h"
 #include "core/rendering/common/heap.h"
@@ -45,17 +47,17 @@ namespace en
 //   return false;
 //   }
    
-   Ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
+   shared_ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
    {
    assert( elements );
    assert( formatting.column[0] != Attribute::None );
 
    uint32 elementSize = formatting.elementSize();
    uint32 size        = elements * elementSize;
-   Ptr<Buffer> buffer = createBuffer(BufferType::Vertex, size);
+   shared_ptr<Buffer> buffer = createBuffer(BufferType::Vertex, size);
    if (buffer)
       {
-      CommonBuffer* common = raw_reinterpret_cast<CommonBuffer>(&buffer);
+      CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer.get());
       
       common->formatting = formatting;
       common->elements   = elements;
@@ -65,7 +67,7 @@ namespace en
    return buffer;
    }
       
-   Ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Attribute format)
+   shared_ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Attribute format)
    {
    assert( elements );
    assert( format == Attribute::u8  ||
@@ -74,10 +76,10 @@ namespace en
      
    uint32 elementSize = AttributeSize[underlyingType(format)];
    uint32 size        = elements * elementSize;
-   Ptr<Buffer> buffer = createBuffer(BufferType::Index, size);
+   shared_ptr<Buffer> buffer = createBuffer(BufferType::Index, size);
    if (buffer)
       {
-      CommonBuffer* common = raw_reinterpret_cast<CommonBuffer>(&buffer);
+      CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer.get());
       
       common->formatting.column[0] = format;
       common->elements = elements;
@@ -87,10 +89,10 @@ namespace en
    }
 
    // Should be implemented by API class
-   Ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size)
+   shared_ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size)
    {
    assert(0);
-   return Ptr<Buffer>(nullptr);
+   return shared_ptr<Buffer>(nullptr);
    }
 
    }

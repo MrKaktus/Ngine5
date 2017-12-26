@@ -33,28 +33,28 @@ namespace en
    class HeapVK : public CommonHeap
       {
       public:
-      VulkanDevice*  gpu;
+      shared_ptr<VulkanDevice> gpu;
       VkDeviceMemory handle;
       uint32         memoryType;
       Allocator*     allocator;    // Allocation algorithm used to place resources on the Heap
       Nmutex         mapped;
       
-      HeapVK(VulkanDevice* gpu, 
+      HeapVK(shared_ptr<VulkanDevice> gpu,
              const VkDeviceMemory handle, 
              const uint32 _memoryType, 
              const MemoryUsage _usage,
              const uint32 size);
 
       // Return parent device
-      virtual Ptr<GpuDevice> device(void) const;
+      virtual shared_ptr<GpuDevice> device(void) const;
 
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
-      virtual Ptr<Buffer> createBuffer(const BufferType type,
-                                       const uint32 size);
+      virtual shared_ptr<Buffer> createBuffer(const BufferType type,
+                                              const uint32 size);
       
-      virtual Ptr<Texture> createTexture(const TextureState state);
+      virtual shared_ptr<Texture> createTexture(const TextureState state);
 
       virtual ~HeapVK();
       };

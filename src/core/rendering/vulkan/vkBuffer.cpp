@@ -35,7 +35,7 @@ namespace en
    
    BufferVK::~BufferVK()
    {
-   ProfileNoRet( gpu, vkDestroyBuffer(gpu->device, handle, nullptr) )
+   ValidateNoRet( gpu, vkDestroyBuffer(gpu->device, handle, nullptr) )
    
    // Deallocate from the Heap (let Heap allocator know that memory region is available again)
    heap->allocator->deallocate(offset, memoryRequirements.size);
@@ -73,7 +73,7 @@ namespace en
    mappedOffset = _offset;
    mappedSize   = _size;
    
-   Profile( heap->gpu, vkMapMemory(heap->gpu->device, heap->handle, mappedOffset, mappedSize, 0u, &mappedPtr) )
+   Validate( heap->gpu, vkMapMemory(heap->gpu->device, heap->handle, mappedOffset, mappedSize, 0u, &mappedPtr) )
 
    return mappedPtr;
    }
@@ -83,7 +83,7 @@ namespace en
    assert( heap->mapped.isLocked() );
 
    // Unmaps memory object
-   ProfileNoRet( heap->gpu, vkUnmapMemory(heap->gpu->device, heap->handle) )
+   ValidateNoRet( heap->gpu, vkUnmapMemory(heap->gpu->device, heap->handle) )
 
    heap->mapped.unlock();
    }
@@ -92,9 +92,9 @@ namespace en
    // Vulkan Buffer View is created only for Linear Textures backed by Buffers - not supported currently.
    //
 #if 0
-   Ptr<BufferView> BufferVK::view(const Format format, const uint64 offset, const uint64 length)
+   shared_ptr<BufferView> BufferVK::view(const Format format, const uint64 offset, const uint64 length)
    {
-   Ptr<BufferViewVK> result = nullptr;
+   shared_ptr<BufferViewVK> result = nullptr;
 
    uint64 finalOffset = roundUp( offset, gpu->properties.limits.minTexelBufferOffsetAlignment );
    uint64 finalLength = roundUp( length, gpu->properties.limits.minTexelBufferOffsetAlignment );
@@ -112,14 +112,18 @@ namespace en
    
    VkBufferView viewHandle = VK_NULL_HANDLE;
 
-   Profile( gpu, vkCreateBufferView(gpu->device, &viewInfo, nullptr, &viewHandle) )
+   Validate( gpu, vkCreateBufferView(gpu->device, &viewInfo, nullptr, &viewHandle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = new BufferViewVK(Ptr<BufferVK>(this), viewHandle, format, finalOffset, finalLength);
+      result = make_shared<BufferViewVK>(dynamic_pointer_cast<BufferVK>(shared_from_this()),
+                                         viewHandle,
+                                         format,
+                                         finalOffset,
+                                         finalLength);
 
-   return ptr_dynamic_cast<BufferView, BufferViewVK>(result);
+   return result;
    }
 
-   BufferViewVK::BufferViewVK(Ptr<BufferVK>      parent,
+   BufferViewVK::BufferViewVK(shared_ptr<BufferVK> parent,
                               const VkBufferView view,
                               const Format       format,
                               const uint32       offset,
@@ -132,19 +136,19 @@ namespace en
    
    BufferViewVK::~BufferViewVK()
    {
-   ProfileNoRet( buffer->gpu, vkDestroyBufferView(buffer->gpu->device, handle, nullptr) )
+   ValidateNoRet( buffer->gpu, vkDestroyBufferView(buffer->gpu->device, handle, nullptr) )
    buffer = nullptr;
    }
 
-   Ptr<Buffer> BufferViewVK::parent(void) const
+   shared_ptr<Buffer> BufferViewVK::parent(void) const
    {
-   return ptr_dynamic_cast<Buffer, BufferVK>(buffer);
+   return buffer;
    }
 #endif
 
-   Ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size)
+   shared_ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size)
    {
-   Ptr<BufferVK> buffer = nullptr;
+   shared_ptr<BufferVK> buffer = nullptr;
    
    assert( size );
 
@@ -236,13 +240,13 @@ namespace en
       
    VkBuffer handle = VK_NULL_HANDLE;
    VulkanDevice* gpu = heap->gpu;
-   Profile( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
+   Validate( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
    if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
       {
       buffer = new BufferVK(gpu, handle, type, size);
       
       // Query buffer requirements
-      ProfileNoRet( gpu, vkGetBufferMemoryRequirements(gpu->device, buffer->handle, &buffer->memoryRequirements) )
+      ValidateNoRet( gpu, vkGetBufferMemoryRequirements(gpu->device, buffer->handle, &buffer->memoryRequirements) )
 
       // TODO: Create default Buffer View !
       } 
