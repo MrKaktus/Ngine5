@@ -91,7 +91,6 @@ namespace en
       uint32              : 30; // Reserved
       };
 
-   extern bool TextureTypeSupported[underlyingType(TextureType::Count)];
    extern TextureInfo TextureCapabilities[underlyingType(Format::Count)];
 #endif
 

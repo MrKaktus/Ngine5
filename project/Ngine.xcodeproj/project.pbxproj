@@ -38,6 +38,9 @@
 		85484E0F1DD0E1C000BEDD54 /* vkShader.h in Headers */ = {isa = PBXBuildFile; fileRef = 85484E0D1DD0E1C000BEDD54 /* vkShader.h */; };
 		855217A21E00CB4B00FF942F /* dx12CommandBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 855217A01E00CB4B00FF942F /* dx12CommandBuffer.cpp */; };
 		855217A31E00CB4B00FF942F /* dx12CommandBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 855217A11E00CB4B00FF942F /* dx12CommandBuffer.h */; };
+		8558AC401FF2F419004E94E3 /* sampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8558AC3D1FF2F418004E94E3 /* sampler.cpp */; };
+		8558AC411FF2F419004E94E3 /* raster.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8558AC3E1FF2F419004E94E3 /* raster.cpp */; };
+		8558AC421FF2F419004E94E3 /* depthStencil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8558AC3F1FF2F419004E94E3 /* depthStencil.cpp */; };
 		856E9C941CB874B800875662 /* mtlPipeline.mm in Sources */ = {isa = PBXBuildFile; fileRef = 856E9C931CB874B800875662 /* mtlPipeline.mm */; };
 		856E9C961CB8753000875662 /* mtlPipeline.h in Headers */ = {isa = PBXBuildFile; fileRef = 856E9C951CB8753000875662 /* mtlPipeline.h */; };
 		856E9C971CB8C97200875662 /* mtlBlend.h in Headers */ = {isa = PBXBuildFile; fileRef = 859179CB1C3F66120051382A /* mtlBlend.h */; };
@@ -84,15 +87,13 @@
 		85917A901C3F66F50051382A /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8591799C1C3F66120051382A /* audio.cpp */; };
 		85917A911C3F66F50051382A /* config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179A01C3F66120051382A /* config.cpp */; };
 		85917A921C3F66F50051382A /* log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179A51C3F66120051382A /* log.cpp */; };
-		85917A931C3F66F50051382A /* raster.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179A71C3F66120051382A /* raster.cpp */; };
-		85917A951C3F66F50051382A /* cBlend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179AA1C3F66120051382A /* cBlend.cpp */; };
+		85917A951C3F66F50051382A /* comBlend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179AA1C3F66120051382A /* comBlend.cpp */; };
 		85917A961C3F66F50051382A /* cTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179AB1C3F66120051382A /* cTexture.cpp */; };
 		85917A981C3F66F50051382A /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179AF1C3F66120051382A /* device.cpp */; };
 		85917A991C3F66F50051382A /* dx12Blend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179B41C3F66120051382A /* dx12Blend.cpp */; };
 		85917A9A1C3F66F50051382A /* dx12DepthStencil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179B61C3F66120051382A /* dx12DepthStencil.cpp */; };
 		85917A9C1C3F66F50051382A /* dx12Raster.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179BB1C3F66120051382A /* dx12Raster.cpp */; };
 		85917A9D1C3F66F50051382A /* dx12Viewport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179BD1C3F66120051382A /* dx12Viewport.cpp */; };
-		85917A9E1C3F66F50051382A /* depthStencil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 859179BF1C3F66120051382A /* depthStencil.cpp */; };
 		85917AA21C3F66F50051382A /* mtlDepthStencil.mm in Sources */ = {isa = PBXBuildFile; fileRef = 859179CA1C3F66120051382A /* mtlDepthStencil.mm */; };
 		85917AA31C3F66F50051382A /* mtlDevice.mm in Sources */ = {isa = PBXBuildFile; fileRef = 859179CD1C3F66120051382A /* mtlDevice.mm */; };
 		85917AA41C3F66F50051382A /* mtlSampler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 859179CE1C3F66120051382A /* mtlSampler.mm */; };
@@ -100,7 +101,6 @@
 		85917AA61C3F66F50051382A /* mtlBlend.mm in Sources */ = {isa = PBXBuildFile; fileRef = 859179D01C3F66120051382A /* mtlBlend.mm */; };
 		85917AA71C3F66F50051382A /* mtlTexture.mm in Sources */ = {isa = PBXBuildFile; fileRef = 859179D11C3F66120051382A /* mtlTexture.mm */; };
 		85917AA81C3F66F50051382A /* mtlViewport.mm in Sources */ = {isa = PBXBuildFile; fileRef = 859179D31C3F66120051382A /* mtlViewport.mm */; };
-		85917AC71C3F66F50051382A /* sampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A0E1C3F66120051382A /* sampler.cpp */; };
 		85917ACB1C3F66F50051382A /* vkState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A131C3F66120051382A /* vkState.cpp */; };
 		85917ACC1C3F66F50051382A /* vkDepthStencil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A151C3F66120051382A /* vkDepthStencil.cpp */; };
 		85917ACD1C3F66F50051382A /* vkDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A171C3F66120051382A /* vkDevice.cpp */; };
@@ -271,6 +271,9 @@
 		85484E0D1DD0E1C000BEDD54 /* vkShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vkShader.h; sourceTree = "<group>"; };
 		855217A01E00CB4B00FF942F /* dx12CommandBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12CommandBuffer.cpp; sourceTree = "<group>"; };
 		855217A11E00CB4B00FF942F /* dx12CommandBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12CommandBuffer.h; sourceTree = "<group>"; };
+		8558AC3D1FF2F418004E94E3 /* sampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sampler.cpp; sourceTree = "<group>"; };
+		8558AC3E1FF2F419004E94E3 /* raster.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = raster.cpp; sourceTree = "<group>"; };
+		8558AC3F1FF2F419004E94E3 /* depthStencil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = depthStencil.cpp; sourceTree = "<group>"; };
 		8568754A1BF410E400D7FD2D /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		856E9C931CB874B800875662 /* mtlPipeline.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlPipeline.mm; sourceTree = "<group>"; };
 		856E9C951CB8753000875662 /* mtlPipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlPipeline.h; sourceTree = "<group>"; };
@@ -322,8 +325,7 @@
 		859179A21C3F66120051382A /* configuration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = configuration.h; sourceTree = "<group>"; };
 		859179A41C3F66120051382A /* context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = context.h; sourceTree = "<group>"; };
 		859179A51C3F66120051382A /* log.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = log.cpp; sourceTree = "<group>"; };
-		859179A71C3F66120051382A /* raster.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = raster.cpp; sourceTree = "<group>"; };
-		859179AA1C3F66120051382A /* cBlend.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cBlend.cpp; sourceTree = "<group>"; };
+		859179AA1C3F66120051382A /* comBlend.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = comBlend.cpp; sourceTree = "<group>"; };
 		859179AB1C3F66120051382A /* cTexture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cTexture.cpp; sourceTree = "<group>"; };
 		859179AE1C3F66120051382A /* sampler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sampler.h; sourceTree = "<group>"; };
 		859179AF1C3F66120051382A /* device.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = device.cpp; sourceTree = "<group>"; };
@@ -339,7 +341,6 @@
 		859179BC1C3F66120051382A /* dx12Raster.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dx12Raster.h; sourceTree = "<group>"; };
 		859179BD1C3F66120051382A /* dx12Viewport.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dx12Viewport.cpp; sourceTree = "<group>"; };
 		859179BE1C3F66120051382A /* dx12Viewport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dx12Viewport.h; sourceTree = "<group>"; };
-		859179BF1C3F66120051382A /* depthStencil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = depthStencil.cpp; sourceTree = "<group>"; };
 		859179C31C3F66120051382A /* metal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = metal.h; sourceTree = "<group>"; };
 		859179C41C3F66120051382A /* mtlSampler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mtlSampler.h; sourceTree = "<group>"; };
 		859179C61C3F66120051382A /* mtlDepthStencil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mtlDepthStencil.h; sourceTree = "<group>"; };
@@ -355,7 +356,6 @@
 		859179D11C3F66120051382A /* mtlTexture.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlTexture.mm; sourceTree = "<group>"; };
 		859179D21C3F66120051382A /* mtlRenderPass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mtlRenderPass.h; sourceTree = "<group>"; };
 		859179D31C3F66120051382A /* mtlViewport.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlViewport.mm; sourceTree = "<group>"; };
-		85917A0E1C3F66120051382A /* sampler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sampler.cpp; sourceTree = "<group>"; };
 		85917A131C3F66120051382A /* vkState.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vkState.cpp; sourceTree = "<group>"; };
 		85917A141C3F66120051382A /* vkBlend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vkBlend.h; sourceTree = "<group>"; };
 		85917A151C3F66120051382A /* vkDepthStencil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vkDepthStencil.cpp; sourceTree = "<group>"; };
@@ -618,12 +618,9 @@
 		859179A61C3F66120051382A /* rendering */ = {
 			isa = PBXGroup;
 			children = (
-				859179A71C3F66120051382A /* raster.cpp */,
 				859179A91C3F66120051382A /* common */,
 				859179B21C3F66120051382A /* d3d12 */,
-				859179BF1C3F66120051382A /* depthStencil.cpp */,
 				859179C21C3F66120051382A /* metal */,
-				85917A0E1C3F66120051382A /* sampler.cpp */,
 				85917A121C3F66120051382A /* vulkan */,
 				85245FCA1DB45EBD004A903C /* osxSurface.h */,
 				85245FCC1DB47A83004A903C /* osxSurface.mm */,
@@ -634,6 +631,9 @@
 		859179A91C3F66120051382A /* common */ = {
 			isa = PBXGroup;
 			children = (
+				8558AC3F1FF2F419004E94E3 /* depthStencil.cpp */,
+				8558AC3E1FF2F419004E94E3 /* raster.cpp */,
+				8558AC3D1FF2F418004E94E3 /* sampler.cpp */,
 				8570E3C01E48E1AD0003FF57 /* display.cpp */,
 				8570E3C11E48E1AD0003FF57 /* display.h */,
 				8570E3C21E48E1AD0003FF57 /* window.cpp */,
@@ -642,7 +642,7 @@
 				85756B671E10890100C8F3DB /* inputLayout.h */,
 				85E9CB9F1D7486AC0029A9BE /* heap.cpp */,
 				85E9CBA01D7486AC0029A9BE /* heap.h */,
-				859179AA1C3F66120051382A /* cBlend.cpp */,
+				859179AA1C3F66120051382A /* comBlend.cpp */,
 				859179AB1C3F66120051382A /* cTexture.cpp */,
 				859179AE1C3F66120051382A /* sampler.h */,
 				859179B11C3F66120051382A /* texture.h */,
@@ -1214,10 +1214,9 @@
 				85917A901C3F66F50051382A /* audio.cpp in Sources */,
 				85917A911C3F66F50051382A /* config.cpp in Sources */,
 				85917A921C3F66F50051382A /* log.cpp in Sources */,
-				85917A931C3F66F50051382A /* raster.cpp in Sources */,
 				85484E0E1DD0E1C000BEDD54 /* vkShader.cpp in Sources */,
 				85756B701E1089D000C8F3DB /* dx12Layout.cpp in Sources */,
-				85917A951C3F66F50051382A /* cBlend.cpp in Sources */,
+				85917A951C3F66F50051382A /* comBlend.cpp in Sources */,
 				85917A961C3F66F50051382A /* cTexture.cpp in Sources */,
 				85917A981C3F66F50051382A /* device.cpp in Sources */,
 				85F115A31E3197E50098520E /* winStorage.cpp in Sources */,
@@ -1225,10 +1224,10 @@
 				85917A9A1C3F66F50051382A /* dx12DepthStencil.cpp in Sources */,
 				85917A9C1C3F66F50051382A /* dx12Raster.cpp in Sources */,
 				85917A9D1C3F66F50051382A /* dx12Viewport.cpp in Sources */,
-				85917A9E1C3F66F50051382A /* depthStencil.cpp in Sources */,
 				85846D781CE779CF00E06629 /* buffer.cpp in Sources */,
 				85917AA21C3F66F50051382A /* mtlDepthStencil.mm in Sources */,
 				8508B68E1CF133E300454423 /* osxStorage.mm in Sources */,
+				8558AC401FF2F419004E94E3 /* sampler.cpp in Sources */,
 				85917AA31C3F66F50051382A /* mtlDevice.mm in Sources */,
 				85CDB0941C62D023001A1FA1 /* AppDelegate.mm in Sources */,
 				8508B68A1CF00A7E00454423 /* mtlShader.mm in Sources */,
@@ -1250,7 +1249,6 @@
 				85484E0A1DD0E18200BEDD54 /* dx12Shader.cpp in Sources */,
 				851A8E931CC5399100272F88 /* mtlBuffer.mm in Sources */,
 				85756B811E108A0A00C8F3DB /* vkSampler.cpp in Sources */,
-				85917AC71C3F66F50051382A /* sampler.cpp in Sources */,
 				852D997E1DC79D4000DEB6F4 /* dx12Heap.cpp in Sources */,
 				856E9C941CB874B800875662 /* mtlPipeline.mm in Sources */,
 				85917ACB1C3F66F50051382A /* vkState.cpp in Sources */,
@@ -1269,6 +1267,7 @@
 				85917AD61C3F66F50051382A /* vkRenderPass.cpp in Sources */,
 				850C09D51DCB99D700908D56 /* dx12Buffer.cpp in Sources */,
 				85917AD91C3F66F50051382A /* storage.cpp in Sources */,
+				8558AC421FF2F419004E94E3 /* depthStencil.cpp in Sources */,
 				85917ADA1C3F66F50051382A /* double3.cpp in Sources */,
 				85917ADB1C3F66F60051382A /* double4.cpp in Sources */,
 				858398B81D0B0FDE00431C85 /* vkCommandBuffer.cpp in Sources */,
@@ -1363,6 +1362,7 @@
 				85917B1A1C3F66F70051382A /* gpcpu.cpp in Sources */,
 				85917B1B1C3F66F70051382A /* random.cpp in Sources */,
 				85917B1C1C3F66F70051382A /* strings.cpp in Sources */,
+				8558AC411FF2F419004E94E3 /* raster.cpp in Sources */,
 				856E9C9F1CBCB4D800875662 /* mtlRaster.mm in Sources */,
 				85917B1D1C3F66F70051382A /* timer.cpp in Sources */,
 				85917B1E1C3F66F70051382A /* utilities.cpp in Sources */,

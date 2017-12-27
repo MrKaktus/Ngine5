@@ -101,7 +101,7 @@ namespace en
       enableConservativeRasterization(false),
       disableRasterizer(false),
       fillMode(Solid),
-      cullFace(BackFace),
+      cullFace(Face::Back),
       frontFace(CounterClockWise),   // TODO: Change to CW
       depthBiasConstantFactor(0.0f),
       depthBiasClamp(0.0f),

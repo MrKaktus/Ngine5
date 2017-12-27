@@ -16,9 +16,6 @@
 #ifndef ENG_CORE_RENDERING_BUFFER
 #define ENG_CORE_RENDERING_BUFFER
 
-#include <memory>
-using namespace std;
-
 #include "core/defines.h"
 #include "core/types.h"
 
@@ -32,16 +29,20 @@ namespace en
    // Buffer Type
    enum class BufferType : uint32
       {
-      Vertex              = 0, // Vertex   - Buffer consumed by Input Assembler (Vertices, Control Point's, etc.)
-      Index                  , // Index    - Buffer consumed by Input Assembler (dictates primitives assembly order)
-      Uniform                , // Uniform  - Read Only, 16KB to 64KB buffer for data
-      Storage                , // Storage  - Read-Write, Atomic, minimum 1MB buffer for data
-      Indirect               , // Indirect - Used as source for Draw and Dispatch Indirect commands
-      Transfer               , // Upload   - Buffer used to transfer data from CPU RAM to Buffers and Textures in VRAM.
-                               // Download - Buffer used to transfer data from Buffers and Textures in VRAM to CPU RAM.
-      Count                    //            Upload buffers are used to populate all other resources with data.
-      };
- 
+      Vertex              = 0, // Buffer consumed by Input Assembler
+                               // (Vertices, Control Point's, etc.).
+      Index                  , // Buffer consumed by Input Assembler
+                               // (dictates primitive assembly order).
+      Uniform                , // Read Only, 16KB to 64KB data buffer.
+      Storage                , // Read-Write, Atomic, minimum 1MB, data buffer.
+      Indirect               , // Store of Draw and Dispatch Indirect commands.
+      Transfer               , // On Upload heaps - buffer used to transfer data
+      };                       // from CPU RAM to Buffers and Textures in VRAM.
+                               // On Download heap - Buffer used to transfer
+                               // data from Buffers and Textures in VRAM to
+                               // CPU RAM. Upload buffers are used to populate
+                               // all other resources with data.
+      
    // Format of attribute data
    enum class Attribute : uint32
       {
@@ -146,10 +147,6 @@ namespace en
    // VK_FORMAT_R8G8B8_SSCALED             - Attribute::v3s8_cf
    // VK_FORMAT_R16G16B16_USCALED          - Attribute::v3u16_cf
    // VK_FORMAT_R16G16B16_SSCALED          - Attribute::v3s16_cf
-   // VK_FORMAT_R8G8B8A8_USCALED           - Attribute::v4u8_cf    - Endiannes Independent
-   // VK_FORMAT_R8G8B8A8_SSCALED           - Attribute::v4s8_cf
-   // VK_FORMAT_A8B8G8R8_USCALED_PACK32    - Attribute::v4u8_cf    - Endiannes Dependent
-   // VK_FORMAT_A8B8G8R8_SSCALED_PACK32    - Attribute::v4s8_cf
    // VK_FORMAT_R16G16B16A16_USCALED       - Attribute::v4u16_cf
    // VK_FORMAT_R16G16B16A16_SSCALED       - Attribute::v4s16_cf
    // VK_FORMAT_B8G8R8_USCALED             - Attribute::v3u8_cf_rev
@@ -165,9 +162,14 @@ namespace en
    // below, that differed as one was Endiannes independent on read, while 
    // other was identical except of the fact that it was Endiannes dependent. 
    //
-   // VK_FORMAT_R8G8B8A8_USCALED           - Attribute::v4u8_cf    - Endiannes Independent
+   // Endiannes Independent:
+   //
+   // VK_FORMAT_R8G8B8A8_USCALED           - Attribute::v4u8_cf
    // VK_FORMAT_R8G8B8A8_SSCALED           - Attribute::v4s8_cf
-   // VK_FORMAT_A8B8G8R8_USCALED_PACK32    - Attribute::v4u8_cf    - Endiannes Dependent
+   //
+   // Endiannes Dependent:
+   //
+   // VK_FORMAT_A8B8G8R8_USCALED_PACK32    - Attribute::v4u8_cf
    // VK_FORMAT_A8B8G8R8_SSCALED_PACK32    - Attribute::v4s8_cf
    //
    // USCALED/SSCALED formats are still defined in Vulkan, but their support
@@ -180,24 +182,24 @@ namespace en
    class Formatting
       {
       public:
-      Attribute column[MaxInputLayoutAttributesCount]; // Format of each data column
+      Attribute column[MaxInputLayoutAttributesCount]; // Format of each column
       
-      // Create data formatting layout by passing at least one data column format.
+      // Create formatting layout by passing at least one data column format.
       // If more than eight input attributes need to be specified, they can be
       // directly set on column variable.
       Formatting();
-      Formatting(const Attribute col0,
-                 const Attribute col1  = Attribute::None,
-                 const Attribute col2  = Attribute::None,
-                 const Attribute col3  = Attribute::None,
-                 const Attribute col4  = Attribute::None,
-                 const Attribute col5  = Attribute::None,
-                 const Attribute col6  = Attribute::None,
-                 const Attribute col7  = Attribute::None
-                 );
+      Formatting(
+         const Attribute col0,
+         const Attribute col1  = Attribute::None,
+         const Attribute col2  = Attribute::None,
+         const Attribute col3  = Attribute::None,
+         const Attribute col4  = Attribute::None,
+         const Attribute col5  = Attribute::None,
+         const Attribute col6  = Attribute::None,
+         const Attribute col7  = Attribute::None);
          
-      // Size of all attributes combined together, with platform specific padding.
-      // Holes between attributes are not allowed.
+      // Size of all attributes combined together, with platform specific
+      // padding. Holes between attributes are not allowed.
       uint32 elementSize(void) const;
       
      ~Formatting();
@@ -211,19 +213,27 @@ namespace en
       virtual uint64 length(void) const = 0;
       virtual BufferType type(void) const = 0;
       
-      // Buffers created on heaps with "Streamed" and "Immediate" memory usage, can be mapped
-      // to obtain pointers to their content. This is not allowed on "Storage" heaps.
+      // Buffers created on heaps with Upload, Download and Immediate memory
+      // usage, can be mapped to obtain pointers to their content. This is not
+      // allowed on Linear, Tiled or Renderable heaps.
       virtual void* map(void) = 0;
       virtual void* map(const uint64 offset, const uint64 size) = 0;
       virtual void  unmap(void) = 0;
-      
-//      virtual shared_ptr<BufferView> view(void) = 0;  // Default buffer view, if it was created with formatting
-//      virtual shared_ptr<BufferView> view(const uint32 elements, 
-//                                   const Formatting& formatting, 
-//                                   const uint32 step = 0,
-//                                   const uint32 offset = 0) = 0; // New buffer view with specified formatting
-      
-      virtual ~Buffer() {};           // Polymorphic deletes require a virtual base destructor
+   
+/*    // Buffer formated views are currently unsupported:
+
+      // Default buffer view, if it was created with formatting
+      virtual shared_ptr<BufferView> view(void) = 0;
+ 
+      // New buffer view with specified formatting
+      virtual shared_ptr<BufferView> view(
+         const uint32 elements,
+         const Formatting& formatting,
+         const uint32 step = 0,
+         const uint32 offset = 0) = 0;
+*/
+
+      virtual ~Buffer() {};
       };
       
    // Buffer formatted View
@@ -233,7 +243,8 @@ namespace en
       virtual uint64 offset(void) const = 0;
       virtual uint64 length(void) const = 0;
       virtual Format format(void) const = 0;
-      virtual ~BufferView() {};       // Polymorphic deletes require a virtual base destructor
+      
+      virtual ~BufferView() {};
       };
    }
 }

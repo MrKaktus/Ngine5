@@ -88,17 +88,19 @@ namespace en
                         const uint32 mipmap,
                         const uint32 layer);
          
-      virtual void draw(const uint32  elements,            // Elements to process (they are assembled into Primitives)
-                        const Buffer* indexBuffer   = nullptr, // Optional Index buffer
-                        const uint32  instances     = 1,   // Instances to draw
-                        const uint32  firstElement  = 0,   // First element to process (or index in Index buffer if specified)
-                        const sint32  firstVertex   = 0,   // VertexID from which numeration should start (can be negative)
-                        const uint32  firstInstance = 0);  // InstanceID from which numeration should start
+      virtual void draw(
+         const uint32  elements,
+         const Buffer* indexBuffer   = nullptr,
+         const uint32  instances     = 1,
+         const uint32  firstElement  = 0,
+         const sint32  firstVertex   = 0,
+         const uint32  firstInstance = 0);
          
-      virtual void draw(const Buffer& indirectBuffer,      // Buffer from which Draw parameters are sourced
-                        const uint32  firstEntry   = 0,    // First entry to process in Indirect buffer
-                        const Buffer* indexBuffer  = nullptr, // Optional Index buffer
-                        const uint32  firstElement = 0);   // First index to process in Index buffer (if specified)
+      virtual void drawIndirect(
+         const Buffer& indirectBuffer,
+         const uint32  firstEntry   = 0,
+         const Buffer* indexBuffer  = nullptr,
+         const uint32  firstElement = 0);
 
 
       virtual void endRenderPass(void);

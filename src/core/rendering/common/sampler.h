@@ -43,11 +43,6 @@ namespace en
       float  maxLOD;
       };
    aligndefault
-
-//#ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
-//   extern bool TextureFilteringSupported[TextureFilteringMethodsCount];
-//   extern bool TextureWrapingSupported[TextureWrapingMethodsCount];
-//#endif
    }
 }
 

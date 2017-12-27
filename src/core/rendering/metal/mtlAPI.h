@@ -51,7 +51,7 @@ namespace en
 
       virtual uint32         displays(void) const;       // Screens count the device can render to
       virtual shared_ptr<Display>   primaryDisplay(void) const;
-      virtual shared_ptr<Display>   display(uint32 index) const;   // Return N'th screen handle
+      virtual shared_ptr<Display>   display(const uint32 index) const;   // Return N'th screen handle
       
       virtual ~MetalAPI();
       };

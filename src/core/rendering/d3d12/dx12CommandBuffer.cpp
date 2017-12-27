@@ -548,10 +548,11 @@ namespace en
       }
    }
 
-   void CommandBufferD3D12::draw(const Buffer& indirectBuffer,
-                                 const uint32  firstEntry,
-                                 const Buffer* indexBuffer,
-                                 const uint32  firstElement)
+   void CommandBufferD3D12::drawIndirect(
+      const Buffer& indirectBuffer,
+      const uint32  firstEntry,
+      const Buffer* indexBuffer,
+      const uint32  firstElement)
    {
    assert( started );
    assert( encoding );

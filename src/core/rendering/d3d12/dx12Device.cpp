@@ -791,7 +791,7 @@ namespace en
    return displayArray[0];
    }
 
-   shared_ptr<Display> Direct3DAPI::display(uint32 index) const
+   shared_ptr<Display> Direct3DAPI::display(const uint32 index) const
    {
    assert( index < displaysCount );
    return displayArray[index];  

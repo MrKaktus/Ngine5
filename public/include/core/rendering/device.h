@@ -20,101 +20,31 @@
 #include <string>
 using namespace std;
 
-#include "core/rendering/inputLayout.h"
 #include "core/rendering/blend.h"
-#include "core/rendering/display.h"
-#include "core/rendering/window.h"
-#include "core/rendering/depthStencil.h"
-#include "core/rendering/raster.h"
-#include "core/rendering/pipeline.h"
-#include "core/rendering/sampler.h"
-#include "core/rendering/texture.h"
-#include "core/rendering/surface.h"
-#include "core/rendering/renderPass.h"
-#include "core/rendering/multisampling.h"
-#include "core/rendering/viewport.h"
-#include "core/rendering/shader.h"
-#include "core/rendering/heap.h"
+#include "core/rendering/buffer.h"
 #include "core/rendering/commandBuffer.h"
+#include "core/rendering/depthStencil.h"
+#include "core/rendering/display.h"
+#include "core/rendering/heap.h"
+#include "core/rendering/inputLayout.h"
 #include "core/rendering/layout.h"
+#include "core/rendering/multisampling.h"
+#include "core/rendering/pipeline.h"
+#include "core/rendering/raster.h"
+#include "core/rendering/renderPass.h"
+#include "core/rendering/sampler.h"
+#include "core/rendering/shader.h"
+#include "core/rendering/state.h"
+#include "core/rendering/surface.h"
 #include "core/rendering/synchronization.h"
-#include "utilities/Nversion.h"
+#include "core/rendering/texture.h"
+#include "core/rendering/viewport.h"
+#include "core/rendering/window.h"
 
 namespace en
 {
    namespace gpu
    {
-   // Graphic API and Shading Language API id's
-   #define EN_OpenGL    1
-   #define EN_GLSL      2
-   #define EN_OpenGL_ES 3
-   #define EN_ESSL      4
-   #define EN_Metal_OSX 5
-   #define EN_Metal_IOS 6
-   #define EN_MetalSL   7
-   #define EN_Vulkan    8
-   #define EN_SPIRV     9
-   #define EN_Direct3D  10
-   #define EN_HLSL      11
-   
-   extern const Nversion Vulkan_1_0;                  // Vulkan 1.0
-   
-   extern const Nversion Metal_OSX_1_0;               // Metal OSX 1.0
-   extern const Nversion Metal_OSX_Unsupported;       // For marking unsupported features
-   
-   extern const Nversion Metal_IOS_1_0;               // Metal 1.0
-   extern const Nversion Metal_IOS_Unsupported;       // For marking unsupported features
-
-   extern const Nversion ESSL_3_00;                   // ESSL 3.00
-   extern const Nversion ESSL_1_00;                   // ESSL 1.00
-   extern const Nversion ESSL_Unsupported;            // For marking unsupported features
-
-   extern const Nversion OpenGL_ES_3_2;               // OpenGL ES 3.2 -
-   extern const Nversion OpenGL_ES_3_1;               // OpenGL ES 3.1 - 
-   extern const Nversion OpenGL_ES_3_0;               // OpenGL ES 3.0 - 
-   extern const Nversion OpenGL_ES_2_0;               // OpenGL ES 2.0 - 
-   extern const Nversion OpenGL_ES_1_1;               // OpenGL ES 1.1 - 
-   extern const Nversion OpenGL_ES_1_0;               // OpenGL ES 1.0 - 
-   extern const Nversion OpenGL_ES_Unsupported;       // For marking unsupported features
-
-   extern const Nversion GLSL_Next;                   // Future GLSL versions
-   extern const Nversion GLSL_4_50;                   // GLSL 4.50
-   extern const Nversion GLSL_4_40;                   // GLSL 4.40
-   extern const Nversion GLSL_4_30;                   // GLSL 4.30
-   extern const Nversion GLSL_4_20;                   // GLSL 4.20
-   extern const Nversion GLSL_4_10;                   // GLSL 4.10
-   extern const Nversion GLSL_4_00;                   // GLSL 4.00
-   extern const Nversion GLSL_3_30;                   // GLSL 3.30
-   extern const Nversion GLSL_1_50;                   // GLSL 1.50 for OpenGL 3.2
-   extern const Nversion GLSL_1_40;                   // GLSL 1.40 for OpenGL 3.1
-   extern const Nversion GLSL_1_30;                   // GLSL 1.30 for OpenGL 3.0
-   extern const Nversion GLSL_1_20;                   // GLSL 1.20 for OpenGL 2.1
-   extern const Nversion GLSL_1_10;                   // GLSL 1.10 for OpenGL 2.0
-   extern const Nversion GLSL_Unsupported;            // For marking unsupported features
-
-   extern const Nversion OpenGL_Next;                 // Future OpenGL versions
-   extern const Nversion OpenGL_4_5;                  // OpenGL 4.5    -  
-   extern const Nversion OpenGL_4_4;                  // OpenGL 4.4    -   
-   extern const Nversion OpenGL_4_3;                  // OpenGL 4.3    -   
-   extern const Nversion OpenGL_4_2;                  // OpenGL 4.2    -
-   extern const Nversion OpenGL_4_1;                  // OpenGL 4.1    - 
-   extern const Nversion OpenGL_4_0;                  // OpenGL 4.0    - 11.03.2010 ok
-   extern const Nversion OpenGL_3_3;                  // OpenGL 3.3    - 11.03.2010 ok
-   extern const Nversion OpenGL_3_2;                  // OpenGL 3.2    - 24.07.2009 ok
-   extern const Nversion OpenGL_3_1;                  // OpenGL 3.1    - 24.03.2009 ok
-   extern const Nversion OpenGL_3_0;                  // OpenGL 3.0    - 11.08.2008 ok
-   extern const Nversion OpenGL_2_1;                  // OpenGL 2.1    - 30.07.2006 spec
-   extern const Nversion OpenGL_2_0;                  // OpenGL 2.0    - 22.10.2004 spec
-   extern const Nversion OpenGL_1_5;                  // OpenGL 1.5    - 29.07.2003 / 30.10.2003 spec
-   extern const Nversion OpenGL_1_4;                  // OpenGL 1.4    - 24.07.2002 spec
-   extern const Nversion OpenGL_1_3;                  // OpenGL 1.3    - 14.08.2001 spec
-   extern const Nversion OpenGL_1_2_1;                // OpenGL 1.2.1  - 01.04.1999 spec
-   extern const Nversion OpenGL_1_2;                  // OpenGL 1.2    -
-   extern const Nversion OpenGL_1_1;                  // OpenGL 1.1    - 29.03.1997
-   extern const Nversion OpenGL_1_0;                  // OpenGL 1.0    - 20.06.1992
-   extern const Nversion OpenGL_Unsupported;          // For marking unsupported features
-
-
    // For use of API specific features (shouldn't be used if not really needed).
    enum class RenderingAPI : uint32
       {
@@ -123,16 +53,15 @@ namespace en
       Vulkan      ,
       };
 
-
-   // All queues support transfer operations.
-   // If device support Sparse resources, Universal and Compute queues support Sparse Transfer as well. (can we make this assumption ?)
-   // Except of Transfer, they sypport:
+   // All queues support transfer operations.If device support Sparse resources,
+   // Universal and Compute queues support Sparse Transfer as well. (can we make
+   // this assumption ?)
    enum class QueueType : uint32
       {
       Universal      = 0, // Supports both Rendering and Compute workloads
       Compute           , // Only Compute workloads
       Transfer          , // Only Transfer operations
-      SparseTransfer    , // Only Transfer operations with support of Sparse Resource updates
+      SparseTransfer    , // Only Transfer and Sparse Resource operations
       Count
       };
       
@@ -140,79 +69,106 @@ namespace en
    class GpuDevice : public enable_shared_from_this<GpuDevice>
       {
       public:
-      virtual uint32 displays(void) const = 0;            // Screens the device can render to
-      virtual shared_ptr<Display> display(uint32 id) const = 0;  // Return N'th display handle
-
-
-      virtual shared_ptr<Window> createWindow(const WindowSettings& settings,
-                                              const string title) = 0;
-               
-      // Create Heap from which GPU resources can be sub-allocated.
-      virtual shared_ptr<Heap> createHeap(const MemoryUsage usage, const uint32 size) = 0;
       
-      virtual shared_ptr<Sampler> createSampler(const SamplerState& state) = 0;
+      
+      // Presentment:
+      
+      
+      // List of displays to which this device can render to (may not be the
+      // same as list of displays that are physically connected to it, as system
+      // may underneath transfer final framebuffer between GPU's for presentment
+      // purposes).
+      virtual uint32 displays(void) const = 0;
+      
+      // N'th display handle
+      virtual shared_ptr<Display> display(
+         const uint32 id) const = 0;
+
+      virtual shared_ptr<Window> createWindow(
+         const WindowSettings& settings,
+         const string title) = 0;
+         
+         
+      // Resources creation:
+      
+      
+      // Create Heap from which GPU resources can be sub-allocated.
+      virtual shared_ptr<Heap> createHeap(
+         const MemoryUsage usage,
+         const uint32 size) = 0;
+      
+      virtual shared_ptr<Sampler> createSampler(
+         const SamplerState& state) = 0;
       
       // Buffers and Textures are allocated from the Heaps.
       
       // Create texture that can be shared between processes and API's through
-      // shared backing surface. If not supported on given platform, returns nullptr.
-      virtual shared_ptr<Texture> createSharedTexture(shared_ptr<SharedSurface> backingSurface) = 0;
+      // shared backing surface. If not supported on given platform, returns
+      // nullptr.
+      virtual shared_ptr<Texture> createSharedTexture(
+         shared_ptr<SharedSurface> backingSurface) = 0;
       
       // TODO:
       // Vulkan - entrypoint is specified at Pipeline creation I guess
       // Metal  - has libraries, from which we pick functions as entry points
-      virtual shared_ptr<Shader> createShader(const ShaderStage stage,
-                                              const string& source) = 0;
+      virtual shared_ptr<Shader> createShader(
+         const ShaderStage stage,
+         const string& source) = 0;
 
-      virtual shared_ptr<Shader> createShader(const ShaderStage stage,
-                                              const uint8* data,
-                                              const uint64 size) = 0;
+      virtual shared_ptr<Shader> createShader(
+         const ShaderStage stage,
+         const uint8* data,
+         const uint64 size) = 0;
 
 
       // Returns count of available Command Queues of given type
       virtual uint32 queues(const QueueType type) const = 0;
       
-      // Creates Command Buffer from the given Command Queue of given type.
-      // When this buffer is commited for execution it will execute on that queue.
-      virtual shared_ptr<CommandBuffer> createCommandBuffer(const QueueType type = QueueType::Universal,
-                                                            const uint32 parentQueue = 0u) = 0;
+      // Creates Command Buffer from the given Command Queue of given type. When
+      // this buffer is commited for execution it will execute on that queue.
+      virtual shared_ptr<CommandBuffer> createCommandBuffer(
+         const QueueType type = QueueType::Universal,
+         const uint32 parentQueue = 0u) = 0;
 
 
-      // Creates empty input layout for Programmable Vertex Fetch.
-      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                        const uint32 controlPoints = 0u) = 0;
 
       // Input Layout Primitive Restart feature note:
       //
-      // If primitiveRestart is enabled, and PrimitiveType is LineStripes
-      // or TriangleStripes, primitives will be restarted on 0xFFFF or
-      // 0xFFFFFFFF element index, depending what Index Buffer type is used.
+      // If primitiveRestart is enabled, and PrimitiveType is LineStripes or
+      // TriangleStripes, primitives will be restarted on 0xFFFF or 0xFFFFFFFF
+      // element index, depending what data type is used by Index Buffer.
       // Primitive restart flag is ignored for all other primitive types.
       //
-      // It is adviced to disable primitive restart, and instead provide
-      // index buffer that distinguishes separate stripes with degenerate
-      // primitives (through repeated indexes). This way some GPU's can
-      // process whole workload in parallel, by dividing it. With
-      // special primitive restart index, workload cannot be easily
-      // distributed. Some underlying API's may still use primitive
-      // restart index specified above, so it is adviced to not use it
-      // as standard element index anyway.
+      // It is adviced to disable primitive restart, and instead provide index
+      // buffer that distinguishes separate stripes with degenerate primitives
+      // (through repeated indexes). This way some GPU's can process whole
+      // workload in parallel, by dividing it. With special primitive restart
+      // index, workload cannot be easily distributed. Some underlying API's
+      // may still use primitive restart index specified above, so it is adviced
+      // to not use it as standard element index anyway.
       
-      // Creates InputLayout description based on single Vertex buffer.
+      // Creates InputLayout description based on single buffer.
       // Buffer needs to have specified internal formatting.
-      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                        const bool primitiveRestart,
-                                                        const uint32 controlPoints,
-                                                        const Buffer& buffer) = 0;
+      virtual shared_ptr<InputLayout> createInputLayout(
+         const DrawableType primitiveType,
+         const bool primitiveRestart,
+         const uint32 controlPoints,
+         const Buffer& buffer) = 0;
 
-      // Specialized function for creation of any type of InputAssember description.
-      virtual shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                        const bool primitiveRestart,
-                                                        const uint32 controlPoints,
-                                                        const uint32 usedAttributes,
-                                                        const uint32 usedBuffers,
-                                                        const AttributeDesc* attributes,
-                                                        const BufferDesc* buffers) = 0;
+      // Creates empty input layout for Programmable Vertex Fetch.
+      virtual shared_ptr<InputLayout> createInputLayout(
+         const DrawableType primitiveType,
+         const uint32 controlPoints = 0u) = 0;
+
+      // Specialized function for creation of any type of InputLayout.
+      virtual shared_ptr<InputLayout> createInputLayout(
+         const DrawableType primitiveType,
+         const bool primitiveRestart,
+         const uint32 controlPoints,
+         const uint32 usedAttributes,
+         const uint32 usedBuffers,
+         const AttributeDesc* attributes,
+         const BufferDesc* buffers) = 0;
 
       // TODO: API differences:
       // - D3D12  - allows picking only one stage (or all) to access this Descriptor Set
@@ -229,18 +185,21 @@ namespace en
       // to it.
       //
       // TODO: Could this be done on the D3D12/Metal backend side instead?
-      virtual shared_ptr<SetLayout> createSetLayout(const uint32 count, 
-                                                    const ResourceGroup* group,
-                                                    const ShaderStages stagesMask = ShaderStages::All) = 0;
+      virtual shared_ptr<SetLayout> createSetLayout(
+         const uint32 count,
+         const ResourceGroup* group,
+         const ShaderStages stagesMask = ShaderStages::All) = 0;
 
-      virtual shared_ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
-                                                              const shared_ptr<SetLayout>* set,
-                                                              const uint32 immutableSamplers = 0u,
-                                                              const shared_ptr<Sampler>* sampler = nullptr,
-                                                              const ShaderStages stagesMask = ShaderStages::All) = 0;
+      virtual shared_ptr<PipelineLayout> createPipelineLayout(
+         const uint32 sets,
+         const shared_ptr<SetLayout>* set,
+         const uint32 immutableSamplers = 0u,
+         const shared_ptr<Sampler>* sampler = nullptr,
+         const ShaderStages stagesMask = ShaderStages::All) = 0;
 
-      virtual shared_ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
-                                                            const uint32 (&count)[underlyingType(ResourceType::Count)]) = 0;
+      virtual shared_ptr<Descriptors> createDescriptorsPool(
+         const uint32 maxSets,
+         const uint32 (&count)[underlyingType(ResourceType::Count)]) = 0;
  
 
       // TODO: Those methods should be reworked to accept TextureView,
@@ -257,28 +216,33 @@ namespace en
    //
    // Metal is not supporting rendering to more than one layer at the same time.
  
-      // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
-      // similarly when binding CubeMap texture, pass it's "face" through "layer".
-      virtual shared_ptr<ColorAttachment> createColorAttachment(const Format format, 
-                                                                const uint32 samples = 1u) = 0;
+      // When binding 3D texture, pass it's "depth" plane through "layer"
+      // parameter. Similarly when binding CubeMap texture, pass it's "face"
+      // through "layer".
+      virtual shared_ptr<ColorAttachment> createColorAttachment(
+         const Format format,
+         const uint32 samples = 1u) = 0;
 
-      // By default, Load operation is set to Load, and Store operation is set to Store.
-      virtual shared_ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
-                                                                              const Format stencilFormat = Format::Unsupported,
-                                                                              const uint32 samples = 1u) = 0;
+      // By default, Load operation is set to Load, and Store operation to Store
+      virtual shared_ptr<DepthStencilAttachment> createDepthStencilAttachment(
+         const Format depthFormat,
+         const Format stencilFormat = Format::Unsupported,
+         const uint32 samples = 1u) = 0;
 
       // Creates render pass with Swap-Chain surface as destination.
       // Swap-Chain surface may be destination of MSAA resolve operation.
-      virtual shared_ptr<RenderPass> createRenderPass(const shared_ptr<ColorAttachment> swapChainSurface,
-                                                      const shared_ptr<DepthStencilAttachment> depthStencil) = 0;
+      virtual shared_ptr<RenderPass> createRenderPass(
+         const shared_ptr<ColorAttachment> swapChainSurface,
+         const shared_ptr<DepthStencilAttachment> depthStencil) = 0;
 
-      // Creates render pass. Entries in "color" array, match output
-      // color attachment slots in Fragment Shader. Entries in this 
-      // array may be set to nullptr, which means that given output
-      // color attachment slot has no bound resource descriptor.
-      virtual shared_ptr<RenderPass> createRenderPass(const uint32 attachments,
-                                                      const shared_ptr<ColorAttachment>* color,
-                                                      const shared_ptr<DepthStencilAttachment> depthStencil) = 0;
+      // Creates render pass. Entries in "color" array, match output color
+      // attachment slots in Fragment Shader. Entries in this array may be set
+      // to nullptr, which means that given output color attachment slot has no
+      // bound resource descriptor.
+      virtual shared_ptr<RenderPass> createRenderPass(
+         const uint32 attachments,
+         const shared_ptr<ColorAttachment>* color,
+         const shared_ptr<DepthStencilAttachment> depthStencil) = 0;
 
       virtual shared_ptr<Semaphore> createSemaphore(void) = 0;
 
@@ -290,21 +254,26 @@ namespace en
 
 
  
-      virtual shared_ptr<RasterState>        createRasterState(const RasterStateInfo& state) = 0;
+      virtual shared_ptr<RasterState> createRasterState(
+         const RasterStateInfo& state) = 0;
 
-      virtual shared_ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
-                                                                      const bool enableAlphaToCoverage,
-                                                                      const bool enableAlphaToOne) = 0;
+      virtual shared_ptr<MultisamplingState> createMultisamplingState(
+         const uint32 samples,
+         const bool enableAlphaToCoverage,
+         const bool enableAlphaToOne) = 0;
 
-      virtual shared_ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc) = 0;
+      virtual shared_ptr<DepthStencilState> createDepthStencilState(
+         const DepthStencilStateInfo& desc) = 0;
 
-      virtual shared_ptr<BlendState>         createBlendState(const BlendStateInfo& state,
-                                                              const uint32 attachments,
-                                                              const BlendAttachmentInfo* color) = 0;
+      virtual shared_ptr<BlendState> createBlendState(
+         const BlendStateInfo& state,
+         const uint32 attachments,
+         const BlendAttachmentInfo* color) = 0;
       
-      virtual shared_ptr<ViewportState>      createViewportState(const uint32 count,
-                                                                 const ViewportStateInfo* viewports,
-                                                                 const ScissorStateInfo* scissors) = 0;
+      virtual shared_ptr<ViewportState> createViewportState(
+         const uint32 count,
+         const ViewportStateInfo* viewports,
+         const ScissorStateInfo* scissors) = 0;
  
       // Returns default Pipeline state helper structure, that can be easily
       // modified and passed to Pipeline object creation call. All states are
@@ -314,22 +283,26 @@ namespace en
       // App still needs to set Viewport State and assign Shaders.
       virtual PipelineState defaultPipelineState(void) = 0;
 
-      virtual shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState) = 0;
+      virtual shared_ptr<Pipeline> createPipeline(
+         const PipelineState& pipelineState) = 0;
 
 
-      // Capabilities query
-      //-------------------
-      
-      // Size of texel in bytes, based on the given format. For compressed formats, it's texel block size.
-      virtual uint32 texelSize(const Format format) = 0;
+      // Capabilities query:
 
-      // Provides description of staging buffer alignment and padding required
-      // for given texture layer data upload.
-      virtual LinearAlignment textureLinearAlignment(const Texture& texture, 
-                                                     const uint32 mipmap, 
-                                                     const uint32 layer) = 0;
 
-      virtual ~GpuDevice() {};                            // Polymorphic deletes require a virtual base destructor
+      // Size of texel in bytes, based on the given format.
+      // For compressed formats, it's texel block size.
+      virtual uint32 texelSize(
+         const Format format) = 0;
+
+      // Provides description of staging buffer alignment and
+      // padding required for given texture layer data upload.
+      virtual LinearAlignment textureLinearAlignment(
+         const Texture& texture,
+         const uint32 mipmap,
+         const uint32 layer) = 0;
+
+      virtual ~GpuDevice() {};
       };
       
    // Per graphic API context, initialized depending on API choosed at runtime
@@ -337,7 +310,8 @@ namespace en
       {
       public:
       
-      static bool create(void);                           // Creates instance of this class (API specific) and assigns it to "Graphics".
+      // Creates this class instance (API specific) and assigns it to "Graphics"
+      static bool create(void);
       
       virtual RenderingAPI type(void) const = 0;
 
@@ -346,32 +320,12 @@ namespace en
 
       virtual uint32 displays(void) const = 0;
       virtual shared_ptr<Display> primaryDisplay(void) const = 0;
-      virtual shared_ptr<Display> display(uint32 index) const = 0;
+      virtual shared_ptr<Display> display(const uint32 index) const = 0;
 
-      virtual ~GraphicAPI() {};                           // Polymorphic deletes require a virtual base destructor
+      virtual ~GraphicAPI() {};
       };
-
-
-
    }
 
 extern shared_ptr<gpu::GraphicAPI> Graphics;
 }
-
-
-//      // Create Buffer formatted for storing array of structures (AOS). Each element of array is a tightly 
-//      // packed structure containing up to MaxInputLayoutAttributesCount of variables. Each such variable 
-//      // can be treated as a column and each element as a row in data array. 
-//      // Each column has it's specified format, and can be a scalar or vector containing up to 4 channels. 
-//      // Elements creating array can be used to store for e.g. Vertices, Control Points, or other data.
-//      // When assigned to InputLayout as one of the buffers for processing, optional update rate can be 
-//      // specified to describe how often InputLayout should switch to next element. By default it's set  
-//      // to 0 which means buffer will be iterated on per vertex rate. If value is greater, it describes 
-//      // by how many Draw Instances each structured element is shared, before Input Assembler should 
-//      // proceed to next one. 
-//      virtual shared_ptr<Buffer>  create(const BufferState& state, 
-//                                  const Formatting& formatting, 
-//                                  const uint32 step = 0) = 0;
-
-
 #endif

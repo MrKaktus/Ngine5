@@ -106,12 +106,13 @@ namespace en
       uint32       count;
       TextureType  textureType; // If resource is Texture, it's type needs to be specified in Layout
       
-      ResourceGroup(const ResourceType type,
-                    const uint32 count,
-                    const TextureType _textureType = TextureType::Texture2D) :
-         type(type),
-         count(count),
-         textureType(_textureType)
+      ResourceGroup(
+         const ResourceType type,
+         const uint32 count,
+         const TextureType _textureType = TextureType::Texture2D) :
+            type(type),
+            count(count),
+            textureType(_textureType)
          {};
       };
       
@@ -119,23 +120,31 @@ namespace en
    class SetLayout
       {
       public:
-      virtual ~SetLayout() {};                                   // Polymorphic deletes require a virtual base destructor
+      virtual ~SetLayout() {};
       };
 
    // Layout of all resources used by the Pipeline object
    class PipelineLayout
       {
       public:
-      virtual ~PipelineLayout() {};                              // Polymorphic deletes require a virtual base destructor
+      virtual ~PipelineLayout() {};
       };
 
    // Set of Descriptors, handles to resources of different kind
    class DescriptorSet
       {
       public:
-      virtual void setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer) = 0;
-      virtual void setSampler(const uint32 slot, const shared_ptr<Sampler> sampler) = 0;
-      virtual void setTextureView(const uint32 slot, const shared_ptr<TextureView> view) = 0;
+      virtual void setBuffer(
+         const uint32 slot,
+         const shared_ptr<Buffer> buffer) = 0;
+         
+      virtual void setSampler(
+         const uint32 slot,
+         const shared_ptr<Sampler> sampler) = 0;
+         
+      virtual void setTextureView(
+         const uint32 slot,
+         const shared_ptr<TextureView> view) = 0;
 
       virtual ~DescriptorSet() {};
       };
@@ -144,14 +153,16 @@ namespace en
    class Descriptors : public enable_shared_from_this<Descriptors>
       {
       public:
-      virtual shared_ptr<DescriptorSet> allocate(const shared_ptr<SetLayout> layout) = 0;
-      virtual bool allocate(const uint32 count,
-                            const shared_ptr<SetLayout>(&layouts)[],
-                            shared_ptr<DescriptorSet>** sets) = 0; 
+      virtual shared_ptr<DescriptorSet> allocate(
+         const shared_ptr<SetLayout> layout) = 0;
+         
+      virtual bool allocate(
+         const uint32 count,
+         const shared_ptr<SetLayout>(&layouts)[],
+         shared_ptr<DescriptorSet>** sets) = 0;
 
       virtual ~Descriptors() {};
       };
-
    }
 }
 #endif

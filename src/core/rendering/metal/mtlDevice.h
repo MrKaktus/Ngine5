@@ -61,7 +61,7 @@ namespace en
       // Interface
 
       uint32 displays(void) const;            // Screens count the device can render to
-      shared_ptr<Display> display(uint32 id) const;  // Return N'th screen handle
+      shared_ptr<Display> display(const uint32 id) const;  // Return N'th screen handle
       
       virtual shared_ptr<Window>  createWindow(const WindowSettings& settings,
                                                const string title); // Create window

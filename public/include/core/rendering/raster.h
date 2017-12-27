@@ -17,9 +17,6 @@
 #ifndef ENG_CORE_RENDERING_RASTER_STATE
 #define ENG_CORE_RENDERING_RASTER_STATE
 
-#include <memory>
-using namespace std;
-
 #include "core/defines.h"
 #include "core/types.h"
 
@@ -29,11 +26,12 @@ namespace en
 {
    namespace gpu
    {
+   // TODO: Default API state
    struct RasterStateInfo
       {
       bool  enableCulling;
       bool  enableDepthBias;
-      bool  enableDepthClamp;
+      bool  enableDepthClamp;             // TODO: Explain Depth Clipping vs Depth Clamping
       bool  enableConservativeRasterization;
       bool  disableRasterizer;
       FillMode fillMode;
@@ -52,7 +50,7 @@ namespace en
    class RasterState
       {
       public:
-      virtual ~RasterState() {};                           // Polymorphic deletes require a virtual base destructor
+      virtual ~RasterState() {};
       };
    }
 }

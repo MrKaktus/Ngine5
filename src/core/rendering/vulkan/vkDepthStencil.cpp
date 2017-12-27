@@ -38,7 +38,7 @@ namespace en
       };
    
    // Optimization: This table is not needed. Backend type can be directly cast to Vulkan type.
-   static const VkStencilOp TranslateStencilOperation[StencilModificationsCount] =
+   static const VkStencilOp TranslateStencilOperation[underlyingType(StencilOperation::Count)] =
       {
       VK_STENCIL_OP_KEEP,                  // Keep
       VK_STENCIL_OP_ZERO,                  // Clear

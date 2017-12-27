@@ -31,11 +31,10 @@ namespace en
       D3D12_FILL_MODE_SOLID                  // Solid
       };
 
-   static const D3D12_CULL_MODE TranslateCullingMethod[FaceChoosesCount] = 
+   static const D3D12_CULL_MODE TranslateCullingMethod[underlyingType(Face::Count)] = 
       {      
-      D3D12_CULL_MODE_FRONT,       // FrontFace
-      D3D12_CULL_MODE_BACK,        // BackFace
-      D3D12_CULL_MODE_FRONT        // BothFaces (unallowed)
+      D3D12_CULL_MODE_FRONT,       // Front
+      D3D12_CULL_MODE_BACK,        // Back
       };
 
    RasterStateD3D12::RasterStateD3D12(const RasterStateInfo& desc)

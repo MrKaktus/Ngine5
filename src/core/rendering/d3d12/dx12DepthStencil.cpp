@@ -38,7 +38,7 @@ namespace en
       };
    
    // Optimisation: This table is not needed. Backend type can be directly cast to D3D12 type by adding 1.
-   static const  D3D12_STENCIL_OP TranslateStencilOperation[StencilModificationsCount] =
+   static const  D3D12_STENCIL_OP TranslateStencilOperation[underlyingType(StencilOperation::Count)] =
       {
       D3D12_STENCIL_OP_KEEP,               // Keep
       D3D12_STENCIL_OP_ZERO,               // Clear

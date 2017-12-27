@@ -19,18 +19,14 @@ namespace en
 {
    namespace gpu
    {
-//#ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
-//   bool TextureWrapingSupported[TextureWrapingMethodsCount] = 
-//      {
-//      false, // Clamp         
-//      false, // Repeat        
-//      false, // RepeatMirrored
-//      false, // ClampMirrored 
-//      false  // ClampToBorder 
-//      };
-//#endif
-
-   // TODO: What are the defaults in API's ?
+   // Metal support table for Warping modes:
+   //
+   // Repeat
+   // RepeatMirrored
+   // ClampToEdge
+   // ClampToBorder     (macOS 10.12+)
+   // MirrorClampToEdge (macOS 10.11+)
+      
    SamplerState::SamplerState() :
       minification(SamplerFilter::Linear),
       magnification(SamplerFilter::Linear),

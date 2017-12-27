@@ -16,19 +16,12 @@
 #ifndef ENG_CORE_RENDERING_STATE
 #define ENG_CORE_RENDERING_STATE
 
+#include "core/types.h"
+
 namespace en
 {
    namespace gpu
    {
-   // Data access type
-   enum DataAccess
-      {
-      Read                      = 0,  // Read data from GPU
-      Write                        ,  // Write data to GPU
-      ReadWrite                    ,  // Transfer data between CPU and GPU
-      DataAccessTypes
-      };
-
    // Types of primitives to draw
    //
    // LineLoops    - are unsupported by all modern API's (D3D12, Vulkan, Metal)
@@ -43,9 +36,7 @@ namespace en
       Patches                        ,
       DrawableTypesCount          
       };
-
-
-                                    
+      
    // Comparison method             
    enum CompareMethod               
       {                           
@@ -60,21 +51,6 @@ namespace en
       CompareMethodsCount
       };
 
-   // Stencil Buffer Modification Methods
-   enum StencilModification
-      {
-      Keep                        = 0,
-      Clear                          ,
-      Reference                      ,
-      Increase                       ,
-      Decrease                       ,
-      InvertBits                     ,
-      IncreaseWrap                   ,
-      DecreaseWrap                   ,
-      StencilModificationsCount
-      };
-
-
    enum FillMode
       {
       Vertices                    = 0,
@@ -84,12 +60,11 @@ namespace en
       };
 
    // Surface face
-   enum Face
+   enum class Face : uint32
       {
-      FrontFace                   = 0,
-      BackFace                       ,
-      BothFaces                      ,
-      FaceChoosesCount
+      Front                       = 0,
+      Back                           ,
+      Count
       };
 
    // Method used to calculate normal vector

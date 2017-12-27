@@ -26,39 +26,19 @@ namespace en
 {
    namespace gpu
    {   
-#ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
+   // Metal support of TextureType:
+   //
+   // Texture1D
+   // Texture1DArray
+   // Texture2D
+   // Texture2DArray
+   // Texture2DMultisample
+   // Texture2DMultisampleArray (macOS 10.14+, iOS unsupported)
+   // Texture3D
+   // TextureCubeMap
+   // TextureCubeMapArray       (iOS 11.0+)
 
-#ifdef EN_DISCRETE_GPU
-   static const Nversion TextureTypeSupportedMTL[underlyingType(TextureType::Count)] =
-      {
-      Metal_OSX_1_0                 ,   // Texture1D                 
-      Metal_OSX_1_0                 ,   // Texture1DArray            
-      Metal_OSX_1_0                 ,   // Texture2D                 
-      Metal_OSX_1_0                 ,   // Texture2DArray            
-    //Metal_OSX_Unsupported         ,   // Texture2DRectangle
-      Metal_OSX_1_0                 ,   // Texture2DMultisample      
-      Metal_OSX_Unsupported         ,   // Texture2DMultisampleArray 
-      Metal_OSX_1_0                 ,   // Texture3D                 
-    //Metal_OSX_Unsupported         ,   // TextureBuffer
-      Metal_OSX_1_0                 ,   // TextureCubeMap            
-      Metal_OSX_1_0                     // TextureCubeMapArray       
-      };
 
-#elif EN_MOBILE_GPU
-   static const Nversion TextureTypeSupportedMTL[TextureTypesCount] =
-      {
-      Metal_IOS_1_0                 ,   // Texture1D                 
-      Metal_IOS_1_0                 ,   // Texture1DArray            
-      Metal_IOS_1_0                 ,   // Texture2D                 
-      Metal_IOS_1_0                 ,   // Texture2DArray            
-      Metal_IOS_Unsupported         ,   // Texture2DRectangle        
-      Metal_IOS_1_0                 ,   // Texture2DMultisample      
-      Metal_IOS_Unsupported         ,   // Texture2DMultisampleArray 
-      Metal_IOS_1_0                 ,   // Texture3D                 
-      Metal_IOS_Unsupported         ,   // TextureBuffer             
-      Metal_IOS_1_0                 ,   // TextureCubeMap            
-      Metal_IOS_Unsupported             // TextureCubeMapArray       
-      };
    // TODO: Solve Metal versioning system (capabilities sets?)
    // [gpu family] [version] [os]
    // [os] -> can separate API's like with OpenGL/ES
@@ -70,8 +50,6 @@ namespace en
    //  MTLFeatureSet_iOS_GPUFamily2_v2 // Metal 2.0 (since iOS 9.0) + some additional features
    //  MTLFeatureSet_OSX_GPUFamily1_v1 // Metal 1.0 OSX
 
-#endif
-#endif
 
    const MTLTextureType TranslateTextureType[underlyingType(TextureType::Count)] =
       {
@@ -79,11 +57,9 @@ namespace en
       MTLTextureType1DArray               ,   // Texture1DArray
       MTLTextureType2D                    ,   // Texture2D
       MTLTextureType2DArray               ,   // Texture2DArray
-    //MTLTextureType2D                    ,   // Texture2DRectangle   (emulate with Texture2D)
       MTLTextureType2DMultisample         ,   // Texture2DMultisample
       (MTLTextureType)0xFFFF              ,   // Texture2DMultisampleArray
       MTLTextureType3D                    ,   // Texture3D
-    //(MTLTextureType)0xFFFF              ,   // TextureBuffer
       MTLTextureTypeCube                  ,   // TextureCubeMap
       MTLTextureTypeCubeArray                 // TextureCubeMapArray
       };
@@ -319,7 +295,7 @@ namespace en
       MTLPixelFormatStencil8              ,   // Format::S_8            
       MTLPixelFormatInvalid               ,   // Format::DS_16_8            (unsupported)            
       MTLPixelFormatInvalid               ,   // Format::DS_24_8            (unsupported)
-      MTLPixelFormatDepth32Float_Stencil8 ,   // Format::DS_32_f_8          (IOS 9.0)             
+      MTLPixelFormatDepth32Float_Stencil8 ,   // Format::DS_32_f_8          (iOS 9.0+)
       MTLPixelFormatInvalid               ,   // Format::RGB_5_6_5          (unsupported)     
       MTLPixelFormatB5G6R5Unorm           ,   // Format::BGR_5_6_5              
       MTLPixelFormatInvalid               ,   // Format::BGR_8              (unsupported)     
@@ -560,15 +536,15 @@ namespace en
  
 
    TextureViewMTL::TextureViewMTL(
-         shared_ptr<TextureMTL> parent,
-         id<MTLTexture> view,
-         const TextureType _type,
-         const Format _format,
-         const uint32v2 _mipmaps,
-         const uint32v2 _layers) :
-      texture(parent),
-      handle(view),
-      CommonTextureView(_type, _format, _mipmaps, _layers)
+      shared_ptr<TextureMTL> parent,
+      id<MTLTexture> view,
+      const TextureType _type,
+      const Format _format,
+      const uint32v2 _mipmaps,
+      const uint32v2 _layers) :
+         texture(parent),
+         handle(view),
+         CommonTextureView(_type, _format, _mipmaps, _layers)
    {
    }
    
@@ -624,13 +600,6 @@ namespace en
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
    void InitTextures(const CommonDevice* gpu)
    {
-   // Init array of currently supported texture types
-   for(uint16 i=0; i<underlyingType(TextureType::Count); ++i)
-      {
-      if (gpu->api.release >= TextureTypeSupportedMTL[i].release)
-         TextureTypeSupported[i] = true;
-      }
-
    // Init array of texture capabilities
    for(uint16 i=0; i<underlyingType(Format::Count); ++i)
       {

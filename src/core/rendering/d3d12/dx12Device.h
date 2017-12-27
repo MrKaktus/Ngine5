@@ -305,7 +305,7 @@ namespace en
 
       virtual uint32 displays(void) const;
       virtual shared_ptr<Display> primaryDisplay(void) const;
-      virtual shared_ptr<Display> display(uint32 index) const;
+      virtual shared_ptr<Display> display(const uint32 index) const;
       };
    }
 }

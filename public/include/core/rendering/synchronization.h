@@ -18,9 +18,6 @@
 #ifndef ENG_CORE_RENDERING_SYNCHRONIZATION
 #define ENG_CORE_RENDERING_SYNCHRONIZATION
 
-#include <memory>
-using namespace std;
-
 #include "core/types.h"
 
 namespace en

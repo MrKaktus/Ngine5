@@ -16,9 +16,6 @@
 #ifndef ENG_CORE_RENDERING_DISPLAY
 #define ENG_CORE_RENDERING_DISPLAY
 
-#include <memory>
-using namespace std;
-
 #include "core/types.h"
 
 namespace en
@@ -28,12 +25,11 @@ namespace en
    class Display
       {
       public:
-
       virtual uint32v2 position(void) = 0;    // Position on Virtual Desktop
       virtual uint32v2 resolution(void) = 0;  // Native resolution
       virtual uint32   refreshRate(void) = 0; // Display refresh rate
       
-      virtual ~Display() {};   // Polymorphic deletes require a virtual base destructor
+      virtual ~Display() {};
       };
    }
 }

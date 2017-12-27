@@ -37,10 +37,6 @@ namespace en
       SamplerMTL(const MetalDevice* gpu, const SamplerState& state);
       virtual ~SamplerMTL();
       };
-
-#ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
-   void InitSamplers(void);
-#endif
    }
 }
 #endif

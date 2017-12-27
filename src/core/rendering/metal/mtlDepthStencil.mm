@@ -38,7 +38,7 @@ namespace en
       };
 
    // Optimization: This table is not needed. Backend type can be directly cast to Metal type.
-   static const MTLStencilOperation TranslateStencilOperation[StencilModificationsCount] =
+   static const MTLStencilOperation TranslateStencilOperation[underlyingType(StencilOperation::Count)] =
       {
       MTLStencilOperationKeep,             // Keep
       MTLStencilOperationZero,             // Clear

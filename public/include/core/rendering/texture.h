@@ -66,11 +66,11 @@ namespace en
    //
    // Possible special postfixes:
    //
-   // sRGB - RGB channels are in sRGB color space (default is linear color space), 
-   //        Alpha channel if present is in linear color space.
-   //        See more at: https://gamedevdaily.io/the-srgb-learning-curve-773b7f68cf7a#.j3b7zxdqn
+   // sRGB - RGB channels are sRGB compressed (linear color space, no gamma),
+   //        Alpha channel if present is in linear color space. See more at:
+   //   https://gamedevdaily.io/the-srgb-learning-curve-773b7f68cf7a#.j3b7zxdqn
    // 
-   // pRGB - RGB channels are premultiplied by Alpha, and stored in linear color space
+   // pRGB - RGB channels are premultiplied by Alpha, and stored in linear space
    //
    // Packed formats are described in the same order (LO to HI bits). Example:
    //
@@ -114,11 +114,11 @@ namespace en
       RG_32_u                ,  //
       RG_32_s                ,  //
       RG_32_f                ,  //
-      RGB_8                  ,  // - Not reccomended due to lack of memory aligment
-      RGB_8_sRGB             ,  // - Not reccomended due to lack of memory aligment
-      RGB_8_sn               ,  // - Not reccomended due to lack of memory aligment
-      RGB_8_u                ,  // - Not reccomended due to lack of memory aligment
-      RGB_8_s                ,  // - Not reccomended due to lack of memory aligment
+      RGB_8                  ,  // - Not reccomended (lack of memory aligment)
+      RGB_8_sRGB             ,  // - Not reccomended (lack of memory aligment)
+      RGB_8_sn               ,  // - Not reccomended (lack of memory aligment)
+      RGB_8_u                ,  // - Not reccomended (lack of memory aligment)
+      RGB_8_s                ,  // - Not reccomended (lack of memory aligment)
       RGB_16                 ,  //
       RGB_16_sn              ,  //
       RGB_16_u               ,  //
@@ -146,11 +146,11 @@ namespace en
       D_32                   ,  // 
       D_32_f                 ,  // 
       S_8                    ,  // 
-      DS_16_8                ,  // - Stored in separate D & S channel, order is implementation dependent doesn't matter as this is GPU only texture
-      DS_24_8                ,  // - Stored in separate D & S channel, order is implementation dependent doesn't matter as this is GPU only texture
-      DS_32_f_8              ,  // - Stored in separate D & S channel, order is implementation dependent doesn't matter as this is GPU only texture
+      DS_16_8                ,  // - Stored in separate D & S channels, order is
+      DS_24_8                ,  //   implementation dependent and it doesn't
+      DS_32_f_8              ,  //   doesn't matter as this is GPU only texture.
       RGB_5_6_5              ,  // Packed/special formats:
-      BGR_5_6_5              ,  // - IOS supported, OSX not (MTLPixelFormatB5G6R5Unorm, IOS only)
+      BGR_5_6_5              ,  // - iOS only (MTLPixelFormatB5G6R5Unorm)
       BGR_8                  ,  // - Special swizzled format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
       BGR_8_sRGB             ,  // - Special swizzled SRGB format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
       BGR_8_sn               ,  // 
@@ -165,7 +165,7 @@ namespace en
       BGRA_8_s               ,  //
       BGRA_5_5_5_1           ,  //
       ARGB_1_5_5_5           ,  //
-      ABGR_1_5_5_5           ,  // - IOS supported, OSX not (MTLPixelFormatA1BGR5Unorm, IOS only)
+      ABGR_1_5_5_5           ,  // - iOS only (MTLPixelFormatA1BGR5Unorm)
       RGBA_10_10_10_2        ,  // - *Less precise than 8bit sRGB compression in dark areas
       RGBA_10_10_10_2_u      ,  //
       BGRA_10_10_10_2        ,  // - Special swizzled format for 30bpp BMP used by Windows-based systems
@@ -277,8 +277,11 @@ namespace en
       {
       uint64 size;      // Total size of linear block of memory
       uint32 alignment; // Required alignment for data adress
-      uint32 rowSize;   // Size of single row in bytes, with padding alignment. If it matches size of data in row, whole texture can be read as single linear block.
-      uint32 rowsCount; // Count of separate rows (rows of texels or blocks of texels for compressed resources).
+      uint32 rowSize;   // Size of single row in bytes, with padding alignment.
+                        // If it matches size of data in row, whole texture can
+                        // be read as single linear block.
+      uint32 rowsCount; // Count of separate rows (rows of texels or blocks of
+                        // texels for compressed resources).
       };
 
    // Texture settings structure
@@ -293,8 +296,10 @@ namespace en
       uint16        layers;   // Layers of Array texture, or Layers * Faces for CubeMap Array texture
       uint16        samples;
       uint16        mipmaps;  // Ignored, will be calculated automatically during texture creation TODO: Shouldn't be ignored we may want to create partial mipmap stack for streaming
+      
       TextureState();
-      TextureState(const TextureType type, 
+      TextureState(
+         const TextureType type,
          const Format format,
          const TextureUsage usage,
          const uint16 width,
@@ -326,18 +331,21 @@ namespace en
       virtual uint16   layers(void) const = 0;
       virtual uint16   samples(void) const = 0;
 
-      virtual shared_ptr<TextureView> view(void) = 0;                  // Default view representing this texture
+      // Default view representing this texture
+      virtual shared_ptr<TextureView> view(void) = 0;
       
-      // "layer" parameter can pass specific information, for specific texture types:
+      // Creates new texture view with given type, format, base mipmap and
+      // mipmaps count as well as base layer and layers count. Layer property
+      // pases specific information, for different texture types:
       // - for 3D it represents "depth" slice
       // - for CubeMap it represents "face" surface
       // - for CubeMapArray it represents "layer-face" surface
-      virtual shared_ptr<TextureView> view(const TextureType type,     // Creates new texture view with given
-                                           const Format format,        // type, format, base mipmap and mipmaps count
-                                           const uint32v2 mipmaps,     // as well as base layer and layers count
+      virtual shared_ptr<TextureView> view(const TextureType type,
+                                           const Format format,
+                                           const uint32v2 mipmaps,
                                            const uint32v2 layers) = 0;
       
-      virtual ~Texture() {};                           // Polymorphic deletes require a virtual base destructor
+      virtual ~Texture() {};
       };
 
    class TextureView
@@ -346,15 +354,19 @@ namespace en
       virtual shared_ptr<Texture> parent(void) const = 0;
       virtual TextureType  type(void) const = 0;
       virtual Format       format(void) const = 0;
-      virtual uint32v2 parentMipmaps(void) const = 0;    // Sub-set of parent texture mipmaps, creating this view
-      virtual uint32v2 parentLayers(void) const = 0;     // Sub-set of parent texture layers, creating this view
       
-      virtual ~TextureView() {};                       // Polymorphic deletes require a virtual base destructor
+      // Sub-set of parent texture mipmaps, creating this view
+      virtual uint32v2 parentMipmaps(void) const = 0;
+      
+      // Sub-set of parent texture layers, creating this view
+      virtual uint32v2 parentLayers(void) const = 0;
+      
+      virtual ~TextureView() {};
       };
       
-   // Device independent, texel size in bytes, based on the given format. 
-   // It is not taking into account texel padding or any other device
-   // specific optimizations. For compressed formats, it's texel block size.
+   // Device independent, texel size in bytes, based on the given format. It
+   // is not taking into account texel padding or any other device specific
+   // optimizations. For compressed formats, it's texel block size.
    extern uint32 genericTexelSize(const Format format);
    }
 }

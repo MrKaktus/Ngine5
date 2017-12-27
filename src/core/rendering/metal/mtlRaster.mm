@@ -36,15 +36,14 @@ namespace en
       MTLWindingCounterClockwise   // CounterClockWise
       };
         
-   static const MTLCullMode TranslateCullingMethod[FaceChoosesCount] =
+   static const MTLCullMode TranslateCullingMethod[underlyingType(Face::Count)] =
       {      
-      MTLCullModeFront,            // FrontFace
-      MTLCullModeBack,             // BackFace
-      MTLCullModeFront             // BothFaces (unsupported)
+      MTLCullModeFront,            // Front
+      MTLCullModeBack,             // Back
       };
       
    RasterStateMTL::RasterStateMTL(const RasterStateInfo& desc) :
-      culling(desc.enableCulling ? TranslateCullingMethod[desc.cullFace] : MTLCullModeNone),
+      culling(desc.enableCulling ? TranslateCullingMethod[underlyingType(desc.cullFace)] : MTLCullModeNone),
       frontFace(TranslateNormalCalculationMethod[desc.frontFace]),
       fillMode(TranslateFillMode[desc.fillMode]),
       depthClamp(desc.enableDepthClamp ? MTLDepthClipModeClamp : MTLDepthClipModeClip), // Default is Clipping, Clamping needs to be enabled.

@@ -28,7 +28,7 @@ namespace en
    #define MaxColorAttachmentsCount 8
 
    // Metal doesn't support double source blending
-   static const MTLBlendFactor TranslateBlend[BlendFunctionsCount] =
+   static const MTLBlendFactor TranslateBlend[underlyingType(BlendFactor::Count)] =
       {
       MTLBlendFactorZero                     ,  // Zero
       MTLBlendFactorOne                      ,  // One
@@ -51,7 +51,7 @@ namespace en
       MTLBlendFactorZero                        // OneMinusSecondSourceAlpha
       };
 
-   static const MTLBlendOperation TranslateBlendFunc[BlendEquationsCount] =
+   static const MTLBlendOperation TranslateBlendOp[underlyingType(BlendOperation::Count)] =
       {
       MTLBlendOperationAdd                   ,  // Add
       MTLBlendOperationSubtract              ,  // Subtract
@@ -78,12 +78,12 @@ namespace en
          
       [desc setBlendingEnabled:             color[i].mode == BlendMode::BlendOperation ? true : false ];
     //[desc pixelFormat];                   // Pixel Format is patched at Pipeline creation time
-      [desc setSourceRGBBlendFactor:        TranslateBlend[color[i].srcRGB]    ];
-      [desc setDestinationRGBBlendFactor:   TranslateBlend[color[i].dstRGB]    ];
-      [desc setSourceAlphaBlendFactor:      TranslateBlend[color[i].srcAlpha]  ];
-      [desc setDestinationAlphaBlendFactor: TranslateBlend[color[i].dstAlpha]  ];
-      [desc setRgbBlendOperation:           TranslateBlendFunc[color[i].rgb]   ];
-      [desc setAlphaBlendOperation:         TranslateBlendFunc[color[i].alpha] ];
+      [desc setSourceRGBBlendFactor:        TranslateBlend[underlyingType(color[i].srcRGB)]    ];
+      [desc setDestinationRGBBlendFactor:   TranslateBlend[underlyingType(color[i].dstRGB)]    ];
+      [desc setSourceAlphaBlendFactor:      TranslateBlend[underlyingType(color[i].srcAlpha)]  ];
+      [desc setDestinationAlphaBlendFactor: TranslateBlend[underlyingType(color[i].dstAlpha)]  ];
+      [desc setRgbBlendOperation:           TranslateBlendOp[underlyingType(color[i].rgb)]   ];
+      [desc setAlphaBlendOperation:         TranslateBlendOp[underlyingType(color[i].alpha)] ];
 
       // TODO: What about color mask ????
       }

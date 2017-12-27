@@ -50,8 +50,6 @@
 //    writeMask                   - MTLColorWriteMaskAll
 //
 // Vulkan has no default state, it's specified at creation time.
-//
-// TODO: Rename to blend.cpp and move one level up when old interface will be completly removed
 
 namespace en
 {
@@ -66,14 +64,14 @@ namespace en
    // TODO: Compare with OpenGL, Vulkan, Metal default states
    BlendAttachmentInfo::BlendAttachmentInfo() :
       mode(BlendMode::Off),
-      srcRGB(One),
-      dstRGB(Zero),
-      rgb(Add),
-      srcAlpha(One),
-      dstAlpha(Zero),
-      alpha(Add),
-      logic(NoOperation),
-      writeMask(ColorMaskAll)
+      srcRGB(BlendFactor::One),
+      dstRGB(BlendFactor::Zero),
+      rgb(BlendOperation::Add),
+      srcAlpha(BlendFactor::One),
+      dstAlpha(BlendFactor::Zero),
+      alpha(BlendOperation::Add),
+      logic(LogicOperation::NoOperation),
+      writeMask(ColorMask::All)
    {
    }
 

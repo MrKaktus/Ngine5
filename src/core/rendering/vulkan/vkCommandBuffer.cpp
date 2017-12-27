@@ -449,10 +449,11 @@ namespace en
       }
    }
 
-   void CommandBufferVK::draw(const Buffer& indirectBuffer,
-                              const uint32  firstEntry,
-                              const Buffer* indexBuffer,
-                              const uint32  firstElement)
+   void CommandBufferVK::drawIndirect(
+      const Buffer& indirectBuffer,
+      const uint32  firstEntry,
+      const Buffer* indexBuffer,
+      const uint32  firstElement)
    {
    assert( started );
    assert( encoding );

@@ -25,34 +25,6 @@ namespace en
 {
    namespace gpu
    {
-#ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
-
-#if defined(EN_PLATFORM_OSX)
-   // Last verified for Metal 2.0 and OSX 10.13
-   static const Nversion TextureWrapingSupportedMTL[underlyingType(SamplerAdressing::Count)] =
-      {
-      Metal_OSX_1_0           ,   // Repeat
-      Metal_OSX_1_0           ,   // RepeatMirrored
-      Metal_OSX_1_0           ,   // ClampToEdge
-      Metal_OSX_1_0           ,   // ClampToBorder     (10.12+)
-      Metal_OSX_Unsupported       // MirrorClampToEdge (10.11+)
-      };
-#endif
-
-#if defined(EN_PLATFORM_IOS)
-   // Last verified for Metal 2.0 and iOS 9.0
-   static const NVersion TextureWrapingSupportedMTL[underlyingType(SamplerAdressing::Count)] = 
-      {
-      Metal_OSX_1_0           ,   // Repeat
-      Metal_OSX_1_0           ,   // RepeatMirrored
-      Metal_OSX_1_0           ,   // ClampToEdge
-      Metal_OSX_1_0           ,   // ClampToBorder
-      Metal_OSX_Unsupported       // MirrorClampToEdge
-      };
-#endif
-
-#endif
-
    // SAMPLER
 
 
@@ -143,18 +115,6 @@ namespace en
    {
    return make_shared<SamplerMTL>(this, state);
    };
-
-#ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
-   void InitSamplers(const CommonDevice* gpu)
-   {
-//   // Init array of currently supported wrapping types
-//   for(uint16 i=0; i<underlyingType(SamplerAdressing::Count); ++i)
-//      {
-//      if (gpu->api.release >= TextureWrapingSupportedMTL[i].release)
-//         TextureWrapingSupported[i] = true;
-//      }
-   }
-#endif
 
    }
 }

@@ -67,7 +67,7 @@ namespace en
    //          Don't support depth bounds!
    //
    // Metal  - Dynamic (bind to encoder) 
-   //          Reference value is dynamic (shared only in IOS 8.0)
+   //          Reference value is dynamic (shared only in IOS 8.0+)
    //          Stencil Test is turned on separately for each face!
    //          Don't support depth bounds!
    //
@@ -79,13 +79,6 @@ namespace en
 
 
    // Vulkan removed dynamic states because it can patch them easily using Pipeline Object Cache ?
-
-
-// ComPtr<ID3D12GraphicsCommandList> pCommandList;
-// uint32 ref = 0;
-// pCommandList->OMSetStencilRef(ref);
-
-
 
 
 
@@ -119,9 +112,9 @@ namespace en
    for(uint8 i=0; i<2; ++i)
       {
       stencil[i].function         = Always;
-      stencil[i].whenStencilFails = Keep;
-      stencil[i].whenDepthFails   = Keep;
-      stencil[i].whenBothPass     = Keep;
+      stencil[i].whenStencilFails = StencilOperation::Keep;
+      stencil[i].whenDepthFails   = StencilOperation::Keep;
+      stencil[i].whenBothPass     = StencilOperation::Keep;
       stencil[i].reference        = 0;
       stencil[i].readMask         = 0XFFFFFFFF;
       stencil[i].writeMask        = 0xFFFFFFFF;

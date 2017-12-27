@@ -32,7 +32,7 @@ namespace en
    class MultisamplingState
       {
       public:
-      virtual ~MultisamplingState() {};                           // Polymorphic deletes require a virtual base destructor
+      virtual ~MultisamplingState() {};
       };
    }
 }

@@ -352,10 +352,11 @@ namespace en
    }
 
    // IOS 9.0+, OSX 10.11+
-   void CommandBufferMTL::draw(const Buffer& indirectBuffer,
-                               const uint32  firstEntry,
-                               const Buffer* indexBuffer,
-                               const uint32  firstElement)
+   void CommandBufferMTL::drawIndirect(
+      const Buffer& indirectBuffer,
+      const uint32  firstEntry,
+      const Buffer* indexBuffer,
+      const uint32  firstElement)
    {
    const BufferMTL& indirect = reinterpret_cast<const BufferMTL&>(indirectBuffer);
    assert( indirect.apiType == BufferType::Indirect );

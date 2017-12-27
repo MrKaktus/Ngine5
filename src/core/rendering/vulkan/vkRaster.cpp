@@ -31,12 +31,12 @@ namespace en
       VK_POLYGON_MODE_FILL         // Solid
       };
 
-   static const VkCullModeFlagBits TranslateCullingMethod[FaceChoosesCount] = 
+   static const VkCullModeFlagBits TranslateCullingMethod[underlyingType(Face::Count)] = 
       {
-      VK_CULL_MODE_FRONT_BIT,      // FrontFace
-      VK_CULL_MODE_BACK_BIT        // BackFace
+      VK_CULL_MODE_FRONT_BIT,      // Front
+      VK_CULL_MODE_BACK_BIT        // Back
       };
-   // VK_CULL_MODE_FRONT_AND_BACK_BIT  // BothFaces - Unsupported by D3D12
+   // VK_CULL_MODE_FRONT_AND_BACK_BIT  // BothFaces - Unsupported by D3D12 & Metal
 
    static const VkFrontFace TranslateNormalCalculationMethod[NormalCalculationMethodsCount] =
       {

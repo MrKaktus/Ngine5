@@ -16,9 +16,6 @@
 #ifndef ENG_CORE_RENDERING_INPUT_LAYOUT
 #define ENG_CORE_RENDERING_INPUT_LAYOUT
 
-#include <memory>
-using namespace std;
-
 #include "core/defines.h"
 #include "core/types.h"
 
@@ -31,21 +28,27 @@ namespace en
    struct AttributeDesc
       {
       Attribute format;   // Format in which input data are represented
-      uint32    buffer;   // Index of bound buffer that will be used as source for this attribute.
-      uint32    offset;   // Offset in bytes to first element of given attribute in source buffer.
-      };                  // This offset needs to be aligned on some architectures.
+      uint32    buffer;   // Index of bound buffer that will be used as source.
+      uint32    offset;   // Offset in bytes to first element of given attribute
+      };                  // in source buffer. This offset on some architectures
+                          // needs to be aligned.
       
    struct BufferDesc
       {
-      uint32 elementSize; // Size of one element in buffer (all attributes with their padding)
-      uint32 stepRate;    // Attribute update rate, 0 (default) means after each Vertex,
-      };                  // (1+) means after how many Instances it should be updated
+      uint32 elementSize; // Size of one element in buffer
+                          // (all attributes with their padding).
+      uint32 stepRate;    // Describes how often Input Assembler should switch
+      };                  // to next element. By default it's set to 0 which
+                          // means buffer will be iterated on per vertex rate.
+                          // If value is greater, it describes by how many
+                          // Draw Instances each structured element is shared,
+                          // before Input Assembler should proceed to next one.
 
-   // Handle for Input Assembler binding specification
+   // Handle for Input Assembler binding layout
    class InputLayout
       {
       public:
-      virtual ~InputLayout() {};              // Polymorphic deletes require a virtual base destructor
+      virtual ~InputLayout() {};
       };
    }
 }

@@ -60,12 +60,6 @@ namespace en
    MetalDevice::MetalDevice(id<MTLDevice> _device) :
       device(_device)
    {
-#if defined(EN_PLATFORM_OSX)
-   api = Metal_OSX_1_0;
-#elif defined(EN_PLATFORM_IOS)
-   api = Metal_IOS_1_0;
-#endif
-
    init();
 
    // Create commands queue
@@ -311,7 +305,7 @@ namespace en
    return api->displaysCount;
    }
    
-   shared_ptr<Display> MetalDevice::display(uint32 index) const
+   shared_ptr<Display> MetalDevice::display(const uint32 index) const
    {
    // Currently all Metal devices share all available displays
    MetalAPI* api = reinterpret_cast<MetalAPI*>(en::Graphics.get());
@@ -519,7 +513,7 @@ namespace en
    return _display[0];
    }
    
-   shared_ptr<Display> MetalAPI::display(uint32 index) const
+   shared_ptr<Display> MetalAPI::display(const uint32 index) const
    {
    assert( index < displaysCount );
    return _display[index];

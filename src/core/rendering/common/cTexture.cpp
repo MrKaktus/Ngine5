@@ -225,20 +225,6 @@ namespace en
       };
 
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME
-   // API dependent texture information (filled in during API backend creation)
-   bool TextureTypeSupported[underlyingType(TextureType::Count)] =
-      {
-      false,   // Texture1D                
-      false,   // Texture1DArray           
-      false,   // Texture2D                
-      false,   // Texture2DArray
-      false,   // Texture2DMultisample     
-      false,   // Texture2DMultisampleArray
-      false,   // Texture3D
-      false,   // TextureCubeMap           
-      false    // TextureCubeMapArray      
-      };
-
    TextureInfo TextureCapabilities[underlyingType(Format::Count)] =
       {
       { false, false },   // Format::Unsupported         

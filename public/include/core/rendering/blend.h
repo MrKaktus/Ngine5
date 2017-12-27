@@ -16,11 +16,11 @@
 #ifndef ENG_CORE_RENDERING_BLEND_STATE
 #define ENG_CORE_RENDERING_BLEND_STATE
 
-#include "core/defines.h"
-#include "core/types.h"
-
 #include <memory>
 using namespace std;
+
+#include "core/defines.h"
+#include "core/types.h"
 
 #include "core/rendering/state.h"
 
@@ -31,13 +31,13 @@ namespace en
    // Operation performed by blend stage
    enum class BlendMode : uint32
       {
-      Off            = 0,
-      BlendOperation = 1,
-      LogicOperation = 2   // Currently unsupported (equals to Off), as Metal API doesn't support it
-      };
+      Off                         = 0,
+      BlendOperation              = 1,
+   // LogicOperation              = 2 // Currently not exposed due to lack of
+      };                              // support in Metal API.
       
    // Color Buffer blend factor
-   enum BlendFactor
+   enum class BlendFactor : uint32
       {
       Zero                        = 0,
       One                            ,
@@ -58,22 +58,22 @@ namespace en
       OneMinusSecondSource           ,
       SecondSourceAlpha              ,
       OneMinusSecondSourceAlpha      ,
-      BlendFunctionsCount
+      Count
       };
 
    // Color Buffer blend operation
-   enum BlendOperation
+   enum class BlendOperation : uint32
       {
       Add                         = 0,
       Subtract                       ,
       DestinationMinusSource         ,
       Min                            ,
       Max                            ,
-      BlendEquationsCount
+      Count
       };
 
    // Color Buffer logic operations (currently unsupported)
-   enum LogicOperation
+   enum class LogicOperation : uint32
       {
       ClearDestination            = 0,
       Set                            ,
@@ -91,24 +91,29 @@ namespace en
       AndInverted                    ,
       OrReverse                      ,
       OrInverted                     ,
-      LogicOperationsCount
+      Count
       };
 
-   // state.h
-   enum ColorMask
+   // Color channels mask
+   enum class ColorMask : uint32
       {
-      ColorMaskRed       = 1,
-      ColorMaskGreen     = 2,
-      ColorMaskBlue      = 4,
-      ColorMaskAlpha     = 8,
-      ColorMaskAll       = 15
+      Red                       = 0x1,
+      Green                     = 0x2,
+      Blue                      = 0x4,
+      Alpha                     = 0x8,
+      All                       = 0xF
       };
 
+   // Default state:
+   //
+   // - blendColor     = float4(0.0f, 0.0f, 0.0f, 0.0f)
+   // - enabledSamples = 0xFFFFFFFF
+   //
    struct BlendStateInfo
       {
       float4 blendColor;
-      uint32 enabledSamples; // Masks which samples in MSAA RT's should be affected by blending operation.
-
+      uint32 enabledSamples; // Masks which samples in MSAA RT's should be
+                             // affected by blending operation.
       BlendStateInfo();
       };
 
@@ -122,9 +127,8 @@ namespace en
    // - dstAlpha       = BlendFactor::Zero
    // - alphaFunc      = BlendOperation::Add
    // - logic          = LogicOperation::NoOperation (ignored, unsupported)
-   // - writeMask      = ColorMask::ColorMaskAll
+   // - writeMask      = ColorMask::All
    //
-   // Logic Operations are currently ignored as they are unsupported in Metal API.
    struct BlendAttachmentInfo
       {
       BlendMode      mode;
@@ -143,7 +147,7 @@ namespace en
    class BlendState
       {
       public:
-      virtual ~BlendState() {};                           // Polymorphic deletes require a virtual base destructor
+      virtual ~BlendState() {};
       };
    }
 }

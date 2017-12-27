@@ -40,74 +40,7 @@
 namespace en
 {
    namespace gpu
-   {
-   const Nversion    Vulkan_1_0(0, EN_Vulkan, 0, 0, 0);                  // Vulkan 1.0
-
-   const Nversion    Metal_OSX_1_0(0,EN_Metal_OSX,1,0,0);                // Metal on OSX 10.11
-   const Nversion    Metal_OSX_Unsupported(255,EN_Metal_OSX,255,255,15); // For marking unsupported features
-   
-   const Nversion    Metal_IOS_1_0(0,EN_Metal_IOS,1,0,0);
-   const Nversion    Metal_IOS_Unsupported(255,EN_Metal_IOS,255,255,15); // For marking unsupported features
-
-
-#ifdef EN_OPENGL_DESKTOP
-   #define SLVersions  12
-   #define APIVersions 19
-#endif
-#ifdef EN_OPENGL_MOBILE
-   #define SLVersions  2
-   #define APIVersions 6
-#endif
-  
-   const Nversion    ESSL_3_00(1,EN_ESSL,3,0,0);                         // ESSL 3.00  
-   const Nversion    ESSL_1_00(0,EN_ESSL,1,0,0);                         // ESSL 1.00  
-   const Nversion    ESSL_Unsupported(255,EN_ESSL,255,255,15);           // For marking unsupported features
-
-   const Nversion    OpenGL_ES_3_2(5,EN_OpenGL_ES,3,2,0);                // OpenGL ES 3.2 -
-   const Nversion    OpenGL_ES_3_1(4,EN_OpenGL_ES,3,1,0);                // OpenGL ES 3.1 - 
-   const Nversion    OpenGL_ES_3_0(3,EN_OpenGL_ES,3,0,0);                // OpenGL ES 3.0 - 
-   const Nversion    OpenGL_ES_2_0(2,EN_OpenGL_ES,2,0,0);                // OpenGL ES 2.0 - 
-   const Nversion    OpenGL_ES_1_1(1,EN_OpenGL_ES,1,1,0);                // OpenGL ES 1.1 - 
-   const Nversion    OpenGL_ES_1_0(0,EN_OpenGL_ES,1,0,0);                // OpenGL ES 1.0 - 
-   const Nversion    OpenGL_ES_Unsupported(255,EN_OpenGL_ES,255,255,15); // For marking unsupported features
-
-   const Nversion    GLSL_Next(255,EN_GLSL,9,90,0);                      // Future GLSL versions
-   const Nversion    GLSL_4_50(11,EN_GLSL,4,50,0);                       // GLSL 4.50
-   const Nversion    GLSL_4_40(10,EN_GLSL,4,40,0);                       // GLSL 4.40
-   const Nversion    GLSL_4_30(9,EN_GLSL,4,30,0);                        // GLSL 4.30
-   const Nversion    GLSL_4_20(8,EN_GLSL,4,20,0);                        // GLSL 4.20
-   const Nversion    GLSL_4_10(7,EN_GLSL,4,10,0);                        // GLSL 4.10
-   const Nversion    GLSL_4_00(6,EN_GLSL,4,0,0);                         // GLSL 4.00
-   const Nversion    GLSL_3_30(5,EN_GLSL,3,30,0);                        // GLSL 3.30
-   const Nversion    GLSL_1_50(4,EN_GLSL,1,50,0);                        // GLSL 1.50 for OpenGL 3.2
-   const Nversion    GLSL_1_40(3,EN_GLSL,1,40,0);                        // GLSL 1.40 for OpenGL 3.1
-   const Nversion    GLSL_1_30(2,EN_GLSL,1,30,0);                        // GLSL 1.30 for OpenGL 3.0
-   const Nversion    GLSL_1_20(1,EN_GLSL,1,20,0);                        // GLSL 1.20 for OpenGL 2.1
-   const Nversion    GLSL_1_10(0,EN_GLSL,1,10,0);                        // GLSL 1.10 for OpenGL 2.0
-   const Nversion    GLSL_Unsupported(255,EN_GLSL,255,255,15);           // For marking unsupported features
-
-   const Nversion    OpenGL_Next(255,EN_OpenGL,9,9,0);                   // Future OpenGL versions
-   const Nversion    OpenGL_4_5(18,EN_OpenGL,4,5,0);                     // OpenGL 4.5    -  
-   const Nversion    OpenGL_4_4(17,EN_OpenGL,4,4,0);                     // OpenGL 4.4    -   
-   const Nversion    OpenGL_4_3(16,EN_OpenGL,4,3,0);                     // OpenGL 4.3    -   
-   const Nversion    OpenGL_4_2(15,EN_OpenGL,4,2,0);                     // OpenGL 4.2    -
-   const Nversion    OpenGL_4_1(14,EN_OpenGL,4,1,0);                     // OpenGL 4.1    - 
-   const Nversion    OpenGL_4_0(13,EN_OpenGL,4,0,0);                     // OpenGL 4.0    - 11.03.2010 ok
-   const Nversion    OpenGL_3_3(12,EN_OpenGL,3,3,0);                     // OpenGL 3.3    - 11.03.2010 ok
-   const Nversion    OpenGL_3_2(11,EN_OpenGL,3,2,0);                     // OpenGL 3.2    - 24.07.2009 ok
-   const Nversion    OpenGL_3_1(10,EN_OpenGL,3,1,0);                     // OpenGL 3.1    - 24.03.2009 ok
-   const Nversion    OpenGL_3_0(9,EN_OpenGL,3,0,0);                      // OpenGL 3.0    - 11.08.2008 ok
-   const Nversion    OpenGL_2_1(8,EN_OpenGL,2,1,0);                      // OpenGL 2.1    - 30.07.2006 spec
-   const Nversion    OpenGL_2_0(7,EN_OpenGL,2,0,0);                      // OpenGL 2.0    - 22.10.2004 spec
-   const Nversion    OpenGL_1_5(6,EN_OpenGL,1,5,0);                      // OpenGL 1.5    - 29.07.2003 / 30.10.2003 spec
-   const Nversion    OpenGL_1_4(5,EN_OpenGL,1,4,0);                      // OpenGL 1.4    - 24.07.2002 spec
-   const Nversion    OpenGL_1_3(4,EN_OpenGL,1,3,0);                      // OpenGL 1.3    - 14.08.2001 spec
-   const Nversion    OpenGL_1_2_1(3,EN_OpenGL,1,2,1);                    // OpenGL 1.2.1  - 01.04.1999 spec
-   const Nversion    OpenGL_1_2(2,EN_OpenGL,1,2,0);                      // OpenGL 1.2    -
-   const Nversion    OpenGL_1_1(1,EN_OpenGL,1,1,0);                      // OpenGL 1.1    - 29.03.1997
-   const Nversion    OpenGL_1_0(0,EN_OpenGL,1,0,0);                      // OpenGL 1.0    - 20.06.1992
-   const Nversion    OpenGL_Unsupported(255,EN_OpenGL,255,255,15);       // For marking unsupported features
-
+   {  
    CommonDevice::CommonDevice() :
       defaultState(nullptr)
    {
@@ -174,7 +107,7 @@ namespace en
 
    void CommonDevice::init(void)
    {
-   defaultState = new PipelineState(this);
+   defaultState = new PipelineState(*this);
    }
    
    class CommonGraphicsAPI;
@@ -186,7 +119,7 @@ namespace en
    return api->displaysCount;
    }
    
-   shared_ptr<Display> CommonDevice::display(uint32 index) const
+   shared_ptr<Display> CommonDevice::display(const uint32 index) const
    {
    // Currently all devices share all available displays
    CommonGraphicAPI* api = reinterpret_cast<CommonGraphicAPI*>(en::Graphics.get());
@@ -262,7 +195,7 @@ namespace en
       }
    }
    
-   PipelineState::PipelineState(GpuDevice* device)
+   PipelineState::PipelineState(GpuDevice& device)
    {
    // Create default Pipeline State
    // Application still needs to be set those:
@@ -270,20 +203,20 @@ namespace en
    // viewportState
    // shader[5]
    //
-   inputLayout        = device->createInputLayout(TriangleStripes);
+   inputLayout        = device.createInputLayout(TriangleStripes);
 
    RasterStateInfo defaultRasterState;
-   rasterState        = device->createRasterState(defaultRasterState);
-   multisamplingState = device->createMultisamplingState(1u, false, false);
+   rasterState        = device.createRasterState(defaultRasterState);
+   multisamplingState = device.createMultisamplingState(1u, false, false);
 
    DepthStencilStateInfo defaultDepthStencilState;
-   depthStencilState  = device->createDepthStencilState(defaultDepthStencilState);
+   depthStencilState  = device.createDepthStencilState(defaultDepthStencilState);
 
    BlendStateInfo      defaultBlendState;
    BlendAttachmentInfo defaultBlendAttachmentState;
-   blendState         = device->createBlendState(defaultBlendState, 1u, &defaultBlendAttachmentState);
+   blendState         = device.createBlendState(defaultBlendState, 1u, &defaultBlendAttachmentState);
 
-   pipelineLayout     = device->createPipelineLayout(0u, nullptr);
+   pipelineLayout     = device.createPipelineLayout(0u, nullptr);
 
    for(uint32 i=0; i<5; ++i)
       function[i] = string("main");
