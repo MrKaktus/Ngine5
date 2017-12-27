@@ -427,7 +427,7 @@ namespace en
    assert( 0 );
    }
 
-   shared_ptr<Texture> WindowVK::surface(const shared_ptr<Semaphore> signalSemaphore)
+   shared_ptr<Texture> WindowVK::surface(const Semaphore* signalSemaphore)
    {
    if (needNewSurface)
       {
@@ -474,15 +474,15 @@ namespace en
          //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,     // Transition after this stage
          //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);    // Transition before this stage
          //
-         SemaphoreVK* signal = reinterpret_cast<SemaphoreVK*>(signalSemaphore.get());
+         const SemaphoreVK* signal = reinterpret_cast<const SemaphoreVK*>(signalSemaphore);
 
          // Acquire one of the Swap-Chain surfaces for rendering
          Validate( gpu, vkAcquireNextImageKHR(gpu->device, 
-                                             swapChain, 
-                                             UINT64_MAX,     // wait time in nanoseconds
-                                             signal->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
-                                             VK_NULL_HANDLE, // presentationFence, <- Don't actively wait for now.
-                                             &swapChainCurrentImageIndex) )
+                                              swapChain,
+                                              UINT64_MAX,     // wait time in nanoseconds
+                                              signal->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
+                                              VK_NULL_HANDLE, // presentationFence, <- Don't actively wait for now.
+                                              &swapChainCurrentImageIndex) )
          
          // Ensure that engine is recreating Swap-Chain on window resize
          assert( gpu->lastResult[thread] != VK_ERROR_OUT_OF_DATE_KHR );
@@ -517,7 +517,7 @@ namespace en
 
 
    // Presents current surface, after all work encoded on given Commnad Buffer is done
-   void WindowVK::present(const shared_ptr<Semaphore> waitForSemaphore) // const shared_ptr<CommandBuffer> command ? <- pass command buffer in ??
+   void WindowVK::present(const Semaphore* waitForSemaphore) // const shared_ptr<CommandBuffer> command ? <- pass command buffer in ??
    {
    surfaceAcquire.lock();
    if (!needNewSurface)
@@ -565,7 +565,7 @@ namespace en
 
       if (waitForSemaphore)
          {
-         SemaphoreVK* wait = reinterpret_cast<SemaphoreVK*>(waitForSemaphore.get());
+         const SemaphoreVK* wait = reinterpret_cast<const SemaphoreVK*>(waitForSemaphore);
          
          info.waitSemaphoreCount = 1u;
          info.pWaitSemaphores    = &wait->handle;

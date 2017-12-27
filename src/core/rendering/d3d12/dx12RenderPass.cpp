@@ -609,14 +609,17 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   shared_ptr<ColorAttachment> Direct3D12Device::createColorAttachment(const Format format, const uint32 samples)
+   shared_ptr<ColorAttachment> Direct3D12Device::createColorAttachment(
+      const Format format,
+      const uint32 samples)
    {
    return make_shared<ColorAttachmentD3D12>(format, samples);
    }
 
-   shared_ptr<DepthStencilAttachment> Direct3D12Device::createDepthStencilAttachment(const Format depthFormat,
-                                                                                     const Format stencilFormat,
-                                                                                     const uint32 samples)
+   shared_ptr<DepthStencilAttachment> Direct3D12Device::createDepthStencilAttachment(
+      const Format depthFormat,
+      const Format stencilFormat,
+      const uint32 samples)
    {
    return make_shared<DepthStencilAttachmentD3D12>(depthFormat, stencilFormat, samples);
    }
@@ -625,15 +628,14 @@ namespace en
 
    // Creates render pass which's output goes to window framebuffer.
    // Swap-Chain surface may be destination of MSAA resolve operation.
-   shared_ptr<RenderPass> Direct3D12Device::createRenderPass(const shared_ptr<ColorAttachment> swapChainSurface,
-                                                             const shared_ptr<DepthStencilAttachment> depthStencil)
+   shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
+      const ColorAttachment& swapChainSurface,
+      const DepthStencilAttachment* depthStencil)
    {
    shared_ptr<RenderPassD3D12> result = nullptr;
    
-   assert( swapChainSurface );
-  
-   // D3D12 doesn't support Render Passes, thus references to Color 
-   // and Depth-Stencil Attachment objects are stored in Render Pass 
+   // D3D12 doesn't support Render Passes, thus states of Color and
+   // Depth-Stencil Attachment objects are stored in Render Pass
    // object, and used to emulate Rende Pass behavior when it is 
    // started and ended on Command Buffer.
 
@@ -641,7 +643,7 @@ namespace en
    assert( result );
 
    // Single Color Attachment
-   result->colorState[0] = reinterpret_cast<ColorAttachmentD3D12*>(swapChainSurface.get())->state;
+   result->colorState[0] = reinterpret_cast<const ColorAttachmentD3D12&>(swapChainSurface).state;
    if (result->colorState[0].resolve)
       result->resolve = true;
 
@@ -650,7 +652,7 @@ namespace en
    // Optional Depth-Stencil / Depth / Stencil
    if (depthStencil)
       {
-      result->depthState = reinterpret_cast<DepthStencilAttachmentD3D12*>(depthStencil.get())->state;
+      result->depthState = reinterpret_cast<const DepthStencilAttachmentD3D12*>(depthStencil)->state;
       result->depthStencil = true;
       }
 
@@ -661,9 +663,10 @@ namespace en
    // color attachment slots in Fragment Shader. Entries in this 
    // array may be set to nullptr, which means that given output
    // color attachment slot has no bound resource descriptor.
-   shared_ptr<RenderPass> Direct3D12Device::createRenderPass(const uint32 attachments,
-                                                             const shared_ptr<ColorAttachment>* color,
-                                                             const shared_ptr<DepthStencilAttachment> depthStencil)
+   shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
+      const uint32 attachments,
+      const shared_ptr<ColorAttachment> color[],
+      const DepthStencilAttachment* depthStencil)
    {
    shared_ptr<RenderPassD3D12> result = nullptr;
    

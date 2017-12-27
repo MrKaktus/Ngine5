@@ -439,7 +439,7 @@ namespace en
 
    shared_ptr<Semaphore> VulkanDevice::createSemaphore(void)
    {
-   return shared_ptr<Semaphore>(new SemaphoreVK(this));
+   return make_shared<SemaphoreVK>(this);
    }
 
 
@@ -530,16 +530,16 @@ namespace en
    EventVK* _event = reinterpret_cast<EventVK*>(eventToWaitFor.get());
 
    ValidateNoRet( gpu, vkCmdWaitEvents(handle,
-                                      1,       // events count
-                                      &_event->handle,
-                                      VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, // TODO: Expose event sync place in currently executed Pipeline Stage
-                                      VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, //       This will avoid unnecessary Cache flushes, etc.
-                                      0,       // Memory barriers
-                                      nullptr,
-                                      0,       // Buffer memory barriers
-                                      nullptr,
-                                      0,       // Image memory barriers
-                                      nullptr) )
+                                       1,       // events count
+                                       &_event->handle,
+                                       VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, // TODO: Expose event sync place in currently executed Pipeline Stage
+                                       VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, //       This will avoid unnecessary Cache flushes, etc.
+                                       0,       // Memory barriers
+                                       nullptr,
+                                       0,       // Buffer memory barriers
+                                       nullptr,
+                                       0,       // Image memory barriers
+                                       nullptr) )
    }
 
 

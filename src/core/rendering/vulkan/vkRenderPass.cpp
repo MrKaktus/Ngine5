@@ -530,18 +530,17 @@ namespace en
    
    // Creates render pass which's output goes to window framebuffer.
    // Swap-Chain surface may be destination of MSAA resolve operation.
-   shared_ptr<RenderPass> VulkanDevice::createRenderPass(const shared_ptr<ColorAttachment> swapChainSurface,
-                                                         const shared_ptr<DepthStencilAttachment> depthStencil)
+   shared_ptr<RenderPass> VulkanDevice::createRenderPass(
+      const ColorAttachment& swapChainSurface,
+      const DepthStencilAttachment* depthStencil)
    {
    shared_ptr<RenderPassVK> result = nullptr;
    
-   assert( swapChainSurface );
-
    uint32 surfaces = 0u;
    bool   resolve  = false;
    uint32 usedAttachments = 1u;
 
-   ColorAttachmentVK* ptr = reinterpret_cast<ColorAttachmentVK*>(swapChainSurface.get());
+   const ColorAttachmentVK& ptr = reinterpret_cast<const ColorAttachmentVK&>(swapChainSurface);
    
    // Color attachment
    VkAttachmentReference attColor;
@@ -587,18 +586,18 @@ namespace en
    // Gather global Attachment states (for all subpasses)
    uint32 index = 0;
    VkAttachmentDescription* attachment = new VkAttachmentDescription[surfaces];
-   memcpy(&attachment[index], &ptr->state[AttColor], sizeof(VkAttachmentDescription));
+   memcpy(&attachment[index], &ptr.state[AttColor], sizeof(VkAttachmentDescription));
    index++;
 
    if (resolve)
       {
-      memcpy(&attachment[index], &ptr->state[AttResolve], sizeof(VkAttachmentDescription));
+      memcpy(&attachment[index], &ptr.state[AttResolve], sizeof(VkAttachmentDescription));
       index++;
       }
 
    if (depthStencil)
       {
-      DepthStencilAttachmentVK* ptr = reinterpret_cast<DepthStencilAttachmentVK*>(depthStencil.get());
+      const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
       memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
       index++;
       }
@@ -633,7 +632,7 @@ namespace en
 
       // Those values will be used at beginning of RenderPass
       index = 0;
-      result->clearValues[index] = ptr->clearValue;
+      result->clearValues[index] = ptr.clearValue;
       index++;
 
       // Were not specifying clear values for MSAA resolve destinations (but need to keep entries)
@@ -642,7 +641,7 @@ namespace en
       
       if (depthStencil)
          {
-         DepthStencilAttachmentVK* ptr = reinterpret_cast<DepthStencilAttachmentVK*>(depthStencil.get());
+         const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
          result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
          result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
          }
@@ -657,9 +656,10 @@ namespace en
    // color attachment slots in Fragment Shader. Entries in this 
    // array may be set to nullptr, which means that given output
    // color attachment slot has no bound resource descriptor.
-   shared_ptr<RenderPass> VulkanDevice::createRenderPass(const uint32 attachments,
-                                                         const shared_ptr<ColorAttachment>* color,
-                                                         const shared_ptr<DepthStencilAttachment> depthStencil)
+   shared_ptr<RenderPass> VulkanDevice::createRenderPass(
+      const uint32 attachments,
+      const shared_ptr<ColorAttachment> color[],
+      const DepthStencilAttachment* depthStencil)
    {
    shared_ptr<RenderPassVK> result = nullptr;
    
@@ -773,7 +773,7 @@ namespace en
             
    if (depthStencil)
       {
-      DepthStencilAttachmentVK* ptr = reinterpret_cast<DepthStencilAttachmentVK*>(depthStencil.get());
+      const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
       memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
       index++;
       }
@@ -821,7 +821,7 @@ namespace en
       
       if (depthStencil)
          {
-         DepthStencilAttachmentVK* ptr = reinterpret_cast<DepthStencilAttachmentVK*>(depthStencil.get());
+         const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
          result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
          result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
          }

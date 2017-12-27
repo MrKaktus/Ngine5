@@ -44,8 +44,8 @@ namespace en
       virtual void active(void);
       virtual void transparent(const float opacity);
       virtual void opaque(void);
-      virtual shared_ptr<Texture> surface(const shared_ptr<Semaphore> signalSemaphore = nullptr);
-      virtual void present(const shared_ptr<Semaphore> waitForSemaphore = nullptr);
+      virtual shared_ptr<Texture> surface(const Semaphore* signalSemaphore = nullptr);
+      virtual void present(const Semaphore* waitForSemaphore = nullptr);
       
       WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title); //id<MTLDevice> device
       virtual ~WindowMTL();

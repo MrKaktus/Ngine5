@@ -108,12 +108,12 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
 
-   void CommandBufferVK::start(const shared_ptr<Semaphore> waitForSemaphore)
+   void CommandBufferVK::start(const Semaphore* waitForSemaphore)
    {
    assert( !started );
 
    if (waitForSemaphore)
-      semaphore = dynamic_pointer_cast<SemaphoreVK>(waitForSemaphore);
+      semaphore = reinterpret_cast<const SemaphoreVK*>(waitForSemaphore);
 
    // In Metal API we need to create Render Command Encoder.
    // In Vulkan API CommandBuffer needs to be started first,
@@ -509,7 +509,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::commit(const shared_ptr<Semaphore> signalSemaphore)
+   void CommandBufferVK::commit(const Semaphore* signalSemaphore)
    {
    assert( started );
    assert( !encoding );
@@ -554,7 +554,7 @@ namespace en
    // Signal semaphore for future synchronization.
    if (signalSemaphore)
       {
-      SemaphoreVK* signal = reinterpret_cast<SemaphoreVK*>(signalSemaphore.get());
+      const SemaphoreVK* signal = reinterpret_cast<const SemaphoreVK*>(signalSemaphore);
 
       submitInfo.signalSemaphoreCount = 1u;   
       submitInfo.pSignalSemaphores    = &signal->handle;        

@@ -131,27 +131,30 @@ namespace en
 
       virtual ~RenderPassD3D12();
 
-      virtual shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                        const uint32   layers,
-                                                        const uint32   attachments,
-                                                        const shared_ptr<TextureView>* attachment,
-                                                        const shared_ptr<TextureView> depthStencil = nullptr,
-                                                        const shared_ptr<TextureView> stencil      = nullptr,
-                                                        const shared_ptr<TextureView> depthResolve = nullptr);
+      virtual shared_ptr<Framebuffer> createFramebuffer(
+         const uint32v2 resolution,
+         const uint32   layers,
+         const uint32   attachments,
+         const shared_ptr<TextureView>* attachment,
+         const shared_ptr<TextureView> depthStencil = nullptr,
+         const shared_ptr<TextureView> stencil      = nullptr,
+         const shared_ptr<TextureView> depthResolve = nullptr);
 
       // Creates framebuffer using window Swap-Chain surface.
-      virtual shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                        const shared_ptr<TextureView> swapChainSurface,
-                                                        const shared_ptr<TextureView> depthStencil = nullptr,
-                                                        const shared_ptr<TextureView> stencil      = nullptr);
+      virtual shared_ptr<Framebuffer> createFramebuffer(
+         const uint32v2 resolution,
+         const shared_ptr<TextureView> swapChainSurface,
+         const shared_ptr<TextureView> depthStencil = nullptr,
+         const shared_ptr<TextureView> stencil      = nullptr);
       
       // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
       // window Swap-Chain surface.
-      virtual shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                        const shared_ptr<TextureView> temporaryMSAA,
-                                                        const shared_ptr<TextureView> swapChainSurface,
-                                                        const shared_ptr<TextureView> depthStencil = nullptr,
-                                                        const shared_ptr<TextureView> stencil      = nullptr);
+      virtual shared_ptr<Framebuffer> createFramebuffer(
+         const uint32v2 resolution,
+         const shared_ptr<TextureView> temporaryMSAA,
+         const shared_ptr<TextureView> swapChainSurface,
+         const shared_ptr<TextureView> depthStencil = nullptr,
+         const shared_ptr<TextureView> stencil      = nullptr);
       };
 
    }

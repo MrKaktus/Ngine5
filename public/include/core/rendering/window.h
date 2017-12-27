@@ -106,12 +106,12 @@ namespace en
       // Will signal this semaphore, once Swap-Chain surface is presented, and
       // can be reused.
       virtual shared_ptr<Texture> surface(
-         const shared_ptr<Semaphore> signalSemaphore = nullptr) = 0;
+         const Semaphore* signalSemaphore = nullptr) = 0;
          
       // Will wait for semaphore to signal, when rendering to Swap-Chain surface
       // is being done, and then will present.
       virtual void present(
-         const shared_ptr<Semaphore> waitForSemaphore = nullptr) = 0;
+         const Semaphore* waitForSemaphore = nullptr) = 0;
       
       // TODO: Redo to explicitly state Queue for presentment:
       // Presenting is currently always performed from first queue of type

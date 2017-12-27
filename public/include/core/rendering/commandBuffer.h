@@ -63,10 +63,10 @@ namespace en
       
       
       virtual void start(
-         const shared_ptr<Semaphore> waitForSemaphore = nullptr) = 0;
+         const Semaphore* waitForSemaphore = nullptr) = 0;
 
       virtual void commit(
-         const shared_ptr<Semaphore> signalSemaphore = nullptr) = 0;
+         const Semaphore* signalSemaphore = nullptr) = 0;
       
       // Incurrs full CPU-GPU synchronization.
       virtual void waitUntilCompleted(void) = 0;

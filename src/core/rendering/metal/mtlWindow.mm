@@ -274,7 +274,7 @@ namespace en
    [window setOpaque:YES];
    }
    
-   shared_ptr<Texture> WindowMTL::surface(const shared_ptr<Semaphore> signalSemaphore)
+   shared_ptr<Texture> WindowMTL::surface(const Semaphore* signalSemaphore)
    {
    // signalSemaphore is ignored, as Metal API waits for presentation
    // engine to finish reading from given surface before returning it
@@ -287,7 +287,11 @@ namespace en
       if (needNewSurface)
          {            
          drawable            = [layer nextDrawable];
+         assert( drawable );
+         
          framebuffer->handle = [drawable.texture retain];
+         assert( framebuffer-> handle );
+         
          needNewSurface      = false;
          }
 
@@ -297,7 +301,7 @@ namespace en
    return framebuffer;
    }
    
-   void WindowMTL::present(const shared_ptr<Semaphore> waitForSemaphore)
+   void WindowMTL::present(const Semaphore* waitForSemaphore)
    {
    // Does Metal ensure that CommandBuffers on Queue will be executed ?
    

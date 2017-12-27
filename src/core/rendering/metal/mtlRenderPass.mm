@@ -466,8 +466,9 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
    
-   shared_ptr<ColorAttachment> MetalDevice::createColorAttachment(const Format format, 
-                                                                  const uint32 samples)
+   shared_ptr<ColorAttachment> MetalDevice::createColorAttachment(
+      const Format format,
+      const uint32 samples)
    {
    assert( format != Format::Unsupported );
    assert( samples > 0u );
@@ -475,9 +476,10 @@ namespace en
    return make_shared<ColorAttachmentMTL>(format, samples);
    }
    
-   shared_ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(const Format depthFormat, 
-                                                                                const Format stencilFormat,
-                                                                                const uint32 samples)
+   shared_ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(
+      const Format depthFormat,
+      const Format stencilFormat,
+      const uint32 samples)
    {
    assert( depthFormat   != Format::Unsupported || 
            stencilFormat != Format::Unsupported );
@@ -493,9 +495,10 @@ namespace en
    return make_shared<DepthStencilAttachmentMTL>(depthFormat, stencilFormat, samples);
    }
 
-   shared_ptr<RenderPass> MetalDevice::createRenderPass(const uint32 attachments,
-                                                        const shared_ptr<ColorAttachment>* color,
-                                                        const shared_ptr<DepthStencilAttachment> depthStencil)
+   shared_ptr<RenderPass> MetalDevice::createRenderPass(
+      const uint32 attachments,
+      const shared_ptr<ColorAttachment> color[],
+      const DepthStencilAttachment* depthStencil)
    {
    assert( attachments < MaxColorAttachmentsCount );
    
@@ -536,7 +539,7 @@ namespace en
    // Optional Depth-Stencil / Depth / Stencil
    if (depthStencil)
       {
-      DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<DepthStencilAttachmentMTL*>(depthStencil.get());
+      const DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<const DepthStencilAttachmentMTL*>(depthStencil);
       pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
       pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
       pass->format[MaxColorAttachmentsCount]   = mtlDepthStencil->depthFormat;
@@ -556,11 +559,10 @@ namespace en
    return pass;
    }
    
-   shared_ptr<RenderPass> MetalDevice::createRenderPass(const shared_ptr<ColorAttachment> swapChainSurface,
-                                                        const shared_ptr<DepthStencilAttachment> depthStencil)
+   shared_ptr<RenderPass> MetalDevice::createRenderPass(
+      const ColorAttachment& swapChainSurface,
+      const DepthStencilAttachment* depthStencil)
    {
-   assert( swapChainSurface );
-
    shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
 
    // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
@@ -570,10 +572,10 @@ namespace en
       {
       if (i == 0)
          {
-         ColorAttachmentMTL* mtlColor = reinterpret_cast<ColorAttachmentMTL*>(swapChainSurface.get());
-         pass->desc.colorAttachments[0] = mtlColor->desc;
-         pass->format[0]  = mtlColor->format;
-         pass->samples[0] = mtlColor->samples;
+         const ColorAttachmentMTL& mtlColor = reinterpret_cast<const ColorAttachmentMTL&>(swapChainSurface);
+         pass->desc.colorAttachments[0] = mtlColor.desc;
+         pass->format[0]  = mtlColor.format;
+         pass->samples[0] = mtlColor.samples;
          setBit(pass->usedAttachments, 0);
          }
       else
@@ -586,9 +588,9 @@ namespace en
    // Optional Depth-Stencil / Depth / Stencil
    if (depthStencil)
       {
-      DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<DepthStencilAttachmentMTL*>(depthStencil.get());
-      pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
-      pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
+      const DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<const DepthStencilAttachmentMTL*>(depthStencil);
+      pass->desc.depthAttachment               = mtlDepthStencil->descDepth;
+      pass->desc.stencilAttachment             = mtlDepthStencil->descStencil;
       pass->format[MaxColorAttachmentsCount]   = mtlDepthStencil->depthFormat;
       pass->format[MaxColorAttachmentsCount+1] = mtlDepthStencil->stencilFormat;
       pass->samples[MaxColorAttachmentsCount]  = mtlDepthStencil->samples;
@@ -607,7 +609,7 @@ namespace en
    }
    
    
-     // TODO: Use Views, mipma and layer always equal to 0 !
+     // TODO: Use Views, mipmap and layer always equal to 0 !
    
    // Metal supports specifying base layer of Render Pass attachment through
    // explicitly setting "slice" or "depthPlane" in MTLRenderPassAttachmentDescriptor.

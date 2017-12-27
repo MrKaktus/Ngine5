@@ -184,7 +184,7 @@ namespace en
    assert( 0 );
    }
 
-   shared_ptr<Texture> WindowD3D12::surface(const shared_ptr<Semaphore> signalSemaphore)
+   shared_ptr<Texture> WindowD3D12::surface(const Semaphore* signalSemaphore)
    {
    // TODO: Is there a way to sync on GPU side CB execution with Swap-Chain ?
 
@@ -204,7 +204,7 @@ namespace en
    return swapChainTexture[swapChainCurrentImageIndex];
    }
 
-   void WindowD3D12::present(const shared_ptr<Semaphore> waitForSemaphore)
+   void WindowD3D12::present(const Semaphore* waitForSemaphore)
    {
    // TODO: Is there a way to sync on GPU side CB execution with Swap-Chain ?
 

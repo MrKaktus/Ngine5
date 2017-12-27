@@ -38,7 +38,7 @@ namespace en
       VkQueue          queue;
       QueueType        queueType;
       VkCommandBuffer  handle;
-      shared_ptr<SemaphoreVK> semaphore; // Execution order synchronization    
+      const SemaphoreVK* semaphore; // Execution order synchronization    
       VkFence          fence;     // Completion notification
       bool             started;
       bool             encoding;
@@ -84,7 +84,7 @@ namespace en
                       
       virtual ~CommandBufferVK();
       
-      virtual void start(const shared_ptr<Semaphore> waitForSemaphore = nullptr);
+      virtual void start(const Semaphore* waitForSemaphore = nullptr);
 
       virtual void copy(const Buffer& source,
                         const Buffer& destination);
@@ -167,7 +167,7 @@ namespace en
                            const TextureAccess currentAccess,
                            const TextureAccess newAccess);
 
-      virtual void commit(const shared_ptr<Semaphore> signalSemaphore = nullptr);
+      virtual void commit(const Semaphore* signalSemaphore = nullptr);
       virtual void waitUntilCompleted(void);
       };
    }

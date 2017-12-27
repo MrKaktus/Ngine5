@@ -48,8 +48,8 @@ namespace en
                   const string title);
 
       virtual void resize(const uint32v2 size);
-      virtual shared_ptr<Texture> surface(const shared_ptr<Semaphore> signalSemaphore = nullptr);
-      virtual void present(const shared_ptr<Semaphore> waitForSemaphore = nullptr);
+      virtual shared_ptr<Texture> surface(const Semaphore* signalSemaphore = nullptr);
+      virtual void present(const Semaphore* waitForSemaphore = nullptr);
       
       virtual ~WindowD3D12();
       };

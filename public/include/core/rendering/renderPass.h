@@ -58,11 +58,10 @@ namespace en
    class ColorAttachment
       {
       public:
-      // On tiled renderers we can specify additional actions
-      // that should be performed when render target is rebind. 
-      // We can use the same actions on immediate renderers.
-      // By default content of color attachment is not changed.
-      // If attachment should be cleared it needs to be explicitly
+      // On tiled renderers we can specify additional actions that should be
+      // performed when render target is rebind. We can use the same actions on
+      // immediate renderers. By default content of color attachment is not
+      // changed. If attachment should be cleared it needs to be explicitly
       // stated by calling onLoad method with proper parameters.
       virtual void onLoad(
          const LoadOperation load,
@@ -79,12 +78,6 @@ namespace en
       // By default content of color attachment is stored.
       virtual void onStore(
          const StoreOperation store) = 0;
-
-      // If one color attachment is being resolved as MSAA surface,
-      // all color attachments in the Render Pass need to be resolved
-      // as well. Content of destination surface for resolve operation
-      // is not modified in any way before resolve operation occurs.
-      //virtual bool resolve(const shared_ptr<TextureView> destination) = 0;
 
       virtual ~ColorAttachment() {};
       };
@@ -105,9 +98,9 @@ namespace en
          const StoreOperation storeDepthStencil,
          const DepthResolve resolveMode = DepthResolve::Sample0) = 0;
          
-      // Custom load and store actions can be specifid for Stencil.
-      // (no matter if it's shared DepthStencil attachment, or
-      //  if GPU support separate Depth and Stencil attachments).
+      // Custom load and store actions can be specifid for Stencil (no matter if
+      // it's shared DepthStencil attachment, or if GPU support separate Depth
+      // and Stencil attachments).
       virtual void onStencilLoad(
          const LoadOperation loadStencil) = 0;
 
@@ -120,12 +113,17 @@ namespace en
    class Framebuffer
       {
       public:
-      virtual ~Framebuffer() {};  // Polymorphic deletes require a virtual base destructor
+      virtual ~Framebuffer() {};
       };
 
    class RenderPass
       {
       public:
+      
+      // If one color attachment is being resolved as MSAA surface, all color
+      // attachments in the Render Pass need to be resolved as well. Content of
+      // destination surface for resolve operation is not modified in any way
+      // before resolve operation occurs.
       virtual shared_ptr<Framebuffer> createFramebuffer(
          const uint32v2 resolution,
          const uint32   layers,
@@ -142,9 +140,10 @@ namespace en
          const shared_ptr<TextureView> depthStencil = nullptr,
          const shared_ptr<TextureView> stencil      = nullptr) = 0;
       
-      // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
-      // window Swap-Chain surface. Depth-Stencil can still be nullptr, but that need to be 
-      // explicitly stated by the application (to prevent ambiguous call).
+      // Creates framebuffer for rendering to temporary MSAA that is then
+      // resolved directly to window Swap-Chain surface. Depth-Stencil can still
+      // be nullptr, but that need to be explicitly stated by the application
+      // (to prevent ambiguous call).
       virtual shared_ptr<Framebuffer> createFramebuffer(
          const uint32v2 resolution,
          const shared_ptr<TextureView> temporaryMSAA,
@@ -152,7 +151,7 @@ namespace en
          const shared_ptr<TextureView> depthStencil,
          const shared_ptr<TextureView> stencil) = 0;
           
-      virtual ~RenderPass() {};   // Polymorphic deletes require a virtual base destructor
+      virtual ~RenderPass() {};
       };
    }
 }

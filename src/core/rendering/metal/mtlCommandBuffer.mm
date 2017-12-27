@@ -55,7 +55,7 @@ namespace en
    {
    }
 
-   void CommandBufferMTL::start(const shared_ptr<Semaphore> waitForSemaphore)
+   void CommandBufferMTL::start(const Semaphore* waitForSemaphore)
    {
    // In Vulkan app needs to explicitly state when it starts to
    // encode commands to Command Buffer. In Metal we do that when
@@ -415,10 +415,12 @@ namespace en
 
 
    
-   void CommandBufferMTL::commit(const shared_ptr<Semaphore> signalSemaphore)
+   void CommandBufferMTL::commit(const Semaphore* signalSemaphore)
    {
-   // TODO: Do we need to synchronize CommandBuffer execution with Swap-Chain ?
-   
+   // TODO: How to translate CommandBuffer execution synchronization to
+   //       Swap-Chain presentment from this explicit API to macOS
+   //       one based on waitUntilScheduled()?
+
    assert( !commited );
    [handle commit];
    commited = true;

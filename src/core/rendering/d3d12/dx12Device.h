@@ -233,12 +233,14 @@ namespace en
                                                                               const Format stencilFormat = Format::Unsupported,
                                                                               const uint32 samples = 1u);
 
-      virtual shared_ptr<RenderPass> createRenderPass(const shared_ptr<ColorAttachment> swapChainSurface,
-                                                      const shared_ptr<DepthStencilAttachment> depthStencil);
+      virtual shared_ptr<RenderPass> createRenderPass(
+         const ColorAttachment& swapChainSurface,
+         const DepthStencilAttachment* depthStencil = nullptr);
 
-      virtual shared_ptr<RenderPass> createRenderPass(const uint32 attachments,
-                                                      const shared_ptr<ColorAttachment>* color,
-                                                      const shared_ptr<DepthStencilAttachment> depthStencil);
+      virtual shared_ptr<RenderPass> createRenderPass(
+         const uint32 attachments,
+         const shared_ptr<ColorAttachment> color[] = nullptr,
+         const DepthStencilAttachment* depthStencil = nullptr);
 
       virtual shared_ptr<Semaphore> createSemaphore(void);
 

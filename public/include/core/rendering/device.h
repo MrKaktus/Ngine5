@@ -41,6 +41,64 @@ using namespace std;
 #include "core/rendering/viewport.h"
 #include "core/rendering/window.h"
 
+// Resources life-time management:
+// -------------------------------
+//
+// Life-time of enumerated objects, which cannot be created or destroyed by
+// application itself, is managed by rendering abstraction. Such resources can
+// still come and go, following Plug & Play rules:
+//
+// - GraphicAPI
+// - GpuDevice
+// - Display
+//
+// Rendering abstraction is designed to be as lightweight as possible, thus
+// there is no mechanism tracking life-time of resources that are created by
+// application. The only exception are CommandBuffer objects, which even though
+// created by application, are tracked by given device garbage collector, and
+// automatically destroyed once signaled as processed.
+//
+// Application is responsible for ensuring that all resources, referenced by
+// Command Buffers (no matter if still being encoded by CPU, waiting in queue
+// or already being in the middle of processing on GPU) need to be present and
+// alive until encoded and submitted work is done. This refers only to objects
+// directly referenced by Command Buffers:
+//
+// - Heap
+// - Buffer
+// - Texture
+// - Sampler
+// - Pipeline
+// - Descriptor
+// - DescriptorSet
+// - Framebuffer
+// - RenderPass
+// - Semaphore
+// - Window
+//
+// Below state objects used to describe given pipeline state can be released
+// once Pipeline object is created (or reused for other Pipeline objects
+// creation):
+//
+// - BlendState
+// - DepthStencilState
+// - RasterState
+// - MultisamplingState
+// - ViewportState
+// - Shader
+//
+// Resources layout objects can be released once Pipeline objects are created
+// and needed DescriptorSets are allocated:
+//
+// - InputLayout
+// - SetLayout
+// - PipelineLayout
+//
+// The same rule refers to RenderPass helper objects:
+//
+// - ColorAttachment
+// - DepthStencilAttachment
+//
 namespace en
 {
    namespace gpu
@@ -232,8 +290,8 @@ namespace en
       // Creates render pass with Swap-Chain surface as destination.
       // Swap-Chain surface may be destination of MSAA resolve operation.
       virtual shared_ptr<RenderPass> createRenderPass(
-         const shared_ptr<ColorAttachment> swapChainSurface,
-         const shared_ptr<DepthStencilAttachment> depthStencil) = 0;
+         const ColorAttachment& swapChainSurface,
+         const DepthStencilAttachment* depthStencil = nullptr) = 0;
 
       // Creates render pass. Entries in "color" array, match output color
       // attachment slots in Fragment Shader. Entries in this array may be set
@@ -241,8 +299,8 @@ namespace en
       // bound resource descriptor.
       virtual shared_ptr<RenderPass> createRenderPass(
          const uint32 attachments,
-         const shared_ptr<ColorAttachment>* color,
-         const shared_ptr<DepthStencilAttachment> depthStencil) = 0;
+         const shared_ptr<ColorAttachment> color[] = nullptr,
+         const DepthStencilAttachment* depthStencil = nullptr) = 0;
 
       virtual shared_ptr<Semaphore> createSemaphore(void) = 0;
 

@@ -40,7 +40,7 @@ namespace en
       
       MTLPrimitiveType primitive;
          
-      virtual void start(const shared_ptr<Semaphore> waitForSemaphore = nullptr);
+      virtual void start(const Semaphore* waitForSemaphore = nullptr);
 
       virtual void startRenderPass(const shared_ptr<RenderPass> pass, 
                                    const shared_ptr<Framebuffer> framebuffer);
@@ -127,7 +127,7 @@ namespace en
                            const TextureAccess currentAccess,
                            const TextureAccess newAccess);
 
-      virtual void commit(const shared_ptr<Semaphore> signalSemaphore = nullptr);
+      virtual void commit(const Semaphore* signalSemaphore = nullptr);
       
       virtual void waitUntilCompleted(void);
    
