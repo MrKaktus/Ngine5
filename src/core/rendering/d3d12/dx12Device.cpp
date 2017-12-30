@@ -153,22 +153,6 @@ namespace en
    device->SetName((LPCWSTR)name.c_str());
 #endif
 
-    // TODO: Debug print of GPU:
-
-    //  DXGI_ADAPTER_DESC1 adapterDescription; 
-    //  deviceHandle->GetDesc1(&adapterDescription);
-    //WCHAR Description[ 128 ];
-    //UINT VendorId;
-    //UINT DeviceId;
-    //UINT SubSysId;
-    //UINT Revision;
-    //SIZE_T DedicatedVideoMemory;
-    //SIZE_T DedicatedSystemMemory;
-    //SIZE_T SharedSystemMemory;
-    //LUID AdapterLuid;
-    //UINT Flags;
-
-
    // COMMAND QUEUES
    // ==============
 
@@ -601,7 +585,58 @@ namespace en
    // Some capabilities are fixed based on Feature Level:
    // https://msdn.microsoft.com/en-us/library/windows/desktop/mt186615(v=vs.85).aspx
 
+   // VRAM and System memory capabilities
+   
+    // TODO: Debug print of GPU:
 
+   DXGI_ADAPTER_DESC1 adapterDescription;
+   device->GetDesc1(&adapterDescription);
+    //WCHAR Description[ 128 ];
+    //UINT VendorId;
+    //UINT DeviceId;
+    //UINT SubSysId;
+    //UINT Revision;
+    //SIZE_T DedicatedVideoMemory;
+    //SIZE_T DedicatedSystemMemory;
+    //SIZE_T SharedSystemMemory;
+    //LUID AdapterLuid;
+    //UINT Flags;
+
+   // Memory
+   support.videoMemorySize  = adapterDescription.DedicatedVideoMemory;
+   support.systemMemorySize = adapterDescription.DedicatedSystemMemory;
+   support.sharedMemorySize = adapterDescription.SharedSystemMemory;
+      
+      
+   //IDXGIAdapter3
+   
+   // Local dedicated VRAM memory (or designated system memory on UMA).
+   DXGI_QUERY_VIDEO_MEMORY_INFO memoryInfo;
+   adapter->QueryVideoMemoryInfo(0, // Multi-GPU index
+                                 DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+                                 &memoryInfo);
+
+   Log << "Local\n\n";
+   Log << "Budget   : " << memoryInfo.Budget << endl;
+   Log << "Usage    : " << memoryInfo.CurrentUsage << endl;
+   Log << "Available: " << memoryInfo.AvailableForReservation << endl;
+   Log << "Reserved : " << memoryInfo.CurrentReservation << endl;
+  
+   // Shared system memory available
+   DXGI_QUERY_VIDEO_MEMORY_INFO memoryInfo;
+   adapter->QueryVideoMemoryInfo(0, // Multi-GPU index
+                                 DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+                                 &memoryInfo);
+
+   Log << "\nShared\n\n";
+   Log << "Budget   : " << memoryInfo.Budget << endl;
+   Log << "Usage    : " << memoryInfo.CurrentUsage << endl;
+   Log << "Available: " << memoryInfo.AvailableForReservation << endl;
+   Log << "Reserved : " << memoryInfo.CurrentReservation << endl;
+  
+  
+   // videoMemorySize();
+   // systemMemorySize();
 
 
    // Input Assembler
@@ -654,6 +689,8 @@ namespace en
    }
    
 
+   
+
 
 
    // DIRECT3D API 
@@ -664,7 +701,7 @@ namespace en
       library(LoadLibrary(L"d3d12.dll")),
       debugController(nullptr),
       factory(nullptr),
-      device(nullptr),
+      _device(nullptr),
       devicesCount(0),
       CommonGraphicAPI()
    {
@@ -711,7 +748,7 @@ namespace en
       deviceHandle = nullptr;
       }
 
-   device = new shared_ptr<Direct3D12Device>[devicesCount];
+   _device = new shared_ptr<Direct3D12Device>[devicesCount];
 
    // Create interfaces for all physical devices supporting D3D12
    uint32 index = 0;
@@ -720,7 +757,7 @@ namespace en
       {
       if (SUCCEEDED(D3D12CreateDevice(deviceHandle, D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr)))
          {
-         device[deviceIndex] = make_shared<Direct3D12Device>(this, deviceIndex, deviceHandle);
+         _device[deviceIndex] = make_shared<Direct3D12Device>(this, deviceIndex, deviceHandle);
          ++deviceIndex;
          }
       else
@@ -751,8 +788,8 @@ namespace en
    {
    // Destroy Direct3D Devices
    for(uint32 i=0; i<devicesCount; ++i)
-      device[i] = nullptr;
-   delete [] device;
+      _device[i] = nullptr;
+   delete [] _device;
 
    // Release Direct3D factory
    ValidateCom( factory->Release() )
@@ -778,9 +815,19 @@ namespace en
 
    shared_ptr<GpuDevice> Direct3DAPI::primaryDevice(void) const
    {
-   return device[0];
+   return _device[0];
    }
 
+   shared_ptr<GpuDevice> Direct3DAPI::device(const uint32 index) const
+   {
+   assert( index < devicesCount );
+   
+   if (index >= devicesCount)
+      return nullptr;
+      
+   return _device[index];
+   }
+   
    uint32 Direct3DAPI::displays(void) const
    {
    return displaysCount;

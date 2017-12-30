@@ -52,13 +52,6 @@ namespace en
       depthBiasSlopeFactor(desc.depthBiasSlopeFactor),
       enableRasterization(!desc.disableRasterizer)
    {
-   // Metal is not supporting:
-   // - Conservative Rasterization
-   // - lineWidth
-   // - pointFadeThreshold
-   //
-   // Metal supports in Shading Language:
-   // - pointSize
    }
    
    RasterStateMTL::~RasterStateMTL()

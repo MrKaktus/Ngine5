@@ -105,9 +105,9 @@ namespace en
       // Helper method translating layout slot index into backing heap index
       bool translateSlot(const uint32 slot, uint32& heapSlot);
 
-      virtual void setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer);
-      virtual void setSampler(const uint32 slot, const shared_ptr<Sampler> sampler);
-      virtual void setTextureView(const uint32 slot, const shared_ptr<TextureView> view);
+      virtual void setBuffer(const uint32 slot, const Buffer& buffer);
+      virtual void setSampler(const uint32 slot, const Sampler& sampler);
+      virtual void setTextureView(const uint32 slot, const TextureView& view);
       };
    }
 }

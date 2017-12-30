@@ -27,35 +27,33 @@ namespace en
    namespace config
    { 
    struct Interface
-          {
-          // If there was variable set in configuration 
-          // files that match the requested name, value
-          // corresponding to it will be written to pointed
-          // destination. 
-          bool get(const string& name); 
-          bool get(const string  name); 
-          bool get(const char*   name);
+      {
+      // If variable was set in configuration files, that match the requested
+      // name, value corresponding to it will be written to pointed destination.
+      bool get(const string& name);
+      bool get(const string  name);
+      bool get(const char*   name);
 
-          bool get(const string& name, bool* destination); 
-          bool get(const string  name, bool* destination); 
-          bool get(const char*   name, bool* destination);
+      bool get(const string& name, bool* destination);
+      bool get(const string  name, bool* destination);
+      bool get(const char*   name, bool* destination);
 
-          bool get(const string& name, sint64* destination);
-          bool get(const string  name, sint64* destination);
-          bool get(const char*   name, sint64* destination);
+      bool get(const string& name, sint64* destination);
+      bool get(const string  name, sint64* destination);
+      bool get(const char*   name, sint64* destination);
 
-          bool get(const string& name, double* destination);
-          bool get(const string  name, double* destination);
-          bool get(const char*   name, double* destination);
+      bool get(const string& name, double* destination);
+      bool get(const string  name, double* destination);
+      bool get(const char*   name, double* destination);
 
-          bool get(const string& name, string& destination);
-          bool get(const string  name, string& destination);
-          bool get(const char*   name, string& destination);
+      bool get(const string& name, string& destination);
+      bool get(const string  name, string& destination);
+      bool get(const char*   name, string& destination);
 
-          bool get(const string& name, Nversion& destination);
-          bool get(const string  name, Nversion& destination);
-          bool get(const char*   name, Nversion& destination);
-          };
+      bool get(const string& name, Nversion& destination);
+      bool get(const string  name, Nversion& destination);
+      bool get(const char*   name, Nversion& destination);
+      };
    }
 
 extern config::Interface Config;

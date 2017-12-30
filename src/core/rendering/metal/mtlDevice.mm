@@ -261,6 +261,9 @@ namespace en
    
    // TODO: Finish
      
+   // Memory
+   support.videoMemorySize               = [device recommendedMaxWorkingSetSize];
+
    // Input Assembler
    support.maxInputLayoutBuffersCount    = 31;
    support.maxInputLayoutAttributesCount = 31;
@@ -326,6 +329,7 @@ namespace en
       return 1u;
    return 0u;
    }
+
 
 
 
@@ -398,6 +402,14 @@ namespace en
          displayId++;
          }
 
+   // Expose all available GPU's
+   NSArray* devices = MTLCopyAllDevices();
+   devicesCount = static_cast<uint32>([devices count]);
+   
+   for(uint8 i=0; i<devicesCount; ++i)
+      _device[i] = make_shared<MetalDevice>([devices objectAtIndex:i]);
+   
+/*
    // Pick device from the list of available ones
    id<MTLDevice> primaryDevice = nullptr;
    id<MTLDevice> supportingDevice = nullptr;
@@ -405,7 +417,7 @@ namespace en
 #if defined(EN_PLATFORM_OSX)
    NSArray* devices = MTLCopyAllDevices();
    devicesCount = static_cast<uint32>([devices count]);
-   
+ 
    if (devicesCount == 1)
       primaryDevice = [devices objectAtIndex:0];
    else
@@ -468,14 +480,15 @@ namespace en
 #endif
 
    // Create device interfaces
-   device[0] = make_shared<MetalDevice>(primaryDevice);
+   _device[0] = make_shared<MetalDevice>(primaryDevice);
    // TODO: Why no init() call on device 0 ?
    if (supportingDevice)
       {
       shared_ptr<MetalDevice> ptr = make_shared<MetalDevice>(supportingDevice);
       ptr->init();
-      device[1] = ptr;
+      _device[1] = ptr;
       }
+*/
 
 
 
@@ -500,9 +513,19 @@ namespace en
       
    shared_ptr<GpuDevice> MetalAPI::primaryDevice(void) const
    {
-   return device[0];
+   return _device[0];
    }
 
+   shared_ptr<GpuDevice> MetalAPI::device(const uint32 index) const
+   {
+   assert( index < devicesCount );
+   
+   if (index >= devicesCount)
+      return nullptr;
+      
+   return _device[index];
+   }
+   
    uint32 MetalAPI::displays(void) const
    {
    return displaysCount;
@@ -516,6 +539,10 @@ namespace en
    shared_ptr<Display> MetalAPI::display(const uint32 index) const
    {
    assert( index < displaysCount );
+   
+   if (index >= displaysCount)
+      return nullptr;
+      
    return _display[index];
    }
 
@@ -526,9 +553,9 @@ namespace en
       return;
    
    // Here destroy any API globals
-   device[0] = nullptr;
-   device[1] = nullptr;
-   
+   for(uint8 i=0; i<devicesCount; ++i)
+      _device[i] = nullptr;
+
    for(uint32 i=0; i<displaysCount; ++i)
       _display[i] = nullptr;
    delete [] _display;

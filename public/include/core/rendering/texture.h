@@ -80,10 +80,10 @@ namespace en
    // B - 10 bits [22:31]
    //
    // It is important to note that texture data conversion types are not supported
-   // (types that assume different upload format and different storage format) as
-   // well as channels swizzled formats are not exposed here (there are only few
-   // exceptions for loading specific file formats). If channels swizzling is 
-   // possible, it is set up separately.
+   // (types that assume different upload format and different storage format)
+   // as well as channels swizzled formats are not exposed here (there are only
+   // few exceptions for loading specific file formats). If channels swizzling
+   // is possible, it is set up separately.
    //
    enum class Format : uint16
       {
@@ -147,12 +147,12 @@ namespace en
       D_32_f                 ,  // 
       S_8                    ,  // 
       DS_16_8                ,  // - Stored in separate D & S channels, order is
-      DS_24_8                ,  //   implementation dependent and it doesn't
-      DS_32_f_8              ,  //   doesn't matter as this is GPU only texture.
+      DS_24_8                ,  //   implementation dependent. It doesn't matter
+      DS_32_f_8              ,  //   as this texture is GPU only visible.
       RGB_5_6_5              ,  // Packed/special formats:
       BGR_5_6_5              ,  // - iOS only (MTLPixelFormatB5G6R5Unorm)
       BGR_8                  ,  // - Special swizzled format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
-      BGR_8_sRGB             ,  // - Special swizzled SRGB format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
+      BGR_8_sRGB             ,  // - Special swizzled sRGB format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
       BGR_8_sn               ,  // 
       BGR_8_u                ,  // 
       BGR_8_s                ,  // 

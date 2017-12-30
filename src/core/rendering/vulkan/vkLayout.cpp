@@ -206,21 +206,19 @@ namespace en
 
 
 
-   void DescriptorSetVK::setBuffer(const uint32 slot, const shared_ptr<Buffer> _buffer)
+   void DescriptorSetVK::setBuffer(const uint32 slot, const Buffer& _buffer)
    {
-   assert( _buffer );
-
    VulkanDevice* gpu = parent->gpu;
 
-   BufferVK* src = reinterpret_cast<BufferVK*>(_buffer.get());
+   const BufferVK& src = reinterpret_cast<const BufferVK*>(_buffer);
 
-   assert( src->apiType == BufferType::Uniform ||
-           src->apiType == BufferType::Storage );
+   assert( src.apiType == BufferType::Uniform ||
+           src.apiType == BufferType::Storage );
 
    VkDescriptorBufferInfo bufferInfo;
-   bufferInfo.buffer = src->handle;
+   bufferInfo.buffer = src.handle;
    bufferInfo.offset = 0U;
-   bufferInfo.range  = src->size;
+   bufferInfo.range  = src.size;
 
    VkWriteDescriptorSet writeDesc;
    writeDesc.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -229,7 +227,7 @@ namespace en
    writeDesc.dstBinding       = slot;
    writeDesc.dstArrayElement  = 0U; // Starting element in Array, looks like arrays have separate indexing from global namespace?
    writeDesc.descriptorCount  = 1U;
-   writeDesc.descriptorType   = src->apiType == BufferType::Uniform ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+   writeDesc.descriptorType   = src.apiType == BufferType::Uniform ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
    writeDesc.pImageInfo       = nullptr;
    writeDesc.pBufferInfo      = &bufferInfo; // Array of buffer descriptors
    writeDesc.pTexelBufferView = nullptr;     // Texel Buffers are not supported
@@ -237,16 +235,14 @@ namespace en
    ValidateNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
    }
 
-   void DescriptorSetVK::setSampler(const uint32 slot, const shared_ptr<Sampler> _sampler)
+   void DescriptorSetVK::setSampler(const uint32 slot, const Sampler& _sampler)
    {
-   assert( _sampler );
-
    VulkanDevice* gpu = parent->gpu;
 
-   SamplerVK* src = reinterpret_cast<SamplerVK*>(_sampler.get());
+   const SamplerVK& src = reinterpret_cast<const SamplerVK&>(_sampler);
 
    VkDescriptorImageInfo imageInfo;
-   imageInfo.sampler     = src->handle;
+   imageInfo.sampler     = src.handle;
    imageInfo.imageView   = VK_NULL_HANDLE;
    imageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED; // Ommited for Samplers
 
@@ -265,23 +261,21 @@ namespace en
    ValidateNoRet( gpu, vkUpdateDescriptorSets(gpu->device, 1, &writeDesc, 0, nullptr) )
    }
 
-   void DescriptorSetVK::setTextureView(const uint32 slot, const shared_ptr<TextureView> _view)
+   void DescriptorSetVK::setTextureView(const uint32 slot, const TextureView& _view)
    {
-   assert( _view );
-
    VulkanDevice* gpu = parent->gpu;
 
-   TextureViewVK* src = reinterpret_cast<TextureViewVK*>(_view.get());
+   const TextureViewVK& src = reinterpret_cast<const TextureViewVK&>(_view);
 
    VkDescriptorImageInfo imageInfo;
    imageInfo.sampler     = VK_NULL_HANDLE;
-   imageInfo.imageView   = src->handle;
+   imageInfo.imageView   = src.handle;
    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
    // TODO: This could be precomputed and stored in TextureView as a bool
-   if ( TextureFormatIsDepth(src->viewFormat) ||
-        TextureFormatIsStencil(src->viewFormat) ||
-        TextureFormatIsDepthStencil(src->viewFormat) )
+   if ( TextureFormatIsDepth(src.viewFormat) ||
+        TextureFormatIsStencil(src.viewFormat) ||
+        TextureFormatIsDepthStencil(src.viewFormat) )
        imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
    VkWriteDescriptorSet writeDesc;

@@ -26,23 +26,45 @@ namespace en
 {
    namespace gpu
    {
-   // TODO: Default API state
+   // Default state:
+   //
+   // - enableCulling                   = false
+   // - enableDepthBias                 = false
+   // - enableDepthClamp                = false
+   // - disableRasterizer               = false
+   // - fillMode                        = Solid
+   // - cullFace                        = Face::Back
+   // - frontFace                       = ClockWise
+   // - depthBiasConstantFactor         = 0.0f
+   // - depthBiasClamp                  = 0.0f
+   // - depthBiasSlopeFactor            = 0.0f
+   //
+   // Enabling Depth Clamping (for e.g. for Stencil Shadows), is equivalent to
+   // disabling fragment Depth Clipping in Z, so fragments outside 0 <= z <= w
+   // range won't be discarded.
+   //
+   // Currently not exposed features:
+   // - Conservative Rasterization - supported only by D3D12 (needs adoption)
+   // - lineWidth                  - supported only by Vulkan (deprecated)
+   // - pointFadeThreshold         - old Fixed Function state (deprecated)
+   //
+   // Supported in Shading Language:
+   // - pointSize                  - D3D12 HLSL "PSIZE"
+   //                                Vulkan SPIR-V "PointSize"
+   //                                Metal SL [[point_size]] (0.125 to 255.0)
+   //
    struct RasterStateInfo
       {
-      bool  enableCulling;
+      bool  enableCulling;                // Enables culling of primitives oriented towards camera with given face.
       bool  enableDepthBias;
-      bool  enableDepthClamp;             // TODO: Explain Depth Clipping vs Depth Clamping
-      bool  enableConservativeRasterization;
+      bool  enableDepthClamp;             // Disables cliping fragments outside 0 <= z <= w range.
       bool  disableRasterizer;
       FillMode fillMode;
       Face  cullFace;
-      NormalCalculationMethod frontFace;  // Method used to calculate Front Face Normal vector (default CounterClockWise)
-      float depthBiasConstantFactor;      // Depth value added to given pixel's depth (prevents z-fighting on decals).
-      float depthBiasClamp;               // More about depth bias and depth slopes:
-      float depthBiasSlopeFactor;         // https://msdn.microsoft.com/en-us/library/windows/desktop/cc308048(v=vs.85).aspx
-    //float pointSize;                    // In Metal in SL [[point_size]] (0.125 to 255.0)
-    //float pointFadeThreshold;
-      float lineWidth;                    // Deprecated in OpenGL, non-existent in Metal & Direct3D12
+      NormalCalculationMethod frontFace; // Method used to calculate Front Face Normal vector
+      float depthBiasConstantFactor;     // Depth value added to given pixel's depth (prevents z-fighting on decals).
+      float depthBiasClamp;              // More about depth bias and depth slopes:
+      float depthBiasSlopeFactor;        // https://msdn.microsoft.com/en-us/library/windows/desktop/cc308048(v=vs.85).aspx
 
       RasterStateInfo();
       };

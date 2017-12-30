@@ -29,7 +29,7 @@ namespace en
    //                               ---------------------------+--------------------+----------------------------+------------------------
    // enableCulling                   -    true                |     no defaults    |     false                  | (D) false
    // enableDepthBias                 -    false               |                    |     false                  | (D) false
-   // enableDepthClamp                -    false (clip - true) |                    | (D)[1] false (clip - true) | (D) false (clip - true)
+   // enableDepthClamp                -    false (Clipping on) |                    | (D)[1] false (Clipping on) | (D) false (Clipping on)
    // enableConservativeRasterization -    false               |                    |  X                         | (D) false (NV extension)
    // disableRasterizer               - ?                      |                    |     false                  | (D) false
    // fillMode                        -    Solid               |                    | (D) Solid                  | (D) Solid
@@ -52,12 +52,19 @@ namespace en
    // [1] Metal depth clip mode is available on iOS 9.0+
 
 
+// Depth Clipping - clip fragments in Z (near-far) range
+// Depth Clamping - is a name for a state, when Depth Clipping is disabled (thus is name of reverse state).
 
 
+   //rasterStateInfo.pointSize            = raster.pointSize;            // Point Fade Threshold - max value to which point size is clamped (deprecated in 4.2?)
+   //rasterStateInfo.pointFadeThreshold   = raster.pointFadeThreshold;   // https://www.opengl.org/registry/specs/ARB/point_sprite.txt
+   //                                                                    // https://www.opengl.org/registry/specs/ARB/point_parameters.txt
 
 
 
    // D3D12 Defaults:
+   //
+   // D3D12_RASTERIZER_DESC:
    //
    // FillMode                  Solid
    // CullMode                  Back
@@ -85,7 +92,7 @@ namespace en
    //
    // glDisable(GL_CULL_FACE);
    // glDisable(GL_POLYGON_OFFSET_FILL); - depth Bias / polygon offset
-   // glDisable(GL_DEPTH_CLAMP);
+   // glDisable(GL_DEPTH_CLAMP); - Clipping enabled by default
    // glDisable(GL_RASTERIZER_DISCARD);
    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
    // glCullFace(GL_BACK);
@@ -97,18 +104,18 @@ namespace en
    RasterStateInfo::RasterStateInfo() :
       enableCulling(false),
       enableDepthBias(false),
-      enableDepthClamp(false), // Depth Clip by default
-      enableConservativeRasterization(false),
+      enableDepthClamp(false), // Clipping enabled by default.
+    //enableConservativeRasterization(false),
       disableRasterizer(false),
       fillMode(Solid),
       cullFace(Face::Back),
-      frontFace(CounterClockWise),   // TODO: Change to CW
+      frontFace(ClockWise),
       depthBiasConstantFactor(0.0f),
       depthBiasClamp(0.0f),
-      depthBiasSlopeFactor(0.0f),
+      depthBiasSlopeFactor(0.0f)
     //pointSize(1.0f),
     //pointFadeThreshold(1.0f),
-      lineWidth(1.0f)
+    //lineWidth(1.0f)
    {
    }
 

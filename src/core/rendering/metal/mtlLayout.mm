@@ -202,7 +202,7 @@ namespace en
    heapsCount++;
    }
 
-   void DescriptorSetMTL::setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer)
+   void DescriptorSetMTL::setBuffer(const uint32 slot, const Buffer& buffer)
    {
    // TODO: Shouldn't above global slot be recomputed to local Buffer slot?
    //       Is this "bind point index" global or local?
@@ -214,17 +214,17 @@ namespace en
    
    // If buffer is suballocated from other buffer (emulating staging heap),
    // it's offset in that parent buffer needs to be applied.
-   BufferMTL* ptr = reinterpret_cast<BufferMTL*>(buffer.get());
-   [layout->handle setBuffer:ptr->handle offset:ptr->offset atIndex:slot];
+   const BufferMTL& src = reinterpret_cast<const BufferMTL&>(buffer);
+   [layout->handle setBuffer:src.handle offset:src.offset atIndex:slot];
    
    // TODO: Unlock layout mutex
    
    // Pass both, handles to backing Heaps, and
    // backing Buffers for emulated staging Heaps.
-   updateResidencyTracking(slot, ptr->heap->handle);
+   updateResidencyTracking(slot, src.heap->handle);
    }
    
-   void DescriptorSetMTL::setSampler(const uint32 slot, const shared_ptr<Sampler> sampler)
+   void DescriptorSetMTL::setSampler(const uint32 slot, const Sampler& sampler)
    {
    // TODO: Shouldn't above global slot be recomputed to local Sampler slot?
    //       Is this "bind point index" global or local?
@@ -232,13 +232,13 @@ namespace en
    // TODO: Layout mutex lock, to prevent of other thread corrupting currently set buffer for encoding
    [layout->handle setArgumentBuffer:handle offset:0];
    
-   SamplerMTL* ptr = reinterpret_cast<SamplerMTL*>(sampler.get());
-   [layout->handle setSamplerState:ptr->handle atIndex:slot];
+   const SamplerMTL& src = reinterpret_cast<const SamplerMTL&>(sampler);
+   [layout->handle setSamplerState:src.handle atIndex:slot];
 
    // TODO: Unlock layout mutex
    }
    
-   void DescriptorSetMTL::setTextureView(const uint32 slot, const shared_ptr<TextureView> view)
+   void DescriptorSetMTL::setTextureView(const uint32 slot, const TextureView& view)
    {
    // TODO: Shouldn't above global slot be recomputed to local TextureView slot?
    //       Is this "bind point index" global or local?
@@ -246,16 +246,16 @@ namespace en
    // TODO: Layout mutex lock, to prevent of other thread corrupting currently set buffer for encoding
    [layout->handle setArgumentBuffer:handle offset:0];
    
-   TextureViewMTL* ptr = reinterpret_cast<TextureViewMTL*>(view.get());
-   [layout->handle setTexture:ptr->handle atIndex:slot];
+   const TextureViewMTL& src = reinterpret_cast<const TextureViewMTL&>(view);
+   [layout->handle setTexture:src.handle atIndex:slot];
    
    // TODO: Unlock layout mutex
    
-   updateResidencyTracking(slot, ptr->texture->heap->handle);
+   updateResidencyTracking(slot, src.texture->heap->handle);
    }
    
    // TODO: Consider in future exposing API that allows binding N resources at the same time
-   //void DescriptorSetMTL::setTextureViews(const uint32 slot, const uint32 count, const shared_ptr<TextureView>* views)
+   //void DescriptorSetMTL::setTextureViews(const uint32 slot, const uint32 count, const shared_ptr<TextureView> views[])
    //{
    //assert( views );
    //[layout->handle setBuffers:(const id <MTLBuffer> __nullable [__nonnull])buffers offsets:(const NSUInteger [__nonnull])offsets withRange:NSMakeRange(slot, count)];

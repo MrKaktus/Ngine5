@@ -129,7 +129,11 @@ namespace en
    return api->displayArray[index];
    }
 
-
+   uint64 CommonDevice::dedicatedMemorySize(void)
+   {
+       return support.videoMemorySize;
+   }
+   
    CommonDevice::~CommonDevice()
    {
    // Release default device objects

@@ -1694,9 +1694,9 @@ namespace en
    Validate( this, vkEnumeratePhysicalDevices(instance, &devicesCount, deviceHandle) )
 
    // Create interfaces for all available physical devices
-   device = new shared_ptr<VulkanDevice>[devicesCount];
+   _device = new shared_ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
-      device[i] = make_shared<VulkanDevice>(this, i, deviceHandle[i]);
+      _device[i] = make_shared<VulkanDevice>(this, i, deviceHandle[i]);
  
    // Register debug callbacks
    //--------------------------
@@ -1818,7 +1818,17 @@ namespace en
          
    shared_ptr<GpuDevice> VulkanAPI::primaryDevice(void) const
    {
-   return device[0];
+   return _device[0];
+   }
+
+   shared_ptr<GpuDevice> VulkanAPI::device(const uint32 index) const
+   {
+   assert( index < devicesCount );
+   
+   if (index >= devicesCount)
+      return nullptr;
+      
+   return _device[index];
    }
 
    uint32 VulkanAPI::displays(void) const
@@ -1834,11 +1844,15 @@ namespace en
    shared_ptr<Display> VulkanAPI::display(const uint32 index) const
    {
    assert( index < displaysCount );
+   
+   if (index >= displaysCount)
+      return nullptr;
+      
    return displayArray[index];   
    }
 
 
-// TODO: Window creation and bind !
+// TODO: Linux Window creation and bind !
 //
 //
 //#ifdef EN_PLATFORM_WINDOWS

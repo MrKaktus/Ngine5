@@ -292,7 +292,7 @@ namespace en
 
       ID3D12Debug*           debugController;
       IDXGIFactory5*         factory;         // Application Direct3D API Factory
-      shared_ptr<Direct3D12Device>* device;   // Physical Device Interfaces
+      shared_ptr<Direct3D12Device>* _device;  // Physical Device Interfaces
       uint32                 devicesCount;
 
       public:
@@ -304,7 +304,8 @@ namespace en
       // TODO: Those could be moved to CommonGraphicAPI
       virtual uint32 devices(void) const;
       virtual shared_ptr<GpuDevice> primaryDevice(void) const;
-
+      virtual shared_ptr<GpuDevice> device(const uint32 index) const;
+      
       virtual uint32 displays(void) const;
       virtual shared_ptr<Display> primaryDisplay(void) const;
       virtual shared_ptr<Display> display(const uint32 index) const;

@@ -86,9 +86,9 @@ namespace en
       
       void updateResidencyTracking(const uint32 slot, const id<MTLHeap> heap);
       
-      virtual void setBuffer(const uint32 slot, const shared_ptr<Buffer> buffer);
-      virtual void setSampler(const uint32 slot, const shared_ptr<Sampler> sampler);
-      virtual void setTextureView(const uint32 slot, const shared_ptr<TextureView> view);
+      virtual void setBuffer(const uint32 slot, const Buffer& buffer);
+      virtual void setSampler(const uint32 slot, const Sampler& sampler);
+      virtual void setTextureView(const uint32 slot, const TextureView& view);
       };
    }
 }

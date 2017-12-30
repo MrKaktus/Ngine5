@@ -143,7 +143,6 @@
 		85917AF51C3F66F60051382A /* win_events.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A5D1C3F66120051382A /* win_events.cpp */; };
 		85917AF61C3F66F60051382A /* win_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A5E1C3F66120051382A /* win_main.cpp */; };
 		85917AF71C3F66F60051382A /* stereo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A601C3F66120051382A /* stereo.cpp */; };
-		85917AF81C3F66F60051382A /* Istate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A611C3F66120051382A /* Istate.cpp */; };
 		85917AF91C3F66F60051382A /* exr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A631C3F66120051382A /* exr.cpp */; };
 		85917AFA1C3F66F60051382A /* dds.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A641C3F66120051382A /* dds.cpp */; };
 		85917AFB1C3F66F60051382A /* bmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85917A651C3F66120051382A /* bmp.cpp */; };
@@ -1314,7 +1313,6 @@
 				85917AF61C3F66F60051382A /* win_main.cpp in Sources */,
 				8570E3BC1E48DA3E0003FF57 /* vkWindow.cpp in Sources */,
 				85917AF71C3F66F60051382A /* stereo.cpp in Sources */,
-				85917AF81C3F66F60051382A /* Istate.cpp in Sources */,
 				85917AF91C3F66F60051382A /* exr.cpp in Sources */,
 				85B1D99F1FEF694700794A1F /* dx12Window.cpp in Sources */,
 				85917AFA1C3F66F60051382A /* dds.cpp in Sources */,

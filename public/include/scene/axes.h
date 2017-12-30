@@ -13,7 +13,6 @@
 #ifndef ENG_SCENE_AXES
 #define ENG_SCENE_AXES
 
-#include "core/rendering/rendering.hpp"
 #include "scene/drawable.h"
 
 using namespace en::gpu;

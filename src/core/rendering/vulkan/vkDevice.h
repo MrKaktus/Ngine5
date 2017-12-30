@@ -338,7 +338,7 @@ namespace en
       uint32                           globalExtensionsCount;
 
       VkInstance                       instance;    // Application Vulkan API Instance
-      shared_ptr<VulkanDevice>*        device;      // Physical Device Interfaces
+      shared_ptr<VulkanDevice>*        _device;     // Physical Device Interfaces
       uint32                           devicesCount;
 
       // OS Function Pointer
@@ -394,7 +394,8 @@ namespace en
       // TODO: Those could be moved to CommonGraphicAPI
       virtual uint32 devices(void) const;
       virtual shared_ptr<GpuDevice> primaryDevice(void) const;
-
+      virtual shared_ptr<GpuDevice> device(const uint32 index) const;
+      
       virtual uint32 displays(void) const;
       virtual shared_ptr<Display> primaryDisplay(void) const;
       virtual shared_ptr<Display> display(const uint32 index) const;

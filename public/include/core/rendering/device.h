@@ -347,6 +347,9 @@ namespace en
 
       // Capabilities query:
 
+      // Size of memory dedicated to this GPU (VRAM size on discreete GPU's,
+      // 0 on integrated GPU's, unless EDRAM is directly exposed).
+      virtual uint64 dedicatedMemorySize(void) = 0;
 
       // Size of texel in bytes, based on the given format.
       // For compressed formats, it's texel block size.
@@ -375,7 +378,8 @@ namespace en
 
       virtual uint32 devices(void) const = 0;
       virtual shared_ptr<GpuDevice> primaryDevice(void) const = 0;
-
+      virtual shared_ptr<GpuDevice> device(const uint32 index) const = 0;
+      
       virtual uint32 displays(void) const = 0;
       virtual shared_ptr<Display> primaryDisplay(void) const = 0;
       virtual shared_ptr<Display> display(const uint32 index) const = 0;

@@ -11,7 +11,6 @@
 */
 
 #include "scene/cam.h"
-#include "core/rendering/rendering.hpp"
 #include "resources/context.h"
 
 namespace en

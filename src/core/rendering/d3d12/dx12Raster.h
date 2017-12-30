@@ -31,6 +31,7 @@ namespace en
       {
       public:
       D3D12_RASTERIZER_DESC state;
+      bool disableRasterizer;
 
       RasterStateD3D12(const RasterStateInfo& desc);
       };

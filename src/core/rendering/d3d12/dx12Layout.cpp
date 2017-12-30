@@ -125,29 +125,25 @@ namespace en
    return found;
    }
 
-   void DescriptorSetD3D12::setBuffer(const uint32 slot, const shared_ptr<Buffer> _buffer)
+   void DescriptorSetD3D12::setBuffer(const uint32 slot, const Buffer& _buffer)
    {
-   assert( _buffer );
-
    // Convert slot in DescriptorSet to slot in Heap
    uint32 heapSlot = 0;
    if (!translateSlot(slot, heapSlot))
       return;
 
-   BufferD3D12* buffer = reinterpret_cast<BufferD3D12*>(_buffer.get());
+   const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
 
    // TODO: In future expose true BufferViews, allowing mapping ranges into descriptor
    D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
-   desc.BufferLocation = buffer->handle->GetGPUVirtualAddress();
-   desc.SizeInBytes    = static_cast<UINT>(buffer->size);
+   desc.BufferLocation = buffer.handle->GetGPUVirtualAddress();
+   desc.SizeInBytes    = static_cast<UINT>(buffer.size);
 
    ValidateNoRet( gpu, CreateConstantBufferView(&desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
    }
 
-   void DescriptorSetD3D12::setSampler(const uint32 slot, const shared_ptr<Sampler> _sampler)
+   void DescriptorSetD3D12::setSampler(const uint32 slot, const Sampler& _sampler)
    {
-   assert( _sampler );
-
    // Convert slot in DescriptorSet to slot in Heap
    uint32 heapSlot = 0;
    if (!translateSlot(slot, heapSlot))
@@ -155,14 +151,12 @@ namespace en
 
    // Sampler objects are created in D3D12 by encoding their state directly 
    // into Descriptor in DescriptorSet's backing DescriptorPool (Heap)
-   SamplerD3D12* sampler = reinterpret_cast<SamplerD3D12*>(_sampler.get());
-   ValidateNoRet( gpu, CreateSampler(&sampler->state, parent->pointerToSamplerDescriptorOnCPU(heapSlot)) )
+   const SamplerD3D12& sampler = reinterpret_cast<const SamplerD3D12*>(_sampler);
+   ValidateNoRet( gpu, CreateSampler(&sampler.state, parent->pointerToSamplerDescriptorOnCPU(heapSlot)) )
    }
 
-   void DescriptorSetD3D12::setTextureView(const uint32 slot, const shared_ptr<TextureView> _view)
+   void DescriptorSetD3D12::setTextureView(const uint32 slot, const TextureView& _view)
    {
-   assert( _view );
-
    // Convert slot in DescriptorSet to slot in Heap
    uint32 heapSlot = 0;
    if (!translateSlot(slot, heapSlot))
@@ -170,8 +164,8 @@ namespace en
 
    // Views are created in D3D12 by encoding them directly into 
    // Descriptor in DescriptorSet's backing DescriptorPool (Heap)
-   TextureViewD3D12* view = reinterpret_cast<TextureViewD3D12*>(_view.get());
-   ValidateNoRet( gpu, CreateShaderResourceView(view->texture->handle, &view->desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
+   const TextureViewD3D12& view = reinterpret_cast<const TextureViewD3D12&>(_view);
+   ValidateNoRet( gpu, CreateShaderResourceView(view.texture->handle, &view.desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
    }
 
    // DESCRIPTOR POOL

@@ -54,6 +54,9 @@ namespace en
                                         // https://developer.nvidia.com/content/basics-gpu-voxelization
                                         // (currently unsupported by engine)
    state.ConservativeRaster    = desc.enableConservativeRasterization ? D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON : D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+   
+   // Pass disableRasterizer down, to moment when Pipeline object is created
+   disableRasterizer = desc.disableRasterizer;
    }
 
    shared_ptr<RasterState> Direct3D12Device::createRasterState(const RasterStateInfo& state)

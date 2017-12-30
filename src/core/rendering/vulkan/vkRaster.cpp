@@ -61,14 +61,10 @@ namespace en
    state.depthBiasConstantFactor = desc.depthBiasConstantFactor;             
    state.depthBiasClamp          = desc.depthBiasClamp;        
    state.depthBiasSlopeFactor    = desc.depthBiasSlopeFactor;  
-   state.lineWidth               = desc.lineWidth;
+   state.lineWidth               = 1.0f; //desc.lineWidth; (unsupported)
 
-   // Pass through state
-   conservativeRaster = desc.enableConservativeRasterization;
-
-   //rasterStateInfo.pointSize            = raster.pointSize;            // Point Fade Threshold - max value to which point size is clamped (deprecated in 4.2?)
-   //rasterStateInfo.pointFadeThreshold   = raster.pointFadeThreshold;   // https://www.opengl.org/registry/specs/ARB/point_sprite.txt
-   //                                                                    // https://www.opengl.org/registry/specs/ARB/point_parameters.txt
+   // Pass through state (unsupported)
+   // conservativeRaster = desc.enableConservativeRasterization;
    }
 
    shared_ptr<RasterState> VulkanDevice::createRasterState(const RasterStateInfo& state)

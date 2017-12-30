@@ -131,7 +131,7 @@ namespace en
    desc.DS                    = pipelineState.shader[2] ? reinterpret_cast<ShaderD3D12*>(pipelineState.shader[2].get())->state : noShader;
    desc.HS                    = pipelineState.shader[1] ? reinterpret_cast<ShaderD3D12*>(pipelineState.shader[1].get())->state : noShader;
    desc.GS                    = pipelineState.shader[3] ? reinterpret_cast<ShaderD3D12*>(pipelineState.shader[3].get())->state : noShader;
-   
+
    // StreamOut is currently unsupported
    desc.StreamOutput.pSODeclaration   = nullptr;
    desc.StreamOutput.NumEntries       = 0u;
@@ -173,6 +173,19 @@ namespace en
    desc.RasterizerState.AntialiasedLineEnable = FALSE; // Currently unsupported (See dx12Raster.cpp).
    desc.RasterizerState.ForcedSampleCount     = 0u;    // Currently unsupported (See dx12Raster.cpp).
 
+   // `disableRasterizer` needs to be emulated on D3D12 by providing Pipeline
+   // object descriptor without Fragment Shader, and with Depth Test and Stencil
+   // Test operations disabled. For more details see D3D11 description:
+   // https://msdn.microsoft.com/en-us/library/windows/desktop/bb205125(v=vs.85).aspx
+   if (raster.disableRasterizer)
+   {
+       desc.PS                              = noShader;
+       desc.DepthStencilState.DepthEnable   = FALSE;
+       desc.DepthStencilState.StencilEnable = FALSE;
+       // TODO: What about Depth Write?
+   }
+   
+   
    // TODO: Use PSO cache/library
    //       https://msdn.microsoft.com/en-us/library/windows/desktop/mt709145(v=vs.85).aspx
    // ID3D12PipelineLibrary* lib;

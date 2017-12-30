@@ -30,7 +30,6 @@ namespace en
       {
       public:
       VkPipelineRasterizationStateCreateInfo state;
-      bool conservativeRaster;
 
       RasterStateVK(const RasterStateInfo& desc);
       };

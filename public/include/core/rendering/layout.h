@@ -136,15 +136,15 @@ namespace en
       public:
       virtual void setBuffer(
          const uint32 slot,
-         const shared_ptr<Buffer> buffer) = 0;
+         const Buffer& buffer) = 0;
          
       virtual void setSampler(
          const uint32 slot,
-         const shared_ptr<Sampler> sampler) = 0;
+         const Sampler& sampler) = 0;
          
       virtual void setTextureView(
          const uint32 slot,
-         const shared_ptr<TextureView> view) = 0;
+         const TextureView& view) = 0;
 
       virtual ~DescriptorSet() {};
       };

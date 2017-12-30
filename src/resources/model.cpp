@@ -23,15 +23,15 @@ namespace en
    // Engine model file format description
    aligned(1)
    struct Header
-          {
-          uint32 version;         // Model file format version
-          struct Buffers
-                 {
-                 uint16 geometry; // Geometry buffers count
-                 uint16 elements; // Index buffers count
-                 } buffers; 
-          uint16 meshes;          // Meshes count
-          };
+      {
+      uint32 version;     // Model file format version
+      struct Buffers
+         {
+         uint16 geometry; // Geometry buffers count
+         uint16 elements; // Index buffers count
+         } buffers;
+      uint16 meshes;      // Meshes count
+      };
 
    struct BufferDescription
           {
