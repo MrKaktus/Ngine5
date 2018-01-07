@@ -151,7 +151,7 @@ namespace en
 
    // Sampler objects are created in D3D12 by encoding their state directly 
    // into Descriptor in DescriptorSet's backing DescriptorPool (Heap)
-   const SamplerD3D12& sampler = reinterpret_cast<const SamplerD3D12*>(_sampler);
+   const SamplerD3D12& sampler = reinterpret_cast<const SamplerD3D12&>(_sampler);
    ValidateNoRet( gpu, CreateSampler(&sampler.state, parent->pointerToSamplerDescriptorOnCPU(heapSlot)) )
    }
 

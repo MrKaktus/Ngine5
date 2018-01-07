@@ -509,7 +509,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::commit(const Semaphore* signalSemaphore)
+   void CommandBufferVK::commit(Semaphore* signalSemaphore)
    {
    assert( started );
    assert( !encoding );
@@ -554,7 +554,7 @@ namespace en
    // Signal semaphore for future synchronization.
    if (signalSemaphore)
       {
-      const SemaphoreVK* signal = reinterpret_cast<const SemaphoreVK*>(signalSemaphore);
+      SemaphoreVK* signal = reinterpret_cast<SemaphoreVK*>(signalSemaphore);
 
       submitInfo.signalSemaphoreCount = 1u;   
       submitInfo.pSignalSemaphores    = &signal->handle;        

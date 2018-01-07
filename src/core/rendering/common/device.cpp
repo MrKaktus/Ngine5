@@ -133,6 +133,11 @@ namespace en
    {
        return support.videoMemorySize;
    }
+
+   uint64 CommonDevice::systemMemorySize(void)
+   {
+       return support.systemMemorySize;
+   }
    
    CommonDevice::~CommonDevice()
    {

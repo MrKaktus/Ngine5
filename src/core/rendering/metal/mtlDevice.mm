@@ -263,6 +263,7 @@ namespace en
      
    // Memory
    support.videoMemorySize               = [device recommendedMaxWorkingSetSize];
+   support.systemMemorySize              = 0; // TODO!
 
    // Input Assembler
    support.maxInputLayoutBuffersCount    = 31;

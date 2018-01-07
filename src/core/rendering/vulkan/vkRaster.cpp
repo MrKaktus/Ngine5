@@ -55,7 +55,7 @@ namespace en
    state.depthClampEnable        = desc.enableDepthClamp  ? VK_TRUE : VK_FALSE;
    state.rasterizerDiscardEnable = desc.disableRasterizer ? VK_TRUE : VK_FALSE;  // Disables Rasterizer (for Geometry passes only)
    state.polygonMode             = TranslateFillMode[desc.fillMode];             // optional (GL45)
-   state.cullMode                = desc.enableCulling     ? TranslateCullingMethod[desc.cullFace] : VK_CULL_MODE_NONE;
+   state.cullMode                = desc.enableCulling     ? TranslateCullingMethod[underlyingType(desc.cullFace)] : VK_CULL_MODE_NONE;
    state.frontFace               = TranslateNormalCalculationMethod[desc.frontFace];
    state.depthBiasEnable         = desc.enableDepthBias   ? VK_TRUE : VK_FALSE;
    state.depthBiasConstantFactor = desc.depthBiasConstantFactor;             

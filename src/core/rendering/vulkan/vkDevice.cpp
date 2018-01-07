@@ -311,33 +311,33 @@ namespace en
    ValidateNoRet( api, vkGetPhysicalDeviceProperties(handle, &properties) )
    ValidateNoRet( api, vkGetPhysicalDeviceMemoryProperties(handle, &memory) )
 
-    for(uint32_t i=0; i<memory.memoryHeapCount; ++i)
-       {
-       Log << "Memory range " << stringFrom(i) << ":\n\n";
-       Log << "    Size          : "  << stringFrom(memory.memoryHeaps[i].size) << "\n";
-       Log << "    Backing memory: ";
-       if (memory.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
-          Log << "VRAM\n";
-       else 
-          Log << "RAM\n";
-       Log << "    Memory types  :\n";
-       for(uint32_t j=0; j<memory.memoryTypeCount; ++j)
-          if (memory.memoryTypes[j].heapIndex == i)
-             {
-             Log << "    Type: "  << stringFrom(j) << "\n";
-             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-                Log << "        Supports: VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT\n";
-             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-                Log << "        Supports: VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT\n";
-             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-                Log << "        Supports: VK_MEMORY_PROPERTY_HOST_COHERENT_BIT\n";
-             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
-                Log << "        Supports: VK_MEMORY_PROPERTY_HOST_CACHED_BIT\n\n\n"; 
-             if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
-                Log << "        Supports: VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT\n\n\n"; 
-             }
-
-       }
+   for(uint32_t i=0; i<memory.memoryHeapCount; ++i)
+      {
+      Log << "Memory range " << stringFrom(i) << ":\n\n";
+      Log << "    Size          : "  << stringFrom(memory.memoryHeaps[i].size) << "\n";
+      Log << "    Backing memory: ";
+      if (memory.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+         Log << "VRAM\n";
+      else 
+         Log << "RAM\n";
+      Log << "    Memory types  :\n";
+      for(uint32_t j=0; j<memory.memoryTypeCount; ++j)
+         if (memory.memoryTypes[j].heapIndex == i)
+            {
+            Log << "    Type: "  << stringFrom(j) << "\n";
+            if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+               Log << "        Supports: VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT\n";
+            if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+               Log << "        Supports: VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT\n";
+            if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+               Log << "        Supports: VK_MEMORY_PROPERTY_HOST_COHERENT_BIT\n";
+            if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
+               Log << "        Supports: VK_MEMORY_PROPERTY_HOST_CACHED_BIT\n\n\n"; 
+            if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+               Log << "        Supports: VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT\n\n\n"; 
+            }
+   
+      }
 
 
  // TODO: Gather even more information
@@ -695,6 +695,17 @@ namespace en
 
    void VulkanDevice::init()
    {
+   // Memory
+   support.videoMemorySize               = 0; 
+   support.systemMemorySize              = 0;
+   for(uint32_t i=0; i<memory.memoryHeapCount; ++i)
+      {
+      if (memory.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+         support.videoMemorySize  += memory.memoryHeaps[i].size;
+      else 
+         support.systemMemorySize += memory.memoryHeaps[i].size;   
+      }
+
    // Input Assembler
    support.maxInputLayoutBuffersCount    = properties.limits.maxVertexInputBindings;
    support.maxInputLayoutAttributesCount = properties.limits.maxVertexInputAttributes;
@@ -822,8 +833,6 @@ namespace en
    
    void VulkanDevice::loadDeviceFunctionPointers(void)
    {
-   // TODO: Order it by extensions etc.
-
    // Windows WA - Undefine Windows API defines
 #ifdef CreateSemaphore
 #undef CreateSemaphore
@@ -1209,7 +1218,7 @@ namespace en
 // 
 // - Heaps are fixed up front.
 // - Their amount and types is vendor / gpu / driver dependent.
-// - We alloc memory on given cheap by referring to Memory Type ID -> which points at given heap. (see below).
+// - We alloc memory on given heap by referring to Memory Type ID -> which points at given heap. (see below).
 // 
 // Acquire GPU heaps count an types available :
 // 

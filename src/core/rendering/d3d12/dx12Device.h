@@ -157,7 +157,7 @@ namespace en
       HRESULT                 lastResult[MaxSupportedWorkerThreads];
       Direct3DAPI*            api;      // Direct3D API 
       uint32                  index;    // This device number on the list
-      IDXGIAdapter1*          adapter;  // HW Adapter, physical GPU from which this D3D12 GPU was created
+      IDXGIAdapter3*          adapter;  // HW Adapter, physical GPU from which this D3D12 GPU was created
       ID3D12Device*           device;
       uint32                  queuesCount[underlyingType(QueueType::Count)];
       ID3D12CommandQueue*     queue[underlyingType(QueueType::Count)];
@@ -187,7 +187,7 @@ namespace en
       D3D12_CPU_DESCRIPTOR_HANDLE handleRTV[8];
       D3D12_CPU_DESCRIPTOR_HANDLE handleDSV;
       
-      Direct3D12Device(Direct3DAPI* api, const uint32 index, IDXGIAdapter1* adapter);
+      Direct3D12Device(Direct3DAPI* api, const uint32 index, IDXGIAdapter3* adapter);
      ~Direct3D12Device();
 
 

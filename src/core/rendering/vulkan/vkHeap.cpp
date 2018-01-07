@@ -286,14 +286,14 @@ namespace en
    // Create buffer descriptor
    shared_ptr<BufferVK> buffer = gpu::createBuffer(this, type, size);
    if (!buffer)
-      return shared_ptr<Buffer>(nullptr);
+      return nullptr;
 
    // Check if created buffer can be backed by this Heap memory
    if (!checkBit(buffer->memoryRequirements.memoryTypeBits, memoryType))
       {
       // Destroy texture descriptor
       buffer = nullptr;
-      return shared_ptr<Buffer>(nullptr);
+      return nullptr;
       }
 
    // Find memory region in the Heap where this buffer can be placed.
@@ -305,7 +305,7 @@ namespace en
       {
       // Destroy buffer descriptor
       buffer = nullptr;
-      return shared_ptr<Buffer>(nullptr);
+      return nullptr;
       }
 
    Validate( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
@@ -325,14 +325,14 @@ namespace en
    // Create texture descriptor
    shared_ptr<TextureVK> texture = gpu::createTexture(gpu.get(), state);
    if (!texture)
-      return shared_ptr<Texture>(nullptr);
+      return nullptr;
 
    // Check if created texture can be backed by this Heap memory
    if (!checkBit(texture->memoryRequirements.memoryTypeBits, memoryType))
       {
       // Destroy texture descriptor
       texture = nullptr;
-      return shared_ptr<Texture>(nullptr);
+      return nullptr;
       }
   
    // Find memory region in the Heap where this texture can be placed.
@@ -344,7 +344,7 @@ namespace en
       {
       // Destroy texture descriptor
       texture = nullptr;
-      return shared_ptr<Texture>(nullptr);
+      return nullptr;
       }
 
    Validate( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )

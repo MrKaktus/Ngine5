@@ -25,7 +25,7 @@ namespace en
    namespace gpu
    {
    // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
-   static const VkBlendFactor TranslateBlend[BlendFunctionsCount] =
+   static const VkBlendFactor TranslateBlend[underlyingType(BlendFactor::Count)] =
       {
       VK_BLEND_FACTOR_ZERO,                     // Zero
       VK_BLEND_FACTOR_ONE,                      // One
@@ -49,7 +49,7 @@ namespace en
       };
 
    // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
-   static const VkBlendOp TranslateBlendFunc[BlendEquationsCount] =
+   static const VkBlendOp TranslateBlendFunc[underlyingType(BlendOperation::Count)] =
       {
       VK_BLEND_OP_ADD,                          // Add
       VK_BLEND_OP_SUBTRACT,                     // Subtract
@@ -59,7 +59,7 @@ namespace en
       };
 
    // Logical Operation is alternative to blending (currently not supported)
-   static const VkLogicOp TranslateLogicOperation[LogicOperationsCount] = 
+   static const VkLogicOp TranslateLogicOperation[underlyingType(LogicOperation::Count)] = 
       {
       VK_LOGIC_OP_CLEAR,                        // Clear
       VK_LOGIC_OP_SET,                          // Set
@@ -106,7 +106,7 @@ namespace en
       blendInfo[i].dstAlphaBlendFactor = static_cast<VkBlendFactor>(underlyingType(color[i].dstAlpha)); // Optimisation: TranslateBlend[color[i].dstAlpha];
       blendInfo[i].alphaBlendOp        = static_cast<VkBlendOp>(underlyingType(color[i].alpha));        // Optimisation: TranslateBlendFunc[color[i].alpha];
       // Translate Color Write Mask
-      blendInfo[i].colorWriteMask      = color[i].writeMask;
+      blendInfo[i].colorWriteMask      = underlyingType(color[i].writeMask);
       // Optimisation:
       //if (color[i].writeMask & ColorMaskRed)           
       //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_R_BIT;

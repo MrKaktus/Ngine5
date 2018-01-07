@@ -36,12 +36,8 @@ using namespace std;
 #include "platform/osx/osx_main.h"
 #endif
 
-// Testing new Rendering Interface on OSX, using legacy on rest
-#ifdef EN_PLATFORM_OSX
-#include "core/rendering/device.h"
-#else
-#include "core/rendering/rendering.hpp"
-#endif
+
+
 
 #include "rendering/stereo.h"
 
@@ -62,15 +58,16 @@ using namespace std;
 
 #include "audio/audio.h"         // Public interface - TODO: Finish!
 
-#include "resources/resources.h" // Public interface
-#include "resources/forsyth.h"   // Public interface
-#include "resources/bmp.h"       // Public interface
-#include "resources/tga.h"       // Public interface
-#include "resources/png.h"       // Public interface
-#include "resources/exr.h"       // Public interface
-#include "resources/hdr.h"       // Public interface
-#include "resources/obj.h"       // Public interface
-#include "resources/mtl.h"       // Public interface
+#include "core/rendering/device.h" // Public interface
+#include "resources/resources.h"   // Public interface
+#include "resources/forsyth.h"     // Public interface
+#include "resources/bmp.h"         // Public interface
+#include "resources/tga.h"         // Public interface
+#include "resources/png.h"         // Public interface
+#include "resources/exr.h"         // Public interface
+#include "resources/hdr.h"         // Public interface
+#include "resources/obj.h"         // Public interface
+#include "resources/mtl.h"         // Public interface
 
 #include "scene/scene.h"
 

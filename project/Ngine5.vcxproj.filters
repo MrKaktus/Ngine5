@@ -168,9 +168,6 @@
     <ClCompile Include="..\src\core\log\log.cpp">
       <Filter>Source Files\core\log</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\common\cBlend.cpp">
-      <Filter>Source Files\core\rendering\common</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\cTexture.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
@@ -299,9 +296,6 @@
     </ClCompile>
     <ClCompile Include="..\src\platform\windows\win_main.cpp">
       <Filter>Source Files\platform\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\rendering\Istate.cpp">
-      <Filter>Source Files\rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\src\rendering\stereo.cpp">
       <Filter>Source Files\rendering</Filter>
@@ -547,6 +541,9 @@
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\sampler.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\comBlend.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
   </ItemGroup>

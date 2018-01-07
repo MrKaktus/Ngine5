@@ -347,9 +347,14 @@ namespace en
 
       // Capabilities query:
 
-      // Size of memory dedicated to this GPU (VRAM size on discreete GPU's,
-      // 0 on integrated GPU's, unless EDRAM is directly exposed).
+      // Size of memory dedicated to this GPU.
+      // Discreete GPU's VRAM size. Some mobile/integrated GPU's may report 
+      // portion of system memory that was dedicated to them in BIOS.
       virtual uint64 dedicatedMemorySize(void) = 0;
+
+      // Size of system memory that this GPU can use.
+      // UMA architectures don't have dedicated me
+      virtual uint64 systemMemorySize(void) = 0;
 
       // Size of texel in bytes, based on the given format.
       // For compressed formats, it's texel block size.

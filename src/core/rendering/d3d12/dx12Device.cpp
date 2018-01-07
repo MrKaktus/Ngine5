@@ -126,7 +126,7 @@ namespace en
    return false;
    }
 
-   Direct3D12Device::Direct3D12Device(Direct3DAPI* _api, const uint32 _index, IDXGIAdapter1* _adapter) :
+   Direct3D12Device::Direct3D12Device(Direct3DAPI* _api, const uint32 _index, IDXGIAdapter3* _adapter) :
       api(_api),
       index(_index),
       adapter(_adapter),
@@ -584,32 +584,13 @@ namespace en
 
    // Some capabilities are fixed based on Feature Level:
    // https://msdn.microsoft.com/en-us/library/windows/desktop/mt186615(v=vs.85).aspx
-
-   // VRAM and System memory capabilities
-   
-    // TODO: Debug print of GPU:
-
-   DXGI_ADAPTER_DESC1 adapterDescription;
-   device->GetDesc1(&adapterDescription);
-    //WCHAR Description[ 128 ];
-    //UINT VendorId;
-    //UINT DeviceId;
-    //UINT SubSysId;
-    //UINT Revision;
-    //SIZE_T DedicatedVideoMemory;
-    //SIZE_T DedicatedSystemMemory;
-    //SIZE_T SharedSystemMemory;
-    //LUID AdapterLuid;
-    //UINT Flags;
-
+  
    // Memory
-   support.videoMemorySize  = adapterDescription.DedicatedVideoMemory;
-   support.systemMemorySize = adapterDescription.DedicatedSystemMemory;
-   support.sharedMemorySize = adapterDescription.SharedSystemMemory;
-      
-      
-   //IDXGIAdapter3
-   
+   DXGI_ADAPTER_DESC1 adapterDescription;
+   adapter->GetDesc1(&adapterDescription);
+
+/* // Use below to dynamically load balance memory residency:
+
    // Local dedicated VRAM memory (or designated system memory on UMA).
    DXGI_QUERY_VIDEO_MEMORY_INFO memoryInfo;
    adapter->QueryVideoMemoryInfo(0, // Multi-GPU index
@@ -623,7 +604,6 @@ namespace en
    Log << "Reserved : " << memoryInfo.CurrentReservation << endl;
   
    // Shared system memory available
-   DXGI_QUERY_VIDEO_MEMORY_INFO memoryInfo;
    adapter->QueryVideoMemoryInfo(0, // Multi-GPU index
                                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
                                  &memoryInfo);
@@ -633,11 +613,12 @@ namespace en
    Log << "Usage    : " << memoryInfo.CurrentUsage << endl;
    Log << "Available: " << memoryInfo.AvailableForReservation << endl;
    Log << "Reserved : " << memoryInfo.CurrentReservation << endl;
-  
-  
-   // videoMemorySize();
-   // systemMemorySize();
+ */
 
+   support.videoMemorySize  = adapterDescription.DedicatedVideoMemory;
+   if (adapterDescription.DedicatedVideoMemory == 0)
+      support.videoMemorySize = adapterDescription.DedicatedSystemMemory;
+   support.systemMemorySize = adapterDescription.SharedSystemMemory;
 
    // Input Assembler
    support.maxInputLayoutBuffersCount    = 32;      // "Max Input Slots"
@@ -739,6 +720,7 @@ namespace en
    uint32 deviceIndex = 0;
    while(factory->EnumAdapters1(deviceIndex, &deviceHandle) != DXGI_ERROR_NOT_FOUND) 
       {
+      // Query if given device supports D3D12 (without creating its instance)
       if (SUCCEEDED(D3D12CreateDevice(deviceHandle, D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr)))
          ++devicesCount;
       deviceIndex++;
@@ -755,33 +737,25 @@ namespace en
    deviceIndex = 0;
    while(factory->EnumAdapters1(index, &deviceHandle) != DXGI_ERROR_NOT_FOUND) 
       {
+      // Query if given device supports D3D12 (without creating its instance)
       if (SUCCEEDED(D3D12CreateDevice(deviceHandle, D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr)))
          {
-         _device[deviceIndex] = make_shared<Direct3D12Device>(this, deviceIndex, deviceHandle);
-         ++deviceIndex;
+         // Get access adapter interface v3
+         IDXGIAdapter3* adapter = nullptr;
+         if (SUCCEEDED(deviceHandle->QueryInterface(IID_PPV_ARGS(&adapter)))) // __uuidof(IDXGIAdapter3), reinterpret_cast<void**>(&adapter)
+            {
+            // Create actual device 
+            _device[deviceIndex] = make_shared<Direct3D12Device>(this, deviceIndex, adapter);
+            ++deviceIndex;
+            }
          }
-      else
-         {
-         // Release acquired handle if Device Creation fails
-         deviceHandle->Release();
-         deviceHandle = nullptr; 
-         }
+
+      // Release acquired handle after extracting from it latest interface
+      deviceHandle->Release();
+      deviceHandle = nullptr; 
 
       index++;
       }
-
-   //for(uint32 i=0; i<devicesCount; ++i)
-   //   {
-   //   deviceHandle = nullptr;
-   //   assert( factory->EnumAdapters1(i, &deviceHandle) != DXGI_ERROR_NOT_FOUND );
-
-   //   // Verify that device supports at least 12.0 feature level
-
-   //      {
-   //      device[i] = new Direct3D12Device(this, i, deviceHandle);
-   //      }
-   //   }
-
    }
 
    Direct3DAPI::~Direct3DAPI()

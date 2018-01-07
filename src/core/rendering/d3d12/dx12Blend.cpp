@@ -27,7 +27,7 @@ namespace en
    namespace gpu
    { 
    // Constant Color and Constant Alpha is automaticaly selected from common "Blend Factor" so there is only one enum here.
-   static const D3D12_BLEND TranslateBlend[BlendFunctionsCount] =
+   static const D3D12_BLEND TranslateBlend[underlyingType(BlendFactor::Count)] =
       {
       D3D12_BLEND_ZERO,                         // Zero
       D3D12_BLEND_ONE,                          // One
@@ -51,7 +51,7 @@ namespace en
       };
 
    // Optimisation: This table is not needed. Backend type can be directly cast to D3D12 type by adding 1.
-   static const D3D12_BLEND_OP TranslateBlendFunc[BlendEquationsCount] =
+   static const D3D12_BLEND_OP TranslateBlendFunc[underlyingType(BlendOperation::Count)] =
       {
       D3D12_BLEND_OP_ADD,                       // Add
       D3D12_BLEND_OP_SUBTRACT,                  // Subtract
@@ -62,7 +62,7 @@ namespace en
 
    // Logical Operation is alternative to blending (currently not supported)
    // Optimisation: This table is not needed. Backend type can be directly cast to D3D12 type.
-   static const D3D12_LOGIC_OP TranslateLogicOperation[LogicOperationsCount] = 
+   static const D3D12_LOGIC_OP TranslateLogicOperation[underlyingType(LogicOperation::Count)] = 
       {
       D3D12_LOGIC_OP_CLEAR,                     // Clear
       D3D12_LOGIC_OP_SET,                       // Set
@@ -99,13 +99,13 @@ namespace en
       {
       desc.RenderTarget[i].BlendEnable           = color[i].mode == BlendMode::BlendOperation ? true : false;
       desc.RenderTarget[i].LogicOpEnable         = false;                                  // color[i].logicOperation;
-      desc.RenderTarget[i].SrcBlend              = TranslateBlend[color[i].srcRGB];
-      desc.RenderTarget[i].DestBlend             = TranslateBlend[color[i].dstRGB];
+      desc.RenderTarget[i].SrcBlend              = TranslateBlend[underlyingType(color[i].srcRGB)];
+      desc.RenderTarget[i].DestBlend             = TranslateBlend[underlyingType(color[i].dstRGB)];
       desc.RenderTarget[i].BlendOp               = static_cast<D3D12_BLEND_OP>(underlyingType(color[i].rgb) + 1);   // Optimisation of: TranslateBlendFunc[color[i].rgb];
-      desc.RenderTarget[i].SrcBlendAlpha         = TranslateBlend[color[i].srcAlpha];
-      desc.RenderTarget[i].DestBlendAlpha        = TranslateBlend[color[i].dstAlpha];
+      desc.RenderTarget[i].SrcBlendAlpha         = TranslateBlend[underlyingType(color[i].srcAlpha)];
+      desc.RenderTarget[i].DestBlendAlpha        = TranslateBlend[underlyingType(color[i].dstAlpha)];
       desc.RenderTarget[i].BlendOpAlpha          = static_cast<D3D12_BLEND_OP>(underlyingType(color[i].alpha) + 1); // Optimisation of: TranslateBlendFunc[color[i].alpha];
-      desc.RenderTarget[i].LogicOp               = TranslateLogicOperation[NoOperation];   // TranslateLogicOperation[color[i].logic];
+      desc.RenderTarget[i].LogicOp               = TranslateLogicOperation[underlyingType(LogicOperation::NoOperation)]; // TranslateLogicOperation[color[i].logic];
       // Translate Color Write Mask
       desc.RenderTarget[i].RenderTargetWriteMask = static_cast<UINT8>(underlyingType(color[i].writeMask));
       // Optimisation of:

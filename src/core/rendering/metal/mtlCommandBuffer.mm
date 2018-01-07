@@ -415,7 +415,7 @@ namespace en
 
 
    
-   void CommandBufferMTL::commit(const Semaphore* signalSemaphore)
+   void CommandBufferMTL::commit(Semaphore* signalSemaphore)
    {
    // TODO: How to translate CommandBuffer execution synchronization to
    //       Swap-Chain presentment from this explicit API to macOS

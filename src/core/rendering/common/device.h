@@ -48,16 +48,15 @@ namespace en
       // GPU HW and API dependent capabilities
       struct Support
          {
-         // Memory
-         uint64      videoMemorySize;  // Dedicated VRAM on NUMA
-         uint64      systemMemorySize; // Dedicated system memory on UMA
-         uint64      sharedMemorySize; // General system memory
-         
          // Formats
          bitset<underlyingType(Attribute::Count)> attribute; // Input Assembler Attribute Formats
          bitset<underlyingType(Format::Count)> sampling;     // Texel Formats - Sampling support
          bitset<underlyingType(Format::Count)> rendering;    // Texel Formats - Rendering support
             
+         // Memory
+         uint64      videoMemorySize;                   // Dedicated VRAM on NUMA
+         uint64      systemMemorySize;                  // GPU accessible system memory
+         
          // Input Assembler
          uint8       maxInputLayoutBuffersCount;        // Maximum number of Vertex buffers that can be bound
          uint8       maxInputLayoutAttributesCount;     // Maximum number of input attributes
@@ -144,7 +143,7 @@ namespace en
       virtual PipelineState defaultPipelineState(void);
 
       virtual uint64 dedicatedMemorySize(void);
-
+      virtual uint64 systemMemorySize(void);
       virtual uint32 texelSize(const Format format);
       };
 

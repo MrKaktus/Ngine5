@@ -709,7 +709,7 @@ namespace en
    // Optional Depth-Stencil / Depth / Stencil
    if (depthStencil)
       {
-      result->depthState = reinterpret_cast<DepthStencilAttachmentD3D12*>(depthStencil.get())->state;
+      result->depthState = reinterpret_cast<const DepthStencilAttachmentD3D12*>(depthStencil)->state;
       result->depthStencil = true;
       }
 

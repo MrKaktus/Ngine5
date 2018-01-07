@@ -210,7 +210,7 @@ namespace en
    {
    VulkanDevice* gpu = parent->gpu;
 
-   const BufferVK& src = reinterpret_cast<const BufferVK*>(_buffer);
+   const BufferVK& src = reinterpret_cast<const BufferVK&>(_buffer);
 
    assert( src.apiType == BufferType::Uniform ||
            src.apiType == BufferType::Storage );

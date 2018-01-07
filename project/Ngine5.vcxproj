@@ -22,6 +22,7 @@
     <ClCompile Include="..\src\audio\audio.cpp" />
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\comBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\depthStencil.cpp" />
     <ClCompile Include="..\src\core\rendering\common\display.cpp" />
     <ClCompile Include="..\src\core\rendering\common\raster.cpp" />
@@ -38,7 +39,6 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Synchronization.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Window.cpp" />
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\common\cBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\cTexture.cpp" />
     <ClCompile Include="..\src\core\rendering\common\device.cpp" />
     <ClCompile Include="..\src\core\rendering\common\heap.cpp" />
@@ -109,7 +109,6 @@
     <ClCompile Include="..\src\platform\system.cpp" />
     <ClCompile Include="..\src\platform\windows\win_events.cpp" />
     <ClCompile Include="..\src\platform\windows\win_main.cpp" />
-    <ClCompile Include="..\src\rendering\Istate.cpp" />
     <ClCompile Include="..\src\rendering\stereo.cpp" />
     <ClCompile Include="..\src\resources\bmp.cpp" />
     <ClCompile Include="..\src\resources\dds.cpp" />

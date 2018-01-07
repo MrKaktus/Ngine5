@@ -42,7 +42,7 @@ namespace en
    // To create default descriptor: state = CD3D12_RASTERIZER_DESC(CD3D12_DEFAULT);
 
    state.FillMode              = TranslateFillMode[desc.fillMode];
-   state.CullMode              = desc.enableCulling ? TranslateCullingMethod[desc.cullFace] : D3D12_CULL_MODE_NONE;
+   state.CullMode              = desc.enableCulling ? TranslateCullingMethod[underlyingType(desc.cullFace)] : D3D12_CULL_MODE_NONE;
    state.FrontCounterClockwise = desc.frontFace == CounterClockWise ? TRUE : FALSE;
    state.DepthBias             = static_cast<sint32>(desc.depthBiasConstantFactor);
    state.DepthBiasClamp        = desc.depthBiasClamp; 
@@ -53,8 +53,11 @@ namespace en
    state.ForcedSampleCount     = 0u;    // Render MSAA without MSAA target, for e.g. for:
                                         // https://developer.nvidia.com/content/basics-gpu-voxelization
                                         // (currently unsupported by engine)
-   state.ConservativeRaster    = desc.enableConservativeRasterization ? D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON : D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-   
+
+   // Conservative rasterization is currently unsupported.
+ //state.ConservativeRaster    = desc.enableConservativeRasterization ? D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON : D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+   state.ConservativeRaster    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;   
+
    // Pass disableRasterizer down, to moment when Pipeline object is created
    disableRasterizer = desc.disableRasterizer;
    }

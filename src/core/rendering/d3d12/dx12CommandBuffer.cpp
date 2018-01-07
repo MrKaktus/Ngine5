@@ -640,7 +640,7 @@ namespace en
    // fenceSignalingEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
    // fence->SetEventOnCompletion(acquiredValue, fenceSignalingEvent); 
 
-   void CommandBufferD3D12::commit(const Semaphore* signalSemaphore)
+   void CommandBufferD3D12::commit(Semaphore* signalSemaphore)
    {
    assert( started );
    assert( !encoding );
@@ -681,7 +681,7 @@ namespace en
       {
       // This Semaphore can be now used, to synchronize any Queue
       // execution with this particular fence, and it's value.
-      const SemaphoreD3D12* semaphore = reinterpret_cast<const SemaphoreD3D12*>(signalSemaphore);
+      SemaphoreD3D12* semaphore = reinterpret_cast<SemaphoreD3D12*>(signalSemaphore);
       semaphore->fence        = gpu->fence[queueIndex];
       semaphore->waitForValue = commitValue;
       }

@@ -149,7 +149,7 @@ namespace en
                            const TextureAccess currentAccess,
                            const TextureAccess newAccess);
 
-      virtual void commit(const Semaphore* signalSemaphore = nullptr);
+      virtual void commit(Semaphore* signalSemaphore = nullptr);
       virtual void waitUntilCompleted(void);
    
       };

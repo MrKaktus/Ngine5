@@ -177,7 +177,7 @@ namespace en
    // object descriptor without Fragment Shader, and with Depth Test and Stencil
    // Test operations disabled. For more details see D3D11 description:
    // https://msdn.microsoft.com/en-us/library/windows/desktop/bb205125(v=vs.85).aspx
-   if (raster.disableRasterizer)
+   if (raster->disableRasterizer)
    {
        desc.PS                              = noShader;
        desc.DepthStencilState.DepthEnable   = FALSE;
