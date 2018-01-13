@@ -32,6 +32,45 @@ namespace en
 {
    namespace resource
    {
+   // PAK, FBX, OBJ - those are all container types, storing multiple basic
+   //                 resources, connected through metadata description
+   //               - those resources have their human readable Id's and hash
+   //               - name needs to be global and unique, the same way hash
+   //               - they need to be converted to representation used by engine
+   //               - engine representation ties data with metadata per-component
+   //                 (renderer metadata, physics, animation, etc.)
+   //
+   // container - description of multiple assets
+   //
+   // Buffer - size
+   // Geometry - Formatting, elements, [Buffer, offset] <- this is buffer view in fact
+   // Index    - Formatting, elements, [Buffer, offset] <- this is buffer view in fact
+   // Mesh     - [Geometry, Index], [Material*]
+   // LOD      - tree[Mesh] (parent-child hierarchical structure), [Animation*]
+   // Model    - array[LOD]
+   //
+   // glTF Accessor is generalized form of engine Formatting sctructure
+   //
+   // Resource Manager:
+   // - is capable of translating container metadata into engine metadata description
+   // - extracts resources from containers, into memory location
+   // - copy in memmory has virtual memory mapping
+   //   - this alows no-copy transfer to per streamer staging resource
+   //
+   // Metal memory-mapped Staging buffer:
+   //
+   // - (id<MTLBuffer>)newBufferWithBytesNoCopy:(void *)pointer
+   //                                    length:(NSUInteger)length
+   //                                   options:(MTLResourceOptions)options
+   //                               deallocator:(void (^)(void *pointer, NSUInteger length))deallocator;
+   //
+   // Resource Streamer:
+   // - streams resources into cache buffers and cache textures on GPU
+   // - returns GPU resource handle and offset in it, to streamed resource
+   // - manages resource residency, streaming bandwith
+   
+
+   
    // Phong Material
    // - RGB - Ambient
    // - RGB - Diffuse
