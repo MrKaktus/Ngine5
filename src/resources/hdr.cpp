@@ -405,7 +405,7 @@ namespace en
    //   dst[texel] = flo;
    //   }
 
-   uint16* dst = reinterpret_cast<uint16*>(staging->map());
+   volatile uint16* dst = reinterpret_cast<volatile uint16*>(staging->map());
    for(uint32 texel=0; texel<(height * width); ++texel)
       {
       //uint16 mR = static_cast<uint16>(data[texel*4 + 0]);

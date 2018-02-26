@@ -64,12 +64,13 @@ namespace en
    Nparser text(buffer, size);
 
    // Try to add new material descriptor 
-   en::resource::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
-   if (!material)
-      {
-      Log << "ERROR: Cannot allocate new material!";
-      return en::resource::Material();
-      }
+   // TODO: Refactor to new Model description
+   //en::resource::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
+   //if (!material)
+   //   {
+   //   Log << "ERROR: Cannot allocate new material!";
+   //   return en::resource::Material();
+   //   }
 
    // TODO: Finish this !!!!
    return en::resource::Material();

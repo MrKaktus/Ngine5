@@ -37,13 +37,6 @@ namespace en
       virtual uint64 length(void) const;
       virtual BufferType type(void) const;
 
-      // Returns pointer to buffers memory. This function can be only called on Transfer buffers.
-      //virtual void* content(void) const;
-      
-      virtual void* map(void);
-      virtual void* map(const uint64 offset, const uint64 size);
-      virtual void  unmap(void);
-      
       virtual ~CommonBuffer();
       };
 

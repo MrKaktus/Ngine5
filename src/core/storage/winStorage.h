@@ -34,7 +34,7 @@ namespace en
 
       virtual bool   read(const uint64 offset,
                           const uint64 size,
-                          void* buffer,
+                          volatile void* buffer,
                           uint64* readBytes = nullptr); // Reads part of file
          
       virtual bool   write(const uint64 size,

@@ -940,8 +940,8 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       }
 
    // Read texture to temporary buffer
-   void* dst = staging->map();
-   memcpy(dst, geometry, stagingSize);
+   volatile void* dst = staging->map();
+   memcpy((void*)dst, geometry, stagingSize);
    staging->unmap();
     
    // TODO: In future distribute transfers to different queues in the same queue type family
@@ -1032,7 +1032,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
    // Read texture to temporary buffer
    dst = staging->map();
-   memcpy(dst, elements, stagingSize);
+   memcpy((void*)dst, elements, stagingSize);
    staging->unmap();
     
    // TODO: In future distribute transfers to different queues in the same queue type family
@@ -1074,17 +1074,19 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    iboBegin = 0;
    for(uint32 mesh=0; mesh<numMeshes; ++mesh)
       {
-      meshes[mesh].name             = unpackedMesh[mesh].name;
-      meshes[mesh].material         = unpackedMesh[mesh].material;
-      meshes[mesh].matrix           = matrix;
-      meshes[mesh].AABB             = unpackedMesh[mesh].AABB;
-      meshes[mesh].geometry.buffer  = vbo;
-      meshes[mesh].geometry.begin   = vboBegin;
-      meshes[mesh].geometry.end     = vboBegin + static_cast<uint32>(unpackedMesh[mesh].vertices.size()) - 1u;
-      meshes[mesh].elements.buffer  = ibo;
-      meshes[mesh].elements.type    = Triangles;
-      meshes[mesh].elements.offset  = iboBegin * indexSize;
-      meshes[mesh].elements.indexes = iboBegin + static_cast<uint32>(unpackedMesh[mesh].optimized.size()) - 1u;
+      // TODO: Refactor to new Model/Mesh description
+
+      //meshes[mesh].name             = unpackedMesh[mesh].name;
+      //meshes[mesh].material         = unpackedMesh[mesh].material;
+      //meshes[mesh].matrix           = matrix;
+      //meshes[mesh].AABB             = unpackedMesh[mesh].AABB;
+      //meshes[mesh].geometry.buffer  = vbo;
+      //meshes[mesh].geometry.begin   = vboBegin;
+      //meshes[mesh].geometry.end     = vboBegin + static_cast<uint32>(unpackedMesh[mesh].vertices.size()) - 1u;
+      //meshes[mesh].elements.buffer  = ibo;
+      //meshes[mesh].elements.type    = Triangles;
+      //meshes[mesh].elements.offset  = iboBegin * indexSize;
+      //meshes[mesh].elements.indexes = iboBegin + static_cast<uint32>(unpackedMesh[mesh].optimized.size()) - 1u;
 
       vboBegin += unpackedMesh[mesh].vertices.size();
       iboBegin += unpackedMesh[mesh].optimized.size();
@@ -1203,7 +1205,9 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
    // Create model
    shared_ptr<en::resource::Model> model = make_shared<en::resource::Model>();
-   model->name = string(fbxScene->GetName());
+
+   // TODO: Refactor to new Model description
+   // model->name = string(fbxScene->GetName());
 
    // (x) Load skeleton
    //     There should be only one skeleton child node of root
@@ -1504,10 +1508,13 @@ double timeStep = 1.0 / 46186158000.0;  // FBX Time Unit - Fraction of second
          // or the exact equivalent :
          // FbxAMatrix& lGlobalMatrix = lNode->EvaluateGlobalTransform(lTime);
 
-         for(uint32 i=0; i<submeshes.size(); ++i)
-            LoadMatrix(&submeshes[i].matrix, &fbxMatrix);
 
-         model->mesh.insert(model->mesh.end(), submeshes.begin(), submeshes.end());
+         // TODO: Refactor to new Model description
+         //for(uint32 i=0; i<submeshes.size(); ++i)
+         //   LoadMatrix(&submeshes[i].matrix, &fbxMatrix);
+
+         // TODO: Refactor to new Model description
+         //model->mesh.insert(model->mesh.end(), submeshes.begin(), submeshes.end());
          break;
          }
       }

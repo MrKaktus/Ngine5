@@ -120,22 +120,38 @@ namespace en
 
       virtual void setPipeline(const Pipeline& pipeline);
 
-      virtual void setVertexBuffers(const uint32 count, 
-                                    const uint32 firstSlot, 
+      virtual void setVertexBuffers(const uint32 firstSlot,
+                                    const uint32 count, 
                                     const shared_ptr<Buffer>(&buffers)[],
                                     const uint64* offsets = nullptr) const;
+
+      virtual void setInputBuffer(
+         const uint32  firstSlot,
+         const uint32  slots,
+         const Buffer& buffer,
+         const uint64* offsets = nullptr) const;
 
       virtual void setVertexBuffer(const uint32 slot, 
                                    const Buffer& buffer, 
                                    const uint64 offset = 0u) const;
+
+      virtual void setIndexBuffer(
+         const Buffer& buffer,
+         const Attribute type,
+         const uint32 offset = 0u) const;
                         
       virtual void draw(
          const uint32  elements,
-         const Buffer* indexBuffer   = nullptr,
          const uint32  instances     = 1,
-         const uint32  firstElement  = 0,
+         const uint32  firstVertex   = 0,
+         const uint32  firstInstance = 0) const;
+
+      virtual void drawIndexed(
+         const uint32  elements,
+         const uint32  instances     = 1,
+         const uint32  firstIndex    = 0,
          const sint32  firstVertex   = 0,
-         const uint32  firstInstance = 0);
+         const uint32  firstInstance = 0) const;
          
       virtual void drawIndirect(
          const Buffer& indirectBuffer,

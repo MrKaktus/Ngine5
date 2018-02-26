@@ -79,11 +79,9 @@ namespace en
    bool inRectangle(float4 rect, float2 position);
    
    // Checks if given number is a power of two (returns true for 0)
-   bool powerOfTwo(uint8  in);
-   bool powerOfTwo(uint16 in);
-   bool powerOfTwo(uint32 in);
-   bool powerOfTwo(uint64 in);
-   
+   // See more at: http://www.exploringbinary.com/ten-ways-to-check-if-an-integer-is-a-power-of-two-in-c/
+   #define powerOfTwo(in) !(in & (in-1))
+
    // Returns next power of two for given numer (in case of 0, returns 0)
    uint16 nextPowerOfTwo(uint8  in);
    uint32 nextPowerOfTwo(uint16 in);
@@ -99,8 +97,8 @@ namespace en
    uint64 align(uint64 adress, uint32 alignment);
 
    // Rounds up number to multiple of given alignment
-   uint32 roundUp(uint32 num, uint32 alignment);
-   uint64 roundUp(uint64 num, uint64 alignment);
+   uint32 roundUp(const uint32 num, const uint32 alignment);
+   uint64 roundUp(const uint64 num, const uint64 alignment);
    
    // Changes endiannes of variable
    uint16 endiannes(uint16 in);

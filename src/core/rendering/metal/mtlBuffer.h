@@ -37,8 +37,8 @@ namespace en
       
       BufferMTL(shared_ptr<HeapMTL> heap, id<MTLBuffer> handle, const BufferType type, const uint32 size, const uint32 offset);
 
-      virtual void* map(void);
-      virtual void* map(const uint64 offset, const uint64 size);
+      virtual volatile void* map(void);
+      virtual volatile void* map(const uint64 offset, const uint64 size);
       virtual void  unmap(void);
       
       virtual ~BufferMTL();

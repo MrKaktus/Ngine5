@@ -187,7 +187,7 @@ namespace en
       }
 
    // Read texture to temporary buffer
-   void* ptr = staging->map();
+   volatile void* ptr = staging->map();
    file->read(header.dataOffset, dataSize, ptr);
    staging->unmap();
  
@@ -332,7 +332,7 @@ namespace en
       }
 
    // Read texture to temporary buffer
-   void* dst = staging->map();
+   volatile void* dst = staging->map();
    file->read(header.dataOffset, dataSize, dst);
    staging->unmap();
  

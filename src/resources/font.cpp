@@ -132,12 +132,14 @@ namespace en
 
    // Create mesh with text geometry
    shared_ptr<Mesh> mesh = make_shared<Mesh>();
-   mesh->name = "text";
-   mesh->material.albedo = resource;
-   mesh->geometry.buffer = vertex;
-   mesh->geometry.begin  = 0;
-   mesh->geometry.end    = 0;
-   mesh->elements.type   = Triangles;
+
+   // TODO: Refactor to new Model description
+   //mesh->name = "text";
+   //mesh->material.albedo = resource;
+   //mesh->geometry.buffer = vertex;
+   //mesh->geometry.begin  = 0;
+   //mesh->geometry.end    = 0;
+   //mesh->elements.type   = Triangles;
 
    return mesh;
    }

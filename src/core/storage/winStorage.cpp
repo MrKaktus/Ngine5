@@ -43,7 +43,7 @@ namespace en
    delete handle;
    }
    
-   bool WinFile::read(const uint64 offset, const uint64 _size, void* buffer, uint64* readBytes)
+   bool WinFile::read(const uint64 offset, const uint64 _size, volatile void* buffer, uint64* readBytes)
    {
    assert( handle );
    assert( offset + _size <= fileSize );

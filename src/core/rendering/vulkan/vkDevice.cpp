@@ -220,7 +220,10 @@ namespace en
        VkSystemAllocationScope                     allocationScope)
    {
    #ifdef EN_PLATFORM_WINDOWS
-   return reinterpret_cast<void*>(reallocate<uint8>(reinterpret_cast<uint8*>(pOriginal), alignment, size));
+   // TODO: Needs to know size of original allocation !
+   //return reinterpret_cast<void*>(reallocate<uint8>(reinterpret_cast<uint8*>(pOriginal), alignment, size));
+   assert( 0 );
+   return nullptr;
    #else
    // THERE IS NO MEM ALIGNED REALLOC ON UNIX SYSTEMS !
    void* ptr = reinterpret_cast<void*>(allocate<uint8>(alignment, size));

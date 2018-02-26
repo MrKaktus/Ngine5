@@ -549,7 +549,7 @@ namespace en
 
    MetalAPI::~MetalAPI() 
    {
-   Nmutex lock;
+   Mutex lock;
    if (!lock.tryLock())
       return;
    

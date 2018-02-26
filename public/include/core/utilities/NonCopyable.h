@@ -17,20 +17,20 @@
 #include "core/defines.h"
 
 class NonCopyable
-      {
-      // Constructor is protected to prevent creation of other 
-      // copies and to allow child class to perform call to it 
-      // during construction at the same time.
-      protected:
-      NonCopyable(){}
-
-      // Copy constructor and assigment operator are directly 
-      // declared as private to prevent creation of copies.
-      private:
-      NonCopyable(const NonCopyable&){}
+   {
+   // Constructor is protected to prevent creation of other 
+   // copies and to allow child class to perform call to it 
+   // during construction at the same time.
+   protected:
+   NonCopyable(){}
+   
+   // Copy constructor and assigment operator are directly 
+   // declared as private to prevent creation of copies.
+   private:
+   NonCopyable(const NonCopyable&){}
 #ifndef EN_PLATFORM_OSX
-      NonCopyable& operator= (const NonCopyable&){}
+   NonCopyable& operator= (const NonCopyable&){}
 #endif
-      };
+   };
 
 #endif

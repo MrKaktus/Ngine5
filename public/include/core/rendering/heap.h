@@ -103,6 +103,9 @@ namespace en
       virtual shared_ptr<Texture> createTexture(
          const TextureState state) = 0;
 
+      // Resources sub-allocated from heap, keep internal reference to it, so 
+      // heap won't be released until last resource created from it wont be 
+      // released as well.
       virtual ~Heap() {};
       };
    }

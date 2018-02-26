@@ -19,7 +19,6 @@
 #include "core/rendering/display.h"
 
 //#include "core/rendering/device.h"   // Mouse - position on current screen
-using namespace en::gpu;
 
 #include "input/keyboard.h"
 #include "input/hmd.h"
@@ -360,12 +359,12 @@ namespace en
    class Mouse
       {
       public:
-      virtual shared_ptr<Display> display(void) const = 0;             // Current screen on which mouse is located
+      virtual shared_ptr<gpu::Display> display(void) const = 0; // Current screen on which mouse is located
       virtual float2       position(void) const = 0;            // Mouse normalized position on current screen (coordinate origin at upper-left corner)
       virtual uint32       position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
       virtual bool         position(const uint32 x, 
                                     const uint32 y) = 0;        // Sets mouse position on current screen (coordinate origin at upper-left corner)
-      virtual bool         position(const shared_ptr<Display> display, // Sets mouse position on given screen
+      virtual bool         position(const shared_ptr<gpu::Display> display, // Sets mouse position on given screen
                                     const uint32 x, 
                                     const uint32 y) = 0;
 

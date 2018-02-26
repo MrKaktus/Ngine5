@@ -95,28 +95,6 @@ namespace en
    return apiType;
    }
 
-   void* CommonBuffer::map(void)
-   {
-   // Should be implemented by specialization class.
-   assert( 0 );
-   return nullptr;
-   }
-   
-   void* CommonBuffer::map(const uint64 offset, const uint64 size)
-   {
-   // Should be implemented by specialization class.
-   assert( 0 );
-   return nullptr;
-   }
-   
-   void CommonBuffer::unmap(void)
-   {
-   // Should be implemented by specialization class.
-   assert( 0 );
-   }
-      
-
-   
    CommonBufferView::CommonBufferView(const Format format, const uint64 offset, const uint64 length) :
       _format(format),
       _offset(offset),

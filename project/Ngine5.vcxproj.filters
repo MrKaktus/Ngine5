@@ -43,9 +43,6 @@
     <Filter Include="Source Files\core\storage">
       <UniqueIdentifier>{99af91b7-1080-45b4-8a85-609e0e063b46}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\core\threading">
-      <UniqueIdentifier>{fc0b3ecf-8d3e-433d-9317-01313f0ee66e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\core\types">
       <UniqueIdentifier>{a21a44a2-ce02-4f7e-a95a-5107b3a31a88}</UniqueIdentifier>
     </Filter>
@@ -156,6 +153,18 @@
     </Filter>
     <Filter Include="Source Files\core\rendering\windows">
       <UniqueIdentifier>{20a185bd-c3e0-4575-a6dc-33ae42ea7173}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\algorithm">
+      <UniqueIdentifier>{4d7da579-9d1c-41a4-8f14-6de92053d563}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\algorithm">
+      <UniqueIdentifier>{c7a7e575-6cce-492e-8464-296789d4fbb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\parallel">
+      <UniqueIdentifier>{fc0b3ecf-8d3e-433d-9317-01313f0ee66e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\parallel">
+      <UniqueIdentifier>{203a503c-ff2b-4e37-b617-98fcde14b620}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -546,6 +555,30 @@
     <ClCompile Include="..\src\core\rendering\common\comBlend.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\algorithm\MurmurHash3.cpp">
+      <Filter>Source Files\core\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\algorithm\MurmurHash2.cpp">
+      <Filter>Source Files\core\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\uint128.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\algorithm\hash.cpp">
+      <Filter>Source Files\core\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\uint16v2.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\utilities\pageAllocator.cpp">
+      <Filter>Source Files\core\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rendering\streamer.cpp">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\parallel\winThread.cpp">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -734,9 +767,6 @@
     <ClInclude Include="..\public\include\core\threading\atomics.h">
       <Filter>Header Files\core\threading</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\include\core\utilities\allocator.h">
-      <Filter>Header Files\core\utilities</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\core\utilities\array.h">
       <Filter>Header Files\core\utilities</Filter>
     </ClInclude>
@@ -747,12 +777,6 @@
       <Filter>Header Files\core\utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\utilities\parser.h">
-      <Filter>Header Files\core\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\core\utilities\Tarray.h">
-      <Filter>Header Files\core\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\core\utilities\TarrayAdvanced.h">
       <Filter>Header Files\core\utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\utilities\TintrusivePointer.h">
@@ -1171,6 +1195,42 @@
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\d3d12\dx12Window.h">
       <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\algorithm\MurmurHash3.h">
+      <Filter>Source Files\core\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\algorithm\MurmurHash2.h">
+      <Filter>Source Files\core\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\uint128.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\algorithm\hash.h">
+      <Filter>Header Files\core\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\poolAllocator.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\threading\semaphore.h">
+      <Filter>Header Files\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\uint16v2.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\algorithm\allocator.h">
+      <Filter>Header Files\core\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\pageAllocator.h">
+      <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\rendering\streamer.h">
+      <Filter>Header Files\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\parallel\thread.h">
+      <Filter>Header Files\core\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\parallel\winThread.h">
+      <Filter>Source Files\core\parallel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

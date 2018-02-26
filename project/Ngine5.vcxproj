@@ -20,8 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio\audio.cpp" />
+    <ClCompile Include="..\src\core\algorithm\hash.cpp" />
+    <ClCompile Include="..\src\core\algorithm\MurmurHash2.cpp" />
+    <ClCompile Include="..\src\core\algorithm\MurmurHash3.cpp" />
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
+    <ClCompile Include="..\src\core\parallel\winThread.cpp" />
     <ClCompile Include="..\src\core\rendering\common\comBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\depthStencil.cpp" />
     <ClCompile Include="..\src\core\rendering\common\display.cpp" />
@@ -88,10 +92,13 @@
     <ClCompile Include="..\src\core\types\half.cpp" />
     <ClCompile Include="..\src\core\types\quaternion.cpp" />
     <ClCompile Include="..\src\core\types\sint16v2.cpp" />
+    <ClCompile Include="..\src\core\types\uint128.cpp" />
+    <ClCompile Include="..\src\core\types\uint16v2.cpp" />
     <ClCompile Include="..\src\core\types\uint32v2.cpp" />
     <ClCompile Include="..\src\core\types\uint32v3.cpp" />
     <ClCompile Include="..\src\core\types\uint32v4.cpp" />
     <ClCompile Include="..\src\core\utilities\basicAllocator.cpp" />
+    <ClCompile Include="..\src\core\utilities\pageAllocator.cpp" />
     <ClCompile Include="..\src\core\utilities\parser.cpp" />
     <ClCompile Include="..\src\input\andInput.cpp" />
     <ClCompile Include="..\src\input\bbInput.cpp" />
@@ -110,6 +117,7 @@
     <ClCompile Include="..\src\platform\windows\win_events.cpp" />
     <ClCompile Include="..\src\platform\windows\win_main.cpp" />
     <ClCompile Include="..\src\rendering\stereo.cpp" />
+    <ClCompile Include="..\src\rendering\streamer.cpp" />
     <ClCompile Include="..\src\resources\bmp.cpp" />
     <ClCompile Include="..\src\resources\dds.cpp" />
     <ClCompile Include="..\src\resources\effect.cpp" />
@@ -151,9 +159,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h" />
+    <ClInclude Include="..\public\include\core\algorithm\allocator.h" />
+    <ClInclude Include="..\public\include\core\algorithm\hash.h" />
     <ClInclude Include="..\public\include\core\config\config.h" />
     <ClInclude Include="..\public\include\core\defines.h" />
     <ClInclude Include="..\public\include\core\log\log.h" />
+    <ClInclude Include="..\public\include\core\parallel\thread.h" />
     <ClInclude Include="..\public\include\core\rendering\blend.h" />
     <ClInclude Include="..\public\include\core\rendering\buffer.h" />
     <ClInclude Include="..\public\include\core\rendering\commandBuffer.h" />
@@ -189,16 +200,17 @@
     <ClInclude Include="..\public\include\core\types\float4x4.h" />
     <ClInclude Include="..\public\include\core\types\half.h" />
     <ClInclude Include="..\public\include\core\types\quaternion.h" />
+    <ClInclude Include="..\public\include\core\types\uint128.h" />
+    <ClInclude Include="..\public\include\core\types\uint16v2.h" />
     <ClInclude Include="..\public\include\core\types\uint32v2.h" />
     <ClInclude Include="..\public\include\core\types\uint32v3.h" />
     <ClInclude Include="..\public\include\core\types\uint32v4.h" />
-    <ClInclude Include="..\public\include\core\utilities\allocator.h" />
     <ClInclude Include="..\public\include\core\utilities\array.h" />
     <ClInclude Include="..\public\include\core\utilities\memory.h" />
     <ClInclude Include="..\public\include\core\utilities\NonCopyable.h" />
+    <ClInclude Include="..\public\include\core\utilities\pageAllocator.h" />
     <ClInclude Include="..\public\include\core\utilities\parser.h" />
-    <ClInclude Include="..\public\include\core\utilities\Tarray.h" />
-    <ClInclude Include="..\public\include\core\utilities\TarrayAdvanced.h" />
+    <ClInclude Include="..\public\include\core\utilities\poolAllocator.h" />
     <ClInclude Include="..\public\include\core\utilities\TintrusivePointer.h" />
     <ClInclude Include="..\public\include\core\utilities\Tproxy.h" />
     <ClInclude Include="..\public\include\core\utilities\Tsingleton.h" />
@@ -221,6 +233,7 @@
     <ClInclude Include="..\public\include\platform\windows\win_main.h" />
     <ClInclude Include="..\public\include\rendering\renderer.h" />
     <ClInclude Include="..\public\include\rendering\stereo.h" />
+    <ClInclude Include="..\public\include\rendering\streamer.h" />
     <ClInclude Include="..\public\include\resources\bmp.h" />
     <ClInclude Include="..\public\include\resources\dds.h" />
     <ClInclude Include="..\public\include\resources\effect.h" />
@@ -252,6 +265,7 @@
     <ClInclude Include="..\public\include\threading\Nqueue.h" />
     <ClInclude Include="..\public\include\threading\Ntls.h" />
     <ClInclude Include="..\public\include\threading\scheduler.h" />
+    <ClInclude Include="..\public\include\threading\semaphore.h" />
     <ClInclude Include="..\public\include\threading\task.h" />
     <ClInclude Include="..\public\include\threading\thread.h" />
     <ClInclude Include="..\public\include\threading\worker.h" />
@@ -263,9 +277,12 @@
     <ClInclude Include="..\public\include\utilities\timer.h" />
     <ClInclude Include="..\public\include\utilities\utilities.h" />
     <ClInclude Include="..\src\audio\context.h" />
+    <ClInclude Include="..\src\core\algorithm\MurmurHash2.h" />
+    <ClInclude Include="..\src\core\algorithm\MurmurHash3.h" />
     <ClInclude Include="..\src\core\configuration.h" />
     <ClInclude Include="..\src\core\config\context.h" />
     <ClInclude Include="..\src\core\log\context.h" />
+    <ClInclude Include="..\src\core\parallel\winThread.h" />
     <ClInclude Include="..\src\core\rendering\common\buffer.h" />
     <ClInclude Include="..\src\core\rendering\common\device.h" />
     <ClInclude Include="..\src\core\rendering\common\display.h" />

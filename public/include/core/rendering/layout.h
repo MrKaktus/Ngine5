@@ -77,7 +77,8 @@ namespace en
    // - Always declare multi-stage sets as visible to All in D3D12, or
    // - completly disallow multi-stage visibility from frontend API (limit to single stage or all like in D3D12).
 
-
+   // Interestin cmparison of binding models:
+   // https://github.com/gpuweb/gpuweb/issues/19
 
    // Layout rules:
    // - Layout entries are set in priority order:

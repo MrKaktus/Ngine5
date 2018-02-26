@@ -36,12 +36,13 @@ namespace en
    return fileSize;
    }
 
-   bool CommonFile::read(void* buffer)
+   bool CommonFile::read(volatile void* buffer)
    {
-   return read(0u, fileSize, buffer);
+   return read(0u, fileSize, buffer, nullptr);
    }
 
-   bool CommonFile::read(const uint64 offset, const uint64 size, void* buffer, uint64* readBytes)
+   // Need to be declared so that above method has something to call?
+   bool CommonFile::read(const uint64 offset, const uint64 size, volatile void* buffer, uint64* readBytes)
    {
    // Should be implemented by specialization class
    assert( 0 );

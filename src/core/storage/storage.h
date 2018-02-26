@@ -25,12 +25,12 @@ namespace en
       uint64 fileSize;
       
       virtual uint64 size(void);                     // File size in bytes
-      virtual bool   read(void* buffer);             // Reads whole file to specified buffer
+      virtual bool   read(volatile void* buffer);             // Reads whole file to specified buffer
 
       // Schould be implemented by specialization class
       virtual bool   read(const uint64 offset,
                           const uint64 size,
-                          void* buffer,
+                          volatile void* buffer,
                           uint64* readBytes = nullptr); // Reads part of file
          
       // TODO: Temp, file should be read in blocks to memory, and then parsed!

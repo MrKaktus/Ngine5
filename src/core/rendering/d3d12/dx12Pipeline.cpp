@@ -210,6 +210,10 @@ namespace en
       {
       result = make_shared<PipelineD3D12>(this, pipeline, layout);
       
+      // Defer dynamic state: Input Assembler buffer strides
+      memcpy(&result->bufferStride[0], &input->bufferStride[0], input->buffersCount * sizeof(uint32));
+      result->buffersCount = input->buffersCount;
+
       // Defer dynamic state: Viewport & Scissor State 
       const ViewportStateD3D12* viewport = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState.get());
       memcpy(&result->viewport[0], &viewport->viewport[0], viewport->count * sizeof(D3D12_VIEWPORT));

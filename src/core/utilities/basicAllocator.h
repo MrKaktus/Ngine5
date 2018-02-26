@@ -15,23 +15,10 @@
 #include <memory>
 using namespace std;
 
-#include "core/defines.h"
-#include "core/types.h"
+#include "core/algorithm/allocator.h"
 
 namespace en
 {
-   // Interface for allocation algorith
-   class Allocator
-      {
-      public:
-      virtual bool allocate(const uint64 requestedSize,
-                            const uint64 requestedAlignment,
-                                  uint64& offset) = 0; // Returns offset for new allocation, or false
-      virtual bool deallocate(const uint64 offset,
-                              const uint64 size) = 0;  // Deallocates given memory region
-      virtual ~Allocator() {};                         // Polymorphic deletes require a virtual base destructor
-      };
-
    struct MemoryChunk
       {
       uint64       offset;
@@ -51,6 +38,7 @@ namespace en
       MemoryChunk* freeHead;
       
       BasicAllocator(uint64 size);
+
       virtual bool allocate(const uint64 requestedSize,
                             const uint64 requestedAlignment,
                                   uint64& offset);

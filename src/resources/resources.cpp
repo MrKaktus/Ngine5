@@ -35,6 +35,8 @@
 #include <string>
 using namespace std;
 
+using namespace en::gpu;
+
 namespace en
 {
    namespace resource
@@ -101,7 +103,7 @@ namespace en
    {
    //storage.fonts.create(128);
 //   storage.models.create(4096);
-   storage.materials.create(4096);
+//   storage.materials.create(4096);
 
    //fonts.clear();
    models.clear();
@@ -189,8 +191,8 @@ namespace en
    assert( staging );
 
    // Read texture to temporary buffer
-   void* dst = staging->map();
-   memcpy(dst, &axes, stagingSize);
+   volatile void* dst = staging->map();
+   memcpy((void*)dst, &axes, stagingSize);
    staging->unmap();
     
    // TODO: In future distribute transfers to different queues in the same queue type family
@@ -316,7 +318,7 @@ namespace en
    bool MaterialDestroy(MaterialDescriptor* const material)
    {
    // Fill material with null pointer
-   ResourcesContext.storage.materials.free(material);
+//   ResourcesContext.storage.materials.free(material);
    return true; 
    }
 
@@ -454,40 +456,233 @@ namespace en
    opacity      = ResourcesContext.defaults.enOpacityMap;
    };
 
-   Mesh::Mesh() 
+
+
+
+
+
+
+
+   Mesh::Mesh()
    {
-   geometry.buffer      = nullptr;
-   geometry.begin       = 0;
-   geometry.end         = 0;
-   elements.buffer      = nullptr;
-   elements.type        = en::gpu::Triangles;
-   elements.cps         = 3;
-   elements.offset      = 0;
-   elements.indexes     = 0;
+   memset(this, 0, sizeof(Mesh));
+   }
+   
+   Mesh& Mesh::operator=(const Mesh& src)
+   {
+   memcpy(this, &src, sizeof(Mesh));
+   return *this;
    }
 
-   Mesh::~Mesh()
+/* It's easier to recompute below values at runtime each time they are needed, 
+   rather than caching them, which would increase total Mesh size. We try to 
+   minimize memory loads in exchange of computation.
+
+   // Called each time, given LOD becomes resident in GPU dedicated memory
+   void updateModelLevel(Model& model, const uint32 level)
    {
+   assert( model.levelCount > level );
+   
+   ModelLevel& modelLevel = model.level[level];
+   
+   // Patch offsets of input and index buffers in each mesh belonging to this level
+   for(uint32 i=0; i<modelLevel.meshRange.count; ++i)
+      {
+      Mesh& mesh = model.mesh[modelLevel.meshRange.first + i];
+   
+      // Update offsets of input buffers, based on current GPU residency
+      for(uint32 j=0; j<mesh.bufferCount; ++j)
+         mesh.gpuOffset[j] = modelLevel.buffer.gpuOffset + mesh.offset[j];
+   
+      // Calculate offset to first Vertex, for draws using only one input buffer
+      mesh.firstVertex = mesh.gpuOffset[0] / mesh.elementSize[0];
+   
+      // Calculate offset to optional sub-allocated IndexBuffer
+      if (mesh.indexCount)
+         mesh.firstIndex = (modelLevel.buffer.gpuOffset + mesh.indexOffset) >> mesh.indexShift;
+      }
+   }
+*/
+
+   // bufferMask - bitmask identifying which buffers to bind
+   // TODO: Should this be part of Mesh or part of Renderer?
+   //       Most of Mesh internals are used here, but some Renderer state as well.
+   void Model::drawLevel(
+      CommandState& state,
+      const uint32 _level, 
+            uint32 bufferMask,
+      const uint32 firstInstance,
+      const uint32 instanceCount)
+   {
+      assert( levelCount > _level );
+   
+
+      // If there is only one LOD, all meshes belong to it (and LOD array is not needed).
+      uint16v2 levelRange(0, meshCount);
+      if (meshRange)
+         levelRange = meshRange[_level];
+
+      // Whoever calls this method, should ensure that model is managed by
+      // GPU streamer for GPU for which it is supposed to be drawn
+      assert( checkBit(gpuMask, state.gpuIndex) );
+
+      BufferAllocation& levelBacking = backing[state.gpuIndex][_level];
+
+      // Whoever calls this method, should ensure that resource is resident on selected GPU
+      assert( levelBacking.resident );
+   
+      // Single input buffer is used (Position and optional UV)
+      if (bufferMask == 1)
+         {
+         // Bind first input buffer, only if it wasn't bound yet, it was bound 
+         // with offset different than 0 in multi buffer draw, or other one was 
+         // previously in use.
+         uint64 inputHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer.get());
+         if (state.inputHash != inputHash)
+            {
+            state.command.setInputBuffer(0, 1, *(levelBacking.gpuBuffer));
+      
+            state.inputHash = inputHash;
+            }
+         }
+      else
+         {
+         // Input buffers will need tobe bound for every mesh separately due to 
+         // different starting offsets. Single buffer cache still needs to be
+         // updated to currently bound backing.
+         state.inputHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer.get());
+         }
+   
+      // Draw each mesh that is part of this model Level Of Detail
+      for(uint32 i=0; i<levelRange.count; ++i)
+         {
+         Mesh& currentMesh = mesh[levelRange.first + i];
+        
+         // TODO: Here set pipeline, material, etc. ?
+   
+   
+         // Will bind only buffers selected for draw, and available in the mesh
+         bufferMask &= currentMesh.bufferMask;
+      
+         // This can happen, but means something is off.. 
+         if (bufferMask == 0)
+            continue;
+      
+         // If draw uses only one mesh input buffer, firstVertex can be used to pass 
+         // sub-allocation offset at draw call without a need to rebinding Buffer with
+         // different starting offset.
+         uint32 firstVertex = 0;
+   
+         // Single input buffer is used (Position and optional UV)
+         if (bufferMask == 1)
+            {
+            // Calculate offset to first Vertex, for draws using only first input buffer
+            // Shift by 4 is equal to division by 16. First buffer always has elementSize of 16bytes.
+            firstVertex = (levelBacking.gpuOffset + currentMesh.offset[0]) >> 4;
+            }
+         else
+            {
+            // All input buffers are suballocated from the same backing Buffer, thus they
+            // have different starting offsets in it (those offsets change each time this
+            // mesh becomes resident in GPU dedicated memory).
+            uint64 gpuOffset[MaxMeshInputBuffers]; 
+            
+            // Update offsets of input buffers, based on current GPU residency. 
+            uint32 first = 0;
+            uint32 slots = 0;
+            for(uint32 j=0; j<MaxMeshInputBuffers; ++j)
+               {
+               // If given buffer is unused, bind previous buffers range with their offsets.
+               // Below algorithm minimizes amount of API calls, by grouping used buffers
+               // together, and making the call only when really necessary.
+               if (!checkBit(bufferMask, j))
+                  {
+                  // This call cannot be cached, as we pass different set of offsets for each mesh.
+                  if (slots > 0)
+                     state.command.setInputBuffer(first, slots,
+                                                  *(levelBacking.gpuBuffer),
+                                                 &gpuOffset[first]);
+   
+                  first = j + 1;
+                  slots = 0;
+                  continue;
+                  }
+   
+               gpuOffset[j] = levelBacking.gpuOffset + currentMesh.offset[j];
+               slots++;
+               }
+   
+            // This call cannot be cached, as we pass different set of offsets for each mesh.
+            if (slots > 0)
+               state.command.setInputBuffer(first, slots,
+                                            *(levelBacking.gpuBuffer),
+                                           &gpuOffset[first]);
+            }
+   
+         if (currentMesh.indexCount)
+            {
+            // Bind Buffer, backing model level shared sub-allocation, as one big 
+            // Index buffer. This mesh 'firstIndex' contains offset to beginning of 
+            // mesh Index Buffer. Do this only when index buffer is not bound yet,
+            // other one was bound for previous encoded draw call, or if indexShift 
+            // differs between previously drawn mesh, and currently drawn one.
+            uint64 indexHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer.get());
+            if (state.indexHash != indexHash ||
+                state.indexShift != currentMesh.indexShift)
+               {
+               state.command.setIndexBuffer(*(levelBacking.gpuBuffer),
+                                            currentMesh.indexShift == 1 ? Attribute::u16 : Attribute::u32);
+   
+               state.indexHash  = indexHash;
+               state.indexShift = currentMesh.indexShift;
+               }
+   
+            // Calculate offset to optional sub-allocated IndexBuffer from total offset in backing dedicated buffer.
+            uint32 firstIndex = (levelBacking.gpuOffset + currentMesh.indexOffset) >> currentMesh.indexShift;
+      
+            state.command.drawIndexed(currentMesh.indexCount, // Count of indexes to use for primitve assembly
+                                      instanceCount,          // Instance count
+                                      firstIndex,             // First index in Index Buffer (index offset)
+                                      firstVertex,            // First vertex to use (added to vertex index read, vertex offset)
+                                      firstInstance);         // First instance to use (instance offset)
+            }
+         else
+            {
+            state.command.draw(currentMesh.vertexCount, // Vertices to draw
+                               firstVertex,             // First vertex to use (vertex offset in buffer)
+                               instanceCount,           // Instance count
+                               firstInstance);          // First instance to use (instance offset)
+            }
+      
+         }
    }
 
-   Model::Model()
-   {
-   }
 
-   Model::Model(shared_ptr<gpu::Buffer> buffer, gpu::DrawableType type) :
-      name("custom")
-   {
-   Mesh temp;
-   temp.geometry.buffer  = buffer;
-   temp.elements.type    = type;
 
-   mesh.push_back(temp);
-   }
 
-   Model::~Model()
-   {
-   mesh.clear();
-   }
+
+
+
+
+
+   //Model::Model()
+   //{
+   //}
+
+   //Model::Model(shared_ptr<gpu::Buffer> buffer, gpu::DrawableType type) :
+   //   name("custom")
+   //{
+   //Mesh temp;
+   //temp.geometry.buffer  = buffer;
+   //temp.elements.type    = type;
+
+   //mesh.push_back(temp);
+   //}
+
+   //Model::~Model()
+   //{
+   //mesh.clear();
+   //}
 
 
    ModelDescriptor::ModelDescriptor() /*:*/
@@ -552,20 +747,7 @@ namespace en
    //{
    //}
 
-   Mesh& Mesh::operator=(const Mesh& src)
-   {
-   this->name             = src.name;
-   this->matrix           = src.matrix;
-   this->material         = src.material;
-   this->geometry.buffer  = src.geometry.buffer;
-   this->geometry.begin   = src.geometry.begin;
-   this->geometry.end     = src.geometry.end;
-   this->elements.buffer  = src.elements.buffer;
-   this->elements.offset  = src.elements.offset;
-   this->elements.indexes = src.elements.indexes;
-   this->elements.type    = src.elements.type;
-   return *this;
-   }
+
 
    //Model::Model() :
    //    ProxyInterface<class ModelDescriptor>(NULL)

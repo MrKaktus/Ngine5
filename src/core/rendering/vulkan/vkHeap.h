@@ -36,9 +36,11 @@ namespace en
       shared_ptr<VulkanDevice> gpu;
       VkDeviceMemory handle;
       uint32         memoryType;
-      Allocator*     allocator;    // Allocation algorithm used to place resources on the Heap
-      Nmutex         mapped;
-      
+      Allocator*     allocator;     // Allocation algorithm used to place resources on the Heap
+      Mutex         mutex;         // Guards critical section during mapping
+      uint32         mappingsCount;
+      void*          mappedPtr;      
+
       HeapVK(shared_ptr<VulkanDevice> gpu,
              const VkDeviceMemory handle, 
              const uint32 _memoryType, 

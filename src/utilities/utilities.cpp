@@ -43,41 +43,30 @@ namespace en
    if (in == 0)
       return false;
 
-   uint32 index = 0;
-   while(in != 0)
-      {
-      if (in == 1)
-         break;
-      in = in >> 1;
-      index++;
-      }
-
-   number = index;
+   in |= (in >>  1);
+   in |= (in >>  2);
+   in |= (in >>  4);
+   in |= (in >>  8);
+   in |= (in >> 16);
+   number = in ^ (in >> 1);
    return true;
    }
+   // Alternative:
+   // number = 1 << (fls(in) - 1)
 
-   // Returns true for 0's.
-   // See more at: http://www.exploringbinary.com/ten-ways-to-check-if-an-integer-is-a-power-of-two-in-c/
-   bool powerOfTwo(uint8 in)
-   {
-   return !(in & (in-1));
-   }
-   
-   bool powerOfTwo(uint16 in)
-   {
-   return !(in & (in-1));
-   }
-   
-   bool powerOfTwo(uint32 in)
-   {
-   return !(in & (in-1));
-   }
-   
-   bool powerOfTwo(uint64 in)
-   {
-   return !(in & (in-1));
-   }
-   
+   //uint32 index = 0;
+   //while(in != 0)
+   //   {
+   //   if (in == 1)
+   //      break;
+   //   in = in >> 1;
+   //   index++;
+   //   }
+
+   //number = index;
+   //return true;
+   //}
+ 
    // Returns next power of two for given numer (in case of 0, returns 0)
    uint16 nextPowerOfTwo(uint8 in)
    {

@@ -80,7 +80,7 @@ namespace en
 
    delete ptr;
    }
-   
+
    bool BasicAllocator::allocate(const uint64 requestedSize, const uint64 requestedAlignment, uint64& offset)
    {
    if (requestedSize > available)

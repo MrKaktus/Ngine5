@@ -44,6 +44,8 @@ namespace en
       uint32 viewportsCount;  // Count of enabled states from the beginning of the array
       D3D_PRIMITIVE_TOPOLOGY topology;
       UINT stencilRef;
+      uint32 bufferStride[MaxInputLayoutAttributesCount]; // Element size per bound buffer (passed to Pipeline, and cached on CommandBuffer when Pipeline is bound)
+      uint32 buffersCount;
 
       PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle, shared_ptr<PipelineLayoutD3D12> layout);
       virtual ~PipelineD3D12();

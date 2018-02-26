@@ -44,7 +44,6 @@ namespace en
       started(false),
       encoding(false),
       commited(false),
-      currentIndexBuffer(nullptr),
       CommandBuffer()
    {
    }
@@ -248,8 +247,8 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::setVertexBuffers(const uint32 count,
-                                             const uint32 firstSlot,
+   void CommandBufferD3D12::setVertexBuffers(const uint32 firstSlot,
+                                             const uint32 count,
                                              const shared_ptr<Buffer>(&buffers)[],
                                              const uint64* offsets) const
    {
@@ -268,13 +267,49 @@ namespace en
       BufferD3D12* bufferD3D12 = reinterpret_cast<BufferD3D12*>(buffers[i].get());
       ID3D12Resource* resource = bufferD3D12->handle;
       
+      assert( bufferStride[firstSlot + i] == bufferD3D12->formatting.elementSize() );
+
       // Populate Buffer View
-      views[i].BufferLocation = resource->GetGPUVirtualAddress() + offsets[i];  // Final location is Base Buffer Adress + current Offset
-      views[i].SizeInBytes    = buffers[i]->length();
-      views[i].StrideInBytes  = bufferD3D12->formatting.elementSize();
+      uint32 currentOffset = offsets ? offsets[i] : 0;
+      views[i].BufferLocation = resource->GetGPUVirtualAddress() + currentOffset; // Final location is Base Buffer Adress + current Offset
+      views[i].SizeInBytes    = buffers[i]->length() - currentOffset;             // Cannot bind more data than there is in buffer
+      views[i].StrideInBytes  = bufferStride[firstSlot + i];
       }
 
    ValidateComNoRet( command->IASetVertexBuffers(firstSlot, count, views) )
+
+   delete [] views;
+   }
+
+   void CommandBufferD3D12::setInputBuffer(const uint32  firstSlot,
+                                           const uint32  slots,
+                                           const Buffer& _buffer,
+                                           const uint64* offsets) const
+   {
+   assert( started );
+   assert( slots );
+   assert( (firstSlot + slots) <= gpu->support.maxInputLayoutBuffersCount );
+
+   const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
+   ID3D12Resource* resource = buffer.handle;
+
+   // TODO: Ensure this Command Buffer is Graphic one !
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   // Extract Direct3D12 buffer handles
+   D3D12_VERTEX_BUFFER_VIEW* views = new D3D12_VERTEX_BUFFER_VIEW[slots]; // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+   for(uint32 i=0; i<slots; ++i)
+      {
+      assert( bufferStride[firstSlot + i] == buffer.formatting.elementSize() ); // TODO: remove when removing formatting from buffers
+
+      // Populate Buffer View
+      uint32 currentOffset = offsets ? offsets[i] : 0;
+      views[i].BufferLocation = resource->GetGPUVirtualAddress() + currentOffset; // Final location is Base Buffer Adress + current Offset
+      views[i].SizeInBytes    = buffer.length() - currentOffset;                  // Cannot bind more data than there is in buffer
+      views[i].StrideInBytes  = bufferStride[firstSlot + i];
+      }
+
+   ValidateComNoRet( command->IASetVertexBuffers(firstSlot, slots, views) )
 
    delete [] views;
    }
@@ -288,17 +323,47 @@ namespace en
 
    const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
    ID3D12Resource* resource = buffer.handle;
+
+   assert( bufferStride[slot] == buffer.formatting.elementSize() );
       
    // Populate Buffer View
    D3D12_VERTEX_BUFFER_VIEW view;
-   view.BufferLocation = resource->GetGPUVirtualAddress() + offset;  // Final location is Base Buffer Adress + current Offset
-   view.SizeInBytes    = buffer.length();
-   view.StrideInBytes  = buffer.formatting.elementSize();
+   view.BufferLocation = resource->GetGPUVirtualAddress() + offset; // Final location is Base Buffer Adress + current Offset
+   view.SizeInBytes    = buffer.length() - offset;                  // Cannot bind more data than there is in buffer
+   view.StrideInBytes  = bufferStride[slot];
 
    // TODO: Ensure this Command Buffer is Graphic one !
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 
    ValidateComNoRet( command->IASetVertexBuffers(slot, 1, &view) )
+   }
+
+   void CommandBufferD3D12::setIndexBuffer(const Buffer& _buffer,
+                                           const Attribute type,
+                                           const uint32 offset) const
+   {
+   assert( started );
+   assert( encoding );
+   assert( type == Attribute::u16 ||
+           type == Attribute::u32 );
+
+   // Elements are assembled into Primitives.
+   const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
+   ID3D12Resource* resource = buffer.handle;
+
+   assert( buffer.apiType == BufferType::Index );
+
+   D3D12_INDEX_BUFFER_VIEW desc;
+   desc.BufferLocation = resource->GetGPUVirtualAddress() + offset; // Final offset In Index Buffer is calculated at draw call.
+   desc.SizeInBytes    = buffer.length() - offset;                  // Cannot bind more data than there is in buffer
+   desc.Format         = DXGI_FORMAT_R16_UINT;
+   if (type == Attribute::u32)
+      desc.Format      = DXGI_FORMAT_R32_UINT;
+   
+   // TODO: Ensure this Command Buffer is Graphic one !
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   ValidateComNoRet( command->IASetIndexBuffer(&desc) );
    }
 
 
@@ -447,6 +512,8 @@ namespace en
 
    ValidateComNoRet( command->SetGraphicsRootSignature(pipeline.layout->handle) )
         
+   // TODO: Cache Root Signature and prevent it's rebinding if it's the same.
+
    ValidateComNoRet( command->SetPipelineState(pipeline.handle) )
 
    // Dynamic States:
@@ -482,6 +549,10 @@ namespace en
    // TODO: Decide, which of the states below, can be promoted to be dynamic and set explicitly on CommandBuffer
    //       (by modifying Vulkan backend PSO to have those states as dynamic, and loosing possibility for best
    //       optimization).
+
+   // Input Assembler buffer strides
+   memcpy(&bufferStride[0], &pipeline.bufferStride[0], pipeline.buffersCount * sizeof(uint32));
+   buffersCount = pipeline.buffersCount;
    }
 
 
@@ -489,12 +560,10 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::draw(const uint32  elements,
-                                 const Buffer* indexBuffer,
-                                 const uint32  instances,
-                                 const uint32  firstElement,
-                                 const sint32  firstVertex,
-                                 const uint32  firstInstance)
+   void CommandBufferD3D12::draw(const uint32 elements,
+      const uint32 instances,
+      const uint32 firstVertex,
+      const uint32 firstInstance) const
    {
    assert( started );
    assert( encoding );
@@ -506,48 +575,37 @@ namespace en
    // Vulkan cannot dynamically change drawn primitive type,
    // thus it is set during Pipeline State Object binding.
 
-   // Elements are assembled into Primitives.
-   if (indexBuffer)
-      {
-      const BufferD3D12* index = reinterpret_cast<const BufferD3D12*>(indexBuffer);
-      assert( index->apiType == BufferType::Index );
-      
-      // Prevent binding the same IBO several times in row
-      if (index != currentIndexBuffer)
-         {
-         D3D12_INDEX_BUFFER_VIEW desc;
-         desc.BufferLocation = index->handle->GetGPUVirtualAddress(); // Offset In Index Buffer is calculated at draw call.
-         desc.SizeInBytes    = index->length();  
-         desc.Format         = DXGI_FORMAT_R16_UINT;
-         if (index->formatting.column[0] == Attribute::u32)
-            desc.Format      = DXGI_FORMAT_R32_UINT;
-         
-         // Index Buffer remains bound to Command Buffer after this call,
-         // but because there is no other way to do indexed draw than to
-         // go through this API, it's safe to leave it bounded.
-         ValidateComNoRet( command->IASetIndexBuffer(&desc) )
-
-         currentIndexBuffer = index;
-         }
-
-      // TODO: Do I correctly interprete BaseVertexLocation & StartInstanceLocation?
-      //       Are they equal to starting VertexID and InstanceID?
-
-      ValidateComNoRet( command->DrawIndexedInstanced(elements,           // Number of indices to use for draw
-                                                      max(1U, instances), // Number of instances to draw
-                                                      firstElement,       // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
-                                                      firstVertex,        // BaseVertexLocation - A value added to each index before reading a vertex from the vertex buffer.
-                                                      firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
-      }
-   else
-      {
-      ValidateComNoRet( command->DrawInstanced(elements,           // Number of vertices to draw
-                                               max(1U, instances), // Number of instances to draw
-                                               firstVertex,        // Index of first vertex to draw
-                                               firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
-      }
+   ValidateComNoRet( command->DrawInstanced(elements,           // Number of vertices to draw
+                                            max(1U, instances), // Number of instances to draw
+                                            firstVertex,        // StartVertexLocation - Index of first vertex to draw
+                                            firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
    }
 
+   void CommandBufferD3D12::drawIndexed(
+      const uint32  elements,
+      const uint32  instances,
+      const uint32  firstIndex,
+      const sint32  firstVertex,
+      const uint32  firstInstance) const
+   {
+   assert( started );
+   assert( encoding );
+   assert( elements );
+
+   // TODO: Check if graphics or compute!  
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+   
+   // Vulkan cannot dynamically change drawn primitive type,
+   // thus it is set during Pipeline State Object binding.
+
+   ValidateComNoRet( command->DrawIndexedInstanced(elements,           // Number of indices to use for draw
+                                                   max(1U, instances), // Number of instances to draw
+                                                   firstIndex,         // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
+                                                   firstVertex,        // BaseVertexLocation - A value added to each index before reading a vertex from the vertex buffer.
+                                                   firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
+   }
+
+   // TODO: Redo!
    void CommandBufferD3D12::drawIndirect(
       const Buffer& indirectBuffer,
       const uint32  firstEntry,
@@ -589,23 +647,7 @@ namespace en
       const BufferD3D12* index = reinterpret_cast<const BufferD3D12*>(indexBuffer);
       assert( index->apiType == BufferType::Index );
       
-      // Prevent binding the same IBO several times in row
-      if (index != currentIndexBuffer)
-         {
-         D3D12_INDEX_BUFFER_VIEW desc;
-         desc.BufferLocation = index->handle->GetGPUVirtualAddress(); // Offset In Index Buffer is calculated at draw call.
-         desc.SizeInBytes    = index->length();  
-         desc.Format         = DXGI_FORMAT_R16_UINT;
-         if (index->formatting.column[0] == Attribute::u32)
-            desc.Format      = DXGI_FORMAT_R32_UINT;
-         
-         // Index Buffer remains bound to Command Buffer after this call,
-         // but because there is no other way to do indexed draw than to
-         // go through this API, it's safe to leave it bounded.
-         ValidateComNoRet( command->IASetIndexBuffer(&desc) )
-
-         currentIndexBuffer = index;
-         }
+      setIndexBuffer(*indexBuffer, index->formatting.column[0], 0);
 
       MaxCommandCount      = indirect.length() / sizeof(IndirectIndexedDrawArgument);
       ArgumentBufferOffset = firstEntry * sizeof(IndirectIndexedDrawArgument);

@@ -35,7 +35,7 @@ class cachealign TarrayAdvanced
       uint32  count;  // Count of free elements
 
       uint32  size;   // Total array size
-      Nmutex  lock;   // Mutex for thread safety
+      Mutex   lock;   // Mutex for thread safety
 
       TarrayAdvanced(const TarrayAdvanced&);
       TarrayAdvanced& operator=(const TarrayAdvanced&);

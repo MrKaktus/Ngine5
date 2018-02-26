@@ -18,7 +18,7 @@
 #include "core/defines.h"
 #include "core/types.h"
 #include "core/rendering/device.h"
-#include "core/utilities/TarrayAdvanced.h"
+//#include "core/utilities/TarrayAdvanced.h"
 #include "audio/audio.h"
 #include "resources/resources.h"
 
@@ -153,7 +153,7 @@ namespace en
                  {
                  //TarrayAdvanced<FontDescriptor, EN_MAX_ARRAY_SIZE>     fonts;
                  //TarrayAdvanced<ModelDescriptor, EN_MAX_ARRAY_SIZE>    models;
-                 TarrayAdvanced<MaterialDescriptor, EN_MAX_ARRAY_SIZE> materials;
+                 //TarrayAdvanced<MaterialDescriptor, EN_MAX_ARRAY_SIZE> materials;
                  } storage;
 
           struct Paths

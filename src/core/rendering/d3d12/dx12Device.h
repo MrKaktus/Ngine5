@@ -163,7 +163,7 @@ namespace en
       ID3D12CommandQueue*     queue[underlyingType(QueueType::Count)];
       ID3D12Fence*            fence[underlyingType(QueueType::Count)];        // One Fence per Queue, synchronizing CommandBuffers execution
       volatile uint32         fenceValue[underlyingType(QueueType::Count)];   // Each queue fence increasing value for proper ordering of events
-      Nmutex                  queueAcquire[underlyingType(QueueType::Count)]; // Ensures CommandBuffer commit and fence signal is atomic operation.
+      Mutex                  queueAcquire[underlyingType(QueueType::Count)]; // Ensures CommandBuffer commit and fence signal is atomic operation.
       uint32                  currentAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)]; // Specifies currently used Allocator on given thread for given queue
       uint32                  commandBuffersAllocated[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];  // Specifies current amount of CommandBuffers allocated from current allocator
       uint32                  commandBuffersExecuting[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize]; // Count of CommandBuffers still executing per allocator

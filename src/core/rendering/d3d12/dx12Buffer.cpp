@@ -113,12 +113,30 @@ namespace en
    heap = nullptr;
    }
       
-   void* BufferD3D12::map(void)
+   // Map whole buffer for read or write depending on backing Heap type
+   volatile void* BufferD3D12::map(void)
    {
-   return map(0u, size);
+   // Buffers can be mapped only on Upload, Download and Immediate Heaps.
+   assert( heap->_usage == MemoryUsage::Upload   ||
+           heap->_usage == MemoryUsage::Download ||
+           heap->_usage == MemoryUsage::Immediate );
+  
+   // Range mapped for read (by default mapped for write)
+   range.Begin = 0; 
+   range.End   = 0;
+   if (heap->_usage == MemoryUsage::Download)
+      {
+      range.Begin = 0; 
+      range.End   = size;
+      }
+
+   void* pointer = nullptr;
+   ValidateCom( handle->Map(0, &range, &pointer) )
+   
+   return pointer;
    }
 
-   void* BufferD3D12::map(const uint64 _offset, const uint64 _size)
+   volatile void* BufferD3D12::map(const uint64 _offset, const uint64 _size)
    {
    assert( _offset + _size <= size );
    
@@ -135,9 +153,19 @@ namespace en
    assert( _offset + _size <= 0xFFFFFFFF );
 #endif
 
-   // Mapped range
-   range.Begin = static_cast<SIZE_T>(_offset); 
-   range.End   = static_cast<SIZE_T>(_offset + _size);
+   // If possible, map this buffer only for write, otherwise for CPU read
+   if (heap->_usage != MemoryUsage::Download &&
+       _offset == 0 &&
+       _size == size)
+      {
+      range.Begin = 0; 
+      range.End   = 0;
+      }
+   else
+      {
+      range.Begin = static_cast<SIZE_T>(_offset); 
+      range.End   = static_cast<SIZE_T>(_offset + _size);
+      }
 
    void* pointer = nullptr;
    ValidateCom( handle->Map(0, &range, &pointer) )

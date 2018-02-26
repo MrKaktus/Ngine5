@@ -39,7 +39,6 @@
 #import <AppKit/AppKit.h>
 
 using namespace std;
-//using namespace en::gpu;
 
 namespace en
 {

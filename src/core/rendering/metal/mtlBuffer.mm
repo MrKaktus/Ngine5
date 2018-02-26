@@ -199,12 +199,12 @@ namespace en
    heap = nullptr;
    }
 
-   void* BufferMTL::map(void)
+   volatile void* BufferMTL::map(void)
    {
    return map(0u, size);
    }
    
-   void* BufferMTL::map(const uint64 _offset, const uint64 _size)
+   volatile void* BufferMTL::map(const uint64 _offset, const uint64 _size)
    {
    assert( _offset + _size <= size );
    

@@ -172,8 +172,8 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::setVertexBuffers(const uint32 count,
-                                          const uint32 firstSlot,
+   void CommandBufferVK::setVertexBuffers(const uint32 firstSlot,
+                                          const uint32 count,
                                           const shared_ptr<Buffer>(&buffers)[],
                                           const uint64* offsets) const
    {
@@ -207,6 +207,40 @@ namespace en
       delete [] finalOffsets;
    }
 
+   void CommandBufferVK::setInputBuffer(const uint32  firstSlot,
+                                        const uint32  slots,
+                                        const Buffer& _buffer,
+                                        const uint64* offsets) const
+   {
+   assert( started );
+   assert( slots );
+   assert( (firstSlot + slots) <= gpu->support.maxInputLayoutBuffersCount );
+
+   const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
+
+   // Extract Vulkan buffer handles
+   VkBuffer* handles = new VkBuffer[slots];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+   for(uint32 i=0; i<slots; ++i)
+      handles[i] = buffer.handle;
+
+   // Generate default zero offsets array if none is passed
+   uint64* finalOffsets = (uint64*)(offsets);
+   if (!offsets)
+      {
+	  finalOffsets = new uint64[slots];
+	  memset(finalOffsets, 0, slots * sizeof(uint64));
+	  }
+
+   ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
+                                              firstSlot,
+                                              slots,
+                                              handles,
+                                              static_cast<const VkDeviceSize*>(finalOffsets)) )
+   delete [] handles;
+   if (!offsets)
+      delete [] finalOffsets;
+   }
+
    void CommandBufferVK::setVertexBuffer(const uint32 slot,
                                          const Buffer& buffer,
                                          const uint64 offset) const
@@ -218,6 +252,34 @@ namespace en
                                               slot, 1,
                                               &reinterpret_cast<const BufferVK&>(buffer).handle,
                                               static_cast<const VkDeviceSize*>(&offset)) )
+   }
+
+   void CommandBufferVK::setIndexBuffer(
+      const Buffer& buffer,
+      const Attribute type,
+      const uint32 offset) const
+   {
+   assert( started );
+   assert( encoding );
+   assert( type == Attribute::u16 ||
+           type == Attribute::u32 );
+
+   // Elements are assembled into Primitives.
+   const BufferVK& index = reinterpret_cast<const BufferVK&>(buffer);
+   
+   assert( index.apiType == BufferType::Index );
+   
+   VkIndexType indexType = VK_INDEX_TYPE_UINT16;
+   if (type == Attribute::u32)
+      indexType = VK_INDEX_TYPE_UINT32;
+   
+   // Index Buffer remains bound to Command Buffer after this call,
+   // but because there is no other way to do indexed draw than to
+   // go through this API, it's safe to leave it bounded.
+   ValidateNoRet( gpu, vkCmdBindIndexBuffer(handle,
+                                            index.handle,
+                                            offset,             // Offset In Index Buffer is calculated at draw call.
+                                            indexType) )
    }
 
 
@@ -395,58 +457,38 @@ namespace en
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 
-
    void CommandBufferVK::draw(const uint32  elements,
-                              const Buffer* indexBuffer,
                               const uint32  instances,
-                              const uint32  firstElement,
-                              const sint32  firstVertex,
-                              const uint32  firstInstance)
+                              const uint32  firstVertex,
+                              const uint32  firstInstance) const
    {
    assert( started );
    assert( encoding );
    assert( elements );
 
-   // Elements are assembled into Primitives.
-   if (indexBuffer)
-      {
-      const BufferVK* index = reinterpret_cast<const BufferVK*>(indexBuffer);
-      
-      assert( index->apiType == BufferType::Index );
-      
-      // Prevent binding the same IBO several times in row
-      if (index != currentIndexBuffer)
-         {
-         VkIndexType indexType = VK_INDEX_TYPE_UINT16;
-         if (index->formatting.column[0] == Attribute::u32)
-            indexType = VK_INDEX_TYPE_UINT32;
-         
-         // Index Buffer remains bound to Command Buffer after this call,
-         // but because there is no other way to do indexed draw than to
-         // go through this API, it's safe to leave it bounded.
-         ValidateNoRet( gpu, vkCmdBindIndexBuffer(handle,
-                                                  index->handle,
-                                                  0,             // Offset In Index Buffer is calculated at draw call.
-                                                  indexType) )
+   ValidateNoRet( gpu, vkCmdDraw(handle,
+                                 elements,
+                                 max(1U, instances),
+                                 firstVertex,       // Index of first vertex to draw (offset in buffer, VertexID == 0)
+                                 firstInstance) )
+   }
 
-         currentIndexBuffer = index;
-         }
+   void CommandBufferVK::drawIndexed(const uint32  elements,
+                                     const uint32  instances,
+                                     const uint32  firstIndex,
+                                     const sint32  firstVertex,
+                                     const uint32  firstInstance) const
+   {
+   assert( started );
+   assert( encoding );
+   assert( elements );
 
-      ValidateNoRet( gpu, vkCmdDrawIndexed(handle,
-                                           elements,
-                                           max(1U, instances),
-                                           firstElement,    // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
-                                           firstVertex,     // VertexID of first processed vertex
-                                           firstInstance) ) // InstanceID of first processed instance
-      }
-   else
-      {
-      ValidateNoRet( gpu, vkCmdDraw(handle,
-                                    elements,
-                                    max(1U, instances),
-                                    firstElement,       // Index of first vertex to draw (offset in buffer, VertexID == 0)
-                                    firstInstance) )
-      }
+   ValidateNoRet( gpu, vkCmdDrawIndexed(handle,
+                                        elements,
+                                        max(1U, instances),
+                                        firstIndex,    // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
+                                        firstVertex,     // VertexID of first processed vertex
+                                        firstInstance) ) // InstanceID of first processed instance
    }
 
    void CommandBufferVK::drawIndirect(

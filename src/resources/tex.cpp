@@ -163,7 +163,7 @@ namespace en
             }
 
          // Read texture to temporary buffer
-         void* ptr = staging->map();
+         volatile void* ptr = staging->map();
          file->read(surfaces[j].offset, (uint32)surfaces[j].size, ptr);
          staging->unmap();
  

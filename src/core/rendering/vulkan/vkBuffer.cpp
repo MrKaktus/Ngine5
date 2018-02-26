@@ -50,12 +50,12 @@ namespace en
    // several resources at the same time (for e.g. simultaneous streaming
    // by several threads), create separate heap's for each such update.
 
-   void* BufferVK::map(void)
+   volatile void* BufferVK::map(void)
    {
    return map(0u, size);
    }
    
-   void* BufferVK::map(const uint64 _offset, const uint64 _size)
+   volatile void* BufferVK::map(const uint64 _offset, const uint64 _size)
    {
    assert( _offset + _size <= size );
    
@@ -64,28 +64,42 @@ namespace en
            heap->_usage == MemoryUsage::Download ||
            heap->_usage == MemoryUsage::Immediate );
       
-   // If heap is already locked by other thread mapping resource, fail.
-   if (!heap->mapped.tryLock())
-      return nullptr;
-     
-   void* mappedPtr = nullptr;
+   heap->mutex.lock();
    
-   mappedOffset = _offset;
-   mappedSize   = _size;
-   
-   Validate( heap->gpu, vkMapMemory(heap->gpu->device, heap->handle, mappedOffset, mappedSize, 0u, &mappedPtr) )
+      // Because Vulkan is not allowing more than one map operation at a time,
+      // and future mapping calls can be of any range, whenever any Heap reasource
+      // is being mapped, whole heap will be mapped and mappings counter will be
+      // maintained to determine when map can be safely unmaped. This assumes that
+      // heap can be in mapped state while resources sub-allocated from it are 
+      // used by GPU.
+      if (heap->mappingsCount == 0)
+         {
+         Validate( heap->gpu, vkMapMemory(heap->gpu->device, 
+                                          heap->handle, 
+                                          0, 
+                                          heap->_size, 
+                                          0u, 
+                                         &heap->mappedPtr) )
+         }
+      
+      heap->mappingsCount++;
 
-   return mappedPtr;
+   heap->mutex.unlock();
+
+   return (volatile void*)((uint64)heap->mappedPtr + offset);
    }
 
    void BufferVK::unmap(void)
    {
-   assert( heap->mapped.isLocked() );
+   heap->mutex.lock();
+   
+      if (heap->mappingsCount)
+         heap->mappingsCount--;
+      
+      if (heap->mappingsCount == 0)
+         ValidateNoRet( heap->gpu, vkUnmapMemory(heap->gpu->device, heap->handle) )
 
-   // Unmaps memory object
-   ValidateNoRet( heap->gpu, vkUnmapMemory(heap->gpu->device, heap->handle) )
-
-   heap->mapped.unlock();
+   heap->mutex.unlock();
    }
 
 

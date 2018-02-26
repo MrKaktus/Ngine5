@@ -150,7 +150,7 @@ namespace en
    // Read image to gpu memory   
    if (header.format == RGB) 
       {
-      void* ptr = staging->map();
+      volatile void* ptr = staging->map();
       file->read(srcOffset, dataSize, ptr);    
       staging->unmap();
       }
@@ -161,7 +161,7 @@ namespace en
       uint32 dstOffset = 0;
       uint8  pixelSize = header.bpp / 8;
       void*  pixel = new uint8[pixelSize];
-      void*  ptr   = staging->map();
+      volatile void*  ptr   = staging->map();
 
       while(dstOffset < dataSize)
            {
@@ -314,7 +314,7 @@ namespace en
    // Read image to gpu memory   
    if (header.format == RGB) 
       {     
-      void* dst = staging->map();
+      volatile void* dst = staging->map();
       file->read(srcOffset, dataSize, dst);    
       staging->unmap();
       }
@@ -325,7 +325,7 @@ namespace en
       uint32 dstOffset = 0;
       uint8  pixelSize = header.bpp / 8;
       void*  pixel = new uint8[pixelSize];
-      void*  dst   = staging->map();
+      volatile void*  dst   = staging->map();
 
       while(dstOffset < dataSize)
            {

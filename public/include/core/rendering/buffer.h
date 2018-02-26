@@ -215,10 +215,12 @@ namespace en
       
       // Buffers created on heaps with Upload, Download and Immediate memory
       // usage, can be mapped to obtain pointers to their content. This is not
-      // allowed on Linear, Tiled or Renderable heaps.
-      virtual void* map(void) = 0;
-      virtual void* map(const uint64 offset, const uint64 size) = 0;
-      virtual void  unmap(void) = 0;
+      // allowed on Linear, Tiled or Renderable heaps. Buffers backed by Upload
+      // and Immediate heaps are mapped only for CPU write, while buffers backed
+      // by Download heaps are mapped only for CPU read.
+      virtual volatile void* map(void) = 0;
+      virtual volatile void* map(const uint64 offset, const uint64 size) = 0;
+      virtual void unmap(void) = 0;
    
 /*    // Buffer formated views are currently unsupported:
 

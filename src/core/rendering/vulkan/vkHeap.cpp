@@ -261,12 +261,17 @@ namespace en
       handle(_handle),
       memoryType(_memoryType),
       allocator(new BasicAllocator(size)),
+      mappingsCount(0),
+      mappedPtr(nullptr),
       CommonHeap(_usage, size)
    {
    }
 
    HeapVK::~HeapVK()
    {
+   if (mappingsCount)
+      ValidateNoRet( gpu, vkUnmapMemory(gpu->device, handle) )
+
    ValidateNoRet( gpu, vkFreeMemory(gpu->device, handle, nullptr) )
    
    delete allocator;

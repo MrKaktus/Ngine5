@@ -59,8 +59,8 @@ namespace en
 
 
 
-      virtual void setVertexBuffers(const uint32 count, 
-                                    const uint32 firstSlot, 
+      virtual void setVertexBuffers(const uint32 firstSlot,
+                                    const uint32 count,
                                     const shared_ptr<Buffer>(&buffers)[],
                                     const uint64* offsets = nullptr) const;
 
@@ -90,11 +90,17 @@ namespace en
          
       virtual void draw(
          const uint32  elements,
-         const Buffer* indexBuffer   = nullptr,
          const uint32  instances     = 1,
-         const uint32  firstElement  = 0,
          const sint32  firstVertex   = 0,
-         const uint32  firstInstance = 0);
+         const uint32  firstInstance = 0) = 0;
+
+      virtual void drawIndexed(
+         const uint32  elements,
+         const Buffer& indexBuffer,
+         const uint32  instances     = 1,
+         const uint32  firstIndex    = 0,
+         const sint32  firstVertex   = 0,
+         const uint32  firstInstance = 0) = 0;
          
       virtual void drawIndirect(
          const Buffer& indirectBuffer,

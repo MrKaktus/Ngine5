@@ -47,7 +47,7 @@ namespace en
       virtual shared_ptr<Buffer> createBuffer(const BufferType type,
                                               const uint32 size);
 
-      virtual ~CommonHeap() {};                           // Polymorphic deletes require a virtual base destructor
+      virtual ~CommonHeap() {};
       };
    }
 }

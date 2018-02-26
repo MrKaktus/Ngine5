@@ -180,13 +180,37 @@ namespace en
          const shared_ptr<DescriptorSet>(&sets)[],
          const uint32 firstIndex = 0u) = 0;
 
+      // Input Assembler:
+      // There is no performance loss from leaving input buffers bound from
+      // previous draw calls, if current Pipeline is not using those buffers
+      // on input. Input Assembler won't fetch data from them, so there is
+      // no need to unbind them.
+
       // Assigns Vertex Buffers to specified input attachment slots.
       // Optionally starting offsets in those buffers can be specified.
       virtual void setVertexBuffers(
-         const uint32 count,
          const uint32 firstSlot,
+         const uint32 count,
          const shared_ptr<Buffer>(&buffers)[],
          const uint64* offsets = nullptr) const = 0;
+
+      // Assign single Vertex Buffer to range of Input Assembler slots.
+      // For each slot specify optional starting offset.
+      virtual void setInputBuffer(
+         const uint32  firstSlot,
+         const uint32  slots,
+         const Buffer& buffer,
+         const uint64* offsets = nullptr) const = 0;
+
+      //// Assign single Vertex Buffer to set of Input Assembler slots.
+      //// Selected slots are marked with set bit in slotsMask bitmask.
+      //// For each slot specify optional starting offset (if offsets 
+      //// array is provided, it needs to store count of offsets, equal
+      //// to count of set bits in the bitmask).
+      //virtual void setInputBuffer(
+      //   const Buffer& buffer,
+      //   const uint32  slotsMask,
+      //   const uint64* offsets = nullptr) const = 0;
 
       // Helper method simplifying setting of single Vertex Buffer.
       virtual void setVertexBuffer(
@@ -194,26 +218,42 @@ namespace en
          const Buffer& buffer,
          const uint64 offset = 0u) const = 0;
 
+      // Index Buffer remains bound to Command Buffer after this call.
+      virtual void setIndexBuffer(
+         const Buffer& buffer,
+         const Attribute type,
+         const uint32 offset = 0u) const = 0;
+
 
       // GPU work dispatch:
          
          
       // Primitive Type is specified in bound Pipeline State Object.
-      // elements     - Elements to process (they are assembled into Primitives)
-      // indexBuffer  - Optional Index buffer
-      // instances    - Instances to draw
-      // firstElement - First element or index (in Index buffer) to process
-      // firstVertex  - First Per-Vertex entry in VBO from which numeration
-      //                should start (can be negative)
-      // firstInstance - First Per-Instance entry in VBO from which numeration
+      // elements      - Elements to process (they are assembled into Primitives)
+      // instances     - Instances to draw
+      // firstVertex   - First vertex in Vertex Buffer from which processing 
       //                 should start
+      // firstInstance - First instance in Instance buffer to process
       virtual void draw(
          const uint32  elements,
-         const Buffer* indexBuffer   = nullptr,
          const uint32  instances     = 1,
-         const uint32  firstElement  = 0,
+         const uint32  firstVertex   = 0,
+         const uint32  firstInstance = 0) const = 0;
+
+      // Primitive Type is specified in bound Pipeline State Object.
+      // elements      - Elements to process (they are assembled into Primitives)
+      // instances     - Instances to draw
+      // firstIndex    - First index in Index buffer to process (if specified)
+      // firstVertex   - First vertex in Vertex Buffer from which processing 
+      //                 should start (added to index from index buffer, can be 
+      //                 negative).
+      // firstInstance - First instance in Instance buffer to process
+      virtual void drawIndexed(
+         const uint32  elements,
+         const uint32  instances     = 1,
+         const uint32  firstIndex    = 0,
          const sint32  firstVertex   = 0,
-         const uint32  firstInstance = 0) = 0;
+         const uint32  firstInstance = 0) const = 0;
          
       // Primitive Type is specified in bound Pipeline State Object.
       // indirectBuffer - Buffer from which Draw parameters are sourced

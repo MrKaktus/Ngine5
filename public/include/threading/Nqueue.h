@@ -17,13 +17,15 @@
 #include "core/types.h"
 #include "threading/mutex.h"
 
+namespace en
+{
 template <typename T>
 class cachealign Nqueue
       {
       private:
       T*     m_queue; // Pointer to queue of elements
       uint32 m_count; // Elements in the queue
-      Nmutex m_mutex; // Mutex protecting queue operations
+      Mutex m_mutex; // Mutex protecting queue operations
       uint32 m_size;  // Size of the queue buffer
 
       public:
@@ -120,6 +122,8 @@ template <typename T>
 forceinline uint32 Nqueue<T>::size(void)
 {
  return m_count;
+}
+
 }
 
 #endif

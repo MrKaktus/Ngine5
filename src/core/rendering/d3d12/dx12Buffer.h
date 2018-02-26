@@ -46,8 +46,8 @@ namespace en
          
       virtual ~BufferD3D12();
       
-      virtual void* map(void);
-      virtual void* map(const uint64 offset, const uint64 size);
+      virtual volatile void* map(void);
+      virtual volatile void* map(const uint64 offset, const uint64 size);
       virtual void  unmap(void);
       };
    }

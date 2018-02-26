@@ -18,22 +18,29 @@
 #include "core/utilities/alignment.h"
 #include "core/threading/atomics.h"
 
-class cachealign Nmutex
+namespace en
+{
+   // In the past it was aligned to cacheline size (64bytes) making it extremly
+   // expensive in terms of memory usage. It was supposed to prevent false 
+   // sharing case, where two mutexes modified by two threads share cache line
+   // but that should be handled by CPU cache synchronization in fact as atomic
+   // operations are used on lock.
+   class Mutex
       {
       public:
-      // It uses whole cache line to prevent of false sharing case.
-      volatile uint32 m_lock;
-
+      volatile uint32 lockValue;
+      
       public:
-      Nmutex();
-     ~Nmutex();
-
+      Mutex();
+     ~Mutex();
+      
       forceinline void lock(void);
       forceinline bool tryLock(void);
       forceinline bool isLocked(void);
       forceinline void unlock(void);
       };
-
+   
 #include "threading/mutex.inl"
+}
 
 #endif

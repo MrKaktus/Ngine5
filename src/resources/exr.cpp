@@ -654,8 +654,8 @@ namespace en
          }
 
       // Read texture to temporary buffer
-      void* ptr = staging->map();
-      memcpy(ptr, dst, texture->size());
+      volatile void* ptr = staging->map();
+      memcpy((void*)ptr, dst, texture->size());
       staging->unmap();
 
       delete [] dst;

@@ -171,8 +171,8 @@ namespace en
    assert( staging );
    
    // Save wireframe to temporary buffer
-   void* dst = staging->map();
-   memcpy(dst, points, 16);
+   volatile void* dst = staging->map();
+   memcpy((void*)dst, points, 16);
    staging->unmap();
 
    // TODO: In future distribute transfers to different queues in the same queue type family

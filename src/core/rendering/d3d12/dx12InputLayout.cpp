@@ -317,12 +317,18 @@ namespace en
       const uint32 usedBuffers, 
       const AttributeDesc* attributes,  
       const BufferDesc* buffers) :
+      buffersCount(usedBuffers),
       primitive(primitiveType),
       restart(primitiveRestart),
       points(controlPoints)
    {
    state.pInputElementDescs = usedAttributes ? new D3D12_INPUT_ELEMENT_DESC[usedAttributes] : nullptr;
    state.NumElements        = static_cast<UINT>(usedAttributes);
+
+   // Per buffer stride cache
+   memset(&bufferStride[0], 0, MaxInputLayoutAttributesCount * sizeof(uint32));
+   for(uint32 i=0; i<usedBuffers; ++i)
+      bufferStride[i] = buffers[i].elementSize;
 
    for(uint32 i=0; i<usedAttributes; ++i)
       {

@@ -28,7 +28,6 @@ using namespace std;
 #include "core/log/log.h"
 #include "core/config/config.h"
 #include "core/utilities/parser.h"
-#include "core/utilities/TarrayAdvanced.h"
 
 #ifdef EN_PLATFORM_OSX
 //#include "platform/osx/osx_callbacks.h"

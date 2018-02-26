@@ -158,8 +158,8 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferMTL::setVertexBuffers(const uint32 count,
-                                           const uint32 firstSlot,
+   void CommandBufferMTL::setVertexBuffers(const uint32 firstSlot,
+                                           const uint32 count,
                                            const shared_ptr<Buffer>(&buffers)[],
                                            const uint64* offsets) const
    {
@@ -295,7 +295,7 @@ namespace en
    void CommandBufferMTL::draw(const uint32  elements,
                                const Buffer* indexBuffer,
                                const uint32  instances,
-                               const uint32  firstElement,
+                               const uint32  firstIndex,
                                const sint32  firstVertex,
                                const uint32  firstInstance)
    {
@@ -323,7 +323,7 @@ namespace en
                                 indexCount:elements
                                  indexType:indexType
                                indexBuffer:index->handle
-                         indexBufferOffset:(firstElement * elementSize)
+                         indexBufferOffset:(firstIndex * elementSize)
                              instanceCount:max(1U, instances)
                                 baseVertex:(NSInteger)firstVertex
                               baseInstance:firstInstance];
@@ -339,7 +339,7 @@ namespace en
       {
       // IOS 9.0+, OSX 10.11+
       [renderEncoder drawPrimitives:primitive
-                        vertexStart:firstElement
+                        vertexStart:firstVertex
                         vertexCount:elements
                       instanceCount:max(1U, instances)
                        baseInstance:firstInstance];

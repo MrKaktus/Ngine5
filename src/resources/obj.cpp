@@ -615,8 +615,8 @@ namespace en
          }
 
       // Read texture to temporary buffer
-      void* dst = staging->map();
-      memcpy(dst, geometry, stagingSize);
+      volatile void* dst = staging->map();
+      memcpy((void*)dst, geometry, stagingSize);
       staging->unmap();
        
       // TODO: In future distribute transfers to different queues in the same queue type family
@@ -706,7 +706,7 @@ namespace en
 
       // Read buffer to temporary buffer
       dst = staging->map();
-      memcpy(dst, srcIndex, stagingSize);
+      memcpy((void*)dst, srcIndex, stagingSize);
       staging->unmap();
 
       // Copy data from staging buffer to final texture
@@ -731,17 +731,19 @@ namespace en
    
       // Create mesh
       en::resource::Mesh mesh;
-      mesh.name              = srcMesh.name;
-      mesh.material          = srcMaterial;
-      mesh.geometry.buffer   = vertexBuffer;
-      mesh.geometry.begin    = 0;
-      mesh.geometry.end      = vertexes;
-      mesh.elements.type     = gpu::Triangles;
-      mesh.elements.buffer   = indexBuffer;
-      mesh.elements.offset   = 0;
-      mesh.elements.indexes  = indexes;
 
-      model->mesh.push_back(mesh);
+      // TODO: Refactor to new Model description
+      //mesh.name              = srcMesh.name;
+      //mesh.material          = srcMaterial;
+      //mesh.geometry.buffer   = vertexBuffer;
+      //mesh.geometry.begin    = 0;
+      //mesh.geometry.end      = vertexes;
+      //mesh.elements.type     = gpu::Triangles;
+      //mesh.elements.buffer   = indexBuffer;
+      //mesh.elements.offset   = 0;
+      //mesh.elements.indexes  = indexes;
+
+      //model->mesh.push_back(mesh);
       }
     
    // Update list of loaded models

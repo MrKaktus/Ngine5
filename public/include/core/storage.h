@@ -34,11 +34,11 @@ namespace en
    class File
       {
       public:
-      virtual uint64 size(void) = 0;                 // File size in bytes
-      virtual bool   read(void* buffer) = 0;         // Reads whole file to specified buffer
+      virtual uint64 size(void) = 0;                  // File size in bytes
+      virtual bool   read(volatile void* buffer) = 0; // Reads whole file to specified buffer
       virtual bool   read(const uint64 offset,
                           const uint64 size,
-                          void* buffer,
+                          volatile void* buffer,
                           uint64* readBytes = nullptr) = 0; // Reads part of file
          
       // TODO: Temp, file should be read in blocks to memory, and then parsed!

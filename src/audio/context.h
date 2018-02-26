@@ -41,7 +41,7 @@
 #endif
 
 #include "core/configuration.h"
-#include "core/utilities/TarrayAdvanced.h"
+//#include "core/utilities/TarrayAdvanced.h"
 #include "core/log/log.h"
 #include "audio/audio.h"
 
