@@ -32,9 +32,9 @@ namespace en
    hash result = 0;
 
 #if UseBigHash
-   MurmurHash3_x64_128((const void *)name.c_str(), name.length(), seed, &result);
+   MurmurHash3_x64_128((const void *)name.c_str(), static_cast<sint32>(name.length()), seed, &result);
 #else
-   result = MurmurHash64A((const void *)name.c_str(), name.length(), seed);
+   result = MurmurHash64A((const void *)name.c_str(), static_cast<sint32>(name.length()), seed);
 #endif
 
    return result;

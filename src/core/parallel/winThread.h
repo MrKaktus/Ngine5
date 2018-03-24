@@ -20,24 +20,24 @@ namespace en
    class winThread : public Thread
       {
       public:
-      HANDLE  handle;          // Thread handle
-      HANDLE  sleepSemapthore; // Sleeping semaphore
+      HANDLE handle;            // Thread handle
+      HANDLE sleepSemapthore;   // Sleeping semaphore
+      void*  localState;        // State passed on thread creation
+      volatile bool isSleeping; // Thread sleeps
+      volatile bool valid;      // Thread is executing (may sleep)
 
-      //uint32  m_id;         // Thread id
-      bool    m_sleeping;   // Sleep mode flag
-      //bool    m_finish;     // Termination indicator
-      bool    idle;       // Nothing doing
-
-      virtual winThread();
+      winThread(); // Wraps around current thread
+      winThread(ThreadFunction function, void* threadState);
       virtual ~winThread();
 
-      virtual bool start(void* function, void* params);
-      virtual bool current(void);
-      virtual bool sleep(void);
-      virtual bool wakeUp(void);
+      virtual void* state(void);
+      virtual void name(std::string threadName);
+      virtual void sleep(void);
+      virtual void wakeUp(void);
+      virtual bool sleeping(void);
       virtual bool working(void);
       virtual void exit(uint32 ret);
-      virtual bool stop(void);
+      virtual void waitUntilCompleted(void);
       };
 }
 #endif

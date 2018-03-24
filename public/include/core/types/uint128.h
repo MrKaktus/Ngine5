@@ -26,10 +26,10 @@ namespace en
       inline uint128(uint64 hi, uint64 lo) : lo(lo), hi(hi) {}
 
       // copy assignment
-      inline uint128& operator=(const uint8& b) { hi = 0; lo = b; };
-      inline uint128& operator=(const uint16& b) { hi = 0; lo = b; };
-      inline uint128& operator=(const uint32& b) { hi = 0; lo = b; };
-      inline uint128& operator=(const uint64& b) { hi = 0; lo = b; };
+      inline void operator=(const uint8& b)  { hi = 0; lo = b; };
+      inline void operator=(const uint16& b) { hi = 0; lo = b; };
+      inline void operator=(const uint32& b) { hi = 0; lo = b; };
+      inline void operator=(const uint64& b) { hi = 0; lo = b; };
       uint128& operator=(const uint128& b);
 
       // comparison

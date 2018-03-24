@@ -83,7 +83,7 @@ namespace en
       const uint32 _doubleSizeUntil) :
          memory(nullptr),
          head(nullptr),
-         entrySize(roundUp(static_cast<uint64>(sizeof(T)), static_cast<uint64>(alignment))),
+         entrySize(static_cast<uint32>(roundUp(static_cast<uint64>(sizeof(T)), static_cast<uint64>(alignment)))),
          size(roundUp(entrySize*capacity, 4096)),
          maxSize(roundUp(entrySize*maxCapacity, 4096)),
          doubleSizeUntil(_doubleSizeUntil)
@@ -94,7 +94,7 @@ namespace en
    if (memory)
       {
       // Due to allocating multiple of 4KB blocks, there may be some extra entries
-      uint32 actualCapacity = size / entrySize;
+      uint32 actualCapacity = static_cast<uint32>(size / entrySize);
 
       // At the beginning all entries are free and thus point to the next one
       head = memory;
@@ -109,7 +109,7 @@ namespace en
    template<typename T>
    PoolAllocator<T>::~PoolAllocator()
    {
-   en::deallocate((void*)memory);
+   en::deallocate((void*)memory, maxSize);
    }
 
    template<typename T>
@@ -177,7 +177,7 @@ namespace en
    if (offset >= maxSize)
       return false;
 
-   index = offset / entrySize;
+   index = static_cast<uint32>(offset / entrySize);
    return true;
    }
 

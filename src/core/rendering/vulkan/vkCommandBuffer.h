@@ -138,7 +138,7 @@ namespace en
       virtual void setIndexBuffer(
          const Buffer& buffer,
          const Attribute type,
-         const uint32 offset = 0u) const;
+         const uint32 offset = 0u);
                         
       virtual void draw(
          const uint32  elements,
@@ -155,9 +155,12 @@ namespace en
          
       virtual void drawIndirect(
          const Buffer& indirectBuffer,
-         const uint32  firstEntry   = 0,
-         const Buffer* indexBuffer  = nullptr,
-         const uint32  firstElement = 0); 
+         const uint32  firstEntry    = 0) const;
+
+      virtual void drawIndirectIndexed(
+         const Buffer& indirectBuffer,
+         const uint32  firstEntry    = 0,
+         const uint32  firstIndex    = 0) const;
 
       virtual void endRenderPass(void);
 

@@ -14,9 +14,12 @@
 
 #include "core/algorithm/allocator.h"
 #include "core/utilities/poolAllocator.h"
+#include "core/parallel/thread.h"
 #include "core/rendering/buffer.h"
 #include "core/rendering/texture.h"
 #include "core/rendering/device.h"
+
+#include "utilities/circularQueue.h"
 
 namespace en
 {
@@ -221,9 +224,17 @@ namespace en
       uint32 sysHeapIndex;  // Index to system Heap descriptor
       uint32 gpuHeapIndex;  // Index to dedicated Heap descriptor
       uint32 sysOffset;     // Starting offset in CPU Heap
-      uint32 locked : 1;    // Cannot be evicted when locked (lock is set on resident call)
-      uint32        : 31;   // Padding to 16 bytes
+      uint32 locked    : 1; // Cannot be evicted when locked (lock is set on resident call)
+      uint32 uploading : 1; // Set, before sending for upload (later checked to ensure it won't be pushed several times)
+      uint32           : 30;// Padding to 16 bytes
       };
+   
+   // TODO:
+   // Locking against eviction could be optimized by changing it to locking as
+   // a mutex for any type of operation and using Atomic operations to
+   // set it, and clear it. That will introduce big overhead for rendering thread
+   // or streamer thread thou (each time when resource is used). There need to be
+   // easier way to ensure thread safety and prevent unwanted eviction.
    
    static_assert(sizeof(BufferAllocationInternal) == 16, "BufferAllocationInternal size mismatch!");
    
@@ -253,9 +264,10 @@ namespace en
       uint64 maxTextureResidentSize; // Maximum allowed usage of dedicated memory for textures
       };
    
+   // TODO: Separate streamer interface from private implementation (this requires some kind of factory)
    class Streamer
       {
-      private:
+      public:
       shared_ptr<gpu::GpuDevice> gpu;
       gpu::QueueType queueForTransfers;
    
@@ -293,10 +305,15 @@ namespace en
       shared_ptr<gpu::Buffer> downloadBuffer;
       volatile void*          downloadAdress;
    
+      // Queue of resource's to upload 
+      CircularQueue<uint32>* uploadQueue;
+   
+      // Thread managing asynchronous data streaming
+      bool terminating;
+      unique_ptr<Thread> streamingThread;
    
    
-   
-      // Helper method allocating memeory
+      // Helper method allocating memory
       bool initSystemHeap(BufferCache& systemCache);
       bool initBufferHeap(BufferCache& bufferCache);
       void evictBuffer(BufferAllocation& desc, BufferAllocationInternal& descInternal);
@@ -306,7 +323,9 @@ namespace en
      ~Streamer();
     
       bool allocateMemory(BufferAllocation*& desc, const uint32 size);
-      void makeResident(BufferAllocation& desc);
+      bool makeResident(BufferAllocation& desc, const bool lock = false);
+      bool lockMemory(BufferAllocation& desc);
+      void unlockMemory(BufferAllocation& desc);
       void evictMemory(BufferAllocation& desc);
       void deallocateMemory(BufferAllocation& desc);
       };

@@ -23,6 +23,6 @@ namespace en
    // Increases allocation size without copying data, or changing location
    bool reallocate(void* address, const uint64 currentSize, const uint64 newSize);
 
-   void deallocate(void* address);
+   void deallocate(void* address, const uint64 maximumSize);
 }
 #endif

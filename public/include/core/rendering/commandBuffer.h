@@ -222,7 +222,7 @@ namespace en
       virtual void setIndexBuffer(
          const Buffer& buffer,
          const Attribute type,
-         const uint32 offset = 0u) const = 0;
+         const uint32 offset = 0u) = 0;
 
 
       // GPU work dispatch:
@@ -258,14 +258,19 @@ namespace en
       // Primitive Type is specified in bound Pipeline State Object.
       // indirectBuffer - Buffer from which Draw parameters are sourced
       // firstEntry     - First entry to process in Indirect buffer
-      // indexBuffer    - Optional Index buffer
-      // firstElement   - First index to process in Index buffer (if specified)
       virtual void drawIndirect(
          const Buffer& indirectBuffer,
-         const uint32  firstEntry   = 0,
-         const Buffer* indexBuffer  = nullptr,
-         const uint32  firstElement = 0) = 0;
+         const uint32  firstEntry    = 0) const = 0;
 
+      // Primitive Type is specified in bound Pipeline State Object.
+      // indirectBuffer - Buffer from which Draw parameters are sourced
+      // firstEntry     - First entry to process in Indirect buffer
+      // firstIndex     - First index to process in Index buffer
+      virtual void drawIndirectIndexed(
+         const Buffer& indirectBuffer,
+         const uint32  firstEntry    = 0,
+         const uint32  firstIndex    = 0) const = 0;
+         
       virtual ~CommandBuffer() {};
       };
    }

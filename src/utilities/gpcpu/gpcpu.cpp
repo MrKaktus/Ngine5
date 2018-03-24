@@ -123,33 +123,33 @@ namespace en
    // True if all components are different from zero
    bool all(float2& a)
    {
-   return !isZero(a.x) && !isZero(a.y);
+   return !(isZero(a.x)) && !(isZero(a.y));
    }
    
    bool all(float3& a)
    {
-   return !isZero(a.x) && !isZero(a.y) && !isZero(a.z);
+   return !(isZero(a.x)) && !(isZero(a.y)) && !(isZero(a.z));
    }
    
    bool all(float4& a)
    {
-   return !isZero(a.x) && !isZero(a.y) && !isZero(a.z) && !isZero(a.w);
+   return !(isZero(a.x)) && !(isZero(a.y)) && !(isZero(a.z)) && !(isZero(a.w));
    }
    
    // True if any component is different from zero
    bool any(float2& a)
    {
-   return !isZero(a.x) || !isZero(a.y);
+   return !(isZero(a.x)) || !(isZero(a.y));
    }
    
    bool any(float3& a)
    {
-   return !isZero(a.x) || !isZero(a.y) || !isZero(a.z);
+   return !(isZero(a.x)) || !(isZero(a.y)) || !(isZero(a.z));
    }
    
    bool any(float4& a)
    {
-   return !isZero(a.x) || !isZero(a.y) || !isZero(a.z) || !isZero(a.w);
+   return !(isZero(a.x)) || !(isZero(a.y)) || !(isZero(a.z)) || !(isZero(a.w));
    }
    
    // clamp value to a range

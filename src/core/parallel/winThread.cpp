@@ -10,95 +10,76 @@
 
 #include "core/parallel/winThread.h"
 
+#if defined(EN_PLATFORM_WINDOWS)
+
 namespace en
 {
-   winThread::winThread() :
+   winThread::winThread(ThreadFunction function, void* threadState) :
       handle(INVALID_HANDLE_VALUE),
-      sleepSemapthore(INVALID_HANDLE_VALUE),
-
-      //m_id(0),
-      m_sleeping(false),
-      //m_finish(false),
-      idle(true),
+      sleepSemapthore(CreateSemaphore(nullptr, 0, 1, nullptr)),
+      localState(threadState),
+      isSleeping(false),
+      valid(false),
       Thread()
    {
+   handle = CreateThread(nullptr,                                      // Thread parameters
+                         65536,                                        // Thread stack size
+                         static_cast<PTHREAD_START_ROUTINE>(function), // Thread entry point
+                         static_cast<LPVOID>(threadState),             // Thread startup parameters
+                         0,                                            // Creation flags
+                         nullptr);                                     // Thread id  (LPDWORD)(&m_id)
+      
+   assert( handle != INVALID_HANDLE_VALUE );
+   valid = true;
    }
 
    winThread::~winThread() 
    {
-   stop();
+   valid = !(bool)TerminateThread(handle, 0);
+   CloseHandle(handle);
+   CloseHandle(sleepSemaphore);
+   handle = INVALID_HANDLE_VALUE;
+   sleepSemaphore = INVALID_HANDLE_VALUE;
    }
 
-// Start thread execution
-   bool winThread::start(void* function, void* params)
+   void* winThread::state(void)
    {
+   return localState;
+   }
+   
+   void winThread::name(std::string threadName)
+   {
+   // Available since Windows 10 Creators Update
+   HRESULT result = SetThreadDescription(handle, threadName.c_str());  // L"name"
+   }
+   
+   void winThread::sleep(void)
+   {
+   assert( handle == GetCurrentThread() );
 
-   // If thread is supposed to be already created check if it is still true
-   if (!idle)
-      {
-      if (WaitForSingleObject(handle, 0) == WAIT_OBJECT_0)
-         {
-         handle = INVALID_HANDLE_VALUE;
-         idle = true;
-         }
-      }
+   isSleeping = true;
+   WaitForSingleObject(sleepSemapthore, INFINITE);
+   }
    
-   if (idle)
-      {
-      m_wakeUp = CreateSemaphore(NULL, 0, 1, NULL);
-      m_handle = CreateThread( NULL,                                         // Thread parameters
-                               65536,                                        // Thread stack size
-                               static_cast<PTHREAD_START_ROUTINE>(function), // Thread entry point	 
-                               static_cast<LPVOID>(params),                  // Thread startup parameters
-                               0,	                                          // Creation flags
-                               NULL                                          // Thread id                     (LPDWORD)(&m_id)
-                               );	
-      if (m_handle != INVALID_HANDLE_VALUE)
-         idle = false;
-      }
-   
-   return !idle;
+   void winThread::wakeUp(void)
+   {
+   if (!isSleeping)
+      return;
+
+   isSleeping = false;
+   ReleaseSemaphore(sleepSemapthore, 1, nullptr);
    }
 
-// Catches current thread to this class
-bool winThread::current(void)
-{
- if (working())
-    return false;
-
- m_handle = GetCurrentThread();
- m_idle = false;
- return true;
-}
-
-// Thread goes to sleep
-bool winThread::sleep(void)
-{
- if (m_handle != GetCurrentThread())
-    return false;
-
- m_sleeping = true;
- WaitForSingleObject(m_wakeUp,INFINITE);
- return true;
-}
-
-// Other thread wakes him up
-bool winThread::wakeUp(void)
-{
- if (!m_sleeping)
-    return false;
-
- m_sleeping = false;
- ReleaseSemaphore(m_wakeUp, 1, NULL);
- return true;
-}
-
+   bool winThread::sleeping(void)
+   {
+   return isSleeping;
+   }
+   
    bool winThread::working(void)
    {
    if (WaitForSingleObject(handle, 0) == WAIT_OBJECT_0)
       {
       handle = INVALID_HANDLE_VALUE;
-      idle = true;
       return false;
       }
 
@@ -107,23 +88,22 @@ bool winThread::wakeUp(void)
 
    void winThread::exit(uint32 ret)
    {
-   if (handle != GetCurrentThread())
-      return;
+   assert( handle == GetCurrentThread() );
 
    handle = INVALID_HANDLE_VALUE;
-   idle = true;
    ExitThread(ret);
    }
-
-   bool winThread::stop(void)
+   
+   void winThread::waitUntilCompleted(void)
    {
-   if (working())
-      {
-      idle = (bool)TerminateThread(handle, 0);
-      CloseHandle(handle);
-      handle = INVALID_HANDLE_VALUE;
-      }
-
-   return m_idle;
+   assert( handle != GetCurrentThread() );
+   
+   WaitForSingleObject(handle, INFINITE);
+   }
+   
+   unique_ptr<Thread> startThread(ThreadFunction function, void* threadState)
+   {
+   return make_unique<winThread>(function, threadState);
    }
 }
+#endif

@@ -36,6 +36,7 @@
 		85484E0B1DD0E18200BEDD54 /* dx12Shader.h in Headers */ = {isa = PBXBuildFile; fileRef = 85484E091DD0E18200BEDD54 /* dx12Shader.h */; };
 		85484E0E1DD0E1C000BEDD54 /* vkShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85484E0C1DD0E1C000BEDD54 /* vkShader.cpp */; };
 		85484E0F1DD0E1C000BEDD54 /* vkShader.h in Headers */ = {isa = PBXBuildFile; fileRef = 85484E0D1DD0E1C000BEDD54 /* vkShader.h */; };
+		85512E60204B44B60058D6E1 /* psxThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85512E5F204B44B60058D6E1 /* psxThread.cpp */; };
 		855217A21E00CB4B00FF942F /* dx12CommandBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 855217A01E00CB4B00FF942F /* dx12CommandBuffer.cpp */; };
 		855217A31E00CB4B00FF942F /* dx12CommandBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 855217A11E00CB4B00FF942F /* dx12CommandBuffer.h */; };
 		8558AC401FF2F419004E94E3 /* sampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8558AC3D1FF2F418004E94E3 /* sampler.cpp */; };
@@ -59,6 +60,18 @@
 		8570E3C61E48E1AD0003FF57 /* window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8570E3C21E48E1AD0003FF57 /* window.cpp */; };
 		8570E3C71E48E1AD0003FF57 /* window.h in Headers */ = {isa = PBXBuildFile; fileRef = 8570E3C31E48E1AD0003FF57 /* window.h */; };
 		8574DD4E1DC2D08F0097629E /* dx12Texture.h in Headers */ = {isa = PBXBuildFile; fileRef = 8574DD4D1DC2D08F0097629E /* dx12Texture.h */; };
+		8575178D2044DE5100FC0284 /* winThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8575178B2044DE5100FC0284 /* winThread.cpp */; };
+		8575178E2044DE5100FC0284 /* winThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 8575178C2044DE5100FC0284 /* winThread.h */; };
+		857517902044EACB00FC0284 /* psxThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 8575178F2044EACB00FC0284 /* psxThread.h */; };
+		8575179220450AC600FC0284 /* streamer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8575179120450AC600FC0284 /* streamer.cpp */; };
+		8575179520450ADA00FC0284 /* uint16v2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8575179320450ADA00FC0284 /* uint16v2.cpp */; };
+		8575179620450ADA00FC0284 /* uint128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8575179420450ADA00FC0284 /* uint128.cpp */; };
+		8575179820450AEC00FC0284 /* pageAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8575179720450AEC00FC0284 /* pageAllocator.cpp */; };
+		8575179F20450B2400FC0284 /* hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8575179A20450B2400FC0284 /* hash.cpp */; };
+		857517A020450B2400FC0284 /* MurmurHash3.h in Headers */ = {isa = PBXBuildFile; fileRef = 8575179B20450B2400FC0284 /* MurmurHash3.h */; };
+		857517A120450B2400FC0284 /* MurmurHash2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8575179C20450B2400FC0284 /* MurmurHash2.cpp */; };
+		857517A220450B2400FC0284 /* MurmurHash2.h in Headers */ = {isa = PBXBuildFile; fileRef = 8575179D20450B2400FC0284 /* MurmurHash2.h */; };
+		857517A320450B2400FC0284 /* MurmurHash3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8575179E20450B2400FC0284 /* MurmurHash3.cpp */; };
 		85756B681E10890100C8F3DB /* inputLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85756B661E10890100C8F3DB /* inputLayout.cpp */; };
 		85756B691E10890100C8F3DB /* inputLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 85756B671E10890100C8F3DB /* inputLayout.h */; };
 		85756B6E1E1089D000C8F3DB /* dx12InputLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85756B6A1E1089D000C8F3DB /* dx12InputLayout.cpp */; };
@@ -268,6 +281,7 @@
 		85484E091DD0E18200BEDD54 /* dx12Shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12Shader.h; sourceTree = "<group>"; };
 		85484E0C1DD0E1C000BEDD54 /* vkShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vkShader.cpp; sourceTree = "<group>"; };
 		85484E0D1DD0E1C000BEDD54 /* vkShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vkShader.h; sourceTree = "<group>"; };
+		85512E5F204B44B60058D6E1 /* psxThread.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = psxThread.cpp; path = parallel/psxThread.cpp; sourceTree = "<group>"; };
 		855217A01E00CB4B00FF942F /* dx12CommandBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12CommandBuffer.cpp; sourceTree = "<group>"; };
 		855217A11E00CB4B00FF942F /* dx12CommandBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12CommandBuffer.h; sourceTree = "<group>"; };
 		8558AC3D1FF2F418004E94E3 /* sampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sampler.cpp; sourceTree = "<group>"; };
@@ -291,6 +305,18 @@
 		8570E3C21E48E1AD0003FF57 /* window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = window.cpp; sourceTree = "<group>"; };
 		8570E3C31E48E1AD0003FF57 /* window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = window.h; sourceTree = "<group>"; };
 		8574DD4D1DC2D08F0097629E /* dx12Texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12Texture.h; sourceTree = "<group>"; };
+		8575178B2044DE5100FC0284 /* winThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = winThread.cpp; path = parallel/winThread.cpp; sourceTree = "<group>"; };
+		8575178C2044DE5100FC0284 /* winThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = winThread.h; path = parallel/winThread.h; sourceTree = "<group>"; };
+		8575178F2044EACB00FC0284 /* psxThread.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = psxThread.h; path = parallel/psxThread.h; sourceTree = "<group>"; };
+		8575179120450AC600FC0284 /* streamer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = streamer.cpp; sourceTree = "<group>"; };
+		8575179320450ADA00FC0284 /* uint16v2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = uint16v2.cpp; sourceTree = "<group>"; };
+		8575179420450ADA00FC0284 /* uint128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = uint128.cpp; sourceTree = "<group>"; };
+		8575179720450AEC00FC0284 /* pageAllocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pageAllocator.cpp; sourceTree = "<group>"; };
+		8575179A20450B2400FC0284 /* hash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = hash.cpp; path = algorithm/hash.cpp; sourceTree = "<group>"; };
+		8575179B20450B2400FC0284 /* MurmurHash3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MurmurHash3.h; path = algorithm/MurmurHash3.h; sourceTree = "<group>"; };
+		8575179C20450B2400FC0284 /* MurmurHash2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MurmurHash2.cpp; path = algorithm/MurmurHash2.cpp; sourceTree = "<group>"; };
+		8575179D20450B2400FC0284 /* MurmurHash2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MurmurHash2.h; path = algorithm/MurmurHash2.h; sourceTree = "<group>"; };
+		8575179E20450B2400FC0284 /* MurmurHash3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MurmurHash3.cpp; path = algorithm/MurmurHash3.cpp; sourceTree = "<group>"; };
 		85756B661E10890100C8F3DB /* inputLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inputLayout.cpp; sourceTree = "<group>"; };
 		85756B671E10890100C8F3DB /* inputLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputLayout.h; sourceTree = "<group>"; };
 		85756B6A1E1089D000C8F3DB /* dx12InputLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12InputLayout.cpp; sourceTree = "<group>"; };
@@ -555,6 +581,29 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		857517892044DE0900FC0284 /* parallel */ = {
+			isa = PBXGroup;
+			children = (
+				8575178B2044DE5100FC0284 /* winThread.cpp */,
+				8575178C2044DE5100FC0284 /* winThread.h */,
+				85512E5F204B44B60058D6E1 /* psxThread.cpp */,
+				8575178F2044EACB00FC0284 /* psxThread.h */,
+			);
+			name = parallel;
+			sourceTree = "<group>";
+		};
+		8575179920450B0B00FC0284 /* algorithm */ = {
+			isa = PBXGroup;
+			children = (
+				8575179A20450B2400FC0284 /* hash.cpp */,
+				8575179C20450B2400FC0284 /* MurmurHash2.cpp */,
+				8575179D20450B2400FC0284 /* MurmurHash2.h */,
+				8575179E20450B2400FC0284 /* MurmurHash3.cpp */,
+				8575179B20450B2400FC0284 /* MurmurHash3.h */,
+			);
+			name = algorithm;
+			sourceTree = "<group>";
+		};
 		8591799A1C3F66120051382A /* src */ = {
 			isa = PBXGroup;
 			children = (
@@ -585,9 +634,11 @@
 		8591799E1C3F66120051382A /* core */ = {
 			isa = PBXGroup;
 			children = (
+				8575179920450B0B00FC0284 /* algorithm */,
 				8591799F1C3F66120051382A /* config */,
 				859179A21C3F66120051382A /* configuration.h */,
 				859179A31C3F66120051382A /* log */,
+				857517892044DE0900FC0284 /* parallel */,
 				859179A61C3F66120051382A /* rendering */,
 				85917A2E1C3F66120051382A /* storage */,
 				85917A311C3F66120051382A /* types */,
@@ -812,6 +863,8 @@
 		85917A311C3F66120051382A /* types */ = {
 			isa = PBXGroup;
 			children = (
+				8575179320450ADA00FC0284 /* uint16v2.cpp */,
+				8575179420450ADA00FC0284 /* uint128.cpp */,
 				850F055F1FE2576600BD7BF0 /* sint16v2.cpp */,
 				85917A321C3F66120051382A /* double3.cpp */,
 				85917A331C3F66120051382A /* double4.cpp */,
@@ -834,6 +887,7 @@
 		85917A3F1C3F66120051382A /* utilities */ = {
 			isa = PBXGroup;
 			children = (
+				8575179720450AEC00FC0284 /* pageAllocator.cpp */,
 				85C3A1061F5A430E00DA913D /* basicAllocator.cpp */,
 				85C3A1051F5A430E00DA913D /* basicAllocator.h */,
 				85917A401C3F66120051382A /* parser.cpp */,
@@ -929,6 +983,7 @@
 		85917A5F1C3F66120051382A /* rendering */ = {
 			isa = PBXGroup;
 			children = (
+				8575179120450AC600FC0284 /* streamer.cpp */,
 				85917A601C3F66120051382A /* stereo.cpp */,
 				85917A611C3F66120051382A /* Istate.cpp */,
 			);
@@ -1098,6 +1153,7 @@
 				859A39C11CA78E1900CC4173 /* common.h in Headers */,
 				852B26391DBFAF96007D0C0F /* dx12Sampler.h in Headers */,
 				85917C8E1C408C9F0051382A /* platform in Headers */,
+				857517902044EACB00FC0284 /* psxThread.h in Headers */,
 				85756B831E108A0A00C8F3DB /* vkSynchronization.h in Headers */,
 				855217A31E00CB4B00FF942F /* dx12CommandBuffer.h in Headers */,
 				8570E3C51E48E1AD0003FF57 /* display.h in Headers */,
@@ -1112,6 +1168,7 @@
 				859A39CD1CA7AF7C00CC4173 /* winInput.h in Headers */,
 				85917C911C408C9F0051382A /* scene in Headers */,
 				85F115971E2F21130098520E /* andStorage.h in Headers */,
+				857517A220450B2400FC0284 /* MurmurHash2.h in Headers */,
 				85E9CB9E1D7485A80029A9BE /* vkRenderPass.h in Headers */,
 				85C15E371E2DE313005C69C6 /* osxStorage.h in Headers */,
 				85E9CBA21D7486AC0029A9BE /* heap.h in Headers */,
@@ -1124,6 +1181,7 @@
 				85245FCB1DB45EBD004A903C /* osxSurface.h in Headers */,
 				85756B931E108CB400C8F3DB /* mtlLayout.h in Headers */,
 				851A8E951CC539D800272F88 /* mtlBuffer.h in Headers */,
+				8575178E2044DE5100FC0284 /* winThread.h in Headers */,
 				858398BA1D0B107B00431C85 /* vkCommandBuffer.h in Headers */,
 				85917C931C408C9F0051382A /* threading.h in Headers */,
 				856E9C961CB8753000875662 /* mtlPipeline.h in Headers */,
@@ -1133,6 +1191,7 @@
 				851A8EBB1CC5A4F600272F88 /* vkBuffer.h in Headers */,
 				85245FC91DB4404F004A903C /* mtlInternal.h in Headers */,
 				85FB829E1DD2A1C700A7BFA7 /* dx12RenderPass.h in Headers */,
+				857517A020450B2400FC0284 /* MurmurHash3.h in Headers */,
 				85917C941C408C9F0051382A /* utilities in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1245,6 +1304,7 @@
 				8570E3C41E48E1AD0003FF57 /* display.cpp in Sources */,
 				85FB829D1DD2A1C700A7BFA7 /* dx12RenderPass.cpp in Sources */,
 				852B26381DBFAF96007D0C0F /* dx12Sampler.cpp in Sources */,
+				8575178D2044DE5100FC0284 /* winThread.cpp in Sources */,
 				85484E0A1DD0E18200BEDD54 /* dx12Shader.cpp in Sources */,
 				851A8E931CC5399100272F88 /* mtlBuffer.mm in Sources */,
 				85756B811E108A0A00C8F3DB /* vkSampler.cpp in Sources */,
@@ -1269,8 +1329,10 @@
 				8558AC421FF2F419004E94E3 /* depthStencil.cpp in Sources */,
 				85917ADA1C3F66F50051382A /* double3.cpp in Sources */,
 				85917ADB1C3F66F60051382A /* double4.cpp in Sources */,
+				8575179220450AC600FC0284 /* streamer.cpp in Sources */,
 				858398B81D0B0FDE00431C85 /* vkCommandBuffer.cpp in Sources */,
 				85917ADC1C3F66F60051382A /* float2.cpp in Sources */,
+				8575179520450ADA00FC0284 /* uint16v2.cpp in Sources */,
 				85C3A1081F5A430E00DA913D /* basicAllocator.cpp in Sources */,
 				85917ADD1C3F66F60051382A /* float3.cpp in Sources */,
 				85917ADE1C3F66F60051382A /* float3x3.cpp in Sources */,
@@ -1292,14 +1354,17 @@
 				85917AE91C3F66F60051382A /* hmd.cpp in Sources */,
 				85987A9C1D086DD90063BCFD /* mtlCommandBuffer.mm in Sources */,
 				85917AEA1C3F66F60051382A /* input.cpp in Sources */,
+				857517A320450B2400FC0284 /* MurmurHash3.cpp in Sources */,
 				85917AEB1C3F66F60051382A /* winJoystick.cpp in Sources */,
 				85917AEC1C3F66F60051382A /* oculus.cpp in Sources */,
+				85512E60204B44B60058D6E1 /* psxThread.cpp in Sources */,
 				85917AED1C3F66F60051382A /* vive.cpp in Sources */,
 				85917AEE1C3F66F60051382A /* monetization.cpp in Sources */,
 				85F115991E2F21B00098520E /* andStorage.cpp in Sources */,
 				859A39C71CA7AC7A00CC4173 /* bbInput.cpp in Sources */,
 				85756B6E1E1089D000C8F3DB /* dx12InputLayout.cpp in Sources */,
 				85917AEF1C3F66F60051382A /* and_events.cpp in Sources */,
+				8575179F20450B2400FC0284 /* hash.cpp in Sources */,
 				85917AF01C3F66F60051382A /* and_main.cpp in Sources */,
 				85E9CB9C1D7485A80029A9BE /* vkHeap.cpp in Sources */,
 				8585EB361D78F7DF00437C1D /* sint32v4.cpp in Sources */,
@@ -1314,12 +1379,14 @@
 				8570E3BC1E48DA3E0003FF57 /* vkWindow.cpp in Sources */,
 				85917AF71C3F66F60051382A /* stereo.cpp in Sources */,
 				85917AF91C3F66F60051382A /* exr.cpp in Sources */,
+				857517A120450B2400FC0284 /* MurmurHash2.cpp in Sources */,
 				85B1D99F1FEF694700794A1F /* dx12Window.cpp in Sources */,
 				85917AFA1C3F66F60051382A /* dds.cpp in Sources */,
 				85917AFB1C3F66F60051382A /* bmp.cpp in Sources */,
 				85756B7F1E108A0A00C8F3DB /* vkLayout.cpp in Sources */,
 				8570E3C61E48E1AD0003FF57 /* window.cpp in Sources */,
 				85917AFC1C3F66F60051382A /* effect.cpp in Sources */,
+				8575179620450ADA00FC0284 /* uint128.cpp in Sources */,
 				85917AFD1C3F66F60051382A /* fbx.cpp in Sources */,
 				85917AFE1C3F66F60051382A /* forsyth.cpp in Sources */,
 				72DF4B6D1CF8FAAE00381906 /* mtlHeap.mm in Sources */,
@@ -1328,6 +1395,7 @@
 				85917B001C3F66F60051382A /* material.cpp in Sources */,
 				85917B011C3F66F60051382A /* model.cpp in Sources */,
 				85917B021C3F66F60051382A /* mtl.cpp in Sources */,
+				8575179820450AEC00FC0284 /* pageAllocator.cpp in Sources */,
 				85917B031C3F66F60051382A /* font.cpp in Sources */,
 				85917B041C3F66F60051382A /* png.cpp in Sources */,
 				85917B051C3F66F60051382A /* resources.cpp in Sources */,

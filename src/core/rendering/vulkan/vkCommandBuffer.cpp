@@ -257,7 +257,7 @@ namespace en
    void CommandBufferVK::setIndexBuffer(
       const Buffer& buffer,
       const Attribute type,
-      const uint32 offset) const
+      const uint32 offset)
    {
    assert( started );
    assert( encoding );
@@ -493,9 +493,7 @@ namespace en
 
    void CommandBufferVK::drawIndirect(
       const Buffer& indirectBuffer,
-      const uint32  firstEntry,
-      const Buffer* indexBuffer,
-      const uint32  firstElement)
+      const uint32  firstEntry) const
    {
    assert( started );
    assert( encoding );
@@ -503,47 +501,35 @@ namespace en
    const BufferVK& indirect = reinterpret_cast<const BufferVK&>(indirectBuffer);
    assert( indirect.apiType == BufferType::Indirect );
    
-   if (indexBuffer)
-      {
-      const BufferVK* index = reinterpret_cast<const BufferVK*>(indexBuffer);
-      assert( index->apiType == BufferType::Index );
-      
-      uint32 elementSize = 2;
-      VkIndexType indexType = VK_INDEX_TYPE_UINT16;
-      if (index->formatting.column[0] == Attribute::u32)
-         {
-         elementSize = 4;
-         indexType = VK_INDEX_TYPE_UINT32;
-         }
+   // IndirectDrawArgument can be directly cast to VkDrawIndirectCommand.
+   
+   // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
+   ValidateNoRet( gpu, vkCmdDrawIndirect(handle,
+                                         indirect.handle,
+                                         (firstEntry * sizeof(VkDrawIndirectCommand)),
+                                         (indirect.size / sizeof(VkDrawIndirectCommand)) - firstEntry,
+                                         sizeof(VkDrawIndirectCommand)) )
+   }
 
-      // Index Buffer remains bound to Command Buffer after this call,
-      // but because there is no other way to do indexed draw than to
-      // go through this API, it's safe to leave it bounded.
-      ValidateNoRet( gpu, vkCmdBindIndexBuffer(handle,
-                                               index->handle,
-                                               (firstElement * elementSize), // Offset In Index Buffer, so that we can have several buffers with separate indeges groups in one GPU Buffer
-                                               indexType) )
+   void CommandBufferVK::drawIndirectIndexed(
+      const Buffer& indirectBuffer,
+      const uint32  firstEntry,
+      const uint32  firstIndex) const
+   {
+   assert( started );
+   assert( encoding );
 
-      // IndirectIndexedDrawArgument can be directly cast to VkDrawIndexedIndirectCommand.
+   const BufferVK& indirect = reinterpret_cast<const BufferVK&>(indirectBuffer);
+   assert( indirect.apiType == BufferType::Indirect );
+   
+   // IndirectIndexedDrawArgument can be directly cast to VkDrawIndexedIndirectCommand.
 
-      // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-      ValidateNoRet( gpu, vkCmdDrawIndexedIndirect(handle,
-                                                   indirect.handle,
-                                                   (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
-                                                   (indirect.size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
-                                                   sizeof(VkDrawIndexedIndirectCommand)) )
-      }
-   else
-      {
-      // IndirectDrawArgument can be directly cast to VkDrawIndirectCommand.
-      
-      // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-      ValidateNoRet( gpu, vkCmdDrawIndirect(handle,
-                                            indirect.handle,
-                                            (firstEntry * sizeof(VkDrawIndirectCommand)),
-                                            (indirect.size / sizeof(VkDrawIndirectCommand)) - firstEntry,
-                                            sizeof(VkDrawIndirectCommand)) )
-      }
+   // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
+   ValidateNoRet( gpu, vkCmdDrawIndexedIndirect(handle,
+                                                indirect.handle,
+                                                (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
+                                                (indirect.size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
+                                                sizeof(VkDrawIndexedIndirectCommand)) )
    }
    
 

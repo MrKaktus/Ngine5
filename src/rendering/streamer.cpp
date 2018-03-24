@@ -11,6 +11,7 @@
 
 #include "rendering/streamer.h"
 #include "core/utilities/basicAllocator.h" // TODO: This should be moved out of core as is platform independent
+#include "utilities/timer.h"
 
 #define MB 1024*1024
 
@@ -199,17 +200,80 @@ namespace en
    }
    
    
+   // Idle time upload thread is spinning before going to sleep (in seconds)
+   #define IdleSpinTime 0.5
    
+   // Uploads single allocation from system to GPU dedicated memory
+   void uploadResource(Streamer* streamer, const uint32 resourceId)
+   {
+   // Determine upload queue
+   QueueType queueForTransfers = QueueType::Universal;
+   if (streamer->gpu->queues(gpu::QueueType::Transfer) > 0u)
+      queueForTransfers = QueueType::Transfer;
    
-   // hash -> Resource mapping (may return nil)
-   // array of Resource descriptors
-   // array of CPU heaps for Buffers
-   // array of GPU heaps for Buffers
+   BufferAllocation*         desc         = streamer->resource->entry(resourceId);
+   BufferAllocationInternal* descInternal = streamer->resourceRef->entry(resourceId);
+
+   // TODO: When pushing resource for upload, verify it's uploading flag,
+   //       to ensure it wasn't already pushed, then set it.
+   assert( descInternal->uploading );
    
+   BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
+   BufferCache* gpuCache = streamer->gpuBufferHeap->entry(descInternal->gpuHeapIndex);
    
+   shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
    
+   // TODO: Upload data in batches, taking into notice available bandwidth.
+   command->copy(*sysCache->buffer,
+                 *gpuCache->buffer,
+                 desc->size,
+                 descInternal->sysOffset,
+                 desc->gpuOffset);
    
+   command->waitUntilCompleted();
    
+   desc->resident = true;
+   descInternal->uploading = false;
+   }
+   
+   // Thread performing asynchronous data transfers between CPU and GPU memories
+   // (uploads from CPU RAM to GPU dedicated memory, as well as data downloads).
+   void* threadAsyncStreaming(Thread* thread)
+   {
+   Streamer* streamer = static_cast<Streamer*>(thread->state());
+   
+   // Runs until receives signal from parent Streamer to terminate
+   Timer idleTime;
+   idleTime.start();
+   while(!streamer->terminating)
+      {
+      // If time since last resource upload, is bigger than N frames, go to
+      // sleep, until new resouces will need to be uploaded.
+      Time dT = idleTime.elapsed();
+      if (dT.seconds() > IdleSpinTime)
+         thread->sleep();
+
+      // If thread was sleeping waiting for resource to upload, it was woken up
+      // here and will now pick first resource from the list.
+
+      // TODO: In future handle "downloadQueue" and downloading data from dedicated memory to RAM
+      //       It is possible that to not collide with draw commands,
+      //       Constant Buffers may need to be transferred as well?
+      
+      // Pick 'resourceId' from queue of resources to make resident
+      uint32 resourceId = 0;
+      if (streamer->uploadQueue->pop(&resourceId))
+         {
+         uploadResource(streamer, resourceId);
+         idleTime.start();
+         }
+      }
+   
+   // Terminate thread
+   thread->exit(0);
+   return nullptr;
+   }
+
    Streamer::Streamer(shared_ptr<GpuDevice> _gpu, const StreamerSettings* settings) :
       gpu(_gpu),
       queueForTransfers(QueueType::Universal),
@@ -327,10 +391,22 @@ namespace en
       downloadBuffer = buffer;
       downloadAdress = buffer->map();
       }
+      
+   uploadQueue = new CircularQueue<uint32>(1024, 4);
+   
+   // Spawn thread handling asynchronous data transfers
+   // (TODO: in future get back to Task-Pool)
+   streamingThread = startThread(threadAsyncStreaming, this);
    }
    
    Streamer::~Streamer()
    {
+   // Notify streaming thread to terminate itself
+   terminating = true;
+   streamingThread->waitUntilCompleted();
+   
+   delete uploadQueue;
+   
    downloadBuffer->unmap();
    downloadBuffer = nullptr;
    
@@ -537,6 +613,7 @@ namespace en
    // TODO: Texture variant needed!
    void Streamer::evictBuffer(BufferAllocation& desc, BufferAllocationInternal& descInternal)
    {
+   // TODO: Make it thread safe
    assert( !descInternal.locked );
    
    // Release resource from GPU
@@ -550,51 +627,44 @@ namespace en
    availableBufferMemory += desc.size;
    }
 
-   void Streamer::makeResident(BufferAllocation& desc)
+   bool Streamer::makeResident(BufferAllocation& desc, const bool lock)
    {
-   // TODO: Ensure that resource is not accessed in concurrent way.
-   //       Synchronous queue of Tasks, executed asynchronous to other threads/tasks.
+   // Requested size need to be smaller than max size of single allocation,
+   // and that should be already verified during memory allocation.
+   assert( desc.size <= residentAllocationSize );
 
+   // TODO: Lock critical section here
+   
    // If resource is already resident quit
    if (desc.resident)
-      return;
+      return true;
 
+   // Verify if descriptor is valid
    uint32 resourceId = 0;
-   
    if (!resource->index(desc, resourceId))
-      return;
+      return false;
    
+   // Verify if this resource is not already marked for upload
    BufferAllocationInternal* descInternal = resourceRef->entry(resourceId);
    assert( descInternal );
+   if (descInternal->uploading)
+      return true;
    
    // (A) Allocate destination in dedicated memory
    
-
-   
-   BufferCache* sysHeap = cpuHeap->entry(descInternal->sysHeapIndex);
-   // descInternal->sysOffset, desc.size
-
-
-
    // If not enoough dedicated memory, evict least used one
-   while(availableBufferMemory < size)
+   while(availableBufferMemory < desc.size)
       {
       // TODO: Evict old allocations until enough memory is freed
       assert( 0 );
       };
 
-
-
-   // Early return if requested size is bigger than max size of single allocation
-   if (systemAllocationSize < size ||
-       residentAllocationSize < size)
-      return false;
-   
-   BufferCache** cache = &cpuHeapList;
+   BufferCache** cache = &gpuBufferHeapList;
    
    bool   allocated = false;
-   uint64 sysOffset = 0;
+   uint64 gpuOffset = 0;
    uint32 alignment = 256; // TODO: Platform specific Buffer/Texture alignment!
+   uint32 size      = desc.size;
    
    // Currently it is simplest possible allocation algorithm, iterating over all
    // available heaps to find one with enough free memory. This needs to be redone
@@ -604,102 +674,113 @@ namespace en
    while(*cache)
       {
       // Try to allocate memory from current Heap
-      allocated = (*cache)->allocator->allocate(size, alignment, sysOffset);
+      allocated = (*cache)->allocator->allocate(size, alignment, gpuOffset);
       if (!allocated)
          {
          *cache = reinterpret_cast<BufferCache*>(&((*cache)->next));
          continue;
          }
    
-      // Allocate resource
-      desc = resource->allocate();
-      BufferAllocationInternal* descInternal = resourceRef->allocate();
-   
       // Resource Streamer state of buffer allocation (sub-allocated from Heap)
-      desc->cpuPointer = reinterpret_cast<volatile void*>(reinterpret_cast<volatile uint8*>((*cache)->sysAddress) + sysOffset);
-      desc->gpuBuffer  = nullptr;
-      desc->gpuOffset  = 0;
-      desc->size       = size;
-      desc->resident   = false;
-   
-      // Resource Streamer internal state of buffer allocation 
-      descInternal->locked    = false;
-      bool result = cpuHeap->index(**cache, descInternal->sysHeapIndex);
+      desc.gpuBuffer = (*cache)->buffer;
+      desc.gpuOffset = static_cast<uint32>(gpuOffset);
+
+      // Resource Streamer internal state of buffer allocation
+      bool result = gpuBufferHeap->index(**cache, descInternal->gpuHeapIndex);
       assert( result );
-      descInternal->sysOffset = static_cast<uint32>(sysOffset);
-      descInternal->gpuHeapIndex = 0;  // TODO: Distinguish index 0 from unused index!
-   
-      availableSystemMemory -= size;
+
+      availableBufferMemory -= size;
       break;
       }
    
    // If reached end of list, allocate new Heap
    if (!allocated && !*cache)
       {
-      BufferCache* systemCache = cpuHeap->allocate();
-      if (systemCache)
+      BufferCache* gpuCache = gpuBufferHeap->allocate();
+      if (gpuCache)
          {
-         initSystemHeap(*systemCache);
-         *cache = systemCache;
-         cpuHeapCount++;
+         initBufferHeap(*gpuCache);
+         *cache = gpuCache;
+         gpuHeapCount[0]++;
    
          // Allocate memory from new Heap
-         allocated = (*cache)->allocator->allocate(size, alignment, sysOffset);
+         allocated = (*cache)->allocator->allocate(size, alignment, gpuOffset);
    
          // This is new empty Heap so allocation should always succeed
          assert( allocated );
-   
-         // Allocate resource
-         desc = resource->allocate();
-         BufferAllocationInternal* descInternal = resourceRef->allocate();
-   
-   #ifdef EN_DEBUG
-         // Both allocators need to remain in sync
-         uint32 resourceA = 0;
-         uint32 resourceB = 0;
-         resource->index(*desc, resourceA);
-         resourceRef->index(*descInternal, resourceA);
-         assert( resourceA == resourceB );
-   #endif
-   
+
          // Resource Streamer state of buffer allocation (sub-allocated from Heap)
-         desc->cpuPointer = reinterpret_cast<volatile void*>(reinterpret_cast<volatile uint8*>((*cache)->sysAddress) + sysOffset);
-         desc->gpuBuffer  = nullptr;
-         desc->gpuOffset  = 0;
-         desc->size       = size;
-         desc->resident   = false;
-   
-         // Resource Streamer internal state of buffer allocation 
-         descInternal->locked    = false;
-         bool result = cpuHeap->index(**cache, descInternal->sysHeapIndex);
+         desc.gpuBuffer = (*cache)->buffer;
+         desc.gpuOffset = static_cast<uint32>(gpuOffset);
+
+         // Resource Streamer internal state of buffer allocation
+         bool result = gpuBufferHeap->index(**cache, descInternal->gpuHeapIndex);
          assert( result );
-         descInternal->sysOffset = static_cast<uint32>(sysOffset);
-         descInternal->gpuHeapIndex = 0;  // TODO: Distinguish index 0 from unused index!
-   
-         availableSystemMemory -= size;
+
+         availableBufferMemory -= size;
          }
       }
    
-   return allocated;
-
+   // If after all couldn't allocate dedicated memory for resource, it looks like
+   // we're in bad place (VRAM is fragmented?).
+   if (!allocated)
+      return false;
 
    // (B) Stream asynchronously from RAM
 
+   // Push 'resourceId' on a queue of resources to upload
+   if (!uploadQueue->push(resourceId))
+      return false;
+      
+   descInternal->locked    = lock;
+   descInternal->uploading = true;
+   
+   // If streaming thread was idle, it went to sleep, wake it up for upload
+   if (streamingThread->sleeping())
+      streamingThread->wakeUp();
 
+   return true;
+   }
+   
+   bool Streamer::lockMemory(BufferAllocation& desc)
+   {
+   uint32 resourceId = 0;
+   if (!resource->index(desc, resourceId))
+      return false;
+   
+   // TODO: Between if check, and switch of "locked" there may be race condition
+   BufferAllocationInternal* descInternal = resourceRef->entry(resourceId);
+   assert( descInternal );
+   if (desc.resident || descInternal->uploading)
+      {
+      descInternal->locked = true;
+      return true;
+      }
+      
+   return false;
+   }
 
-
-   // TODO: Finish!
+   void Streamer::unlockMemory(BufferAllocation& desc)
+   {
+   uint32 resourceId = 0;
+   if (!resource->index(desc, resourceId))
+      return;
+   
+   // Resource can always be unlocked (made evictable by streamer)
+   BufferAllocationInternal* descInternal = resourceRef->entry(resourceId);
+   assert( descInternal );
+   descInternal->locked = false;
    }
 
    void Streamer::evictMemory(BufferAllocation& desc)
    {
    uint32 resourceId = 0;
-   
    if (!resource->index(desc, resourceId))
       return;
    
    BufferAllocationInternal* descInternal = resourceRef->entry(resourceId);
    assert( descInternal );
+   descInternal->locked = false;
    
    // Evict from dedicated memory if resident
    if (desc.resident)
@@ -709,13 +790,11 @@ namespace en
    void Streamer::deallocateMemory(BufferAllocation& desc)
    {
    uint32 resourceId = 0;
-   
    if (!resource->index(desc, resourceId))
       return;
    
    BufferAllocationInternal* descInternal = resourceRef->entry(resourceId);
    assert( descInternal );
-   
    
    // Evict from dedicated memory if resident
    if (desc.resident)

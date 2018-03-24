@@ -727,36 +727,36 @@ namespace en
             CommonKeyboard* ptr = reinterpret_cast<CommonKeyboard*>(keyboards[0].get());
             
             // CapsLock
-            if (bitsChanged(newStateFlags, stateFlags, NSAlphaShiftKeyMask))
-               ptr->keyLock[0] = checkBitmask(newStateFlags, NSAlphaShiftKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+            if (bitsChanged(newStateFlags, stateFlags, NSEventModifierFlagCapsLock))
+               ptr->keyLock[0] = checkBitmask(newStateFlags, NSEventModifierFlagCapsLock) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Shift
-            if (bitsChanged(newStateFlags, stateFlags, NSShiftKeyMask))
-               ptr->keyLock[1] = checkBitmask(newStateFlags, NSShiftKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+            if (bitsChanged(newStateFlags, stateFlags, NSEventModifierFlagShift))
+               ptr->keyLock[1] = checkBitmask(newStateFlags, NSEventModifierFlagShift) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Ctrl
-            if (bitsChanged(newStateFlags, stateFlags, NSControlKeyMask))
-               ptr->keyLock[2] = checkBitmask(newStateFlags, NSControlKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+            if (bitsChanged(newStateFlags, stateFlags, NSEventModifierFlagControl))
+               ptr->keyLock[2] = checkBitmask(newStateFlags, NSEventModifierFlagControl) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Alt / Option
-            if (bitsChanged(newStateFlags, stateFlags, NSAlternateKeyMask))
-               ptr->keyLock[3] = checkBitmask(newStateFlags, NSAlternateKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+            if (bitsChanged(newStateFlags, stateFlags, NSEventModifierFlagOption))
+               ptr->keyLock[3] = checkBitmask(newStateFlags, NSEventModifierFlagOption) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Windows / Command
-            if (bitsChanged(newStateFlags, stateFlags, NSCommandKeyMask))
-               ptr->keyLock[4] = checkBitmask(newStateFlags, NSCommandKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+            if (bitsChanged(newStateFlags, stateFlags, NSEventModifierFlagCommand))
+               ptr->keyLock[4] = checkBitmask(newStateFlags, NSEventModifierFlagCommand) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // NumPad
-            if (bitsChanged(newStateFlags, stateFlags, NSNumericPadKeyMask))
-               ptr->keyLock[5] = checkBitmask(newStateFlags, NSNumericPadKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+            if (bitsChanged(newStateFlags, stateFlags, NSEventModifierFlagNumericPad))
+               ptr->keyLock[5] = checkBitmask(newStateFlags, NSEventModifierFlagNumericPad) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             //
-            if (bitsChanged(newStateFlags, stateFlags, NSHelpKeyMask))
-               ptr->keyLock[6] = checkBitmask(newStateFlags, NSHelpKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+            if (bitsChanged(newStateFlags, stateFlags, NSEventModifierFlagHelp))
+               ptr->keyLock[6] = checkBitmask(newStateFlags, NSEventModifierFlagHelp) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             else
             // Fn
-            if (bitsChanged(newStateFlags, stateFlags, NSFunctionKeyMask))
-               ptr->keyLock[7] = checkBitmask(newStateFlags, NSFunctionKeyMask) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
+            if (bitsChanged(newStateFlags, stateFlags, NSEventModifierFlagFunction))
+               ptr->keyLock[7] = checkBitmask(newStateFlags, NSEventModifierFlagFunction) ? KeyLock::TurnedOn : KeyLock::TurnedOff;
             
             // TODO: Should keyPressed / keyReleased event be spawned ? Or will there be separate event from OSX for that ?
             
@@ -798,7 +798,7 @@ namespace en
    void waitForEvent()
    {
    // Sleeps thread until some event occurs
-   NSEvent* event = [NSApp nextEventMatchingMask:NSAnyEventMask
+   NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny
                                        untilDate:[NSDate distantFuture]
                                           inMode:NSDefaultRunLoopMode
                                          dequeue:NO];

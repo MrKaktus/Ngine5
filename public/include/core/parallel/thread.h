@@ -16,34 +16,29 @@
 
 namespace en
 {
+   class Thread;
+   
+   typedef void*(*ThreadFunction)(Thread* thread);
+
    class Thread
       {
       public:
-      virtual Thread(void) = 0;
-      virtual ~Thread(void) {};
-
-      virtual bool start(void* function, void* params) = 0; // Thread is starting execution
-      virtual bool current(void) = 0;    // Bind current thread to instance of this class
-      virtual bool sleep(void) = 0;      // Threads goes to slepp mode
-      virtual bool wakeUp(void) = 0;     // Thread is waked up by other thread
-      virtual bool working(void) = 0;    // Check if thread still exist
-      virtual void exit(uint32 ret) = 0; // Thread terminates its execution
-      virtual bool stop(void) = 0;       // Thread is terminated by other thread
+      virtual void* state(void) = 0; // State passed on thread start
+      virtual void name(std::string threadName) = 0; // Thread sets its name 
+      virtual void sleep(void) = 0;      // Thread puts itself to sleep mode
+      virtual void wakeUp(void) = 0;     // Thread is waken up by other thread
+      virtual bool sleeping(void) = 0;   // Check if thread is sleeping
+      virtual bool working(void) = 0;    // Check if thread is executing
+      virtual void exit(uint32 ret) = 0; // Thread terminates its execution with return code
+      virtual void waitUntilCompleted(void) = 0; // Calling thread sleeps until thread is not finished
+      
+      virtual ~Thread(void) {};                  // Terminate thread execution
       };
-
-
-
-      private:
-#ifdef EN_PLATFORM_WINDOWS
-      HANDLE  handle;     // Thread system id
-      HANDLE  wakeUp;     // Sleeping semaphore
-#endif
-      //uint32  m_id;         // Thread id
-      bool    m_sleeping;   // Sleep mode flag
-      //bool    m_finish;     // Termination indicator
-      bool    m_idle;       // Nothing doing
-
-
+   
+    std::unique_ptr<Thread> startThread(ThreadFunction function, void* threadState);
+   
+    // Returns pointer to instance describing current thread (or nullptr for main thread)
+    Thread* currentThread(void);
 }
 
 #endif

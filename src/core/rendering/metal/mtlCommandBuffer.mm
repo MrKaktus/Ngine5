@@ -92,14 +92,14 @@ namespace en
          {
          layeredRendering = true;
          if (framebuffer->color[i].arrayLength < minLayersCount)
-            minLayersCount = framebuffer->color[i].arrayLength;
+            minLayersCount = static_cast<uint32>(framebuffer->color[i].arrayLength);
          }
       else // TODO: Uncomment once 2DMSArray is supported
       if (0 /* framebuffer->color[i].textureType == MTLTextureType2DMultisampleArray */)
          {
          layeredRendering = true;
          if (framebuffer->color[i].arrayLength < minLayersCount)
-            minLayersCount = framebuffer->color[i].arrayLength;
+            minLayersCount = static_cast<uint32>(framebuffer->color[i].arrayLength);
             
          assert( framebuffer->resolve[i].textureType == MTLTextureType2DArray );
          assert( framebuffer->resolve[i].arrayLength >= framebuffer->color[i].arrayLength );
@@ -116,14 +116,14 @@ namespace en
       {
       layeredRendering = true;
       if (framebuffer->depthStencil[0].arrayLength < minLayersCount)
-         minLayersCount = framebuffer->depthStencil[0].arrayLength;
+         minLayersCount = static_cast<uint32>(framebuffer->depthStencil[0].arrayLength);
       }
    if (framebuffer->depthStencil[1])
       if (framebuffer->depthStencil[1].textureType == MTLTextureType2DArray)
          {
          layeredRendering = true;
          if (framebuffer->depthStencil[1].arrayLength < minLayersCount)
-            minLayersCount = framebuffer->depthStencil[1].arrayLength;
+            minLayersCount = static_cast<uint32>(framebuffer->depthStencil[1].arrayLength);
          }
 #if defined(EN_PLATFORM_IOS)
    // TODO: Uncomment once 2DMSArray is supported
@@ -166,7 +166,7 @@ namespace en
    assert( count );
    // assert( (firstSlot + count) <= gpu->properties.limits.maxVertexInputBindings ); TODO: Populate GPU support field depending on iOS and macOS limitations and check it here
 
-   // Extrack Metal buffer handles
+   // Extract Metal buffer handles
    id<MTLBuffer>* handles = new id<MTLBuffer>[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
    for(uint32 i=0; i<count; ++i)
       {
@@ -177,19 +177,72 @@ namespace en
    uint64* finalOffsets = (uint64*)offsets;
    if (!offsets)
       {
-	  finalOffsets = new uint64[count];
-	  memset(finalOffsets, 0, sizeof(uint64)*count);
-	  }
+      finalOffsets = new uint64[count];
+      memset(finalOffsets, 0, sizeof(uint64)*count);
+      }
 
    [renderEncoder setVertexBuffers:handles 
                            offsets:(const NSUInteger*)finalOffsets   // Warning: Will fail if compiled as 32bit
-						 withRange:NSMakeRange(firstSlot, count)];
+                         withRange:NSMakeRange(firstSlot, count)];
 
    delete [] handles;
    if (!offsets)
       delete [] finalOffsets;
    }
 
+   void CommandBufferMTL::setInputBuffer(
+      const uint32  firstSlot,
+      const uint32  slots,
+      const Buffer& _buffer,
+      const uint64* offsets) const
+   {
+   assert( slots );
+   assert( (firstSlot + slots) <= gpu->support.maxInputLayoutBuffersCount );
+
+   const BufferMTL& buffer = reinterpret_cast<const BufferMTL&>(_buffer);
+   
+   // TODO: Cache currently bound buffer, and only update offsets?
+   
+   // All slots get bind the same Metal buffer handle
+   id<MTLBuffer>* handles = new id<MTLBuffer>[slots];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+   for(uint32 i=0; i<slots; ++i)
+      handles[i] = buffer.handle;
+
+   // Generate default zero offsets array if none is passed
+   uint64* finalOffsets = (uint64*)offsets;
+   if (!offsets)
+      {
+      finalOffsets = new uint64[slots];
+      memset(finalOffsets, 0, sizeof(uint64) * slots);
+      }
+
+   [renderEncoder setVertexBuffers:handles
+                           offsets:(const NSUInteger*)finalOffsets   // Warning: Will fail if compiled as 32bit
+                         withRange:NSMakeRange(firstSlot, slots)];
+
+   delete [] handles;
+   if (!offsets)
+      delete [] finalOffsets;
+   }
+
+   void CommandBufferMTL::setIndexBuffer(
+      const Buffer& buffer,
+      const Attribute type,
+      const uint32 offset)
+   {
+   indexBuffer = reinterpret_cast<const BufferMTL*>(&buffer);
+   
+   assert( indexBuffer->apiType == BufferType::Index );
+   
+   elementSize = 2;
+   indexType = MTLIndexTypeUInt16;
+   if (indexBuffer->formatting.column[0] == Attribute::u32)
+      {
+      elementSize = 4;
+      indexType = MTLIndexTypeUInt32;
+      }
+   }
+      
    void CommandBufferMTL::setVertexBuffer(const uint32 slot,
                                           const Buffer& buffer,
                                           const uint64 offset) const
@@ -291,130 +344,92 @@ namespace en
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////
 
-
-   void CommandBufferMTL::draw(const uint32  elements,
-                               const Buffer* indexBuffer,
-                               const uint32  instances,
-                               const uint32  firstIndex,
-                               const sint32  firstVertex,
-                               const uint32  firstInstance)
+   void CommandBufferMTL::draw(
+      const uint32  elements,
+      const uint32  instances,
+      const uint32  firstVertex,
+      const uint32  firstInstance) const
    {
    assert( elements );
- 
-   // Elements are assembled into Primitives.
-   if (indexBuffer)
-      {
-      const BufferMTL* index = reinterpret_cast<const BufferMTL*>(indexBuffer);
-      
-      assert( index->apiType == BufferType::Index );
-      
-      uint32 elementSize = 2;
-      MTLIndexType indexType = MTLIndexTypeUInt16;
-      if (index->formatting.column[0] == Attribute::u32)
-         {
-         elementSize = 4;
-         indexType = MTLIndexTypeUInt32;
-         }
+   
+   // IOS 9.0+, OSX 10.11+
+   [renderEncoder drawPrimitives:primitive
+                     vertexStart:firstVertex
+                     vertexCount:elements
+                   instanceCount:max(1U, instances)
+                    baseInstance:firstInstance];
 
-      // Why baseVertex can be negative?
-
-      // IOS 9.0+, OSX 10.11+
-      [renderEncoder drawIndexedPrimitives:primitive
-                                indexCount:elements
-                                 indexType:indexType
-                               indexBuffer:index->handle
-                         indexBufferOffset:(firstIndex * elementSize)
-                             instanceCount:max(1U, instances)
-                                baseVertex:(NSInteger)firstVertex
-                              baseInstance:firstInstance];
-         
-//      [renderEncoder drawIndexedPrimitives:primitive
-//                                indexCount:elements
-//                                 indexType:indexType
-//                               indexBuffer:index->handle
-//                         indexBufferOffset:(firstElement * elementSize)
-//                             instanceCount:min(1U, instances)];
-      }
-   else
-      {
-      // IOS 9.0+, OSX 10.11+
-      [renderEncoder drawPrimitives:primitive
-                        vertexStart:firstVertex
-                        vertexCount:elements
-                      instanceCount:max(1U, instances)
-                       baseInstance:firstInstance];
-
-//      [renderEncoder drawPrimitives:primitive
-//                        vertexStart:firstElement
-//                        vertexCount:elements
-//                      instanceCount:min(1U, instances)];
-      }
+// [renderEncoder drawPrimitives:primitive
+//                   vertexStart:firstVertex
+//                   vertexCount:elements
+//                 instanceCount:min(1U, instances)];
    }
 
+   void CommandBufferMTL::drawIndexed(
+      const uint32  elements,
+      const uint32  instances,
+      const uint32  firstIndex,
+      const sint32  firstVertex,
+      const uint32  firstInstance) const
+   {
+   assert( elements );
+   assert( indexBuffer );
+   
+   // Why baseVertex can be negative?
+
+   // IOS 9.0+, OSX 10.11+
+   [renderEncoder drawIndexedPrimitives:primitive
+                             indexCount:elements
+                              indexType:indexType
+                            indexBuffer:indexBuffer->handle
+                      indexBufferOffset:(firstIndex * elementSize)
+                          instanceCount:max(1U, instances)
+                             baseVertex:(NSInteger)firstVertex
+                           baseInstance:firstInstance];
+      
+// [renderEncoder drawIndexedPrimitives:primitive
+//                           indexCount:elements
+//                            indexType:indexType
+//                          indexBuffer:index.handle
+//                    indexBufferOffset:(firstIndex * elementSize)
+//                        instanceCount:min(1U, instances)];
+   }
+   
    // IOS 9.0+, OSX 10.11+
    void CommandBufferMTL::drawIndirect(
       const Buffer& indirectBuffer,
-      const uint32  firstEntry,
-      const Buffer* indexBuffer,
-      const uint32  firstElement)
+      const uint32  firstEntry) const
    {
    const BufferMTL& indirect = reinterpret_cast<const BufferMTL&>(indirectBuffer);
    assert( indirect.apiType == BufferType::Indirect );
    
-   if (indexBuffer)
-      {
-      const BufferMTL* index = reinterpret_cast<const BufferMTL*>(indexBuffer);
-      assert( index->apiType == BufferType::Index );
-      
-      uint32 elementSize = 2;
-      MTLIndexType indexType = MTLIndexTypeUInt16;
-      if (index->formatting.column[0] == Attribute::u32)
-         {
-         elementSize = 4;
-         indexType = MTLIndexTypeUInt32;
-         }
+   // IndirectDrawArgument can be directly cast to MTLDrawPrimitivesIndirectArguments
+   [renderEncoder drawPrimitives:primitive
+                  indirectBuffer:indirect.handle
+            indirectBufferOffset:(firstEntry * sizeof(IndirectDrawArgument))];
+   }
+   
+   // IOS 9.0+, OSX 10.11+
+   void CommandBufferMTL::drawIndirectIndexed(
+      const Buffer& indirectBuffer,
+      const uint32  firstEntry,
+      const uint32  firstIndex) const
+   {
+   const BufferMTL& indirect = reinterpret_cast<const BufferMTL&>(indirectBuffer);
+   assert( indirect.apiType == BufferType::Indirect );
+   
+   assert( indexBuffer );
 
-      // IndirectIndexedDrawArgument can be directly cast to MTLDrawIndexedPrimitivesIndirectArguments
-      [renderEncoder drawIndexedPrimitives:primitive
-                                 indexType:indexType
-                               indexBuffer:index->handle
-                         indexBufferOffset:(firstElement * elementSize)
-                            indirectBuffer:indirect.handle
-                      indirectBufferOffset:(firstEntry * sizeof(IndirectIndexedDrawArgument))];
-      }
-   else
-      {
-      // IndirectDrawArgument can be directly cast to MTLDrawPrimitivesIndirectArguments
-      [renderEncoder drawPrimitives:primitive
-                     indirectBuffer:indirect.handle
-               indirectBufferOffset:(firstEntry * sizeof(IndirectDrawArgument))];
-      }
+   // IndirectIndexedDrawArgument can be directly cast to MTLDrawIndexedPrimitivesIndirectArguments
+   [renderEncoder drawIndexedPrimitives:primitive
+                              indexType:indexType
+                            indexBuffer:indexBuffer->handle
+                      indexBufferOffset:(firstIndex * elementSize)
+                         indirectBuffer:indirect.handle
+                   indirectBufferOffset:(firstEntry * sizeof(IndirectIndexedDrawArgument))];
    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
-
-   
    void CommandBufferMTL::commit(Semaphore* signalSemaphore)
    {
    // TODO: How to translate CommandBuffer execution synchronization to
@@ -451,7 +466,7 @@ namespace en
    // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers can be recycled / reused !!! )
    // Multiple buffers can be created simultaneously for one queue
    // Buffers are executed in order in queue
-   shared_ptr<CommandBufferMTL> buffer = make_shared<CommandBufferMTL>(this);
+   shared_ptr<CommandBufferMTL> buffer = make_shared<CommandBufferMTL>(this); // consider shared_from_this()
 
    // Acquired Command Buffer is autoreleased.
    buffer->handle = [queue commandBufferWithUnretainedReferences];

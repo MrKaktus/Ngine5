@@ -22,6 +22,7 @@
 
 #include "core/rendering/metal/metal.h"
 #include "core/rendering/commandBuffer.h"
+#include "core/rendering/metal/mtlBuffer.h"
 #include "core/rendering/metal/mtlDevice.h"
 
 namespace en
@@ -34,6 +35,12 @@ namespace en
       MetalDevice* gpu;  // GPU owning this Command Buffer (for temporary staging buffers creation)
       id <MTLCommandBuffer> handle;
       id <MTLRenderCommandEncoder> renderEncoder;
+      
+      // Bound Index buffer cache
+      const BufferMTL* indexBuffer;
+      uint32 elementSize;
+      MTLIndexType indexType;
+
       bool commited;
       
       // State cache
@@ -64,9 +71,20 @@ namespace en
                                     const shared_ptr<Buffer>(&buffers)[],
                                     const uint64* offsets = nullptr) const;
 
+      virtual void setInputBuffer(
+         const uint32  firstSlot,
+         const uint32  slots,
+         const Buffer& buffer,
+         const uint64* offsets = nullptr) const;
+
       virtual void setVertexBuffer(const uint32 slot, 
                                    const Buffer& buffer, 
                                    const uint64 offset = 0u) const;
+                                   
+      virtual void setIndexBuffer(
+         const Buffer& buffer,
+         const Attribute type,
+         const uint32 offset = 0u);
 
       virtual void copy(const Buffer& source,
                         const Buffer& destintion);
@@ -91,22 +109,25 @@ namespace en
       virtual void draw(
          const uint32  elements,
          const uint32  instances     = 1,
-         const sint32  firstVertex   = 0,
-         const uint32  firstInstance = 0) = 0;
+         const uint32  firstVertex   = 0,
+         const uint32  firstInstance = 0) const;
 
       virtual void drawIndexed(
          const uint32  elements,
-         const Buffer& indexBuffer,
          const uint32  instances     = 1,
          const uint32  firstIndex    = 0,
          const sint32  firstVertex   = 0,
-         const uint32  firstInstance = 0) = 0;
+         const uint32  firstInstance = 0) const;
          
       virtual void drawIndirect(
          const Buffer& indirectBuffer,
-         const uint32  firstEntry   = 0,
-         const Buffer* indexBuffer  = nullptr,
-         const uint32  firstElement = 0);
+         const uint32  firstEntry    = 0) const;
+
+      virtual void drawIndirectIndexed(
+         const Buffer& indirectBuffer,
+         const uint32  firstEntry    = 0,
+         const uint32  firstIndex    = 0) const;
+
 
 
       virtual void endRenderPass(void);

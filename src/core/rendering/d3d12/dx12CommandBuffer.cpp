@@ -340,7 +340,7 @@ namespace en
 
    void CommandBufferD3D12::setIndexBuffer(const Buffer& _buffer,
                                            const Attribute type,
-                                           const uint32 offset) const
+                                           const uint32 offset)
    {
    assert( started );
    assert( encoding );
@@ -560,7 +560,8 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferD3D12::draw(const uint32 elements,
+   void CommandBufferD3D12::draw(
+      const uint32 elements,
       const uint32 instances,
       const uint32 firstVertex,
       const uint32 firstInstance) const
@@ -605,12 +606,34 @@ namespace en
                                                    firstInstance) )    // StartInstanceLocation - A value added to each index before reading per-instance data from a vertex buffer.
    }
 
-   // TODO: Redo!
    void CommandBufferD3D12::drawIndirect(
       const Buffer& indirectBuffer,
+      const uint32  firstEntry) const
+   {
+   assert( started );
+   assert( encoding );
+
+   const BufferD3D12& indirect = reinterpret_cast<const BufferD3D12&>(indirectBuffer);
+   assert( indirect.apiType == BufferType::Indirect );
+   
+   // TODO: Check if graphics or compute!
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+   
+   UINT MaxCommandCount      = indirect.length() / sizeof(IndirectDrawArgument);
+   UINT ArgumentBufferOffset = firstEntry * sizeof(IndirectDrawArgument);
+
+   ValidateComNoRet( command->ExecuteIndirect(indirect.signature,
+                                              MaxCommandCount - firstEntry,
+                                              indirect.handle,
+                                              ArgumentBufferOffset,
+                                              nullptr,
+                                              0) )
+   }
+
+   void CommandBufferD3D12::drawIndirectIndexed(
+      const Buffer& indirectBuffer,
       const uint32  firstEntry,
-      const Buffer* indexBuffer,
-      const uint32  firstElement)
+      const uint32  firstIndex) const
    {
    assert( started );
    assert( encoding );
@@ -639,38 +662,15 @@ namespace en
    //
    // D3D12 allows mixing of different Indirect Arguments in the GPU generated buffer.
 
-   UINT MaxCommandCount = 0;
-   UINT ArgumentBufferOffset = 0;
+   UINT MaxCommandCount      = indirect.length() / sizeof(IndirectIndexedDrawArgument);
+   UINT ArgumentBufferOffset = firstEntry * sizeof(IndirectIndexedDrawArgument);
 
-   if (indexBuffer)
-      {
-      const BufferD3D12* index = reinterpret_cast<const BufferD3D12*>(indexBuffer);
-      assert( index->apiType == BufferType::Index );
-      
-      setIndexBuffer(*indexBuffer, index->formatting.column[0], 0);
-
-      MaxCommandCount      = indirect.length() / sizeof(IndirectIndexedDrawArgument);
-      ArgumentBufferOffset = firstEntry * sizeof(IndirectIndexedDrawArgument);
-
-      ValidateComNoRet( command->ExecuteIndirect(indirect.signatureIndexed,
-                                                 MaxCommandCount - firstEntry,
-                                                 indirect.handle,
-                                                 ArgumentBufferOffset,
-                                                 nullptr,
-                                                 0) )
-      }
-   else
-      {
-      MaxCommandCount      = indirect.length() / sizeof(IndirectDrawArgument);
-      ArgumentBufferOffset = firstEntry * sizeof(IndirectDrawArgument);
-
-      ValidateComNoRet( command->ExecuteIndirect(indirect.signature,
-                                                 MaxCommandCount - firstEntry,
-                                                 indirect.handle,
-                                                 ArgumentBufferOffset,
-                                                 nullptr,
-                                                 0) )
-      }
+   ValidateComNoRet( command->ExecuteIndirect(indirect.signatureIndexed,
+                                              MaxCommandCount - firstEntry,
+                                              indirect.handle,
+                                              ArgumentBufferOffset,
+                                              nullptr,
+                                              0) )
    }
 
 
