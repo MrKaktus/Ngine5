@@ -25,6 +25,7 @@
     <ClCompile Include="..\src\core\algorithm\MurmurHash3.cpp" />
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
+    <ClCompile Include="..\src\core\parallel\psxThread.cpp" />
     <ClCompile Include="..\src\core\parallel\winThread.cpp" />
     <ClCompile Include="..\src\core\rendering\common\comBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\depthStencil.cpp" />
@@ -282,6 +283,7 @@
     <ClInclude Include="..\src\core\configuration.h" />
     <ClInclude Include="..\src\core\config\context.h" />
     <ClInclude Include="..\src\core\log\context.h" />
+    <ClInclude Include="..\src\core\parallel\psxThread.h" />
     <ClInclude Include="..\src\core\parallel\winThread.h" />
     <ClInclude Include="..\src\core\rendering\common\buffer.h" />
     <ClInclude Include="..\src\core\rendering\common\device.h" />

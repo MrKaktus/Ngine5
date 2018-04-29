@@ -14,6 +14,8 @@
 #include "core/defines.h"
 #include "core/types.h"
 
+#include <memory>
+
 namespace en
 {
    class Thread;

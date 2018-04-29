@@ -138,6 +138,15 @@ namespace en
    delete [] buffer;
    return result;
    }
+
+   wchar_t* stringToWchar(const char* text, const uint32 size)
+   {
+   size_t i;
+   wchar_t* buffer = new wchar_t[size];
+
+   mbstowcs_s(&i, buffer, (size_t)size, text, (size_t)size);  
+   return buffer;
+   }
 #endif
 
 }

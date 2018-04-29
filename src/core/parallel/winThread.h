@@ -15,16 +15,31 @@
 
 #if defined(EN_PLATFORM_WINDOWS)
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 namespace en
 {
+   // Windows has different entry point for threads, thus passed function and
+   // it's parameters need to be wrapped into container and passed in such way
+   // to interface function.
+   struct winThreadContainer
+      {
+      ThreadFunction function;
+      Thread* threadClass;
+
+      winThreadContainer(ThreadFunction function, Thread* threadClass);
+      };
+
    class winThread : public Thread
       {
       public:
-      HANDLE handle;            // Thread handle
-      HANDLE sleepSemapthore;   // Sleeping semaphore
-      void*  localState;        // State passed on thread creation
-      volatile bool isSleeping; // Thread sleeps
-      volatile bool valid;      // Thread is executing (may sleep)
+      HANDLE handle;              // Thread handle
+      HANDLE sleepSemaphore;      // Sleeping semaphore
+      winThreadContainer package; // Packaged app thread and this class instance pointer
+      void*  localState;          // State passed on thread creation
+      volatile bool isSleeping;   // Thread sleeps
+      volatile bool valid;        // Thread is executing (may sleep)
 
       winThread(); // Wraps around current thread
       winThread(ThreadFunction function, void* threadState);

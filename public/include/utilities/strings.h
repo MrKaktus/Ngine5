@@ -108,7 +108,8 @@ namespace en
    //}
    
    #ifdef EN_PLATFORM_WINDOWS
-   string stringFromWchar(const wchar_t* text, uint32 size);
+   string   stringFromWchar(const wchar_t* text, uint32 size);
+   wchar_t* stringToWchar(const char* text, const uint32 size);
    #endif
 }
 

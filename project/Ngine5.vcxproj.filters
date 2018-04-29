@@ -579,6 +579,9 @@
     <ClCompile Include="..\src\core\parallel\winThread.cpp">
       <Filter>Source Files\core\parallel</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\parallel\psxThread.cpp">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1230,6 +1233,9 @@
       <Filter>Header Files\core\parallel</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\parallel\winThread.h">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\parallel\psxThread.h">
       <Filter>Source Files\core\parallel</Filter>
     </ClInclude>
   </ItemGroup>

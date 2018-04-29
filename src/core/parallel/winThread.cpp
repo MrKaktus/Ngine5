@@ -12,25 +12,45 @@
 
 #if defined(EN_PLATFORM_WINDOWS)
 
+#include <assert.h>
+
+#include "utilities/strings.h"
+
 namespace en
 {
+   winThreadContainer::winThreadContainer(ThreadFunction _function, Thread* _threadClass) :
+      function(_function),
+      threadClass(_threadClass)
+   {
+   }
+
+   DWORD WINAPI winThreadFunctionHandler(LPVOID lpThreadParameter)
+   {
+   winThreadContainer* container = reinterpret_cast<winThreadContainer*>(lpThreadParameter);
+
+   // Call actual function   
+   container->function(container->threadClass);
+
+   return 0;
+   }
+
    winThread::winThread(ThreadFunction function, void* threadState) :
       handle(INVALID_HANDLE_VALUE),
-      sleepSemapthore(CreateSemaphore(nullptr, 0, 1, nullptr)),
+      sleepSemaphore(CreateSemaphore(nullptr, 0, 1, nullptr)),
+      package(function, this),
       localState(threadState),
       isSleeping(false),
-      valid(false),
+      valid(true),
       Thread()
    {
-   handle = CreateThread(nullptr,                                      // Thread parameters
-                         65536,                                        // Thread stack size
-                         static_cast<PTHREAD_START_ROUTINE>(function), // Thread entry point
-                         static_cast<LPVOID>(threadState),             // Thread startup parameters
-                         0,                                            // Creation flags
-                         nullptr);                                     // Thread id  (LPDWORD)(&m_id)
+   handle = CreateThread(nullptr,                       // Thread parameters
+                         65536,                         // Thread stack size
+                         winThreadFunctionHandler,      // Thread entry point
+                         static_cast<LPVOID>(&package), // Thread startup parameters
+                         0,                             // Creation flags
+                         nullptr);                      // Thread id  (LPDWORD)(&m_id)
       
    assert( handle != INVALID_HANDLE_VALUE );
-   valid = true;
    }
 
    winThread::~winThread() 
@@ -50,7 +70,7 @@ namespace en
    void winThread::name(std::string threadName)
    {
    // Available since Windows 10 Creators Update
-   HRESULT result = SetThreadDescription(handle, threadName.c_str());  // L"name"
+   HRESULT result = SetThreadDescription(handle, stringToWchar(threadName.c_str(), threadName.length()));
    }
    
    void winThread::sleep(void)
@@ -58,7 +78,7 @@ namespace en
    assert( handle == GetCurrentThread() );
 
    isSleeping = true;
-   WaitForSingleObject(sleepSemapthore, INFINITE);
+   WaitForSingleObject(sleepSemaphore, INFINITE);
    }
    
    void winThread::wakeUp(void)
@@ -67,7 +87,7 @@ namespace en
       return;
 
    isSleeping = false;
-   ReleaseSemaphore(sleepSemapthore, 1, nullptr);
+   ReleaseSemaphore(sleepSemaphore, 1, nullptr);
    }
 
    bool winThread::sleeping(void)
