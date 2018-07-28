@@ -95,17 +95,24 @@ namespace en
                         const uint64 srcOffset = 0u,
                         const uint64 dstOffset = 0u);
          
-      virtual void copy(const Buffer& source,
-                        const uint64 srcOffset,
+      virtual void copy(const Buffer&  source,
+                        const uint64   srcOffset,
+                        const uint32   srcRowPitch,
                         const Texture& texture,
-                        const uint32 mipmap,
-                        const uint32 layer);
+                        const uint32   mipmap,
+                        const uint32   layer);
 
-      virtual void copy(const Buffer& source,
-                        const Texture& texture,
-                        const uint32 mipmap,
-                        const uint32 layer);
-
+      virtual void copyRegion2D(
+         const Buffer&  source,
+         const uint64   srcOffset,
+         const ImageMemoryAlignment srcAlignment,
+         const Texture& texture,
+         const uint32   mipmap,
+         const uint32   layer, // Array layer, layer+face
+         const uint32v2 origin,
+         const uint32v2 region,
+         const uint8    plane);
+         
       virtual void startRenderPass(const shared_ptr<RenderPass> pass, 
                                    const shared_ptr<Framebuffer> framebuffer);
 

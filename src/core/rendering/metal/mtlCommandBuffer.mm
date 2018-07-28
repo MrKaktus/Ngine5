@@ -94,8 +94,8 @@ namespace en
          if (framebuffer->color[i].arrayLength < minLayersCount)
             minLayersCount = static_cast<uint32>(framebuffer->color[i].arrayLength);
          }
-      else // TODO: Uncomment once 2DMSArray is supported
-      if (0 /* framebuffer->color[i].textureType == MTLTextureType2DMultisampleArray */)
+      else // 2DMSArray is supported in macOS 10.14+
+      if (framebuffer->color[i].textureType == MTLTextureType2DMultisampleArray)
          {
          layeredRendering = true;
          if (framebuffer->color[i].arrayLength < minLayersCount)
@@ -126,7 +126,7 @@ namespace en
             minLayersCount = static_cast<uint32>(framebuffer->depthStencil[1].arrayLength);
          }
 #if defined(EN_PLATFORM_IOS)
-   // TODO: Uncomment once 2DMSArray is supported
+   // TODO: Uncomment once 2DMSArray is supported on iOS
    if (0 /* framebuffer->depthStencil[0].textureType == MTLTextureType2DMultisampleArray */)
       {
       layeredRendering = true;
@@ -295,11 +295,12 @@ namespace en
    }
 
    void CommandBufferMTL::copy(
-       const Buffer& transfer,
-       const uint64 srcOffset,
+       const Buffer&  transfer,
+       const uint64   srcOffset,
+       const uint32   srcRowPitch,
        const Texture& texture,
-       const uint32 mipmap,
-       const uint32 layer)
+       const uint32   mipmap,
+       const uint32   layer)
    {
    assert( transfer.type() == BufferType::Transfer );
    assert( texture.mipmaps() > mipmap );
@@ -310,14 +311,16 @@ namespace en
 
    assert( source.size >= srcOffset + destination.size(mipmap) );
 
-   LinearAlignment layout = gpu->textureLinearAlignment(texture, mipmap, layer);
-
-      // Blit to Private buffer
+   ImageMemoryAlignment layout = gpu->textureMemoryAlignment(destination.state, mipmap, layer);
+   assert( source.size >= srcOffset + layout.surfaceSize(destination.state.mipWidth(mipmap), destination.state.mipHeight(mipmap)) );
+      
+      
+      // Blit to Private texture
       id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
       [blit copyFromBuffer:source.handle
               sourceOffset:source.offset + srcOffset
-         sourceBytesPerRow:layout.rowSize
-       sourceBytesPerImage:layout.size
+         sourceBytesPerRow:srcRowPitch
+       sourceBytesPerImage:0 // 0 should work as it copies single surface
                 sourceSize:MTLSizeMake(destination.width(mipmap), destination.height(mipmap), 1)
                  toTexture:destination.handle
           destinationSlice:layer
@@ -330,16 +333,53 @@ namespace en
       deallocateObjectiveC(blit);
    }
 
-   // Copies content of buffer, to given mipmap and layer of destination texture
-   void CommandBufferMTL::copy(
-       const Buffer& transfer,
-       const Texture& texture,
-       const uint32 mipmap,
-       const uint32 layer)
+   void CommandBufferMTL::copyRegion2D(
+      const Buffer&  _source,
+      const uint64   srcOffset,
+      const uint32   srcRowPitch,
+      const Texture& texture,
+      const uint32   mipmap,
+      const uint32   layer,
+      const uint32v2 origin,
+      const uint32v2 region,
+      const uint8    plane)
    {
-   copy(transfer, 0u, texture, mipmap, layer);
-   }
+   const BufferMTL&  source      = reinterpret_cast<const BufferMTL&>(_source);
+   const TextureMTL& destination = reinterpret_cast<const TextureMTL&>(texture);
 
+   assert( source.type() == BufferType::Transfer );
+   assert( mipmap < destination.state.mipmaps );
+   assert( layer < destination.state.layers );
+   assert( origin.x + region.width  < destination.width(mipmap) );
+   assert( origin.y + region.height < destination.height(mipmap) );
+ //assert( source.size >= srcOffset + layout.size );
+
+   // Specify planes to blit
+   MTLBlitOption blitOption = MTLBlitOptionNone;
+   if (isDepthStencil(destination.state.format))
+      {
+      blitOption = MTLBlitOptionDepthFromDepthStencil;
+      if (plane == 1)
+         blitOption = MTLBlitOptionStencilFromDepthStencil;
+      }
+
+      // Blit to Private texture
+      id <MTLBlitCommandEncoder> blit = [handle blitCommandEncoder];
+      [blit copyFromBuffer:source.handle
+              sourceOffset:source.offset + srcOffset
+         sourceBytesPerRow:srcRowPitch
+       sourceBytesPerImage:0 // 0 should work as it copies single surface
+                sourceSize:MTLSizeMake(region.width, region.height, 1)
+                 toTexture:destination.handle
+          destinationSlice:layer
+          destinationLevel:mipmap
+         destinationOrigin:MTLOriginMake(origin.x, origin.y, 0)
+                   options:blitOption];
+      
+      [blit endEncoding];
+      
+      deallocateObjectiveC(blit);
+   }
 
    // DRAW COMMANDS
    //////////////////////////////////////////////////////////////////////////

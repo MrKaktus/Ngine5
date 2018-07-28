@@ -26,6 +26,8 @@ namespace en
       uint32v4(void);
       uint32v4(const uint32 x, const uint32 y, const uint32 z, const uint32 w);
       };
+   
+   static_assert(sizeof(uint32v4) == 16, "en::uint32v4 size mismatch!");
 }
 
 #endif

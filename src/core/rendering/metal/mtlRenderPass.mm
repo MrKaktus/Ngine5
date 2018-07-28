@@ -130,7 +130,7 @@ namespace en
       samples(_samples)
    {
    // Depth-Stencil textures need to be bound to both slots
-   if (TextureFormatIsDepthStencil(depthFormat) &&
+   if (isDepthStencil(depthFormat) &&
        stencilFormat == Format::Unsupported)
       stencilFormat = depthFormat;
       
@@ -341,7 +341,7 @@ namespace en
       framebuffer->depthStencil[0u] = [view->handle retain];
       
       // Depth-Stencil textures need to be bound to both slots
-      if (!_stencil && TextureFormatIsDepthStencil(view->viewFormat))
+      if (!_stencil && isDepthStencil(view->viewFormat))
          framebuffer->depthStencil[1u] = [view->handle retain];
       }
    if (_stencil)
@@ -394,7 +394,7 @@ namespace en
       framebuffer->depthStencil[0u] = [view->handle retain];
       
       // Depth-Stencil textures need to be bound to both slots
-      if (!stencil && TextureFormatIsDepthStencil(view->viewFormat))
+      if (!stencil && isDepthStencil(view->viewFormat))
          framebuffer->depthStencil[1u] = [view->handle retain];
       }
    if (stencil)
@@ -446,7 +446,7 @@ namespace en
       framebuffer->depthStencil[0] = [view->handle retain];
 
       // Depth-Stencil textures need to be bound to both slots
-      if (!stencil && TextureFormatIsDepthStencil(view->viewFormat))
+      if (!stencil && isDepthStencil(view->viewFormat))
          framebuffer->depthStencil[1u] = [view->handle retain];
       }
    if (stencil)
@@ -486,9 +486,9 @@ namespace en
    assert( samples > 0u );
    
    // Needs to be DepthStencil, Depth or Stencil
-   assert( TextureFormatIsDepthStencil(depthFormat) ||
-           TextureFormatIsDepth(depthFormat)        ||
-           TextureFormatIsStencil(stencilFormat) );
+   assert( isDepthStencil(depthFormat) ||
+           isDepth(depthFormat)        ||
+           isStencil(stencilFormat) );
 
    // TODO: In Debug mode check if Format is supported at current HW in Real-Time
    
@@ -642,7 +642,7 @@ namespace en
 //   // If Depth attachment is Depth-Stencil texture, it needs to be bound to Stencil attachment as well.
 //
 //   // TODO: Separate stencil texture can have different mipmap and layer ?
-//   if (separateStencil || TextureFormatIsDepthStencil(depthFormat) )
+//   if (separateStencil || isDepthStencil(depthFormat) )
 //      {
 ////      TextureViewMTL* targetStencil = separateStencil ? reinterpret_cast<TextureViewMTL*>(stencil.get()) :
 ////                                                        reinterpret_cast<TextureViewMTL*>(depth.get());

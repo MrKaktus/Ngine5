@@ -37,7 +37,8 @@ namespace en
       virtual TextureType type(void) const;
       virtual Format   format(void) const;
       virtual uint32   mipmaps(void) const;
-      virtual uint32   size(const uint8 mipmap = 0) const;
+      virtual uint32   size(const uint8 mipmap = 0,
+                            const uint8 plane = 0) const;
       virtual uint32   width(const uint8 mipmap = 0) const;
       virtual uint32   height(const uint8 mipmap = 0) const;
       virtual uint32   depth(const uint8 mipmap = 0) const;
@@ -74,11 +75,13 @@ namespace en
 
    struct TextureCompressedBlockInfo
       {
-      uint32 width      : 8;   // Block width
-      uint32 height     : 8;   // Block height
-      uint32 size       : 8;   // Block size or texel size in bytes
-      uint32 compressed : 1;   // Validation flag
-      uint32            : 7;   // Padding
+      uint32 width         : 5; // Block width
+      uint32 height        : 5; // Block height
+      uint32 blockSize     : 5; // Block size or texel size in bytes (with padding)
+      uint32 primarySize   : 5; // Primary plane texel size in bytes
+      uint32 secondarySize : 5; // Secondary plane texel size in bytes
+      uint32               : 6; // Padding
+      uint32 compressed    : 1; // Validation flag
       };
 
    extern const TextureCompressedBlockInfo TextureCompressionInfo[underlyingType(Format::Count)];
@@ -94,10 +97,7 @@ namespace en
    extern TextureInfo TextureCapabilities[underlyingType(Format::Count)];
 #endif
 
-   bool   TextureFormatIsDepth(const Format format);
-   bool   TextureFormatIsStencil(const Format format);
-   bool   TextureFormatIsDepthStencil(const Format format);
-   uint32 TextureMipMapCount(const TextureState& state);
+   extern uint32 TextureMipMapCount(const TextureState& state);
    }
 }
 

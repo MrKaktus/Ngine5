@@ -408,10 +408,11 @@ namespace en
    desc.pixelFormat      = TranslateTextureFormat[underlyingType(state.format)];
    desc.width            = state.width;
    desc.height           = state.height;
-   desc.depth            = state.depth;
+   desc.depth            = state.type == TextureType::Texture3D ? state.layers : 1;
    desc.mipmapLevelCount = state.mipmaps;
    desc.sampleCount      = state.samples;
-   desc.arrayLength      = state.layers;                // [1..2048]
+   desc.arrayLength      = state.type == TextureType::Texture3D ? 1 :
+                          (state.type == TextureType::TextureCubeMapArray ? state.layers / 6 : state.layers);
    desc.cpuCacheMode     = MTLCPUCacheModeDefaultCache; // or MTLCPUCacheModeWriteCombined
    desc.storageMode      = MTLStorageModePrivate;       // We try to keep all textures in GPU memory
    desc.usage            = MTLTextureUsageUnknown;
@@ -447,10 +448,9 @@ namespace en
    state.usage   = (TextureUsage)(underlyingType(TextureUsage::Read) & underlyingType(TextureUsage::RenderTargetWrite));
    state.width   = ioSurface->resolution.width;
    state.height  = ioSurface->resolution.height;
-   state.depth   = 1u;
+   state.mipmaps = 1u;
    state.layers  = 1u;
    state.samples = 1u;
-   state.mipmaps = 1u;
 
    // All validation was done in interface, parameters should be correct
    MTLTextureDescriptor* desc = allocateObjectiveC(MTLTextureDescriptor);
@@ -566,30 +566,42 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   LinearAlignment MetalDevice::textureLinearAlignment(const Texture& texture,
-                                                       const uint32 mipmap,
-                                                       const uint32 layer)
+   ImageMemoryAlignment MetalDevice::textureMemoryAlignment(const TextureState& state,
+                                                            const uint32 mipmap,
+                                                            const uint32 layer) const
    {
-   LinearAlignment desc;
-   
-   // Data total size with paddings (Metal doesn't require paddings between lines?)
-   desc.size = texture.size(mipmap);
-   
+   // Address alignment is always power of two.
+   // Thus only that power can be stored to save memory space.
+   uint32 power = 0;
+      
+   ImageMemoryAlignment result;
+   result.sampleSize            = texelSize(state.format);
+      
+   whichPowerOfTwo(static_cast<uint32>(state.samples), power);
+   result.samplesCountPower     = power;
+   result.sampleAlignmentPower  = 0; // Tightly packed sample after sample
+   result.texelAlignmentPower   = 0; // Tightly packed texel after texel (block after block)
+
    // Data starting offset alignment
 #if defined(EN_PLATFORM_OSX)
-   desc.alignment = 256;
+   result.rowAlignmentPower     = 8; // 256
+   result.surfaceAlignmentPower = 8; // 256
+
 #elif defined(EN_PLATFORM_IOS)
    // Apple A9 and A10 chips support 16 byte data alignment
    if ([device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily3_v1])
-      desc.alignment = 16;
+      {
+      result.rowAlignmentPower     = 4; // 16
+      result.surfaceAlignmentPower = 4; // 16
+      }
    else
-      desc.alignment = 64;
+      {
+      result.rowAlignmentPower     = 6; // 64
+      result.surfaceAlignmentPower = 6; // 64
+      }
 #endif
 
-   desc.rowSize   = texture.width(mipmap) * genericTexelSize(texture.format());
-   desc.rowsCount = texture.height(mipmap); // TODO: Correct this for compressed textures!
-   
-   return desc;
+   return result;
    }
 
    shared_ptr<Texture> MetalDevice::createSharedTexture(shared_ptr<SharedSurface> backingSurface)

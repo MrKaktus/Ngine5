@@ -173,6 +173,8 @@ namespace en
       (DXGI_FORMAT)187                    ,   // Format::ASTC_12x12_sRGB              DXGI_FORMAT_ASTC_12X12_UNORM_SRGB 
       };                 
 
+   // D3D ASTC Support - https://msdn.microsoft.com/en-us/library/windows/desktop/dn903790(v=vs.85).aspx
+   
    // TODO: Is D3D12 supporting single Stencil 8 bit attachment format - Format::S_8 ?
    //       Can BGR_8_sRGB emulated with DXGI_FORMAT_B8G8R8X8_UNORM_SRGB ?
    //       Can BGR_8 emulated with DXGI_FORMAT_B8G8R8X8_UNORM ?
@@ -209,6 +211,8 @@ namespace en
    // According to https://msdn.microsoft.com/en-us/library/windows/desktop/mt186591(v=vs.85).aspx
    // this helper function should be located in D3dx12.h, but during linking it is not beeing found,
    // so as WA, it is explicitly implemented here.
+   // D3D stores surfaces of all mip levels together, repeated array size times.
+   // Then everything is repeated again for secondary plane.
    UINT D3D12CalcSubresource(UINT MipSlice, UINT ArraySlice, UINT PlaneSlice, UINT MipLevels, UINT ArraySize)
    {
    return MipSlice + ArraySlice * MipLevels + PlaneSlice * MipLevels * ArraySize;
@@ -388,23 +392,15 @@ namespace en
    return view;
    }
    
-   shared_ptr<Texture> HeapD3D12::createTexture(const TextureState state)
+   D3D12_RESOURCE_DESC createTextureDescriptor(const TextureState& state)
    {
-   shared_ptr<TextureD3D12> result = nullptr;
-   
-   // Do not create textures on Heaps designated for Streaming.
-   // (Engine currently is not supporting Linear Textures).
-   assert( _usage == MemoryUsage::Tiled ||
-           _usage == MemoryUsage::Renderable );
-
    // Texture descriptor
    D3D12_RESOURCE_DESC desc;
    desc.Dimension          = TranslateTextureDimension[underlyingType(state.type)];
    desc.Alignment          = 0u; // We will know alignment after querying it
    desc.Width              = static_cast<UINT64>(state.width);
    desc.Height             = static_cast<UINT>(state.height);
-   desc.DepthOrArraySize   = state.type == TextureType::Texture3D ?
-                             static_cast<UINT16>(state.depth) : static_cast<UINT16>(state.layers);
+   desc.DepthOrArraySize   = static_cast<UINT16>(state.layers);
    desc.MipLevels          = static_cast<UINT16>(state.mipmaps);
    desc.Format             = TranslateTextureFormat[underlyingType(state.format)];
    desc.SampleDesc.Count   = static_cast<UINT>(state.samples);
@@ -419,22 +415,19 @@ namespace en
    // - D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE
    // - D3D12_TEXTURE_LAYOUT_64KB_STANDARD_SWIZZLE
 
-   bool enableOptimizedClear = false;
    if (state.usage == TextureUsage::RenderTargetRead ||
        state.usage == TextureUsage::RenderTargetWrite)
       {
       desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-      enableOptimizedClear = true;
       }
 
-   if (TextureFormatIsDepthStencil(state.format) ||
-       TextureFormatIsDepth(state.format)        ||
-       TextureFormatIsStencil(state.format))
+   if (isDepthStencil(state.format) ||
+       isDepth(state.format)        ||
+       isStencil(state.format))
       {
       desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-      enableOptimizedClear = true;
       }
-  
+
    // TODO: GPU possible internal optimizations:
    //
    // Use below when creating "Images"
@@ -446,7 +439,7 @@ namespace en
    // Support for sharing resource between several GPU's, processes and queues.
    // - D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER
    // - D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS
-
+   
    // Acquire resource alignment and size
    D3D12_RESOURCE_ALLOCATION_INFO allocInfo;
    allocInfo = gpu->device->GetResourceAllocationInfo(0u /* currently no multi-GPU support */, 1u, &desc);
@@ -454,6 +447,38 @@ namespace en
    // Patch descriptor with missing alignment
    desc.Alignment = allocInfo.Alignment;
    
+   return desc;
+   }
+   
+   shared_ptr<Texture> HeapD3D12::createTexture(const TextureState state)
+   {
+   shared_ptr<TextureD3D12> result = nullptr;
+   
+   // Do not create textures on Heaps designated for Streaming.
+   // (Engine currently is not supporting Linear Textures).
+   assert( _usage == MemoryUsage::Tiled ||
+           _usage == MemoryUsage::Renderable );
+
+   D3D12_RESOURCE_DESC desc = createTextureDescriptor(state);
+
+   bool enableOptimizedClear = false;
+   if (state.usage == TextureUsage::RenderTargetRead ||
+       state.usage == TextureUsage::RenderTargetWrite)
+      {
+      enableOptimizedClear = true;
+      }
+
+   if (isDepthStencil(state.format) ||
+       isDepth(state.format)        ||
+       isStencil(state.format))
+      {
+      enableOptimizedClear = true;
+      }
+  
+   // Acquire resource alignment and size
+   D3D12_RESOURCE_ALLOCATION_INFO allocInfo;
+   allocInfo = gpu->device->GetResourceAllocationInfo(0u /* currently no multi-GPU support */, 1u, &desc);
+
    // Find memory region in the Heap where this texture can be placed.
    // If allocation succeeded, texture is mapped to given offset.
    uint64 offset = 0;
@@ -466,9 +491,9 @@ namespace en
 
    // Optimized clear value (completly not matching other abstractions)
    D3D12_CLEAR_VALUE clearValue;
-   if (TextureFormatIsDepthStencil(state.format) ||
-       TextureFormatIsDepth(state.format)        ||
-       TextureFormatIsStencil(state.format))
+   if (isDepthStencil(state.format) ||
+       isDepth(state.format)        ||
+       isStencil(state.format))
       {
       clearValue.Format   = desc.Format;
       clearValue.DepthStencil.Depth   = 1.0f;
@@ -535,24 +560,23 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   LinearAlignment Direct3D12Device::textureLinearAlignment(const Texture& texture,
-                                                            const uint32 mipmap, 
-                                                            const uint32 layer)
+   ImageMemoryAlignment Direct3D12Device::textureMemoryAlignment(const TextureState& state,
+                                                                 const uint32 mipmap,
+                                                                 const uint32 layer) const
    {
-   assert( texture.mipmaps() > mipmap );
-   assert( texture.layers() > layer );
+   assert( state.mipmaps > mipmap );
+   assert( state.layers > layer );
+   assert( powerOfTwo(state.samples) );
    
-   const TextureD3D12& destination = reinterpret_cast<const TextureD3D12&>(texture);
-
-   D3D12_RESOURCE_DESC desc = destination.handle->GetDesc();
+   D3D12_RESOURCE_DESC desc = createTextureDescriptor(state);
 
    // Based on amount of mip-maps and layers, calculates
    // index of subresource to modify.
    UINT subresource = D3D12CalcSubresource(mipmap,
                                            layer,
                                            0u,
-                                           destination.state.mipmaps,
-                                           destination.state.layers);
+                                           state.mipmaps,
+                                           state.layers);
    
    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
    UINT                               linesCount = 0;
@@ -568,11 +592,22 @@ namespace en
                                               &lineSize,   // Size of line in bytes
                                               &requiredUploadBufferSize) )
  
-   LinearAlignment result;
-   result.size      = requiredUploadBufferSize;
-   result.alignment = 256;
-   result.rowSize   = lineSize;
-   result.rowsCount = linesCount;
+   // Address alignment is always power of two.
+   // Thus only that power can be stored to save memory space.
+   uint32 power = 0;
+      
+   ImageMemoryAlignment result;
+   result.sampleSize            = texelBlockSize
+   
+   whichPowerOfTwo(state.samples, power);
+   result.samplesCountPower     = power;
+   result.sampleAlignmentPower  = 0; // Tightly packed sample after sample
+   result.texelAlignmentPower   = 0; // Tightly packed texel after texel (block after block)
+    
+   // layout.Footprint.RowPitch is multiple of D3D12_TEXTURE_DATA_PITCH_ALIGNMENT (256)
+   whichPowerOfTwo(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT, power);
+   result.rowAlignmentPower     = power;
+   result.surfaceAlignmentPower = power;
 
    return result;
    }

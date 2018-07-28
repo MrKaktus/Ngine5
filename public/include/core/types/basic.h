@@ -16,3 +16,7 @@ typedef signed   int           sint32;
 typedef unsigned int           uint32;
 typedef signed   long long int sint64;
 typedef unsigned long long int uint64;
+
+#define KB 1024
+#define MB 1024*1024
+#define GB 1024*1024*1024

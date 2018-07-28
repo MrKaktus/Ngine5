@@ -137,7 +137,7 @@ namespace en
                             TextureUsage::Read,  // TODO: Fix it
                             textures[i].width,
                             textures[i].height,
-                            textures[i].depth,
+                            1, // TODO: Mipmaps count
                             textures[i].layers,
                             textures[i].samples);
       out[i] = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
@@ -175,7 +175,7 @@ namespace en
          // Copy data from staging buffer to final texture
          shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
          command->start();
-         command->copy(*staging, *out[i], surfaces[j].mipmap, surfaces[j].layer);
+         command->copy(*staging, 0u, settings.rowSize(surfaces[j].mipmap), *out[i], surfaces[j].mipmap, surfaces[j].layer);
          command->commit();
          
          // TODO:

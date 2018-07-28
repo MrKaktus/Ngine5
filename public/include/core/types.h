@@ -22,6 +22,7 @@
 #include "core/types/uint128.h"
 #include "core/types/sint16v2.h"
 #include "core/types/uint16v2.h"
+#include "core/types/uint16v4.h"
 #include "core/types/uint32v2.h"
 #include "core/types/uint32v3.h"
 #include "core/types/uint32v4.h"

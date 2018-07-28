@@ -202,10 +202,9 @@ namespace en
          state.format  = Format::RGBA_8_sRGB;
          state.width   = resolutionRT.width;
          state.height  = resolutionRT.height;
-         state.depth   = 1;
+         state.mipmaps = 1;
          state.layers  = 1;
          state.samples = 1;
-         state.mipmaps = 1;
 
          swap[i][j] = make_shared<TextureGL>(state, handle);
          }
@@ -218,10 +217,9 @@ namespace en
    state.format  = Format::RGBA_8_sRGB;
    state.width   = windowResolution.width;
    state.height  = windowResolution.height;
-   state.depth   = 1;
+   state.mipmaps = 1;
    state.layers  = 1;
    state.samples = 1;
-   state.mipmaps = 1;
 
    ovrMirrorTextureDesc desc;
    desc.Format      = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;

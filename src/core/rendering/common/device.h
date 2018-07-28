@@ -144,7 +144,8 @@ namespace en
 
       virtual uint64 dedicatedMemorySize(void);
       virtual uint64 systemMemorySize(void);
-      virtual uint32 texelSize(const Format format);
+      virtual uint32 texelSize(const Format format,
+                               const uint8  plane = 0) const;
       };
 
    class CommonGraphicAPI : public GraphicAPI

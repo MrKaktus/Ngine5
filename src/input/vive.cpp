@@ -274,10 +274,10 @@ namespace en
          state.format  = Format::RGBA_8_sRGB;
          state.width   = resolutionRT.width;
          state.height  = resolutionRT.height;
-         state.depth   = 1;
+         state.mipmaps = 1;
          state.layers  = 1;
          state.samples = 1;
-         state.mipmaps = 1;
+
  
          // Create texture in gpu
          swap[i][j] = ResourcesContext.defaults.enHeap->createTexture(state);

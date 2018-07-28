@@ -38,17 +38,18 @@ namespace en
    }
 
    // Returns position of first set MSB, or false if in is 0
-   bool highestBit(uint32 in, uint32& number)
+   bool highestBit(const uint32 in, uint32& number)
    {
    if (in == 0)
       return false;
 
-   in |= (in >>  1);
-   in |= (in >>  2);
-   in |= (in >>  4);
-   in |= (in >>  8);
-   in |= (in >> 16);
-   number = in ^ (in >> 1);
+   number = in;
+   number |= (number >>  1);
+   number |= (number >>  2);
+   number |= (number >>  4);
+   number |= (number >>  8);
+   number |= (number >> 16);
+   number = number ^ (number >> 1);
    return true;
    }
    // Alternative:
@@ -67,7 +68,8 @@ namespace en
    //return true;
    //}
  
-   // Returns next power of two for given numer (in case of 0, returns 0)
+   // Returns next power of two for given numer (in case of 0, returns 0).
+   // If number is already power of two, the same value is returned.
    uint16 nextPowerOfTwo(uint8 in)
    {
    uint16 temp = in;

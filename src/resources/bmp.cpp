@@ -199,7 +199,7 @@ namespace en
    // Copy data from staging buffer to final texture
    shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
-   command->copy(*staging, *dst, 0u, layer);
+   command->copy(*staging, 0u, settings.rowSize(0), *dst, 0u, layer);
    command->commit();
    
    // TODO:
@@ -348,7 +348,7 @@ namespace en
    // Copy data from staging buffer to final texture
    shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
-   command->copy(*staging, *texture, mipmap, slice);
+   command->copy(*staging, 0u, settings.rowSize(mipmap), *texture, mipmap, slice);
    command->commit();
    
    // TODO:

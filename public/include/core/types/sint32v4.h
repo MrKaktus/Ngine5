@@ -26,6 +26,8 @@ namespace en
       sint32v4(void);
       sint32v4(sint32 _x, sint32 _y, sint32 _z, sint32 _w);
       };
+   
+   static_assert(sizeof(sint32v4) == 16, "en::sint32v4 size mismatch!");
 }
 
 #endif

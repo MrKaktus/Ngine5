@@ -97,8 +97,7 @@ namespace en
    
    unique_ptr<Thread> startThread(ThreadFunction function, void* threadState)
    {
-   unique_ptr<Thread> result( new psxThread(function, threadState) );
-   return result;
+   return unique_ptr<Thread>( new psxThread(function, threadState) );
    }
 }
 #endif

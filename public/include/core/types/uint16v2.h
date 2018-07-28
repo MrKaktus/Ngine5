@@ -26,6 +26,8 @@ namespace en
 
       bool operator== (const uint16v2 b) const;
       };
+   
+   static_assert(sizeof(uint16v2) == 4, "en::uint16v2 size mismatch!");
 }
 
 #endif

@@ -273,9 +273,9 @@ namespace en
    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
    // TODO: This could be precomputed and stored in TextureView as a bool
-   if ( TextureFormatIsDepth(src.viewFormat) ||
-        TextureFormatIsStencil(src.viewFormat) ||
-        TextureFormatIsDepthStencil(src.viewFormat) )
+   if ( isDepth(src.viewFormat) ||
+        isStencil(src.viewFormat) ||
+        isDepthStencil(src.viewFormat) )
        imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
    VkWriteDescriptorSet writeDesc;

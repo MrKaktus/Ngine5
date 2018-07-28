@@ -404,11 +404,12 @@ namespace en
                                                size) )
    }
          
-   void CommandBufferD3D12::copy(const Buffer& transfer,
-                                 const uint64 srcOffset, 
+   void CommandBufferD3D12::copy(const Buffer&  transfer,
+                                 const uint64   srcOffset,
+                                 const uint32   srcRowPitch,
                                  const Texture& texture,
-                                 const uint32 mipmap, 
-                                 const uint32 layer)
+                                 const uint32   mipmap,
+                                 const uint32   layer)
    {
    assert( started );
    assert( transfer.type() == BufferType::Transfer );
@@ -449,10 +450,13 @@ namespace en
    // Verify that source buffer has enough storage to read from specified offset.
    // (application should properly fill it will all requred paddings).
    assert( srcOffset + requiredUploadBufferSize <= source.size );
-
+      
+   // Verify that row pitch expected by driver matches one used by application
+   assert( layout.Footprint.RowPitch == srcRowPitch );
+      
    // Take into notice offset in source buffer
-   layout.Offset = srcOffset;
-
+   layout.Offset             = srcOffset;
+      
    // Copy from Buffer with given alignments
    D3D12_TEXTURE_COPY_LOCATION srcLocation;
    srcLocation.pResource       = source.handle;
@@ -471,29 +475,77 @@ namespace en
                                                 nullptr) )    // Size of source region/volume to copy (in Texture-Texture copy)
    }
 
-
-  // uint32 rowPitch = destination->width(mipmap) * genericTexelSize(destination->state.format);
-
-  // // TODO: ROW PITCH NEEDS TO ME MULTIPLE OF 256 BYTES ON DISCREETE GPU's
-  // assert( rowPitch % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT == 0 );
-
-
-
-		//D3D12_SUBRESOURCE_DATA textureData = {};
-		//textureData.pData = &texture[0];
-		//textureData.RowPitch = TextureWidth * TexturePixelSize;
-		//textureData.SlicePitch = textureData.RowPitch * TextureHeight;
-
-
-
-
-
-   void CommandBufferD3D12::copy(const Buffer& transfer,
-                                 const Texture& texture,
-                                 const uint32 mipmap,
-                                 const uint32 layer)
+   void CommandBufferD3D12::copyRegion2D(
+      const Buffer&  _source,
+      const uint64   srcOffset,
+      const uint32   srcRowPitch,
+      const Texture& texture,
+      const uint32   mipmap,
+      const uint32   layer,
+      const uint32v2 origin,
+      const uint32v2 region,
+      const uint8    plane)
    {
-   copy(transfer, 0u, texture, mipmap, layer);
+   const BufferD3D12&  source      = reinterpret_cast<const BufferD3D12&>(_source);
+   const TextureD3D12& destination = reinterpret_cast<const TextureD3D12&>(texture);
+
+   assert( started );
+   assert( source.type() == BufferType::Transfer );
+   assert( mipmap < destination.state.mipmaps );
+   assert( layer < destination.state.layers );
+   assert( origin.x + region.width  < destination.width(mipmap) );
+   assert( origin.y + region.height < destination.height(mipmap) );
+ //assert( source.size >= srcOffset + srcAlignment.surfaceSize(region.width, region.height) );
+   assert( srcRowPitch % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT == 0 );
+
+   if (srcAlignment)
+
+   // TODO: Check if graphics or compute!
+   ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
+
+   // Based on amount of mip-maps and layers, calculat index of subresource to modify.
+   UINT subresource = D3D12CalcSubresource(mipmap,
+                                           layer,
+                                           plane,
+                                           destination.state.mipmaps,
+                                           destination.state.layers);
+   
+   D3D12_SUBRESOURCE_FOOTPRINT regionLayout;
+   regionLayout.Format   = TranslateTextureFormat[underlyingType(destination.state.format)];
+   regionLayout.Width    = region.width;
+   regionLayout.Height   = region.height;
+   regionLayout.Depth    = 1;
+   regionLayout.RowPitch = srcRowPitch;
+
+   D3D12_PLACED_SUBRESOURCE_FOOTPRINT bufferLayout;
+   bufferLayout.Offset    = srcOffset;
+   bufferLayout.Footprint = regionLayout;
+
+   // Copy from Buffer with given alignments
+   D3D12_TEXTURE_COPY_LOCATION srcLocation;
+   srcLocation.pResource       = source.handle;
+   srcLocation.Type            = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+   srcLocation.PlacedFootprint = bufferLayout;
+
+   // Copy to given subresource of destination texture
+   D3D12_TEXTURE_COPY_LOCATION dstLocation;
+   dstLocation.pResource        = destination.handle;
+   dstLocation.Type             = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+   dstLocation.SubresourceIndex = subresource;
+
+   // Copy to below region
+   D3D12_BOX copyRegion;
+   copyRegion.left   = 0;
+   copyRegion.top    = 0;
+   copyRegion.front  = 0;
+   copyRegion.right  = region.width;
+   copyRegion.bottom = region.height;
+   copyRegion.back   = 1;
+
+   ValidateComNoRet( command->CopyTextureRegion(&dstLocation,
+                                                origin.x, origin.y, 0,
+                                                &srcLocation,
+                                                &copyRegion) )
    }
 
 

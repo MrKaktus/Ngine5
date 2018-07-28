@@ -45,6 +45,9 @@ namespace en
    #define bitChanged(previous, current, bit) (checkBit(current, bit) != checkBit(previous, bit))
    #define bitsChanged(previous, current, bitMask) ((current & bitMask) != (previous & bitMask))
 
+   // Integer division rounded up
+   #define intDivUp(number, divisor) ((number + (divisor - 1)) / divisor)
+
    uint32 bitsCount(uint32 number);
 
    // Returns position of first set MSB, or false if in is 0
@@ -69,7 +72,7 @@ namespace en
    template<typename T>
    T max(T a, T b)
    {
-      return a > b ? a : b;
+      return a >= b ? a : b;
    }
 #endif
  
@@ -113,7 +116,7 @@ namespace en
    
    // Casts C++11 strongly typed enum value to it's underlying type
    // Note: Visual Studio 2013 supports 'constexpr' only with 'November CTP'.
-   //       Visual sTudio 2015 supports it by default.
+   //       Visual Studio 2015 supports it by default.
    template <typename E>
    constexpr typename std::underlying_type<E>::type underlyingType(E e)
    {

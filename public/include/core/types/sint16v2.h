@@ -26,6 +26,8 @@ namespace en
 
       bool operator== (const sint16v2 b) const;
       };
+   
+   static_assert(sizeof(sint16v2) == 4, "en::sint16v2 size mismatch!");
 }
 
 #endif

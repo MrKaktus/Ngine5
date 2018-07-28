@@ -175,9 +175,9 @@ namespace en
            stencilFormat != Format::Unsupported );
 
    // Needs to be DepthStencil, Depth or Stencil
-   assert( TextureFormatIsDepthStencil(depthFormat) ||
-           TextureFormatIsDepth(depthFormat)        ||
-           TextureFormatIsStencil(stencilFormat) );
+   assert( isDepthStencil(depthFormat) ||
+           isDepth(depthFormat)        ||
+           isStencil(stencilFormat) );
 
    state.flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
    state.format         = depthFormat != Format::Unsupported ? TranslateTextureFormat[underlyingType(depthFormat)] :

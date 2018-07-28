@@ -135,9 +135,9 @@ namespace en
            stencilFormat != Format::Unsupported );
 
    // Needs to be DepthStencil, Depth or Stencil
-   assert( TextureFormatIsDepthStencil(depthFormat) ||
-           TextureFormatIsDepth(depthFormat)        ||
-           TextureFormatIsStencil(stencilFormat) );
+   assert( isDepthStencil(depthFormat) ||
+           isDepth(depthFormat)        ||
+           isStencil(stencilFormat) );
       
    state.format = depthFormat != Format::Unsupported ? TranslateTextureFormat[underlyingType(depthFormat)] :
                                                        TranslateTextureFormat[underlyingType(stencilFormat)];
@@ -402,10 +402,10 @@ namespace en
          {
          Format format = view->texture->state.format;
          
-         if (TextureFormatIsStencil(format))
+         if (isStencil(format))
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
          else
-         if (TextureFormatIsDepth(format))
+         if (isDepth(format))
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
          else
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL;
@@ -491,10 +491,10 @@ namespace en
          {
          Format format = view->texture->state.format;
          
-         if (TextureFormatIsStencil(format))
+         if (isStencil(format))
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
          else
-         if (TextureFormatIsDepth(format))
+         if (isDepth(format))
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
          else
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL;
@@ -586,10 +586,10 @@ namespace en
          {
          Format format = view->texture->state.format;
          
-         if (TextureFormatIsStencil(format))
+         if (isStencil(format))
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
          else
-         if (TextureFormatIsDepth(format))
+         if (isDepth(format))
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
          else
             result->depthDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL;

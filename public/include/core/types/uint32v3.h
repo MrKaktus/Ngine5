@@ -25,6 +25,8 @@ namespace en
       uint32v3(void);
       uint32v3(const uint32 x, const uint32 y, const uint32 z);
       };
+   
+   static_assert(sizeof(uint32v3) == 12, "en::uint32v3 size mismatch!");
 }
 
 #endif

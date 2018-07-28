@@ -26,7 +26,7 @@ namespace en
    namespace gpu
    {
    // Type of texture
-   enum class TextureType : uint32
+   enum class TextureType : uint8
       {
       Texture1D                 = 0,
       Texture1DArray               ,
@@ -85,7 +85,7 @@ namespace en
    // few exceptions for loading specific file formats). If channels swizzling
    // is possible, it is set up separately.
    //
-   enum class Format : uint16
+   enum class Format : uint8
       {
       Unsupported         = 0,  //
       R_8                    ,  // Uncompressed formats:
@@ -242,7 +242,7 @@ namespace en
    // - DepthBuffer   - TextureUsage::RenderTargetWrite
    // - GBuffer Depth - TextureUsage::RenderTargetWrite | TextureUsage::Read
    //
-   enum class TextureUsage : uint32
+   enum class TextureUsage : uint16
       {
       Read                = 0x0001,  // Allows Reading and Sampling Textures by Shaders
       Write               = 0x0002,  // Allows Writing to Textures (for eg. by Compute Shaders)
@@ -251,7 +251,7 @@ namespace en
       RenderTargetWrite   = 0x0010,  // Texture can be one of Color, Depth, Stencil destination for Rendering operations
       MultipleViews       = 0x0020,  // Allows creation of multiple Texture Views from one Texture
       Streamed            = 0x0040,  // Optimal for fast streaming of data between CPU and GPU
-      Sparse              = 0x0100,  // Texture is partially backed with memory
+      Sparse              = 0x0100,  // Texture can be partially backed in memory
       };
 
    inline TextureUsage operator| (TextureUsage a, TextureUsage b)
@@ -270,6 +270,55 @@ namespace en
       Back                         ,
       TextureFacesCount
       };
+
+   // Structure defining image data alignments in memory. In most cases, samples are
+   // tightly packed, as well as texels, and the only possible padding defining
+   // pitch may happen on row boundary, or surface boundary, and is dictated by
+   // general data alignment for separate lines. Even though probably never used,
+   // for special cases, this structure allows specifying different paddings per
+   // sample, texel, row and surface.
+   //
+   // By default only sampleSize needs to be set, to describe valid surface.
+   struct ImageMemoryAlignment
+      {
+      uint32 sampleSize            : 8; // Maximum sample/texel block size - 255 bytes
+      uint32 samplesCountPower     : 3; // Max samples count     - 128
+      uint32 sampleAlignmentPower  : 3; // Max sample alignment  - 128 bytes
+      uint32 texelAlignmentPower   : 4; // Max texel alignment   - 32KB
+      uint32 rowAlignmentPower     : 4; // Max row alignment     - 32KB
+      uint32 surfaceAlignmentPower : 6; // Max surface alignment - Unlimited
+      uint32                       : 4; // Reserved, padding.
+
+      void samplesCount(const uint8 samples);
+      void sampleAlignment(const uint32 alignment);
+      void texelAlignment(const uint32 alignment);
+      void rowAlignment(const uint32 alignment);
+      void surfaceAlignment(const uint32 alignment);
+      
+      forceinline uint32 samplesCount(void)     { return (1 << samplesCountPower); }
+      forceinline uint32 sampleAlignment(void)  { return (1 << sampleAlignmentPower); }
+      forceinline uint32 samplePitch(void)      { return roundUp(sampleSize, sampleAlignment()); }
+      forceinline uint32 texelSize(void)        { return samplesCount() * samplePitch(); }
+      forceinline uint32 texelAlignment(void)   { return (1 << texelAlignmentPower); }
+      forceinline uint32 texelPitch(void)       { return roundUp(texelSize(), texelAlignment()); }
+      
+      // Application needs to provide width and height that is depending on
+      // layout, image is stored in. In terms of block compressed textures,
+      // width and height should be provided in texel blocks already.
+      forceinline uint32 rowSize(const uint32 width)  { return texelPitch() * width; }
+      forceinline uint32 rowAlignment(void)           { return (1 << rowAlignmentPower); }
+      forceinline uint32 rowPitch(const uint32 width) { return roundUp(rowSize(width), rowAlignment()); }
+      
+      forceinline uint32 surfaceSize(const uint32 width, const uint32 height)  { return rowPitch(width) * height; }
+      forceinline uint32 surfaceAlignment(void)                                { return (1 << surfaceAlignmentPower); };
+      forceinline uint32 surfacePitch(const uint32 width, const uint32 height) { return roundUp(surfaceSize(width, height), surfaceAlignment()); }
+      };
+      
+   static_assert(sizeof(ImageMemoryAlignment) == 4, "ImageMemoryAlignment size mismatch!");
+   
+
+
+      // uint32 layout                : 2; // Linear, Tiled2D, Tiled3D
 
    // Structure defining texture data layout in linear memory,
    // for copying from staging buffer to destination texture.
@@ -290,28 +339,63 @@ namespace en
       TextureType   type;
       Format        format;   
       TextureUsage  usage;
-      uint16        width;
-      uint16        height;
-      uint16        depth;
-      uint16        layers;   // Layers of Array texture, or Layers * Faces for CubeMap Array texture
-      uint16        samples;
-      uint16        mipmaps;  // Ignored, will be calculated automatically during texture creation TODO: Shouldn't be ignored we may want to create partial mipmap stack for streaming
-      
+      uint32        width;
+      uint32        height;
+      uint16        layers;   // Count of surfaces in single mip level:
+                              // Array:        layers
+                              // 3D:           depth planes (in mip 0)
+                              // CubeMap:      6 faces
+                              // CubeMapArray: layers * 6 faces (for each cube)
+      uint8         mipmaps;  // Mip maps count from mip0 (texture may be missing mip-tail)
+      uint8         samples;
+
       TextureState();
       TextureState(
          const TextureType type,
          const Format format,
          const TextureUsage usage,
-         const uint16 width,
-         const uint16 height = 1,
-         const uint16 depth = 1,
+         const uint32 width,
+         const uint32 height = 1,
+         const uint8 mipmaps = 1,
          const uint16 layers = 1,
-         const uint16 samples = 1,
-         const uint16 mipmaps = 1);
+         const uint8 samples = 1);
       
       bool operator !=(const TextureState& b);
+      
+      // Amount of separate planes
+      uint8 planes(void) const;
+      
+      // Amount of memory needed to store single line (or single row of blocks)
+      uint32 rowSize(const uint8 mipmap,
+                     const uint8 plane = 0) const;
+   
+      // Amount of rows in surface (or rows of compressed blocks)
+      uint32 rowsCount(const uint8 mipmap) const;
+   
+      // Amount of memory needed to store single 2D surface of given mip level.
+      // For multi-plane surfaces, size of single plane is returned.
+      // (doesn't take into notice depth planes, cube faces or array layers).
+      uint32 surfaceSize(const uint8 mipmap,
+                         const uint8 plane = 0) const;
+
+      // Width in texels of given mip level
+      uint32 mipWidth(const uint8 mipmap) const;
+   
+      // Height in texels of given mip level
+      uint32 mipHeight(const uint8 mipmap) const;
+
+      // Depth in texels of given mip level
+      uint32 mipDepth(const uint8 mipmap) const;
+
+      // Surface resolution in texels of given 2D texture mip level
+      uint32v2 mipResolution(const uint8 mipmap) const;
+
+      // Volume in texels of given 3D texture mip level
+      uint32v3 mipVolume(const uint8 mipmap) const;
       };
 
+   static_assert(sizeof(TextureState) == 16, "TextureState size mismatch!");
+  
    class Heap;
    class TextureView;
    
@@ -322,7 +406,8 @@ namespace en
       virtual TextureType type(void) const = 0;
       virtual Format   format(void) const = 0;
       virtual uint32   mipmaps(void) const = 0;
-      virtual uint32   size(const uint8 mipmap = 0) const = 0;
+      virtual uint32   size(const uint8 mipmap = 0,
+                            const uint8 plane = 0) const = 0;
       virtual uint32   width(const uint8 mipmap = 0) const = 0;
       virtual uint32   height(const uint8 mipmap = 0) const = 0;
       virtual uint32   depth(const uint8 mipmap = 0) const = 0;
@@ -364,10 +449,39 @@ namespace en
       virtual ~TextureView() {};
       };
       
+   // TODO: Size with or without padding?
+   //       Tightly packed in RAM, but padded in VRAM
+   
+   // Width in bytes, and height in rows, of 64KB 2D tile of given format.
+   // Assumes texel data is padded to power of two, layout optimal for GPUs.
+   extern uint16v2 tileSize2D(const Format format,
+                              const uint32 samples = 1,
+                              const uint8  plane = 0);
+
+   // Width in bytes, height and depth in rows, of 64KB 3D tile of given format.
+   // Assumes texel data is padded to power of two, layout optimal for GPUs.
+   extern uint16v4 tileSize3D(const Format format);
+   
+   // Size in texels, of 64KB 2D tile of given format.
+   extern uint16v2 tileResolution2D(const Format format,
+                                    const uint32 samples = 1,
+                                    const uint8  plane = 0);
+
+   // Size in texels, of 64KB 3D tile of given format.
+   extern uint16v4 tileResolution3D(const Format format);
+   
+   // Size of compression block in texels (1x1 if format is uncompressed)
+   extern uint16v2 texelBlockResolution(const Format format);
+   
    // Device independent, texel size in bytes, based on the given format. It
    // is not taking into account texel padding or any other device specific
    // optimizations. For compressed formats, it's texel block size.
-   extern uint32 genericTexelSize(const Format format);
+   extern uint32 texelSize(const Format format,
+                           const uint8  plane = 0);
+   
+   extern bool isDepth(const Format format);
+   extern bool isStencil(const Format format);
+   extern bool isDepthStencil(const Format format);
    }
 }
 

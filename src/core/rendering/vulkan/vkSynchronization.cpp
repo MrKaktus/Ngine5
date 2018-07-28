@@ -99,9 +99,9 @@ namespace en
       {
       setBitmask(access, VK_ACCESS_SHADER_READ_BIT);
       layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-      if ( TextureFormatIsDepth(format) ||
-           TextureFormatIsStencil(format) ||
-           TextureFormatIsDepthStencil(format) )
+      if ( isDepth(format) ||
+           isStencil(format) ||
+           isDepthStencil(format) )
          layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
       }
 
@@ -116,9 +116,9 @@ namespace en
    // Texture can be one of Color, Depth, Stencil read sources during rendering operations
    if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetRead)))
       {
-      if ( TextureFormatIsDepth(format) ||
-           TextureFormatIsStencil(format) ||
-           TextureFormatIsDepthStencil(format) )                  // Read via HiZ, Early-Z and Depth Test
+      if ( isDepth(format) ||
+           isStencil(format) ||
+           isDepthStencil(format) )                               // Read via HiZ, Early-Z and Depth Test
          {
          setBitmask(access, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT);
          if (canBeWritten)
@@ -136,9 +136,9 @@ namespace en
    // Texture can be one of Color, Depth, Stencil destination for Rendering operations
    if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetWrite)))
       {
-      if ( TextureFormatIsDepth(format) ||
-           TextureFormatIsStencil(format) ||
-           TextureFormatIsDepthStencil(format) )                   // Written via Depth Write
+      if ( isDepth(format) ||
+           isStencil(format) ||
+           isDepthStencil(format) )                               // Written via Depth Write
          {
          setBitmask(access, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
          layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;         // Overrides Read-Only Depth-Stencil mode
@@ -686,9 +686,9 @@ namespace en
    //   setBitmask(newAccess, VK_ACCESS_SHADER_WRITE_BIT);
 
    //// Depth-Stencil texture specific access
-   //if (TextureFormatIsDepth(state.format)   ||
-   //    TextureFormatIsStencil(state.format) ||
-   //    TextureFormatIsDepthStencil(state.format))
+   //if (isDepth(state.format)   ||
+   //    isStencil(state.format) ||
+   //    isDepthStencil(state.format))
    //   {
    //   if ( checkBitmask(usageMask, underlyingType(TextureUsage::Read)) ||            // Depth-Stencil read (for e.g. for Shadow-Map test)
    //        checkBitmask(usageMask, underlyingType(TextureUsage::RenderTargetRead)) ) // Depth-Stencil read (for Depth/Stencil tests)

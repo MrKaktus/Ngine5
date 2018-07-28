@@ -54,6 +54,9 @@ namespace en
       uint32 firstInstance;   // Starting InstanceID
       } IndirectIndexedDrawArgument;
    
+   // Try to limit amount of Command Buffers to 15-30 per frame, and submit
+   // them in batches, to limit submissions to ~5 per queue per frame (engine
+   // currently is not supporting CommandBuffer batch submissions).
    class CommandBuffer : public enable_shared_from_this<CommandBuffer>
       {
       public:
@@ -86,26 +89,37 @@ namespace en
          const uint64 dstOffset = 0u) = 0;
 
       // Before copying data from staging buffer to destination texture
-      // application should use below GpuDevice method to obtain alignment
-      // and padding layout of data in that staging buffer:
+      // application should use below GpuDevice method to obtain required
+      // alignment and padding layout for data in that staging buffer:
       //
-      // LinearAlignment textureLinearAlignment(const Texture& texture,
-      //                                        const uint32 mipmap,
-      //                                        const uint32 layer);
+      // ImageMemoryAlignment textureMemoryAlignment(const TextureState& state,
+      //                                             const uint32 mipmap,
+      //                                             const uint32 layer);
       //
       virtual void copy(
+         const Buffer&  source,
+         const uint64   srcOffset,
+         const uint32   srcRowPitch,
+         const Texture& texture,
+         const uint32   mipmap,
+         const uint32   layer) = 0;
+
+      // Copies data from staging buffer to destination texture, replacing only
+      // specified rectangular area. Layout specifies how data is structured in
+      // source buffer. Layout size needs to match size of replaced region in
+      // bytes, and layout rowSize needs to match size of single line, or single
+      // row of compressed blocks. Layout alignment is ignored as it's driven
+      // by srcOffset. In multi-plane surfaces, plane to copy needs to be specified.
+      virtual void copyRegion2D(
          const Buffer& source,
          const uint64 srcOffset,
+         const uint32 srcRowPitch,
          const Texture& texture,
          const uint32 mipmap,
-         const uint32 layer) = 0;
-
-      virtual void copy(
-         const Buffer& source,
-         const Texture& texture,
-         const uint32 mipmap,
-         const uint32 layer) = 0;
-         
+         const uint32 layer, // Array layer, layer+face, face
+         const uint32v2 origin,
+         const uint32v2 region,
+         const uint8 plane = 0) = 0;
          
       // Resource transitions:
       

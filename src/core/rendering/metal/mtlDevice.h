@@ -154,9 +154,9 @@ namespace en
          
       virtual shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
-      virtual LinearAlignment textureLinearAlignment(const Texture& texture, 
-                                                     const uint32 mipmap, 
-                                                     const uint32 layer);
+      virtual ImageMemoryAlignment textureMemoryAlignment(const TextureState& state,
+                                                          const uint32 mipmap,
+                                                          const uint32 layer) const;
       };
    }
 }

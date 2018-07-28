@@ -25,9 +25,6 @@ namespace en
 {
    namespace gpu
    { 
-   #define KB 1024
-   #define MB 1024*1024
-   
    // Memory organization:
    //
    // Discreete GPU:
@@ -193,8 +190,10 @@ namespace en
 // Memory used for paging off resources created in dedicated memory.
 // 
 
-
-
+// maxMemoryAllocationCount - max count of Heap allocations from Device memory
+//
+// VkPhysicalDeviceMaintenance3Properties::maxMemoryAllocationSize - max allowed Heap size
+//                                                                   VK_ERROR_OUT_OF_DEVICE_MEMORY must be returned
 
 // 
 // Query memory layout for given resource:

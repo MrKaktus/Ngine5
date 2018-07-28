@@ -323,11 +323,12 @@ namespace en
    }
 
    void CommandBufferVK::copy(
-       const Buffer& transfer,
-       const uint64 srcOffset,
+       const Buffer&  transfer,
+       const uint64   srcOffset,
+       const uint32   srcRowPitch,
        const Texture& texture,
-       const uint32 mipmap,
-       const uint32 layer)
+       const uint32   mipmap,
+       const uint32   layer)
    {
    assert( started );
    assert( transfer.type() == BufferType::Transfer );
@@ -349,28 +350,75 @@ namespace en
 
    VkBufferImageCopy regionInfo;
    regionInfo.bufferOffset      = srcOffset;
-   regionInfo.bufferRowLength   = 0u;
+   regionInfo.bufferRowLength   = srcRowPitch;
    regionInfo.bufferImageHeight = 0u;
    regionInfo.imageSubresource  = layersInfo;
    regionInfo.imageOffset       = { 0u, 0u, 0u };
    regionInfo.imageExtent       = { destination.width(mipmap), destination.height(mipmap), 1 };
    
    ValidateNoRet( gpu, vkCmdCopyBufferToImage(handle,
-                                             source.handle,
-                                             destination.handle,
-                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                             1, &regionInfo) )
+                                              source.handle,
+                                              destination.handle,
+                                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                              1, &regionInfo) )
 
    }
 
-   void CommandBufferVK::copy(
-       const Buffer& transfer,
-       const Texture& texture,
-       const uint32 mipmap,
-       const uint32 layer)
+   void CommandBufferVK::copyRegion2D(
+      const Buffer&  _source,
+      const uint64   srcOffset,
+      const LinearAlignment layout,
+      const Texture& texture,
+      const uint32   mipmap,
+      const uint32   layer,
+      const uint32v2 origin,
+      const uint32v2 region,
+      const uint8    plane)
    {
-   copy(transfer, 0u, texture, mipmap, layer);
+   const BufferVK&  source      = reinterpret_cast<const BufferVK&>(_source);
+   const TextureVK& destination = reinterpret_cast<const TextureVK&>(texture);
+
+   assert( started );
+   assert( source.type() == BufferType::Transfer );
+   assert( mipmap < destination.state.mipmaps );
+   assert( layer < destination.state.layers );
+   assert( origin.x + region.width  < destination.width(mipmap) );
+   assert( origin.y + region.height < destination.height(mipmap) );
+   assert( source.size >= srcOffset + layout.size );
+
+   VkImageSubresourceLayers layersInfo;
+   layersInfo.aspectMask     = TranslateImageAspect(destination.state.format);
+   layersInfo.mipLevel       = mipmap;
+   layersInfo.baseArrayLayer = layer;
+   layersInfo.layerCount     = 1u;
+   
+   // Specify planes to blit
+   if (isDepthStencil(destination.state.format))
+      {
+      layersInfo.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+      if (plane == 1)
+         layersInfo.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+      }
+
+   assert( source.size < 0xFFFFFFFF );
+
+   // TODO: What about plane selection?
+   
+   VkBufferImageCopy regionInfo;
+   regionInfo.bufferOffset      = srcOffset;
+   regionInfo.bufferRowLength   = layout.rowSize;
+   regionInfo.bufferImageHeight = layout.size / layout.rowSize;
+   regionInfo.imageSubresource  = layersInfo;
+   regionInfo.imageOffset       = { origin.x, origin.y, 0u };
+   regionInfo.imageExtent       = { region.width, region.height, 1 };
+   
+   ValidateNoRet( gpu, vkCmdCopyBufferToImage(handle,
+                                              source.handle,
+                                              destination.handle,
+                                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                              1, &regionInfo) )
    }
+   
       
 //   // CPU data -> Buffer (max 64KB, recorded on CommandBuffer itself, for UBO's ?)
 //   void vkCmdUpdateBuffer(

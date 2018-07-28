@@ -584,7 +584,7 @@ namespace en
    // Allocate buffer for content of decompressed IDAT chunks
    // Size of decompressed chunks may equal in worst case scenario to (Width x Height x BPP) + extra Height bytes.
    // Extra Height bytes comes from the fact that each line starts with extra Byte specifying filter type applied for that line.
-   uint64 inflateBufferSize = roundUp(settings.width * settings.height * gpu::genericTexelSize(settings.format) + settings.height, PageSize);
+   uint64 inflateBufferSize = roundUp(settings.width * settings.height * gpu::texelSize(settings.format) + settings.height, PageSize);
    uint8* inflated = allocate<uint8>(PageSize, inflateBufferSize);
 
    ColorSpaceInfo colorSpaceInfo;
@@ -754,10 +754,10 @@ namespace en
    DecodeState decoder;
    decoder.startLine        = 0;
    decoder.lines            = settings.height;
-   decoder.texelSize        = gpu::genericTexelSize(settings.format);
+   decoder.texelSize        = gpu::texelSize(settings.format);
    decoder.width            = settings.width;
    decoder.height           = settings.height;
-   decoder.linePadding      = layout.rowSize - settings.width * gpu::genericTexelSize(settings.format);
+   decoder.linePadding      = layout.rowSize - settings.width * gpu::texelSize(settings.format);
    decoder.input            = inflated;
    decoder.output           = destination;
    decoder.invertHorizontal = invertHorizontal;

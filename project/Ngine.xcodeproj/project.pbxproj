@@ -39,6 +39,7 @@
 		85512E60204B44B60058D6E1 /* psxThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85512E5F204B44B60058D6E1 /* psxThread.cpp */; };
 		855217A21E00CB4B00FF942F /* dx12CommandBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 855217A01E00CB4B00FF942F /* dx12CommandBuffer.cpp */; };
 		855217A31E00CB4B00FF942F /* dx12CommandBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 855217A11E00CB4B00FF942F /* dx12CommandBuffer.h */; };
+		8556F6AE20C3AA71003262B0 /* uint16v4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8556F6AD20C3AA71003262B0 /* uint16v4.cpp */; };
 		8558AC401FF2F419004E94E3 /* sampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8558AC3D1FF2F418004E94E3 /* sampler.cpp */; };
 		8558AC411FF2F419004E94E3 /* raster.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8558AC3E1FF2F419004E94E3 /* raster.cpp */; };
 		8558AC421FF2F419004E94E3 /* depthStencil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8558AC3F1FF2F419004E94E3 /* depthStencil.cpp */; };
@@ -284,6 +285,7 @@
 		85512E5F204B44B60058D6E1 /* psxThread.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = psxThread.cpp; path = parallel/psxThread.cpp; sourceTree = "<group>"; };
 		855217A01E00CB4B00FF942F /* dx12CommandBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dx12CommandBuffer.cpp; sourceTree = "<group>"; };
 		855217A11E00CB4B00FF942F /* dx12CommandBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dx12CommandBuffer.h; sourceTree = "<group>"; };
+		8556F6AD20C3AA71003262B0 /* uint16v4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = uint16v4.cpp; sourceTree = "<group>"; };
 		8558AC3D1FF2F418004E94E3 /* sampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sampler.cpp; sourceTree = "<group>"; };
 		8558AC3E1FF2F419004E94E3 /* raster.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = raster.cpp; sourceTree = "<group>"; };
 		8558AC3F1FF2F419004E94E3 /* depthStencil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = depthStencil.cpp; sourceTree = "<group>"; };
@@ -880,6 +882,7 @@
 				85917A3D1C3F66120051382A /* uint32v3.cpp */,
 				85917A3E1C3F66120051382A /* uint32v4.cpp */,
 				8585EB351D78F7DF00437C1D /* sint32v4.cpp */,
+				8556F6AD20C3AA71003262B0 /* uint16v4.cpp */,
 			);
 			path = types;
 			sourceTree = "<group>";
@@ -1415,6 +1418,7 @@
 				85756B751E1089E600C8F3DB /* mtlInputLayout.mm in Sources */,
 				85917B101C3F66F60051382A /* gamestate.cpp in Sources */,
 				85756B681E10890100C8F3DB /* inputLayout.cpp in Sources */,
+				8556F6AE20C3AA71003262B0 /* uint16v4.cpp in Sources */,
 				85917B111C3F66F60051382A /* scene.cpp in Sources */,
 				85917B121C3F66F60051382A /* cam.cpp in Sources */,
 				85917B131C3F66F60051382A /* maintask.cpp in Sources */,
@@ -1452,6 +1456,7 @@
 					./../middleware/,
 				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = ./../middleware/;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				OBJROOT = ../build/macOS/Debug;
 				OTHER_LDFLAGS = "";
 				"OTHER_LDFLAGS[sdk=macosx*][arch=x86_64]" = (
@@ -1479,6 +1484,7 @@
 					./../middleware/,
 				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = ./../middleware/;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				OBJROOT = ../build/macOS/Release;
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include;
 				PRODUCT_NAME = "$(TARGET_NAME)";

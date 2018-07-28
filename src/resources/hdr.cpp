@@ -445,7 +445,7 @@ namespace en
    // Copy data from staging buffer to final texture
    shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
-   command->copy(*staging, *texture, 0u, 0u);
+   command->copy(*staging, 0u, settings.rowSize(0u), *texture, 0u, 0u);
    command->commit();
    
    // TODO:

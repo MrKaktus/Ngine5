@@ -419,8 +419,8 @@ namespace en
       if ( headers[part].type == DeepScanLine || 
            headers[part].type == DeepTile )
          {
-         settings.type  = gpu::TextureType::Texture3D;
-         settings.depth = headers[part].maxSamplesPerPixel;
+         settings.type   = gpu::TextureType::Texture3D;
+         settings.layers = headers[part].maxSamplesPerPixel;
          }
       
       // Determine texture format to use. At this stage,
@@ -672,7 +672,7 @@ namespace en
       // Copy data from staging buffer to final texture
       shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
       command->start();
-      command->copy(*staging, *texture, mipmap, slice);
+      command->copy(*staging, 0u, settings.rowSize(mipmap), *texture, mipmap, slice);
       command->commit();
    
       // TODO:

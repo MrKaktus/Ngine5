@@ -23,9 +23,6 @@ namespace en
 {
    namespace gpu
    {
-   #define KB 1024
-   #define MB 1024*1024
-   
    HeapD3D12::HeapD3D12(shared_ptr<Direct3D12Device> _gpu,
                         ID3D12Heap* _handle,
                         const MemoryUsage usage,

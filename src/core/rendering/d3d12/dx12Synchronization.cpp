@@ -146,9 +146,9 @@ namespace en
       //       accessed only by Fragment Shader, or only by Geometry
       //       Stages (Vertex, Control, Evaluation, Geometry Shaders).
 
-      if ( TextureFormatIsDepth(format) ||
-           TextureFormatIsStencil(format) ||
-           TextureFormatIsDepthStencil(format) )
+      if ( isDepth(format) ||
+           isStencil(format) ||
+           isDepthStencil(format) )
          setBitmask(access, D3D12_RESOURCE_STATE_DEPTH_READ);
       }
 
@@ -167,19 +167,19 @@ namespace en
    // Texture can be one of Color, Depth, Stencil read sources during rendering operations
    if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetRead)))
       {
-      if ( TextureFormatIsDepth(format) ||
-           TextureFormatIsStencil(format) ||
-           TextureFormatIsDepthStencil(format) )                  // Read via HiZ, Early-Z and Depth Test
+      if ( isDepth(format) ||
+           isStencil(format) ||
+           isDepthStencil(format) )                            // Read via HiZ, Early-Z and Depth Test
          setBitmask(access, D3D12_RESOURCE_STATE_DEPTH_READ);
       }
 
    // Texture can be one of Color, Depth, Stencil destination for Rendering operations
    if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetWrite)))
       {
-      if ( TextureFormatIsDepth(format) ||
-           TextureFormatIsStencil(format) ||
-           TextureFormatIsDepthStencil(format) )                   // Written via Depth Write, Depth Clear
-         setBitmask(access, D3D12_RESOURCE_STATE_DEPTH_WRITE);     // Overrides Read-Only Depth-Stencil mode (if PSO enables Depth writes)
+      if ( isDepth(format) ||
+           isStencil(format) ||
+           isDepthStencil(format) )                            // Written via Depth Write, Depth Clear
+         setBitmask(access, D3D12_RESOURCE_STATE_DEPTH_WRITE); // Overrides Read-Only Depth-Stencil mode (if PSO enables Depth writes)
       else
          setBitmask(access, D3D12_RESOURCE_STATE_RENDER_TARGET);
       }

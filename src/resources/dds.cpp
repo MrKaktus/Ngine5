@@ -684,7 +684,7 @@ namespace en
 
    // Calculate texture depth
    if (settings.type == TextureType::Texture3D)
-      settings.depth = static_cast<uint16>(header.dwDepth);
+      settings.layers = static_cast<uint16>(header.dwDepth);
 
    // Calculate amount of mipmaps
    if (header.dwCaps & DDSCAPS_COMPLEX & DDSCAPS_TEXTURE)
@@ -709,7 +709,7 @@ namespace en
    // Load layers and mipmaps of texture to GPU
    for(uint32 layer=0; layer<settings.layers; ++layer)
       {
-      uint32 mipDepth = settings.depth;
+      uint32 mipDepth = settings.type == TextureType::Texture3D ? settings.layers : 1;
       for(uint32 mipmap=0; mipmap<settings.mipmaps; ++mipmap)
          {
          for(uint32 slice=0; slice<mipDepth; ++slice)
@@ -739,7 +739,7 @@ namespace en
             // Copy data from staging buffer to final texture
             shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
             command->start();
-            command->copy(*staging, *texture, mipmap, slice);
+            command->copy(*staging, 0u, settings.rowSize(mipmap), *texture, mipmap, slice);
             command->commit();
             
             // TODO:

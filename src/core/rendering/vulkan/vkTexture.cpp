@@ -364,7 +364,9 @@ namespace en
 
    textureInfo.imageType   = TranslateImageType[underlyingType(state.type)];
    textureInfo.format      = TranslateTextureFormat[underlyingType(state.format)];
-   textureInfo.extent      = { state.width, state.height, state.depth };
+   textureInfo.extent      = { state.width, state.height, 1 };
+   if (state.type == TextureType::Texture3D)
+      textureInfo.extent.depth = state.layers;
    textureInfo.mipLevels   = state.mipmaps;    // Starting from mipmap 0 (original image)
    textureInfo.arrayLayers = state.layers;
    textureInfo.samples     = static_cast<VkSampleCountFlagBits>(min(nextPowerOfTwo(state.samples), 64u));   // Optional: TranslateSamplesCount(state.samples);
@@ -417,9 +419,9 @@ namespace en
       // Destination for Render Operations
       if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::RenderTargetWrite)))
          {
-         if ( TextureFormatIsDepth(state.format)   ||
-              TextureFormatIsStencil(state.format) ||
-              TextureFormatIsDepthStencil(state.format) )
+         if ( isDepth(state.format)   ||
+              isStencil(state.format) ||
+              isDepthStencil(state.format) )
             textureInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
          else
             textureInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -650,24 +652,25 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   LinearAlignment VulkanDevice::textureLinearAlignment(const Texture& texture,
+   LinearAlignment VulkanDevice::textureLinearAlignment(const TextureState& state,
                                                         const uint32 mipmap, 
-                                                        const uint32 layer)
+                                                        const uint32 layer) const
    {
-   assert( texture.mipmaps() > mipmap );
-   assert( texture.layers() > layer );
-
-   const TextureVK& destination = reinterpret_cast<const TextureVK&>(texture);
+   assert( state.mipmaps > mipmap );
+   assert( state.layers > layer );
 
    // Looks like Vulkan has no restrictions regarding rows padding or inital alignment like
    // Direct3D12 does, or D3D12 just enforces them to ensure most optimal data transfer 
    // while Vulkan can handle unoptimal ones.
    LinearAlignment result;
-   result.size      = texture.size(mipmap);
+   result.size      = textureSurfaceSize(state, mipmap);
    result.alignment = 256;
-   result.rowSize   = texture.width(mipmap) * texelSize(destination.state.format);
-   result.rowsCount = texture.height(mipmap); // TODO: Correct it for compressed textures !
-
+   result.rowSize   = textureRowSize(state, mipmap);
+   result.rowsCount = textureRowsCount(state, mipmap);
+   
+   // It is assumed that size is already multiple of data alignment offset
+   assert( result.size % result.alignment == 0 );
+   
    return result;
    }
 

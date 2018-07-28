@@ -286,13 +286,13 @@ namespace en
 
       if (needNewSurface)
          {            
-         drawable            = [layer nextDrawable];
+         drawable = [layer nextDrawable];
          assert( drawable );
          
          framebuffer->handle = [drawable.texture retain];
-         assert( framebuffer-> handle );
+         assert( framebuffer->handle );
          
-         needNewSurface      = false;
+         needNewSurface = false;
          }
 
       surfaceAcquire.unlock();

@@ -48,6 +48,8 @@ namespace en
       //bool    operator!= (const uint128 b) const;
       //uint128 operator-  () const;      
       };
+   
+   static_assert(sizeof(uint128) == 16, "en::uint128 size mismatch!");
 }
 
 #endif

@@ -81,7 +81,8 @@ namespace en
    //    bool dualSourceBlending;              // Supports Dual-Source blending
    //    } support;
    //
-
+   // PSO Creation can take up to 500-700ms
+   
    // Handle for Pipeline State Object binding specification
    class Pipeline
       {

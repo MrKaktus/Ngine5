@@ -143,7 +143,7 @@ namespace en
    pipeDesc.vertexFunction               = functionVertex;
    pipeDesc.fragmentFunction             = pipelineState.shader[4] ? functionFragment : nil;
    pipeDesc.vertexDescriptor             = input->desc;
-   pipeDesc.sampleCount                  = 1;
+   pipeDesc.rasterSampleCount            = 1;    // sampleCount is deprecated
    pipeDesc.alphaToCoverageEnabled       = NO;
    pipeDesc.alphaToOneEnabled            = NO;
    pipeDesc.rasterizationEnabled         = raster->enableRasterization; // Optional Rasterization State
