@@ -95,6 +95,7 @@
     <ClCompile Include="..\src\core\types\sint16v2.cpp" />
     <ClCompile Include="..\src\core\types\uint128.cpp" />
     <ClCompile Include="..\src\core\types\uint16v2.cpp" />
+    <ClCompile Include="..\src\core\types\uint16v4.cpp" />
     <ClCompile Include="..\src\core\types\uint32v2.cpp" />
     <ClCompile Include="..\src\core\types\uint32v3.cpp" />
     <ClCompile Include="..\src\core\types\uint32v4.cpp" />
@@ -519,7 +520,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib;winmm.lib</AdditionalDependencies>
+      <AdditionalDependencies>zlibwapi.lib;libfbxsdk.lib;OpenAL32.lib;LibOVR.lib;openvr_api.lib;dinput8.lib;dxguid.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib;winmm.lib;Kernel32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14\x64\ZlibDllDebug;.\..\middleware\OculusSDK\LibOVR\Lib\Windows\x64\Debug\VS2015;.\..\middleware\openvr-1.0.3\lib\win64;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\debug;C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
     </Lib>
     <BuildLog>

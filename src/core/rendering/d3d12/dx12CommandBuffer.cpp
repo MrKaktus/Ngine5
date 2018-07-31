@@ -498,8 +498,6 @@ namespace en
  //assert( source.size >= srcOffset + srcAlignment.surfaceSize(region.width, region.height) );
    assert( srcRowPitch % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT == 0 );
 
-   if (srcAlignment)
-
    // TODO: Check if graphics or compute!
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 

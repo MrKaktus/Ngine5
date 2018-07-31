@@ -187,10 +187,10 @@ namespace en
       uint32 size;            // Size of data transfer (max transfer size is 4GB)
       uint32            : 32; // Padding
       
-      uint32            resourceId : 20; // Resource ID (separate per type)
-      uint32                       : 9;  // Reserved
-      TransferDirection direction  : 1;  // 0 - Upload to GPU, 1 - Download to System Memory
-      TransferType      type       : 2;  // 0 - Buffer, 1 - Surface, 2 - Volume
+      uint32 resourceId : 20; // Resource ID (separate per type)
+      uint32            : 9;  // Reserved
+      uint32 direction  : 1;  // TransferDirection - 0 - Upload to GPU, 1 - Download to System Memory
+      uint32 type       : 2;  // TransferType      - 0 - Buffer, 1 - Surface, 2 - Volume
       };
    
    static_assert(sizeof(TransferBuffer) == 16, "en::TransferBuffer size mismatch!");
@@ -204,10 +204,10 @@ namespace en
       uint32            : 14; // Padding
       uint32 plane      : 1;  // 0 - Default plane (Color or Depth), 1 - Secondary plane (Stencil from Depth-Stencil texture)
 
-      uint32            resourceId : 20; // Resource ID (separate per type)
-      uint32                       : 9;  // Reserved
-      TransferDirection direction  : 1;  // 0 - Upload to GPU, 1 - Download to System Memory
-      TransferType      type       : 2;  // 0 - Buffer, 1 - Surface, 2 - Volume
+      uint32 resourceId : 20; // Resource ID (separate per type)
+      uint32            : 9;  // Reserved
+      uint32 direction  : 1;  // TransferDirection - 0 - Upload to GPU, 1 - Download to System Memory
+      uint32 type       : 2;  // TransferType      - 0 - Buffer, 1 - Surface, 2 - Volume
       };
 
    static_assert(sizeof(TransferSurface) == 16, "en::TransferSurface size mismatch!");
@@ -224,10 +224,10 @@ namespace en
       uint32 mipmap2    : 1;  // High MipMap [16..31] - up to engine limit (2147483648^3)
       uint32 plane      : 1;  // 0 - Default plane (Color or Depth), 1 - Secondary plane (Stencil from Depth-Stencil texture)
  
-      uint32            resourceId : 20; // Resource ID (separate per type)
-      uint32                       : 9;  // Reserved
-      TransferDirection direction  : 1;  // 0 - Upload to GPU, 1 - Download to System Memory
-      TransferType      type       : 2;  // 0 - Buffer, 1 - Surface, 2 - Volume
+      uint32 resourceId : 20; // Resource ID (separate per type)
+      uint32            : 9;  // Reserved
+      uint32 direction  : 1;  // TransferDirection - 0 - Upload to GPU, 1 - Download to System Memory
+      uint32 type       : 2;  // TransferType      - 0 - Buffer, 1 - Surface, 2 - Volume
       };
 
    static_assert(sizeof(TransferVolume) == 16, "en::TransferVolume size mismatch!");
@@ -248,10 +248,10 @@ namespace en
             uint64            : 64; // Padding (specialized part)
             uint32            : 32; //
             
-            uint32            resourceId : 20; // Resource ID (separate per type)
-            uint32                       : 9;  // Reserved
-            TransferDirection direction  : 1;  // 0 - Upload to GPU, 1 - Download to System Memory
-            TransferType      type       : 2;  // 0 - Buffer, 1 - Surface, 2 - Volume
+            uint32 resourceId : 20; // Resource ID (separate per type)
+            uint32            : 9;  // Reserved
+            uint32 direction  : 1;  // TransferDirection - 0 - Upload to GPU, 1 - Download to System Memory
+            uint32 type       : 2;  // TransferType      - 0 - Buffer, 1 - Surface, 2 - Volume
             };
          };
          
@@ -564,7 +564,8 @@ namespace en
       bool initBufferHeap(BufferCache& bufferCache);
       bool initTextureHeap(TextureCache& textureCache);
       void evictBuffer(BufferAllocation& desc, BufferAllocationInternal& descInternal);
-   
+      void evictTexture(TextureAllocation& desc, TextureAllocationInternal& descInternal);
+
       // Helper methods encoding surface/volume transfers
       bool transferSurface(const TextureAllocation& desc,
                            const uint32 resourceId,
@@ -610,7 +611,7 @@ namespace en
       
       bool allocateMemory(TextureAllocation*& desc,
                           const gpu::TextureState& state);
-      void deallocateMemory(const TextureAllocation& desc);
+      void deallocateMemory(TextureAllocation& desc);
       
       // Residency:
 
@@ -645,7 +646,7 @@ namespace en
 
 
       // Evict given texture from GPU dedicated memory
-      bool evict(const TextureAllocation& desc);
+      bool evict(TextureAllocation& desc);
 
       // Evict given surface from GPU dedicated memory
       bool evictSurface(const TextureAllocation& desc,

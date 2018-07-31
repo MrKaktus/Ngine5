@@ -69,8 +69,11 @@ namespace en
    
    void winThread::name(std::string threadName)
    {
-   // Available since Windows 10 Creators Update
-   HRESULT result = SetThreadDescription(handle, stringToWchar(threadName.c_str(), threadName.length()));
+   // Available since Windows 10 Creators Update 
+   // Requires latest Windows SDK, which in turn requires Visual Studio 2017
+
+   // TODO: FIXME! Uncomment once engine migrated to VS2017!
+   // HRESULT result = SetThreadDescription(handle, stringToWchar(threadName.c_str(), threadName.length()));
    }
    
    void winThread::sleep(void)

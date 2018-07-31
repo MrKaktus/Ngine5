@@ -18,11 +18,11 @@
 namespace en
 {
    // Allocated memory is always aligned to 4KB
-   void* allocate(const uint64 size, const uint64 maximumSize);
+   void* virtualAllocate(const uint64 size, const uint64 maximumSize);
  
    // Increases allocation size without copying data, or changing location
-   bool reallocate(void* address, const uint64 currentSize, const uint64 newSize);
+   bool virtualReallocate(void* address, const uint64 currentSize, const uint64 newSize);
 
-   void deallocate(void* address, const uint64 maximumSize);
+   void virtualDeallocate(void* address, const uint64 maximumSize);
 }
 #endif

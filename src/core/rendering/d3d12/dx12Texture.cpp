@@ -392,7 +392,7 @@ namespace en
    return view;
    }
    
-   D3D12_RESOURCE_DESC createTextureDescriptor(const TextureState& state)
+   D3D12_RESOURCE_DESC createTextureDescriptor(const Direct3D12Device* gpu, const TextureState& state)
    {
    // Texture descriptor
    D3D12_RESOURCE_DESC desc;
@@ -459,7 +459,7 @@ namespace en
    assert( _usage == MemoryUsage::Tiled ||
            _usage == MemoryUsage::Renderable );
 
-   D3D12_RESOURCE_DESC desc = createTextureDescriptor(state);
+   D3D12_RESOURCE_DESC desc = createTextureDescriptor(gpu.get(), state);
 
    bool enableOptimizedClear = false;
    if (state.usage == TextureUsage::RenderTargetRead ||
@@ -568,7 +568,7 @@ namespace en
    assert( state.layers > layer );
    assert( powerOfTwo(state.samples) );
    
-   D3D12_RESOURCE_DESC desc = createTextureDescriptor(state);
+   D3D12_RESOURCE_DESC desc = createTextureDescriptor(this, state);
 
    // Based on amount of mip-maps and layers, calculates
    // index of subresource to modify.
@@ -597,15 +597,15 @@ namespace en
    uint32 power = 0;
       
    ImageMemoryAlignment result;
-   result.sampleSize            = texelBlockSize
+   result.sampleSize            = TextureCompressionInfo[underlyingType(state.format)].blockSize;
    
-   whichPowerOfTwo(state.samples, power);
+   whichPowerOfTwo(static_cast<uint32>(state.samples), power);
    result.samplesCountPower     = power;
    result.sampleAlignmentPower  = 0; // Tightly packed sample after sample
    result.texelAlignmentPower   = 0; // Tightly packed texel after texel (block after block)
     
    // layout.Footprint.RowPitch is multiple of D3D12_TEXTURE_DATA_PITCH_ALIGNMENT (256)
-   whichPowerOfTwo(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT, power);
+   whichPowerOfTwo(static_cast<uint32>(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT), power);
    result.rowAlignmentPower     = power;
    result.surfaceAlignmentPower = power;
 

@@ -231,12 +231,12 @@ namespace en
 
    // Determine transfer data size
    uint32 transferSize = transfer.buffer.size;
-   if (transfer.type == TransferType::Surface)
+   if (transfer.type == underlyingType(TransferType::Surface))
       {
       transferSize = transfer.surface.region.count.x *
                      transfer.surface.region.count.y * 64 * KB;
       }
-   if (transfer.type == TransferType::Volume)
+   if (transfer.type == underlyingType(TransferType::Volume))
       {
       transferSize = transfer.volume.width  *
                      transfer.volume.height *
@@ -248,7 +248,7 @@ namespace en
    // TODO: Handle asynchronous bi-directional transfers
    
    // Buffer transfer
-   if (transfer.type == TransferType::Buffer)
+   if (transfer.type == underlyingType(TransferType::Buffer))
       {
       BufferAllocation*         desc         = streamer->bufferResourcesPool->entry(transfer.resourceId);
       BufferAllocationInternal* descInternal = streamer->bufferResourcesInternalPool->entry(transfer.resourceId);
@@ -293,7 +293,7 @@ namespace en
    //  command pool’s queue family, as described in VkQueueFamilyProperties"
    
    // Texture surface
-   if (transfer.type == TransferType::Surface)
+   if (transfer.type == underlyingType(TransferType::Surface))
       {
       TextureAllocation*         desc         = streamer->textureResourcesPool->entry(transfer.resourceId);
       TextureAllocationInternal* descInternal = streamer->textureResourcesInternalPool->entry(transfer.resourceId);
@@ -464,7 +464,7 @@ namespace en
          
          
    // Volume transfer
-   if (transfer.type == TransferType::Volume)
+   if (transfer.type == underlyingType(TransferType::Volume))
       {
       TextureAllocation*         desc         = streamer->textureResourcesPool->entry(transfer.resourceId);
       TextureAllocationInternal* descInternal = streamer->textureResourcesInternalPool->entry(transfer.resourceId);
@@ -786,8 +786,8 @@ namespace en
    buffer.offset     = 0;
    buffer.size       = 0;
    buffer.resourceId = 0;
-   buffer.direction  = TransferDirection::DeviceUpload;
-   buffer.type       = TransferType::Buffer;
+   buffer.direction  = underlyingType(TransferDirection::DeviceUpload);
+   buffer.type       = underlyingType(TransferType::Buffer);
    }
    
    
@@ -1117,7 +1117,7 @@ namespace en
       TransferResource transfer;
       if (streamer->transferQueue->pop(&transfer))
          {
-         if (transfer.direction == TransferDirection::DeviceUpload)
+         if (transfer.direction == underlyingType(TransferDirection::DeviceUpload))
             uploadResource(streamer, transfer);
             
          // TODO: Parallel download
@@ -1144,7 +1144,8 @@ namespace en
       maxBufferResidentSize(BufferResidentMemorySize*residentAllocationSize),
       maxTextureResidentSize(TextureResidentMemorySize*residentAllocationSize),
       downloadBuffer(nullptr),
-      downloadAdress(0) 
+      downloadAdress(0),
+      terminating(false)
    {
    // Sanity check of default settings (in case they will be tweaked in future)
    static_assert( powerOfTwo(DownloadAllocationSize) &&
@@ -1485,8 +1486,6 @@ namespace en
    return allocated;
    }
    
-
-   // TODO: Texture variant needed!
    void Streamer::evictBuffer(BufferAllocation& desc, BufferAllocationInternal& descInternal)
    {
    // TODO: Make it thread safe
@@ -1607,8 +1606,8 @@ namespace en
 
    // Transfer whole buffer to VRAM
    TransferResource transfer;
-   transfer.type          = TransferType::Buffer;
-   transfer.direction     = TransferDirection::DeviceUpload;
+   transfer.type          = underlyingType(TransferType::Buffer);
+   transfer.direction     = underlyingType(TransferDirection::DeviceUpload);
    transfer.resourceId    = resourceId;
    transfer.buffer.offset = 0;
    transfer.buffer.size   = desc.size;
@@ -2014,6 +2013,29 @@ namespace en
    return allocated;
    }
    
+   void Streamer::deallocateMemory(TextureAllocation& desc)
+   {
+   uint32 resourceId = 0;
+   if (!textureResourcesPool->index(desc, resourceId))
+      return;
+   
+   TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
+   assert( descInternal );
+   
+   // Evict from dedicated memory if resident
+   if (desc.resident)
+      evictTexture(desc, *descInternal);
+   
+   BufferCache* sysHeap = cpuHeap->entry(descInternal->sysHeapIndex);
+   sysHeap->allocator->deallocate(descInternal->sysOffset, desc.size);
+   
+   availableSystemMemory += desc.size;
+   
+   // Release resource descriptor
+   textureResourcesPool->deallocate(desc);
+   textureResourcesInternalPool->deallocate(*descInternal);
+   }
+
    // Returns pointer to system memory backing this texture resource specific surface
    void* Streamer::systemMemory(const TextureAllocation& desc,
                                 const uint8 mipmap,
@@ -2039,6 +2061,7 @@ namespace en
    return reinterpret_cast<void*>((uint8*)(descInternal->pointer) + offset);
    }
    
+
    
    
    
@@ -2291,7 +2314,109 @@ namespace en
    descInternal->locked = lock;
    return true;
    }
+
+   bool Streamer::makeResidentSurface(const TextureAllocation& desc,
+                                      const uint8 mipmap,
+                                      const uint16 layer,
+                                      const uint8 plane)
+   {
+   // TODO: Finish, consider what level of interface is really needed.
+   assert( 0 );
+   return false;
+   }
+
+   bool Streamer::makeResidentVolume(const TextureAllocation& desc,
+                                     const uint8 mipmap)
+   {
+   // TODO: Finish, consider what level of interface is really needed.
+   assert( 0 );
+   return false;
+   }
+
+   bool Streamer::makeResidentRegion2D(const TextureAllocation& desc,
+                                       const tileRegion2D region,
+                                       const uint8 mipmap,
+                                       const uint16 layer)
+   {
+   // TODO: Finish, consider what level of interface is really needed.
+   assert( 0 );
+   return false;
+   }
+
+   bool Streamer::makeResidentRegion3D(const TextureAllocation& desc,
+                                       const tileRegion3D region,
+                                       const uint8 mipmap)
+   {
+   // TODO: Finish, consider what level of interface is really needed.
+   assert( 0 );
+   return false;
+   }
+
+   void Streamer::evictTexture(TextureAllocation& desc, TextureAllocationInternal& descInternal)
+   {
+   // TODO: Make it thread safe
+   assert( !descInternal.locked );
    
+   desc.gpuTexture = nullptr;
+   desc.size       = 0;
+   desc.resident   = false;
+   
+   availableTextureMemory += desc.size;
+   }
+
+   bool Streamer::evict(TextureAllocation& desc)
+   {
+   uint32 resourceId = 0;
+   if (!textureResourcesPool->index(desc, resourceId))
+      return false;
+   
+   TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
+   assert( descInternal );
+   
+   // Evict from dedicated memory if resident
+   if (desc.resident)
+      evictTexture(desc, *descInternal);
+
+   return true;
+   }
+
+   bool Streamer::evictSurface(const TextureAllocation& desc,
+                               const uint8 mipmap,
+                               const uint16 layer,
+                               const uint8 plane)
+   {
+   // TODO: Finish, consider what level of interface is really needed.
+   assert( 0 );
+   return false;
+   }
+
+   bool Streamer::evictVolume(const TextureAllocation& desc,
+                              const uint8 mipmap)
+   {
+   // TODO: Finish, consider what level of interface is really needed.
+   assert( 0 );
+   return false;
+   }
+
+   bool Streamer::evictRegion2D(const TextureAllocation& desc,
+                                const tileRegion2D region,
+                                const uint8 mipmap,
+                                const uint16 layer)
+   {
+   // TODO: Finish, consider what level of interface is really needed.
+   assert( 0 );
+   return false;
+   }
+
+   bool Streamer::evictRegion3D(const TextureAllocation& desc,
+                                const tileRegion3D region,
+                                const uint8 mipmap)
+   {
+   // TODO: Finish, consider what level of interface is really needed.
+   assert( 0 );
+   return false;
+   }
+
    bool Streamer::transferSurface(const TextureAllocation& desc,
                                   const uint32 resourceId,
                                   const uint8 mipmap,
@@ -2310,8 +2435,8 @@ namespace en
 
    TransferResource transfer;
    transfer.resourceId                  = resourceId;
-   transfer.direction                   = direction;
-   transfer.type                        = TransferType::Surface;
+   transfer.direction                   = underlyingType(direction);
+   transfer.type                        = underlyingType(TransferType::Surface);
    transfer.surface.mipmap              = mipmap;
    transfer.surface.region.origin.x     = 0;
    transfer.surface.region.origin.y     = 0;
@@ -2342,8 +2467,8 @@ namespace en
 
    TransferResource transfer;
    transfer.resourceId                  = resourceId;
-   transfer.direction                   = direction;
-   transfer.type                        = TransferType::Surface;
+   transfer.direction                   = underlyingType(direction);
+   transfer.type                        = underlyingType(TransferType::Surface);
    transfer.surface.mipmap              = mipmap;
    transfer.surface.region.origin.x     = region.origin.x;
    transfer.surface.region.origin.y     = region.origin.y;
@@ -2375,8 +2500,8 @@ namespace en
    // Transfer whole texture to VRAM
    TransferResource transfer;
    transfer.resourceId     = resourceId;
-   transfer.direction      = direction;
-   transfer.type           = TransferType::Volume;
+   transfer.direction      = underlyingType(direction);
+   transfer.type           = underlyingType(TransferType::Volume);
    transfer.volume.mipmap  = mipmap;
    transfer.volume.mipmap2 = (mipmap >> 4) & 1; // Highest bit
    transfer.volume.plane   = 0;
@@ -2407,8 +2532,8 @@ namespace en
    // Transfer whole texture to VRAM
    TransferResource transfer;
    transfer.resourceId     = resourceId;
-   transfer.direction      = direction;
-   transfer.type           = TransferType::Volume;
+   transfer.direction      = underlyingType(direction);
+   transfer.type           = underlyingType(TransferType::Volume);
    transfer.volume.mipmap  = mipmap;
    transfer.volume.mipmap2 = (mipmap >> 4) & 1; // Highest bit
    transfer.volume.plane   = 0;

@@ -504,6 +504,19 @@ namespace en
    }
 */
 
+
+
+
+
+CommandState::CommandState(gpu::CommandBuffer& _command) :
+   command(_command),
+   inputHash(0),
+   indexHash(0),
+   indexShift(0),
+   gpuIndex(0)
+{
+}
+
    // bufferMask - bitmask identifying which buffers to bind
    // TODO: Should this be part of Mesh or part of Renderer?
    //       Most of Mesh internals are used here, but some Renderer state as well.

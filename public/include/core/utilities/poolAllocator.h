@@ -90,7 +90,7 @@ namespace en
    {   
    assert( powerOfTwo(alignment) );
 
-   memory = reinterpret_cast<T*>(en::allocate(size, maxSize));
+   memory = reinterpret_cast<T*>(virtualAllocate(size, maxSize));
    if (memory)
       {
       // Due to allocating multiple of 4KB blocks, there may be some extra entries
@@ -109,7 +109,7 @@ namespace en
    template<typename T>
    PoolAllocator<T>::~PoolAllocator()
    {
-   en::deallocate((void*)memory, maxSize);
+   virtualDeallocate((void*)memory, maxSize);
    }
 
    template<typename T>
@@ -126,7 +126,7 @@ namespace en
    uint32 actualCapacity = static_cast<uint32>(size / entrySize);
    uint32 newCapacity = static_cast<uint32>(newSize / entrySize);
 
-   if (en::reallocate((void*)memory, size, newSize))
+   if (virtualReallocate((void*)memory, size, newSize))
       {
       head = (T*)((uint8*)memory + actualCapacity * entrySize);
       for(uint32 i=actualCapacity; i<(newCapacity - actualCapacity - 1); ++i)

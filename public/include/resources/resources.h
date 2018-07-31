@@ -371,7 +371,7 @@ namespace en
 // External GPU's can never be set as primary one, as they can be detached at any
 // moment in time.
 
-uint8 gpuMask;   // Bitmask representing to which GPU resource streamer this Model is attached.
+// uint8 gpuMask;   // Bitmask representing to which GPU resource streamer this Model is attached.
 
 // Mesh is always tied to one GPU.
 // CpuMesh 1...N GpuMesh (GpuStreamer)
@@ -410,14 +410,7 @@ struct CommandState
    CommandState(gpu::CommandBuffer& command);
    };
 
-CommandState::CommandState(gpu::CommandBuffer& _command) :
-   command(_command),
-   inputHash(0),
-   indexHash(0),
-   indexShift(0),
-   gpuIndex(0)
-{
-}
+
 
 
 

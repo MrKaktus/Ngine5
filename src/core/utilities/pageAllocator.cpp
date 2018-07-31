@@ -27,7 +27,7 @@
 
 namespace en
 {
-   void* allocate(const uint64 size, const uint64 maximumSize)
+   void* virtualAllocate(const uint64 size, const uint64 maximumSize)
    {
    // Size and maximum size needs to be explicitly multiple of 4KB
    assert( size % 4096 == 0 );
@@ -76,10 +76,10 @@ namespace en
 
 #elif defined(EN_PLATFORM_WINDOWS)
    // First reserve max size, to which given allocation can grow
-   temp = VirtualAlloc(nullptr,      // Reserve anywhere in adress space
-                       maximumSize,  // Max size to which this allocation can grow
-                       MEM_RESERVE,  // Reserve adress space without allocating memory
-                       0);           // No page properties during reserve
+   temp = VirtualAlloc(nullptr,          // Reserve anywhere in adress space
+                       maximumSize,      // Max size to which this allocation can grow
+                       MEM_RESERVE,      // Reserve adress space without allocating memory
+                       PAGE_READWRITE);           
 
    // Once adress space for max possible size is reserved, allocate initial size
    if (temp)
@@ -87,7 +87,7 @@ namespace en
       if (!VirtualAlloc(temp,            // Allocate pages at start of reserved space
                         size,            // Initial size to allocate
                         MEM_COMMIT,      // Pre-allocate memory (will truly allocate and clear on first access)
-                        PAGE_READWRITE)) // No page properties during reserve
+                        PAGE_READWRITE)) 
          {
          // Couldn't alllocate physical pages, reverting reservation and faulting
          VirtualFree(temp, 0, MEM_RELEASE);
@@ -101,7 +101,7 @@ namespace en
    return temp;
    }
 
-   bool reallocate(void* address, const uint64 currentSize, const uint64 newSize)
+   bool virtualReallocate(void* address, const uint64 currentSize, const uint64 newSize)
    {
    // Current and new size needs to be explicitly multiple of 4KB
    assert( currentSize % 4096 == 0 );
@@ -131,7 +131,7 @@ namespace en
    return true;
    }
 
-   void deallocate(void* address, const uint64 maximumSize)
+   void virtualDeallocate(void* address, const uint64 maximumSize)
    {
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
    kern_return_t error = mach_vm_deallocate(mach_task_self(),

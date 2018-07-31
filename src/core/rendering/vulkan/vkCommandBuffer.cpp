@@ -367,7 +367,7 @@ namespace en
    void CommandBufferVK::copyRegion2D(
       const Buffer&  _source,
       const uint64   srcOffset,
-      const LinearAlignment layout,
+      const uint32   srcRowPitch,
       const Texture& texture,
       const uint32   mipmap,
       const uint32   layer,
@@ -384,7 +384,7 @@ namespace en
    assert( layer < destination.state.layers );
    assert( origin.x + region.width  < destination.width(mipmap) );
    assert( origin.y + region.height < destination.height(mipmap) );
-   assert( source.size >= srcOffset + layout.size );
+   //assert( source.size >= srcOffset + layout.size );
 
    VkImageSubresourceLayers layersInfo;
    layersInfo.aspectMask     = TranslateImageAspect(destination.state.format);
@@ -406,10 +406,10 @@ namespace en
    
    VkBufferImageCopy regionInfo;
    regionInfo.bufferOffset      = srcOffset;
-   regionInfo.bufferRowLength   = layout.rowSize;
-   regionInfo.bufferImageHeight = layout.size / layout.rowSize;
+   regionInfo.bufferRowLength   = srcRowPitch;
+   regionInfo.bufferImageHeight = 0;               // Tightly packed, see spec: 18.4. Copying Data Between Buffers and Images
    regionInfo.imageSubresource  = layersInfo;
-   regionInfo.imageOffset       = { origin.x, origin.y, 0u };
+   regionInfo.imageOffset       = { static_cast<sint32>(origin.x), static_cast<sint32>(origin.y), 0 };
    regionInfo.imageExtent       = { region.width, region.height, 1 };
    
    ValidateNoRet( gpu, vkCmdCopyBufferToImage(handle,

@@ -652,25 +652,32 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   LinearAlignment VulkanDevice::textureLinearAlignment(const TextureState& state,
-                                                        const uint32 mipmap, 
-                                                        const uint32 layer) const
+   ImageMemoryAlignment VulkanDevice::textureMemoryAlignment(const TextureState& state,
+                                                             const uint32 mipmap, 
+                                                             const uint32 layer) const
    {
    assert( state.mipmaps > mipmap );
    assert( state.layers > layer );
+   assert( powerOfTwo(state.samples) );
 
    // Looks like Vulkan has no restrictions regarding rows padding or inital alignment like
    // Direct3D12 does, or D3D12 just enforces them to ensure most optimal data transfer 
    // while Vulkan can handle unoptimal ones.
-   LinearAlignment result;
-   result.size      = textureSurfaceSize(state, mipmap);
-   result.alignment = 256;
-   result.rowSize   = textureRowSize(state, mipmap);
-   result.rowsCount = textureRowsCount(state, mipmap);
+
+   // Address alignment is always power of two.
+   // Thus only that power can be stored to save memory space.
+   uint32 power = 0;
+      
+   ImageMemoryAlignment result;
+   result.sampleSize            = TextureCompressionInfo[underlyingType(state.format)].blockSize;
    
-   // It is assumed that size is already multiple of data alignment offset
-   assert( result.size % result.alignment == 0 );
-   
+   whichPowerOfTwo(static_cast<uint32>(state.samples), power);
+   result.samplesCountPower     = power;
+   result.sampleAlignmentPower  = 0; // Tightly packed sample after sample
+   result.texelAlignmentPower   = 0; // Tightly packed texel after texel (block after block)
+   result.rowAlignmentPower     = 8; // 256 bytes
+   result.surfaceAlignmentPower = 8; // 256 bytes
+
    return result;
    }
 

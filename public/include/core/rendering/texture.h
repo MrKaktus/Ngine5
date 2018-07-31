@@ -294,24 +294,24 @@ namespace en
       void texelAlignment(const uint32 alignment);
       void rowAlignment(const uint32 alignment);
       void surfaceAlignment(const uint32 alignment);
-      
-      forceinline uint32 samplesCount(void)     { return (1 << samplesCountPower); }
-      forceinline uint32 sampleAlignment(void)  { return (1 << sampleAlignmentPower); }
-      forceinline uint32 samplePitch(void)      { return roundUp(sampleSize, sampleAlignment()); }
-      forceinline uint32 texelSize(void)        { return samplesCount() * samplePitch(); }
-      forceinline uint32 texelAlignment(void)   { return (1 << texelAlignmentPower); }
-      forceinline uint32 texelPitch(void)       { return roundUp(texelSize(), texelAlignment()); }
+       
+      forceinline uint32 samplesCount(void) const    { return (1 << samplesCountPower); }
+      forceinline uint32 sampleAlignment(void) const { return (1 << sampleAlignmentPower); }
+      forceinline uint32 samplePitch(void) const     { return roundUp(sampleSize, sampleAlignment()); }
+      forceinline uint32 texelSize(void) const       { return samplesCount() * samplePitch(); }
+      forceinline uint32 texelAlignment(void) const  { return (1 << texelAlignmentPower); }
+      forceinline uint32 texelPitch(void) const      { return roundUp(texelSize(), texelAlignment()); }
       
       // Application needs to provide width and height that is depending on
       // layout, image is stored in. In terms of block compressed textures,
       // width and height should be provided in texel blocks already.
-      forceinline uint32 rowSize(const uint32 width)  { return texelPitch() * width; }
-      forceinline uint32 rowAlignment(void)           { return (1 << rowAlignmentPower); }
-      forceinline uint32 rowPitch(const uint32 width) { return roundUp(rowSize(width), rowAlignment()); }
+      forceinline uint32 rowSize(const uint32 width) const  { return texelPitch() * width; }
+      forceinline uint32 rowAlignment(void) const           { return (1 << rowAlignmentPower); }
+      forceinline uint32 rowPitch(const uint32 width) const { return roundUp(rowSize(width), rowAlignment()); }
       
-      forceinline uint32 surfaceSize(const uint32 width, const uint32 height)  { return rowPitch(width) * height; }
-      forceinline uint32 surfaceAlignment(void)                                { return (1 << surfaceAlignmentPower); };
-      forceinline uint32 surfacePitch(const uint32 width, const uint32 height) { return roundUp(surfaceSize(width, height), surfaceAlignment()); }
+      forceinline uint32 surfaceSize(const uint32 width, const uint32 height) const  { return rowPitch(width) * height; }
+      forceinline uint32 surfaceAlignment(void) const                                { return (1 << surfaceAlignmentPower); };
+      forceinline uint32 surfacePitch(const uint32 width, const uint32 height) const { return roundUp(surfaceSize(width, height), surfaceAlignment()); }
       };
       
    static_assert(sizeof(ImageMemoryAlignment) == 4, "ImageMemoryAlignment size mismatch!");

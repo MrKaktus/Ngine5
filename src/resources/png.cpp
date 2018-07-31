@@ -515,7 +515,13 @@ namespace en
       }
    }
 
-   bool load(const string& filename, uint8* const destination, const uint32 width, const uint32 height, const gpu::Format format, const LinearAlignment layout, const bool invertHorizontal)
+   bool load(const string& filename, 
+             uint8* const destination, 
+             const uint32 width, 
+             const uint32 height, 
+             const gpu::Format format, 
+             const gpu::ImageMemoryAlignment alignment, 
+             const bool invertHorizontal)
    {
    using namespace en::storage;
    using namespace en::gpu;
@@ -584,7 +590,7 @@ namespace en
    // Allocate buffer for content of decompressed IDAT chunks
    // Size of decompressed chunks may equal in worst case scenario to (Width x Height x BPP) + extra Height bytes.
    // Extra Height bytes comes from the fact that each line starts with extra Byte specifying filter type applied for that line.
-   uint64 inflateBufferSize = roundUp(settings.width * settings.height * gpu::texelSize(settings.format) + settings.height, PageSize);
+   uint64 inflateBufferSize = roundUp(alignment.surfaceSize(width, height) + settings.height, PageSize);
    uint8* inflated = allocate<uint8>(PageSize, inflateBufferSize);
 
    ColorSpaceInfo colorSpaceInfo;
@@ -748,8 +754,7 @@ namespace en
    // ### Decode applied filters
 
 
-   assert( reinterpret_cast<uint64>(destination) % layout.alignment == 0 );
-   assert( settings.height == layout.rowsCount );
+   assert( reinterpret_cast<uint64>(destination) % alignment.surfaceAlignment() == 0 );
 
    DecodeState decoder;
    decoder.startLine        = 0;
@@ -757,7 +762,7 @@ namespace en
    decoder.texelSize        = gpu::texelSize(settings.format);
    decoder.width            = settings.width;
    decoder.height           = settings.height;
-   decoder.linePadding      = layout.rowSize - settings.width * gpu::texelSize(settings.format);
+   decoder.linePadding      = alignment.rowPitch(width) - alignment.rowSize(width);
    decoder.input            = inflated;
    decoder.output           = destination;
    decoder.invertHorizontal = invertHorizontal;

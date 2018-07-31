@@ -67,7 +67,7 @@ namespace en
    {
    assert( powerOfTwo(alignment) );
 
-   memory = reinterpret_cast<uint8*>(en::allocate(size, size));
+   memory = reinterpret_cast<uint8*>(virtualAllocate(size, size));
    head   = memory;
    tail   = memory;
 
@@ -78,7 +78,7 @@ namespace en
    template<typename T>
    CircularQueue<T>::~CircularQueue()
    {
-   en::deallocate((void*)memory, size);
+   virtualDeallocate((void*)memory, size);
    }
 
    template<typename T>

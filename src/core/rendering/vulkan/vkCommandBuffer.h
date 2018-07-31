@@ -105,7 +105,7 @@ namespace en
       virtual void copyRegion2D(
          const Buffer&  source,
          const uint64   srcOffset,
-         const ImageMemoryAlignment srcAlignment,
+         const uint32   srcRowPitch,
          const Texture& texture,
          const uint32   mipmap,
          const uint32   layer, // Array layer, layer+face

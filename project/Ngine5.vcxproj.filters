@@ -582,6 +582,9 @@
     <ClCompile Include="..\src\core\parallel\psxThread.cpp">
       <Filter>Source Files\core\parallel</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\types\uint16v4.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
