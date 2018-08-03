@@ -493,8 +493,8 @@ namespace en
    assert( source.type() == BufferType::Transfer );
    assert( mipmap < destination.state.mipmaps );
    assert( layer < destination.state.layers );
-   assert( origin.x + region.width  < destination.width(mipmap) );
-   assert( origin.y + region.height < destination.height(mipmap) );
+   assert( origin.x + region.width  <= destination.width(mipmap) );
+   assert( origin.y + region.height <= destination.height(mipmap) );
  //assert( source.size >= srcOffset + srcAlignment.surfaceSize(region.width, region.height) );
    assert( srcRowPitch % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT == 0 );
 

@@ -261,9 +261,11 @@ namespace en
    
    // TODO: Finish
      
+   //NSProcessInfo* info = [NSProcessInfo processInfo];
+      
    // Memory
    support.videoMemorySize               = [device recommendedMaxWorkingSetSize];
-   support.systemMemorySize              = 0; // TODO!
+   support.systemMemorySize              = [[NSProcessInfo processInfo] physicalMemory]; // TODO!
 
    // Input Assembler
    support.maxInputLayoutBuffersCount    = 31;

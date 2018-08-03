@@ -382,8 +382,8 @@ namespace en
    assert( source.type() == BufferType::Transfer );
    assert( mipmap < destination.state.mipmaps );
    assert( layer < destination.state.layers );
-   assert( origin.x + region.width  < destination.width(mipmap) );
-   assert( origin.y + region.height < destination.height(mipmap) );
+   assert( origin.x + region.width  <= destination.width(mipmap) );
+   assert( origin.y + region.height <= destination.height(mipmap) );
    //assert( source.size >= srcOffset + layout.size );
 
    VkImageSubresourceLayers layersInfo;

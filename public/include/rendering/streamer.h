@@ -380,7 +380,15 @@ namespace en
       uint64 size     : 63;                // Max supported size of single GPU allocation
       uint64 resident : 1;                 // Set by Streamer when resource is resident in GPU dedicated memory
       };
-
+    
+   // TODO: Above struct should be Resource Manager / Streamer interface.
+   //       Correct way would be to hide it's properties behind inlined getters.
+   //       MipLayout / Alignments should be exposed as well.
+   //       Texture state is duplicated, as texture object can be evicted/destroyed and only RAM copy being available.
+   //
+   // Asset -> (placed in) -> TextureAllocation -> (streamed to) -> Texture
+    
+    
    static_assert(sizeof(TextureAllocation) == 40, "TextureAllocation size mismatch!");
    
    enum class SurfaceLayout : uint8
@@ -432,11 +440,12 @@ namespace en
    //
    // sourceBytesPerRow   - This specifies the stride in bytes between rows of the source buffer memory. The value must be a multiple of the destination texture's pixel size, in bytes. The value must be less than or equal to 32,767 multiplied by the destination texture’s pixel size.
    // sourceBytesPerImage - For 3D textures and 2D array textures, the stride in bytes between 2D images of the source buffer memory. The value must be a multiple of the destination texture's pixel size, in bytes.
+   //
    // Vulkan:
    //
    // VkBufferImageCopy
    // regionInfo.bufferRowLength   - 0 means tightly packed
-   // regionInfo.bufferImageHeight
+   // regionInfo.bufferImageHeight - 0 means tightly packed??
    
    
    // Sparse textures, being stored only partially in RAM (streamed from HDD or

@@ -39,12 +39,12 @@ namespace en
    deallocateObjectiveC(handle);
    }
 
-   bool OSXFile::read(const uint64 offset, const uint64 _size, void* buffer, uint64* readBytes)
+   bool OSXFile::read(const uint64 offset, const uint64 _size, volatile void* buffer, uint64* readBytes)
    {
    assert( handle );
    assert( offset + _size <= fileSize );
    
-   [handle getBytes:buffer range:NSMakeRange(offset, _size)];
+   [handle getBytes:(void*)buffer range:NSMakeRange(offset, _size)];
 
    return true;
    }
