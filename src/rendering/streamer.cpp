@@ -276,6 +276,8 @@ namespace en
       // Sleep until transfer is done
       command->waitUntilCompleted();
       
+      command = nullptr;
+      
       desc->resident = true;
       descInternal->uploading = false;
       }
@@ -1095,7 +1097,11 @@ namespace en
    // (uploads from CPU RAM to GPU dedicated memory, as well as data downloads).
    void* threadAsyncStreaming(Thread* thread)
    {
+   thread->name("Streamer");
+   
    Streamer* streamer = static_cast<Streamer*>(thread->state());
+   
+   TransferResource transfer;
    
    // Runs until receives signal from parent Streamer to terminate
    // (needs to be woken up first!)
@@ -1113,13 +1119,11 @@ namespace en
       //       is some metric of contribution already).
       
       // Pick 'resourceId' from queue of resources to make resident
-      
-      TransferResource transfer;
       if (streamer->transferQueue->pop(&transfer))
          {
          if (transfer.direction == underlyingType(TransferDirection::DeviceUpload))
             uploadResource(streamer, transfer);
-            
+
          // TODO: Parallel download
          }
       else // Go to sleep, until new resouces will need to be uploaded.
@@ -1267,8 +1271,9 @@ namespace en
    
    Streamer::~Streamer()
    {
-   // Notify streaming thread to terminate itself
+   // Notify streaming thread to terminate itself (make sure its not sleeping)
    terminating = true;
+   streamingThread->wakeUp();
    streamingThread->waitUntilCompleted();
    
    delete transferQueue;
@@ -2355,7 +2360,7 @@ namespace en
    void Streamer::evictTexture(TextureAllocation& desc, TextureAllocationInternal& descInternal)
    {
    // TODO: Make it thread safe
-   assert( !descInternal.locked );
+   // assert( !descInternal.locked );
    
    desc.gpuTexture = nullptr;
    desc.size       = 0;

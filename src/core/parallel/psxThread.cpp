@@ -21,6 +21,7 @@ namespace en
 
    psxThread::psxThread(ThreadFunction function, void* threadState) :
       handle(),
+      mutex(PTHREAD_MUTEX_INITIALIZER),
       localState(threadState),
       isSleeping(false),
       valid(false),
@@ -56,7 +57,18 @@ namespace en
    assert( handle == pthread_self() );
 
    isSleeping = true;
-   pause();   // TODO: Redo it in the future
+   
+   int result = pthread_cond_init(&cond, nullptr);
+   assert( result == 0 );
+   
+   // Sleep by waiting for signal
+   pthread_mutex_lock(&mutex);
+   result = pthread_cond_wait(&cond, &mutex);
+   assert( result == 0 );
+   pthread_mutex_unlock(&mutex);
+   
+   // Alternative implementation:
+   //pause();
    }
    
    void psxThread::wakeUp(void)
@@ -67,7 +79,12 @@ namespace en
       return;
 
    isSleeping = false;
-   pthread_kill(handle, SIGCONT); // TODO: Redo it in the future
+   
+   // Wake-up thread by sending signal
+   pthread_cond_signal(&cond);
+   
+   // Alternative implementation:
+   //pthread_kill(handle, SIGCONT);
    }
 
    bool psxThread::sleeping(void)
@@ -85,7 +102,8 @@ namespace en
    {
    assert( handle == pthread_self() );
 
-   pthread_exit(nullptr);
+   
+   //pthread_exit(nullptr);
    }
    
    void psxThread::waitUntilCompleted(void)

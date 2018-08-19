@@ -500,7 +500,9 @@ namespace en
 #if EN_SEPARATE_REGISTER_SPACES
    // For separate register spces:
    uint32 slot[4];
-   CompileTimeAssert( sizeof(slot) == ((underlyingType(ResourceType::Count) - 1) * sizeof(uint32)), Amount_of_ResourceTypes_is_not_matching )
+      
+   static_assert(sizeof(slot) == ((underlyingType(ResourceType::Count) - 1) * sizeof(uint32)), "Amount of ResourceTypes is not matching!");
+
    memset(&slot, 0, sizeof(slot));
 #else
    uint32 slot = 0;

@@ -15,6 +15,7 @@
 #define ENG_CORE_DEFINES
 
 // Compile-Time Assertion
+// ( deprecated, use static_assert instead )
 #define CompileTimeAssert(predicate, message) _impl_CASSERT_LINE(predicate,__LINE__,message)
 #define _impl_PASTE(a,b) a##b
 #define _impl_CASSERT_LINE(predicate, line, file) \
@@ -32,7 +33,7 @@
 #elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
    #define EN_PLATFORM_WINDOWS
 #else
-   CompileTimeAssert(false, unknown_platform)
+   static_assert(false, "Unknown target platform!");
 #endif
 
 // Determine target platform version

@@ -30,9 +30,10 @@ namespace en
       uint8* head;   // Points at first element to take from queue
       uint8* tail;   // Points at next slot tu push element
 
-      uint32 size;           // Current memory size in bytes (rounded up to multiple of 4KB)
       uint32 entrySize : 31; // Size of single entry, rounded up to multiple of alignment size
       uint32 full      : 1;  // Flag indicating that queue is full
+      uint32 size;           // Current memory size in bytes (rounded up to multiple of 4KB)
+
 
       public:
       // Alignment specifies each element starting address alignment, and needs
@@ -61,9 +62,10 @@ namespace en
       const uint32 alignment) :
          memory(nullptr),
          head(nullptr),
+         tail(nullptr),
          entrySize(static_cast<uint32>(roundUp(static_cast<uint64>(sizeof(T)), static_cast<uint64>(alignment)))),
          full(false),
-         size(roundUp(static_cast<uint32>(roundUp(static_cast<uint64>(sizeof(T)), static_cast<uint64>(alignment))) * capacity, 4096)) // entrySize is still uninitialized here (on MacOS)
+         size(roundUp(entrySize * capacity, 4096))
    {
    assert( powerOfTwo(alignment) );
 

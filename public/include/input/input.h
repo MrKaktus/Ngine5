@@ -139,15 +139,15 @@ namespace en
           KinectTrackingState  state;
           };
 
-   // Event is a 128 bit structure
-   // ( -fpermissive under GCC and QCC )
    aligned(1)
    struct Event
-          {
-          EventType type; // 32 bits
-          
-          Event(EventType type);
-          };
+      {
+      EventType type; // 32 bits
+      
+      Event(EventType type);
+      };
+
+   static_assert(sizeof(Event) == 4, "Event size mismatch!");
        
    struct KeyboardEvent : public Event
           {
@@ -204,8 +204,9 @@ namespace en
           };
       
    aligndefault
-   CompileTimeAssert(sizeof(Event) == 4, Event_struct_has_wrong_size);
-    
+
+  
+       
    // Event is a 128 bit structure
    // ( -fpermissive under GCC and QCC )
 //   aligned(1)
@@ -253,7 +254,7 @@ namespace en
 //
 //          };
 //   aligndefault
-//   CompileTimeAssert(sizeof(Event) == 16, Event_struct_has_wrong_size);
+//   static_assert(sizeof(Event) == 16, "Event size mismatch!");
 
        
        

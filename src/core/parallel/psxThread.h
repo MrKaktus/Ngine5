@@ -25,6 +25,8 @@ namespace en
       public:
       pthread_t handle;          // Thread handle
       pthread_attr_t attr;       // Thread state
+      pthread_cond_t cond;
+      pthread_mutex_t mutex; 
       void* localState;          // State passed on thread creation
       volatile bool isSleeping;  // Thread sleeps
       volatile bool valid;       // Thread is executing (may sleep)
@@ -45,4 +47,3 @@ namespace en
 #endif
 
 #endif
-

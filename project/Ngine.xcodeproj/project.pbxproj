@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		72C5156D21288786001898FC /* psxFiber.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 72C5156C21288786001898FC /* psxFiber.cpp */; };
+		72C5156F212887C9001898FC /* psxFiber.h in Headers */ = {isa = PBXBuildFile; fileRef = 72C5156E212887C9001898FC /* psxFiber.h */; };
+		72C5157121288854001898FC /* fiber.h in Headers */ = {isa = PBXBuildFile; fileRef = 72C5157021288854001898FC /* fiber.h */; };
+		72C5157321288991001898FC /* winFiber.h in Headers */ = {isa = PBXBuildFile; fileRef = 72C5157221288991001898FC /* winFiber.h */; };
+		72C5157521288A18001898FC /* winFiber.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 72C5157421288A18001898FC /* winFiber.cpp */; };
 		72DF4B6B1CF8EEFA00381906 /* mtlHeap.h in Headers */ = {isa = PBXBuildFile; fileRef = 72DF4B6A1CF8EEFA00381906 /* mtlHeap.h */; };
 		72DF4B6D1CF8FAAE00381906 /* mtlHeap.mm in Sources */ = {isa = PBXBuildFile; fileRef = 72DF4B6C1CF8FAAE00381906 /* mtlHeap.mm */; };
 		8508B68A1CF00A7E00454423 /* mtlShader.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8508B6891CF00A7E00454423 /* mtlShader.mm */; };
@@ -253,6 +258,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		72C5156C21288786001898FC /* psxFiber.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = psxFiber.cpp; path = parallel/psxFiber.cpp; sourceTree = "<group>"; };
+		72C5156E212887C9001898FC /* psxFiber.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = psxFiber.h; path = parallel/psxFiber.h; sourceTree = "<group>"; };
+		72C5157021288854001898FC /* fiber.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = fiber.h; path = parallel/fiber.h; sourceTree = "<group>"; };
+		72C5157221288991001898FC /* winFiber.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = winFiber.h; path = parallel/winFiber.h; sourceTree = "<group>"; };
+		72C5157421288A18001898FC /* winFiber.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = winFiber.cpp; path = parallel/winFiber.cpp; sourceTree = "<group>"; };
 		72DF4B6A1CF8EEFA00381906 /* mtlHeap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mtlHeap.h; sourceTree = "<group>"; };
 		72DF4B6C1CF8FAAE00381906 /* mtlHeap.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlHeap.mm; sourceTree = "<group>"; };
 		8508B6891CF00A7E00454423 /* mtlShader.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mtlShader.mm; sourceTree = "<group>"; };
@@ -588,8 +598,13 @@
 			children = (
 				8575178B2044DE5100FC0284 /* winThread.cpp */,
 				8575178C2044DE5100FC0284 /* winThread.h */,
+				72C5157421288A18001898FC /* winFiber.cpp */,
+				72C5157221288991001898FC /* winFiber.h */,
 				85512E5F204B44B60058D6E1 /* psxThread.cpp */,
 				8575178F2044EACB00FC0284 /* psxThread.h */,
+				72C5156C21288786001898FC /* psxFiber.cpp */,
+				72C5156E212887C9001898FC /* psxFiber.h */,
+				72C5157021288854001898FC /* fiber.h */,
 			);
 			name = parallel;
 			sourceTree = "<group>";
@@ -1157,11 +1172,13 @@
 				852B26391DBFAF96007D0C0F /* dx12Sampler.h in Headers */,
 				85917C8E1C408C9F0051382A /* platform in Headers */,
 				857517902044EACB00FC0284 /* psxThread.h in Headers */,
+				72C5157321288991001898FC /* winFiber.h in Headers */,
 				85756B831E108A0A00C8F3DB /* vkSynchronization.h in Headers */,
 				855217A31E00CB4B00FF942F /* dx12CommandBuffer.h in Headers */,
 				8570E3C51E48E1AD0003FF57 /* display.h in Headers */,
 				859A39C51CA7AB4C00CC4173 /* andInput.h in Headers */,
 				859A39BF1CA6537B00CC4173 /* osxInput.h in Headers */,
+				72C5156F212887C9001898FC /* psxFiber.h in Headers */,
 				858398BC1D0B120000431C85 /* mtlCommandBuffer.h in Headers */,
 				850C09D61DCB99D700908D56 /* dx12Buffer.h in Headers */,
 				85917C8F1C408C9F0051382A /* rendering in Headers */,
@@ -1191,6 +1208,7 @@
 				85C3A1071F5A430E00DA913D /* basicAllocator.h in Headers */,
 				85E9CB9D1D7485A80029A9BE /* vkHeap.h in Headers */,
 				85756B801E108A0A00C8F3DB /* vkLayout.h in Headers */,
+				72C5157121288854001898FC /* fiber.h in Headers */,
 				851A8EBB1CC5A4F600272F88 /* vkBuffer.h in Headers */,
 				85245FC91DB4404F004A903C /* mtlInternal.h in Headers */,
 				85FB829E1DD2A1C700A7BFA7 /* dx12RenderPass.h in Headers */,
@@ -1300,6 +1318,7 @@
 				85E9CBA11D7486AC0029A9BE /* heap.cpp in Sources */,
 				8570E3BF1E48DB1C0003FF57 /* mtlDisplay.mm in Sources */,
 				85756B821E108A0A00C8F3DB /* vkSynchronization.cpp in Sources */,
+				72C5156D21288786001898FC /* psxFiber.cpp in Sources */,
 				85756B911E108C0600C8F3DB /* mtlLayout.mm in Sources */,
 				85484E041DCD4C8A00BEDD54 /* dx12Multisampling.cpp in Sources */,
 				85B17C271CA4E9D800D88AF5 /* osxInput.mm in Sources */,
@@ -1336,6 +1355,7 @@
 				858398B81D0B0FDE00431C85 /* vkCommandBuffer.cpp in Sources */,
 				85917ADC1C3F66F60051382A /* float2.cpp in Sources */,
 				8575179520450ADA00FC0284 /* uint16v2.cpp in Sources */,
+				72C5157521288A18001898FC /* winFiber.cpp in Sources */,
 				85C3A1081F5A430E00DA913D /* basicAllocator.cpp in Sources */,
 				85917ADD1C3F66F60051382A /* float3.cpp in Sources */,
 				85917ADE1C3F66F60051382A /* float3x3.cpp in Sources */,

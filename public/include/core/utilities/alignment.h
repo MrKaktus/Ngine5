@@ -28,7 +28,7 @@
 #define aligndefault __pragma(pack())
 #elif defined(EN_COMPILER_CLANG) || defined(EN_COMPILER_GCC) || defined(EN_COMPILER_QCC)
 #define aligned(value) _Pragma("pack(push, value)")
-#define aligndefault _Pragma("pack()")
+#define aligndefault _Pragma("pack(pop)")
 #else
 // Concatenates preprocessor tokens A and B before stage of macro-expanding.
 #define concatenate_before(a,b) a ## b

@@ -26,6 +26,119 @@ using namespace en::log;
 #define EN_BUSY  true
 
 
+// worker.h
+// (engine internal, platform independent)
+
+#include "core/utilities/poolAllocator.h"
+#include "core/parallel/thread.h"
+#include "core/parallel/fiber.h"
+#include "threading/task.h"              // TODO: Move to parallel/task.h
+#include "utilities/circularQueue.h"
+
+namespace en
+{
+   using namespace en::threads;
+   
+   // Scheduler state managed per worker thread
+   struct WorkerState
+      {
+      CircularQueue<Task> readyTasks;    // Tasks ready to be executed
+      CircularQueue<Task> waitingTasks;  // Tasks that are waiting for other work to finish (or IO event)
+      
+      PoolAllocator<Fiber> fibers;
+         
+      WorkerState(const uint16 queueMaxSize);
+      };
+}
+
+// worker.cpp
+// (engine internal, platform independent)
+
+#define FibersPerThread    64
+#define MaxFibersPerThread 128
+
+namespace en
+{
+   WorkerState::WorkerState(const uint16 queueMaxSize) :
+      readyTasks(queueMaxSize, cacheline),
+      waitingTasks(queueMaxSize, cacheline),
+      fibers(FibersPerThread, MaxFibersPerThread)
+   {
+   }
+}
+
+
+
+// Scheduler.h
+// (public)
+
+namespace en
+{
+   class Scheduler
+      {
+      bool terminating; // Indicates if system is shutting down
+      
+      void loop(void);          // Scheduler main loop, picks tasks, executes them, switches between fibers, manages worker thread
+      void run(Task& task);
+      void wait(Task& task);
+      };
+   
+   void Scheduler::run(Task& task)
+   {
+   // -> push task on a queue of tasks to execute
+   // -> if queue was empty, wake up worker thread
+   }
+   
+   void Scheduler::wait(Task& task)
+   {
+   // -> save this fiber state, push it on queue of waiting ones
+   // -> return to main loop to pick next fiber
+   }
+
+   void Scheduler::loop(void)
+   {
+   // One instance executing on each thread (switching between fibers in pool)
+   
+   // Execute tasks until whole system is not terminating
+   while(!terminating)
+      {
+      //  -> pick task to execute
+      //     -> steal task from other thread
+      //        -> or sleep current thread if no tasks are available
+
+      };
+   //
+   
+   // push task on a queue of tasks to execute
+   }
+
+}
+
+// Fiber:
+
+
+
+
+// setcontext is one of a family of C library functions (the others being getcontext, makecontext and swapcontext
+// See also: https://rethinkdb.com/blog/making-coroutines-fast/
+
+
+
+
+// Main thread is I/O thread:
+// - handle system events
+// - execute commands restricted to main thread (delegated from other threads)
+//   So it's special worker thread that executes "special tasks"
+//   and does so only once per frame when it wakes up on incoming system events
+//   (or no later than every Nms - this may be triggered by registering redraw or timer event).
+//
+// - Create bunch of worker threads (whole pool in advance)
+// - Create bunch of fibers per thread (whole pool in advance)
+//   ( convert worker threads to fibers if needed)
+// - Assign worker threads to physical cores
+//
+
+
 
 
 namespace en
