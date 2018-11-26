@@ -90,7 +90,7 @@ If (!$projectName)
 # Determine project destination 
 If (!$projectsPath)
 {
-   $projectsPath=".\..\..\..\..\Projects\"
+   $projectsPath=".\..\..\..\Projects\"
 }
 else
 {
