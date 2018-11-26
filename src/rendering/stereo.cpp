@@ -18,7 +18,7 @@ using namespace en::system;
 
 namespace en
 {
-//   Stereoscopy::Stereoscopy(shared_ptr<HMD> hmd) : 
+//   Stereoscopy::Stereoscopy(std::shared_ptr<HMD> hmd) : 
 //      device(dynamic_pointer_cast<OculusX>(hmd)),
 //      program(nullptr),
 //      sampler(0),
@@ -58,11 +58,11 @@ namespace en
 //   model = device->distortionModel(settings);
 //
 //   // Check if shouldn't apply WA for Windows 8.1 
-//   string effectName("oculus3");
+//   std::string effectName("oculus3");
 //   if ( ( System.name() == Windows8   ||
 //          System.name() == Windows8_1 ) &&
 //        ( device->display() == Gpu.screen.display() ) )
-//      effectName = string("oculus3win8wa");
+//      effectName = std::string("oculus3win8wa");
 //
 //   Effect effect(eGLSL_1_10, effectName);
 //   program             = effect.program();
@@ -128,7 +128,7 @@ namespace en
 //   return settings[eye].viewport;
 //   }
 //   
-//   void Stereoscopy::source(shared_ptr<Texture> src)
+//   void Stereoscopy::source(std::shared_ptr<Texture> src)
 //   {
 //   assert( device ); 
 //

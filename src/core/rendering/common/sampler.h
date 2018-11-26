@@ -16,7 +16,7 @@
 #ifndef ENG_CORE_RENDERING_COMMON_SAMPLER
 #define ENG_CORE_RENDERING_COMMON_SAMPLER
 
-#include "core/utilities/alignment.h"
+#include "core/memory/alignment.h"
 #include "core/configuration.h"
 #include "core/rendering/sampler.h"
 

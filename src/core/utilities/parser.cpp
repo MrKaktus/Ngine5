@@ -39,7 +39,7 @@ bool Nparser::position(uint64 newOffset)
  return true;
 }
 
-bool Nparser::read(string& word, bool& eol)
+bool Nparser::read(std::string& word, bool& eol)
 {
  // Check if offset is in range
  if (offset >= size)
@@ -77,7 +77,7 @@ bool Nparser::read(string& word, bool& eol)
  return found;
 }
 
-bool Nparser::readLine(string& line)
+bool Nparser::readLine(std::string& line)
 {
 // Check if offset is in range
 if (offset >= size)

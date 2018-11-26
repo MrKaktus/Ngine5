@@ -38,7 +38,7 @@ namespace en
             const uint32 height,
             const uint32 seconds,
             const uint32 zoneID,          
-            const string placeholder ); 
+            const std::string placeholder ); 
          ~bbBanner();                        // Polymorphic deletes require a virtual base destructor
          };
 #endif
@@ -46,7 +46,7 @@ namespace en
    struct Context
           {
 #ifdef EN_PLATFORM_BLACKBERRY
-          vector< shared_ptr<Banner> > banners;
+          vector< std::shared_ptr<Banner> > banners;
 #endif
 
           Context();

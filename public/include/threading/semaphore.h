@@ -6,7 +6,7 @@
  Visibility  : Full version only.
  Requirements: none
  Description : Supports programmer with platform independent
-               implementation of mutex threading primitive.
+               implementation of semaphore primitive.
 
 */
 
@@ -15,26 +15,23 @@
 
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/alignment.h"
+#include "parallel/sharedAtomic.h"
+
 #include "core/threading/atomics.h"
+#include "core/utilities/NonCopyable.h"
 
 namespace en
 {
-   // In the past it was aligned to cacheline size (64bytes) making it extremly
-   // expensive in terms of memory usage. It was supposed to prevent false 
-   // sharing case, where two mutexes modified by two threads share cache line
-   // but that should be handled by CPU cache synchronization in fact as atomic
-   // operations are used on lock.
-   class Semaphore
+   // TODO: See: https://stackoverflow.com/questions/4792449/c0x-has-no-semaphores-how-to-synchronize-threads
+   //
+   class cachealign Semaphore : private SharedAtomic, NonCopyable
       {
-      private:
-      volatile uint32 value;
-      
       public:
-      forceinline Semaphore(const uint32 max) : 
-         value(max) 
-      {
-      };
+      forceinline Semaphore(const uint32 max) : value(max) {}
+
+/*
+
+TODO: Implement using std::atomics
 
       forceinline wait(void) 
       {
@@ -50,7 +47,7 @@ else
 forceinline bool CompareAndSwap(&value, value--, uint32 cmp);
 forceinline bool CompareAndSwap(volatile uint64* dst, uint64 src, uint64 cmp);
 
-
+*/
 
       };
       
@@ -60,6 +57,8 @@ forceinline bool CompareAndSwap(volatile uint64* dst, uint64 src, uint64 cmp);
 
       };
    
+   static_assert(sizeof(Semaphore) == 64, "en::Semaphore size mismatch!");
+
 #include "threading/mutex.inl"
 }
 

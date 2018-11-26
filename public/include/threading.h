@@ -20,7 +20,7 @@
 
 #include "core/threading/atomics.h"
 #include "threading/Ntls.h"
-#include "threading/task.h"
+//#include "threading/task.h"
 
 // Describes range and granularity of data 
 // in some array that will be processed in
@@ -66,15 +66,5 @@ forceinline NRange::NRange(uint32 _start, uint32 _end, uint32 _granularity) :
 {
 }
 
-// Template for simple task 
-#define task_declaration(x) \
-class x : public NTask      \
-      {                     \
-      public:               \
-      void work(void);      \
-      };                    
-
-#define task_definition(x)  \
-void x::work(void)        
 
 #endif

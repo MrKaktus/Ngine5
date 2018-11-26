@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_COMMAND_BUFFER
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -57,7 +56,7 @@ namespace en
    // Try to limit amount of Command Buffers to 15-30 per frame, and submit
    // them in batches, to limit submissions to ~5 per queue per frame (engine
    // currently is not supporting CommandBuffer batch submissions).
-   class CommandBuffer : public enable_shared_from_this<CommandBuffer>
+   class CommandBuffer : public std::enable_shared_from_this<CommandBuffer>
       {
       public:
       
@@ -169,8 +168,8 @@ namespace en
       
       
       virtual void startRenderPass(
-         const shared_ptr<RenderPass> pass,
-         const shared_ptr<Framebuffer> framebuffer) = 0;
+         const std::shared_ptr<RenderPass> pass,
+         const std::shared_ptr<Framebuffer> framebuffer) = 0;
 
       virtual void endRenderPass(void) = 0;
 
@@ -191,7 +190,7 @@ namespace en
       virtual void setDescriptors(
          const PipelineLayout& layout,
          const uint32 count,
-         const shared_ptr<DescriptorSet>(&sets)[],
+         const std::shared_ptr<DescriptorSet>(&sets)[],
          const uint32 firstIndex = 0u) = 0;
 
       // Input Assembler:
@@ -205,7 +204,7 @@ namespace en
       virtual void setVertexBuffers(
          const uint32 firstSlot,
          const uint32 count,
-         const shared_ptr<Buffer>(&buffers)[],
+         const std::shared_ptr<Buffer>(&buffers)[],
          const uint64* offsets = nullptr) const = 0;
 
       // Assign single Vertex Buffer to range of Input Assembler slots.

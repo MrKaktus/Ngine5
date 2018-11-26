@@ -16,7 +16,6 @@
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
 #include <fstream>
-using namespace std;
 
 #include "utilities/osxStrings.h"
 
@@ -147,10 +146,10 @@ namespace en
 
 #define MaxPathLength 16384
 
-   NSString* fileInBundleByName(const string& filename)
+   NSString* fileInBundleByName(const std::string& filename)
    {
-   string name;
-   string ext;
+   std::string name;
+   std::string ext;
    
    // Divide filename to name and extension
    sint64 pos = filename.rfind(".");
@@ -176,12 +175,12 @@ namespace en
    sint32 pos = filename.rfind(".");
    if (pos == string::npos)
       {
-      dst = string("");
+      dst = std::string("");
       return 0;
       }
   
-   string name = filename.substr(0, pos);
-   string ext  = filename.substr(pos + 1, filename.length() - pos - 1);
+   std::string name = filename.substr(0, pos);
+   std::string ext  = filename.substr(pos + 1, filename.length() - pos - 1);
   
    // Read file from sandbox to memory
    NSString* NSname = [NSString stringWithUTF8String: name.c_str()];
@@ -194,7 +193,7 @@ namespace en
    // Checking if there is anything to read
    if (size == 0)
       {
-      dst = string("");
+      dst = std::string("");
    	return 0;
       }
    
@@ -222,7 +221,7 @@ namespace en
    assert( realpath(symbolicPath, path) != NULL );
    delete [] symbolicPath;
 
-   processPath = string(path);
+   processPath = std::string(path);
    delete [] path;
 
    // TODO: Finish
@@ -232,15 +231,15 @@ namespace en
    {
    }
    
-   bool OSXInterface::exist(const string& filename)
+   bool OSXInterface::exist(const std::string& filename)
    {
    // TODO: Finish!
    return false;
    }
    
-   shared_ptr<File> OSXInterface::open(const string& filename, const FileAccess mode)
+   std::shared_ptr<File> OSXInterface::open(const std::string& filename, const FileAccess mode)
    {
-   shared_ptr<OSXFile> result = nullptr;
+   std::shared_ptr<OSXFile> result = nullptr;
    
    NSString* path = fileInBundleByName(filename);
 
@@ -265,7 +264,7 @@ namespace en
       //NSData* data = [NSData dataWithContentsOfFile:path];
    
       if ([data length] > 0)
-         result = make_shared<OSXFile>(data);
+         result = std::make_shared<OSXFile>(data);
       }
       
    return result;

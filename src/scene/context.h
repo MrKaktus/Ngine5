@@ -18,7 +18,6 @@
 #include "scene/state.h" 
 
 #include <vector>
-using namespace std;
 
 namespace en
 {
@@ -37,20 +36,20 @@ namespace en
    namespace state
    {
    struct Context
-          {
-          vector<State*> states;
-          bool   finish;
-          bool   action;
-          State* stateChange;
-          State* stateSet;
-          bool   stateFinish;
-
-          Context();
-         ~Context();
-
-          void create(void);
-          void destroy(void);
-          };
+      {
+      std::vector<State*> states;
+      bool   finish;
+      bool   action;
+      State* stateChange;
+      State* stateSet;
+      bool   stateFinish;
+      
+      Context();
+     ~Context();
+      
+      void create(void);
+      void destroy(void);
+      };
 
    void HandleEventByState(en::input::Event& event);
    }

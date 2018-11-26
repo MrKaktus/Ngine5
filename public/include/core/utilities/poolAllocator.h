@@ -20,10 +20,12 @@
 
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/alignment.h"
+
+#include "core/memory/alignment.h"
+#include "core/memory/pageAllocator.h"
 
 #include "core/utilities/NonCopyable.h"
-#include "core/utilities/pageAllocator.h"
+
 #include "utilities/utilities.h"
 
 // Pool stops doubling its size after reaching below size (4MB)
@@ -42,12 +44,12 @@ namespace en
       T* head;   // Points at first free entry (free entries store pointers to 
                  // each other, creating single linked list of all free entries).
 
-      uint32 entrySize;  // Size of single entry, rounded up to multiple of alignment size
-      uint64 size;       // Current memory size in bytes (rounded up to multiple of 4KB)
-      uint64 maxSize;    // Max memory allocation in bytes (rounded up to multiple of 4KB)
-      uint64 doubleSizeUntil;  // Doubling allocation size barrier in bytes
+      uint32 entrySize;       // Size of single entry, rounded up to multiple of alignment size
+      uint64 size;            // Current memory size in bytes (rounded up to multiple of 4KB)
+      uint64 maxSize;         // Max memory allocation in bytes (rounded up to multiple of 4KB)
+      uint64 doubleSizeUntil; // Doubling allocation size barrier in bytes
 
-      bool reallocate(void);   // Fails if maximum allowed capacity was reached
+      bool reallocate(void);  // Fails if maximum allowed capacity was reached
 
       public:
       // Alignment specifies each element starting address alignment, and needs 
@@ -75,6 +77,8 @@ namespace en
       void deallocate(T& resource);
       };
 
+   static_assert(sizeof(PoolAllocator<void*>) == 48, "en::PoolAllocator<void*> size mismatch!");
+
    template<typename T>
    PoolAllocator<T>::PoolAllocator(
       const uint32 capacity, 
@@ -84,8 +88,8 @@ namespace en
          memory(nullptr),
          head(nullptr),
          entrySize(static_cast<uint32>(roundUp(static_cast<uint64>(sizeof(T)), static_cast<uint64>(alignment)))),
-         size(roundUp(entrySize*capacity, 4096)),
-         maxSize(roundUp(entrySize*maxCapacity, 4096)),
+         size(roundUp(entrySize * capacity, 4096)),
+         maxSize(roundUp(entrySize * maxCapacity, 4096)),
          doubleSizeUntil(_doubleSizeUntil)
    {   
    assert( powerOfTwo(alignment) );
@@ -116,7 +120,7 @@ namespace en
    bool PoolAllocator<T>::reallocate(void)
    {
    assert( head == nullptr );
-   if ( size >= maxSize )
+   if (size >= maxSize)
       return false;
 
    uint64 newSize = size < doubleSizeUntil ? size * 2 : roundUp(size + doubleSizeUntil, 4096);

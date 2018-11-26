@@ -12,25 +12,25 @@
 //   // Framebuffer creation
 //
 //
-//   shared_ptr<ColorAttachment> Create(const shared_ptr<Texture> color, 
-//                               const shared_ptr<Texture> resolveMsaa  = nullptr, 
+//   std::shared_ptr<ColorAttachment> Create(const std::shared_ptr<Texture> color, 
+//                               const std::shared_ptr<Texture> resolveMsaa  = nullptr, 
 //                               const uint32 colorMipMap        = 0,
 //                               const uint32 msaaMipMap         = 0,
 //                               const uint32 colorLayer         = 0,
 //                               const uint32 msaaLayer          = 0,
 //                               const uint32 layers             = 1);   // On iOS/OSX only one layer is supported
 //
-//   shared_ptr<ColorAttachment> Create(const shared_ptr<Texture> color, 
+//   std::shared_ptr<ColorAttachment> Create(const std::shared_ptr<Texture> color, 
 //                               const TextureFormat renderFormat,
-//                               const shared_ptr<Texture> resolveMsaa = nullptr, 
+//                               const std::shared_ptr<Texture> resolveMsaa = nullptr, 
 //                               const uint32 colorMipMap       = 0,
 //                               const uint32 msaaMipMap        = 0,
 //                               const uint32 colorLayer        = 0,
 //                               const uint32 msaaLayer         = 0,
 //                               const uint32 layers            = 1);   // On iOS/OSX only one layer is supported 
 //
-//   shared_ptr<DepthStencilAttachment> Create(const shared_ptr<Texture> depthStencil, 
-//                                      const shared_ptr<Texture> resolveMsaa  = nullptr, 
+//   std::shared_ptr<DepthStencilAttachment> Create(const std::shared_ptr<Texture> depthStencil, 
+//                                      const std::shared_ptr<Texture> resolveMsaa  = nullptr, 
 //                                      const uint32 depthStencilMipMap = 0,
 //                                      const uint32 msaaMipMap         = 0,
 //                                      const uint32 depthStencilLayer  = 0,
@@ -159,9 +159,9 @@
 //
 //
 //
-//   shared_ptr<RasterState> Create(const RasterStateInfo raster)
+//   std::shared_ptr<RasterState> Create(const RasterStateInfo raster)
 //   {
-//   shared_ptr<RasterState> result = nullptr;
+//   std::shared_ptr<RasterState> result = nullptr;
 //
 //   VkDynamicRsStateCreateInfo rasterStateInfo;
 //   rasterStateInfo.sType                = VK_STRUCTURE_TYPE_DYNAMIC_RS_STATE_CREATE_INFO;
@@ -177,7 +177,7 @@
 //   VkResult res = vkCreateDynamicRasterState( gpu[i].handle, &rasterStateInfo, &rasterState );
 //   if (!res)
 //      {
-//      shared_ptr<vkRasterState> vkRaster = make_shared<vkRasterState>();
+//      std::shared_ptr<vkRasterState> vkRaster = std::make_shared<vkRasterState>();
 //      vkRaster->id = rasterState;
 //      result = vkRaster;
 //      }
@@ -191,11 +191,11 @@
 //   // glViewport() does not clip, unlike the viewport in d3d
 //   // Set the scissor rect to the viewport unless it is explicitly set smaller to emulate d3d.
 //
-//   shared_ptr<ViewportScissorState> Create(const uint32 count, 
+//   std::shared_ptr<ViewportScissorState> Create(const uint32 count, 
 //                                    const ViewportStateInfo* viewports,
 //                                    const ScissorStateInfo* scissors)
 //   {
-//   shared_ptr<ViewportScissorState> result = nullptr;
+//   std::shared_ptr<ViewportScissorState> result = nullptr;
 //
 //   VkDynamicVpStateCreateInfo viewportScissorInfo;
 //   viewportScissorInfo.sType                   = VK_STRUCTURE_TYPE_DYNAMIC_VP_STATE_CREATE_INFO;
@@ -208,7 +208,7 @@
 //   VkResult res = vkCreateDynamicViewportState( gpu[i].handle, &viewportScissorInfo, &viewportScissorState );
 //   if (!res)
 //      {
-//      shared_ptr<vkViewportScissorState> vkViewportScissor = make_shared<vkViewportScissorState>(fbo);
+//      std::shared_ptr<vkViewportScissorState> vkViewportScissor = std::make_shared<vkViewportScissorState>(fbo);
 //      vkViewportScissor->id = viewportScissorState;
 //      result = vkFbo;
 //      }
@@ -224,25 +224,25 @@
 //
 
 //
-//   void vkCommandBuffer::bind(const shared_ptr<RasterState> raster)
+//   void vkCommandBuffer::bind(const std::shared_ptr<RasterState> raster)
 //   {
 //   vkCmdBindDynamicStateObject( id, VK_STATE_BIND_RASTER, 
 //                                reinterpret_cast<vkRasterState*>(raster.get())->id );
 //   }
 //
-//   void vkCommandBuffer::bind(const shared_ptr<ViewportScissorState> viewportScissor)
+//   void vkCommandBuffer::bind(const std::shared_ptr<ViewportScissorState> viewportScissor)
 //   {
 //   vkCmdBindDynamicStateObject( id, VK_STATE_BIND_VIEWPORT, 
 //                                reinterpret_cast<vkViewportScissorState*>(viewportScissor.get())->id );
 //   }
 //
-//   void vkCommandBuffer::bind(const shared_ptr<DepthStencilState> depthStencil)
+//   void vkCommandBuffer::bind(const std::shared_ptr<DepthStencilState> depthStencil)
 //   {
 //   vkCmdBindDynamicStateObject( id, VK_STATE_BIND_DEPTH_STENCIL, 
 //                                reinterpret_cast<vkDepthStencilState*>(depthStencil.get())->id );
 //   }
 //
-//   void vkCommandBuffer::bind(const shared_ptr<BlendState> blend)
+//   void vkCommandBuffer::bind(const std::shared_ptr<BlendState> blend)
 //   {
 //   vkCmdBindDynamicStateObject( id, VK_STATE_BIND_COLOR_BLEND, 
 //                                reinterpret_cast<vkBlendState*>(blend.get())->id );
@@ -269,11 +269,11 @@
 //   //    } support;
 //   //
 //
-//   shared_ptr<StaticBlendState> Create(const BlendInfo& state,
+//   std::shared_ptr<StaticBlendState> Create(const BlendInfo& state,
 //                                const uint32 attachments, 
 //                                const BlendAttachmentInfo* color)
 //   {
-//   shared_ptr<vkStaticBlendState> vkState = new vkStaticBlendState();
+//   std::shared_ptr<vkStaticBlendState> vkState = new vkStaticBlendState();
 //   vkState->desc.sType                 = VK_STRUCTURE_TYPE_PIPELINE_CB_STATE_CREATE_INFO;
 //   vkState->desc.pNext                 = nullptr;
 //   vkState->desc.alphaToCoverageEnable = state.alphaToCoverage;

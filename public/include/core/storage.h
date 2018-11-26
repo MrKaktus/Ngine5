@@ -15,7 +15,6 @@
 
 #include <memory>
 #include <string>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -44,13 +43,13 @@ namespace en
       // TODO: Temp, file should be read in blocks to memory, and then parsed!
       virtual uint32 read(const uint64 offset,
                           const uint32 maxSize,
-                          string& word) = 0;         // Read zero terminated word, but not exceed maxSize chars. Return word length.
+                          std::string& word) = 0;    // Read zero terminated word, but not exceed maxSize chars. Return word length.
       virtual uint32 readWord(const uint64 offset,
                               const uint32 maxSize,
-                              string& word) = 0;
+                              std::string& word) = 0;
       virtual uint32 readLine(const uint64 offset,
                               const uint32 maxSize,
-                              string& line) = 0;
+                              std::string& line) = 0;
          
       virtual bool   write(const uint64 size,
                            void* buffer) = 0;        // Writes block of data to file
@@ -66,18 +65,18 @@ namespace en
       public:
       static bool create(void);                       // Creates instance of this class (OS specific) and assigns it to "Storage".
 
-      virtual bool exist(const string& filename) = 0; // Check if file exist
-      virtual shared_ptr<File> open(const string& filename,
+      virtual bool exist(const std::string& filename) = 0; // Check if file exist
+      virtual std::shared_ptr<File> open(const std::string& filename,
                                     const FileAccess mode = Read) = 0;  // Opens file
          
-      virtual uint64 read(const string& filename,
-                          string& dst) = 0;          // Convenience method for reading whole file as string
+      virtual uint64 read(const std::string& filename,
+                          std::string& dst) = 0;          // Convenience method for reading whole file as string
 
       virtual ~Interface() {};                       // Polymorphic deletes require a virtual base destructor
       };
    }
 
-extern shared_ptr<storage::Interface> Storage;
+extern std::shared_ptr<storage::Interface> Storage;
 }
 
 #endif

@@ -318,15 +318,15 @@ namespace en
       }
    }
 
-   shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
+   std::shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
       const uint32 layers,
       const uint32 attachments, // TODO: Count of passed attachments, may be smaller than usedAttachments count ?  <-- Currently input attachments array is tightly packed, firct colors, then their resolves
-      const shared_ptr<TextureView>* attachment,
-      const shared_ptr<TextureView> _depthStencil,
-      const shared_ptr<TextureView> _stencil,
-      const shared_ptr<TextureView> _depthResolve)
+      const std::shared_ptr<TextureView>* attachment,
+      const std::shared_ptr<TextureView> _depthStencil,
+      const std::shared_ptr<TextureView> _stencil,
+      const std::shared_ptr<TextureView> _depthResolve)
    {
-   shared_ptr<FramebufferD3D12> result = nullptr;
+   std::shared_ptr<FramebufferD3D12> result = nullptr;
 
    assert( layers >= 1 );
    assert( _depthStencil == nullptr ||   // D3D12 is not supporting separate Depth and Stencil at the same time.
@@ -335,9 +335,9 @@ namespace en
 
    // Create Framebuffer object only if render pass usues any destination surfaces
    if (bitsCount(usedAttachments) == 0u && depthStencil == false)
-      return shared_ptr<Framebuffer>(nullptr);
+      return std::shared_ptr<Framebuffer>(nullptr);
 
-   result = make_shared<FramebufferD3D12>(resolution, layers);
+   result = std::make_shared<FramebufferD3D12>(resolution, layers);
    
    uint32 index = 0;
    for(uint32 i=0; i<8; ++i)
@@ -346,7 +346,7 @@ namespace en
          assert( index < attachments ); // TODO: So what happens if app passes less attachments to creation call ?
 
          // Keep reference to used view
-         shared_ptr<TextureViewD3D12> view = dynamic_pointer_cast<TextureViewD3D12>(attachment[index]);
+         std::shared_ptr<TextureViewD3D12> view = std::dynamic_pointer_cast<TextureViewD3D12>(attachment[index]);
          result->colorHandle[i] = view;
          
          assert( view->desc.ViewDimension != D3D12_SRV_DIMENSION_TEXTURECUBE );
@@ -374,15 +374,15 @@ namespace en
       for(uint32 i=0; i<8; ++i)
          if (checkBit(usedAttachments, i))
             {
-            shared_ptr<TextureViewD3D12> view = dynamic_pointer_cast<TextureViewD3D12>(attachment[index]);
+            std::shared_ptr<TextureViewD3D12> view = std::dynamic_pointer_cast<TextureViewD3D12>(attachment[index]);
             result->resolveHandle[i] = view;
             ++index;
             }
       
    if (depthStencil)
       {
-      shared_ptr<TextureViewD3D12> view = _depthStencil ? dynamic_pointer_cast<TextureViewD3D12>(_depthStencil)
-                                                        : dynamic_pointer_cast<TextureViewD3D12>(_stencil);
+      std::shared_ptr<TextureViewD3D12> view = _depthStencil ? std::dynamic_pointer_cast<TextureViewD3D12>(_depthStencil)
+                                                        : std::dynamic_pointer_cast<TextureViewD3D12>(_stencil);
          
       // Keep reference to used Depth-Stencil resource
       result->depthHandle = view;
@@ -421,12 +421,12 @@ namespace en
    }
 
    // Creates framebuffer using window Swap-Chain surface.
-   shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
-      const shared_ptr<TextureView> swapChainSurface,
-      const shared_ptr<TextureView> _depthStencil,
-      const shared_ptr<TextureView> _stencil)
+   std::shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
+      const std::shared_ptr<TextureView> swapChainSurface,
+      const std::shared_ptr<TextureView> _depthStencil,
+      const std::shared_ptr<TextureView> _stencil)
    {
-   shared_ptr<FramebufferD3D12> result = nullptr;
+   std::shared_ptr<FramebufferD3D12> result = nullptr;
 
    assert( swapChainSurface );
    assert( _depthStencil == nullptr ||   // D3D12 is not supporting separate Depth and Stencil at the same time.
@@ -441,10 +441,10 @@ namespace en
    assert( bitsCount(usedAttachments) == 1 );
    assert( checkBit(usedAttachments, 0) );
 
-   result = make_shared<FramebufferD3D12>(resolution, 1);
+   result = std::make_shared<FramebufferD3D12>(resolution, 1);
 
    // Keep reference to used view
-   shared_ptr<TextureViewD3D12> view = dynamic_pointer_cast<TextureViewD3D12>(swapChainSurface);
+   std::shared_ptr<TextureViewD3D12> view = std::dynamic_pointer_cast<TextureViewD3D12>(swapChainSurface);
    result->colorHandle[0] = view;
    
    // It's Swap-Chain surface, thus it needs to be single 2D texture
@@ -469,8 +469,8 @@ namespace en
 
    if (depthStencil)
       {
-      shared_ptr<TextureViewD3D12> view = _depthStencil ? dynamic_pointer_cast<TextureViewD3D12>(_depthStencil)
-                                                        : dynamic_pointer_cast<TextureViewD3D12>(_stencil);
+      std::shared_ptr<TextureViewD3D12> view = _depthStencil ? std::dynamic_pointer_cast<TextureViewD3D12>(_depthStencil)
+                                                        : std::dynamic_pointer_cast<TextureViewD3D12>(_stencil);
          
       // Keep reference to used Depth-Stencil resource
       result->depthHandle = view;
@@ -511,13 +511,13 @@ namespace en
    
    // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
    // window Swap-Chain surface.
-   shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
-      const shared_ptr<TextureView> temporaryMSAA,
-      const shared_ptr<TextureView> swapChainSurface,
-      const shared_ptr<TextureView> _depthStencil,
-      const shared_ptr<TextureView> _stencil)
+   std::shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(const uint32v2 resolution,
+      const std::shared_ptr<TextureView> temporaryMSAA,
+      const std::shared_ptr<TextureView> swapChainSurface,
+      const std::shared_ptr<TextureView> _depthStencil,
+      const std::shared_ptr<TextureView> _stencil)
    {
-   shared_ptr<FramebufferD3D12> result = nullptr;
+   std::shared_ptr<FramebufferD3D12> result = nullptr;
 
    assert( temporaryMSAA );
    assert( swapChainSurface );
@@ -525,8 +525,8 @@ namespace en
            _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
 
    // Resolution cannot be greater than selected destination size (Swap-Chain surfaces have no mipmaps)
-   shared_ptr<TextureViewD3D12> source      = dynamic_pointer_cast<TextureViewD3D12>(temporaryMSAA);
-   shared_ptr<TextureViewD3D12> destination = dynamic_pointer_cast<TextureViewD3D12>(swapChainSurface);
+   std::shared_ptr<TextureViewD3D12> source      = std::dynamic_pointer_cast<TextureViewD3D12>(temporaryMSAA);
+   std::shared_ptr<TextureViewD3D12> destination = std::dynamic_pointer_cast<TextureViewD3D12>(swapChainSurface);
    assert( source->texture->state.width  == destination->texture->state.width );
    assert( source->texture->state.height == destination->texture->state.height );
    assert( resolution.width  <= destination->texture->state.width );
@@ -536,7 +536,7 @@ namespace en
    assert( bitsCount(usedAttachments) == 1 );
    assert( checkBit(usedAttachments, 0) );
 
-   result = make_shared<FramebufferD3D12>(resolution, 1);
+   result = std::make_shared<FramebufferD3D12>(resolution, 1);
 
    // Keep reference to used view
    result->colorHandle[0] = source;
@@ -564,8 +564,8 @@ namespace en
 
    if (depthStencil)
       {
-      shared_ptr<TextureViewD3D12> view = _depthStencil ? dynamic_pointer_cast<TextureViewD3D12>(_depthStencil)
-                                                        : dynamic_pointer_cast<TextureViewD3D12>(_stencil);
+      std::shared_ptr<TextureViewD3D12> view = _depthStencil ? std::dynamic_pointer_cast<TextureViewD3D12>(_depthStencil)
+                                                        : std::dynamic_pointer_cast<TextureViewD3D12>(_stencil);
          
       // Keep reference to used Depth-Stencil resource
       result->depthHandle = view;
@@ -609,37 +609,37 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   shared_ptr<ColorAttachment> Direct3D12Device::createColorAttachment(
+   std::shared_ptr<ColorAttachment> Direct3D12Device::createColorAttachment(
       const Format format,
       const uint32 samples)
    {
-   return make_shared<ColorAttachmentD3D12>(format, samples);
+   return std::make_shared<ColorAttachmentD3D12>(format, samples);
    }
 
-   shared_ptr<DepthStencilAttachment> Direct3D12Device::createDepthStencilAttachment(
+   std::shared_ptr<DepthStencilAttachment> Direct3D12Device::createDepthStencilAttachment(
       const Format depthFormat,
       const Format stencilFormat,
       const uint32 samples)
    {
-   return make_shared<DepthStencilAttachmentD3D12>(depthFormat, stencilFormat, samples);
+   return std::make_shared<DepthStencilAttachmentD3D12>(depthFormat, stencilFormat, samples);
    }
 
 
 
    // Creates render pass which's output goes to window framebuffer.
    // Swap-Chain surface may be destination of MSAA resolve operation.
-   shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
+   std::shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
       const ColorAttachment& swapChainSurface,
       const DepthStencilAttachment* depthStencil)
    {
-   shared_ptr<RenderPassD3D12> result = nullptr;
+   std::shared_ptr<RenderPassD3D12> result = nullptr;
    
    // D3D12 doesn't support Render Passes, thus states of Color and
    // Depth-Stencil Attachment objects are stored in Render Pass
    // object, and used to emulate Rende Pass behavior when it is 
    // started and ended on Command Buffer.
 
-   result = make_shared<RenderPassD3D12>();
+   result = std::make_shared<RenderPassD3D12>();
    assert( result );
 
    // Single Color Attachment
@@ -663,12 +663,12 @@ namespace en
    // color attachment slots in Fragment Shader. Entries in this 
    // array may be set to nullptr, which means that given output
    // color attachment slot has no bound resource descriptor.
-   shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
+   std::shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
       const uint32 attachments,
-      const shared_ptr<ColorAttachment> color[],
+      const std::shared_ptr<ColorAttachment> color[],
       const DepthStencilAttachment* depthStencil)
    {
-   shared_ptr<RenderPassD3D12> result = nullptr;
+   std::shared_ptr<RenderPassD3D12> result = nullptr;
    
    assert( attachments < support.maxColorAttachments );
 
@@ -689,7 +689,7 @@ namespace en
    //       There should be separate method for creating such RenderPass that accepts only those parameters.
    //
 
-   result = make_shared<RenderPassD3D12>();
+   result = std::make_shared<RenderPassD3D12>();
    assert( result );
 
    // Optional Color Attachments

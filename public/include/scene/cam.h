@@ -17,8 +17,6 @@
 #include "scene/entity.h"
 #include "core/rendering/device.h"
 
-using namespace en::gpu;
-
 namespace en
 {
    namespace scene
@@ -54,7 +52,7 @@ namespace en
 
          void set(const float4 tangents);
          void set(const float vFov, const float aspect);
-         shared_ptr<Buffer> wireframe(shared_ptr<Heap> heap) const;
+         std::shared_ptr<gpu::Buffer> wireframe(std::shared_ptr<gpu::Heap> heap) const;
          float4x4 projection(void);
          };
 

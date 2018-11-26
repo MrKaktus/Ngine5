@@ -139,9 +139,9 @@ namespace en
    ValidateNoRet( gpu, vkDestroyPipeline(gpu->device, handle, nullptr) )
    }
 
-   shared_ptr<Pipeline> VulkanDevice::createPipeline(const PipelineState& pipelineState)
+   std::shared_ptr<Pipeline> VulkanDevice::createPipeline(const PipelineState& pipelineState)
    {
-   shared_ptr<PipelineVK> result = nullptr;
+   std::shared_ptr<PipelineVK> result = nullptr;
 
    // Pipeline object is always created against Render Pass, and app responsibility is to
    // provide missing states (ViewportState, Shaders).
@@ -237,8 +237,8 @@ namespace en
    // Create pipeline state object
    VkPipeline pipeline = VK_NULL_HANDLE;
    Validate( this, vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) )  // pipelineCache
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = make_shared<PipelineVK>(this, pipeline, true);
+   if (lastResult[currentThreadId()] == VK_SUCCESS)
+      result = std::make_shared<PipelineVK>(this, pipeline, true);
 
    delete [] shaderInfo;
 

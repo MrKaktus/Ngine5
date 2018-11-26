@@ -33,25 +33,25 @@ namespace en
    class HeapD3D12 : public CommonHeap
       {
       public:
-      shared_ptr<Direct3D12Device> gpu;
+      std::shared_ptr<Direct3D12Device> gpu;
       ID3D12Heap* handle;
       Allocator* allocator;    // Allocation algorithm used to place resources on the Heap
 
-      HeapD3D12(shared_ptr<Direct3D12Device> gpu,
+      HeapD3D12(std::shared_ptr<Direct3D12Device> gpu,
                 ID3D12Heap* handle,
                 const MemoryUsage usage,
                 const uint32 size);
 
       // Return parent device
-      virtual shared_ptr<GpuDevice> device(void) const;
+      virtual std::shared_ptr<GpuDevice> device(void) const;
 
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
-      virtual shared_ptr<Buffer> createBuffer(const BufferType type,
+      virtual std::shared_ptr<Buffer> createBuffer(const BufferType type,
                                               const uint32 size);
       
-      virtual shared_ptr<Texture> createTexture(const TextureState state);
+      virtual std::shared_ptr<Texture> createTexture(const TextureState state);
 
       virtual ~HeapD3D12();
       };

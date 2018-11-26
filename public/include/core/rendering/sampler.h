@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_SAMPLER
 
 #include <memory>
-using namespace std;
 
 #include "core/types.h"
 

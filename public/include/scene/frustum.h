@@ -16,8 +16,6 @@
 #include "scene/drawable.h"
 #include "scene/cam.h"
 
-using namespace en::gpu;
-
 namespace en
 {
    namespace scene
@@ -25,12 +23,12 @@ namespace en
    class Frustum : public Drawable
          {
          public:
-         shared_ptr<Buffer> buffer;
+         std::shared_ptr<Buffer> buffer;
          //Program   program;
          //Parameter enModelMatrix;
    
          Frustum(const FrustumSettings settings);
-         void draw(const shared_ptr<Buffer> sceneParameters);
+         void draw(const std::shared_ptr<Buffer> sceneParameters);
          };
    }
 }

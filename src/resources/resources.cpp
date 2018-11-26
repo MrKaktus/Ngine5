@@ -33,7 +33,6 @@
 #endif
 
 #include <string>
-using namespace std;
 
 using namespace en::gpu;
 
@@ -110,13 +109,13 @@ namespace en
    materials.clear();
    textures.clear();
 
-   path.fonts       = string("resources/fonts/");
-   path.models      = string("resources/models/");
-   path.materials   = string("resources/materials/");
-   path.shaders     = string("resources/shaders/");
-   path.textures    = string("resources/textures/");
-   path.sounds      = string("resources/sounds/"); 
-   path.screenshots = string("screenshots/");
+   path.fonts       = std::string("resources/fonts/");
+   path.models      = std::string("resources/models/");
+   path.materials   = std::string("resources/materials/");
+   path.shaders     = std::string("resources/shaders/");
+   path.textures    = std::string("resources/textures/");
+   path.sounds      = std::string("resources/sounds/"); 
+   path.screenshots = std::string("screenshots/");
    }
 
    Context::~Context()
@@ -134,14 +133,14 @@ namespace en
    textures.clear();
 
    // Create default program for materials
-   string vsCode, fsCode;
+   std::string vsCode, fsCode;
 #ifdef EN_OPENGL_DESKTOP
-   en::Storage->read(string("resources/engine/shaders/default.glsl.1.10.vs"), vsCode);
-   en::Storage->read(string("resources/engine/shaders/default.glsl.1.10.fs"), fsCode);
+   en::Storage->read(std::string("resources/engine/shaders/default.glsl.1.10.vs"), vsCode);
+   en::Storage->read(std::string("resources/engine/shaders/default.glsl.1.10.fs"), fsCode);
 #endif
 #ifdef EN_OPENGL_MOBILE
-   en::Storage->read(string("resources/engine/shaders/default.essl.1.00.vs"), vsCode);
-   en::Storage->read(string("resources/engine/shaders/default.essl.1.00.fs"), fsCode);
+   en::Storage->read(std::string("resources/engine/shaders/default.essl.1.00.vs"), vsCode);
+   en::Storage->read(std::string("resources/engine/shaders/default.essl.1.00.fs"), fsCode);
 #endif
 
    //vector<gpu::Shader> shaders(2, Shader(nullptr));
@@ -187,7 +186,7 @@ namespace en
 
    // Create staging buffer
    uint32 stagingSize = 14u;
-   shared_ptr<gpu::Buffer> staging = defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   std::shared_ptr<gpu::Buffer> staging = defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
    assert( staging );
 
    // Read texture to temporary buffer
@@ -201,7 +200,7 @@ namespace en
       queueType = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
    command->start();
    command->copy(*staging,*defaults.enAxes);
    command->commit();
@@ -682,7 +681,7 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
    //{
    //}
 
-   //Model::Model(shared_ptr<gpu::Buffer> buffer, gpu::DrawableType type) :
+   //Model::Model(std::shared_ptr<gpu::Buffer> buffer, gpu::DrawableType type) :
    //   name("custom")
    //{
    //Mesh temp;
@@ -813,7 +812,7 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
 
 
 
-   shared_ptr<Model> Interface::Load::model(const string& filename, const string& name)
+   std::shared_ptr<Model> Interface::Load::model(const std::string& filename, const std::string& name)
    {
    sint64 found;
    uint64 length = filename.length();
@@ -823,29 +822,29 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
       return ResourcesContext.models[name];
 
    found = filename.rfind(".obj");
-   if ( found != string::npos &&
+   if ( found != std::string::npos &&
         found == (length - 4) )
       return obj::load(filename, name);
 
    found = filename.rfind(".OBJ");
-   if ( found != string::npos &&
+   if ( found != std::string::npos &&
         found == (length - 4) )
       return obj::load(filename, name);
 
    found = filename.rfind(".fbx");
-   if ( found != string::npos &&
+   if ( found != std::string::npos &&
         found == (length - 4) )
       return fbx::load(filename, name);
 
    found = filename.rfind(".FBX");
-   if ( found != string::npos &&
+   if ( found != std::string::npos &&
         found == (length - 4) )
       return fbx::load(filename, name);
 
-   return shared_ptr<Model>(NULL);
+   return std::shared_ptr<Model>(NULL);
    }
 
-   //Material Interface::Load::material(const string& filename, const string& name)
+   //Material Interface::Load::material(const std::string& filename, const std::string& name)
    //{
    //uint32 found;
    //uint32 length = filename.length();
@@ -855,19 +854,19 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
    //   return ResourcesContext.materials[name];
 
    //found = filename.rfind(".mtl");
-   //if ( found != string::npos &&
+   //if ( found != std::string::npos &&
    //     found == (length - 4) )
    //   return mtl::load(filename, name);
 
    //found = filename.rfind(".MTL");
-   //if ( found != string::npos &&
+   //if ( found != std::string::npos &&
    //     found == (length - 4) )
    //   return mtl::load(filename, name);
 
    //return Material();
    //}
 
-   //Material Interface::Load::material(const string& filename)
+   //Material Interface::Load::material(const std::string& filename)
    //{
    //uint32 found;
    //uint32 length = filename.length();
@@ -877,31 +876,31 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
    //   return ResourcesContext.materials[filename];
 
    //found = filename.rfind(".material");
-   //if ( found != string::npos &&
+   //if ( found != std::string::npos &&
    //     found == (length - 9) )
    //   return material::load(filename);
 
    //found = filename.rfind(".MATERIAL");
-   //if ( found != string::npos &&
+   //if ( found != std::string::npos &&
    //     found == (length - 9) )
    //   return material::load(filename);
 
    //return Material();
    //}
 
-   void Interface::Free::model(const string& name)
+   void Interface::Free::model(const std::string& name)
    {
    // Find specified model and check if it is used
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   map<string, shared_ptr<en::resource::Model> >::iterator it = ResourcesContext.models.find(name);
+   std::map<std::string, std::shared_ptr<en::resource::Model> >::iterator it = ResourcesContext.models.find(name);
    if (it != ResourcesContext.models.end())
       if (it->second.unique())
          it->second = NULL;
    }
 
-   //void Interface::Free::material(const string& name)
+   //void Interface::Free::material(const std::string& name)
    //{
    //// Find specified material and check if it is used
    //// by other part of code. If it isn't it can be
@@ -913,22 +912,22 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
    //      it->second = NULL;
    //}
 
-   shared_ptr<audio::Sample> Interface::Load::sound(const string& filename)
+   std::shared_ptr<audio::Sample> Interface::Load::sound(const std::string& filename)
    {
    sint64 found;
    uint64 length = filename.length();
 
    found = filename.rfind(".wav");
-   if ( found != string::npos &&
+   if ( found != std::string::npos &&
         found == (length - 4) )
       return wav::load(filename);
 
    found = filename.rfind(".WAV");
-   if ( found != string::npos &&
+   if ( found != std::string::npos &&
         found == (length - 4) )
       return wav::load(filename);
 
-   return shared_ptr<audio::Sample>(NULL);
+   return std::shared_ptr<audio::Sample>(NULL);
    }
 
    enum FileExtension
@@ -943,23 +942,23 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
       ExtensionsCount
       };
 
-   static const pair<std::string, FileExtension> TranslateFileExtension[] =
+   static const std::pair<std::string, FileExtension> TranslateFileExtension[] =
       {
-      { string(".bmp"), ExtensionBMP },
-      { string(".BMP"), ExtensionBMP },
-      { string(".dds"), ExtensionDDS },
-      { string(".DDS"), ExtensionDDS },
-      { string(".exr"), ExtensionEXR },
-      { string(".EXR"), ExtensionEXR },
-      { string(".hdr"), ExtensionHDR },
-      { string(".HDR"), ExtensionHDR },
-      { string(".png"), ExtensionPNG },
-      { string(".PNG"), ExtensionPNG },
-      { string(".tga"), ExtensionTGA },
-      { string(".TGA"), ExtensionTGA }
+      { std::string(".bmp"), ExtensionBMP },
+      { std::string(".BMP"), ExtensionBMP },
+      { std::string(".dds"), ExtensionDDS },
+      { std::string(".DDS"), ExtensionDDS },
+      { std::string(".exr"), ExtensionEXR },
+      { std::string(".EXR"), ExtensionEXR },
+      { std::string(".hdr"), ExtensionHDR },
+      { std::string(".HDR"), ExtensionHDR },
+      { std::string(".png"), ExtensionPNG },
+      { std::string(".PNG"), ExtensionPNG },
+      { std::string(".tga"), ExtensionTGA },
+      { std::string(".TGA"), ExtensionTGA }
       };
 
-   shared_ptr<en::gpu::Texture> Interface::Load::texture(const string& filename, const gpu::ColorSpace colorSpace)
+   std::shared_ptr<en::gpu::Texture> Interface::Load::texture(const std::string& filename, const gpu::ColorSpace colorSpace)
    {
    uint64 length = filename.length();
 
@@ -976,11 +975,11 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
 //   bool invertHorizontal = false;
 //#endif
 
-   shared_ptr<gpu::Texture> texture = nullptr;
+   std::shared_ptr<gpu::Texture> texture = nullptr;
 
    // Iterate over all registered file extensions and execute proper loading function
    FileExtension type = ExtensionUnknown;
-   uint32 entries = sizeof(TranslateFileExtension) / sizeof(pair<std::string, FileExtension>);
+   uint32 entries = sizeof(TranslateFileExtension) / sizeof(std::pair<std::string, FileExtension>);
    for(uint32 i=0; i<entries; ++i)
       {
       uint64 extensionLength = TranslateFileExtension[i].first.length();
@@ -1030,13 +1029,13 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
       };
 
 #ifdef EN_PROFILE
-   Log << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - " << filename << endl;
+   Log << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - " << filename << std::endl;
 #endif
 
    return texture;
    }
 
-   bool Interface::Load::texture(shared_ptr<gpu::Texture> dst, const uint16 layer, const string& filename, const gpu::ColorSpace colorSpace)
+   bool Interface::Load::texture(std::shared_ptr<gpu::Texture> dst, const uint16 layer, const std::string& filename, const gpu::ColorSpace colorSpace)
    {
    uint64 length = filename.length();
 
@@ -1055,7 +1054,7 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
 
    // Iterate over all registered file extensions and execute proper loading function
    FileExtension type = ExtensionUnknown;
-   uint32 entries = sizeof(TranslateFileExtension) / sizeof(pair<std::string, FileExtension>);
+   uint32 entries = sizeof(TranslateFileExtension) / sizeof(std::pair<std::string, FileExtension>);
    for(uint32 i=0; i<entries; ++i)
       {
       uint64 extensionLength = TranslateFileExtension[i].first.length();
@@ -1092,44 +1091,44 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
       };
 
    // found = filename.rfind(".bmp");
-   // if ( found != string::npos &&
+   // if ( found != std::string::npos &&
    //      found == (length - 4) )
    //    return bmp::load();
    // 
    // found = filename.rfind(".BMP");
-   // if ( found != string::npos &&
+   // if ( found != std::string::npos &&
    //      found == (length - 4) )
    //    return bmp::load(dst, layer, filename);
    // 
    // found = filename.rfind(".png");
-   // if ( found != string::npos &&
+   // if ( found != std::string::npos &&
    //      found == (length - 4) )
    //    return png::load(dst, layer, filename, colorSpace, invertHorizontal);
    // 
    // found = filename.rfind(".PNG");
-   // if ( found != string::npos &&
+   // if ( found != std::string::npos &&
    //      found == (length - 4) )
    //    return png::load(dst, layer, filename, colorSpace, invertHorizontal);
    // 
    // found = filename.rfind(".tga");
-   // if ( found != string::npos &&
+   // if ( found != std::string::npos &&
    //      found == (length - 4) )
    //    return tga::load(dst, layer, filename);
    // 
    // found = filename.rfind(".TGA");
-   // if ( found != string::npos &&
+   // if ( found != std::string::npos &&
    //      found == (length - 4) )
    //    return tga::load(dst, layer, filename);
 
 
 #ifdef EN_PROFILE
-   Log << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - " << filename << endl;
+   Log << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - " << filename << std::endl;
 #endif
 
    return result;
    }
 
-//   bool Interface::Load::texture(shared_ptr<gpu::Texture> dst, const gpu::TextureFace face, const uint16 layer, const string& filename, const gpu::ColorSpace colorSpace)
+//   bool Interface::Load::texture(std::shared_ptr<gpu::Texture> dst, const gpu::TextureFace face, const uint16 layer, const std::string& filename, const gpu::ColorSpace colorSpace)
 //   {
 //  uint32 found;
 //   uint32 length = filename.length();
@@ -1143,37 +1142,37 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
 ////#endif
 //
 //   found = filename.rfind(".png");
-//   if ( found != string::npos &&
+//   if ( found != std::string::npos &&
 //        found == (length - 4) )
 //      return png::load(dst, face, layer, filename, colorSpace, invertHorizontal);
 //
 //   found = filename.rfind(".PNG");
-//   if ( found != string::npos &&
+//   if ( found != std::string::npos &&
 //        found == (length - 4) )
 //      return png::load(dst, face, layer, filename, colorSpace, invertHorizontal);
 //
 //   return false;
 //   }
 
-   void Interface::Free::sound(const string& filename)
+   void Interface::Free::sound(const std::string& filename)
    {
    // Find specified sample and check if it is used
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   map<string, shared_ptr<audio::Sample> >::iterator it = ResourcesContext.sounds.find(filename);
+   std::map<std::string, std::shared_ptr<audio::Sample> >::iterator it = ResourcesContext.sounds.find(filename);
    if (it != ResourcesContext.sounds.end())
       if (it->second.unique())
          it->second = NULL;
    }
 
-   void Interface::Free::texture(const string& filename)
+   void Interface::Free::texture(const std::string& filename)
    {
    // Find specified texture and check if it is used
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   map<string, shared_ptr<gpu::Texture> >::iterator it = ResourcesContext.textures.find(filename);
+   std::map<std::string, std::shared_ptr<gpu::Texture> >::iterator it = ResourcesContext.textures.find(filename);
    if (it != ResourcesContext.textures.end())
       if (it->second.unique())
          it->second = NULL;

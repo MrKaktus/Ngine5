@@ -44,7 +44,7 @@ namespace en
    _display = nullptr;
    }
 
-   shared_ptr<Display> CommonWindow::display(void) const
+   std::shared_ptr<Display> CommonWindow::display(void) const
    {
    return _display;
    }
@@ -81,11 +81,11 @@ namespace en
    assert( 0 );
    }
    
-   //shared_ptr<Texture> CommonWindow::surface(void)
+   //std::shared_ptr<Texture> CommonWindow::surface(void)
    //{
    //// Should be implemented by specialization class.
    //assert( 0 );
-   //return shared_ptr<Texture>(nullptr);
+   //return std::shared_ptr<Texture>(nullptr);
    //}
    //
    //void CommonWindow::present(void)

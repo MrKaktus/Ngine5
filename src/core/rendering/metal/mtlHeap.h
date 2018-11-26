@@ -33,7 +33,7 @@ namespace en
    class HeapMTL : public CommonHeap
       {
       public:
-      shared_ptr<MetalDevice> gpu;
+      std::shared_ptr<MetalDevice> gpu;
 #if defined(EN_PLATFORM_IOS)
       id <MTLHeap> handle;
 #else
@@ -46,19 +46,19 @@ namespace en
       Allocator* allocator; // Allocation algorithm used to place resources on the backing buffer
 #endif
 
-      HeapMTL(shared_ptr<MetalDevice> gpu, id handle, const MemoryUsage _usage, const uint32 _size);
+      HeapMTL(std::shared_ptr<MetalDevice> gpu, id handle, const MemoryUsage _usage, const uint32 _size);
       virtual ~HeapMTL();
 
       // Return parent device
-      virtual shared_ptr<GpuDevice> device(void) const;
+      virtual std::shared_ptr<GpuDevice> device(void) const;
       
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
-      virtual shared_ptr<Buffer> createBuffer(const BufferType type,
+      virtual std::shared_ptr<Buffer> createBuffer(const BufferType type,
                                               const uint32 size);
       
-      virtual shared_ptr<Texture> createTexture(const TextureState state);
+      virtual std::shared_ptr<Texture> createTexture(const TextureState state);
       };
    }
 }

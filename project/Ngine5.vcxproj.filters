@@ -79,9 +79,6 @@
     <Filter Include="Source Files\scene">
       <UniqueIdentifier>{2e656a71-ccc4-4192-8dae-ca79969f8f42}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\threading">
-      <UniqueIdentifier>{37fc720a-f318-4038-9289-b2fcd64d9509}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\utilities">
       <UniqueIdentifier>{88816f55-cfca-4b91-ad7a-89f117b76c0e}</UniqueIdentifier>
     </Filter>
@@ -165,6 +162,21 @@
     </Filter>
     <Filter Include="Header Files\core\parallel">
       <UniqueIdentifier>{203a503c-ff2b-4e37-b617-98fcde14b620}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\parallel">
+      <UniqueIdentifier>{cc4b667c-6029-4e60-9bf1-ab9edfd4bfde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\parallel">
+      <UniqueIdentifier>{76bdfbde-2165-476c-b098-bb1514601dd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\memory">
+      <UniqueIdentifier>{d648b459-0d25-46d9-abf8-576af14a485d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\memory">
+      <UniqueIdentifier>{5bbd0ee5-56d4-41f8-b18a-94ca83e0262c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\memory">
+      <UniqueIdentifier>{0fc2eb22-a895-4fab-a439-79e181530c40}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -387,27 +399,6 @@
     <ClCompile Include="..\src\scene\scene.cpp">
       <Filter>Source Files\scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\threading\maintask.cpp">
-      <Filter>Source Files\threading</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\threading\mutex.cpp">
-      <Filter>Source Files\threading</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\threading\sheduler.cpp">
-      <Filter>Source Files\threading</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\threading\task.cpp">
-      <Filter>Source Files\threading</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\threading\thread.cpp">
-      <Filter>Source Files\threading</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\threading\tls.cpp">
-      <Filter>Source Files\threading</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\threading\worker.cpp">
-      <Filter>Source Files\threading</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\utilities\random.cpp">
       <Filter>Source Files\utilities</Filter>
     </ClCompile>
@@ -570,9 +561,6 @@
     <ClCompile Include="..\src\core\types\uint16v2.cpp">
       <Filter>Source Files\core\types</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\utilities\pageAllocator.cpp">
-      <Filter>Source Files\core\utilities</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\rendering\streamer.cpp">
       <Filter>Source Files\rendering</Filter>
     </ClCompile>
@@ -584,6 +572,18 @@
     </ClCompile>
     <ClCompile Include="..\src\core\types\uint16v4.cpp">
       <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\parallel\winFiber.cpp">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parallel\scheduler.cpp">
+      <Filter>Source Files\parallel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\parallel\psxFiber.cpp">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\memory\pageAllocator.cpp">
+      <Filter>Source Files\core\memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -637,9 +637,6 @@
     </ClInclude>
     <ClInclude Include="..\src\core\configuration.h">
       <Filter>Source Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\threading.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\Ngine.h">
       <Filter>Header Files</Filter>
@@ -932,32 +929,8 @@
     <ClInclude Include="..\src\scene\context.h">
       <Filter>Source Files\scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\include\threading\maintask.h">
-      <Filter>Header Files\threading</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\threading\mutex.h">
       <Filter>Header Files\threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\threading\Nqueue.h">
-      <Filter>Header Files\threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\threading\Ntls.h">
-      <Filter>Header Files\threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\threading\scheduler.h">
-      <Filter>Header Files\threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\threading\task.h">
-      <Filter>Header Files\threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\threading\thread.h">
-      <Filter>Header Files\threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\threading\worker.h">
-      <Filter>Header Files\threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\threading\context.h">
-      <Filter>Source Files\threading</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\utilities\Nversion.h">
       <Filter>Header Files\utilities</Filter>
@@ -1226,9 +1199,6 @@
     <ClInclude Include="..\public\include\core\algorithm\allocator.h">
       <Filter>Header Files\core\algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\include\core\utilities\pageAllocator.h">
-      <Filter>Header Files\core\utilities</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\rendering\streamer.h">
       <Filter>Header Files\rendering</Filter>
     </ClInclude>
@@ -1241,6 +1211,36 @@
     <ClInclude Include="..\src\core\parallel\psxThread.h">
       <Filter>Source Files\core\parallel</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\parallel\winFiber.h">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\parallel\scheduler.h">
+      <Filter>Source Files\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\parallel\fiber.h">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\parallel\psxFiber.h">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\parallel\scheduler.h">
+      <Filter>Header Files\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\memory\pageAllocator.h">
+      <Filter>Header Files\core\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\memory\alignment.h">
+      <Filter>Header Files\core\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\parallel\sharedAtomic.h">
+      <Filter>Header Files\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\memory\workStealingDeque.h">
+      <Filter>Header Files\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\memory\circularQueue.h">
+      <Filter>Header Files\memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">
@@ -1248,12 +1248,6 @@
     </None>
     <None Include="..\public\include\core\threading\atomics.inl">
       <Filter>Header Files\core\threading</Filter>
-    </None>
-    <None Include="..\public\include\threading\mutex.inl">
-      <Filter>Header Files\threading</Filter>
-    </None>
-    <None Include="..\public\include\threading\threading.inl">
-      <Filter>Header Files\threading</Filter>
     </None>
     <None Include="..\src\core\rendering\metal\mtlBlend.mm">
       <Filter>Source Files\core\rendering\metal</Filter>

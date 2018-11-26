@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_SHADER
 
 #include <memory>
-using namespace std;
 
 #include "core/types.h"
 

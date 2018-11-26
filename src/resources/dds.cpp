@@ -23,7 +23,6 @@
 using namespace en::gpu;
 
 #include <string>
-using namespace std;
 
 namespace en
 {
@@ -581,7 +580,7 @@ namespace en
    return false;
    }
 
-   shared_ptr<gpu::Texture> load(const string& filename)
+   std::shared_ptr<gpu::Texture> load(const std::string& filename)
    {
    using namespace en::storage;
    using namespace en::gpu;
@@ -590,15 +589,15 @@ namespace en
    uint64 offset = 0;
 
    // Open file
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.textures + filename << endl;
+         Log << en::ResourcesContext.path.textures + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
-         return shared_ptr<gpu::Texture>(nullptr);
+         return std::shared_ptr<gpu::Texture>(nullptr);
          }
       }
  
@@ -607,7 +606,7 @@ namespace en
       {
       Log << "ERROR: DDS file size is incorrect, file corrupted!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Verify DDS file signature 'DDS ' -> 0x20534444
@@ -617,7 +616,7 @@ namespace en
       {
       Log << "ERROR: DDS file header signature is incorrect!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }   
 
    // Verify file header struct size
@@ -628,7 +627,7 @@ namespace en
       {
       Log << "ERROR: DDS file header size is incorrect!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Read default file header, and check if additional DX10/DX11 
@@ -646,7 +645,7 @@ namespace en
             {
             Log << "ERROR: DDS file size is incorrect, file corrupted!\n";
             file = nullptr;
-            return shared_ptr<gpu::Texture>(nullptr);
+            return std::shared_ptr<gpu::Texture>(nullptr);
             }
 
          file->read(offset, 20, &header10);
@@ -660,7 +659,7 @@ namespace en
       {
       Log << "ERROR: DDS texture type unsupported!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Determine texture format stored in DDS
@@ -669,7 +668,7 @@ namespace en
       {
       Log << "ERROR: DDS texture format unsupported!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Determine texture state
@@ -688,7 +687,7 @@ namespace en
 
    // Calculate amount of mipmaps
    if (header.dwCaps & DDSCAPS_COMPLEX & DDSCAPS_TEXTURE)
-      settings.mipmaps = static_cast<uint16>(header.dwMipMapCount);
+      settings.mipmaps = static_cast<uint8>(header.dwMipMapCount);
 
    // Calculate amount of texture layers
    if (supportArrays)
@@ -698,12 +697,12 @@ namespace en
       settings.layers *= 6;
 
    // Create texture in GPU
-   shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+   std::shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
 
    // Load layers and mipmaps of texture to GPU
@@ -718,7 +717,7 @@ namespace en
             uint64 surfaceSize = texture->size(mipmap);
             
             // Create staging buffer
-            shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, static_cast<uint32>(surfaceSize));
+            std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, static_cast<uint32>(surfaceSize));
             if (!staging)
                {
                Log << "ERROR: Cannot create staging buffer!\n";
@@ -737,7 +736,7 @@ namespace en
                type = gpu::QueueType::Transfer;
 
             // Copy data from staging buffer to final texture
-            shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+            std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
             command->start();
             command->copy(*staging, 0u, settings.rowSize(mipmap), *texture, mipmap, slice);
             command->commit();

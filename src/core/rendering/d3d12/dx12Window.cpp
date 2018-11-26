@@ -17,6 +17,7 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
+#include "core/log/log.h"
 #include "core/rendering/d3d12/dx12Device.h"
 #include "core/rendering/d3d12/dx12Texture.h"
 #include "utilities/strings.h"
@@ -26,13 +27,13 @@ namespace en
    namespace gpu
    { 
    WindowD3D12::WindowD3D12(Direct3D12Device* _gpu,
-      const shared_ptr<CommonDisplay> selectedDisplay,
+      const std::shared_ptr<CommonDisplay> selectedDisplay,
       const uint32v2 selectedResolution,
       const WindowSettings& settings,
-      const string title) :
+      const std::string title) :
       gpu(_gpu),
       // Create native OS window or assert.
-      winWindow(dynamic_pointer_cast<winDisplay>(selectedDisplay), selectedResolution, settings, title)
+      winWindow(std::dynamic_pointer_cast<winDisplay>(selectedDisplay), selectedResolution, settings, title)
    {
    // Calculate amount of backing images in Swap-Chain
    //--------------------------------------------------
@@ -114,7 +115,7 @@ namespace en
 
 #if defined(EN_DEBUG)
    // Name Swap-Chain for debugging
-   string name("SwapChain1");
+   std::string name("SwapChain1");
    swapChain->SetPrivateData( WKPDID_D3DDebugObjectName, name.length(), name.c_str() );
 #endif
 
@@ -137,10 +138,10 @@ namespace en
                                             swapChainResolution.width,
                                             swapChainResolution.height);
 
-   swapChainTexture = new shared_ptr<Texture>[swapChainImages];
+   swapChainTexture = new std::shared_ptr<Texture>[swapChainImages];
    for(uint32 i=0; i<swapChainImages; ++i)
       {
-      shared_ptr<TextureD3D12> texture = make_shared<TextureD3D12>(gpu, textureState);
+      std::shared_ptr<TextureD3D12> texture = std::make_shared<TextureD3D12>(gpu, textureState);
       swapChain->GetBuffer(i, IID_PPV_ARGS(&texture->handle));  // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&texture->handle)
       swapChainTexture[i] = texture;
 
@@ -184,7 +185,7 @@ namespace en
    assert( 0 );
    }
 
-   shared_ptr<Texture> WindowD3D12::surface(const Semaphore* signalSemaphore)
+   std::shared_ptr<Texture> WindowD3D12::surface(const Semaphore* signalSemaphore)
    {
    // TODO: Is there a way to sync on GPU side CB execution with Swap-Chain ?
 
@@ -230,16 +231,16 @@ namespace en
    surfaceAcquire.unlock();
    }
       
-   shared_ptr<Window> Direct3D12Device::createWindow(const WindowSettings& settings, const string title)
+   std::shared_ptr<Window> Direct3D12Device::createWindow(const WindowSettings& settings, const std::string title)
    {
-   shared_ptr<WindowD3D12> result = nullptr;
+   std::shared_ptr<WindowD3D12> result = nullptr;
 
    // Select destination display
-   shared_ptr<CommonDisplay> display;
+   std::shared_ptr<CommonDisplay> display;
    if (settings.display)
-      display = dynamic_pointer_cast<CommonDisplay>(settings.display);
+      display = std::dynamic_pointer_cast<CommonDisplay>(settings.display);
    else
-      display = dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay());
+      display = std::dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay());
       
    // Checking if app wants to use default resolution
    bool useNativeResolution = false;
@@ -266,7 +267,7 @@ namespace en
 
          if (!validResolution)
             {
-            Log << "Error! Requested window size for Fullscreen mode is not supported by selected display." << endl;
+            Log << "Error! Requested window size for Fullscreen mode is not supported by selected display.\n";
             return result;
             }
          }
@@ -275,12 +276,12 @@ namespace en
       if (settings.resolution.x != 0 ||
           settings.resolution.y != 0)
          {
-         Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead." << endl;
+         Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead.\n";
          return result;
          }
       }
 
-   result = make_shared<WindowD3D12>(this, display, selectedResolution, settings, title);
+   result = std::make_shared<WindowD3D12>(this, display, selectedResolution, settings, title);
 
    return result;
    }

@@ -29,7 +29,7 @@ namespace en
       const uint32 height,
       const uint32 seconds,
       const uint32 zoneID,          
-      const string placeholder ) :  
+      const std::string placeholder ) :  
       advertisement(NULL)
    {
    bbads_error_t ret;
@@ -88,7 +88,7 @@ namespace en
    // The placeholder_url must be a NULL terminated local URL (using the "file://" protocol).
    char appPath[1024];
    getcwd(appPath, 1024);
-   string url = string("file://" + string(appPath) + "/app/native/resources/textures/" + placeholder);
+   std::string url = std::string("file://" + string(appPath) + "/app/native/resources/textures/" + placeholder);
    ret = bbads_banner_set_placeholder_url(advertisement, url.c_str());
    if (ret != BBADS_EOK)
       Log << "WARNING: Cannot set advertisement placeholder!\n";
@@ -141,30 +141,30 @@ namespace en
 
    bool Context::create(void)
    {
-   Log << "Starting module: Monetization." << endl;
+   Log << "Starting module: Monetization.\n";
    return true;
    }
 
    void Context::destroy(void)
    {
-   Log << "Closing module: Monetization." << endl;
+   Log << "Closing module: Monetization.\n";
    }
 
 #ifdef EN_PLATFORM_BLACKBERRY
-   shared_ptr<monetization::Banner> Interface::Banner::create(const uint32 x,            // Banners upper left corner x position on the screen 
+   std::shared_ptr<monetization::Banner> Interface::Banner::create(const uint32 x,            // Banners upper left corner x position on the screen 
                                                        const uint32 y,            // Banners upper left corner y position on the screen 
                                                        const uint32 width,        // Width in pixels
                                                        const uint32 height,       // Height in pixels
                                                        const uint32 seconds,      // Refresh rate in seconds (60 is default and minimum)
                                                        const uint32 zoneID,       // Banners unique ID in Advertising Service, trial zone is 117145 or 31848 or 16741
-                                                       const string placeholder)  // Name of placeholder image (must be in resources/textures path)
+                                                       const std::string placeholder)  // Name of placeholder image (must be in resources/textures path)
    {
    bbBanner* ptr = new bbBanner(x, y, width, height, seconds, zoneID, placeholder);
 // TODO: Finish it
 //   if (ptr->advertisement)
 //      banners.
 
-   return shared_ptr<monetization::Banner>((monetization::Banner*) ptr);
+   return std::shared_ptr<monetization::Banner>((monetization::Banner*) ptr);
    }
 #endif
 

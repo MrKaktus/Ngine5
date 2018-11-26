@@ -68,7 +68,6 @@ LHS (z as Up, y as DEPTH)
 #define ENG_SCENE_ENTITY
 
 #include <memory>
-using namespace std;
 
 #include "core/utilities/NonCopyable.h"
 #include "utilities/gpcpu/gpcpu.h"
@@ -96,7 +95,7 @@ namespace en
          Scene*    pScene;   // Scene this entity belongs to
          uint32    handle;   // Handle in scene
 
-/* 4  */ shared_ptr<Entity> parent; // Parent entity
+/* 4  */ std::shared_ptr<Entity> parent; // Parent entity
 
          // Scene that owns it, can manipulate with all data of entity
          friend class Scene; 

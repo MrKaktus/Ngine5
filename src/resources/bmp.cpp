@@ -18,69 +18,68 @@
 #include "core/rendering/device.h"
 
 #include <string>
-using namespace std;
 
 namespace en
 {
    namespace bmp
    {
    enum Compression
-        {
-        None          = 0,  // Uncompressed
-        RLE8          = 1,  // 8bpp RLE
-        RLE4          = 2,  // 4bpp RLE
-        Huffman       = 3,  // Bit field / Huffman 1D 
-        JPEG          = 4,  // JPEG / 24bpp RLE
-        PNG           = 5,  // PNG
-        AlphaBitField = 6
-        };
+      {
+      None          = 0,  // Uncompressed
+      RLE8          = 1,  // 8bpp RLE
+      RLE4          = 2,  // 4bpp RLE
+      Huffman       = 3,  // Bit field / Huffman 1D 
+      JPEG          = 4,  // JPEG / 24bpp RLE
+      PNG           = 5,  // PNG
+      AlphaBitField = 6
+      };
 
    aligned(1) 
    struct Header
-          {
-          uint16 signature;   // BMP file signature 'BM' -> 0x4D42
-          uint32 size;        // File size in bytes
-          uint32 reserved;    // Reserved
-          uint32 dataOffset;  // Offset in file to image data
-          };
+      {
+      uint16 signature;   // BMP file signature 'BM' -> 0x4D42
+      uint32 size;        // File size in bytes
+      uint32 reserved;    // Reserved
+      uint32 dataOffset;  // Offset in file to image data
+      };
  
    struct DIBHeaderOS2
-          {
-          uint32      headerSize;  // DIB header size
-          uint16      width;       // Image width
-          uint16      height;      // Image height
-          uint16      planes;      // Color planes
-          uint16      bpp;         // Bits per pixel: 1,4,8,24
-          };
+      {
+      uint32      headerSize;  // DIB header size
+      uint16      width;       // Image width
+      uint16      height;      // Image height
+      uint16      planes;      // Color planes
+      uint16      bpp;         // Bits per pixel: 1,4,8,24
+      };
     
    struct DIBHeaderV1
-          {
-          uint32      headerSize;  // DIB header size
-          sint32      width;       // Image width
-          sint32      height;      // Image height
-          uint16      planes;      // Color planes
-          uint16      bpp;         // Bits per pixel: 1,4,8,16,24,32
-          Compression compression; // Compression method
-          uint32      size;        // Image size
-          sint32      hres;        // Horizontal pixels per meter
-          sint32      vres;        // Vertical pixels per meter
-          uint32      colors;      // Colors used in image
-          uint32      colorsImp;   // Important colors in image
-          }; 
+      {
+      uint32      headerSize;  // DIB header size
+      sint32      width;       // Image width
+      sint32      height;      // Image height
+      uint16      planes;      // Color planes
+      uint16      bpp;         // Bits per pixel: 1,4,8,16,24,32
+      Compression compression; // Compression method
+      uint32      size;        // Image size
+      sint32      hres;        // Horizontal pixels per meter
+      sint32      vres;        // Vertical pixels per meter
+      uint32      colors;      // Colors used in image
+      uint32      colorsImp;   // Important colors in image
+      }; 
    aligndefault
 
-   bool load(shared_ptr<en::gpu::Texture> dst, const uint16 layer, const string& filename)
+   bool load(std::shared_ptr<en::gpu::Texture> dst, const uint16 layer, const std::string& filename)
    {
    using namespace en::storage;
 
    // Open image file
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.textures + filename << endl;
+         Log << en::ResourcesContext.path.textures + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
          return false;
          }
@@ -178,7 +177,7 @@ namespace en
       return false;
 
    // Create staging buffer
-   shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
+   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -197,7 +196,7 @@ namespace en
       type = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
    command->copy(*staging, 0u, settings.rowSize(0), *dst, 0u, layer);
    command->commit();
@@ -216,7 +215,7 @@ namespace en
    return true;
    }
 
-   shared_ptr<en::gpu::Texture> load(const string& filename)
+   std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
    {
    using namespace en::storage;
 
@@ -225,15 +224,15 @@ namespace en
       return ResourcesContext.textures[filename];
 
    // Open image file
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.textures + filename << endl;
+         Log << en::ResourcesContext.path.textures + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
-         return shared_ptr<gpu::Texture>(nullptr);
+         return std::shared_ptr<gpu::Texture>(nullptr);
          }
       }
    
@@ -244,7 +243,7 @@ namespace en
       {
       Log << "ERROR: BMP file header signature incorrect!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
    
    // Read file header
@@ -254,7 +253,7 @@ namespace en
       {
       Log << "ERROR: BMP file header incorrect!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
    
    // Read DIB header
@@ -270,7 +269,7 @@ namespace en
       {
       Log << "ERROR: Unsupported DIB header!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }    
    
    // Check if image is not compressed
@@ -278,7 +277,7 @@ namespace en
       {
       Log << "ERROR: Compressed BMP files are not supported!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
    
    // Determine texture parameters
@@ -294,7 +293,7 @@ namespace en
       {
       Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>(nullptr);
+      return std::shared_ptr<gpu::Texture>(nullptr);
       }
    
    // Determine texture type
@@ -314,7 +313,7 @@ namespace en
       dataSize = lineSize * DIBHeader.height;
 
    // Create texture in gpu
-   shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+   std::shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
@@ -323,7 +322,7 @@ namespace en
       }
       
    // Create staging buffer
-   shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
+   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -346,7 +345,7 @@ namespace en
       type = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
    command->copy(*staging, 0u, settings.rowSize(mipmap), *texture, mipmap, slice);
    command->commit();
@@ -363,23 +362,23 @@ namespace en
    staging = nullptr;
  
    // Update list of loaded textures
-   ResourcesContext.textures.insert(pair<string, shared_ptr<en::gpu::Texture> >(filename, texture));
+   ResourcesContext.textures.insert(std::pair<std::string, std::shared_ptr<en::gpu::Texture> >(filename, texture));
     
    return texture;
    }
 
-   en::gpu::TextureState settings(const string& filename)
+   en::gpu::TextureState settings(const std::string& filename)
    {
    using namespace en::storage;
 
    // Open image file 
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.textures + filename << endl;
+         Log << en::ResourcesContext.path.textures + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
          return gpu::TextureState();
          }
@@ -458,7 +457,7 @@ namespace en
    return settings;
    }
 
-   bool load(const string& filename, en::gpu::TextureState& settings, void* dst)
+   bool load(const std::string& filename, en::gpu::TextureState& settings, void* dst)
    {
    using namespace en::storage;
    
@@ -468,7 +467,7 @@ namespace en
      return false;
    
    // Open image file 
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -505,7 +504,7 @@ namespace en
    }
 
 
-   //bool save(shared_ptr<en::gpu::Texture> texture, const string& filename)
+   //bool save(std::shared_ptr<en::gpu::Texture> texture, const std::string& filename)
    //{
    //using namespace en::storage;
 
@@ -515,13 +514,13 @@ namespace en
    //   return false;
 
    //// Open image file 
-   //shared_ptr<File> file = Storage->open(filename, en::storage::Write);
+   //std::shared_ptr<File> file = Storage->open(filename, en::storage::Write);
    //if (!file)
    //   {
    //   file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
    //   if (!file)
    //      {
-   //      Log << en::ResourcesContext.path.screenshots + filename << endl;
+   //      Log << en::ResourcesContext.path.screenshots + filename << std::endl;
    //      Log << "ERROR: Cannot create such file!\n";
    //      return false;
    //      }
@@ -566,7 +565,7 @@ namespace en
    //return true;
    //}
 
-   bool save(const uint32 width, const uint32 height, const uint8* ptr, const string& filename)
+   bool save(const uint32 width, const uint32 height, const uint8* ptr, const std::string& filename)
    {
    using namespace en::storage;
 
@@ -576,13 +575,13 @@ namespace en
       return false;
 
    // Open image file 
-   shared_ptr<File> file = Storage->open(filename, en::storage::Write);
+   std::shared_ptr<File> file = Storage->open(filename, en::storage::Write);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
       if (!file)
          {
-         Log << en::ResourcesContext.path.screenshots + filename << endl;
+         Log << en::ResourcesContext.path.screenshots + filename << std::endl;
          Log << "ERROR: Cannot create such file!\n";
          return false;
          }

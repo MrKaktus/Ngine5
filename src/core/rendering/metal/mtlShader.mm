@@ -46,9 +46,9 @@ namespace en
       // Vulkan - entrypoint is specified at Pipeline creation I guess
       // Metal  - has libraries, from which we pick functions as entry points
       
-   shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const string& source)
+   std::shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const std::string& source)
    {
-   shared_ptr<ShaderMTL> shader = nullptr;
+   std::shared_ptr<ShaderMTL> shader = nullptr;
 
    NSString* code = stringTo_NSString(source);
 
@@ -73,7 +73,7 @@ namespace en
       if ([error code] == MTLLibraryErrorCompileWarning)
          {
          Log << "Warning! Shader compiled with warnings:\n";
-         Log << [[error description] UTF8String] << endl;
+         Log << [[error description] UTF8String] << std::endl;
          }
       else
          {
@@ -83,24 +83,24 @@ namespace en
             Log << "Error! Internal Metal shader compiler error..\n";
          if ([error code] == MTLLibraryErrorCompileFailure)
             Log << "Error! Failed to compile shader library from source.\n";
-         Log << [[error description] UTF8String] << endl;
+         Log << [[error description] UTF8String] << std::endl;
          
          deallocateObjectiveC(options);
 
-         return shared_ptr<Shader>(nullptr);
+         return std::shared_ptr<Shader>(nullptr);
          }
       }
     
    deallocateObjectiveC(options);
 
-   return make_shared<ShaderMTL>(library);
+   return std::make_shared<ShaderMTL>(library);
    }
 
-   shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   std::shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
    {
    // Unsupported on Metal
    assert( 0 );
-   return shared_ptr<Shader>(nullptr);
+   return std::shared_ptr<Shader>(nullptr);
    }
 
 //    NSString* shaderText = [NSString stringWithContentsOfFile:stringTo<NSString*>(filepath) encoding:NSUTF8StringEncoding error:&error];

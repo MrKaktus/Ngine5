@@ -416,9 +416,9 @@ void dummy(void)
 //en::ConfigContext.create();
 //en::LogContext.create();
 //en::Log << "Ngine4\n";
-//en::Log << "Starting module: Storage." << endl;
-//en::Log << "Starting module: Config." << endl;
-//en::Log << "Starting module: Log." << endl;
+//en::Log << "Starting module: Storage.\n";
+//en::Log << "Starting module: Config.\n";
+//en::Log << "Starting module: Log.\n";
 //
 ////en::SystemContext.create(state);
 //    NSchedulerContext::create();

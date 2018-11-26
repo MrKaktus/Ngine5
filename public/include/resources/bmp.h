@@ -19,13 +19,13 @@ namespace en
 {
    namespace bmp
    {
-   shared_ptr<en::gpu::Texture> load(const string& filename);
-   bool             load(shared_ptr<en::gpu::Texture> dst, const uint16 layer, const string& filename);
-   //bool             save(shared_ptr<en::gpu::Texture> texture, const string& filename);
-   bool             save(const uint32 width, const uint32 height, const uint8* ptr, const string& filename);
+   std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
+   bool             load(std::shared_ptr<en::gpu::Texture> dst, const uint16 layer, const std::string& filename);
+   //bool             save(std::shared_ptr<en::gpu::Texture> texture, const std::string& filename);
+   bool             save(const uint32 width, const uint32 height, const uint8* ptr, const std::string& filename);
 
-   en::gpu::TextureState settings(const string& filename);
-   bool load(const string& filename, en::gpu::TextureState& settings, void* dst);
+   en::gpu::TextureState settings(const std::string& filename);
+   bool load(const std::string& filename, en::gpu::TextureState& settings, void* dst);
    }
 }
 

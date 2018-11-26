@@ -35,7 +35,7 @@ namespace en
    accelerometer.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER);
    if (accelerometer.sensor)
       {
-      Log << "                 Accelerometer available." << endl;
+      Log << "                 Accelerometer available.\n";
       accelerometer.available = true;
       }
 
@@ -43,7 +43,7 @@ namespace en
    compass.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
    if (compass.sensor)
       {
-      Log << "                 Compass available." << endl;
+      Log << "                 Compass available.\n";
       compass.available = true;
       }
 
@@ -51,7 +51,7 @@ namespace en
    gyroscope.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_GYROSCOPE);
    if (gyroscope.sensor)
       {
-      Log << "                 Gyroscope available." << endl;
+      Log << "                 Gyroscope available.\n";
       gyroscope.available = true;
       }
 
@@ -59,7 +59,7 @@ namespace en
    light.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_LIGHT);
    if (light.sensor)
       {
-      Log << "                 Light sensor available." << endl;
+      Log << "                 Light sensor available.\n";
       light.available = true;
       }
 
@@ -67,7 +67,7 @@ namespace en
    proximity.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_PROXIMITY);
    if (proximity.sensor)
       {
-      Log << "                 Proximity sensor available." << endl;
+      Log << "                 Proximity sensor available.\n";
       proximity.available = true;
       }
 
@@ -75,7 +75,7 @@ namespace en
    temperature.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_AMBIENT_TEMPERATURE);
    if (temperature.sensor)
       {
-      Log << "                 Ambient Temperature sensor available." << endl;
+      Log << "                 Ambient Temperature sensor available.\n";
       temperature.available = true;
       }
    else 
@@ -83,7 +83,7 @@ namespace en
       temperature.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_TEMPERATURE);
       if (temperature.sensor)
          {
-         Log << "                 Temperature sensor available." << endl;
+         Log << "                 Temperature sensor available.\n";
          temperature.available = true;
          }
       }

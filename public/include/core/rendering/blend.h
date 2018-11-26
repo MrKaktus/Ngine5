@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_BLEND_STATE
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"

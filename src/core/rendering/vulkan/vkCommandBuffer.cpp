@@ -70,7 +70,7 @@ namespace en
    ValidateNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
    
    // Release Command Buffer
-   uint32 thread = Scheduler.core();
+   uint32 thread = currentThreadId();
    ValidateNoRet( gpu, vkFreeCommandBuffers(gpu->device, gpu->commandPool[thread][underlyingType(queueType)], 1, &handle) )
    }
 
@@ -130,7 +130,7 @@ namespace en
    started = true;
    }
    
-   void CommandBufferVK::startRenderPass(const shared_ptr<RenderPass> pass, const shared_ptr<Framebuffer> _framebuffer)
+   void CommandBufferVK::startRenderPass(const std::shared_ptr<RenderPass> pass, const std::shared_ptr<Framebuffer> _framebuffer)
    {
    assert( started );
    assert( !encoding );
@@ -174,7 +174,7 @@ namespace en
 
    void CommandBufferVK::setVertexBuffers(const uint32 firstSlot,
                                           const uint32 count,
-                                          const shared_ptr<Buffer>(&buffers)[],
+                                          const std::shared_ptr<Buffer>(&buffers)[],
                                           const uint64* offsets) const
    {
    assert( started );
@@ -655,11 +655,11 @@ namespace en
    bool CommandBufferVK::isCompleted(void)
    {
    // Unrolled "Profile" macro, to prevent outputting of false Warning messages.
-   uint32 thread = Scheduler.core();
+   uint32 thread = currentThreadId();
 #ifdef EN_DEBUG
    #ifdef EN_PROFILER_TRACE_GRAPHICS_API
    Log << "[" << setw(2) << thread << "] ";
-   Log << "Vulkan GPU " << setbase(16) << gpu << ": vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u)" << endl;
+   Log << "Vulkan GPU " << setbase(16) << gpu << ": vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u)\n";
    gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
    if (en::gpu::IsError(gpu->lastResult[thread]))
       assert( 0 );
@@ -680,9 +680,9 @@ namespace en
    uint64 gpuWatchDog = 1000000000; // TODO: This should be configurable global
    
    Validate( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
-   if (gpu->lastResult[Scheduler.core()] == VK_TIMEOUT)
+   if (gpu->lastResult[currentThreadId()] == VK_TIMEOUT)
       {
-      Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << endl;   // TODO: File / line doesn't make sense as it will always point this method!
+      Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << std::endl;   // TODO: File / line doesn't make sense as it will always point this method!
       }
 
 
@@ -715,7 +715,7 @@ namespace en
    // 
    }
    
-   shared_ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
+   std::shared_ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
    {
    assert( queuesCount[underlyingType(type)] > parentQueue );
    
@@ -725,7 +725,7 @@ namespace en
 
 
    // Each thread creates it's Command Buffers from separate Command Pool
-   uint32 thread = Scheduler.core();
+   uint32 thread = currentThreadId();
 
    VkCommandBuffer handle;
  
@@ -752,12 +752,12 @@ namespace en
    VkQueue queue;
    ValidateNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
-   return make_shared<CommandBufferVK>(this, queue, type, handle, fence);
+   return std::make_shared<CommandBufferVK>(this, queue, type, handle, fence);
    }
 
-   void VulkanDevice::addCommandBufferToQueue(shared_ptr<CommandBuffer> command)
+   void VulkanDevice::addCommandBufferToQueue(std::shared_ptr<CommandBuffer> command)
    {
-   uint32 thread    = Scheduler.core();
+   uint32 thread    = currentThreadId();
    uint32 executing = commandBuffersExecuting[thread];
 
    assert( executing < MaxCommandBuffersExecuting );
@@ -769,7 +769,7 @@ namespace en
    void VulkanDevice::clearCommandBuffersQueue(void)
    {
    // Iterate over list of Command Buffers submitted for execution by this thread.
-   uint32 thread    = Scheduler.core();
+   uint32 thread    = currentThreadId();
    uint32 executing = commandBuffersExecuting[thread];
    for(uint32 i=0; i<executing; ++i)
       {

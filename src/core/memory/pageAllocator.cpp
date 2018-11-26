@@ -11,7 +11,7 @@
 
 #include "assert.h"
 
-#include "core/utilities/pageAllocator.h"
+#include "core/memory/pageAllocator.h"
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 #include <mach/mach.h>

@@ -219,7 +219,7 @@ namespace en
    //                     const AttributeFormat attributes[16]
    //                     );
 
-   //shared_ptr<Buffer> Interface::IBuffer::Create()
+   //std::shared_ptr<Buffer> Interface::IBuffer::Create()
    //{
 
    //}
@@ -261,7 +261,7 @@ namespace en
 //uint32 usedAttributes;
 //uint32 usedBuffers;
 //Attribute*   attributes,   // Pointer to array specifying each vertex attribute, and it's source buffer
-//shared_ptr<Buffer>* buffers)      // Array of buffer handles that will be used
+//std::shared_ptr<Buffer>* buffers)      // Array of buffer handles that will be used
 
 
    // Inits Input Assembler with default set of buffers to use.
@@ -335,12 +335,12 @@ namespace en
    }
    
    // Implemented by CommonDevice
-   // shared_ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+   // std::shared_ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
    //                                                         const bool primitiveRestart,
    //                                                         const uint32 controlPoints,
    //                                                         const Buffer* buffer)
       
-   shared_ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
+   std::shared_ptr<InputLayout> VulkanDevice::createInputLayout(const DrawableType primitiveType,
                                                            const bool primitiveRestart,
                                                            const uint32 controlPoints,
                                                            const uint32 usedAttributes,
@@ -348,7 +348,7 @@ namespace en
                                                            const AttributeDesc* attributes,
                                                            const BufferDesc* buffers)
    {
-   return make_shared<InputLayoutVK>(primitiveType,
+   return std::make_shared<InputLayoutVK>(primitiveType,
                                      primitiveRestart,
                                      controlPoints,
                                      usedAttributes,

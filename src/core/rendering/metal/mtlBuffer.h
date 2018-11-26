@@ -32,10 +32,10 @@ namespace en
       {
       public:
       id<MTLBuffer> handle;
-      shared_ptr<HeapMTL> heap; // Memory backing heap
+      std::shared_ptr<HeapMTL> heap; // Memory backing heap
       uint32 offset;            // Offset in parent MTLBuffer
       
-      BufferMTL(shared_ptr<HeapMTL> heap, id<MTLBuffer> handle, const BufferType type, const uint32 size, const uint32 offset);
+      BufferMTL(std::shared_ptr<HeapMTL> heap, id<MTLBuffer> handle, const BufferType type, const uint32 size, const uint32 offset);
 
       virtual volatile void* map(void);
       virtual volatile void* map(const uint64 offset, const uint64 size);
@@ -47,7 +47,7 @@ namespace en
    class BufferViewMTL : public BufferView
       {
       public:
-      shared_ptr<Buffer> parent;  // Buffer from which this View is created
+      std::shared_ptr<Buffer> parent;  // Buffer from which this View is created
       
       BufferViewMTL();
       virtual ~BufferViewMTL();

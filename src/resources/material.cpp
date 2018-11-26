@@ -21,7 +21,7 @@ namespace en
    namespace material
    {
 
-   en::resource::Material load(const string& filename)
+   en::resource::Material load(const std::string& filename)
    {
    using namespace en::storage;
 
@@ -30,13 +30,13 @@ namespace en
       return ResourcesContext.materials[filename];
 
    // Open MATERIAL file
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.materials + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.materials + filename << endl;
+         Log << en::ResourcesContext.path.materials + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
          return en::resource::Material();
          }

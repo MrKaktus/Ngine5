@@ -23,19 +23,18 @@
 
 #include <cstddef>
 #include <string>
-using namespace std;
 
 namespace en
 {
    namespace hdr
    {
    enum Compression
-        {
-        Unknown   = 0,
-        RLE_RGBA     ,
-        RLE_XYZ
-        };
-
+      {
+      Unknown   = 0,
+      RLE_RGBA     ,
+      RLE_XYZ
+      };
+      
    // Decompress RGBA shared exponent to float RGB
    float3 decompress(uint8* color)
    {
@@ -52,21 +51,21 @@ namespace en
    return out;
    }
 
-   shared_ptr<en::gpu::Texture> load(const string& filename)
+   std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
    {
    using namespace en::storage;
    using namespace en::gpu;
 
    // Open image file
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.textures + filename << endl;
+         Log << en::ResourcesContext.path.textures + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
-         return shared_ptr<gpu::Texture>();
+         return std::shared_ptr<gpu::Texture>();
          }
       }
    
@@ -78,13 +77,13 @@ namespace en
       {
       Log << "ERROR: Not HDR file!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>();
+      return std::shared_ptr<gpu::Texture>();
       }
    if (strcmp(radiance, header) != 0)
       {
       Log << "ERROR: HDR file header signature incorrect!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>();
+      return std::shared_ptr<gpu::Texture>();
       }
 
 
@@ -94,7 +93,7 @@ namespace en
    // Read parameters
    uint32 offset = 0;
    uint32 read = 0;
-   string line;
+   std::string line;
    for(;;)
       {
       read = file->readLine(offset, 256, line);
@@ -120,7 +119,7 @@ namespace en
    assert(compression == RLE_RGBA);
 
    // Read image size and orientation
-   string word;
+   std::string word;
    uint32 width  = 0;
    uint32 height = 0;
    bool columnOrder = false;
@@ -169,20 +168,20 @@ namespace en
       }
 
    // Read raw data to memory
-   uint8* raw = allocate<uint8>(cacheline, static_cast<uint32>(rawSize));
+   uint8* raw = allocate<uint8>(static_cast<uint32>(rawSize), cacheline);
    if (!file->read(offset, static_cast<uint32>(rawSize), raw))
       {
       Log << "ERROR: Cannot read HDR file to memory!\n";
       deallocate<uint8>(raw);
       file = nullptr;
-      return shared_ptr<gpu::Texture>();
+      return std::shared_ptr<gpu::Texture>();
       }
 
    // Texture is compressed using RLE one scan line at a time
    // http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
    // http://paulbourke.net/dataformats/pic/
    // Data stores texels in OpenGL friendly +Y +X order 
-   uint8* data = allocate<uint8>(cacheline, width * height * 4);
+   uint8* data = allocate<uint8>(width * height * 4, cacheline);
    memset(data, 0, width * height * 4);
    uint32 lines = height;
    uint32 length = width;
@@ -341,20 +340,20 @@ namespace en
    settings.type   = TextureType::Texture2D;
 
    // Create texture in gpu
-   shared_ptr<Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+   std::shared_ptr<Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
-      return shared_ptr<Texture>(nullptr);
+      return std::shared_ptr<Texture>(nullptr);
       }
    
    // Create staging buffer
    uint32 stagingSize = texture->size();
-   shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
-      return shared_ptr<Texture>(nullptr);
+      return std::shared_ptr<Texture>(nullptr);
       }
 
    // Recompress texture directly to gpu memory
@@ -443,7 +442,7 @@ namespace en
       type = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
    command->copy(*staging, 0u, settings.rowSize(0u), *texture, 0u, 0u);
    command->commit();
@@ -638,7 +637,7 @@ namespace en
 //   // http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
 //   // http://paulbourke.net/dataformats/pic/
 //   // Data stores texels in OpenGL friendly +Y +X order 
-//   uint8* data = allocate<uint8>(cacheline, width * height * 4);
+//   uint8* data = allocate<uint8>(width * height * 4, cacheline);
 //   uint32 lines = columnOrder ? width : height;
 //   uint32 length = columnOrder ? height : width;
 //   uint64 rawOffset = 0;

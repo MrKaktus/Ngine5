@@ -22,7 +22,6 @@
 #endif
 
 #include <string>
-using namespace std;
 
 namespace en
 {
@@ -65,31 +64,31 @@ namespace en
       };
 
 
-   bool save(const gpu::TextureState settings, const uint64 size, const void* data, const string& filename)
+   bool save(const gpu::TextureState settings, const uint64 size, const void* data, const std::string& filename)
    {
    // TODO: Finish
    return false;
    }
 
-   bool save(shared_ptr<gpu::Texture> texture, const string& filename)
+   bool save(std::shared_ptr<gpu::Texture> texture, const std::string& filename)
    {
    // TODO: Finish
    return false;
    }
 
-   shared_ptr<gpu::Texture> load(const string& filename)
+   std::shared_ptr<gpu::Texture> load(const std::string& filename)
    {
    using namespace en::storage;
    using namespace en::gpu;
 
    // Open image file 
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.textures + filename << endl;
+         Log << en::ResourcesContext.path.textures + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
          return nullptr;
          }
@@ -123,7 +122,7 @@ namespace en
    TextureHeader_v1* textures = new TextureHeader_v1[header.textures];
    uint32 datasize = sizeof(TextureHeader_v1) * header.textures;
    file->read(20, datasize, textures);
-   shared_ptr<gpu::Texture>* out = new shared_ptr<gpu::Texture>[header.textures];
+   std::shared_ptr<gpu::Texture>* out = new std::shared_ptr<gpu::Texture>[header.textures];
 
    // Process textures
    for(uint32 i=0; i<header.textures; ++i)
@@ -154,7 +153,7 @@ namespace en
       for(uint16 j=0; j<textures[i].surfaces; ++j)
          {
          // Create staging buffer
-         shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, (uint32)surfaces[j].size);
+         std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, (uint32)surfaces[j].size);
          if (!staging)
             {
             Log << "ERROR: Cannot create staging buffer!\n";
@@ -173,7 +172,7 @@ namespace en
             type = gpu::QueueType::Transfer;
 
          // Copy data from staging buffer to final texture
-         shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+         std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
          command->start();
          command->copy(*staging, 0u, settings.rowSize(surfaces[j].mipmap), *out[i], surfaces[j].mipmap, surfaces[j].layer);
          command->commit();

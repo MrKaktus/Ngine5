@@ -218,7 +218,7 @@ namespace en
    return MipSlice + ArraySlice * MipLevels + PlaneSlice * MipLevels * ArraySize;
    }
 
-   TextureD3D12::TextureD3D12(shared_ptr<HeapD3D12> _heap,
+   TextureD3D12::TextureD3D12(std::shared_ptr<HeapD3D12> _heap,
                               ID3D12Resource* _handle,
                               uint64 _offset,
                               uint64 _size,
@@ -257,22 +257,22 @@ namespace en
       }
    }
    
-   shared_ptr<Heap> TextureD3D12::parent(void) const
+   std::shared_ptr<Heap> TextureD3D12::parent(void) const
    {
    return heap;
    }
 
-   shared_ptr<TextureView> TextureD3D12::view(void)
+   std::shared_ptr<TextureView> TextureD3D12::view(void)
    {
    return view(state.type, state.format, uint32v2(0, state.mipmaps), uint32v2(0, state.layers));
    }
 
-   shared_ptr<TextureView> TextureD3D12::view(const TextureType _type,
+   std::shared_ptr<TextureView> TextureD3D12::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
       const uint32v2 _layers)
    {
-   shared_ptr<TextureViewD3D12> view = make_shared<TextureViewD3D12>(dynamic_pointer_cast<TextureD3D12>(shared_from_this()),
+   std::shared_ptr<TextureViewD3D12> view = std::make_shared<TextureViewD3D12>(std::dynamic_pointer_cast<TextureD3D12>(shared_from_this()),
                                                                      _type,
                                                                      _format,
                                                                      _mipmaps,
@@ -450,9 +450,9 @@ namespace en
    return desc;
    }
    
-   shared_ptr<Texture> HeapD3D12::createTexture(const TextureState state)
+   std::shared_ptr<Texture> HeapD3D12::createTexture(const TextureState state)
    {
-   shared_ptr<TextureD3D12> result = nullptr;
+   std::shared_ptr<TextureD3D12> result = nullptr;
    
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
@@ -524,17 +524,17 @@ namespace en
                                       enableOptimizedClear ? &clearValue : nullptr, // Clear value - currently not supported
                                       IID_PPV_ARGS(&textureHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&textureHandle)
       
-   if ( SUCCEEDED(gpu->lastResult[Scheduler.core()]) )
-      result = make_shared<TextureD3D12>(dynamic_pointer_cast<HeapD3D12>(shared_from_this()),
-                                         textureHandle,
-                                         offset,
-                                         static_cast<uint64>(allocInfo.SizeInBytes),
-                                         state);
+   if ( SUCCEEDED(gpu->lastResult[currentThreadId()]) )
+      result = std::make_shared<TextureD3D12>(std::dynamic_pointer_cast<HeapD3D12>(shared_from_this()),
+                                              textureHandle,
+                                              offset,
+                                              static_cast<uint64>(allocInfo.SizeInBytes),
+                                              state);
 
    return result;
    }
 
-   TextureViewD3D12::TextureViewD3D12(shared_ptr<TextureD3D12> parent,
+   TextureViewD3D12::TextureViewD3D12(std::shared_ptr<TextureD3D12> parent,
          const TextureType _type,
          const Format _format,
          const uint32v2 _mipmaps,
@@ -550,7 +550,7 @@ namespace en
    texture = nullptr;
    }
 
-   shared_ptr<Texture> TextureViewD3D12::parent(void) const
+   std::shared_ptr<Texture> TextureViewD3D12::parent(void) const
    {
    return texture;
    }

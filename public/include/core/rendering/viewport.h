@@ -18,7 +18,6 @@
 #define ENG_CORE_RENDERING_VIEWPORT_STENCIL_STATE
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"

@@ -4,7 +4,7 @@
  
  Module      : Fibers support.
  Requirements: none
- Description : Allows easy creation and management of fibers.
+ Description : Fibers are lightweight threads managed in application address space.
 
 */
 
@@ -23,9 +23,10 @@ namespace en
    class winFiber : public Fiber
       {
       public:
-      LPVOID handle;
+      LPVOID handle;           // Pointer to fiber object
       uint32 maximumStackSize;
          
+      winFiber(void);
       winFiber(const uint32 stackSize,
                const uint32 maximumStackSize);
      ~winFiber();

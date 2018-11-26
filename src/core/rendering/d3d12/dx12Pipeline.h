@@ -35,7 +35,7 @@ namespace en
       public:
       Direct3D12Device* gpu;
       ID3D12PipelineState* handle;
-      shared_ptr<PipelineLayoutD3D12> layout; // Reference to Pipeline Layout
+      std::shared_ptr<PipelineLayoutD3D12> layout; // Reference to Pipeline Layout
 
       // Dynamic - Set on CommandBuffer
       FLOAT blendColor[4];
@@ -47,7 +47,7 @@ namespace en
       uint32 bufferStride[MaxInputLayoutAttributesCount]; // Element size per bound buffer (passed to Pipeline, and cached on CommandBuffer when Pipeline is bound)
       uint32 buffersCount;
 
-      PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle, shared_ptr<PipelineLayoutD3D12> layout);
+      PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle, std::shared_ptr<PipelineLayoutD3D12> layout);
       virtual ~PipelineD3D12();
       };
 

@@ -42,8 +42,8 @@ namespace en
       ID3D12Fence*          fence;        // Fence to wait for before executing this CommandBuffer
       uint64                waitForValue; // Accompanying value representing unique moment in time
       uint64                commitValue;  // Value representing moment in time, when this CommandBuffer is executed
-      shared_ptr<RenderPassD3D12>  renderPass;  // Render Pass and Framebuffer used for currently encoded Render Pass
-      shared_ptr<FramebufferD3D12> framebuffer;
+      std::shared_ptr<RenderPassD3D12>  renderPass;  // Render Pass and Framebuffer used for currently encoded Render Pass
+      std::shared_ptr<FramebufferD3D12> framebuffer;
       bool                  started;
       bool                  encoding;
       bool                  commited;
@@ -93,8 +93,8 @@ namespace en
          const uint32v2 region,
          const uint8    plane);
          
-      virtual void startRenderPass(const shared_ptr<RenderPass> pass, 
-                                   const shared_ptr<Framebuffer> framebuffer);
+      virtual void startRenderPass(const std::shared_ptr<RenderPass> pass, 
+                                   const std::shared_ptr<Framebuffer> framebuffer);
 
       virtual void setDescriptors(const PipelineLayout& layout,
                                   const DescriptorSet& set,
@@ -102,7 +102,7 @@ namespace en
 
       virtual void setDescriptors(const PipelineLayout& layout, 
                                   const uint32 count,
-                                  const shared_ptr<DescriptorSet>(&sets)[],
+                                  const std::shared_ptr<DescriptorSet>(&sets)[],
                                   const uint32 firstIndex = 0u);
 
       virtual void setPipeline(const Pipeline& pipeline);
@@ -112,7 +112,7 @@ namespace en
 
       virtual void setVertexBuffers(const uint32 firstSlot,
                                     const uint32 count,
-                                    const shared_ptr<Buffer>(&buffers)[],
+                                    const std::shared_ptr<Buffer>(&buffers)[],
                                     const uint64* offsets = nullptr) const;
 
       virtual void setInputBuffer(

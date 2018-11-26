@@ -36,7 +36,7 @@ namespace en
    ValidateNoRet( gpu, vkDestroyShaderModule(gpu->device, handle, nullptr) )
    }
 
-   shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const string& source)
+   std::shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const std::string& source)
    {
    // VK_NV_glsl_shader - allows passing in GLSL instead of SPIR-V
    //                     (we can compile GLSL to SPIRV offline)
@@ -44,9 +44,9 @@ namespace en
    return createShader(stage,(const uint8*)source.c_str(), source.size());
    }
 
-   shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   std::shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
    {
-   shared_ptr<ShaderVK> shader = nullptr;
+   std::shared_ptr<ShaderVK> shader = nullptr;
 
    VkShaderModuleCreateInfo createInfo;
    createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -57,8 +57,8 @@ namespace en
 
    VkShaderModule handle = VK_NULL_HANDLE;
    Validate( this, vkCreateShaderModule(device, &createInfo, nullptr, &handle) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      shader = make_shared<ShaderVK>(this, handle, stage);
+   if (lastResult[currentThreadId()] == VK_SUCCESS)
+      shader = std::make_shared<ShaderVK>(this, handle, stage);
 
    // In Debug mode, VK_EXT_debug_report will handle logging of initial compilation errors.
 

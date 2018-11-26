@@ -24,7 +24,7 @@ namespace en
 {
    namespace gpu
    {
-   HeapMTL::HeapMTL(shared_ptr<MetalDevice> _gpu,
+   HeapMTL::HeapMTL(std::shared_ptr<MetalDevice> _gpu,
                     id handle,
                     const MemoryUsage _usage,
                     const uint32 _size) :
@@ -47,7 +47,7 @@ namespace en
    }
    
    // Return parent device
-   shared_ptr<GpuDevice> HeapMTL::device(void) const
+   std::shared_ptr<GpuDevice> HeapMTL::device(void) const
    {
    return gpu;
    }
@@ -55,12 +55,12 @@ namespace en
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   shared_ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size)
+   std::shared_ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size)
    {
    assert( _usage != MemoryUsage::Tiled &&
            _usage != MemoryUsage::Renderable );
    
-   shared_ptr<BufferMTL> result = nullptr;
+   std::shared_ptr<BufferMTL> result = nullptr;
    
 #if defined(EN_PLATFORM_OSX)
    // Sub-allocate region from backing MTLBuffer
@@ -74,7 +74,7 @@ namespace en
       if (allocator->allocate(size, 0, offset))
          {
          [handle retain];
-         result = make_shared<BufferMTL>(dynamic_pointer_cast<HeapMTL>(shared_from_this()),
+         result = std::make_shared<BufferMTL>(dynamic_pointer_cast<HeapMTL>(shared_from_this()),
                                          handle,
                                          type,
                                          size,
@@ -97,7 +97,7 @@ namespace en
                                                  options:options];
          
       if (buffer)
-         result = make_shared<BufferMTL>(dynamic_pointer_cast<HeapMTL>(shared_from_this()),
+         result = std::make_shared<BufferMTL>(dynamic_pointer_cast<HeapMTL>(shared_from_this()),
                                          buffer,
                                          type,
                                          size,
@@ -107,7 +107,7 @@ namespace en
    return result;
    }
  
-   shared_ptr<Texture> HeapMTL::createTexture(const TextureState state)
+   std::shared_ptr<Texture> HeapMTL::createTexture(const TextureState state)
    {
    // Textures can be only created on Tiled or Renderable Heaps.
    // (Engine currently is not supporting Linear Textures).
@@ -115,16 +115,16 @@ namespace en
            _usage == MemoryUsage::Renderable );
    
    // TODO: Refactor this mess
-   shared_ptr<TextureMTL> ptr = make_shared<TextureMTL>(handle, state);
+   std::shared_ptr<TextureMTL> ptr = std::make_shared<TextureMTL>(handle, state);
    if (ptr)
-      ptr->heap = dynamic_pointer_cast<HeapMTL>(shared_from_this());
+      ptr->heap = std::dynamic_pointer_cast<HeapMTL>(shared_from_this());
    
    return ptr;
    }
    
-   shared_ptr<Heap> MetalDevice::createHeap(const MemoryUsage usage, const uint32 size)
+   std::shared_ptr<Heap> MetalDevice::createHeap(const MemoryUsage usage, const uint32 size)
    {
-   shared_ptr<HeapMTL> heap = nullptr;
+   std::shared_ptr<HeapMTL> heap = nullptr;
 
    uint32 roundedSize = roundUp(size, 4096u);
   
@@ -158,7 +158,7 @@ namespace en
          }
          
       if (handle)
-         heap = make_shared<HeapMTL>(dynamic_pointer_cast<MetalDevice>(shared_from_this()),
+         heap = std::make_shared<HeapMTL>(dynamic_pointer_cast<MetalDevice>(shared_from_this()),
                                      handle,
                                      usage,
                                      roundedSize);
@@ -181,7 +181,7 @@ namespace en
    id<MTLHeap> handle = nil;
    handle = [device newHeapWithDescriptor:desc];
    if (handle)
-      heap = make_shared<HeapMTL>(dynamic_pointer_cast<MetalDevice>(shared_from_this()),
+      heap = std::make_shared<HeapMTL>(dynamic_pointer_cast<MetalDevice>(shared_from_this()),
                                   handle,
                                   usage,
                                   roundedSize);

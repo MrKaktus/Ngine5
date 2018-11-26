@@ -58,9 +58,9 @@ namespace en
    {
    }
    
-   shared_ptr<RasterState> MetalDevice::createRasterState(const RasterStateInfo& state)
+   std::shared_ptr<RasterState> MetalDevice::createRasterState(const RasterStateInfo& state)
    {
-   return make_shared<RasterStateMTL>(state);
+   return std::make_shared<RasterStateMTL>(state);
    }
    
    }

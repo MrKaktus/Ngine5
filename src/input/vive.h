@@ -20,7 +20,6 @@
 #include "./openvr-1.0.3/headers/openvr.h"
 
 #include <map>
-using namespace std;
 
 namespace en
 {
@@ -31,8 +30,8 @@ namespace en
       public:
       float3   position(void) const;                        // Controller position
       float4x4 orientation(void) const;                     // Controller orientation
-      shared_ptr<en::resource::Model> model(void) const;
-      shared_ptr<en::gpu::Texture>    texture(void) const;
+      std::shared_ptr<en::resource::Model> model(void) const;
+      std::shared_ptr<en::gpu::Texture>    texture(void) const;
       Time     cooldown(void) const;                        // Returns controller cooldown time for Force Feedback
       Time     maxDuration(void) const;                     // Returns Force Feedback max duration time, or 0 if Force Feedback is not supported
       bool     pulse(uint32 axis, Time duration);           // Spawns Force Feedback pulse for given period of time on given controller Axis
@@ -45,8 +44,8 @@ namespace en
       ValveController(vr::IVRSystem* vrContext, 
                       vr::TrackedDevicePose_t* poseRender, 
                       vr::VRControllerState_t* state, 
-                      shared_ptr<en::resource::Model> model, 
-                      shared_ptr<en::gpu::Texture> texture,
+                      std::shared_ptr<en::resource::Model> model, 
+                      std::shared_ptr<en::gpu::Texture> texture,
                       uint32 discoveredId);
      ~ValveController();
 
@@ -56,8 +55,8 @@ namespace en
       vr::TrackedDevicePose_t* poseState;       // Pointer to HMD array of controller poses
       vr::VRControllerState_t* state;
 
-      shared_ptr<en::resource::Model> controllerModel;
-      shared_ptr<en::gpu::Texture> albedo;
+      std::shared_ptr<en::resource::Model> controllerModel;
+      std::shared_ptr<en::gpu::Texture> albedo;
 
       sint32 trackpadId;
       sint32 joystickId;
@@ -65,14 +64,14 @@ namespace en
       Timer  lastPulse[5];     // Time from last haptic pulse on controllers each axis. There is 5ms of cooldown.
       Time   timeCooldown;     // Force Feedback cool down time
       Time   timeMaxDuration;  // Max allowed Force Feedback pulse duration
-      string nameSystem;       // Button names
-      string nameAppMenu;
-      string nameGrip;
-      string nameTouchpad;
-      string nameTrigger;
-      string nameAxisTrackpad; // Axes names
-      string nameAxisJoystick;
-      string nameAxisTrigger;
+      std::string nameSystem;       // Button names
+      std::string nameAppMenu;
+      std::string nameGrip;
+      std::string nameTouchpad;
+      std::string nameTrigger;
+      std::string nameAxisTrackpad; // Axes names
+      std::string nameAxisJoystick;
+      std::string nameAxisTrigger;
       };
 
    class ValveHMD : public HMD
@@ -100,7 +99,7 @@ namespace en
       virtual void      update(void);
       virtual float3    position(void) const;                    // Head position (when head tracking is supported)
       
-      virtual shared_ptr<en::gpu::Texture> color(Eye eye = LeftEye) const;          // Returns current swap-chain texture that should be used for given eye                           
+      virtual std::shared_ptr<en::gpu::Texture> color(Eye eye = LeftEye) const;          // Returns current swap-chain texture that should be used for given eye                           
       virtual float3    position(Eye eye) const; 
       virtual float4x4  orientation(Eye eye) const;               
       virtual float3    vector(Eye eye) const;
@@ -111,7 +110,7 @@ namespace en
       
       ValveHMD(uint8 index);
       virtual void distortionModel(void);
-      virtual pair< shared_ptr<en::resource::Model>, shared_ptr<en::gpu::Texture> > controllerModel(const string name);
+      virtual pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<en::gpu::Texture> > controllerModel(const std::string name);
       virtual void activateController(vr::TrackedDeviceIndex_t deviceId);
       virtual ~ValveHMD();
       
@@ -133,9 +132,9 @@ namespace en
       vr::IVRRenderModels* renderModels;  // Resources interface
       vr::IVRCompositor*   compositor;    // Image compositor
       uint32               currentIndex;  // Swap used rendertarget textures in swap-chain
-      shared_ptr<en::gpu::Texture> swap[2][2];   // Up to two sets, 2 textures each
+      std::shared_ptr<en::gpu::Texture> swap[2][2];   // Up to two sets, 2 textures each
 #if defined(EN_MODULE_RENDERER_METAL)
-      shared_ptr<SharedSurface>   surface[2][2]; // Shared surfaces
+      std::shared_ptr<SharedSurface>   surface[2][2]; // Shared surfaces
       uint32               opengl[2][2];  // OpenGL texture handles for VRCompositor
       OpenGLContext*       glContext;     // Dummy OpenGL context used to create OpenGL handles of Swap-Chain surfaces
 #endif
@@ -148,14 +147,14 @@ namespace en
       vr::VRControllerState_t controller[vr::k_unMaxTrackedDeviceCount];
      
       // Controlers handles
-      shared_ptr<ValveController> handle[vr::k_unMaxTrackedDeviceCount];   // Pointers to detected controllers
+      std::shared_ptr<ValveController> handle[vr::k_unMaxTrackedDeviceCount];   // Pointers to detected controllers
 
-      map<string, pair< shared_ptr<en::resource::Model>, shared_ptr<en::gpu::Texture> > > modelCache;
+      map<string, pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<en::gpu::Texture> > > modelCache;
 
  
       // Resources for rendering to Window
       uint32v2 window;                    // Resolution of window to mirror to
-      shared_ptr<en::resource::Model> model;     // Distortion lenses model
+      std::shared_ptr<en::resource::Model> model;     // Distortion lenses model
 // TODO:
 //      en::gpu::Program      distortion;   // Distortion rendering program
       uint32            samplerLocation;  // Sampler location

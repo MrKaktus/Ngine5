@@ -14,7 +14,6 @@
 #define ENG_INPUT_KEYBOARD
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"

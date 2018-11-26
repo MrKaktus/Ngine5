@@ -45,9 +45,9 @@
                                    [NSNumber numberWithBool:FALSE], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
         
     m_gpu = NRenderingContext::getPointer();
-    string title = "Ngine 4.0 application.";    
+    std::string title = "Ngine 4.0 application.";    
     if (m_gpu->screen.create(!EN_FULLSCREEN,320,480,title) )
-       enLog << "OpenGL 2.0 ES Rendering Context created!" << endl;
+       enLog << "OpenGL 2.0 ES Rendering Context created!\n";
  
     animating = FALSE;
     displayLinkSupported = FALSE;

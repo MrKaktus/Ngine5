@@ -18,7 +18,6 @@
 #define ENG_CORE_RENDERING_RENDER_PASS
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -124,32 +123,32 @@ namespace en
       // attachments in the Render Pass need to be resolved as well. Content of
       // destination surface for resolve operation is not modified in any way
       // before resolve operation occurs.
-      virtual shared_ptr<Framebuffer> createFramebuffer(
+      virtual std::shared_ptr<Framebuffer> createFramebuffer(
          const uint32v2 resolution,
          const uint32   layers,
          const uint32   attachments,
-         const shared_ptr<TextureView>* attachment,
-         const shared_ptr<TextureView> depthStencil = nullptr,
-         const shared_ptr<TextureView> stencil      = nullptr,
-         const shared_ptr<TextureView> depthResolve = nullptr) = 0;
+         const std::shared_ptr<TextureView>* attachment,
+         const std::shared_ptr<TextureView> depthStencil = nullptr,
+         const std::shared_ptr<TextureView> stencil      = nullptr,
+         const std::shared_ptr<TextureView> depthResolve = nullptr) = 0;
 
       // Creates framebuffer using window Swap-Chain surface.
-      virtual shared_ptr<Framebuffer> createFramebuffer(
+      virtual std::shared_ptr<Framebuffer> createFramebuffer(
          const uint32v2 resolution,
-         const shared_ptr<TextureView> swapChainSurface,
-         const shared_ptr<TextureView> depthStencil = nullptr,
-         const shared_ptr<TextureView> stencil      = nullptr) = 0;
+         const std::shared_ptr<TextureView> swapChainSurface,
+         const std::shared_ptr<TextureView> depthStencil = nullptr,
+         const std::shared_ptr<TextureView> stencil      = nullptr) = 0;
       
       // Creates framebuffer for rendering to temporary MSAA that is then
       // resolved directly to window Swap-Chain surface. Depth-Stencil can still
       // be nullptr, but that need to be explicitly stated by the application
       // (to prevent ambiguous call).
-      virtual shared_ptr<Framebuffer> createFramebuffer(
+      virtual std::shared_ptr<Framebuffer> createFramebuffer(
          const uint32v2 resolution,
-         const shared_ptr<TextureView> temporaryMSAA,
-         const shared_ptr<TextureView> swapChainSurface,
-         const shared_ptr<TextureView> depthStencil,
-         const shared_ptr<TextureView> stencil) = 0;
+         const std::shared_ptr<TextureView> temporaryMSAA,
+         const std::shared_ptr<TextureView> swapChainSurface,
+         const std::shared_ptr<TextureView> depthStencil,
+         const std::shared_ptr<TextureView> stencil) = 0;
           
       virtual ~RenderPass() {};
       };

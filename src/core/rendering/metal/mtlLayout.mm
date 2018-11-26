@@ -72,7 +72,7 @@ namespace en
    PipelineLayoutMTL::PipelineLayoutMTL(MetalDevice* _gpu, const uint32 _setsCount) :
       gpu(_gpu),
       setsCount(_setsCount),
-      setLayout(new shared_ptr<SetLayoutMTL>[_setsCount])
+      setLayout(new std::shared_ptr<SetLayoutMTL>[_setsCount])
    {
    }
    
@@ -91,7 +91,7 @@ namespace en
    
    #define InvalidSlot 255
    
-   DescriptorSetMTL::DescriptorSetMTL(MetalDevice* _gpu, shared_ptr<SetLayoutMTL> _layout) :
+   DescriptorSetMTL::DescriptorSetMTL(MetalDevice* _gpu, std::shared_ptr<SetLayoutMTL> _layout) :
       gpu(_gpu),
       layout(_layout),
       handle(nullptr),
@@ -255,7 +255,7 @@ namespace en
    }
    
    // TODO: Consider in future exposing API that allows binding N resources at the same time
-   //void DescriptorSetMTL::setTextureViews(const uint32 slot, const uint32 count, const shared_ptr<TextureView> views[])
+   //void DescriptorSetMTL::setTextureViews(const uint32 slot, const uint32 count, const std::shared_ptr<TextureView> views[])
    //{
    //assert( views );
    //[layout->handle setBuffers:(const id <MTLBuffer> __nullable [__nonnull])buffers offsets:(const NSUInteger [__nonnull])offsets withRange:NSMakeRange(slot, count)];
@@ -277,20 +277,20 @@ namespace en
    {
    }
    
-   shared_ptr<DescriptorSet> DescriptorsMTL::allocate(const shared_ptr<SetLayout> layout)
+   std::shared_ptr<DescriptorSet> DescriptorsMTL::allocate(const std::shared_ptr<SetLayout> layout)
    {
    // TODO: In Metal, we allocate DescriptorSets directly from Device memory,
    //       thus Descriptors container is not needed. Consider hiding this
    //       abstraction from API, the same way like CommandAllocators.
-   return make_shared<DescriptorSetMTL>(gpu, dynamic_pointer_cast<SetLayoutMTL>(layout));
+   return std::make_shared<DescriptorSetMTL>(gpu, std::dynamic_pointer_cast<SetLayoutMTL>(layout));
    }
    
    bool DescriptorsMTL::allocate(const uint32 count,
-                                 const shared_ptr<SetLayout>(&layouts)[],
-                                 shared_ptr<DescriptorSet>** sets)
+                                 const std::shared_ptr<SetLayout>(&layouts)[],
+                                 std::shared_ptr<DescriptorSet>** sets)
    {
    // Allocate group of Descriptor Sets from Desriptor Pool
-   *sets = new shared_ptr<DescriptorSet>[count];
+   *sets = new std::shared_ptr<DescriptorSet>[count];
    for(uint32 i=0; i<count; ++i)
       {
       (*sets)[i] = allocate(layouts[i]);
@@ -366,7 +366,7 @@ namespace en
                                   
    void CommandBufferMTL::setDescriptors(const PipelineLayout& layout,
                                          const uint32 count,
-                                         const shared_ptr<DescriptorSet>(&sets)[],
+                                         const std::shared_ptr<DescriptorSet>(&sets)[],
                                          const uint32 firstIndex)
    {
    // TODO: Finish!
@@ -380,14 +380,14 @@ namespace en
    
    
    // stageMask is ignored in Metal
-   shared_ptr<SetLayout> MetalDevice::createSetLayout(const uint32 count,
+   std::shared_ptr<SetLayout> MetalDevice::createSetLayout(const uint32 count,
                                                const ResourceGroup* group,
                                                const ShaderStages stageMask)
    {
    assert( count );
    assert( group );
    
-   shared_ptr<SetLayoutMTL> result = nullptr;
+   std::shared_ptr<SetLayoutMTL> result = nullptr;
    
    uint32 slot = 0;
       
@@ -422,24 +422,24 @@ namespace en
    // Create arguments encoder (Descriptors Layout)
    id<MTLArgumentEncoder> encoder = [device newArgumentEncoderWithArguments:arguments];
    if (encoder)
-      result = make_shared<SetLayoutMTL>(encoder, stageMask, slot);
+      result = std::make_shared<SetLayoutMTL>(encoder, stageMask, slot);
       
    return result;
    }
    
-   shared_ptr<PipelineLayout> MetalDevice::createPipelineLayout(const uint32 sets,
-                                                                const shared_ptr<SetLayout>* set,
+   std::shared_ptr<PipelineLayout> MetalDevice::createPipelineLayout(const uint32 sets,
+                                                                const std::shared_ptr<SetLayout>* set,
                                                                 const uint32 immutableSamplers,
-                                                                const shared_ptr<Sampler>* sampler,
+                                                                const std::shared_ptr<Sampler>* sampler,
                                                                 const ShaderStages stageMask)
    {
-   shared_ptr<PipelineLayoutMTL> result = nullptr;
+   std::shared_ptr<PipelineLayoutMTL> result = nullptr;
    
    MTLMutability mutability = MTLMutabilityImmutable;
 
-   result = make_shared<PipelineLayoutMTL>(this, sets);
+   result = std::make_shared<PipelineLayoutMTL>(this, sets);
    for(uint32 i=0; i<sets; ++i)
-      result->setLayout[i] = dynamic_pointer_cast<SetLayoutMTL>(set[i]);
+      result->setLayout[i] = std::dynamic_pointer_cast<SetLayoutMTL>(set[i]);
    
    //  MTLArgumentBuffersTier argumentBuffersSupport
    
@@ -456,13 +456,13 @@ namespace en
    return result;
    }
    
-   shared_ptr<Descriptors> MetalDevice::createDescriptorsPool(const uint32 maxSets,
+   std::shared_ptr<Descriptors> MetalDevice::createDescriptorsPool(const uint32 maxSets,
                                                        const uint32 (&count)[underlyingType(ResourceType::Count)])
    {
    // TODO: In Metal, we allocate DescriptorSets directly from Device memory,
    //       thus Descriptors container is not needed. Consider hiding this
    //       abstraction from API, the same way like CommandAllocators.
-   return make_shared<DescriptorsMTL>(this);
+   return std::make_shared<DescriptorsMTL>(this);
    }
    
    }

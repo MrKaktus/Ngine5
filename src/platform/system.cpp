@@ -52,6 +52,36 @@ namespace en
    SYSTEM_INFO si;
    GetSystemInfo(&si);
    cores = si.dwNumberOfProcessors;
+
+/*
+   // TOOD: Distinguish amount of physical & logical cores
+
+   #define MaxCores 256;
+
+
+   PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX logicalProcessorInfo[MaxCores];
+   DWORD returnedSize = sizeof(logicalProcessorInfo);
+   bool hyperthreading = false;
+
+   BOOL result = GetLogicalProcessorInformationEx(RelationProcessorCore, 
+                                                 &logicalProcessorInfo,
+                                                 &returnedSize);
+   if (result)
+      {
+      uint32 entries = returnedSize / sizeof(PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX);
+      for(uint32 i=0; i<entries; ++i)
+         {
+         if (logicalProcessorInfo[i].Processor.Flags == LTP_PC_SMT)
+            {
+            hyperthreading = true;
+
+            string info = ""
+            Log << info;
+            }
+         }
+      };
+*/
+
 #endif
 
    // Determine Platform type

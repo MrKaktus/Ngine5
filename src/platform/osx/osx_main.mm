@@ -126,8 +126,8 @@ int ConsoleMain(int argc, const char* argv[])
 }
 //@catch(NSException* exception)
 //{
-//   en::Log << "Application crashed with exception:" << endl;
-//   en::Log << exception.reason << endl;
+//   en::Log << "Application crashed with exception:\n";
+//   en::Log << exception.reason << std::endl;
 //}
 //[pool release];
    
@@ -156,8 +156,8 @@ int ConsoleMain(int argc, const char* argv[])
     }
     @catch(NSException* exception)
     {
-        cout << "!!! CRITICAL CRASH OF APPLICATION !!!" << endl;
-        cout << "Exception: " << exception.reason << endl;
+        cout << "!!! CRITICAL CRASH OF APPLICATION !!!\n";
+        cout << "Exception: " << exception.reason << std::endl;
     }
     [pool release];
  */
@@ -203,22 +203,22 @@ return returnValue;
 //   settings.size     = uint32v2(1440, 900);
 //   settings.mode     = Windowed;
 //
-//   shared_ptr<GpuDevice> gpu = Graphics->primaryDevice();
+//   std::shared_ptr<GpuDevice> gpu = Graphics->primaryDevice();
 //
-//   shared_ptr<class Window> window = gpu->create(settings, string("Ngine 5.0"));   // remove "class" when old Rendering API Abstraction is removed
+//   std::shared_ptr<class Window> window = gpu->create(settings, std::string("Ngine 5.0"));   // remove "class" when old Rendering API Abstraction is removed
 //   window->active();
 //   
-//   shared_ptr<CommandBuffer> command = gpu->createCommandBuffer();
+//   std::shared_ptr<CommandBuffer> command = gpu->createCommandBuffer();
 //   
 //   TextureState state(Texture2DRectangle, FormatSD_8_32_f, settings.size.width, settings.size.height);
-//   shared_ptr<Texture> zbuffer = gpu->create(state);
+//   std::shared_ptr<Texture> zbuffer = gpu->create(state);
 //
-//   shared_ptr<ColorAttachment> attachment = gpu->createColorAttachment(window->surface());
+//   std::shared_ptr<ColorAttachment> attachment = gpu->createColorAttachment(window->surface());
 //   attachment->onLoad(LoadOperation::Clear, float4(1.0f, 0.5f, 0.0f, 0.0f));
 //   
-//   shared_ptr<DepthStencilAttachment> depthStencil = gpu->createDepthStencilAttachment(zbuffer, nullptr);
+//   std::shared_ptr<DepthStencilAttachment> depthStencil = gpu->createDepthStencilAttachment(zbuffer, nullptr);
 // 
-//   shared_ptr<RenderPass> pass = gpu->create(attachment, depthStencil); //window->surface()
+//   std::shared_ptr<RenderPass> pass = gpu->create(attachment, depthStencil); //window->surface()
 //
 //   command->start();
 //   command->startRenderPass(pass);
@@ -241,7 +241,7 @@ return returnValue;
 //printf("Running on Thread 0 !!!!\n");
 //
 //
-//   shared_ptr<Keyboard> keyboard = nullptr;
+//   std::shared_ptr<Keyboard> keyboard = nullptr;
 //   if (Input->available(IO::Keyboard))
 //      keyboard = Input->keyboard();
 //   

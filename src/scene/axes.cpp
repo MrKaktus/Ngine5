@@ -18,13 +18,12 @@
 
 using namespace en::gpu;
 using namespace en::resource;
-using namespace std;
 
 namespace en
 {
    namespace scene
    {
-   string strScene(
+   std::string strScene(
 "// UBO - Scene Constants                                            \n"
 "layout(std140) uniform enScene                                      \n"
 "   {                                                                \n"
@@ -37,12 +36,12 @@ namespace en
 );
 
    // Alternative way of selecting eye, when we draw in interleaved order LRLRLR..
-   string strEyeSelectionInterleaved(
+   std::string strEyeSelectionInterleaved(
 "int enEye = gl_InstanceID & 1;                                      \n"
 "                                                                    \n"
 );
 
-   string strVertexShaderCamSelection(
+   std::string strVertexShaderCamSelection(
 "// Select eye in stereoscopic mode, otherwise 0.                    \n"
 "int enEye = clamp((gl_InstanceID - scene.packed0.x), 0, 1);         \n"
 "                                                                    \n"
@@ -66,7 +65,7 @@ namespace en
    // Requires:
    // - 8th ClipPlane must be enabled
    // - need to be executed in last geometry stage
-   string strOutVertexStereoClipping(
+   std::string strOutVertexStereoClipping(
 "vec4 enOutVertexPosition(vec4 projectedPosition)                                  \n"
 "{                                                                                 \n"
 "const vec4  eyeClipPlane[2] = { (-1.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0) };    \n"
@@ -89,7 +88,7 @@ namespace en
 
    // Requires:
    // - works only if stereo is disabled
-   string strOutVertex(
+   std::string strOutVertex(
 "vec4 enOutVertexPosition(vec4 projectedPosition)                                  \n"
 "{                                                                                 \n"
 "return projectedPosition;                                                         \n"
@@ -100,7 +99,7 @@ namespace en
 
 
 
-   string strVertexShaderCamSelectionInterpolant(
+   std::string strVertexShaderCamSelectionInterpolant(
 "out int enViewport;                                                 \n"
 "                                                                    \n"
 "mat4 enPassViewport(void)                                           \n"
@@ -110,14 +109,14 @@ namespace en
 "                                                                    \n"
 );
 
-   string strVertexShaderViewportSelection(
+   std::string strVertexShaderViewportSelection(
 "// Vertex shader Viewport selection.                                \n"
 "#extension GL_AMD_vertex_shader_viewport_index : require            \n"
 "int gl_ViewportIndex = enEye;                                       \n"
 "                                                                    \n"
 );
 
-   string strGeometryShaderViewportSelection(
+   std::string strGeometryShaderViewportSelection(
 "in int enViewport;                                                  \n"
 "                                                                    \n"
 "// Geometry shader Viewport selection.                              \n"
@@ -126,7 +125,7 @@ namespace en
 );
 
 
-   string strPassThroughGeometryShaderPart1(
+   std::string strPassThroughGeometryShaderPart1(
 "#extension GL_NV_geometry_shader_passthrough : require                \n"
 "                                                                      \n"
 "layout(triangles) in;                                                 \n"
@@ -145,7 +144,7 @@ namespace en
 
 // TODO: Insert  Vertex Shader output declarations here
 
-   string strPassThroughGeometryShaderPart2(
+   std::string strPassThroughGeometryShaderPart2(
 "};                                                                    \n"
 "                                                                      \n"
 "// No output block declaration required.                              \n"
@@ -290,7 +289,7 @@ namespace en
 #endif
    }
    
-   void Axes::draw(const shared_ptr<Buffer> sceneParameters, const uint32 instances)
+   void Axes::draw(const std::shared_ptr<Buffer> sceneParameters, const uint32 instances)
    {
    //enModelMatrix.set(*pWorldMatrix);
    //enScene.set(sceneParameters);

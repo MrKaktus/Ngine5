@@ -19,7 +19,6 @@
 #define ENG
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -52,8 +51,7 @@ using namespace std;
 #include "platform/blackberry/bb_main.h"
 
 #include "platform/windows/win_init.h"
-//#include "platform/windows/win_main.h"
-//#include "platform/windows/win_events.h"
+#include "platform/windows/win_main.h"
 
 #include "audio/audio.h"         // Public interface - TODO: Finish!
 
@@ -74,11 +72,7 @@ using namespace std;
 
 #include "resources/effect.h"
 
-#include "threading.h"
-#ifdef EN_PLATFORM_WINDOWS
-#include "threading/scheduler.h"
-#endif
-#include "audio/audio.h"
+
 #include "utilities/random.h"
 
 #endif

@@ -38,15 +38,18 @@ namespace en
       HANDLE sleepSemaphore;      // Sleeping semaphore
       winThreadContainer package; // Packaged app thread and this class instance pointer
       void*  localState;          // State passed on thread creation
+      uint32 index;               // Thread unique ID
       volatile bool isSleeping;   // Thread sleeps
       volatile bool valid;        // Thread is executing (may sleep)
 
-      winThread(); // Wraps around current thread
       winThread(ThreadFunction function, void* threadState);
       virtual ~winThread();
 
       virtual void* state(void);
       virtual void name(std::string threadName);
+      virtual uint32 id(void);
+      virtual uint64 coresExecutionMask(void);
+      virtual void   executeOn(const uint64 coresMask);
       virtual void sleep(void);
       virtual void wakeUp(void);
       virtual bool sleeping(void);

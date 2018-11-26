@@ -48,25 +48,25 @@ namespace en
           };
    aligndefault
     
-   shared_ptr<audio::Sample> load(const string& filename)
+   std::shared_ptr<audio::Sample> load(const std::string& filename)
    {
    using namespace en::storage;
 
    // Try to reuse already loaded sound sample
    if (ResourcesContext.sounds.find(filename) != ResourcesContext.sounds.end())
-      return shared_ptr<audio::Sample>(ResourcesContext.sounds[filename]);
+      return std::shared_ptr<audio::Sample>(ResourcesContext.sounds[filename]);
 
    // Open audio file 
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.sounds + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.sounds + filename << endl;
+         Log << en::ResourcesContext.path.sounds + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
          file = nullptr;
-         return shared_ptr<audio::Sample>(NULL);
+         return std::shared_ptr<audio::Sample>(NULL);
          }
       }
    
@@ -79,7 +79,7 @@ namespace en
       {
       Log << "ERROR: Incorrect WAV file header!\n";
       file = nullptr;
-      return shared_ptr<audio::Sample>(NULL);
+      return std::shared_ptr<audio::Sample>(NULL);
       }
 
    // Read and check FMT chunk
@@ -90,14 +90,14 @@ namespace en
       {
       Log << "ERROR: WAV file has corrupted FMT chunk!\n";
       file = nullptr;
-      return shared_ptr<audio::Sample>(NULL);
+      return std::shared_ptr<audio::Sample>(NULL);
       }  
    if ( (fmt.size != 16) ||
         (fmt.format != 1) )
       {
       Log << "ERROR: Not supported WAV compression format!\n";
       file = nullptr;
-      return shared_ptr<audio::Sample>(NULL);
+      return std::shared_ptr<audio::Sample>(NULL);
       }  
 
    // Audio Context specific functionality checks (made for speed-up)
@@ -106,13 +106,13 @@ namespace en
       {
       Log << "ERROR: Unsupported Bits Per Sample ratio!\n";
       file = nullptr;
-      return shared_ptr<audio::Sample>(NULL);
+      return std::shared_ptr<audio::Sample>(NULL);
       }
    if (fmt.channels > 2)
       {
       Log << "ERROR: Unsupported audio channells count!\n";
       file = nullptr;
-      return shared_ptr<audio::Sample>(NULL);
+      return std::shared_ptr<audio::Sample>(NULL);
       }
 
    // Skip chunks until DATA chunk will be found
@@ -131,11 +131,11 @@ namespace en
    file->read(offset, data.size, buffer);
 
    // Create audio sample in device
-   shared_ptr<audio::Sample> sample = Audio.sample.create(fmt.channels, fmt.sampleRate, fmt.bps, data.size, buffer);
+   std::shared_ptr<audio::Sample> sample = Audio.sample.create(fmt.channels, fmt.sampleRate, fmt.bps, data.size, buffer);
 
    // Update list of loaded models
    if (sample)
-      ResourcesContext.sounds.insert(pair<string, shared_ptr<audio::Sample> >(filename, sample));
+      ResourcesContext.sounds.insert(std::pair<std::string, std::shared_ptr<audio::Sample> >(filename, sample));
    else
       Log << "ERROR: Cannot create sample in SoundCard!\n";
 

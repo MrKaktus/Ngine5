@@ -94,7 +94,7 @@ namespace en
    deallocateObjectiveC(blendInfo);
    }
    
-   shared_ptr<BlendState> MetalDevice::createBlendState(const BlendStateInfo& state,
+   std::shared_ptr<BlendState> MetalDevice::createBlendState(const BlendStateInfo& state,
                                                         const uint32 attachments,
                                                         const BlendAttachmentInfo* color)
    {
@@ -102,7 +102,7 @@ namespace en
    // for(uint32 i=0; i<attachments; ++i)
    //    assert( !(color[0].logicOperation && color[i].blending) );
    
-   return make_shared<BlendStateMTL>(state, attachments, color);
+   return std::make_shared<BlendStateMTL>(state, attachments, color);
    }
    
    }

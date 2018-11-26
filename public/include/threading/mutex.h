@@ -15,32 +15,26 @@
 
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/alignment.h"
-#include "core/threading/atomics.h"
+#include "core/memory/alignment.h"
+#include "core/threading/atomics.h"  // TODO: Replace with std::atomic operations
+#include "core/utilities/NonCopyable.h"
+#include "parallel/sharedAtomic.h"
 
 namespace en
 {
-   // In the past it was aligned to cacheline size (64bytes) making it extremly
-   // expensive in terms of memory usage. It was supposed to prevent false 
-   // sharing case, where two mutexes modified by two threads share cache line
-   // but that should be handled by CPU cache synchronization in fact as atomic
-   // operations are used on lock.
-   class Mutex
+   // Could use std::mutex, but it's cache line protection needs to be guaranteed
+   class cachealign Mutex : private SharedAtomic, NonCopyable
       {
       public:
-      volatile uint32 lockValue;
+      Mutex() : SharedAtomic() {};
+     ~Mutex() { unlock(); };
       
-      public:
-      Mutex();
-     ~Mutex();
-      
-      forceinline void lock(void);
-      forceinline bool tryLock(void);
-      forceinline bool isLocked(void);
-      forceinline void unlock(void);
+      forceinline void lock(void)     { while(!tryLock()); }
+      forceinline bool tryLock(void)  { uint32 expected = 0U; return std::atomic_compare_exchange_strong_explicit(&value, &expected, 1U, std::memory_order_seq_cst, std::memory_order_relaxed); } //  AtomicSwap((volatile uint32*)&value, (uint32)1) == 0;
+      forceinline bool isLocked(void) { return std::atomic_load_explicit(&value, std::memory_order_relaxed) > 0U; }  // value > 0;
+      forceinline void unlock(void)   { std::atomic_store_explicit(&value, 0U, std::memory_order_release); } // AtomicSwap((volatile uint32*)&value, (uint32)0);
       };
-   
-#include "threading/mutex.inl"
-}
 
+   static_assert(sizeof(Mutex) == 64, "en::Mutex size mismatch!");
+}
 #endif

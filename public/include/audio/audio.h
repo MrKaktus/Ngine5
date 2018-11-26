@@ -14,7 +14,6 @@
 #define ENG_AUDIO
 
 #include <memory>
-using namespace std;
 
 #include "core/types.h"
 
@@ -36,7 +35,7 @@ namespace en
       virtual void stop(void) = 0;                    // Stop playing the sound
       virtual void volume(const float volume) = 0;    // Sets the volume of the source
       virtual void loop(const bool loop) = 0;         // Define if sound should be looped
-      virtual bool set(const shared_ptr<Sample> sample) = 0; // Attach sound sample to be played by source
+      virtual bool set(const std::shared_ptr<Sample> sample) = 0; // Attach sound sample to be played by source
 
       virtual ~Source();                              // Polymorphic deletes require a virtual base destructor
       };
@@ -78,11 +77,11 @@ namespace en
       {
       struct Sample
          {
-         shared_ptr<audio::Sample> create(const uint32 channels, // Audio channels
-                                          const uint32 freq,     // Frequency in Hz
-                                          const uint32 bps,      // Bits Per Sample
-                                          const uint32 size,     // Size
-                                          const void*  data);    // Data
+         std::shared_ptr<audio::Sample> create(const uint32 channels, // Audio channels
+                                               const uint32 freq,     // Frequency in Hz
+                                               const uint32 bps,      // Bits Per Sample
+                                               const uint32 size,     // Size
+                                               const void*  data);    // Data
          } sample;
 
       // Audio "Source" and "Listener" objects need to be
@@ -90,7 +89,7 @@ namespace en
       // Therefore they can be created inside "Scene" object.
       struct Source
          {
-         shared_ptr<audio::Source> create();
+         std::shared_ptr<audio::Source> create();
          } source;
       };
    }

@@ -4,7 +4,7 @@
  
  Module      : Fibers support.
  Requirements: none
- Description : Allows easy creation and management of fibers.
+ Description : Fibers are lightweight threads managed in application address space.
 
 */
 
@@ -12,7 +12,7 @@
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
-#include "core/utilities/pageAllocator.h"
+#include "core/memory/pageAllocator.h"
 
 namespace en
 {
@@ -31,6 +31,15 @@ namespace en
       // 2) If reached this point, return to scheduler for new task to execute or sleep
    }
    
+
+   psxFiber::psxFiber(void) :
+      stack(nullptr),
+      maximumStackSize(0)
+   {
+   // Default contructor for thread transitioning to Fiber 
+   // (will be used to save state fo this thread on first switch)
+   }
+
    psxFiber::psxFiber(const uint32 stackSize, const uint32 _maximumStackSize) :
       stack(nullptr),
       maximumStackSize(_maximumStackSize)
@@ -69,14 +78,26 @@ namespace en
    psxFiber::~psxFiber()
    {
    // Release fiber stack
-   virtualDeallocate(stack, maximumStackSize);
+   if (stack)
+      virtualDeallocate(stack, maximumStackSize);
    }
    
-   void switchToFiber(Fiber& _fiber)
+   std::unique_ptr<Fiber> convertToFiber(void)
    {
-   psxFiber& fiber = reinterpret_cast<psxFiber&>(_fiber);
-   //int swapcontext(&fiber.context, const ucontext_t * __restrict);
+   // Creates Fiber, that will be used to store thread current state 
+   return std::make_unique<psxFiber>();
+   }
 
+   std::unique_ptr<Fiber> createFiber(const uint32 stackSize, const uint32 maximumStackSize)
+   {
+   return std::make_unique<psxFiber>(stackSize, maximumStackSize);
+   }
+
+   void switchToFiber(Fiber& _current, Fiber& _fiber)
+   {
+   psxFiber& current = reinterpret_cast<psxFiber&>(_current);
+   psxFiber& fiber   = reinterpret_cast<psxFiber&>(_fiber);
+   int result = swapcontext(&current.context, &fiber.context);
    }
 }
 

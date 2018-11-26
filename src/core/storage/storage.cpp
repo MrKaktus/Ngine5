@@ -50,7 +50,7 @@ namespace en
    }
    
    // This is super inefficient! Neet to remove it and replace with parser!
-   uint32 CommonFile::read(const uint64 offset, const uint32 maxSize, string& word)
+   uint32 CommonFile::read(const uint64 offset, const uint32 maxSize, std::string& word)
    {
    word.clear();
    uint64 fileOffset = offset;
@@ -72,7 +72,7 @@ namespace en
    }
 
    // This is super inefficient! Neet to remove it and replace with parser!
-   uint32 CommonFile::readWord(const uint64 offset, const uint32 maxSize, string& word)
+   uint32 CommonFile::readWord(const uint64 offset, const uint32 maxSize, std::string& word)
    {
    word.clear();
    uint64 fileOffset = offset;
@@ -94,7 +94,7 @@ namespace en
    }
 
    // This is super inefficient! Neet to remove it and replace with parser!
-   uint32 CommonFile::readLine(const uint64 offset, const uint32 maxSize, string& line)
+   uint32 CommonFile::readLine(const uint64 offset, const uint32 maxSize, std::string& line)
    {
    line.clear();
    uint64 fileOffset = offset;
@@ -130,9 +130,9 @@ namespace en
    {
    }
    
-   uint64 CommonInterface::read(const string& filename, string& dst)
+   uint64 CommonInterface::read(const std::string& filename, std::string& dst)
    {
-   shared_ptr<File> file = open(filename);
+   std::shared_ptr<File> file = open(filename);
    if (!file)
       {
       dst.empty();
@@ -142,7 +142,7 @@ namespace en
    uint64 sizeToRead = file->size();
    if (sizeToRead == 0)
       {
-      Log << string("File " + filename + " is empty!");
+      Log << std::string("File " + filename + " is empty!");
       dst.empty();
       return 0;
       }
@@ -152,7 +152,7 @@ namespace en
    uint64 readSize;
    if (!file->read(0u, sizeToRead, buffer, &readSize))
       {
-      Log << string("Error when reading file, read " + stringFrom(readSize) + " from " + stringFrom(sizeToRead) + " bytes!");
+      Log << std::string("Error when reading file, read " + stringFrom(readSize) + " from " + stringFrom(sizeToRead) + " bytes!");
       dst.empty();
       return 0;
       }
@@ -160,7 +160,7 @@ namespace en
 
    // Converts file content to string
    buffer[readSize] = 0;
-   dst = string((const char *)buffer);
+   dst = std::string((const char *)buffer);
    delete [] buffer;
    
    // Return results
@@ -173,16 +173,16 @@ namespace en
    //Log << "Starting module: Storage.\n";
 
 #if defined(EN_PLATFORM_ANDROID)
-   Storage = make_shared<AndInterface>();
+   Storage = std::make_shared<AndInterface>();
 #endif
 #if defined(EN_PLATFORM_BLACKBERRY)
-   Storage = make_shared<BBInterface>();
+   Storage = std::make_shared<BBInterface>();
 #endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   Storage = make_shared<OSXInterface>();
+   Storage = std::make_shared<OSXInterface>();
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
-   Storage = make_shared<WinInterface>();
+   Storage = std::make_shared<WinInterface>();
 #endif
 
    return (Storage == nullptr) ? false : true;
@@ -190,5 +190,5 @@ namespace en
 
    }
    
-shared_ptr<storage::Interface> Storage = nullptr;
+std::shared_ptr<storage::Interface> Storage = nullptr;
 }

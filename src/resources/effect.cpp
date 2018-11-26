@@ -93,15 +93,15 @@ namespace en
       "#version 300      \n\n"
       };
 
-   Effect::Effect(ShadingLanguage version, string name) :
+   Effect::Effect(ShadingLanguage version, std::string name) :
       binary(nullptr),
       dirty(true)
    {
    for(uint8 stage=0; stage<PipelineStagesCount; ++stage)
       {
       // Determine file name and path
-      string filename = name + "." + ShadingLanguageString[version] + ShaderStageExtensionString[stage];
-      string path = filename;
+      std::string filename = name + "." + ShadingLanguageString[version] + ShaderStageExtensionString[stage];
+      std::string path = filename;
       if (!Storage.exist(path))
          {
          path = ResourcesContext.path.shaders + filename;
@@ -123,7 +123,7 @@ namespace en
    {
    }
 
-   void Effect::attach(PipelineStage stage, string code)
+   void Effect::attach(PipelineStage stage, std::string code)
    {
    this->code[stage].push_back(code);
    dirty = true;

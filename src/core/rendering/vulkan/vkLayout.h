@@ -54,10 +54,10 @@ namespace en
       VulkanDevice*    gpu;
       VkDescriptorPool handle;
       
-      virtual shared_ptr<DescriptorSet> allocate(const shared_ptr<SetLayout> layout);
+      virtual std::shared_ptr<DescriptorSet> allocate(const std::shared_ptr<SetLayout> layout);
       virtual bool allocate(const uint32 count,
-                            const shared_ptr<SetLayout>(&layouts)[],
-                            shared_ptr<DescriptorSet>** sets);
+                            const std::shared_ptr<SetLayout>(&layouts)[],
+                            std::shared_ptr<DescriptorSet>** sets);
          
       DescriptorsVK(VulkanDevice* gpu, VkDescriptorPool handle);
       virtual ~DescriptorsVK();
@@ -68,10 +68,10 @@ namespace en
    class DescriptorSetVK : public DescriptorSet
       {
       public:
-      shared_ptr<DescriptorsVK> parent; // Reference to Descriptors Pool
+      std::shared_ptr<DescriptorsVK> parent; // Reference to Descriptors Pool
       VkDescriptorSet    handle;
       
-      DescriptorSetVK(shared_ptr<DescriptorsVK> parent, VkDescriptorSet handle);
+      DescriptorSetVK(std::shared_ptr<DescriptorsVK> parent, VkDescriptorSet handle);
       virtual ~DescriptorSetVK();
 
       virtual void setBuffer(const uint32 slot, const Buffer& buffer);

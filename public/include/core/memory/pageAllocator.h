@@ -9,8 +9,8 @@
 
 */
 
-#ifndef ENG_CORE_UTILITIES_PAGE_ALLOCATOR
-#define ENG_CORE_UTILITIES_PAGE_ALLOCATOR
+#ifndef ENG_CORE_MEMORY_PAGE_ALLOCATOR
+#define ENG_CORE_MEMORY_PAGE_ALLOCATOR
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -21,8 +21,8 @@ namespace en
    void* virtualAllocate(const uint64 size, const uint64 maximumSize);
  
    // Increases allocation size without copying data, or changing location
-   bool virtualReallocate(void* address, const uint64 currentSize, const uint64 newSize);
+   bool  virtualReallocate(void* address, const uint64 currentSize, const uint64 newSize);
 
-   void virtualDeallocate(void* address, const uint64 maximumSize);
+   void  virtualDeallocate(void* address, const uint64 maximumSize);
 }
 #endif

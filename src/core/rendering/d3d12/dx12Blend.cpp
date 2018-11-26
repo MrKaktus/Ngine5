@@ -137,7 +137,7 @@ namespace en
       }
    }
    
-   shared_ptr<BlendState> Direct3D12Device::createBlendState(const BlendStateInfo& state,
+   std::shared_ptr<BlendState> Direct3D12Device::createBlendState(const BlendStateInfo& state,
                                                              const uint32 attachments,
                                                              const BlendAttachmentInfo* color)
    {
@@ -145,7 +145,7 @@ namespace en
    // for(uint32 i=0; i<attachments; ++i)
    //    assert( !(color[0].logicOperation && color[i].blending) );
    
-   return make_shared<BlendStateD3D12>(state, attachments, color);
+   return std::make_shared<BlendStateD3D12>(state, attachments, color);
    }
 
 

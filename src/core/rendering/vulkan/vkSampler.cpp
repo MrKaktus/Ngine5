@@ -83,9 +83,9 @@ namespace en
    ValidateNoRet( gpu, vkDestroySampler(gpu->device, handle, nullptr) )
    }
 
-   shared_ptr<Sampler> VulkanDevice::createSampler(const SamplerState& state)
+   std::shared_ptr<Sampler> VulkanDevice::createSampler(const SamplerState& state)
    {
-   shared_ptr<SamplerVK> sampler = nullptr;
+   std::shared_ptr<SamplerVK> sampler = nullptr;
    
    VkSamplerCreateInfo samplerInfo = {};
    samplerInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -109,8 +109,8 @@ namespace en
 
    VkSampler handle = VK_NULL_HANDLE;
    Validate( this, vkCreateSampler(device, &samplerInfo, nullptr, &handle) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
-      sampler = make_shared<SamplerVK>(this, handle);
+   if (lastResult[currentThreadId()] == VK_SUCCESS)
+      sampler = std::make_shared<SamplerVK>(this, handle);
 
    return sampler;
    };

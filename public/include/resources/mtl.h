@@ -19,7 +19,7 @@ namespace en
 {
    namespace mtl
    {
-   bool load(const string& filename, const string& name, en::resource::Material& material);
+   bool load(const std::string& filename, const std::string& name, en::resource::Material& material);
    }
 }
 

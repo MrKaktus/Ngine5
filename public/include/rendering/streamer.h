@@ -19,20 +19,20 @@
 #include "core/rendering/texture.h"
 #include "core/rendering/device.h"
 
-#include "utilities/circularQueue.h"
+#include "memory/circularQueue.h"
 
 namespace en
 {
    //// Single backing allocation 
    //struct BackingAllocation
    //   {
-   //   shared_ptr<Heap>   heap;       // Heap backing this memory block
+   //   std::shared_ptr<Heap>   heap;       // Heap backing this memory block
    //
    //
    //                                  // Used only for sysMem allocations:
    //
    //
-   //   shared_ptr<Buffer> buffer;     // Linear buffer of heap size
+   //   std::shared_ptr<Buffer> buffer;     // Linear buffer of heap size
    //   Allocator*         allocator;  // Algorithm used for sub-allocations in buffer
    //   void*              sysAddress; // Adress of system memory mapped, linear buffer
    //                                  // that spans across whole heap address range.
@@ -130,7 +130,7 @@ namespace en
    
    struct AssetHandle
       {
-      shared_ptr<gpu::Texture> handle;
+      std::shared_ptr<gpu::Texture> handle;
       
       // surface -> Texture, mipmap, layer
       };
@@ -315,7 +315,7 @@ namespace en
    
    struct BufferCache : public ResourceCache // Buffer & Texture
       {
-      shared_ptr<gpu::Buffer> buffer; // Linear buffer covering whole heap (it keeps reference to parent Heap, so Heap pointer doesn't need to be stored)
+      std::shared_ptr<gpu::Buffer> buffer; // Linear buffer covering whole heap (it keeps reference to parent Heap, so Heap pointer doesn't need to be stored)
       Allocator*     allocator;       // Algorithm used for sub-allocations in heap
       volatile void* sysAddress;      // Adress of system memory mapped, linear buffer
                                       // that spans across whole heap address range.
@@ -325,7 +325,7 @@ namespace en
    
    struct TextureCache : public ResourceCache
       {
-      shared_ptr<gpu::Heap> heap;
+      std::shared_ptr<gpu::Heap> heap;
       };
    
    static_assert(sizeof(TextureCache) == 24, "TextureChache size mismatch!");
@@ -334,7 +334,7 @@ namespace en
    struct BufferAllocation
       {
       volatile void*          cpuPointer;     // Pointer to memory location in system memory (offset in mapped buffer)
-      shared_ptr<gpu::Buffer> gpuBuffer;      // Updated when made resident
+      std::shared_ptr<gpu::Buffer> gpuBuffer;      // Updated when made resident
       uint32                  gpuOffset;      // Updated when made resident
       uint32                  size     : 31;  // Max supported size of single GPU allocation is 2GB
       uint32                  resident : 1;   // Set by Streamer when resource is resident in GPU dedicated memory
@@ -375,7 +375,7 @@ namespace en
    // Mipmaps are assumed to be generated offline, or provided by CPU.
    struct TextureAllocation
       {
-      shared_ptr<gpu::Texture> gpuTexture; // Updated when made resident
+      std::shared_ptr<gpu::Texture> gpuTexture; // Updated when made resident
       gpu::TextureState state;             // Texture state (should be read only)
       uint64 size     : 63;                // Max supported size of single GPU allocation
       uint64 resident : 1;                 // Set by Streamer when resource is resident in GPU dedicated memory
@@ -519,7 +519,7 @@ namespace en
    class Streamer
       {
       public:
-      shared_ptr<gpu::GpuDevice> gpu;
+      std::shared_ptr<gpu::GpuDevice> gpu;
       gpu::QueueType queueForTransfers;
    
       uint64 dedicatedMemorySize;    // Total size of GPU dedicated memory
@@ -557,7 +557,7 @@ namespace en
    
 
       // Dedicated Heap for downloading results of GPU operations from dedicated to system memory
-      shared_ptr<gpu::Buffer> downloadBuffer;
+      std::shared_ptr<gpu::Buffer> downloadBuffer;
       volatile void*          downloadAdress;
    
       // Queue of transfers to perform
@@ -565,7 +565,7 @@ namespace en
    
       // Thread managing asynchronous data streaming
       bool terminating;
-      unique_ptr<Thread> streamingThread;
+      std::unique_ptr<Thread> streamingThread;
    
    
       // Helper methods allocating memory
@@ -605,7 +605,7 @@ namespace en
          
    
       public:
-      Streamer(shared_ptr<gpu::GpuDevice> gpu, const StreamerSettings* settings = nullptr);
+      Streamer(std::shared_ptr<gpu::GpuDevice> gpu, const StreamerSettings* settings = nullptr);
      ~Streamer();
     
       bool allocateMemory(BufferAllocation*& desc, const uint32 size);

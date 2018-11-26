@@ -25,7 +25,7 @@ namespace en
 {
    namespace gpu
    {
-   WindowMTL::WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title) :
+   WindowMTL::WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const std::string title) :
       window(nil),
       layer(nil),
       drawable(nil),
@@ -51,7 +51,7 @@ namespace en
    uint32v2 resolution;
    if (settings.display)
       {
-      _display = dynamic_pointer_cast<CommonDisplay>(settings.display);
+      _display = std::dynamic_pointer_cast<CommonDisplay>(settings.display);
       
       DisplayMTL* ptr = reinterpret_cast<DisplayMTL*>(_display.get());
       handle     = ptr->handle;
@@ -64,7 +64,7 @@ namespace en
    else
       {
       // Primary display handle and properties
-      _display = dynamic_pointer_cast<CommonDisplay>(gpu->display(0u));
+      _display = std::dynamic_pointer_cast<CommonDisplay>(gpu->display(0u));
       
       handle = reinterpret_cast<DisplayMTL*>(_display.get())->handle;
       NSRect info = [handle convertRectToBacking:[handle frame]];
@@ -192,7 +192,7 @@ namespace en
                       settings.size.width,
                       settings.size.height);
       
-   framebuffer = make_shared<TextureMTL>(nullptr, state, false);
+   framebuffer = std::make_shared<TextureMTL>(nullptr, state, false);
    }
    
    WindowMTL::~WindowMTL()
@@ -274,7 +274,7 @@ namespace en
    [window setOpaque:YES];
    }
    
-   shared_ptr<Texture> WindowMTL::surface(const Semaphore* signalSemaphore)
+   std::shared_ptr<Texture> WindowMTL::surface(const Semaphore* signalSemaphore)
    {
    // signalSemaphore is ignored, as Metal API waits for presentation
    // engine to finish reading from given surface before returning it

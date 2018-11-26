@@ -12,14 +12,14 @@ namespace en
 //
 //forceinline void  NLogContext::init(void)
 //{
-// string logfilename;
+// std::string logfilename;
 // Config.get("en.core.log.file", logfilename);
 //
 // m_output = StorageContext.openForOverwriting(logfilename);
 // if (m_output)
 //    {
 //    m_initialized = true;
-//    *m_output << "Initialized context: Log" << std::endl;
+//    *m_output << "Initialized context: Log\n";
 //    }
 //}
 //

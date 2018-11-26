@@ -55,7 +55,7 @@ namespace en
    // D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ
    // D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ
 
-   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, ID3D12PipelineState* _handle, shared_ptr<PipelineLayoutD3D12> _layout) :
+   PipelineD3D12::PipelineD3D12(Direct3D12Device* _gpu, ID3D12PipelineState* _handle, std::shared_ptr<PipelineLayoutD3D12> _layout) :
       gpu(_gpu),
       handle(_handle),
       layout(_layout),
@@ -73,9 +73,9 @@ namespace en
    handle = nullptr;
    }
 
-   shared_ptr<Pipeline> Direct3D12Device::createPipeline(const PipelineState& pipelineState)
+   std::shared_ptr<Pipeline> Direct3D12Device::createPipeline(const PipelineState& pipelineState)
    {
-   shared_ptr<PipelineD3D12> result = nullptr;
+   std::shared_ptr<PipelineD3D12> result = nullptr;
 
    // Pipeline object is always created against Render Pass, and app responsibility is to
    // provide missing states (ViewportState, Shaders).
@@ -102,8 +102,8 @@ namespace en
    const BlendStateD3D12*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateD3D12*>(pipelineState.blendState.get())
                                                                             : reinterpret_cast<BlendStateD3D12*>(defaultState->blendState.get());
 
-   shared_ptr<PipelineLayoutD3D12> layout        = pipelineState.pipelineLayout ? dynamic_pointer_cast<PipelineLayoutD3D12>(pipelineState.pipelineLayout)
-                                                                                : dynamic_pointer_cast<PipelineLayoutD3D12>(defaultState->pipelineLayout);
+   std::shared_ptr<PipelineLayoutD3D12> layout        = pipelineState.pipelineLayout ? std::dynamic_pointer_cast<PipelineLayoutD3D12>(pipelineState.pipelineLayout)
+                                                                                : std::dynamic_pointer_cast<PipelineLayoutD3D12>(defaultState->pipelineLayout);
 
    // Count amount of shader stages in use
    uint32 stages = 0;
@@ -206,9 +206,9 @@ namespace en
    // Create pipeline state object
    ID3D12PipelineState* pipeline = nullptr;
    Validate( this, CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline)) ) // __uuidof(ID3D12PipelineState), reinterpret_cast<void**>(&pipeline)
-   if (SUCCEEDED(lastResult[Scheduler.core()]))
+   if (SUCCEEDED(lastResult[currentThreadId()]))
       {
-      result = make_shared<PipelineD3D12>(this, pipeline, layout);
+      result = std::make_shared<PipelineD3D12>(this, pipeline, layout);
       
       // Defer dynamic state: Input Assembler buffer strides
       memcpy(&result->bufferStride[0], &input->bufferStride[0], input->buffersCount * sizeof(uint32));

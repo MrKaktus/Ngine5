@@ -85,7 +85,7 @@ namespace en
    started = true;
    }
 
-   void CommandBufferD3D12::startRenderPass(const shared_ptr<RenderPass> pass, const shared_ptr<Framebuffer> _framebuffer)
+   void CommandBufferD3D12::startRenderPass(const std::shared_ptr<RenderPass> pass, const std::shared_ptr<Framebuffer> _framebuffer)
    {
    assert( started );
    assert( !encoding );
@@ -93,8 +93,8 @@ namespace en
    assert( pass );
    assert( _framebuffer );
    
-   renderPass  = dynamic_pointer_cast<RenderPassD3D12>(pass);
-   framebuffer = dynamic_pointer_cast<FramebufferD3D12>(_framebuffer);
+   renderPass  = std::dynamic_pointer_cast<RenderPassD3D12>(pass);
+   framebuffer = std::dynamic_pointer_cast<FramebufferD3D12>(_framebuffer);
 
    // Descriptor for empty Color Attachment output
    D3D12_RENDER_TARGET_VIEW_DESC nullColorDesc;
@@ -249,7 +249,7 @@ namespace en
 
    void CommandBufferD3D12::setVertexBuffers(const uint32 firstSlot,
                                              const uint32 count,
-                                             const shared_ptr<Buffer>(&buffers)[],
+                                             const std::shared_ptr<Buffer>(&buffers)[],
                                              const uint64* offsets) const
    {
    assert( started );
@@ -815,7 +815,7 @@ namespace en
 
       if (result == WAIT_TIMEOUT)
          {
-         Log << "GPU Hang!\n" << endl;
+         Log << "GPU Hang!\n\n";
          }
       
       // Destroy signaling Event
@@ -830,16 +830,16 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   shared_ptr<CommandBuffer> Direct3D12Device::createCommandBuffer(const QueueType type, const uint32 parentQueue)
+   std::shared_ptr<CommandBuffer> Direct3D12Device::createCommandBuffer(const QueueType type, const uint32 parentQueue)
    {
    // Each thread creates it's Command Buffers from separate Command Allocator
-   uint32 thread    = Scheduler.core();
+   uint32 thread    = currentThreadId();
    uint32 queueType = underlyingType(type);
    uint32 cacheId   = currentAllocator[thread][queueType];
 
    assert( queuesCount[queueType] > parentQueue );
    
-   shared_ptr<CommandBufferD3D12> result = nullptr;
+   std::shared_ptr<CommandBufferD3D12> result = nullptr;
 
    ID3D12CommandList* handle = nullptr;
    
@@ -850,11 +850,11 @@ namespace en
                                      IID_PPV_ARGS(&handle)) )
    if ( SUCCEEDED(lastResult[thread]) )
       {
-      result = make_shared<CommandBufferD3D12>(this, queue[queueType], queueType, handle);
+      result = std::make_shared<CommandBufferD3D12>(this, queue[queueType], queueType, handle);
 
 #if defined(EN_DEBUG)
       // Name CommandBuffer for debugging
-      string name("CommandBuffer_T: ");
+      std::string name("CommandBuffer_T: ");
       name += stringFrom(thread);
       name += " Q: ";
       name += stringFrom(queueType);
@@ -884,11 +884,11 @@ namespace en
    return result;
    }
    
-   void Direct3D12Device::addCommandBufferToQueue(shared_ptr<CommandBuffer> command)
+   void Direct3D12Device::addCommandBufferToQueue(std::shared_ptr<CommandBuffer> command)
    {
    CommandBufferD3D12* ptr = reinterpret_cast<CommandBufferD3D12*>(command.get());
 
-   uint32 thread    = Scheduler.core();
+   uint32 thread    = currentThreadId();
    uint32 queueType = ptr->queueIndex;
    uint32 cacheId   = currentAllocator[thread][queueType];
    uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
@@ -902,7 +902,7 @@ namespace en
    void Direct3D12Device::clearCommandBuffersQueue(void)
    {
    // Iterate over list of Command Buffers submitted for execution by this thread (per each Queue type and allocator in pool).
-   uint32 thread = Scheduler.core();
+   uint32 thread = currentThreadId();
    for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
       for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
          {

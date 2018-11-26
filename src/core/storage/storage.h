@@ -36,13 +36,13 @@ namespace en
       // TODO: Temp, file should be read in blocks to memory, and then parsed!
       virtual uint32 read(const uint64 offset,
                           const uint32 maxSize,
-                          string& word);         // Read zero terminated word, but not exceed maxSize chars. Return word length.
+                          std::string& word);         // Read zero terminated word, but not exceed maxSize chars. Return word length.
       virtual uint32 readWord(const uint64 offset,
                               const uint32 maxSize,
-                              string& word);
+                              std::string& word);
       virtual uint32 readLine(const uint64 offset,
                               const uint32 maxSize,
-                              string& line);
+                              std::string& line);
 
       CommonFile();
       virtual ~CommonFile() {};
@@ -51,9 +51,9 @@ namespace en
    class CommonInterface : public Interface
       {
       public:
-      string processPath;     // Global path to this process
+      std::string processPath;     // Global path to this process
       
-      virtual uint64 read(const string& filename, string& dst);
+      virtual uint64 read(const std::string& filename, std::string& dst);
 
       CommonInterface();
       virtual ~CommonInterface();

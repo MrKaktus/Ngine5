@@ -49,8 +49,8 @@ namespace en
          
       virtual void start(const Semaphore* waitForSemaphore = nullptr);
 
-      virtual void startRenderPass(const shared_ptr<RenderPass> pass, 
-                                   const shared_ptr<Framebuffer> framebuffer);
+      virtual void startRenderPass(const std::shared_ptr<RenderPass> pass, 
+                                   const std::shared_ptr<Framebuffer> framebuffer);
                                    
       virtual void setDescriptors(const PipelineLayout& layout,
                                   const DescriptorSet& set,
@@ -58,7 +58,7 @@ namespace en
                                   
       virtual void setDescriptors(const PipelineLayout& layout,
                                   const uint32 count,
-                                  const shared_ptr<DescriptorSet>(&sets)[],
+                                  const std::shared_ptr<DescriptorSet>(&sets)[],
                                   const uint32 firstIndex = 0u);
                                   
       virtual void setPipeline(const Pipeline& pipeline);
@@ -68,7 +68,7 @@ namespace en
 
       virtual void setVertexBuffers(const uint32 firstSlot,
                                     const uint32 count,
-                                    const shared_ptr<Buffer>(&buffers)[],
+                                    const std::shared_ptr<Buffer>(&buffers)[],
                                     const uint64* offsets = nullptr) const;
 
       virtual void setInputBuffer(

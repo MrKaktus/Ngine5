@@ -73,9 +73,9 @@ namespace en
    deallocateObjectiveC(handle);
    }
  
-   shared_ptr<Pipeline> MetalDevice::createPipeline(const PipelineState& pipelineState)
+   std::shared_ptr<Pipeline> MetalDevice::createPipeline(const PipelineState& pipelineState)
    {
-   shared_ptr<PipelineMTL> pipeline = nullptr;
+   std::shared_ptr<PipelineMTL> pipeline = nullptr;
 
    // Pipeline object is always created against Render Pass, and app responsibility is to
    // provide missing states (ViewportState, Shaders).
@@ -113,13 +113,13 @@ namespace en
    // Extract entry point functions from shader libraries
    // TODO: This may not be optimal?
    NSError* error = nil;
-   string entrypoint = pipelineState.function[0];
+   std::string entrypoint = pipelineState.function[0];
    ShaderMTL* vertexShader = reinterpret_cast<ShaderMTL*>(pipelineState.shader[0].get());
    id<MTLFunction> functionVertex = [vertexShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
    if (error)
       {
       Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
-      return shared_ptr<Pipeline>(nullptr);
+      return std::shared_ptr<Pipeline>(nullptr);
       }
       
    entrypoint = pipelineState.function[4];
@@ -134,7 +134,7 @@ namespace en
          
          deallocateObjectiveC(functionVertex);
             
-         return shared_ptr<Pipeline>(nullptr);
+         return std::shared_ptr<Pipeline>(nullptr);
          }
       }
   
@@ -184,7 +184,7 @@ namespace en
 
    // Create Pipeline
    error = nil;
-   pipeline = make_shared<PipelineMTL>(device, pipeDesc, &error);
+   pipeline = std::make_shared<PipelineMTL>(device, pipeDesc, &error);
    
    deallocateObjectiveC(pipeDesc);
       
@@ -197,12 +197,12 @@ namespace en
    if (error)
       {
       Log << "Error! Failed to create pipeline. Error code %u\n" << [error code];
-      Log << [[error description] UTF8String] << endl;
-      return shared_ptr<Pipeline>(nullptr);
+      Log << [[error description] UTF8String] << std::endl;
+      return std::shared_ptr<Pipeline>(nullptr);
       }
    else // Populate Pipeline with Metal dynamic states
       {
-      pipeline->depthStencil = dynamic_pointer_cast<DepthStencilStateMTL>(pipelineState.depthStencilState);
+      pipeline->depthStencil = std::dynamic_pointer_cast<DepthStencilStateMTL>(pipelineState.depthStencilState);
       pipeline->raster       = *reinterpret_cast<RasterStateMTL*>(pipelineState.rasterState.get());
       pipeline->viewport     = *reinterpret_cast<ViewportStateMTL*>(pipelineState.viewportState.get());
       pipeline->primitive    = TranslateDrawableType[input->primitive];

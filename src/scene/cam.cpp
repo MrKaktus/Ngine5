@@ -17,6 +17,8 @@ namespace en
 {
    namespace scene
    {
+   using namespace en::gpu;
+
    // Stored in Column-Major order
    #define mat(m,r,c) (m)[(c)*4+(r)]
 
@@ -136,7 +138,7 @@ namespace en
    }
 
    // TODO: Input should be pointer to buffer (ideally Staging buffer on Heap).
-   shared_ptr<Buffer> FrustumSettings::wireframe(shared_ptr<Heap> heap) const
+   std::shared_ptr<Buffer> FrustumSettings::wireframe(std::shared_ptr<Heap> heap) const
    {
    //assert(Gpu.screen.created());
 
@@ -164,10 +166,10 @@ namespace en
    points[15] = float3( nearEdges.w, -nearEdges.y, nearPlane); // Lower-right connector
 
    // Create geometry buffer for given frustum
-   shared_ptr<Buffer> buffer = heap->createBuffer(16, Formatting(Attribute::v3f32)); 
+   std::shared_ptr<Buffer> buffer = heap->createBuffer(16, Formatting(Attribute::v3f32)); 
 
    // Create staging buffer
-   shared_ptr<Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, 16);
+   std::shared_ptr<Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, 16);
    assert( staging );
    
    // Save wireframe to temporary buffer
@@ -176,12 +178,12 @@ namespace en
    staging->unmap();
 
    // TODO: In future distribute transfers to different queues in the same queue type family
-   gpu::QueueType type = gpu::QueueType::Universal;
-   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
-      type = gpu::QueueType::Transfer;
+   QueueType type = QueueType::Universal;
+   if (Graphics->primaryDevice()->queues(QueueType::Transfer) > 0u)
+      type = QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   shared_ptr<CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+   std::shared_ptr<CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
    command->start();
    command->copy(*staging, *buffer);
    command->commit();

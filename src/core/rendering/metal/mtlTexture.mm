@@ -432,7 +432,7 @@ namespace en
    assert( handle != nil );
    }
 
-   TextureMTL::TextureMTL(const id<MTLDevice> device, const shared_ptr<SharedSurface> backingSurface) :
+   TextureMTL::TextureMTL(const id<MTLDevice> device, const std::shared_ptr<SharedSurface> backingSurface) :
       ioSurface(nullptr),
       ownsBacking(true)
    {
@@ -441,7 +441,7 @@ namespace en
    assert( 0 );
 #endif
    
-   ioSurface = dynamic_pointer_cast<SharedSurfaceOSX>(backingSurface);
+   ioSurface = std::dynamic_pointer_cast<SharedSurfaceOSX>(backingSurface);
    
    state.type    = TextureType::Texture2D;
    state.format  = Format::BGRA_8;
@@ -481,14 +481,14 @@ namespace en
    ioSurface = nullptr;
    }
 
-   shared_ptr<Heap> TextureMTL::parent(void) const
+   std::shared_ptr<Heap> TextureMTL::parent(void) const
    {
    return heap;
    }
 
-   shared_ptr<TextureView> TextureMTL::view(void)
+   std::shared_ptr<TextureView> TextureMTL::view(void)
    {
-   shared_ptr<TextureViewMTL> result = nullptr;
+   std::shared_ptr<TextureViewMTL> result = nullptr;
    
    // Metal is not supporting components swizzling.
    
@@ -498,7 +498,7 @@ namespace en
                                          levels:NSMakeRange(0u, state.mipmaps)
                                          slices:NSMakeRange(0u, state.layers)];
    if (view)
-      result = make_shared<TextureViewMTL>(dynamic_pointer_cast<TextureMTL>(shared_from_this()),
+      result = std::make_shared<TextureViewMTL>(dynamic_pointer_cast<TextureMTL>(shared_from_this()),
                                            view,
                                            state.type,
                                            state.format,
@@ -508,13 +508,13 @@ namespace en
    return result;
    }
    
-   shared_ptr<TextureView> TextureMTL::view(
+   std::shared_ptr<TextureView> TextureMTL::view(
       const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
       const uint32v2 _layers)
    {
-   shared_ptr<TextureViewMTL> result = nullptr;
+   std::shared_ptr<TextureViewMTL> result = nullptr;
    
    // Metal is not supporting components swizzling.
    
@@ -524,7 +524,7 @@ namespace en
                                          levels:NSMakeRange(_mipmaps.base, _mipmaps.count)
                                          slices:NSMakeRange(_layers.base, _layers.count)];
    if (view)
-      result = make_shared<TextureViewMTL>(dynamic_pointer_cast<TextureMTL>(shared_from_this()),
+      result = std::make_shared<TextureViewMTL>(dynamic_pointer_cast<TextureMTL>(shared_from_this()),
                                            view,
                                            _type,
                                            _format,
@@ -536,7 +536,7 @@ namespace en
  
 
    TextureViewMTL::TextureViewMTL(
-      shared_ptr<TextureMTL> parent,
+      std::shared_ptr<TextureMTL> parent,
       id<MTLTexture> view,
       const TextureType _type,
       const Format _format,
@@ -556,7 +556,7 @@ namespace en
    deallocateObjectiveC(handle);
    }
    
-   shared_ptr<Texture> TextureViewMTL::parent(void) const
+   std::shared_ptr<Texture> TextureViewMTL::parent(void) const
    {
    return texture;
    }
@@ -604,9 +604,9 @@ namespace en
    return result;
    }
 
-   shared_ptr<Texture> MetalDevice::createSharedTexture(shared_ptr<SharedSurface> backingSurface)
+   std::shared_ptr<Texture> MetalDevice::createSharedTexture(std::shared_ptr<SharedSurface> backingSurface)
    {
-   return make_shared<TextureMTL>(device, backingSurface);
+   return std::make_shared<TextureMTL>(device, backingSurface);
    }
          
 #ifdef EN_VALIDATE_GRAPHIC_CAPS_AT_RUNTIME

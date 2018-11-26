@@ -69,11 +69,11 @@ namespace en
       };
    }
 
-   shared_ptr<MultisamplingState> VulkanDevice::createMultisamplingState(const uint32 samples,
+   std::shared_ptr<MultisamplingState> VulkanDevice::createMultisamplingState(const uint32 samples,
                                                                          const bool enableAlphaToCoverage,
                                                                          const bool enableAlphaToOne)
    {
-   return make_shared<MultisamplingStateVK>(samples, enableAlphaToCoverage, enableAlphaToOne);
+   return std::make_shared<MultisamplingStateVK>(samples, enableAlphaToCoverage, enableAlphaToOne);
    }
 
    }

@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_WINDOW
 
 #include <memory>
-using namespace std;
 
 #include "core/rendering/texture.h"
 
@@ -70,7 +69,7 @@ namespace en
    struct WindowSettings
       {
       WindowMode mode;
-      shared_ptr<Display> display;
+      std::shared_ptr<Display> display;
       uint32v2   position;
       uint32v2   size;
       Format     format;
@@ -84,7 +83,7 @@ namespace en
       {
       public:
       // Display on which window's center point is currently located
-      virtual shared_ptr<Display> display(void) const = 0;
+      virtual std::shared_ptr<Display> display(void) const = 0;
       virtual uint32v2 position(void) const = 0;
       
       // Size in displays native resolution pixels
@@ -105,7 +104,7 @@ namespace en
       
       // Will signal this semaphore, once Swap-Chain surface is presented, and
       // can be reused.
-      virtual shared_ptr<Texture> surface(
+      virtual std::shared_ptr<Texture> surface(
          const Semaphore* signalSemaphore = nullptr) = 0;
          
       // Will wait for semaphore to signal, when rendering to Swap-Chain surface

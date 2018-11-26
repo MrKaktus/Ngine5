@@ -26,11 +26,11 @@ class Nparser
       Nparser(uint8* buffer, uint64 size); 
      ~Nparser();
 
-      bool position(uint64 offset);       // Sets current position in buffer
-      bool read(string& word, bool& eol); // Reads single word, character sequence ended with whitespace
-      bool readLine(string& line);        // Reads whole line
-      bool skipToNextLine(void);          // Updates offset to position on the beginning of next line
-      bool end(void);                     // Returns true if offset reached end of buffer
+      bool position(uint64 offset);            // Sets current position in buffer
+      bool read(std::string& word, bool& eol); // Reads single word, character sequence ended with whitespace
+      bool readLine(std::string& line);        // Reads whole line
+      bool skipToNextLine(void);               // Updates offset to position on the beginning of next line
+      bool end(void);                          // Returns true if offset reached end of buffer
       };
 
 bool isCypher(uint8 input);

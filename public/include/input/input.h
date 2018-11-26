@@ -27,7 +27,6 @@
 
 //#include "scene/state.h"
 #include <vector>
-using namespace std;
 
 namespace en
 {
@@ -184,7 +183,7 @@ namespace en
       
    struct ControllerEvent : public Event
           {
-          shared_ptr<Controller> pointer;
+          std::shared_ptr<Controller> pointer;
           
           ControllerEvent(EventType type);
           };
@@ -280,7 +279,7 @@ namespace en
 
    struct Gesture
           {
-          vector<Touch> touches;
+          std::vector<Touch> touches;
           };
 
 
@@ -360,12 +359,12 @@ namespace en
    class Mouse
       {
       public:
-      virtual shared_ptr<gpu::Display> display(void) const = 0; // Current screen on which mouse is located
+      virtual std::shared_ptr<gpu::Display> display(void) const = 0; // Current screen on which mouse is located
       virtual float2       position(void) const = 0;            // Mouse normalized position on current screen (coordinate origin at upper-left corner)
       virtual uint32       position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
       virtual bool         position(const uint32 x, 
                                     const uint32 y) = 0;        // Sets mouse position on current screen (coordinate origin at upper-left corner)
-      virtual bool         position(const shared_ptr<gpu::Display> display, // Sets mouse position on given screen
+      virtual bool         position(const std::shared_ptr<gpu::Display> display, // Sets mouse position on given screen
                                     const uint32 x, 
                                     const uint32 y) = 0;
 
@@ -413,12 +412,12 @@ namespace en
       static bool create(void);                      // Creates instance of this class (OS specific) and assigns it to "Input".
 
       virtual uint8           available(IO type) const = 0;          // Count of available peripherials of given type
-      virtual shared_ptr<Keyboard>   keyboard(uint8 index = 0) const = 0;   // N'th Keyboard
-      virtual shared_ptr<Mouse>      mouse(uint8 index = 0) const = 0;      // N'th Mouse
-      virtual shared_ptr<Joystick>   joystick(uint8 index = 0) const = 0;   // N'th Joystick
-      virtual shared_ptr<HMD>        hmd(uint8 index = 0) const = 0;        // N'th Head Mounted Display (VR/AR)
-      virtual shared_ptr<Controller> controller(uint8 index = 0) const = 0; // N'th Motion Controller
-      virtual shared_ptr<Camera>     camera(uint8 index = 0) const = 0;     // N'th Camera (Color, Depth, IR, or other)
+      virtual std::shared_ptr<Keyboard>   keyboard(uint8 index = 0) const = 0;   // N'th Keyboard
+      virtual std::shared_ptr<Mouse>      mouse(uint8 index = 0) const = 0;      // N'th Mouse
+      virtual std::shared_ptr<Joystick>   joystick(uint8 index = 0) const = 0;   // N'th Joystick
+      virtual std::shared_ptr<HMD>        hmd(uint8 index = 0) const = 0;        // N'th Head Mounted Display (VR/AR)
+      virtual std::shared_ptr<Controller> controller(uint8 index = 0) const = 0; // N'th Motion Controller
+      virtual std::shared_ptr<Camera>     camera(uint8 index = 0) const = 0;     // N'th Camera (Color, Depth, IR, or other)
 
       virtual void update(void) = 0;                                 // Gets actual input state, call function handling cached events
       
@@ -462,7 +461,7 @@ namespace en
           struct Joystick
                  {
                  uint8           available(void) const;       // Returns count of available joysticks's
-                 shared_ptr<input::Joystick> get(uint8 index = 0) const;  // Get pointer to N'th available joystick interface
+                 std::shared_ptr<input::Joystick> get(uint8 index = 0) const;  // Get pointer to N'th available joystick interface
                  } joystick;
 
           //struct Joystick
@@ -579,21 +578,21 @@ namespace en
           struct Camera
                  {
                  uint8           available(void) const;       // Returns count of available camera's
-                 shared_ptr<input::Camera> get(uint8 index = 0) const;  // Get pointer to N'th available camera interface
+                 std::shared_ptr<input::Camera> get(uint8 index = 0) const;  // Get pointer to N'th available camera interface
                  } camera;
 
           // Head Mounted Display
           struct HMD
                  {
                  uint8           available(void) const;       // Returns count of available HMD's
-                 shared_ptr<input::HMD> get(uint8 index = 0) const;  // Get pointer to N'th available HMD interface
+                 std::shared_ptr<input::HMD> get(uint8 index = 0) const;  // Get pointer to N'th available HMD interface
                  } hmd;
 
           // VR Haptic Controller
           struct Controller
                  {
                  uint8                  available(void) const;       // Returns count of available Controllers at given moment
-                 shared_ptr<input::Controller> get(uint8 index = 0) const;  // Get pointer to N'th available Controller interface
+                 std::shared_ptr<input::Controller> get(uint8 index = 0) const;  // Get pointer to N'th available Controller interface
                  };
 
           // Events handling function callbacks
@@ -610,7 +609,7 @@ namespace en
    }
 
 
-extern shared_ptr<input::Interface> Input;   // New dynamic Interface allowing inherited implementation
+extern std::shared_ptr<input::Interface> Input;   // New dynamic Interface allowing inherited implementation
 
 #if 0
 extern input::Interface Input;

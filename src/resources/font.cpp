@@ -40,12 +40,12 @@ namespace en
    resource = nullptr;
    }
 
-   shared_ptr<en::gpu::Texture> FontImp::texture(void) const
+   std::shared_ptr<en::gpu::Texture> FontImp::texture(void) const
    {
    return resource;
    }
 
-   shared_ptr<Mesh> FontImp::text(const string text, const bool screenspace) const
+   std::shared_ptr<Mesh> FontImp::text(const std::string text, const bool screenspace) const
    {
    using namespace gpu;
 
@@ -124,14 +124,14 @@ namespace en
 
    // Create buffer in GPU (CCW Triangles)
    Formatting formatting(Attribute::v2f32, Attribute::v2f32); // inPosition, inTexCoord0
-   shared_ptr<Buffer> vertex = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting);
+   std::shared_ptr<Buffer> vertex = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting);
    
    // TODO: !!! populate vertex with data
    
    delete [] data;
 
    // Create mesh with text geometry
-   shared_ptr<Mesh> mesh = make_shared<Mesh>();
+   std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
 
    // TODO: Refactor to new Model description
    //mesh->name = "text";
@@ -156,19 +156,19 @@ namespace en
    // sint16 offsetY;
    // uint16 advance;
 
-   shared_ptr<en::resource::Font> loadFont(const string& filename)
+   std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    {
    using namespace en::storage;
 
    // Open .fnt file
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.fonts + filename);
       if (!file)
          {
-         Log << string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
-         return shared_ptr<en::resource::Font>(nullptr);
+         Log << std::string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
+         return std::shared_ptr<en::resource::Font>(nullptr);
          }
       }
 
@@ -179,19 +179,19 @@ namespace en
    if (!buffer)
       {
       Log << "ERROR: Not enough memory!\n";
-      return shared_ptr<en::resource::Font>(nullptr);
+      return std::shared_ptr<en::resource::Font>(nullptr);
       }
    
    // Read file to buffer and close file
    if (!file->read(buffer))
       {
       Log << "ERROR: Cannot read whole font file!\n";
-      return shared_ptr<en::resource::Font>(nullptr);
+      return std::shared_ptr<en::resource::Font>(nullptr);
       }    
    file = nullptr;
 
    // Create new font
-   shared_ptr<FontImp> font = make_shared<FontImp>();
+   std::shared_ptr<FontImp> font = std::make_shared<FontImp>();
    
    // Create parser to quickly process text from file
    Nparser text(buffer, size);
@@ -200,12 +200,12 @@ namespace en
 
    float  texWidth = 1.0f;
    float  texHeight = 1.0f;
-   string texName;
+   std::string texName;
    uint32 lineHeight;
    uint32 characters;
    uint32 id = 0;
    
-   string line, word, command, value;
+   std::string line, word, command, value;
    bool eol = false;
    while(!text.end())
         {
@@ -217,7 +217,7 @@ namespace en
            while(text.read(word, eol))
               {
               std::size_t found = word.find("=");
-              if (found != string::npos)
+              if (found != std::string::npos)
                  {
                  command = word.substr(0, found);
                  value   = word.substr(found+1);
@@ -255,7 +255,7 @@ namespace en
            while(text.read(word, eol))
               {
               std::size_t found = word.find("=");
-              if (found != string::npos)
+              if (found != std::string::npos)
                  {
                  command = word.substr(0, found);
                  value   = word.substr(found+1);
@@ -265,13 +265,13 @@ namespace en
                  else
                  if (command == "file")
                     {
-                    string name = value.substr(1, value.length()-2);
+                    std::string name = value.substr(1, value.length()-2);
                     font->resource = Resources.load.texture(name);
                     if (!font->resource)
                        {
                        font = nullptr;
                        Log << "ERROR: Cannot load Font texture!\n";
-                       return shared_ptr<Font>(nullptr);
+                       return std::shared_ptr<Font>(nullptr);
                        }
                     }
                  }
@@ -286,7 +286,7 @@ namespace en
            while(text.read(word, eol))
               {
               std::size_t found = word.find("=");
-              if (found != string::npos)
+              if (found != std::string::npos)
                  {
                  command = word.substr(0, found);
                  value   = word.substr(found+1);
@@ -305,7 +305,7 @@ namespace en
            while(text.read(word, eol))
               {
               std::size_t found = word.find("=");
-              if (found != string::npos)
+              if (found != std::string::npos)
                  {
                  command = word.substr(0, found);
                  value   = word.substr(found+1);
@@ -367,7 +367,7 @@ namespace en
    //if (line != "version 1.0")
    //   {
    //   Log << "ERROR: Font file corrupted!";
-   //   return shared_ptr<en::resource::Font>(nullptr);
+   //   return std::shared_ptr<en::resource::Font>(nullptr);
    //   }      
 
    //// Load texture used by font
@@ -376,7 +376,7 @@ namespace en
    //if (!text.readLine(textureName))
    //   {
    //   Log << "ERROR: Font file corrupted!";
-   //   return shared_ptr<en::resource::Font>(nullptr);
+   //   return std::shared_ptr<en::resource::Font>(nullptr);
    //   }
 
    ////gpu::Texture texture = Resources.load.texture(string("resources/textures/" + textureName));
@@ -437,7 +437,7 @@ namespace en
 //      }
 //
 //   // Create default font program
-//   string vsCode, fsCode;
+//   std::string vsCode, fsCode;
 //
 //#ifdef EN_OPENGL_DESKTOP
 //   en::Storage.read(string("resources/engine/shaders/textured.glsl.1.10.vs"), vsCode);
@@ -502,7 +502,7 @@ namespace en
    //return en::resource::Font(font);
    }
 
-   shared_ptr<Font> Interface::Load::font(const string& filename)
+   std::shared_ptr<Font> Interface::Load::font(const std::string& filename)
    {
    sint64 found;
    uint64 length = filename.length();
@@ -512,25 +512,25 @@ namespace en
       return ResourcesContext.fonts[filename];
 
    found = filename.rfind(".fnt");
-   if ( found != string::npos &&
+   if ( found != std::string::npos &&
         found == (length - 4) )
       return loadFont(filename);
 
    found = filename.rfind(".FNT");
-   if ( found != string::npos &&
+   if ( found != std::string::npos &&
         found == (length - 4) )
       return loadFont(filename);
 
-   return shared_ptr<Font>(nullptr);
+   return std::shared_ptr<Font>(nullptr);
    }
 
-   void Interface::Free::font(const string& name)
+   void Interface::Free::font(const std::string& name)
    {
    // Find specified font and check if it is used
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   map<string, shared_ptr<FontImp> >::iterator it = ResourcesContext.fonts.find(name);
+   std::map<std::string, std::shared_ptr<FontImp> >::iterator it = ResourcesContext.fonts.find(name);
    if (it != ResourcesContext.fonts.end())
       if (it->second.unique())
          it->second = nullptr;

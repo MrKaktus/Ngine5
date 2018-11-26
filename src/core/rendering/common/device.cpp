@@ -119,7 +119,7 @@ namespace en
    return api->displaysCount;
    }
    
-   shared_ptr<Display> CommonDevice::display(const uint32 index) const
+   std::shared_ptr<Display> CommonDevice::display(const uint32 index) const
    {
    // Currently all devices share all available displays
    CommonGraphicAPI* api = reinterpret_cast<CommonGraphicAPI*>(en::Graphics.get());
@@ -149,7 +149,7 @@ namespace en
    delete defaultState;
    }
    
-   //shared_ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType,
+   //std::shared_ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType,
    //                                                        const uint32 controlPoints,
    //                                                        const uint32 usedAttributes,
    //                                                        const uint32 usedBuffers,
@@ -158,7 +158,7 @@ namespace en
    //{
    //// Should be implemented by API
    //assert(0);
-   //return shared_ptr<InputLayout>(nullptr);
+   //return std::shared_ptr<InputLayout>(nullptr);
    //}
    
 
@@ -228,7 +228,7 @@ namespace en
    pipelineLayout     = device.createPipelineLayout(0u, nullptr);
 
    for(uint32 i=0; i<5; ++i)
-      function[i] = string("main");
+      function[i] = std::string("main");
    }
 
    PipelineState CommonDevice::defaultPipelineState(void)
@@ -260,8 +260,8 @@ namespace en
       if (Device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
          displaysCount++;
 
-   displayArray = new shared_ptr<CommonDisplay>[displaysCount];
-   virtualDisplay = make_shared<winDisplay>();
+   displayArray = new std::shared_ptr<CommonDisplay>[displaysCount];
+   virtualDisplay = std::make_shared<winDisplay>();
   
    // Clear structure for next display (to ensure there is no old data)
    memset(&Device, 0, sizeof(Device));
@@ -300,7 +300,7 @@ namespace en
          while(EnumDisplaySettingsEx(Device.DeviceName, modesCount, &DispMode, 0u))
             modesCount++;
 
-         shared_ptr<winDisplay> currentDisplay = make_shared<winDisplay>();
+         std::shared_ptr<winDisplay> currentDisplay = std::make_shared<winDisplay>();
          
          currentDisplay->modeResolution = new uint32v2[modesCount];
      
@@ -392,29 +392,29 @@ namespace en
    // This static function should be in .mm file if we include Metal headers !!!
    bool GraphicAPI::create(void)
    {
+   if (Graphics)
+      return true;
+
    Log << "Starting module: Rendering.\n";
 
    // Load from config file desired Rendering API and Shading Language Version
    // Load choosed API for Android & Windows
    
 #if defined(EN_PLATFORM_ANDROID)
-   // Graphics = make_shared<OpenGLESAPI>();
-   // Graphics = make_shared<VulkanAPI>();
+   Graphics = std::make_shared<VulkanAPI>();
 #endif
 #if defined(EN_PLATFORM_BLACKBERRY)
-   Graphics = make_shared<OpenGLESAPI>();
+   Graphics = std::make_shared<OpenGLESAPI>();
 #endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   Graphics = make_shared<MetalAPI>();
+   Graphics = std::make_shared<MetalAPI>();
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
    // API Selection based on config file / terminal parameters
-   if (Config.get("g.api", string("d3d12")))
-      Graphics = make_shared<Direct3DAPI>("Ngine5.0");
+   if (Config.get("g.api", std::string("d3d12")))
+      Graphics = std::make_shared<Direct3DAPI>("Ngine5.0");
    else
-      Graphics = make_shared<VulkanAPI>("Ngine5.0");      // TODO: Propagate application name !
-
-   // Graphics = make_shared<OpenGLAPI<();
+      Graphics = std::make_shared<VulkanAPI>("Ngine5.0");      // TODO: Propagate application name !
 #endif
 
    return (Graphics == nullptr) ? false : true;
@@ -422,7 +422,7 @@ namespace en
    
    }
    
-shared_ptr<gpu::GraphicAPI> Graphics;
+std::shared_ptr<gpu::GraphicAPI> Graphics;
 }
 
 

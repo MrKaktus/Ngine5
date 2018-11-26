@@ -13,7 +13,6 @@
 #define ENG_CORE_UTILITIES_BASIC_ALLOCATOR
 
 #include <memory>
-using namespace std;
 
 #include "core/algorithm/allocator.h"
 

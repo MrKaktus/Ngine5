@@ -186,7 +186,7 @@ namespace en
 //      descStencil.storeAction = MTLStoreActionStoreAndMultisampleResolve; // MTLStoreActionMultisampleResolve;;
    }
    
-//   bool DepthStencilAttachmentMTL::resolve(const shared_ptr<TextureView> destination,
+//   bool DepthStencilAttachmentMTL::resolve(const std::shared_ptr<TextureView> destination,
 //      const DepthResolve mode)
 //   {
 //#if defined(EN_PLATFORM_OSX)
@@ -271,13 +271,13 @@ namespace en
    deallocateObjectiveC(desc);
    }
 
-   shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
+   std::shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
                                                             const uint32 _layers,
                                                             const uint32 surfaces,
-                                                            const shared_ptr<TextureView>* surface,
-                                                            const shared_ptr<TextureView> _depthStencil,
-                                                            const shared_ptr<TextureView> _stencil,
-                                                            const shared_ptr<TextureView> _depthResolve)
+                                                            const std::shared_ptr<TextureView>* surface,
+                                                            const std::shared_ptr<TextureView> _depthStencil,
+                                                            const std::shared_ptr<TextureView> _stencil,
+                                                            const std::shared_ptr<TextureView> _depthResolve)
    {
    // TODO: If there is only one surface view.
    //       If this view is default, and points to one of the Swap-Chain textures of any created Window.
@@ -295,9 +295,9 @@ namespace en
        _depthStencil == nullptr &&
        _stencil      == nullptr &&
        _depthResolve == nullptr)
-      return shared_ptr<Framebuffer>(nullptr);
+      return std::shared_ptr<Framebuffer>(nullptr);
 
-   shared_ptr<FramebufferMTL> framebuffer = make_shared<FramebufferMTL>(_resolution, _layers);
+   std::shared_ptr<FramebufferMTL> framebuffer = std::make_shared<FramebufferMTL>(_resolution, _layers);
 
    // Create patching array
    uint32 index = 0u;
@@ -362,17 +362,17 @@ namespace en
    return framebuffer;
    }
    
-   shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
-                                                            const shared_ptr<TextureView> swapChainSurface,
-                                                            const shared_ptr<TextureView> depthStencil,
-                                                            const shared_ptr<TextureView> stencil)
+   std::shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
+                                                            const std::shared_ptr<TextureView> swapChainSurface,
+                                                            const std::shared_ptr<TextureView> depthStencil,
+                                                            const std::shared_ptr<TextureView> stencil)
    {
    uint32 attachments = bitsCount(usedAttachments);
 
    assert( swapChainSurface );
    assert( attachments == 1 );
 
-   shared_ptr<FramebufferMTL> framebuffer = make_shared<FramebufferMTL>(_resolution, 1u);
+   std::shared_ptr<FramebufferMTL> framebuffer = std::make_shared<FramebufferMTL>(_resolution, 1u);
 
    // Create patching array
    TextureViewMTL* view = reinterpret_cast<TextureViewMTL*>(swapChainSurface.get());
@@ -410,11 +410,11 @@ namespace en
    return framebuffer;
    }
 
-   shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
-                                                            const shared_ptr<TextureView> temporaryMSAA,
-                                                            const shared_ptr<TextureView> swapChainSurface,
-                                                            const shared_ptr<TextureView> depthStencil,
-                                                            const shared_ptr<TextureView> stencil)
+   std::shared_ptr<Framebuffer> RenderPassMTL::createFramebuffer(const uint32v2 _resolution,
+                                                            const std::shared_ptr<TextureView> temporaryMSAA,
+                                                            const std::shared_ptr<TextureView> swapChainSurface,
+                                                            const std::shared_ptr<TextureView> depthStencil,
+                                                            const std::shared_ptr<TextureView> stencil)
    {
    uint32 attachments = bitsCount(usedAttachments);
 
@@ -422,7 +422,7 @@ namespace en
    assert( swapChainSurface );
    assert( attachments == 1 );
 
-   shared_ptr<FramebufferMTL> framebuffer = make_shared<FramebufferMTL>(_resolution, 1u);
+   std::shared_ptr<FramebufferMTL> framebuffer = std::make_shared<FramebufferMTL>(_resolution, 1u);
 
    // Create patching array
    TextureViewMTL* viewA = reinterpret_cast<TextureViewMTL*>(temporaryMSAA.get());
@@ -466,17 +466,17 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
    
-   shared_ptr<ColorAttachment> MetalDevice::createColorAttachment(
+   std::shared_ptr<ColorAttachment> MetalDevice::createColorAttachment(
       const Format format,
       const uint32 samples)
    {
    assert( format != Format::Unsupported );
    assert( samples > 0u );
    
-   return make_shared<ColorAttachmentMTL>(format, samples);
+   return std::make_shared<ColorAttachmentMTL>(format, samples);
    }
    
-   shared_ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(
+   std::shared_ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(
       const Format depthFormat,
       const Format stencilFormat,
       const uint32 samples)
@@ -492,12 +492,12 @@ namespace en
 
    // TODO: In Debug mode check if Format is supported at current HW in Real-Time
    
-   return make_shared<DepthStencilAttachmentMTL>(depthFormat, stencilFormat, samples);
+   return std::make_shared<DepthStencilAttachmentMTL>(depthFormat, stencilFormat, samples);
    }
 
-   shared_ptr<RenderPass> MetalDevice::createRenderPass(
+   std::shared_ptr<RenderPass> MetalDevice::createRenderPass(
       const uint32 attachments,
-      const shared_ptr<ColorAttachment> color[],
+      const std::shared_ptr<ColorAttachment> color[],
       const DepthStencilAttachment* depthStencil)
    {
    assert( attachments < MaxColorAttachmentsCount );
@@ -505,7 +505,7 @@ namespace en
    // Metal is not supporting Fragment Shaders working only on Side Effect Buffers without classic output ones
    assert( depthStencil || attachments > 0 );
 
-   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
+   std::shared_ptr<RenderPassMTL> pass = std::make_shared<RenderPassMTL>();
 
    // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
 
@@ -559,11 +559,11 @@ namespace en
    return pass;
    }
    
-   shared_ptr<RenderPass> MetalDevice::createRenderPass(
+   std::shared_ptr<RenderPass> MetalDevice::createRenderPass(
       const ColorAttachment& swapChainSurface,
       const DepthStencilAttachment* depthStencil)
    {
-   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
+   std::shared_ptr<RenderPassMTL> pass = std::make_shared<RenderPassMTL>();
 
    // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
 
@@ -696,10 +696,10 @@ namespace en
       
 
 //   // Creates simple render pass with one color destination
-//   shared_ptr<RenderPass> MetalDevice::createRenderPass(const shared_ptr<ColorAttachment> color,
-//                                                 const shared_ptr<DepthStencilAttachment> depthStencil)
+//   std::shared_ptr<RenderPass> MetalDevice::createRenderPass(const std::shared_ptr<ColorAttachment> color,
+//                                                 const std::shared_ptr<DepthStencilAttachment> depthStencil)
 //   {
-//   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
+//   std::shared_ptr<RenderPassMTL> pass = std::make_shared<RenderPassMTL>();
 //
 //   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
 //
@@ -719,10 +719,10 @@ namespace en
 //   }
 
 //   // Creates render pass which's output goes to window framebuffer
-//   shared_ptr<RenderPass> MetalDevice::createRenderPass(const shared_ptr<Texture> framebuffer,
-//                                                 const shared_ptr<DepthStencilAttachment> depthStencil)
+//   std::shared_ptr<RenderPass> MetalDevice::createRenderPass(const std::shared_ptr<Texture> framebuffer,
+//                                                 const std::shared_ptr<DepthStencilAttachment> depthStencil)
 //   {
-//   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
+//   std::shared_ptr<RenderPassMTL> pass = std::make_shared<RenderPassMTL>();
 //
 //   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
 //
@@ -755,14 +755,14 @@ namespace en
 //   }
 //
 //   // Creates render pass which's output is resolved from temporary MSAA target to window framebuffer
-//   shared_ptr<RenderPass> MetalDevice::createRenderPass(const shared_ptr<Texture> temporaryMSAA,
-//                                                 const shared_ptr<Texture> framebuffer,
-//                                                 const shared_ptr<DepthStencilAttachment> depthStencil)
+//   std::shared_ptr<RenderPass> MetalDevice::createRenderPass(const std::shared_ptr<Texture> temporaryMSAA,
+//                                                 const std::shared_ptr<Texture> framebuffer,
+//                                                 const std::shared_ptr<DepthStencilAttachment> depthStencil)
 //   {
 //   assert( temporaryMSAA );
 //   assert( framebuffer );
 //   
-//   shared_ptr<RenderPassMTL> pass = make_shared<RenderPassMTL>();
+//   std::shared_ptr<RenderPassMTL> pass = std::make_shared<RenderPassMTL>();
 //
 //   pass->desc.visibilityResultBuffer = nil; // TODO: MTLBuffer for Occlusion Query
 //

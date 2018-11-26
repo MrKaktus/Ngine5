@@ -21,7 +21,7 @@
 #include "core/utilities/memory.h"
 #include "core/rendering/d3d12/dx12CommandBuffer.h"
 #include "core/rendering/d3d12/dx12Texture.h"
-#include "threading/scheduler.h"
+#include "parallel/scheduler.h"
 #include "utilities/strings.h"
 
 #include "platform/system.h"
@@ -38,7 +38,7 @@ namespace en
       return false;
    
    // Compose error message
-   string info;
+   std::string info;
    info += "ERROR: Direct3D12 error: ";
    if (result == D3D11_ERROR_FILE_NOT_FOUND)  // D3D12_ERROR_FILE_NOT_FOUND undeclared ?
       {
@@ -131,7 +131,7 @@ namespace en
       index(_index),
       adapter(_adapter),
       device(nullptr),
-      initThreads(min(Scheduler.workers(), MaxSupportedWorkerThreads))
+      initThreads(MaxThreads) // min(Scheduler.workers(), MaxSupportedWorkerThreads)
 
    {
    for(uint32 i=0; i<initThreads; ++i)
@@ -148,7 +148,7 @@ namespace en
 
 #if defined(EN_DEBUG)
    // Name Device for debugging
-   string name("D3D12 GPU N: ");
+   std::string name("D3D12 GPU N: ");
    name += stringFrom(index);
    device->SetName((LPCWSTR)name.c_str());
 #endif
@@ -171,7 +171,7 @@ namespace en
 
 #if defined(EN_DEBUG)
       // Name CommandQueue for debugging
-      string name("CommandQueue Q: ");
+      std::string name("CommandQueue Q: ");
       name += stringFrom(type);
       queue[type]->SetName((LPCWSTR)name.c_str());
 #endif
@@ -598,10 +598,10 @@ namespace en
                                  &memoryInfo);
 
    Log << "Local\n\n";
-   Log << "Budget   : " << memoryInfo.Budget << endl;
-   Log << "Usage    : " << memoryInfo.CurrentUsage << endl;
-   Log << "Available: " << memoryInfo.AvailableForReservation << endl;
-   Log << "Reserved : " << memoryInfo.CurrentReservation << endl;
+   Log << "Budget   : " << memoryInfo.Budget << std::endl;
+   Log << "Usage    : " << memoryInfo.CurrentUsage << std::endl;
+   Log << "Available: " << memoryInfo.AvailableForReservation << std::endl;
+   Log << "Reserved : " << memoryInfo.CurrentReservation << std::endl;
   
    // Shared system memory available
    adapter->QueryVideoMemoryInfo(0, // Multi-GPU index
@@ -609,10 +609,10 @@ namespace en
                                  &memoryInfo);
 
    Log << "\nShared\n\n";
-   Log << "Budget   : " << memoryInfo.Budget << endl;
-   Log << "Usage    : " << memoryInfo.CurrentUsage << endl;
-   Log << "Available: " << memoryInfo.AvailableForReservation << endl;
-   Log << "Reserved : " << memoryInfo.CurrentReservation << endl;
+   Log << "Budget   : " << memoryInfo.Budget << std::endl;
+   Log << "Usage    : " << memoryInfo.CurrentUsage << std::endl;
+   Log << "Available: " << memoryInfo.AvailableForReservation << std::endl;
+   Log << "Reserved : " << memoryInfo.CurrentReservation << std::endl;
  */
 
    support.videoMemorySize  = adapterDescription.DedicatedVideoMemory;
@@ -661,12 +661,12 @@ namespace en
    return queuesCount[underlyingType(type)];
    }
 
-   shared_ptr<Texture> Direct3D12Device::createSharedTexture(shared_ptr<SharedSurface> backingSurface)
+   std::shared_ptr<Texture> Direct3D12Device::createSharedTexture(std::shared_ptr<SharedSurface> backingSurface)
    {
    // Engine is not supporting cross-API / cross-process surfaces in Direct3D12 currently.
    // Implement it in the future.
    assert( 0 );
-   return shared_ptr<Texture>(nullptr);
+   return std::shared_ptr<Texture>(nullptr);
    }
    
 
@@ -678,7 +678,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   Direct3DAPI::Direct3DAPI(string appName) :
+   Direct3DAPI::Direct3DAPI(std::string appName) :
       library(LoadLibrary(L"d3d12.dll")),
       debugController(nullptr),
       factory(nullptr),
@@ -708,7 +708,7 @@ namespace en
 
 #if defined(EN_DEBUG)
    // Name Factory for debugging
-   string name("Factory");
+   std::string name("Factory");
    factory->SetPrivateData( WKPDID_D3DDebugObjectName, name.length(), name.c_str() );
 #endif
 
@@ -730,7 +730,7 @@ namespace en
       deviceHandle = nullptr;
       }
 
-   _device = new shared_ptr<Direct3D12Device>[devicesCount];
+   _device = new std::shared_ptr<Direct3D12Device>[devicesCount];
 
    // Create interfaces for all physical devices supporting D3D12
    uint32 index = 0;
@@ -745,7 +745,7 @@ namespace en
          if (SUCCEEDED(deviceHandle->QueryInterface(IID_PPV_ARGS(&adapter)))) // __uuidof(IDXGIAdapter3), reinterpret_cast<void**>(&adapter)
             {
             // Create actual device 
-            _device[deviceIndex] = make_shared<Direct3D12Device>(this, deviceIndex, adapter);
+            _device[deviceIndex] = std::make_shared<Direct3D12Device>(this, deviceIndex, adapter);
             ++deviceIndex;
             }
          }
@@ -787,12 +787,12 @@ namespace en
    return devicesCount;
    }
 
-   shared_ptr<GpuDevice> Direct3DAPI::primaryDevice(void) const
+   std::shared_ptr<GpuDevice> Direct3DAPI::primaryDevice(void) const
    {
    return _device[0];
    }
 
-   shared_ptr<GpuDevice> Direct3DAPI::device(const uint32 index) const
+   std::shared_ptr<GpuDevice> Direct3DAPI::device(const uint32 index) const
    {
    assert( index < devicesCount );
    
@@ -807,12 +807,12 @@ namespace en
    return displaysCount;
    }
 
-   shared_ptr<Display> Direct3DAPI::primaryDisplay(void) const
+   std::shared_ptr<Display> Direct3DAPI::primaryDisplay(void) const
    {
    return displayArray[0];
    }
 
-   shared_ptr<Display> Direct3DAPI::display(const uint32 index) const
+   std::shared_ptr<Display> Direct3DAPI::display(const uint32 index) const
    {
    assert( index < displaysCount );
    return displayArray[index];  

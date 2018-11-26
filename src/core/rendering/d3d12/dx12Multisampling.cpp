@@ -50,11 +50,11 @@ namespace en
    // Validate( this, CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &desc, sizeof(D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS)) )
    }
    
-   shared_ptr<MultisamplingState> Direct3D12Device::createMultisamplingState(const uint32 samples,
+   std::shared_ptr<MultisamplingState> Direct3D12Device::createMultisamplingState(const uint32 samples,
                                                                       const bool enableAlphaToCoverage,
                                                                       const bool enableAlphaToOne)
    {
-   return make_shared<MultisamplingStateD3D12>(samples, enableAlphaToCoverage, enableAlphaToOne);
+   return std::make_shared<MultisamplingStateD3D12>(samples, enableAlphaToCoverage, enableAlphaToOne);
    }
    
    }

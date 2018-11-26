@@ -106,9 +106,9 @@ namespace en
    // Vulkan Buffer View is created only for Linear Textures backed by Buffers - not supported currently.
    //
 #if 0
-   shared_ptr<BufferView> BufferVK::view(const Format format, const uint64 offset, const uint64 length)
+   std::shared_ptr<BufferView> BufferVK::view(const Format format, const uint64 offset, const uint64 length)
    {
-   shared_ptr<BufferViewVK> result = nullptr;
+   std::shared_ptr<BufferViewVK> result = nullptr;
 
    uint64 finalOffset = roundUp( offset, gpu->properties.limits.minTexelBufferOffsetAlignment );
    uint64 finalLength = roundUp( length, gpu->properties.limits.minTexelBufferOffsetAlignment );
@@ -127,8 +127,8 @@ namespace en
    VkBufferView viewHandle = VK_NULL_HANDLE;
 
    Validate( gpu, vkCreateBufferView(gpu->device, &viewInfo, nullptr, &viewHandle) )
-   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = make_shared<BufferViewVK>(dynamic_pointer_cast<BufferVK>(shared_from_this()),
+   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
+      result = std::make_shared<BufferViewVK>(dynamic_pointer_cast<BufferVK>(shared_from_this()),
                                          viewHandle,
                                          format,
                                          finalOffset,
@@ -137,7 +137,7 @@ namespace en
    return result;
    }
 
-   BufferViewVK::BufferViewVK(shared_ptr<BufferVK> parent,
+   BufferViewVK::BufferViewVK(std::shared_ptr<BufferVK> parent,
                               const VkBufferView view,
                               const Format       format,
                               const uint32       offset,
@@ -154,15 +154,15 @@ namespace en
    buffer = nullptr;
    }
 
-   shared_ptr<Buffer> BufferViewVK::parent(void) const
+   std::shared_ptr<Buffer> BufferViewVK::parent(void) const
    {
    return buffer;
    }
 #endif
 
-   shared_ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size)
+   std::shared_ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size)
    {
-   shared_ptr<BufferVK> buffer = nullptr;
+   std::shared_ptr<BufferVK> buffer = nullptr;
    
    assert( size );
 
@@ -255,9 +255,9 @@ namespace en
    VkBuffer handle = VK_NULL_HANDLE;
    VulkanDevice* gpu = heap->gpu.get();
    Validate( gpu, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &handle) )
-   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
       {
-      buffer = make_shared<BufferVK>(gpu, handle, type, size);
+      buffer = std::make_shared<BufferVK>(gpu, handle, type, size);
       
       // Query buffer requirements
       ValidateNoRet( gpu, vkGetBufferMemoryRequirements(gpu->device, buffer->handle, &buffer->memoryRequirements) )

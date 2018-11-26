@@ -15,7 +15,7 @@
 
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/alignment.h"
+#include "core/memory/alignment.h"
 
 #include "assert.h"
 
@@ -54,7 +54,7 @@ namespace en
    }
 
    template <typename T>
-   T* allocate(const uint32 alignment, const uint32 count)
+   T* allocate(const uint32 count, const uint32 alignment)
    {
    T* temp;
 #ifdef EN_PLATFORM_WINDOWS
@@ -91,7 +91,7 @@ namespace en
    temp = static_cast<T*>(_aligned_realloc(memory, newCount * sizeof(T), alignment));
 #else
    // TODO: Use Virtual Memory pages remapping to avoid memcpy
-   temp = allocate<T>(alignment, newCount);
+   temp = allocate<T>(newCount, alignment);
    if (temp)
       {
       memcpy(temp, memory, oldCount * sizeof(T));

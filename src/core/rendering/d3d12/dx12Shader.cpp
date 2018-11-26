@@ -17,6 +17,7 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
+#include "core/log/log.h"
 #include "core/utilities/memory.h"
 #include "core/rendering/state.h"
 #include "core/rendering/d3d12/dx12Device.h"
@@ -29,7 +30,7 @@ namespace en
       stage(_stage)
    {
    // Keeps local copy of shader binary
-   state.pShaderBytecode = allocate<uint8>(4096, length);
+   state.pShaderBytecode = allocate<uint8>(length, 4096);
    state.BytecodeLength  = length;
 
    memcpy((void*)(state.pShaderBytecode), binary, length);
@@ -97,9 +98,9 @@ namespace en
         "fs_5_1"   // Fragment
         };
 
-   shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const string& source)
+   std::shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const std::string& source)
    {
-   shared_ptr<ShaderD3D12> result = nullptr; 
+   std::shared_ptr<ShaderD3D12> result = nullptr; 
 
 #if defined(EN_DEBUG)
    // Enable better shader debugging with the graphics debugging tools
@@ -129,23 +130,23 @@ namespace en
    if (errors)
       {
       // Log compilation error message
-      string errorLog("Error: D3D12 HLSL compilation error:\n");
-      errorLog += string(reinterpret_cast<char*>(errors->GetBufferPointer()), errors->GetBufferSize());
+      std::string errorLog("Error: D3D12 HLSL compilation error:\n");
+      errorLog += std::string(reinterpret_cast<char*>(errors->GetBufferPointer()), errors->GetBufferSize());
       errorLog += "\n\n";
       Log << errorLog;
       }
    else
    if (binary)
-      result = make_shared<ShaderD3D12>(stage,
-                                        reinterpret_cast<const uint8*>(binary->GetBufferPointer()),
-                                        binary->GetBufferSize());
+      result = std::make_shared<ShaderD3D12>(stage,
+                                             reinterpret_cast<const uint8*>(binary->GetBufferPointer()),
+                                             binary->GetBufferSize());
 
    return result;
    }
 
-   shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+   std::shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
    {
-   return make_shared<ShaderD3D12>(stage, data, size);
+   return std::make_shared<ShaderD3D12>(stage, data, size);
    }
 
    }

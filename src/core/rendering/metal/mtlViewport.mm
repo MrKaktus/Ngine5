@@ -59,7 +59,7 @@ namespace en
    }
    
       
-   shared_ptr<ViewportState> MetalDevice::createViewportState(const uint32 count,
+   std::shared_ptr<ViewportState> MetalDevice::createViewportState(const uint32 count,
                                                               const ViewportStateInfo* viewports,
                                                               const ScissorStateInfo* scissors)
    {
@@ -67,7 +67,7 @@ namespace en
    assert( viewports );
    assert( scissors );
    
-   return make_shared<ViewportStateMTL>(count, viewports, scissors);
+   return std::make_shared<ViewportStateMTL>(count, viewports, scissors);
    }
    
    }

@@ -97,49 +97,49 @@ namespace en
 
    //struct Material
    //       { 
-   //       string name;                       // Material name
+   //       std::string name;                       // Material name
 
    //       struct Emmisive
    //              {
-   //              shared_ptr<en::gpu::Texture> map;       // Ke emmisive coefficients for each point of surface
+   //              std::shared_ptr<en::gpu::Texture> map;       // Ke emmisive coefficients for each point of surface
    //              float3           color;     // Ke default emissive coefficient 
    //              } emmisive;
    //      
    //       struct Ambient
    //              {
-   //              shared_ptr<en::gpu::Texture> map;       // Ka incoming irradiance coefficients for each point of surface in Phong/Lambert models
+   //              std::shared_ptr<en::gpu::Texture> map;       // Ka incoming irradiance coefficients for each point of surface in Phong/Lambert models
    //              float3           color;     // Ka default incoming irradiance coefficient in Phong/Lambert models
    //              } ambient;
  
    //       struct Diffuse   
    //              {
-   //              shared_ptr<en::gpu::Texture> map;       // Kd leaving irradiance coefficients for each point of surface in Phong/Lambert models
+   //              std::shared_ptr<en::gpu::Texture> map;       // Kd leaving irradiance coefficients for each point of surface in Phong/Lambert models
    //              float3           color;     // Kd base color of material, it's albedo, or diffuse term in Phong/Lambert models
    //              } diffuse;      
 
    //       struct Specular 
    //              {
-   //              shared_ptr<en::gpu::Texture> map;       // Ks reflection coefficients for each point of surface in Phong model
+   //              std::shared_ptr<en::gpu::Texture> map;       // Ks reflection coefficients for each point of surface in Phong model
    //              float3           color;     // Ks default reflection coefficient in Phong model
    //              float            exponent;  // Specular exponent "shininess" factor for specular equation
    //              } specular;
    //      
    //       struct Transparency
    //              {
-   //              shared_ptr<en::gpu::Texture> map;       // Transparency coefficients for each point of surface
+   //              std::shared_ptr<en::gpu::Texture> map;       // Transparency coefficients for each point of surface
    //              float3           color;     // Transparency default coefficient
    //              bool             on;        // Is transparency enabled ?
    //              } transparency;
    //      
    //       struct Normal
    //              {
-   //              shared_ptr<en::gpu::Texture> map;       // Normal vector for each point of surface
+   //              std::shared_ptr<en::gpu::Texture> map;       // Normal vector for each point of surface
    //              } normal;
    //      
    //       struct Displacement
    //              {
-   //              shared_ptr<en::gpu::Texture> map;       // Displacement value for each point of surface
-   //              shared_ptr<en::gpu::Texture> vectors;   // Vector Displacement map for each point of surface
+   //              std::shared_ptr<en::gpu::Texture> map;       // Displacement value for each point of surface
+   //              std::shared_ptr<en::gpu::Texture> vectors;   // Vector Displacement map for each point of surface
    //              } displacement;
 
    //       Material();                        // Inits material with default resources provided by engine
@@ -171,7 +171,7 @@ namespace en
    // Material interface
    class IMaterial
       {
-      string name;
+      std::string name;
       MaterialType type;
       };
 
@@ -181,7 +181,7 @@ namespace en
    // Flexible description that allows any combination of surface layers as well as their packing in shared textures.
    class EMaterial : public IMaterial
       {
-      shared_ptr<en::gpu::Texture> layer[9];
+      std::shared_ptr<en::gpu::Texture> layer[9];
 
       struct Albedo
          {
@@ -242,16 +242,16 @@ namespace en
    //// Release Material
    //class Material : public IMaterial
    //   {
-   //   shared_ptr<en::gpu::Texture> layer0; // [sRGB] Albedo , optional [Linear] Alpha/Opacity
+   //   std::shared_ptr<en::gpu::Texture> layer0; // [sRGB] Albedo , optional [Linear] Alpha/Opacity
    //
-   //   shared_ptr<en::gpu::Texture> metallic;     // 
-   //   shared_ptr<en::gpu::Texture> cavity;       // 
-   //   shared_ptr<en::gpu::Texture> roughness;    // 
-   //   shared_ptr<en::gpu::Texture> AO;           // 
-   //   shared_ptr<en::gpu::Texture> normal;       // 
-   //   shared_ptr<en::gpu::Texture> displacement; // 
-   //   shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
-   //   shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
+   //   std::shared_ptr<en::gpu::Texture> metallic;     // 
+   //   std::shared_ptr<en::gpu::Texture> cavity;       // 
+   //   std::shared_ptr<en::gpu::Texture> roughness;    // 
+   //   std::shared_ptr<en::gpu::Texture> AO;           // 
+   //   std::shared_ptr<en::gpu::Texture> normal;       // 
+   //   std::shared_ptr<en::gpu::Texture> displacement; // 
+   //   std::shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
+   //   std::shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
    //
    //   };
 
@@ -270,18 +270,18 @@ namespace en
    //
    struct Material
       { 
-      string name;                       // Material name
+      std::string name;                       // Material name
 
-      shared_ptr<en::gpu::Texture> albedo;       // Leaving irradiance coefficients for each point of surface 
-      shared_ptr<en::gpu::Texture> metallic;     // 
-      shared_ptr<en::gpu::Texture> cavity;       // 
-      shared_ptr<en::gpu::Texture> roughness;    // 
-      shared_ptr<en::gpu::Texture> AO;           // 
-      shared_ptr<en::gpu::Texture> normal;       // 
-      shared_ptr<en::gpu::Texture> displacement; // 
-      shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
-      shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
-      shared_ptr<en::gpu::Texture> opacity;      //
+      std::shared_ptr<en::gpu::Texture> albedo;       // Leaving irradiance coefficients for each point of surface 
+      std::shared_ptr<en::gpu::Texture> metallic;     // 
+      std::shared_ptr<en::gpu::Texture> cavity;       // 
+      std::shared_ptr<en::gpu::Texture> roughness;    // 
+      std::shared_ptr<en::gpu::Texture> AO;           // 
+      std::shared_ptr<en::gpu::Texture> normal;       // 
+      std::shared_ptr<en::gpu::Texture> displacement; // 
+      std::shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
+      std::shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
+      std::shared_ptr<en::gpu::Texture> opacity;      //
       
       Material();                        // Inits material with default resources provided by engine
       };
@@ -667,8 +667,8 @@ struct CommandState
    class Font
       {
       public:
-      virtual shared_ptr<en::gpu::Texture> texture(void) const = 0;            // Returns texture used by font
-      virtual shared_ptr<Mesh> text(const string text, const bool screenspace = false) const = 0;  // Creates mesh that contains geometry representing
+      virtual std::shared_ptr<en::gpu::Texture> texture(void) const = 0;            // Returns texture used by font
+      virtual std::shared_ptr<Mesh> text(const std::string text, const bool screenspace = false) const = 0;  // Creates mesh that contains geometry representing
                                                        // passed text. Upper left corner of first letter of 
                                                        // text lays in position (0,0). Text is aligned to X
                                                        // axis. If created in World Space (default), Y axis
@@ -713,27 +713,27 @@ struct CommandState
           {
           struct Load
                  {
-                 shared_ptr<Font>  font(const string& filename); 
-                 shared_ptr<Model> model(const string& filename, const string& name);  // For multi-model files and nameless model files like *.obj
-                 shared_ptr<Model> model(const string& filename);                           
-                 //Material material(const string& filename, const string& name); // For multi-material files like *.mtl
-                 //Material material(const string& filename);                     // For single-material files like *.material
-                 shared_ptr<en::audio::Sample> sound(const string& filename);
-                 shared_ptr<en::gpu::Texture>  texture(const string& filename, 
+                 std::shared_ptr<Font>  font(const std::string& filename); 
+                 std::shared_ptr<Model> model(const std::string& filename, const std::string& name);  // For multi-model files and nameless model files like *.obj
+                 std::shared_ptr<Model> model(const std::string& filename);                           
+                 //Material material(const std::string& filename, const std::string& name); // For multi-material files like *.mtl
+                 //Material material(const std::string& filename);                     // For single-material files like *.material
+                 std::shared_ptr<en::audio::Sample> sound(const std::string& filename);
+                 std::shared_ptr<en::gpu::Texture>  texture(const std::string& filename, 
                                           const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear);
-                 bool             texture(shared_ptr<gpu::Texture> dst, 
+                 bool             texture(std::shared_ptr<gpu::Texture> dst, 
                                           const uint16 layer, 
-                                          const string& filename, 
+                                          const std::string& filename, 
                                           const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear); // Load image to given texture layer
                  } load;
 
           struct Free
                  {
-                 void font(const string& name);
-                 void model(const string& name);
-                 //void material(const string& name);
-                 void sound(const string& filename);
-                 void texture(const string& filename);
+                 void font(const std::string& name);
+                 void model(const std::string& name);
+                 //void material(const std::string& name);
+                 void sound(const std::string& filename);
+                 void texture(const std::string& filename);
                  } free;
           };
    } 

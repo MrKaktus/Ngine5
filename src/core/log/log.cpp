@@ -38,7 +38,7 @@ namespace en
    Log << "Starting module: Log.\n";
 #endif
 
-   string destination;
+   std::string destination;
    if (Config.get("en.core.log.destination", destination))
       {
       loging = true;     
@@ -65,7 +65,7 @@ namespace en
    //   if (output)
    //      {
          initialized = true;
-   //      *output << "Starting module: Log." << std::endl;
+   //      *output << "Starting module: Log.\n";
    //      *output << unitbuf;
    //      }
    //   }
@@ -75,7 +75,7 @@ namespace en
    {
    //if (initialized)
    //   {
-   //   *output << "Closing module: Log." << std::endl;
+   //   *output << "Closing module: Log.\n";
    //   StorageContext.close(output);
    //   }
 #ifdef EN_PLATFORM_ANDROID
@@ -170,7 +170,7 @@ namespace en
    return *this;
    }
   
-   Interface& Interface::operator << (const string in)
+   Interface& Interface::operator << (const std::string in)
    {
    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "%s", in.c_str());
    return *this;
@@ -193,7 +193,7 @@ namespace en
 #endif
       destination(Console),
       output(NULL),
-      console(cout.rdbuf()),
+      console(std::cout.rdbuf()),
       file(NULL)
    {
    }
@@ -204,31 +204,31 @@ namespace en
 
    bool Context::create(void)
    {
-   string dst;
+   std::string dst;
    if (Config.get("en.core.log.destination", dst))  
       if (dst == "File")
          if (init())
             enabled = true;          // Override logging in Release mode 
         
-   cout << "Starting module: Log." << endl;
+   std::cout << "Starting module: Log.\n";
    return true;
    }
 
    bool Context::init(void)
    {
-   string filename;
+   std::string filename;
    if (!Config.get("en.core.log.file", filename))  // WA: Until Config is fixed!
       filename = "./log.txt";
 
       {
       // This function should be called only when file is not initialized yet
-      output = new ofstream(filename.c_str());
+      output = new std::ofstream(filename.c_str());
       if (output)
          {
          file = output->rdbuf();     // Get file's streambuf
-         cout.rdbuf(file);           // Assign cout to log file
+         std::cout.rdbuf(file);      // Assign cout to log file
          destination = File;         // Mark fact of logging to file
-         cout << unitbuf;            // Ensure that log will be flushed immediatelly
+         std::cout << std::unitbuf;  // Ensure that log will be flushed immediatelly
          return true;
          }
       }
@@ -238,10 +238,10 @@ namespace en
 
    void Context::destroy(void)
    {
-   cout << "Closing module: Log." << std::endl;
+   std::cout << "Closing module: Log.\n";
    if (output)
       {
-      cout.rdbuf(console);           // Restore cout's original streambuf
+      std::cout.rdbuf(console);       // Restore cout's original streambuf
       output->close();   
       delete output;
       }
@@ -253,7 +253,7 @@ namespace en
    if ( (dst == Console) &&
         (LogContext.destination == File) )
       {
-      cout.rdbuf(LogContext.console);
+      std::cout.rdbuf(LogContext.console);
       LogContext.destination = Console;
       return true;
       }
@@ -266,7 +266,7 @@ namespace en
          return LogContext.init();
       else
          {
-         cout.rdbuf(LogContext.file);
+         std::cout.rdbuf(LogContext.file);
          LogContext.destination = File;
          return true;
          }
@@ -294,8 +294,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << static_cast<unsigned char>(in);
-      cout.flush();
+      std::cout << static_cast<unsigned char>(in);
+      std::cout.flush();
       }
    return *this;
    }
@@ -304,8 +304,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << static_cast<unsigned short>(in);
-      cout.flush();
+      std::cout << static_cast<unsigned short>(in);
+      std::cout.flush();
       }
    return *this;
    }
@@ -314,8 +314,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << static_cast<unsigned int>(in);
-      cout.flush();
+      std::cout << static_cast<unsigned int>(in);
+      std::cout.flush();
       }
    return *this;
    }
@@ -324,8 +324,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << static_cast<unsigned long long int>(in);
-      cout.flush();
+      std::cout << static_cast<unsigned long long int>(in);
+      std::cout.flush();
       }
    return *this;
    }
@@ -334,8 +334,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << static_cast<char>(in);
-      cout.flush();
+      std::cout << static_cast<char>(in);
+      std::cout.flush();
       }
    return *this;
    }
@@ -344,8 +344,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << static_cast<short>(in);
-      cout.flush();
+      std::cout << static_cast<short>(in);
+      std::cout.flush();
       }
    return *this;
    }
@@ -354,8 +354,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << static_cast<int>(in);
-      cout.flush();
+      std::cout << static_cast<int>(in);
+      std::cout.flush();
       }
    return *this;
    }
@@ -364,8 +364,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << static_cast<long long int>(in);
-      cout.flush();
+      std::cout << static_cast<long long int>(in);
+      std::cout.flush();
       }
    return *this;
    }
@@ -374,8 +374,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << in;
-      cout.flush();
+      std::cout << in;
+      std::cout.flush();
       }
    return *this;
    }
@@ -384,8 +384,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << in;
-      cout.flush();
+      std::cout << in;
+      std::cout.flush();
       }
    return *this;
    }
@@ -394,8 +394,8 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << in;
-      cout.flush();
+      std::cout << in;
+      std::cout.flush();
       }
    return *this;
    }
@@ -404,18 +404,18 @@ namespace en
    {
    if (LogContext.enabled)
       {
-      cout << in;
-      cout.flush();
+      std::cout << in;
+      std::cout.flush();
       }
    return *this;
    }
  
-   Interface& Interface::operator << (const string in)
+   Interface& Interface::operator << (const std::string in)
    {
    if (LogContext.enabled)
       {
-      cout << in.c_str();
-      cout.flush();
+      std::cout << in.c_str();
+      std::cout.flush();
       }
    return *this;
    }

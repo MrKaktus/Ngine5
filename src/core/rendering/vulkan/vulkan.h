@@ -51,7 +51,7 @@
 #include "Vulkan/vulkan.h"
 
 // Vulkan renderer is Multi-Threaded
-#include "threading/scheduler.h"
+#include "parallel/scheduler.h"
 
 #endif
 

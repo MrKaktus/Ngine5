@@ -115,7 +115,7 @@ namespace en
 //
 //   
 //   {
-//   shared_ptr<Layout> result = nullptr;
+//   std::shared_ptr<Layout> result = nullptr;
 //   
 //   uint32 descriptorSets = 0; // <= VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers
 //   
@@ -172,7 +172,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
 
-   DescriptorSetVK::DescriptorSetVK(shared_ptr<DescriptorsVK> _parent, VkDescriptorSet _handle) :
+   DescriptorSetVK::DescriptorSetVK(std::shared_ptr<DescriptorsVK> _parent, VkDescriptorSet _handle) :
       parent(_parent),
       handle(_handle)
    {
@@ -309,9 +309,9 @@ namespace en
    ValidateNoRet( gpu, vkDestroyDescriptorPool(gpu->device, handle, nullptr) )
    }
 
-   shared_ptr<DescriptorSet> DescriptorsVK::allocate(const shared_ptr<SetLayout> layout)
+   std::shared_ptr<DescriptorSet> DescriptorsVK::allocate(const std::shared_ptr<SetLayout> layout)
    {
-   shared_ptr<DescriptorSetVK> result = nullptr;
+   std::shared_ptr<DescriptorSetVK> result = nullptr;
 
    VkDescriptorSetAllocateInfo allocInfo;
    allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -323,15 +323,15 @@ namespace en
    VkDescriptorSet set = VK_NULL_HANDLE;
 
    Validate( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, &set) )
-   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
-      result = make_shared<DescriptorSetVK>(dynamic_pointer_cast<DescriptorsVK>(shared_from_this()), set);
+   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
+      result = std::make_shared<DescriptorSetVK>(std::dynamic_pointer_cast<DescriptorsVK>(shared_from_this()), set);
 
    return result;
    }
    
    bool DescriptorsVK::allocate(const uint32 count,
-                                const shared_ptr<SetLayout>(&layouts)[],
-                                shared_ptr<DescriptorSet>** sets)
+                                const std::shared_ptr<SetLayout>(&layouts)[],
+                                std::shared_ptr<DescriptorSet>** sets)
    {
    bool result = false;
    
@@ -357,13 +357,13 @@ namespace en
    allocInfo.pSetLayouts        = layoutHandle;
 
    Validate( gpu, vkAllocateDescriptorSets(gpu->device, &allocInfo, setHandle) )
-   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
       {
       // Unpack results
-      *sets = new shared_ptr<DescriptorSet>[count];
+      *sets = new std::shared_ptr<DescriptorSet>[count];
       for(uint32 i=0; i<count; ++i)
-         (*sets)[i] = make_shared<DescriptorSetVK>(dynamic_pointer_cast<DescriptorsVK>(shared_from_this()),
-                                                   setHandle[i]);
+         (*sets)[i] = std::make_shared<DescriptorSetVK>(std::dynamic_pointer_cast<DescriptorsVK>(shared_from_this()),
+                                                        setHandle[i]);
          
       result = true;
       }
@@ -406,7 +406,7 @@ namespace en
 
    void CommandBufferVK::setDescriptors(const PipelineLayout& _layout,
                                         const uint32 count,
-                                        const shared_ptr<DescriptorSet>(&sets)[],
+                                        const std::shared_ptr<DescriptorSet>(&sets)[],
                                         const uint32 firstIndex)
    {
    assert( started );
@@ -440,14 +440,14 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
       
-   shared_ptr<SetLayout> VulkanDevice::createSetLayout(const uint32 count, 
+   std::shared_ptr<SetLayout> VulkanDevice::createSetLayout(const uint32 count, 
                                                 const ResourceGroup* group,
                                                 const ShaderStages stageMask)
    {
    assert( count );
    assert( group );
    
-   shared_ptr<SetLayoutVK> result = nullptr;
+   std::shared_ptr<SetLayoutVK> result = nullptr;
 
    // TODO: Those slots are numerated separately per each resource type in D3D12, but have shared binding pool in Vulkan.
    //       Verify if D3D12 implementation is consistent with that.
@@ -480,21 +480,21 @@ namespace en
    VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
       
    Validate( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setLayout) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+   if (lastResult[currentThreadId()] == VK_SUCCESS)
       {
-      result = make_shared<SetLayoutVK>(this, setLayout);
+      result = std::make_shared<SetLayoutVK>(this, setLayout);
       }
     
    return result;
    }
 
-   shared_ptr<PipelineLayout> VulkanDevice::createPipelineLayout(const uint32 sets,
-                                                          const shared_ptr<SetLayout>* set,
+   std::shared_ptr<PipelineLayout> VulkanDevice::createPipelineLayout(const uint32 sets,
+                                                          const std::shared_ptr<SetLayout>* set,
                                                           const uint32 immutableSamplers,
-                                                          const shared_ptr<Sampler>* sampler,
+                                                          const std::shared_ptr<Sampler>* sampler,
                                                           const ShaderStages stageMask)
    {
-   shared_ptr<PipelineLayoutVK> result = nullptr; 
+   std::shared_ptr<PipelineLayoutVK> result = nullptr; 
 
    // We gather all Immutable Samplers into additional Descriptor Set to match Direct3D12 behavior.
    uint32 totalSets = sets;
@@ -545,7 +545,7 @@ namespace en
       // Create additional Set and store it immediately in the Sets array
       // TODO: Keep pointer of this set in the layout as well! Otherwise we will leak it!!!!!!!!!!!!!!!!!!!!!!!!
       Validate( this, vkCreateDescriptorSetLayout(device, &setInfo, nullptr, &setsLayouts[sets]) )
-      assert( lastResult[Scheduler.core()] == VK_SUCCESS );
+      assert( lastResult[currentThreadId()] == VK_SUCCESS );
       }
 
    // TODO: Push Constants
@@ -572,9 +572,9 @@ namespace en
 
    VkPipelineLayout layout = VK_NULL_HANDLE;
    Validate( this, vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+   if (lastResult[currentThreadId()] == VK_SUCCESS)
       {
-      result = make_shared<PipelineLayoutVK>(this, layout);
+      result = std::make_shared<PipelineLayoutVK>(this, layout);
       }
 
    delete [] setsLayouts;
@@ -582,9 +582,9 @@ namespace en
    return result;
    }
 
-   shared_ptr<Descriptors> VulkanDevice::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
+   std::shared_ptr<Descriptors> VulkanDevice::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
    {
-   shared_ptr<DescriptorsVK> result = nullptr;
+   std::shared_ptr<DescriptorsVK> result = nullptr;
    
    uint32 resourceTypesCount = underlyingType(ResourceType::Count);
    
@@ -605,9 +605,9 @@ namespace en
 
    VkDescriptorPool handle = VK_NULL_HANDLE;
    Validate( this, vkCreateDescriptorPool(device, &poolInfo, nullptr, &handle) )
-   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+   if (lastResult[currentThreadId()] == VK_SUCCESS)
       {
-      result = make_shared<DescriptorsVK>(this, handle);
+      result = std::make_shared<DescriptorsVK>(this, handle);
       }
 
    return result;

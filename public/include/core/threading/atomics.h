@@ -27,11 +27,10 @@ forceinline sint32 AtomicDecrease(volatile sint32* value);
 // Swaps value of pointed memory location with new one in Thread-Safe atomic way.
 forceinline uint32 AtomicSwap(volatile uint32* dst, uint32 value);
 
-// Compares pointed destination with reference value, 
-// if they are identical, destination is overwritten 
-// by source value.
-forceinline bool CompareAndSwap(volatile uint32* dst, uint32 src, uint32 cmp);
-forceinline bool CompareAndSwap(volatile uint64* dst, uint64 src, uint64 cmp);
+// Compares pointed destination with reference value, if they are identical, 
+// destination is overwritten by source value.
+forceinline bool CompareAndSwap(volatile uint32* dst, uint32 newValue, uint32 expectedValue);
+forceinline bool CompareAndSwap(volatile uint64* dst, uint64 newValue, uint64 expectedValue);
 
 forceinline void ReadMemoryBarrier(void);
 forceinline void WriteMemoryBarrier(void);

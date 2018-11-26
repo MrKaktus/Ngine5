@@ -4,13 +4,12 @@
  
  Module      : Data aligment defines.
  Requirements: none
- Description : Ensures data between markers will be
-               aligned in memory accordingly.
+ Description : Ensures data between markers will be accordingly aligned in memory.
  
  */
 
-#ifndef ENG_CORE_UTILITIES_ALIGMENT
-#define ENG_CORE_UTILITIES_ALIGMENT
+#ifndef ENG_CORE_MEMORY_ALIGNMENT
+#define ENG_CORE_MEMORY_ALIGNMENT
 
 #include "core/defines.h"
 

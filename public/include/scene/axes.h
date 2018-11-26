@@ -15,23 +15,21 @@
 
 #include "scene/drawable.h"
 
-using namespace en::gpu;
-
 namespace en
 {
    namespace scene
    {
    class Axes : public Drawable
-         {
-         public:
-         shared_ptr<Buffer>   buffer;
-         shared_ptr<Pipeline> pipeline;
-        
-         //Parameter enModelMatrix;
-   
-         Axes();
-         void draw(const shared_ptr<Buffer> sceneParameters, const uint32 instances = 1U);
-         };
+      {
+      public:
+      std::shared_ptr<gpu::Buffer>   buffer;
+      std::shared_ptr<gpu::Pipeline> pipeline;
+      
+      //Parameter enModelMatrix;
+      
+      Axes();
+      void draw(const std::shared_ptr<gpu::Buffer> sceneParameters, const uint32 instances = 1U);
+      };
    }
 }
 

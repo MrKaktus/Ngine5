@@ -15,7 +15,6 @@
 #if defined(EN_PLATFORM_BLACKBERRY)
 
 #include <fstream>
-using namespace std;
 
 namespace en
 {
@@ -82,7 +81,7 @@ namespace en
    {
    }
    
-   bool BBInterface::exist(const string& filename)
+   bool BBInterface::exist(const std::string& filename)
    {
    FILE* file = fopen(string("app/native/" + filename).c_str(), "r");
    if (file == nullptr)
@@ -92,9 +91,9 @@ namespace en
    return true;
    }
    
-   shared_ptr<File> BBInterface::open(const string& filename, const FileAccess mode)
+   std::shared_ptr<File> BBInterface::open(const std::string& filename, const FileAccess mode)
    {
-   shared_ptr<BBFile> result = nullptr;
+   std::shared_ptr<BBFile> result = nullptr;
 
    FILE* handle;
 
@@ -107,7 +106,7 @@ namespace en
       handle = fopen(string("app/native/" + filename).c_str(), "rw");
 
    if (handle)
-      result = make_shared<BBFile>(handle);
+      result = std::make_shared<BBFile>(handle);
   
    return result;
    }

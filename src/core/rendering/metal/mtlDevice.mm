@@ -311,7 +311,7 @@ namespace en
    return api->displaysCount;
    }
    
-   shared_ptr<Display> MetalDevice::display(const uint32 index) const
+   std::shared_ptr<Display> MetalDevice::display(const uint32 index) const
    {
    // Currently all Metal devices share all available displays
    MetalAPI* api = reinterpret_cast<MetalAPI*>(en::Graphics.get());
@@ -321,9 +321,9 @@ namespace en
    return api->_display[index];
    }
 
-   shared_ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const string title)
+   std::shared_ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const std::string title)
    {
-   return make_shared<WindowMTL>(this, settings, title);
+   return std::make_shared<WindowMTL>(this, settings, title);
    }
 
    uint32 MetalDevice::queues(const QueueType type) const
@@ -354,8 +354,8 @@ namespace en
       if (Screen)
          displaysCount++;
 
-   _display = new shared_ptr<CommonDisplay>[displaysCount];
-   virtualDisplay = make_shared<CommonDisplay>();
+   _display = new std::shared_ptr<CommonDisplay>[displaysCount];
+   virtualDisplay = std::make_shared<CommonDisplay>();
    
    // Gather information about available displays.
    uint32 displayId = 0;
@@ -364,7 +364,7 @@ namespace en
          {
          NSRect info = [handle convertRectToBacking:[handle frame]];
          
-         shared_ptr<DisplayMTL> currentDisplay = make_shared<DisplayMTL>(handle);
+         std::shared_ptr<DisplayMTL> currentDisplay = std::make_shared<DisplayMTL>(handle);
  
          currentDisplay->_position.x        = static_cast<uint32>(info.origin.x);
          currentDisplay->_position.y        = static_cast<uint32>(info.origin.y);
@@ -410,7 +410,7 @@ namespace en
    devicesCount = static_cast<uint32>([devices count]);
    
    for(uint8 i=0; i<devicesCount; ++i)
-      _device[i] = make_shared<MetalDevice>([devices objectAtIndex:i]);
+      _device[i] = std::make_shared<MetalDevice>([devices objectAtIndex:i]);
    
 /*
    // Pick device from the list of available ones
@@ -483,11 +483,11 @@ namespace en
 #endif
 
    // Create device interfaces
-   _device[0] = make_shared<MetalDevice>(primaryDevice);
+   _device[0] = std::make_shared<MetalDevice>(primaryDevice);
    // TODO: Why no init() call on device 0 ?
    if (supportingDevice)
       {
-      shared_ptr<MetalDevice> ptr = make_shared<MetalDevice>(supportingDevice);
+      std::shared_ptr<MetalDevice> ptr = std::make_shared<MetalDevice>(supportingDevice);
       ptr->init();
       _device[1] = ptr;
       }
@@ -514,12 +514,12 @@ namespace en
    return devicesCount;
    }
       
-   shared_ptr<GpuDevice> MetalAPI::primaryDevice(void) const
+   std::shared_ptr<GpuDevice> MetalAPI::primaryDevice(void) const
    {
    return _device[0];
    }
 
-   shared_ptr<GpuDevice> MetalAPI::device(const uint32 index) const
+   std::shared_ptr<GpuDevice> MetalAPI::device(const uint32 index) const
    {
    assert( index < devicesCount );
    
@@ -534,12 +534,12 @@ namespace en
    return displaysCount;
    }
 
-   shared_ptr<Display> MetalAPI::primaryDisplay(void) const
+   std::shared_ptr<Display> MetalAPI::primaryDisplay(void) const
    {
    return _display[0];
    }
    
-   shared_ptr<Display> MetalAPI::display(const uint32 index) const
+   std::shared_ptr<Display> MetalAPI::display(const uint32 index) const
    {
    assert( index < displaysCount );
    

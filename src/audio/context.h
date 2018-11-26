@@ -66,11 +66,11 @@ namespace en
          void stop(void);                    // Stop playing the sound
          void volume(const float volume);    // Sets the volume of the source
          void loop(const bool loop);         // Define if sound should be looped
-         bool set(const shared_ptr<Sample> sample); // Attach sound sample to be played by source
+         bool set(const std::shared_ptr<Sample> sample); // Attach sound sample to be played by source
 
          public:                             // Engine internal
          uint32   id;                        // OpenAL source Id
-         shared_ptr<alSample> sample;               // OpenAL sample interface pointer 
+         std::shared_ptr<alSample> sample;   // OpenAL sample interface pointer 
 
          alSource();
          ~alSource();                        // Polymorphic deletes require a virtual base destructor

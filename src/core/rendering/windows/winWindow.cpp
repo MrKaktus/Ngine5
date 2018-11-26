@@ -38,10 +38,10 @@ namespace en
    HINSTANCE winWindow::AppInstance = nullptr;  // Application handle (helper handle)
    static uint32    windows = 0;      // Count of currently active windows
 
-   winWindow::winWindow(const shared_ptr<winDisplay> selectedDisplay,
+   winWindow::winWindow(const std::shared_ptr<winDisplay> selectedDisplay,
                         const uint32v2 selectedResolution,
                         const WindowSettings& settings,
-                        const string title) :
+                        const std::string title) :
       hWnd(nullptr),
       CommonWindow()
    {
@@ -71,7 +71,7 @@ namespace en
       // Registering Window Class
       if (!RegisterClass(&WindowClass))	
          {					
-         Log << "Error! Cannot register window class." << endl;
+         Log << "Error! Cannot register window class.\n";
          assert( 0 );
          }
       }
@@ -106,7 +106,7 @@ namespace en
       // Changing Display settings
       if (ChangeDisplaySettingsEx(Device.DeviceName, &DispDevice, nullptr, CDS_FULLSCREEN, nullptr) != DISP_CHANGE_SUCCESSFUL)
          {					
-         Log << "Error! Cannot change display settings for fullscreen." << endl;
+         Log << "Error! Cannot change display settings for fullscreen.\n";
          assert( 0 );
          }
  
@@ -136,7 +136,7 @@ namespace en
       }
 
    // Creating Window in modern way
-   wstring windowTitle = wstring(title.begin(),title.end());
+   std::wstring windowTitle = std::wstring(title.begin(), title.end());
    hWnd = CreateWindowEx(
       ExStyle,                             // Extended style 
       L"WindowClass",                      // Window class name

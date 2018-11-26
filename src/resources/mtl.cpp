@@ -21,7 +21,7 @@ namespace en
    namespace mtl
    {
 
-   bool load(const string& filename, const string& name, en::resource::Material& material)
+   bool load(const std::string& filename, const std::string& name, en::resource::Material& material)
    {
    using namespace en::storage;
 
@@ -30,13 +30,13 @@ namespace en
    //   return ResourcesContext.materials[name];
 
    // Open MTL file 
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.materials + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.materials + filename << endl;
+         Log << en::ResourcesContext.path.materials + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
          return false; //en::resource::Material();
          }
@@ -109,11 +109,11 @@ namespace en
    //   }  
 
    // WA: Ensure that the same texture is not used twice as ambient and diffuse map.
-   string AmbientMapName;
+   std::string AmbientMapName;
 
    // Search for specified material in file
-   string command;
-   string word;
+   std::string command;
+   std::string word;
    bool eol = false;
    bool found = false;
    while(!text.end())
@@ -488,7 +488,7 @@ namespace en
    // If material was not found in this file return nothing
    if (!found)
       {
-      Log << "Error! Material \"" << name << "\" was not found in file: " << filename << " !" << endl;
+      Log << "Error! Material \"" << name << "\" was not found in file: " << filename << " !\n";
       //ResourcesContext.storage.materials.free(material);
       return false; //en::resource::Material();
       }

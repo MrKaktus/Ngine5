@@ -25,7 +25,6 @@
 #include "core/rendering/shader.h"
 
 #include <vector>
-using namespace std;
 
 namespace en
 {
@@ -49,7 +48,7 @@ namespace en
       public:
       MetalDevice* gpu;
       uint32 setsCount;  // Count of descriptor sets
-      shared_ptr<SetLayoutMTL>* setLayout;
+      std::shared_ptr<SetLayoutMTL>* setLayout;
       
       PipelineLayoutMTL(MetalDevice* gpu, const uint32 _setsCount);
       virtual ~PipelineLayoutMTL();
@@ -63,17 +62,17 @@ namespace en
       DescriptorsMTL(MetalDevice* gpu);
       virtual ~DescriptorsMTL();
       
-      virtual shared_ptr<DescriptorSet> allocate(const shared_ptr<SetLayout> layout);
+      virtual std::shared_ptr<DescriptorSet> allocate(const std::shared_ptr<SetLayout> layout);
       virtual bool allocate(const uint32 count,
-                            const shared_ptr<SetLayout>(&layouts)[],
-                            shared_ptr<DescriptorSet>** sets);
+                            const std::shared_ptr<SetLayout>(&layouts)[],
+                            std::shared_ptr<DescriptorSet>** sets);
       };
       
    class DescriptorSetMTL : public DescriptorSet
       {
       public:
       MetalDevice*      gpu;        // Device backing this buffer memory
-      shared_ptr<SetLayoutMTL> layout; // Reference to Layout, that will be used to encode descriptors in backing buffer
+      std::shared_ptr<SetLayoutMTL> layout; // Reference to Layout, that will be used to encode descriptors in backing buffer
       id<MTLBuffer>     handle;     // MTLBuffer storing descriptors
       
       uint8*            heapId;     // Index to Heap pointer, that backs resource currently bound to given Descriptor Slot
@@ -81,7 +80,7 @@ namespace en
       uint32*           heapsRefs;  // Count of desriptors referencing each Heap
       uint32            heapsCount; // Describes range of slots in Heaps array, used by valid Heaps pointers
       
-      DescriptorSetMTL(MetalDevice* gpu, shared_ptr<SetLayoutMTL> layout);
+      DescriptorSetMTL(MetalDevice* gpu, std::shared_ptr<SetLayoutMTL> layout);
       virtual ~DescriptorSetMTL();
       
       void updateResidencyTracking(const uint32 slot, const id<MTLHeap> heap);

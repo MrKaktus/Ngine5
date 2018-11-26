@@ -24,7 +24,6 @@
 
 #include <iomanip>
 //#include <streambuf>
-using namespace std;
 
 namespace en
 {
@@ -99,9 +98,9 @@ namespace en
           Destination destination; // Logging destination, by default
                                    // Debug   - logs to Console
                                    // Release - logs to File
-          ofstream*   output;      // Output file
-          streambuf*  console;     // Console output stream
-          streambuf*  file;        // File output stream
+          std::ofstream*  output;  // Output file
+          std::streambuf* console; // Console output stream
+          std::streambuf* file;    // File output stream
 
           Context();
          ~Context();

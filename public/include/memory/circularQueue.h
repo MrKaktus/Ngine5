@@ -15,10 +15,9 @@
 
 #include "core/defines.h"
 #include "core/types.h"
-#include "core/utilities/alignment.h"
-
+#include "core/memory/alignment.h"
+#include "core/memory/pageAllocator.h"
 #include "core/utilities/NonCopyable.h"
-#include "core/utilities/pageAllocator.h"
 
 namespace en
 {
@@ -56,6 +55,8 @@ namespace en
    // Type doesn't make a difference here
    static_assert(sizeof(CircularQueue<uint8>) == 32, "en::CircularQueue size mismatch!");
    
+   // TODO: Simplify by replacing head and tail from pointers to uint64 indexes wrapping around % size
+
    template<typename T>
    CircularQueue<T>::CircularQueue(
       const uint32 capacity,
@@ -100,7 +101,7 @@ namespace en
    // If tail reached head, buffer is full
    if (tail == head)
       full = true;
-   
+
    return true;
    }
    

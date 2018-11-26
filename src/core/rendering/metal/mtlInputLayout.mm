@@ -173,7 +173,7 @@ namespace en
    deallocateObjectiveC(desc);
    }
 
-   shared_ptr<InputLayout> MetalDevice::createInputLayout(const DrawableType primitiveType,
+   std::shared_ptr<InputLayout> MetalDevice::createInputLayout(const DrawableType primitiveType,
                                                           const bool primitiveRestart,
                                                           const uint32 controlPoints,
                                                           const uint32 usedAttributes,
@@ -181,7 +181,7 @@ namespace en
                                                           const AttributeDesc* attributes,
                                                           const BufferDesc* buffers)
    {
-   return make_shared<InputLayoutMTL>(primitiveType,
+   return std::make_shared<InputLayoutMTL>(primitiveType,
                                       primitiveRestart,
                                       controlPoints,
                                       usedAttributes,
@@ -191,7 +191,7 @@ namespace en
    }
 
 
-//   shared_ptr<InputLayout> MetalDevice::create(shared_ptr<BufferView> buffer)
+//   std::shared_ptr<InputLayout> MetalDevice::create(std::shared_ptr<BufferView> buffer)
 //   {
 //   AttributeDesc* attributes = new AttributeDesc[buffer->attributes];
 //   
@@ -199,20 +199,20 @@ namespace en
 //   buffers.elementSize = buffer->elementSize;
 //   buffers.stepRate = 0;
 //
-//   shared_ptr<InputLayoutMTL> input = nullptr;
+//   std::shared_ptr<InputLayoutMTL> input = nullptr;
 //   
-//   input = make_shared<InputLayoutMTL>(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
+//   input = std::make_shared<InputLayoutMTL>(buffer->primitiveType, buffer->controlPoints, buffer->attributes, 1, &attributes, &buffers);
 //   
 //   delete [] attributes;
 //   
 //   return input;
 //   }
 //
-//   shared_ptr<InputLayout> MetalDevice::create(InputLayoutSettings& attributes)
+//   std::shared_ptr<InputLayout> MetalDevice::create(InputLayoutSettings& attributes)
 //   {
-//   shared_ptr<InputLayoutMTL> input = nullptr;
+//   std::shared_ptr<InputLayoutMTL> input = nullptr;
 //   
-//   input = make_shared<InputLayoutMTL>(primitiveType, controlPoints,
+//   input = std::make_shared<InputLayoutMTL>(primitiveType, controlPoints,
 // 
 //                                        const uint32 usedAttributes, 
 //                                        const uint32 usedBuffers, 
@@ -227,10 +227,10 @@ namespace en
 
 
 
-   //  shared_ptr<InputLayout> Create(AttributeInfo& attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
-   //                             shared_ptr<Buffer>    buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
+   //  std::shared_ptr<InputLayout> Create(AttributeInfo& attribute[MaxInputLayoutAttributesCount],   // Reference to array specifying each vertex attribute, and it's source buffer
+   //                             std::shared_ptr<Buffer>    buffer[MaxInputLayoutAttributesCount])      // Array of buffer handles that will be used
    //  {
-   //  shared_ptr<InputLayoutMTL> state = make_shared<InputLayoutMTL>();
+   //  std::shared_ptr<InputLayoutMTL> state = std::make_shared<InputLayoutMTL>();
    //  
    //  // Create array describing buffers used by Vertex Fetch.
    //  uint32 buffers = 0;

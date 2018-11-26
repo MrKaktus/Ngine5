@@ -25,7 +25,10 @@
     <ClCompile Include="..\src\core\algorithm\MurmurHash3.cpp" />
     <ClCompile Include="..\src\core\config\config.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
+    <ClCompile Include="..\src\core\memory\pageAllocator.cpp" />
+    <ClCompile Include="..\src\core\parallel\psxFiber.cpp" />
     <ClCompile Include="..\src\core\parallel\psxThread.cpp" />
+    <ClCompile Include="..\src\core\parallel\winFiber.cpp" />
     <ClCompile Include="..\src\core\parallel\winThread.cpp" />
     <ClCompile Include="..\src\core\rendering\common\comBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\depthStencil.cpp" />
@@ -100,7 +103,6 @@
     <ClCompile Include="..\src\core\types\uint32v3.cpp" />
     <ClCompile Include="..\src\core\types\uint32v4.cpp" />
     <ClCompile Include="..\src\core\utilities\basicAllocator.cpp" />
-    <ClCompile Include="..\src\core\utilities\pageAllocator.cpp" />
     <ClCompile Include="..\src\core\utilities\parser.cpp" />
     <ClCompile Include="..\src\input\andInput.cpp" />
     <ClCompile Include="..\src\input\bbInput.cpp" />
@@ -112,6 +114,7 @@
     <ClCompile Include="..\src\input\winInput.cpp" />
     <ClCompile Include="..\src\input\winJoystick.cpp" />
     <ClCompile Include="..\src\monetization\monetization.cpp" />
+    <ClCompile Include="..\src\parallel\scheduler.cpp" />
     <ClCompile Include="..\src\platform\android\and_events.cpp" />
     <ClCompile Include="..\src\platform\android\and_main.cpp" />
     <ClCompile Include="..\src\platform\blackberry\bb_main.cpp" />
@@ -146,13 +149,6 @@
     <ClCompile Include="..\src\scene\Ncam.cpp" />
     <ClCompile Include="..\src\scene\Noriented.cpp" />
     <ClCompile Include="..\src\scene\scene.cpp" />
-    <ClCompile Include="..\src\threading\maintask.cpp" />
-    <ClCompile Include="..\src\threading\mutex.cpp" />
-    <ClCompile Include="..\src\threading\sheduler.cpp" />
-    <ClCompile Include="..\src\threading\task.cpp" />
-    <ClCompile Include="..\src\threading\thread.cpp" />
-    <ClCompile Include="..\src\threading\tls.cpp" />
-    <ClCompile Include="..\src\threading\worker.cpp" />
     <ClCompile Include="..\src\utilities\gpcpu\gpcpu.cpp" />
     <ClCompile Include="..\src\utilities\random.cpp" />
     <ClCompile Include="..\src\utilities\strings.cpp" />
@@ -166,6 +162,8 @@
     <ClInclude Include="..\public\include\core\config\config.h" />
     <ClInclude Include="..\public\include\core\defines.h" />
     <ClInclude Include="..\public\include\core\log\log.h" />
+    <ClInclude Include="..\public\include\core\memory\alignment.h" />
+    <ClInclude Include="..\public\include\core\memory\pageAllocator.h" />
     <ClInclude Include="..\public\include\core\parallel\thread.h" />
     <ClInclude Include="..\public\include\core\rendering\blend.h" />
     <ClInclude Include="..\public\include\core\rendering\buffer.h" />
@@ -210,7 +208,6 @@
     <ClInclude Include="..\public\include\core\utilities\array.h" />
     <ClInclude Include="..\public\include\core\utilities\memory.h" />
     <ClInclude Include="..\public\include\core\utilities\NonCopyable.h" />
-    <ClInclude Include="..\public\include\core\utilities\pageAllocator.h" />
     <ClInclude Include="..\public\include\core\utilities\parser.h" />
     <ClInclude Include="..\public\include\core\utilities\poolAllocator.h" />
     <ClInclude Include="..\public\include\core\utilities\TintrusivePointer.h" />
@@ -219,8 +216,12 @@
     <ClInclude Include="..\public\include\input\hmd.h" />
     <ClInclude Include="..\public\include\input\input.h" />
     <ClInclude Include="..\public\include\input\keyboard.h" />
+    <ClInclude Include="..\public\include\memory\circularQueue.h" />
+    <ClInclude Include="..\public\include\memory\workStealingDeque.h" />
     <ClInclude Include="..\public\include\monetization\monetization.h" />
     <ClInclude Include="..\public\include\Ngine.h" />
+    <ClInclude Include="..\public\include\parallel\scheduler.h" />
+    <ClInclude Include="..\public\include\parallel\sharedAtomic.h" />
     <ClInclude Include="..\public\include\platform\android\and_events.h" />
     <ClInclude Include="..\public\include\platform\android\and_init.h" />
     <ClInclude Include="..\public\include\platform\android\and_main.h" />
@@ -261,16 +262,8 @@
     <ClInclude Include="..\public\include\scene\Noriented.h" />
     <ClInclude Include="..\public\include\scene\scene.h" />
     <ClInclude Include="..\public\include\scene\state.h" />
-    <ClInclude Include="..\public\include\threading.h" />
-    <ClInclude Include="..\public\include\threading\maintask.h" />
     <ClInclude Include="..\public\include\threading\mutex.h" />
-    <ClInclude Include="..\public\include\threading\Nqueue.h" />
-    <ClInclude Include="..\public\include\threading\Ntls.h" />
-    <ClInclude Include="..\public\include\threading\scheduler.h" />
     <ClInclude Include="..\public\include\threading\semaphore.h" />
-    <ClInclude Include="..\public\include\threading\task.h" />
-    <ClInclude Include="..\public\include\threading\thread.h" />
-    <ClInclude Include="..\public\include\threading\worker.h" />
     <ClInclude Include="..\public\include\utilities\gpcpu\gpcpu.h" />
     <ClInclude Include="..\public\include\utilities\Nversion.h" />
     <ClInclude Include="..\public\include\utilities\random.h" />
@@ -284,7 +277,10 @@
     <ClInclude Include="..\src\core\configuration.h" />
     <ClInclude Include="..\src\core\config\context.h" />
     <ClInclude Include="..\src\core\log\context.h" />
+    <ClInclude Include="..\src\core\parallel\fiber.h" />
+    <ClInclude Include="..\src\core\parallel\psxFiber.h" />
     <ClInclude Include="..\src\core\parallel\psxThread.h" />
+    <ClInclude Include="..\src\core\parallel\winFiber.h" />
     <ClInclude Include="..\src\core\parallel\winThread.h" />
     <ClInclude Include="..\src\core\rendering\common\buffer.h" />
     <ClInclude Include="..\src\core\rendering\common\device.h" />
@@ -374,16 +370,14 @@
     <ClInclude Include="..\src\input\winInput.h" />
     <ClInclude Include="..\src\input\winJoystick.h" />
     <ClInclude Include="..\src\monetization\context.h" />
+    <ClInclude Include="..\src\parallel\scheduler.h" />
     <ClInclude Include="..\src\platform\context.h" />
     <ClInclude Include="..\src\resources\context.h" />
     <ClInclude Include="..\src\scene\context.h" />
-    <ClInclude Include="..\src\threading\context.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl" />
     <None Include="..\public\include\core\threading\atomics.inl" />
-    <None Include="..\public\include\threading\mutex.inl" />
-    <None Include="..\public\include\threading\threading.inl" />
     <None Include="..\src\core\rendering\metal\mtlBlend.mm" />
     <None Include="..\src\core\rendering\metal\mtlBuffer.mm" />
     <None Include="..\src\core\rendering\metal\mtlCommandBuffer.mm" />

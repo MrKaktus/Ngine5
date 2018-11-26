@@ -13,10 +13,10 @@
 #define ENG_CORE_UTILITIES_TINTRUSIVEPOINTER
 
 #include "core/defines.h"
-#include "core/utilities/alignment.h"
+#include "core/memory/alignment.h"
 #include "core/threading/atomics.h"
 
-// TODO: In future replace all that stuff with C++11 shared_ptr & weak_ptr
+// TODO: In future replace all that stuff with C++11 std::shared_ptr & weak_ptr
 //       when ensured that they are properly supported on all platforms
 //       (and that they don't suck mem/perf/cache more than they need to)
 
@@ -446,7 +446,7 @@ namespace en
    //}
    //
    //template <class Ty, class Other>
-   //Ptr<Ty> dynamic_pointer_cast(const Ptr<Other>& sp)
+   //Ptr<Ty> std::dynamic_pointer_cast(const Ptr<Other>& sp)
    //{
    //return
    //}

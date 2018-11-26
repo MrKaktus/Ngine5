@@ -16,7 +16,6 @@
 
 #include "core/defines.h"
 #include "input/input.h"
-//#include "platform/windows/win_main.h"
 
 #ifdef EN_PLATFORM_WINDOWS
 LRESULT CALLBACK WinEvents(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

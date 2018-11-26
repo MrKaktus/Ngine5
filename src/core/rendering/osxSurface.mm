@@ -41,7 +41,7 @@ namespace en
    CFRelease(surface);
    }
 
-   shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolution)
+   std::shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolution)
    {
    assert( resolution.width );
    assert( resolution.height );
@@ -53,7 +53,7 @@ namespace en
                                   (id)kIOSurfaceBytesPerElement : @(4)
                                 };
       
-   return make_shared<SharedSurfaceOSX>(IOSurfaceCreate((CFDictionaryRef)surfaceDict), resolution);
+   return std::make_shared<SharedSurfaceOSX>(IOSurfaceCreate((CFDictionaryRef)surfaceDict), resolution);
    }
       
       
@@ -88,10 +88,10 @@ namespace en
    deallocateObjectiveC(context);
    }
 
-   uint32 osxOpenGLContext::createSharedTexture(shared_ptr<SharedSurface> backingSurface)
+   uint32 osxOpenGLContext::createSharedTexture(std::shared_ptr<SharedSurface> backingSurface)
    {
-   // TODO: In future it should be part of OpenGLDevice and return shared_ptr<Texture>
-   //shared_ptr<TextureGL> result = nullptr;
+   // TODO: In future it should be part of OpenGLDevice and return std::shared_ptr<Texture>
+   //std::shared_ptr<TextureGL> result = nullptr;
    
 #if defined(EN_PLATFORM_IOS)
    // IOSurfaces are not supported on iOS

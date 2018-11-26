@@ -16,7 +16,6 @@
 
 #include <iostream>
 #include <fstream>
-using namespace std;
 
 #include <assert.h>
 
@@ -26,14 +25,14 @@ namespace en
    {
 
 #if UseFStreamOverWinAPI
-   WinFile::WinFile(fstream* _handle) :
+   WinFile::WinFile(std::fstream* _handle) :
       handle(_handle),
       CommonFile()
    {
    assert( handle );
-   handle->seekg(0u, ios::end);
+   handle->seekg(0u, std::ios::end);
    fileSize = handle->tellg();
-   handle->seekg(0u, ios::beg);
+   handle->seekg(0u, std::ios::beg);
    }
    
    WinFile::~WinFile()
@@ -49,7 +48,7 @@ namespace en
    assert( offset + _size <= fileSize );
    
    handle->clear();
-   handle->seekg(offset, ios::beg);
+   handle->seekg(offset, std::ios::beg);
    handle->read((char*)buffer, _size);
    uint64 read = handle->gcount();
    if (readBytes != nullptr)
@@ -74,7 +73,7 @@ namespace en
    assert( handle );
 
    handle->clear();
-   handle->seekg(0, ios::beg);
+   handle->seekg(0, std::ios::beg);
    handle->write((char*)buffer, _size);
    if (handle->bad() || handle->eof())
       return false;
@@ -86,7 +85,7 @@ namespace en
    assert( handle );
 
    handle->clear();
-   handle->seekg(offset, ios::beg);
+   handle->seekg(offset, std::ios::beg);
    handle->write((char*)buffer, _size);
    if (handle->bad() || handle->eof())
       return false;
@@ -103,12 +102,12 @@ namespace en
    {
    }
    
-   bool WinInterface::exist(const string& filename)
+   bool WinInterface::exist(const std::string& filename)
    {
-   ifstream* rfile;
+   std::ifstream* rfile;
           
    // Creates input stream
-   rfile = new ifstream(filename.c_str(), ios::in | ios::binary | ios::ate);
+   rfile = new std::ifstream(filename.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
    if (rfile->fail())
       return false;
 
@@ -116,21 +115,21 @@ namespace en
    return true;
    }
    
-   shared_ptr<File> WinInterface::open(const string& filename, const FileAccess mode)
+   std::shared_ptr<File> WinInterface::open(const std::string& filename, const FileAccess mode)
    {
-   shared_ptr<WinFile> result = nullptr;
+   std::shared_ptr<WinFile> result = nullptr;
    
-   fstream* handle = nullptr;
+   std::fstream* handle = nullptr;
 
    if (mode == Read)
-      handle = new fstream(filename.c_str(), ios::in  | ios::binary);
+      handle = new std::fstream(filename.c_str(), std::ios::in  | std::ios::binary);
    else if (mode == Write)
-      handle = new fstream(filename.c_str(), ios::out | ios::binary); 
+      handle = new std::fstream(filename.c_str(), std::ios::out | std::ios::binary); 
    else
-      handle = new fstream(filename.c_str(), ios::in  | ios::out | ios::binary);
+      handle = new std::fstream(filename.c_str(), std::ios::in  | std::ios::out | std::ios::binary);
 
    if (handle->good())
-      result = make_shared<WinFile>(handle);
+      result = std::make_shared<WinFile>(handle);
    else
       delete handle;
 
@@ -203,7 +202,7 @@ namespace en
    {
    }
 
-   bool WinInterface::exist(const string& filename)
+   bool WinInterface::exist(const std::string& filename)
    {
    DWORD dwAttrib = GetFileAttributes((LPCWSTR)filename.c_str());
 
@@ -211,9 +210,9 @@ namespace en
          !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
    }
 
-   shared_ptr<File> WinInterface::open(const string& filename, const FileAccess mode)
+   std::shared_ptr<File> WinInterface::open(const std::string& filename, const FileAccess mode)
    {
-   shared_ptr<WinFile> result = nullptr;
+   std::shared_ptr<WinFile> result = nullptr;
    
    HANDLE handle = nullptr;
 
@@ -243,7 +242,7 @@ namespace en
                           nullptr);
 
    if (handle != INVALID_HANDLE_VALUE)
-      result = make_shared<WinFile>(handle);
+      result = std::make_shared<WinFile>(handle);
    else
       CloseHandle(handle);
 

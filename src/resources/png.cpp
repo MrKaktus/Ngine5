@@ -21,17 +21,16 @@ using namespace en::gpu;           // For RAM -> VRAM transfer
 #include "zlib.h"
 #endif
 
-#include "platform/system.h"       // For CPU cores count
+#include "platform/system.h"     // For CPU cores count
 using namespace en::system;
-#include "threading/scheduler.h"   // For multithreaded decode
-using namespace en::threads;
+#include "parallel/scheduler.h"  // For multithreaded decode
+using namespace en::parallel;
 
 #ifdef EN_PROFILE
 #include "utilities/timer.h"
 #endif
 
 #include <string>
-using namespace std;
 
 namespace en
 {
@@ -170,6 +169,8 @@ namespace en
       bool invertHorizontal; // Should invert the image ?
       };
 
+/* Deprecated in favor of new Fiber based scheduler. Remove once implementation is verified.
+
    class Worker : public Task
       { 
       private:
@@ -201,47 +202,54 @@ namespace en
       Task(new TaskState())
    {
    }
-   
+*/
+
    // TODO: Optimize using memcpy's and SIMD's
+/*
    void Worker::work(void)
    {
+*/
+   void taskDecodePNG(void* taskData)
+   {
+   DecodeState& state = *(DecodeState*)(taskData);
+
    // Revert filters line by line
-   uint32 lineSize   = width * texelSize;
-   uint32 inOffset   = startLine * (lineSize + 1);
-   uint32 outOffset  = startLine * (lineSize + linePadding);
+   uint32 lineSize   = state.width * state.texelSize;
+   uint32 inOffset   = state.startLine * (lineSize + 1);
+   uint32 outOffset  = state.startLine * (lineSize + state.linePadding);
    uint32 prevOffset = 0;
-   for(uint32 i=startLine; i<(startLine + lines); ++i)
+   for(uint32 i=state.startLine; i<(state.startLine + state.lines); ++i)
       {
       // Offset to previously decoded line
       if (i > 0)
          {
          prevOffset = (i - 1) * lineSize;
-         if (invertHorizontal)
-            prevOffset = (height - i) * lineSize;
+         if (state.invertHorizontal)
+            prevOffset = (state.height - i) * lineSize;
          }
-      if (invertHorizontal)
-         outOffset = (height - i - 1) * lineSize;
+      if (state.invertHorizontal)
+         outOffset = (state.height - i - 1) * lineSize;
 
       // Detect which type of filter was used for this line
-      uint8 type = input[inOffset];
+      uint8 type = state.input[inOffset];
       inOffset++;
 
       // Filter type 0 - None
       if (type == 0)
          {
          for(uint32 j=0; j<lineSize; ++j, ++inOffset, ++outOffset) 
-            output[outOffset] = input[inOffset]; 
+            state.output[outOffset] = state.input[inOffset]; 
          }
       // Filter type 1 - Sub
       if (type == 1)
          {
          // First pixel adds bytes outside scanline (equal 0) so just copy it
-         for(uint8 j=0; j<texelSize; ++j, ++inOffset, ++outOffset) 
-            output[outOffset] = input[inOffset];
+         for(uint8 j=0; j<state.texelSize; ++j, ++inOffset, ++outOffset) 
+            state.output[outOffset] = state.input[inOffset];
 
          // Add bytes of previous pixel to reconstruct current one
-         for(uint32 j=texelSize; j<lineSize; ++j, ++inOffset, ++outOffset)
-            output[outOffset] = input[inOffset] + output[outOffset - texelSize];
+         for(uint32 j=state.texelSize; j<lineSize; ++j, ++inOffset, ++outOffset)
+            state.output[outOffset] = state.input[inOffset] + state.output[outOffset - state.texelSize];
          }
       // Filter type 2 - Up
       if (type == 2)
@@ -249,11 +257,11 @@ namespace en
          // If this is first scanline, above are only zeroes, so just copy it
          if (i == 0) 
             for(uint32 j=0; j<lineSize; ++j, ++inOffset, ++outOffset) 
-               output[outOffset] = input[inOffset]; 
+               state.output[outOffset] = state.input[inOffset]; 
          else 
             // Add bytes of above pixel to reconstruct current one
             for(uint32 j=0; j<lineSize; ++j, ++inOffset, ++outOffset, ++prevOffset) 
-               output[outOffset] = input[inOffset] + output[prevOffset]; 
+               state.output[outOffset] = state.input[inOffset] + state.output[prevOffset]; 
          }
       // Filter type 3 - Average
       if (type == 3)
@@ -262,21 +270,21 @@ namespace en
          if (i == 0) 
             {
             // If this is first pixel, average will be zero, so just copy it
-            for(uint8 j=0; j<texelSize; ++j, ++inOffset, ++outOffset) 
-               output[outOffset] = input[inOffset];
+            for(uint8 j=0; j<state.texelSize; ++j, ++inOffset, ++outOffset) 
+               state.output[outOffset] = state.input[inOffset];
 
             // Average from A and zero is A divided by two
-            for(uint32 j=texelSize; j<lineSize; ++j, ++inOffset, ++outOffset)
-               output[outOffset] = input[inOffset] + output[outOffset - texelSize] / 2;
+            for(uint32 j=state.texelSize; j<lineSize; ++j, ++inOffset, ++outOffset)
+               state.output[outOffset] = state.input[inOffset] + state.output[outOffset - state.texelSize] / 2;
             }
          else
             {
             // Average from B and zero is B divided by two
-            for(uint8 j=0; j<texelSize; ++j, ++inOffset, ++outOffset, ++prevOffset) 
-               output[outOffset] = input[inOffset] + output[prevOffset] / 2;
+            for(uint8 j=0; j<state.texelSize; ++j, ++inOffset, ++outOffset, ++prevOffset) 
+               state.output[outOffset] = state.input[inOffset] + state.output[prevOffset] / 2;
 
-            for(uint32 j=texelSize; j<lineSize; ++j, ++inOffset, ++outOffset, ++prevOffset)
-               output[outOffset] = input[inOffset] + ((output[outOffset - texelSize] + output[prevOffset]) / 2);
+            for(uint32 j=state.texelSize; j<lineSize; ++j, ++inOffset, ++outOffset, ++prevOffset)
+               state.output[outOffset] = state.input[inOffset] + ((state.output[outOffset - state.texelSize] + state.output[prevOffset]) / 2);
             }
          }
       // Filter type 4 - Paeth
@@ -286,23 +294,26 @@ namespace en
          if (i == 0) 
             {
             // If this is first pixel, previous is zero, so just copy it
-            for(uint8 j=0; j<texelSize; ++j, ++inOffset, ++outOffset) 
-               output[outOffset] = input[inOffset];
+            for(uint8 j=0; j<state.texelSize; ++j, ++inOffset, ++outOffset) 
+               state.output[outOffset] = state.input[inOffset];
 
             // Do partial Paeth with zeroes
-            for(uint32 j=texelSize; j<lineSize; ++j, ++inOffset, ++outOffset)
-               output[outOffset] = input[inOffset] + Paeth(output[outOffset - texelSize], 0, 0);
+            for(uint32 j=state.texelSize; j<lineSize; ++j, ++inOffset, ++outOffset)
+               state.output[outOffset] = state.input[inOffset] + Paeth(state.output[outOffset - state.texelSize], 0, 0);
             }
          else
             {
-            for(uint8 j=0; j<texelSize; ++j, ++inOffset, ++outOffset, ++prevOffset) 
-               output[outOffset] = input[inOffset] + Paeth(0, output[prevOffset], 0);
+            for(uint8 j=0; j<state.texelSize; ++j, ++inOffset, ++outOffset, ++prevOffset) 
+               state.output[outOffset] = state.input[inOffset] + Paeth(0, state.output[prevOffset], 0);
 
-            for(uint32 j=texelSize; j<lineSize; ++j, ++inOffset, ++outOffset, ++prevOffset)
-               output[outOffset] = input[inOffset] + Paeth(output[outOffset - texelSize], output[prevOffset], output[prevOffset - texelSize]);
+            for(uint32 j=state.texelSize; j<lineSize; ++j, ++inOffset, ++outOffset, ++prevOffset)
+               state.output[outOffset] = state.input[inOffset] + Paeth(state.output[outOffset - state.texelSize], state.output[prevOffset], state.output[prevOffset - state.texelSize]);
             }
          }
       }
+
+   // Release local state
+   delete (DecodeState*)(taskData);
    }
 
 #define PageSize 4096
@@ -451,13 +462,14 @@ namespace en
    return true;
    }
 
+/*
    void decode(DecodeState& decoder)
    {
    // If possible revert filters in paraller using several worker threads
-   uint32 cores = Scheduler.workers();
+   uint32 cores = Scheduler->workers();
    if (cores == 1) // TODO: In future add minimum amount of lines, below which we don't use task pool
       {
-      TaskState* state = Scheduler.run(new Worker(decoder), true); // Execute decoding on current thread
+      TaskState* state = Scheduler->run(new Worker(decoder), true); // Execute decoding on current thread
       }
    else
       {
@@ -502,7 +514,7 @@ namespace en
          
          // Spawn task to decompress image parts,
          // starting from last core and ending on this one.
-         state[task] = Scheduler.run(new Worker(decoder), (cores - task - 1), false);
+         state[task] = Scheduler->run(new Worker(decoder), (cores - task - 1), false);
          if (lastTask) 
             break;
          }
@@ -514,8 +526,9 @@ namespace en
       //   Scheduler.wait(state[cores - i - 1]);
       }
    }
+*/
 
-   bool load(const string& filename, 
+   bool load(const std::string& filename, 
              uint8* const destination, 
              const uint32 width, 
              const uint32 height, 
@@ -527,13 +540,13 @@ namespace en
    using namespace en::gpu;
 
    // Open file 
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.textures + filename << endl;
+         Log << en::ResourcesContext.path.textures + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
          return false;
          }
@@ -572,7 +585,7 @@ namespace en
    // Size aligned to multiple of 4KB Page Size, and allocated at such boundary (can be memory mapped).
    uint64 fileSize = file->size();
    uint64 roundedSize = roundUp(fileSize, PageSize);
-   uint8* content = allocate<uint8>(PageSize, roundedSize);
+   uint8* content = allocate<uint8>(roundedSize, PageSize);
    if (!file->read(content))
       {
       Log << "ERROR: Couldn't read file to memory.\n";
@@ -591,7 +604,7 @@ namespace en
    // Size of decompressed chunks may equal in worst case scenario to (Width x Height x BPP) + extra Height bytes.
    // Extra Height bytes comes from the fact that each line starts with extra Byte specifying filter type applied for that line.
    uint64 inflateBufferSize = roundUp(alignment.surfaceSize(width, height) + settings.height, PageSize);
-   uint8* inflated = allocate<uint8>(PageSize, inflateBufferSize);
+   uint8* inflated = allocate<uint8>(inflateBufferSize, PageSize);
 
    ColorSpaceInfo colorSpaceInfo;
 
@@ -683,8 +696,8 @@ namespace en
                   break;
                }
 
-            Log << "iCCP chunk info:" << endl;
-            Log << "Profile name: " << profile << endl;
+            Log << "iCCP chunk info:\n";
+            Log << "Profile name: " << profile << std::endl;
             }
             break;
 
@@ -715,11 +728,11 @@ namespace en
             colorSpaceInfo.primaries.blue.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
             offset += 4;
             
-            Log << "cHRM chunk info:" << endl;
-            Log << "Chrominance white x=" << colorSpaceInfo.primaries.whitePoint.x << " y=" << colorSpaceInfo.primaries.whitePoint.y << endl;
-            Log << "Chrominance red   x=" << colorSpaceInfo.primaries.red.x        << " y=" << colorSpaceInfo.primaries.red.y        << endl;
-            Log << "Chrominance green x=" << colorSpaceInfo.primaries.green.x      << " y=" << colorSpaceInfo.primaries.green.y      << endl;
-            Log << "Chrominance blue  x=" << colorSpaceInfo.primaries.blue.x       << " y=" << colorSpaceInfo.primaries.blue.y       << endl;
+            Log << "cHRM chunk info:\n";
+            Log << "Chrominance white x=" << colorSpaceInfo.primaries.whitePoint.x << " y=" << colorSpaceInfo.primaries.whitePoint.y << std::endl;
+            Log << "Chrominance red   x=" << colorSpaceInfo.primaries.red.x        << " y=" << colorSpaceInfo.primaries.red.y        << std::endl;
+            Log << "Chrominance green x=" << colorSpaceInfo.primaries.green.x      << " y=" << colorSpaceInfo.primaries.green.y      << std::endl;
+            Log << "Chrominance blue  x=" << colorSpaceInfo.primaries.blue.x       << " y=" << colorSpaceInfo.primaries.blue.y       << std::endl;
             }
             break;
             
@@ -729,8 +742,8 @@ namespace en
             colorSpaceInfo.gamma = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
             offset += 4;
 
-            Log << "gAMA chunk info:" << endl;
-            Log << "Gamma =" << colorSpaceInfo.gamma << endl;
+            Log << "gAMA chunk info:\n";
+            Log << "Gamma =" << colorSpaceInfo.gamma << std::endl;
             }
             break;
 
@@ -756,6 +769,7 @@ namespace en
 
    assert( reinterpret_cast<uint64>(destination) % alignment.surfaceAlignment() == 0 );
 
+/*
    DecodeState decoder;
    decoder.startLine        = 0;
    decoder.lines            = settings.height;
@@ -769,7 +783,85 @@ namespace en
 
    // Decode decompressed content of PNG file 
    decode(decoder);
- 
+ */
+
+
+
+
+   // All tasks will share this state, thus it can be used to check when all tasks are done
+   TaskState sharedState;
+
+   DecodeState* state = new DecodeState;
+   state->startLine        = 0;
+   state->lines            = 0;  // Will be populated in loop below
+   state->texelSize        = gpu::texelSize(settings.format);
+   state->width            = settings.width;
+   state->height           = settings.height;
+   state->linePadding      = alignment.rowPitch(width) - alignment.rowSize(width);
+   state->input            = inflated;
+   state->output           = destination;
+   state->invertHorizontal = invertHorizontal;
+
+   // If possible, will revert filters in paraller, using several worker threads. 
+   // It will be done by trying to distribute work as equally as possible across
+   // worker threads. Image will be divided into sections having as close amount 
+   // of lines to process as possible. Sections count will be equal to worker
+   // threads to match available CPU cores.
+   uint32 workers = Scheduler->workers();
+   uint32 linesPerCore = state->height / workers;
+   for(uint32 task=0; task<workers; ++task)
+      {
+      // Calculate lines range for current task
+      state->startLine += state->lines;
+      state->lines      = linesPerCore;
+   
+      // Check if first line of next section is not compressed with pattern
+      // 2,3 or 4. In such situation increase current lines range to prevent
+      // data dependency between task blocks (these patterns use previous line). 
+      uint8 type = 4;
+      bool lastTask = false;
+      while(type > 1)
+         {
+         // Check if current block is not already reaching end of image
+         uint32 nextLine = state->startLine + state->lines;
+         if (nextLine >= state->height)
+            {
+            state->lines = state->height - state->startLine;
+            lastTask = true;
+            break;
+            }
+   
+         // Check if next block will use "Paeth"
+         uint32 inOffset = nextLine * (state->width * state->texelSize + 1);
+         uint8 type = state->input[inOffset];
+         if (type < 2)
+            break;
+   
+         state->lines++;
+         }
+      
+      // Create state copy for next task
+      DecodeState* temp = nullptr;
+      if (!lastTask)
+         {
+         temp = new DecodeState;
+         memcpy(temp, state, sizeof(DecodeState));
+         }
+
+      // Spawn task to decompress part of image
+      // TODO: Direct tasks to different workers in the future to directly distribute 
+      //       the work, starting from last core and ending on this one.
+      en::Scheduler->run(taskDecodePNG, (void*)state, &sharedState); // (cores - worker - 1)
+      if (lastTask) 
+         break;
+
+      state = temp;
+      }
+
+   // Wait until all decoding tasks are done
+   // TODO: In future consider passing this task state as output to allow multiple async decompressions
+   en::Scheduler->wait(&sharedState);
+
    // Free temporary 'infalte' buffer
    deallocate<uint8>(inflated);
    return true;

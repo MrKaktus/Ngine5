@@ -111,9 +111,9 @@ namespace en
    deallocateObjectiveC(handle);
    }
 
-   shared_ptr<Sampler> MetalDevice::createSampler(const SamplerState& state)
+   std::shared_ptr<Sampler> MetalDevice::createSampler(const SamplerState& state)
    {
-   return make_shared<SamplerMTL>(this, state);
+   return std::make_shared<SamplerMTL>(this, state);
    };
 
    }

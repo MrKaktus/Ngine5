@@ -51,20 +51,20 @@ namespace en
       VulkanDevice*  gpu;
       VkSurfaceKHR   swapChainSurface; 
       VkSwapchainKHR swapChain;
-      shared_ptr<Texture>*  swapChainTexture;
+      std::shared_ptr<Texture>*  swapChainTexture;
       uint32         swapChainImages;
       uint32         swapChainCurrentImageIndex;
       VkQueue        presentQueue;
       VkFence        presentationFence;
 
       WindowVK(VulkanDevice* gpu,
-               const shared_ptr<CommonDisplay> selectedDisplay,
+               const std::shared_ptr<CommonDisplay> selectedDisplay,
                const uint32v2 selectedResolution,
                const WindowSettings& settings,
-               const string title);
+               const std::string title);
 
       virtual void resize(const uint32v2 size);
-      virtual shared_ptr<Texture> surface(const Semaphore* signalSemaphore = nullptr);
+      virtual std::shared_ptr<Texture> surface(const Semaphore* signalSemaphore = nullptr);
       virtual void present(const Semaphore* waitForSemaphore = nullptr);
       
       virtual ~WindowVK();

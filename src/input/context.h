@@ -156,7 +156,7 @@
 //#ifdef EN_PLATFORM_WINDOWS
 //                 LPDIRECTINPUT8 context;   // DirectInput device context
 //#endif
-//                 vector< shared_ptr<input::Joystick> > device;
+//                 vector< std::shared_ptr<input::Joystick> > device;
 //                 } joystick;
 //
 //          struct Touchscreen
@@ -256,7 +256,7 @@
 //                 PXCSession* session;                 // Perceptual Computing Session
 //#endif
 //#endif
-//                 vector< shared_ptr<input::Camera> > device;
+//                 vector< std::shared_ptr<input::Camera> > device;
 //                 } camera;
 //
 //          struct HMD
@@ -264,7 +264,7 @@
 //                 void init(void);
 //                 void destroy(void);
 //
-//                 vector< shared_ptr<input::HMD> > device;
+//                 vector< std::shared_ptr<input::HMD> > device;
 //                 } hmd;
 //
 //          struct Events

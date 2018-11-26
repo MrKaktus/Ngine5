@@ -41,14 +41,14 @@ namespace en
       VulkanDevice* gpu;
       VkImage       handle;        // Vulkan Image ID
       VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
-      shared_ptr<HeapVK>   heap;          // Memory backing heap
+      std::shared_ptr<HeapVK>   heap;          // Memory backing heap
       uint64        offset;        // Offset in the heap
 
       TextureVK(VulkanDevice* gpu, const TextureState& state);
  
-      virtual shared_ptr<Heap>        parent(void) const;
-      virtual shared_ptr<TextureView> view(void);
-      virtual shared_ptr<TextureView> view(const TextureType type,
+      virtual std::shared_ptr<Heap>        parent(void) const;
+      virtual std::shared_ptr<TextureView> view(void);
+      virtual std::shared_ptr<TextureView> view(const TextureType type,
                                            const Format format,
                                            const uint32v2 mipmaps,
                                            const uint32v2 layers);
@@ -60,23 +60,23 @@ namespace en
    class TextureViewVK : public CommonTextureView
       {
       public:
-      shared_ptr<TextureVK> texture; // Parent texture
+      std::shared_ptr<TextureVK> texture; // Parent texture
       VkImageView    handle;  // Vulkan Image View ID
 
-      TextureViewVK(shared_ptr<TextureVK>    parent,
+      TextureViewVK(std::shared_ptr<TextureVK>    parent,
                     const VkImageView view,
                     const TextureType type,
                     const Format      format,
                     const uint32v2    mipmaps,
                     const uint32v2    layers);
 
-      shared_ptr<Texture> parent(void) const;
+      std::shared_ptr<Texture> parent(void) const;
    
       virtual ~TextureViewVK();
       };
 
    VkImageAspectFlags TranslateImageAspect(const Format format);
-   shared_ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state);
+   std::shared_ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state);
    }
 }
 

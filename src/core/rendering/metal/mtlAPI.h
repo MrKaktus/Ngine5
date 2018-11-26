@@ -24,8 +24,6 @@
 #include "core/rendering/common/device.h"
 #include "core/rendering/common/display.h"
 
-using namespace std;
-
 namespace en
 {
    namespace gpu
@@ -34,11 +32,11 @@ namespace en
    class MetalAPI : public GraphicAPI
       {
       public:
-      shared_ptr<GpuDevice> _device[8];  // Primary and Supporting GPU (eGPU's as well)
+      std::shared_ptr<GpuDevice> _device[8];  // Primary and Supporting GPU (eGPU's as well)
       uint32         devicesCount;
       bool           preferLowPowerGPU; // If set and two GPU's are available, low-power GPU will be choosed over discreete one
-      shared_ptr<CommonDisplay>* _display;
-      shared_ptr<CommonDisplay>  virtualDisplay;
+      std::shared_ptr<CommonDisplay>* _display;
+      std::shared_ptr<CommonDisplay>  virtualDisplay;
       uint32         displaysCount;
   
 
@@ -46,13 +44,13 @@ namespace en
 
       virtual RenderingAPI type(void) const;
 
-      virtual uint32         devices(void) const;
-      virtual shared_ptr<GpuDevice> primaryDevice(void) const;
-      virtual shared_ptr<GpuDevice> device(const uint32 index) const;
+      virtual uint32                     devices(void) const;
+      virtual std::shared_ptr<GpuDevice> primaryDevice(void) const;
+      virtual std::shared_ptr<GpuDevice> device(const uint32 index) const;
       
-      virtual uint32         displays(void) const;       // Screens count the device can render to
-      virtual shared_ptr<Display>   primaryDisplay(void) const;
-      virtual shared_ptr<Display>   display(const uint32 index) const;   // Return N'th screen handle
+      virtual uint32                     displays(void) const;       // Screens count the device can render to
+      virtual std::shared_ptr<Display>   primaryDisplay(void) const;
+      virtual std::shared_ptr<Display>   display(const uint32 index) const;   // Return N'th screen handle
       
       virtual ~MetalAPI();
       };

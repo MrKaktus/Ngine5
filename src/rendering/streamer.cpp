@@ -13,8 +13,6 @@
 #include "core/utilities/basicAllocator.h" // TODO: This should be moved out of core as is platform independent
 #include "utilities/timer.h"
 
-#define MB 1024*1024
-
 // Size of single allocation in system memory in MB
 // May be bigger than resident allocation size, as it's not voulnurable to
 // eviction from dedicated memory and thus transfer through PCI-E bus.
@@ -260,7 +258,17 @@ namespace en
       BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
       BufferCache* gpuCache = streamer->gpuBufferHeap->entry(descInternal->gpuHeapIndex);
       
-      shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
+
+// TODO: FIXME!!! GPU Device is accessed from thread that is not part of Thread Pool and thus, it's index is not pointing at proper Command Buffer allocator !!!
+
+// Task based system:
+// - Task is issuing GPU to do something.
+// - Once GPU is done, and will signal it, other Task should be executed.
+// - So Task A registers Task B and it's state, that should be pushed for execution by completion callback.
+// - Both Task A & B can refer to the same state, to maintain continuation of execution.
+// - Alternative is to have dedicated thread that sleeps waiting for event to happen.
+
+      std::shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
       
       // TODO: Upload data in batches, taking into notice available bandwidth.
       //       Time budget of N miliseconds for data upload should be specified.
@@ -302,7 +310,7 @@ namespace en
 
       BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
 
-      shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
+      std::shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
    
       command->start();
    
@@ -473,7 +481,7 @@ namespace en
       
       BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
       
-      shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
+      std::shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
       
       command->start();
       
@@ -1139,7 +1147,7 @@ namespace en
    return nullptr;
    }
 
-   Streamer::Streamer(shared_ptr<GpuDevice> _gpu, const StreamerSettings* settings) :
+   Streamer::Streamer(std::shared_ptr<GpuDevice> _gpu, const StreamerSettings* settings) :
       gpu(_gpu),
       queueForTransfers(QueueType::Universal),
       downloadAllocationSize(DownloadAllocationSize*MB),
@@ -1242,13 +1250,13 @@ namespace en
    if (downloadAllocationSize)
       {
       // Create staging Heap, that can be accessed through linear Buffer.
-      shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Download, downloadAllocationSize);
+      std::shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Download, downloadAllocationSize);
       assert( heap );
-      shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Transfer, downloadAllocationSize);
+      std::shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Transfer, downloadAllocationSize);
       assert( buffer );
    
       // Buffer will be always used as source of transfers from GPU VRAM
-      shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
+      std::shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
       command->start();
       command->barrier(*buffer, BufferAccess::TransferDestination);
       command->commit();
@@ -1329,13 +1337,13 @@ namespace en
    //       new backing Heap allocation is spawned in the background.
    
    // Create staging Heap, that can be accessed through linear Buffer.
-   shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Upload, systemAllocationSize);
+   std::shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Upload, systemAllocationSize);
    assert( heap );
-   shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Transfer, systemAllocationSize);
+   std::shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Transfer, systemAllocationSize);
    assert( buffer );
    
    // Buffer will be always used as source of transfers to GPU VRAM
-   shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
+   std::shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
    command->start();
    command->barrier(*buffer, BufferAccess::TransferSource);
    command->commit();
@@ -1352,13 +1360,13 @@ namespace en
    bool Streamer::initBufferHeap(BufferCache& bufferCache)
    {
    // Create linear Heap, that can be accessed through linear Buffer.
-   shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Linear, residentAllocationSize);
+   std::shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Linear, residentAllocationSize);
    assert( heap );
-   shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Vertex, residentAllocationSize);   // TODO: Buffer bitmask! Buffer for everything!
+   std::shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Vertex, residentAllocationSize);   // TODO: Buffer bitmask! Buffer for everything!
    assert( buffer );
    
    // Buffer will be always used as source of transfers to GPU VRAM
-   shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
+   std::shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
    command->start();
    command->barrier(*buffer, BufferAccess::TransferDestination | BufferAccess::Read);
    command->commit();
@@ -1741,7 +1749,7 @@ namespace en
    bool isRenderTarget = underlyingType(state.usage) & underlyingType(TextureUsage::RenderTargetWrite);
    
    // 16 bytes per mip level, up to 512 bytes (for 32 mipmaps)
-   MipMemoryLayout* mipLayout = en::allocate<MipMemoryLayout>(sizeof(MipMemoryLayout), state.mipmaps * state.planes());
+   MipMemoryLayout* mipLayout = en::allocate<MipMemoryLayout>(state.mipmaps * state.planes(), sizeof(MipMemoryLayout));
    
    // Mipmaps are stored on disk from smallest ones to biggest one, so when they
    // are loaded from disk, read is sequential and seek is one directional.
@@ -2256,7 +2264,7 @@ namespace en
 
    TextureCache** cache = &gpuTextureHeapList;
    
-   shared_ptr<Texture> texture = nullptr;
+   std::shared_ptr<Texture> texture = nullptr;
 
    // Currently it is simplest possible allocation algorithm, iterating over all
    // available heaps to find one with enough free memory. This needs to be redone

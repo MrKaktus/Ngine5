@@ -251,7 +251,7 @@ namespace en
 // There are also functions for mapping/unmapping/invalidating memory etc.
 
 
-   HeapVK::HeapVK(shared_ptr<VulkanDevice> _gpu,
+   HeapVK::HeapVK(std::shared_ptr<VulkanDevice> _gpu,
                   const VkDeviceMemory _handle,
                   const uint32 _memoryType,
                   const MemoryUsage _usage,
@@ -277,7 +277,7 @@ namespace en
    }
 
    // Return parent device
-   shared_ptr<GpuDevice> HeapVK::device(void) const
+   std::shared_ptr<GpuDevice> HeapVK::device(void) const
    {
    return gpu;
    }
@@ -285,10 +285,10 @@ namespace en
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   shared_ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
+   std::shared_ptr<Buffer> HeapVK::createBuffer(const BufferType type, const uint32 size)
    {
    // Create buffer descriptor
-   shared_ptr<BufferVK> buffer = gpu::createBuffer(this, type, size);
+   std::shared_ptr<BufferVK> buffer = gpu::createBuffer(this, type, size);
    if (!buffer)
       return nullptr;
 
@@ -313,13 +313,13 @@ namespace en
       }
 
    Validate( gpu, vkBindBufferMemory(gpu->device, buffer->handle, handle, offset) )
-   buffer->heap   = dynamic_pointer_cast<HeapVK>(shared_from_this());
+   buffer->heap   = std::dynamic_pointer_cast<HeapVK>(shared_from_this());
    buffer->offset = offset;
    
    return buffer;
    }
    
-   shared_ptr<Texture> HeapVK::createTexture(const TextureState state)
+   std::shared_ptr<Texture> HeapVK::createTexture(const TextureState state)
    {
    // Do not create textures on Heaps designated for Streaming.
    // (Engine currently is not supporting Linear Textures).
@@ -327,7 +327,7 @@ namespace en
            _usage == MemoryUsage::Renderable );
    
    // Create texture descriptor
-   shared_ptr<TextureVK> texture = gpu::createTexture(gpu.get(), state);
+   std::shared_ptr<TextureVK> texture = gpu::createTexture(gpu.get(), state);
    if (!texture)
       return nullptr;
 
@@ -352,7 +352,7 @@ namespace en
       }
 
    Validate( gpu, vkBindImageMemory(gpu->device, texture->handle, handle, offset) )
-   texture->heap   = dynamic_pointer_cast<HeapVK>(shared_from_this());
+   texture->heap   = std::dynamic_pointer_cast<HeapVK>(shared_from_this());
    texture->offset = offset;
    
    return texture;
@@ -445,7 +445,7 @@ namespace en
       }
    }
 
-   shared_ptr<Heap> VulkanDevice::createHeap(const MemoryUsage usage, const uint32 size)
+   std::shared_ptr<Heap> VulkanDevice::createHeap(const MemoryUsage usage, const uint32 size)
    {
    uint32 roundedSize = roundUp(size, 4096u);
    
@@ -464,17 +464,17 @@ namespace en
       
       VkDeviceMemory handle;
       Validate( this, vkAllocateMemory(device, &allocInfo, nullptr, &handle) )
-      if (lastResult[Scheduler.core()] == VK_SUCCESS)
+      if (lastResult[currentThreadId()] == VK_SUCCESS)
          {
-         return make_shared<HeapVK>(dynamic_pointer_cast<VulkanDevice>(shared_from_this()),
-                                    handle,
-                                    memoryTypePerUsage[usageIndex][i],
-                                    usage,
-                                    roundedSize);
+         return std::make_shared<HeapVK>(std::dynamic_pointer_cast<VulkanDevice>(shared_from_this()),
+                                         handle,
+                                         memoryTypePerUsage[usageIndex][i],
+                                         usage,
+                                         roundedSize);
          }
       }
 
-   return shared_ptr<Heap>(nullptr);
+   return std::shared_ptr<Heap>(nullptr);
    }
 
    }

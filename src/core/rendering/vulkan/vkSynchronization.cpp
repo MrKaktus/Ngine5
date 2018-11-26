@@ -437,9 +437,9 @@ namespace en
    ValidateNoRet( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
    }
 
-   shared_ptr<Semaphore> VulkanDevice::createSemaphore(void)
+   std::shared_ptr<Semaphore> VulkanDevice::createSemaphore(void)
    {
-   return make_shared<SemaphoreVK>(this);
+   return std::make_shared<SemaphoreVK>(this);
    }
 
 
@@ -494,10 +494,8 @@ namespace en
    
    bool EventVK::signaled(void)
    {
-   uint32 thread = Scheduler.core();
-
    Validate( gpu, vkGetEventStatus(gpu->device, handle) )
-   if (gpu->lastResult[thread] == VK_EVENT_SET)
+   if (gpu->lastResult[currentThreadId()] == VK_EVENT_SET)
       return true;
 
    return false;
@@ -513,9 +511,9 @@ namespace en
    Validate( gpu, vkResetEvent(gpu->device, handle) )
    }
 
-   shared_ptr<Event> CommandBufferVK::signal(void)
+   std::shared_ptr<Event> CommandBufferVK::signal(void)
    {
-   shared_ptr<EventVK> result = make_shared<EventVK>(gpu);
+   std::shared_ptr<EventVK> result = std::make_shared<EventVK>(gpu);
 
    // All stages work, before this moment in time, needs to be finished.
    // TODO: Expose way to specify only sub-set of pipeline stages.
@@ -525,7 +523,7 @@ namespace en
    return result;
    }
 
-   void CommandBufferVK::wait(shared_ptr<Event> eventToWaitFor)
+   void CommandBufferVK::wait(std::shared_ptr<Event> eventToWaitFor)
    {
    EventVK* _event = reinterpret_cast<EventVK*>(eventToWaitFor.get());
 

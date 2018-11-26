@@ -351,7 +351,7 @@ namespace en
    delete [] state.pInputElementDescs;
    }
 
-   shared_ptr<InputLayout> Direct3D12Device::createInputLayout(const DrawableType primitiveType,
+   std::shared_ptr<InputLayout> Direct3D12Device::createInputLayout(const DrawableType primitiveType,
                                                                const bool primitiveRestart,
                                                                const uint32 controlPoints,
                                                                const uint32 usedAttributes,
@@ -359,7 +359,7 @@ namespace en
                                                                const AttributeDesc* attributes,
                                                                const BufferDesc* buffers)
    {
-   return make_shared<InputLayoutD3D12>(primitiveType,
+   return std::make_shared<InputLayoutD3D12>(primitiveType,
                                         primitiveRestart,
                                         controlPoints,
                                         usedAttributes,

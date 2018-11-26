@@ -431,9 +431,9 @@ namespace en
    fence = nullptr;
    }
 
-   shared_ptr<Semaphore> Direct3D12Device::createSemaphore(void)
+   std::shared_ptr<Semaphore> Direct3D12Device::createSemaphore(void)
    {
-   return make_shared<SemaphoreD3D12>(this);
+   return std::make_shared<SemaphoreD3D12>(this);
    }
 
    }

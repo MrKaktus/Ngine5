@@ -263,12 +263,12 @@ return 0;
 }
 
 // Generates full memory barrier. Returns true if succesfull.
-forceinline bool CompareAndSwap(volatile uint32* dst, uint32 src, uint32 cmp)
+forceinline bool CompareAndSwap(volatile uint32* dst, uint32 newValue, uint32 expectedValue)
 {
 #ifdef EN_PLATFORM_ANDROID
-return __sync_val_compare_and_swap(dst, cmp, src) == cmp;
+return __sync_val_compare_and_swap(dst, expectedValue, newValue) == expectedValue;
 // No memory barrier
-//return __atomic_cmpxchg(cmp, src, (volatile int*)dst) == cmp;
+//return __atomic_cmpxchg(expectedValue, newValue, (volatile int*)dst) == expectedValue;
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
@@ -281,15 +281,15 @@ return __sync_val_compare_and_swap(dst, cmp, src) == cmp;
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-return std::atomic_compare_exchange_strong((volatile std::atomic<uint32>*)dst, &cmp, src);
+return std::atomic_compare_exchange_strong((volatile std::atomic<uint32>*)dst, &expectedValue, newValue);
 #elif defined(EN_PLATFORM_OSX)
-return OSAtomicCompareAndSwap32Barrier(cmp, src, (volatile int32_t*)dst);
+return OSAtomicCompareAndSwap32Barrier(expectedValue, newValue, (volatile int32_t*)dst);
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
 // Functions returns initial value from pointed memory,
-// if it is equal to cmp value then exchange was successful.
-return InterlockedCompareExchange((volatile unsigned long*)dst, src, cmp) == cmp;
+// if it is equal to expected value then exchange was successful.
+return InterlockedCompareExchange((volatile unsigned long*)dst, newValue, expectedValue) == expectedValue;
 #endif
 
 assert( 0 );
@@ -297,16 +297,16 @@ return false;
 }
 
 // Generates full memory barrier. Returns true if succesfull.
-forceinline bool CompareAndSwap(volatile uint64* dst, uint64 src, uint64 cmp)
+forceinline bool CompareAndSwap(volatile uint64* dst, uint64 newValue, uint64 expectedValue)
 {
 #ifdef EN_PLATFORM_ANDROID
 // It is not supported on Android.
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-return std::atomic_compare_exchange_strong((volatile std::atomic<uint64>*)dst, &cmp, src);
+return std::atomic_compare_exchange_strong((volatile std::atomic<uint64>*)dst, &expectedValue, newValue);
 #elif defined(EN_PLATFORM_OSX)
-return OSAtomicCompareAndSwap64Barrier(cmp, src, (volatile int64_t*)dst);
+return OSAtomicCompareAndSwap64Barrier(expectedValue, newValue, (volatile int64_t*)dst);
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
@@ -315,8 +315,8 @@ return OSAtomicCompareAndSwap64Barrier(cmp, src, (volatile int64_t*)dst);
 
 #ifdef EN_PLATFORM_WINDOWS
 // Functions returns initial value from pointed memory,
-// if it is equal to cmp value then exchange was successful.
-return InterlockedCompareExchange64((volatile LONGLONG*)dst, src, cmp) == cmp;
+// if it is equal to expected value then exchange was successful.
+return InterlockedCompareExchange64((volatile LONGLONG*)dst, newValue, expectedValue) == expectedValue;
 #endif
 
 assert( 0 );

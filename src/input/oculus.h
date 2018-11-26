@@ -60,10 +60,10 @@ namespace en
       sint32              swapChainLength[2]; // Amount of textures in Swap-Chain
       sint32              currentIndex[2];    // Current texture in Swap-Chain to use
       ovrMirrorTexture    mirrorTexture;      // Texture used to mirror HMD display to window
-      shared_ptr<Texture> swap[2][2];         // Up to two sets, 2 textures each
-      shared_ptr<Texture> mirror;             // Mirror texture interface
+      std::shared_ptr<Texture> swap[2][2];         // Up to two sets, 2 textures each
+      std::shared_ptr<Texture> mirror;             // Mirror texture interface
 
-      shared_ptr<Framebuffer> fbo;            // Mirroring framebuffer
+      std::shared_ptr<Framebuffer> fbo;            // Mirroring framebuffer
 
       ovrEyeRenderDesc    EyeRenderDesc[2];   // Device per eye rendering information  
       double              sensorSampleTime;   // sensorSampleTime is fed into the layer later  
@@ -99,8 +99,8 @@ namespace en
       virtual float3    position(Eye eye) const; 
       virtual float4x4  orientation(Eye eye) const;               
       virtual float3    vector(Eye eye) const;
-      virtual shared_ptr<en::gpu::Texture> color(Eye eye = LeftEye) const;          // Returns current swap-chain texture that should be used for given eye
-      //virtual shared_ptr<en::gpu::Texture> framebuffer(void) const;                 // Returns texture used for read content of HMD display
+      virtual std::shared_ptr<en::gpu::Texture> color(Eye eye = LeftEye) const;          // Returns current swap-chain texture that should be used for given eye
+      //virtual std::shared_ptr<en::gpu::Texture> framebuffer(void) const;                 // Returns texture used for read content of HMD display
       
       //virtual void      waitForSync(void);
       virtual void      endRendering(Eye eye = LeftEye);

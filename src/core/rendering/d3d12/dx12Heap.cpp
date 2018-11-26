@@ -23,7 +23,7 @@ namespace en
 {
    namespace gpu
    {
-   HeapD3D12::HeapD3D12(shared_ptr<Direct3D12Device> _gpu,
+   HeapD3D12::HeapD3D12(std::shared_ptr<Direct3D12Device> _gpu,
                         ID3D12Heap* _handle,
                         const MemoryUsage usage,
                         const uint32 size) :
@@ -44,14 +44,14 @@ namespace en
    delete allocator;
    }
 
-   shared_ptr<GpuDevice> HeapD3D12::device(void) const
+   std::shared_ptr<GpuDevice> HeapD3D12::device(void) const
    {
    return gpu;
    }
    
-   shared_ptr<Heap> Direct3D12Device::createHeap(const MemoryUsage usage, const uint32 size)
+   std::shared_ptr<Heap> Direct3D12Device::createHeap(const MemoryUsage usage, const uint32 size)
    {
-   shared_ptr<HeapD3D12> result = nullptr;
+   std::shared_ptr<HeapD3D12> result = nullptr;
    
    uint32 roundedSize = roundUp(size, 4096u);
 
@@ -135,11 +135,11 @@ namespace en
    ID3D12Heap* handle = nullptr;
 
    Validate( this, CreateHeap(&desc, IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12Heap), reinterpret_cast<void**>(&handle)
-   if ( SUCCEEDED(lastResult[Scheduler.core()]) )
-      result = make_shared<HeapD3D12>(dynamic_pointer_cast<Direct3D12Device>(shared_from_this()),
-                                      handle,
-                                      usage,
-                                      roundedSize);
+   if ( SUCCEEDED(lastResult[currentThreadId()]) )
+      result = std::make_shared<HeapD3D12>(std::dynamic_pointer_cast<Direct3D12Device>(shared_from_this()),
+                                           handle,
+                                           usage,
+                                           roundedSize);
    
    return result;
    }

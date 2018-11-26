@@ -75,12 +75,12 @@ namespace en
    alSourcei(id, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
    }
 
-   bool alSource::set(const shared_ptr<Sample> sample)
+   bool alSource::set(const std::shared_ptr<Sample> sample)
    {
    if (!sample)
       return false;
 
-   this->sample = dynamic_pointer_cast<alSample>(sample);
+   this->sample = std::dynamic_pointer_cast<alSample>(sample);
    alSourcei(id, AL_BUFFER, this->sample->id);
    return true;
    }
@@ -188,7 +188,7 @@ namespace en
 
    void Context::destroy(void)
    {
-   Log << "Closing module: Audio." << endl;
+   Log << "Closing module: Audio.\n";
 #if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
    if (!context)
       return;
@@ -226,7 +226,7 @@ namespace en
 //   if ((error = alGetError()) != AL_NO_ERROR)
 //      {
 //      Log << setprecision(2);
-//      Log << "Error: Can't create audio sample: " << error << endl;
+//      Log << "Error: Can't create audio sample: " << error << std::endl;
 //      AudioContext.samples.free(sample);
 //      return NULL;
 //      } 
@@ -258,7 +258,7 @@ namespace en
 //   return sample;
 //   }   
 
-   shared_ptr<audio::Sample> Interface::Sample::create(const uint32 channels, // Audio channels
+   std::shared_ptr<audio::Sample> Interface::Sample::create(const uint32 channels, // Audio channels
       const uint32 freq,     // Frequency in Hz
       const uint32 bps,      // Bits Per Sample
       const uint32 size,     // Size
@@ -269,13 +269,13 @@ namespace en
        channels != 2)
       {
       Log << "ERROR: Unsupported audio channells count!\n";
-      return shared_ptr<audio::Sample>(nullptr);
+      return std::shared_ptr<audio::Sample>(nullptr);
       }
    if (bps != 8 &&
        bps != 16)
       {
       Log << "ERROR: Unsupported Bits Per Sample ratio!\n";
-      return shared_ptr<audio::Sample>(nullptr);
+      return std::shared_ptr<audio::Sample>(nullptr);
       }
 
    // Generate buffer for data
@@ -286,9 +286,9 @@ namespace en
    alGenBuffers(1, &id);
    if ((error = alGetError()) != AL_NO_ERROR)
       {
-      Log << setprecision(2);
-      Log << "Error: Can't create audio sample: " << error << endl;
-      return shared_ptr<audio::Sample>(nullptr);
+      Log << std::setprecision(2);
+      Log << "Error: Can't create audio sample: " << error << std::endl;
+      return std::shared_ptr<audio::Sample>(nullptr);
       } 
       
    // Determine OpenAL audio format
@@ -310,21 +310,21 @@ namespace en
    if ((error = alGetError()) != AL_NO_ERROR)
       {
       Log << "ERROR: Cannot create sample in device!\n";
-      return shared_ptr<audio::Sample>(nullptr);
+      return std::shared_ptr<audio::Sample>(nullptr);
       }
 
-   return make_shared<alSample>(id);
+   return std::make_shared<alSample>(id);
 #else
-   return shared_ptr<audio::Sample>(nullptr);
+   return std::shared_ptr<audio::Sample>(nullptr);
 #endif
    }   
 
-   shared_ptr<audio::Source> Interface::Source::create(void)
+   std::shared_ptr<audio::Source> Interface::Source::create(void)
    {
 #if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-   return make_shared<alSource>(); 
+   return std::make_shared<alSource>(); 
 #else
-   return shared_ptr<audio::Source>(nullptr);
+   return std::shared_ptr<audio::Source>(nullptr);
 #endif
    }
 
@@ -343,7 +343,7 @@ namespace en
    //alGenSources(1, &id);
    //if ((error = alGetError()) != AL_NO_ERROR)
    //   {
-   //   Log << "Error: Can't create audio source." << error << endl;
+   //   Log << "Error: Can't create audio source." << error << std::endl;
    //   return en::audio::Source(NULL);
    //   }
 
@@ -412,7 +412,7 @@ audio::Interface Audio;
 // alGenSources(1, &id);
 // if ((error = alGetError()) != AL_NO_ERROR)
 //    {
-//    enLog << "Error: Can't create audio source." << error << endl;
+//    enLog << "Error: Can't create audio source." << error << std::endl;
 //    return 0;
 //    }
 //

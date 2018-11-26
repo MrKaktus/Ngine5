@@ -27,7 +27,7 @@ namespace en
       {
       public:
 #if UseFStreamOverWinAPI
-      fstream* handle;
+      std::fstream* handle;
 #else
       HANDLE handle;
 #endif
@@ -44,7 +44,7 @@ namespace en
                            void* buffer);            // Writes to file at specified location
 
 #if UseFStreamOverWinAPI
-      WinFile(fstream* handle);
+      WinFile(std::fstream* handle);
 #else
       WinFile(HANDLE handle);
 #endif
@@ -54,9 +54,9 @@ namespace en
    class WinInterface : public CommonInterface
       {
       public:
-      virtual bool exist(const string& filename); // Check if file exist
-      virtual shared_ptr<File> open(const string& filename,
-                             const FileAccess mode = Read);  // Opens file
+      virtual bool exist(const std::string& filename); // Check if file exist
+      virtual std::shared_ptr<File> open(const std::string& filename,
+                                         const FileAccess mode = Read);  // Opens file
 
       WinInterface();
       virtual ~WinInterface();

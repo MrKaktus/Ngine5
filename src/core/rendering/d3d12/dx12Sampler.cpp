@@ -119,7 +119,7 @@ namespace en
    {
    }
 
-   shared_ptr<Sampler> Direct3D12Device::createSampler(const SamplerState& state)
+   std::shared_ptr<Sampler> Direct3D12Device::createSampler(const SamplerState& state)
    {
    // Sampler Filtering modes:
    //
@@ -160,13 +160,13 @@ namespace en
    // In Direct3D12 Samplers are created directly on Descriptor Heaps.
    // Therefore sampler descriptor is cached, until it will be bound
    // to Descriptor through Sampler creation call.
-   return make_shared<SamplerD3D12>(samplerInfo, TranslateStaticSamplerBorder[underlyingType(state.borderColor)]);
+   return std::make_shared<SamplerD3D12>(samplerInfo, TranslateStaticSamplerBorder[underlyingType(state.borderColor)]);
    };
 
 //   D3D12_CPU_DESCRIPTOR_HANDLE handle = m_samplerHeap->GetCPUDescriptorHandleForHeapStart();
 //   Validate( gpu, CreateSampler(&samplerInfo, handle) )
 //   
-//   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+//   if (lastResult[currentThreadId()] == VK_SUCCESS)
 //      sampler = new SamplerVK(this, handle);
 
    }

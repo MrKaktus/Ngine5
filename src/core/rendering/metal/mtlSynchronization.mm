@@ -27,10 +27,10 @@ namespace en
 {
    namespace gpu
    {
-   shared_ptr<Semaphore> MetalDevice::createSemaphore(void)
+   std::shared_ptr<Semaphore> MetalDevice::createSemaphore(void)
    {
    // TODO: Analyze how Metal synchronizes Command Buffers execution and Swap-Chain
-   return shared_ptr<Semaphore>(nullptr);
+   return std::shared_ptr<Semaphore>(nullptr);
    }
 
    void CommandBufferMTL::barrier(const Buffer& buffer,

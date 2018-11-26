@@ -14,10 +14,98 @@
 
 #include <assert.h>
 
+#include "threading/mutex.h"   // TODO: Should be moved to core/parallel/
 #include "utilities/strings.h"
 
 namespace en
 {
+   constexpr uint32 MaxThreads      = 256;
+   constexpr uint32 InvalidThreadID = 0xFFFFFFFF;
+
+   static Mutex  lockThreadID;                 // Used when modifying thread ID translation table
+   static uint32 threadsSpawned = 0;           // Amount of threads spawned since start of application
+   static uint32 registeredThread[MaxThreads]; // Thread global to local ID translation table
+
+   uint32 currentThreadId(void)
+   {
+   DWORD systemThreadId = GetCurrentThreadId();
+
+   // Initialize thread global ID to local ID translation table. This also means 
+   // that this code is executing on main thread, and thus we can query it's 
+   // global ID and init table with it.
+   if (threadsSpawned == 0)   
+      {
+      memset(&registeredThread[0], 0, sizeof(uint32) * MaxThreads);
+      registeredThread[0] = systemThreadId;
+      threadsSpawned = 1;
+      }
+
+   // This thread is already created, so is already on the list. As list can only
+   // grow, there is no risk of colliding with other thread being created during
+   // this thread iterating over list.
+   uint32 index = 0;
+   for(; index<threadsSpawned; ++index)
+      if (registeredThread[index] == systemThreadId)
+         return index;
+
+   // Code execution should never reach this place
+   assert( 0 );
+   return InvalidThreadID;
+
+   // Alternative:
+   // 
+   // #include <thread>
+   // 
+   // std::thread::id id = std::this_thread::get_id();
+   //
+   // id still needs to be translated to local index that can be used to access arrays.
+   }
+
+   uint32 spawnedThreads(void)
+   {
+   // Initialize thread global ID to local ID translation table. This also means 
+   // that this code is executing on main thread, and thus we can query it's 
+   // global ID and init table with it.
+   if (threadsSpawned == 0)   
+      {
+      memset(&registeredThread[0], 0, sizeof(uint32) * MaxThreads);
+      registeredThread[0] = GetCurrentThreadId();
+      threadsSpawned = 1;
+      }
+
+   return threadsSpawned;
+   }
+
+   uint32 runningThreads(void)
+   {
+   // Initialize thread global ID to local ID translation table. This also means 
+   // that this code is executing on main thread, and thus we can query it's 
+   // global ID and init table with it.
+   if (threadsSpawned == 0)   
+      {
+      memset(&registeredThread[0], 0, sizeof(uint32) * MaxThreads);
+      registeredThread[0] = GetCurrentThreadId();
+      threadsSpawned = 1;
+      }
+
+   lockThreadID.lock();
+
+   // Check how many threads are still running
+   uint32 running = 0;
+   for(uint32 i=0; i<threadsSpawned; ++i)
+      if (registeredThread[i] != InvalidThreadID)
+         running++;
+
+   lockThreadID.unlock();
+
+   return running;
+   }
+
+   uint32 currentCoreId(void)
+   {
+   return GetCurrentProcessorNumber();
+   }
+
    winThreadContainer::winThreadContainer(ThreadFunction _function, Thread* _threadClass) :
       function(_function),
       threadClass(_threadClass)
@@ -39,6 +127,7 @@ namespace en
       sleepSemaphore(CreateSemaphore(nullptr, 0, 1, nullptr)),
       package(function, this),
       localState(threadState),
+      index(0xFFFFFFFF),
       isSleeping(false),
       valid(true),
       Thread()
@@ -51,10 +140,37 @@ namespace en
                          nullptr);                      // Thread id  (LPDWORD)(&m_id)
       
    assert( handle != INVALID_HANDLE_VALUE );
+
+   // If this is first call to create thread since application start, initialize 
+   // thread global ID to local ID translation table. This also means that this
+   // code is executing on main thread, and thus we can query it's global ID and
+   // init table with it.
+   if (threadsSpawned == 0)   
+      {
+      memset(&registeredThread[0], 0, sizeof(uint32) * MaxThreads);
+      registeredThread[0] = GetCurrentThreadId();
+      threadsSpawned = 1;
+      }
+
+   // Register unique thread ID for indexing into thread specific data structures.
+   // Threads should never reuse destroyed thread indexes, instead threads should
+   // be kept alive through whole application lifecycle, and Thread-Pool should
+   // be employed.
+   lockThreadID.lock();
+
+   assert( threadsSpawned < MaxThreads );
+   index = threadsSpawned;
+   registeredThread[threadsSpawned] = GetThreadId(handle);
+   threadsSpawned++;
+
+   lockThreadID.unlock();
    }
 
    winThread::~winThread() 
    {
+   // Mark that thread as terminated
+   registeredThread[index] = InvalidThreadID;
+
    valid = !(bool)TerminateThread(handle, 0);
    CloseHandle(handle);
    CloseHandle(sleepSemaphore);
@@ -76,14 +192,36 @@ namespace en
    // HRESULT result = SetThreadDescription(handle, stringToWchar(threadName.c_str(), threadName.length()));
    }
    
+   uint32 winThread::id(void) 
+   {
+   return index;
+   }
+
+   uint64 winThread::coresExecutionMask(void)
+   {
+   uint64 result = 0;
+
+   // Receive oiginal cores mask, during setting up temporary one, then restore
+   uint64 tempMask = 1;
+   result = SetThreadAffinityMask(handle, tempMask);
+   SetThreadAffinityMask(handle, result);
+
+   return result;
+   }
+
+   void winThread::executeOn(const uint64 coresMask)
+   {
+   SetThreadAffinityMask(handle, coresMask);
+   }
+
    void winThread::sleep(void)
    {
-   assert( handle == GetCurrentThread() );
+   assert( GetThreadId(handle) == GetCurrentThreadId() );
 
    isSleeping = true;
    WaitForSingleObject(sleepSemaphore, INFINITE);
    }
-   
+
    void winThread::wakeUp(void)
    {
    if (!isSleeping)
@@ -111,7 +249,7 @@ namespace en
 
    void winThread::exit(uint32 ret)
    {
-   assert( handle == GetCurrentThread() );
+   assert( GetThreadId(handle) == GetCurrentThreadId() );
 
    handle = INVALID_HANDLE_VALUE;
    ExitThread(ret);
@@ -119,14 +257,14 @@ namespace en
    
    void winThread::waitUntilCompleted(void)
    {
-   assert( handle != GetCurrentThread() );
+   assert( GetThreadId(handle) != GetCurrentThreadId() );
    
    WaitForSingleObject(handle, INFINITE);
    }
    
-   unique_ptr<Thread> startThread(ThreadFunction function, void* threadState)
+   std::unique_ptr<Thread> startThread(ThreadFunction function, void* threadState)
    {
-   return make_unique<winThread>(function, threadState);
+   return std::make_unique<winThread>(function, threadState);
    }
 }
 #endif

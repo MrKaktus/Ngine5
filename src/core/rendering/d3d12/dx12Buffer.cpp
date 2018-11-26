@@ -23,7 +23,7 @@ namespace en
 {
    namespace gpu
    {
-   BufferD3D12::BufferD3D12(shared_ptr<HeapD3D12> _heap,
+   BufferD3D12::BufferD3D12(std::shared_ptr<HeapD3D12> _heap,
                             ID3D12Resource* _handle,
                             const BufferType _type,
                             const uint64 _offset,
@@ -181,9 +181,9 @@ namespace en
    // Create unformatted generic buffer of given type and size.
    // This method can still be used to create Vertex or Index buffers,
    // but it's adviced to use ones with explicit formatting.
-   shared_ptr<Buffer> HeapD3D12::createBuffer(const BufferType type, const uint32 size)
+   std::shared_ptr<Buffer> HeapD3D12::createBuffer(const BufferType type, const uint32 size)
    {
-   shared_ptr<BufferD3D12> result = nullptr;
+   std::shared_ptr<BufferD3D12> result = nullptr;
 
    // Buffers cannot be created in Heaps dedicated to Texture storage
    assert( _usage != MemoryUsage::Tiled   &&
@@ -238,12 +238,12 @@ namespace en
                                        nullptr,                       // Clear value - currently not supported
                                        IID_PPV_ARGS(&bufferHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&bufferHandle)
       
-   if ( SUCCEEDED(gpu->lastResult[Scheduler.core()]) )
-      result = make_shared<BufferD3D12>(dynamic_pointer_cast<HeapD3D12>(shared_from_this()),
-                                        bufferHandle,
-                                        type,
-                                        offset,
-                                        static_cast<uint64>(allocInfo.SizeInBytes) );
+   if ( SUCCEEDED(gpu->lastResult[en::currentThreadId()]) )
+      result = std::make_shared<BufferD3D12>(std::dynamic_pointer_cast<HeapD3D12>(shared_from_this()),
+                                             bufferHandle,
+                                             type,
+                                             offset,
+                                             static_cast<uint64>(allocInfo.SizeInBytes) );
 
    return result;
    }

@@ -4,7 +4,7 @@
  
  Module      : Fibers support.
  Requirements: none
- Description : Allows easy creation and management of fibers.
+ Description : Fibers are lightweight threads managed in application address space.
 
 */
 
@@ -27,6 +27,7 @@ namespace en
       void*      stack;
       uint32     maximumStackSize;
           
+      psxFiber(void);
       psxFiber(const uint32 stackSize,
                const uint32 maximumStackSize);
      ~psxFiber();

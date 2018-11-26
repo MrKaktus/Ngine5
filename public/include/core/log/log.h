@@ -16,7 +16,6 @@
 
 #include <iostream>
 #include <iomanip>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -58,7 +57,7 @@ namespace en
       //Interface& operator << (const float& in);
       //Interface& operator << (const double& in);
       Interface& operator << (const char* in);
-      Interface& operator << (const string in);
+      Interface& operator << (const std::string in);
       
       template <typename T>
       Interface& operator << (const T& content);        
@@ -102,7 +101,7 @@ namespace en
       Interface& operator << (const double& in);
       Interface& operator << (const char in);
       Interface& operator << (const char* in);
-      Interface& operator << (const string in);
+      Interface& operator << (const std::string in);
       
       template <typename T>
       Interface& operator << (const T& content);        // Accepts streams to log
@@ -112,7 +111,7 @@ namespace en
    template <typename T>
    Interface& Interface::operator << (const T& content)
    {
-   cout << content;
+   std::cout << content;
    return *this;
    }
 

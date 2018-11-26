@@ -35,8 +35,6 @@
 #pragma pop_macro("aligned")
 
 #include <map>
-using namespace std;
-
 
 namespace en
 {
@@ -112,7 +110,7 @@ namespace en
    //             float  width;  // Width of character
    //             } table[256];  // Table of characters
    //      float  height;        // Characters height
-   //      shared_ptr<gpu::Texture> texture; // Texture used by font
+   //      std::shared_ptr<gpu::Texture> texture; // Texture used by font
    //      gpu::Program program; // Program used by font
    //      //Material material;   // Material used by font
  
@@ -138,10 +136,10 @@ namespace en
     //float     base;       // Text base in line (bottom alignment of characters)
       float     height;     // Total height of line (default distance between lines, if there is no spacing)
 
-      shared_ptr<en::gpu::Texture> resource;
+      std::shared_ptr<en::gpu::Texture> resource;
 
-      virtual shared_ptr<en::gpu::Texture> texture(void) const;            // Returns texture used by font
-      virtual shared_ptr<Mesh> text(const string text, const bool screenspace = false) const;  // Creates mesh that contains geometry representing
+      virtual std::shared_ptr<en::gpu::Texture> texture(void) const;            // Returns texture used by font
+      virtual std::shared_ptr<Mesh> text(const std::string text, const bool screenspace = false) const;  // Creates mesh that contains geometry representing
     
       FontImp();
      ~FontImp();
@@ -158,52 +156,52 @@ namespace en
 
           struct Paths
                  {
-                 string fonts;
-                 string models;
-                 string materials;
-                 string shaders;
-                 string textures;
-                 string sounds;
-                 string screenshots;
+                 std::string fonts;
+                 std::string models;
+                 std::string materials;
+                 std::string shaders;
+                 std::string textures;
+                 std::string sounds;
+                 std::string screenshots;
                  } path;                   // Default paths to resources of specified type
 
           struct Defaults
                  {
-//                 shared_ptr<gpu::Pipeline> pipeline;            // Default program for materials
-//                 shared_ptr<gpu::Shader>   vertex;
-//                 shared_ptr<gpu
-                 shared_ptr<gpu::Heap>    enHeapBuffers;
-                 shared_ptr<gpu::Heap>    enHeapTextures;
-                 shared_ptr<gpu::Heap>    enStagingHeap;
-                 shared_ptr<gpu::Texture> enAlbedoMap;
-                 shared_ptr<gpu::Texture> enMetallicMap;
-                 shared_ptr<gpu::Texture> enCavityMap;
-                 shared_ptr<gpu::Texture> enRoughnessMap;
-                 shared_ptr<gpu::Texture> enAOMap;
-                 shared_ptr<gpu::Texture> enNormalMap;
-                 shared_ptr<gpu::Texture> enDisplacementMap;
-                 shared_ptr<gpu::Texture> enVectorDisplacementMap;
-                 shared_ptr<gpu::Texture> enEmmisiveMap;
-                 shared_ptr<gpu::Texture> enOpacityMap;
-                 // shared_ptr<gpu::Texture> enEmmisiveMap;
-                 // shared_ptr<gpu::Texture> enAmbientMap;
-                 // shared_ptr<gpu::Texture> enDiffuseMap;
-                 // shared_ptr<gpu::Texture> enSpecularMap;
-                 // shared_ptr<gpu::Texture> enTransparencyMap;
-                 // shared_ptr<gpu::Texture> enNormalMap;
-                 // shared_ptr<gpu::Texture> enDisplacementMap;
-                 // shared_ptr<gpu::Texture> enVectorsMap;
-                 shared_ptr<gpu::Buffer>  enAxes;             // Default axes buffer
+//                 std::shared_ptr<gpu::Pipeline> pipeline;            // Default program for materials
+//                 std::shared_ptr<gpu::Shader>   vertex;
+//                 std::shared_ptr<gpu
+                 std::shared_ptr<gpu::Heap>    enHeapBuffers;
+                 std::shared_ptr<gpu::Heap>    enHeapTextures;
+                 std::shared_ptr<gpu::Heap>    enStagingHeap;
+                 std::shared_ptr<gpu::Texture> enAlbedoMap;
+                 std::shared_ptr<gpu::Texture> enMetallicMap;
+                 std::shared_ptr<gpu::Texture> enCavityMap;
+                 std::shared_ptr<gpu::Texture> enRoughnessMap;
+                 std::shared_ptr<gpu::Texture> enAOMap;
+                 std::shared_ptr<gpu::Texture> enNormalMap;
+                 std::shared_ptr<gpu::Texture> enDisplacementMap;
+                 std::shared_ptr<gpu::Texture> enVectorDisplacementMap;
+                 std::shared_ptr<gpu::Texture> enEmmisiveMap;
+                 std::shared_ptr<gpu::Texture> enOpacityMap;
+                 // std::shared_ptr<gpu::Texture> enEmmisiveMap;
+                 // std::shared_ptr<gpu::Texture> enAmbientMap;
+                 // std::shared_ptr<gpu::Texture> enDiffuseMap;
+                 // std::shared_ptr<gpu::Texture> enSpecularMap;
+                 // std::shared_ptr<gpu::Texture> enTransparencyMap;
+                 // std::shared_ptr<gpu::Texture> enNormalMap;
+                 // std::shared_ptr<gpu::Texture> enDisplacementMap;
+                 // std::shared_ptr<gpu::Texture> enVectorsMap;
+                 std::shared_ptr<gpu::Buffer>  enAxes;             // Default axes buffer
 
                  Defaults();
                 ~Defaults();
                  } defaults;
 
-          map<string, shared_ptr<FontImp> >       fonts;
-          map<string, shared_ptr<Model> >         models;
-          map<string, Material>            materials;
-          map<string, shared_ptr<gpu::Texture> >  textures;
-          map<string, shared_ptr<audio::Sample> > sounds;
+          std::map<std::string, std::shared_ptr<FontImp> >       fonts;
+          std::map<std::string, std::shared_ptr<Model> >         models;
+          std::map<std::string, Material>            materials;
+          std::map<std::string, std::shared_ptr<gpu::Texture> >  textures;
+          std::map<std::string, std::shared_ptr<audio::Sample> > sounds;
 
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
           FbxManager*           fbxManager;           // FBX Memory Manager

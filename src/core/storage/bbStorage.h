@@ -46,8 +46,8 @@ namespace en
    class BBInterface : public CommonInterface
       {
       public:
-      virtual bool exist(const string& filename); // Check if file exist
-      virtual shared_ptr<File> open(const string& filename,
+      virtual bool exist(const std::string& filename); // Check if file exist
+      virtual std::shared_ptr<File> open(const std::string& filename,
                              const FileAccess mode = Read);  // Opens file
 
       BBInterface();

@@ -15,7 +15,6 @@
 #define ENG_MONETIZATION
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -35,13 +34,13 @@ namespace en
           struct Banner
                  {
 #ifdef EN_PLATFORM_BLACKBERRY
-                 shared_ptr<monetization::Banner> create(const uint32 x,            // Banners upper left corner x position on the screen 
+                 std::shared_ptr<monetization::Banner> create(const uint32 x,            // Banners upper left corner x position on the screen 
                                                   const uint32 y,            // Banners upper left corner y position on the screen 
                                                   const uint32 width,        // Width in pixels
                                                   const uint32 height,       // Height in pixels
                                                   const uint32 seconds,      // Refresh rate in seconds (60 is default and minimum)
                                                   const uint32 zoneID,       // Banners unique ID in Advertising Service, trial zone is 117145 or 31848 or 16741
-                                                  const string placeholder); // Name of placeholder image (must be in resources/textures path)
+                                                  const std::string placeholder); // Name of placeholder image (must be in resources/textures path)
 #endif               
                  } banner;
           };

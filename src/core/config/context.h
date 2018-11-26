@@ -22,7 +22,6 @@
 
 #include <map>
 #include <vector>
-using namespace std;
 
 namespace en
 {
@@ -31,12 +30,12 @@ namespace en
    struct Context
           {
           // Parsed variables of different types
-          vector<string>        keys;
-          map<string, bool>     bools;
-          map<string, sint64>   ints;
-          map<string, double>   doubles;
-          map<string, string>   strings;
-          map<string, Nversion> versions;
+          std::vector<std::string>           keys;
+          std::map<std::string, bool>        bools;
+          std::map<std::string, sint64>      ints;
+          std::map<std::string, double>      doubles;
+          std::map<std::string, std::string> strings;
+          std::map<std::string, Nversion>    versions;
 
           Context();
          ~Context();

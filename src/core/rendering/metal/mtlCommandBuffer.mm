@@ -72,7 +72,7 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
  
-   void CommandBufferMTL::startRenderPass(const shared_ptr<RenderPass> pass, const shared_ptr<Framebuffer> _framebuffer)
+   void CommandBufferMTL::startRenderPass(const std::shared_ptr<RenderPass> pass, const std::shared_ptr<Framebuffer> _framebuffer)
    {
    assert( renderEncoder == nil );
   
@@ -160,7 +160,7 @@ namespace en
 
    void CommandBufferMTL::setVertexBuffers(const uint32 firstSlot,
                                            const uint32 count,
-                                           const shared_ptr<Buffer>(&buffers)[],
+                                           const std::shared_ptr<Buffer>(&buffers)[],
                                            const uint64* offsets) const
    {
    assert( count );
@@ -497,7 +497,7 @@ namespace en
    deallocateObjectiveC(handle);
    }
 
-   shared_ptr<CommandBuffer> MetalDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
+   std::shared_ptr<CommandBuffer> MetalDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
    {
    // Metal exposes only one logical queue that is universal, and handles load balancing on HW queues on it's own.
    assert( type == QueueType::Universal );
@@ -506,7 +506,7 @@ namespace en
    // Buffers and Encoders are single time use  ( in Vulkan CommandBuffers can be recycled / reused !!! )
    // Multiple buffers can be created simultaneously for one queue
    // Buffers are executed in order in queue
-   shared_ptr<CommandBufferMTL> buffer = make_shared<CommandBufferMTL>(this); // consider shared_from_this()
+   std::shared_ptr<CommandBufferMTL> buffer = std::make_shared<CommandBufferMTL>(this); // consider shared_from_this()
 
    // Acquired Command Buffer is autoreleased.
    buffer->handle = [queue commandBufferWithUnretainedReferences];

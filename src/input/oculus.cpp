@@ -107,13 +107,13 @@ namespace en
    //              break;
    //   
    //           // Compare name and resolution to find matching Display number
-   //           string name = stringFromWchar(Device.DeviceName, 32);
-   //           Log << "Display " << displayNumber << " : " << name << endl;
-   //           if ( name.compare(0, 12, string(hmd->DisplayDeviceName)) && 
+   //           std::string name = stringFromWchar(Device.DeviceName, 32);
+   //           Log << "Display " << displayNumber << " : " << name << std::endl;
+   //           if ( name.compare(0, 12, std::string(hmd->DisplayDeviceName)) && 
    //                hmd->Resolution.w == DispMode.dmPelsWidth &&
    //                hmd->Resolution.h == DispMode.dmPelsHeight )
    //              {
-   //              Log << "Oculus found on " << displayNumber << " : " << name << endl;
+   //              Log << "Oculus found on " << displayNumber << " : " << name << std::endl;
    //              displayId = displayNumber;
    //              break;
    //              }
@@ -206,7 +206,7 @@ namespace en
          state.layers  = 1;
          state.samples = 1;
 
-         swap[i][j] = make_shared<TextureGL>(state, handle);
+         swap[i][j] = std::make_shared<TextureGL>(state, handle);
          }
       // >>>>> OpenGL Specific code section - END 
       }
@@ -233,7 +233,7 @@ namespace en
    uint32 handle;
    result = ovr_GetMirrorTextureBufferGL(session, mirrorTexture, &handle);
 
-   mirror = make_shared<TextureGL>(state, handle);
+   mirror = std::make_shared<TextureGL>(state, handle);
    // >>>>> OpenGL Specific code section - END
 
    // Create Framebuffer to use with mirroring
@@ -343,17 +343,17 @@ namespace en
                  info.DefaultEyeFov[i].RightTan ); 
    }
 
-   //shared_ptr<en::resource::Model> OculusDK2::distortionModel(DistortionSettings* settings)
+   //std::shared_ptr<en::resource::Model> OculusDK2::distortionModel(DistortionSettings* settings)
    //{
    //#if !OCULUS_SDK_RENDERING
    //using namespace en::gpu;
    //using namespace en::resource;
    //
    //if (!Gpu.screen.created())
-   //   return shared_ptr<Model>(nullptr);
+   //   return std::shared_ptr<Model>(nullptr);
    //
-   //shared_ptr<en::resource::Model> model = new en::resource::Model();
-   //model->name = string("Oculus Distortion Mesh");
+   //std::shared_ptr<en::resource::Model> model = new en::resource::Model();
+   //model->name = std::string("Oculus Distortion Mesh");
    //model->mesh.resize(2);
    //
    //for(uint8 eye=0; eye<2; ++eye)
@@ -420,7 +420,7 @@ namespace en
    //
    //return model;
    //#endif
-   //return shared_ptr<en::resource::Model>(nullptr);
+   //return std::shared_ptr<en::resource::Model>(nullptr);
    //}
    //
    //void OculusDK2::distortionUVScaleOffset(DistortionSettings* settings)
@@ -565,7 +565,7 @@ namespace en
    return float3( &EyeRenderDesc[eye].HmdToEyeOffset.x );
    }
 
-   shared_ptr<Texture> OculusDK2::color(Eye eye) const
+   std::shared_ptr<Texture> OculusDK2::color(Eye eye) const
    {
    assert( enabled );
    
@@ -573,7 +573,7 @@ namespace en
    return swap[index][currentIndex];
    }
           
-   //shared_ptr<Texture> OculusDK2::framebuffer(void) const
+   //std::shared_ptr<Texture> OculusDK2::framebuffer(void) const
    //{
    //assert( enabled );
    //

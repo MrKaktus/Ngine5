@@ -35,7 +35,7 @@ namespace en
       VulkanDevice* gpu;
       VkBuffer      handle;
       VkMemoryRequirements memoryRequirements; // Memory requirements of this Buffer
-      shared_ptr<HeapVK>   heap;               // Memory backing heap
+      std::shared_ptr<HeapVK>   heap;               // Memory backing heap
       uint64               offset;             // Offset in the heap
 
       BufferVK(VulkanDevice* gpu, const VkBuffer handle, const BufferType type, const uint32 size);
@@ -52,22 +52,22 @@ namespace en
    class BufferViewVK : public CommonBufferView
       {
       public:
-      shared_ptr<BufferVK> buffer; // Parent buffer
+      std::shared_ptr<BufferVK> buffer; // Parent buffer
       VkBufferView  handle;  
 
-      BufferViewVK(shared_ptr<BufferVK> parent,
+      BufferViewVK(std::shared_ptr<BufferVK> parent,
                    const VkBufferView view,
                    const Format       format,
                    const uint32       offset,
                    const uint32       length);
 
-      shared_ptr<Buffer> parent(void) const;
+      std::shared_ptr<Buffer> parent(void) const;
    
       virtual ~BufferViewVK();
       };
 #endif
 
-   shared_ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size);
+   std::shared_ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size);
    }
 }
 #endif

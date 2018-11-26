@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_HEAP
 
 #include <memory>
-using namespace std;
 
 #include "core/rendering/buffer.h"
 #include "core/rendering/texture.h"
@@ -65,13 +64,13 @@ namespace en
 
    class GpuDevice;
 
-   class Heap : public enable_shared_from_this<Heap>
+   class Heap : public std::enable_shared_from_this<Heap>
       {
       public:
       virtual uint32 size(void) const = 0;
 
       // Return parent device
-      virtual shared_ptr<GpuDevice> device(void) const = 0;
+      virtual std::shared_ptr<GpuDevice> device(void) const = 0;
 
       // Create formatted buffer for storing array of structures (AOS). In most
       // cases it will be used as Vertex buffer that matches given InputLayout,
@@ -82,25 +81,25 @@ namespace en
       // column has it's specified format, and can be a scalar or vector
       // containing up to 4 channels. Elements creating array can be used to
       // store for e.g. Vertices, Control Points, or other data. 
-      virtual shared_ptr<Buffer> createBuffer(
+      virtual std::shared_ptr<Buffer> createBuffer(
          const uint32 elements,
          const Formatting& formatting,
          const uint32 step = 0u) = 0;
         
       // Create formatted Index buffer that can be bound to InputLayout.
-      virtual shared_ptr<Buffer> createBuffer(
+      virtual std::shared_ptr<Buffer> createBuffer(
          const uint32 elements,
          const Attribute format) = 0;
 
       // Create unformatted generic buffer of given type and size. This method
       // can still be used to create Vertex or Index buffers, but it's adviced
       // to use ones with explicit formatting.
-      virtual shared_ptr<Buffer> createBuffer(
+      virtual std::shared_ptr<Buffer> createBuffer(
          const BufferType type,
          const uint32 size) = 0;
 
       // Creates textures on Heaps with MemoryUsage::Tiled or Renderable.
-      virtual shared_ptr<Texture> createTexture(
+      virtual std::shared_ptr<Texture> createTexture(
          const TextureState state) = 0;
 
       // Resources sub-allocated from heap, keep internal reference to it, so 

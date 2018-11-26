@@ -15,7 +15,6 @@
 #define ENG_SCENE
 
 #include <vector>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -45,7 +44,7 @@ namespace en
           array<float4x4> rotation;
           array<float3>   scale;
           array<float4>   boundingSphere;
-          array< shared_ptr<Entity> > entity;
+          array< std::shared_ptr<Entity> > entity;
        
           // Destination      
           array<float4x4> worldMatrix; 
@@ -76,8 +75,8 @@ namespace en
          Scene(uint32 entities = 16384);
         ~Scene();
 
-         bool add(shared_ptr<Entity> object);                     // Add new entity to the scene
-         bool add(shared_ptr<Entity> object, shared_ptr<Entity> parent); // Add new entity to the scene as child object
+         bool add(std::shared_ptr<Entity> object);                     // Add new entity to the scene
+         bool add(std::shared_ptr<Entity> object, std::shared_ptr<Entity> parent); // Add new entity to the scene as child object
          bool remove(uint32 handle);                       // Remove entity from scene
          void update(void);                                // Update scene
          };

@@ -47,14 +47,14 @@ namespace en
 //   return false;
 //   }
    
-   shared_ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
+   std::shared_ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
    {
    assert( elements );
    assert( formatting.column[0] != Attribute::None );
 
    uint32 elementSize = formatting.elementSize();
    uint32 size        = elements * elementSize;
-   shared_ptr<Buffer> buffer = createBuffer(BufferType::Vertex, size);
+   std::shared_ptr<Buffer> buffer = createBuffer(BufferType::Vertex, size);
    if (buffer)
       {
       CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer.get());
@@ -67,7 +67,7 @@ namespace en
    return buffer;
    }
       
-   shared_ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Attribute format)
+   std::shared_ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Attribute format)
    {
    assert( elements );
    assert( format == Attribute::u8  ||
@@ -76,7 +76,7 @@ namespace en
      
    uint32 elementSize = AttributeSize[underlyingType(format)];
    uint32 size        = elements * elementSize;
-   shared_ptr<Buffer> buffer = createBuffer(BufferType::Index, size);
+   std::shared_ptr<Buffer> buffer = createBuffer(BufferType::Index, size);
    if (buffer)
       {
       CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer.get());
@@ -89,10 +89,10 @@ namespace en
    }
 
    // Should be implemented by API class
-   shared_ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size)
+   std::shared_ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size)
    {
    assert(0);
-   return shared_ptr<Buffer>(nullptr);
+   return std::shared_ptr<Buffer>(nullptr);
    }
 
    }

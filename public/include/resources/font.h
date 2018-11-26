@@ -12,7 +12,6 @@
 #define ENG_RESOURCES_FONT
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -23,7 +22,7 @@ namespace en
    {
 
 
-   shared_ptr<Font> load(const string& filename);
+   std::shared_ptr<Font> load(const std::string& filename);
    }*/
 }
 

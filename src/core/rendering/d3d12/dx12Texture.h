@@ -37,11 +37,11 @@ namespace en
       {
       public:
       ID3D12Resource*   handle;      // Vulkan Image ID
-      shared_ptr<HeapD3D12> heap;    // Memory backing heap
+      std::shared_ptr<HeapD3D12> heap;    // Memory backing heap
       uint64            offset;      // Offset in the heap
       uint64            textureSize; // Texture total size in memory (all mips and layers)
       
-      TextureD3D12(shared_ptr<HeapD3D12> heap,
+      TextureD3D12(std::shared_ptr<HeapD3D12> heap,
                    ID3D12Resource* handle,
                    uint64 offset,
                    uint64 size,
@@ -50,9 +50,9 @@ namespace en
       TextureD3D12(Direct3D12Device* gpu,
                    const TextureState& state); // Create texture interface for texture that already exists
 
-      virtual shared_ptr<Heap>        parent(void) const;
-      virtual shared_ptr<TextureView> view(void);
-      virtual shared_ptr<TextureView> view(const TextureType type,
+      virtual std::shared_ptr<Heap>        parent(void) const;
+      virtual std::shared_ptr<TextureView> view(void);
+      virtual std::shared_ptr<TextureView> view(const TextureType type,
                                            const Format format,
                                            const uint32v2 mipmaps,
                                            const uint32v2 layers);
@@ -64,16 +64,16 @@ namespace en
    class TextureViewD3D12 : public CommonTextureView
       {
       public:
-      shared_ptr<TextureD3D12> texture;     // Parent texture
+      std::shared_ptr<TextureD3D12> texture;     // Parent texture
       D3D12_SHADER_RESOURCE_VIEW_DESC desc; // View descriptor
 
-      TextureViewD3D12(shared_ptr<TextureD3D12> parent,
+      TextureViewD3D12(std::shared_ptr<TextureD3D12> parent,
                        const TextureType _type,
                        const Format _format,
                        const uint32v2 _mipmaps,
                        const uint32v2 _layers);
 
-      shared_ptr<Texture> parent(void) const;
+      std::shared_ptr<Texture> parent(void) const;
    
       virtual ~TextureViewD3D12();
       };

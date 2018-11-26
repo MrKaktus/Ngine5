@@ -357,7 +357,7 @@ namespace en
    //   return DIENUM_CONTINUE;
 
    // Register Joystick
-   input->joysticks.push_back(make_shared<WinJoystick>(input->joysticks.size(), handle));
+   input->joysticks.push_back(std::make_shared<WinJoystick>(input->joysticks.size(), handle));
    return DIENUM_CONTINUE;
    }
 
@@ -367,11 +367,11 @@ namespace en
       CommonInterface()
    {
    // Register keyboard
-   keyboards.push_back(make_shared<CommonKeyboard>());
+   keyboards.push_back(std::make_shared<CommonKeyboard>());
    count[underlyingType(IO::Keyboard)]++;
    
    // Register mouse
-   mouses.push_back(make_shared<WinMouse>());
+   mouses.push_back(std::make_shared<WinMouse>());
    count[underlyingType(IO::Mouse)]++;
 
    }
@@ -437,13 +437,13 @@ namespace en
    uint32 displays = Graphics->displays();
    for(uint32 i=0; i<displays; ++i)
       {
-      shared_ptr<Display> display = Graphics->display(i);
+      std::shared_ptr<Display> display = Graphics->display(i);
       uint32v2 position = display->position();
       uint32v2 resolution = display->resolution();
       if ( (globalPos.x >= position.x) && (globalPos.x < (position.x + resolution.x)) &&
            (globalPos.y >= position.y) && (globalPos.y < (position.y + resolution.y)) )
          {
-         _display = dynamic_pointer_cast<CommonDisplay>(display);
+         _display = std::dynamic_pointer_cast<CommonDisplay>(display);
          return;
          }
       }
@@ -453,7 +453,7 @@ namespace en
    }
 
  
-   //shared_ptr<Display> WinMouse::display(void)
+   //std::shared_ptr<Display> WinMouse::display(void)
    //{
    //LPPOINT winPos;
    //assert( GetCursorPos(winPos) == TRUE );
@@ -475,13 +475,13 @@ namespace en
    return false;
    }
 
-   bool WinMouse::position(const shared_ptr<Display> screen, const uint32 x, const uint32 y)
+   bool WinMouse::position(const std::shared_ptr<Display> screen, const uint32 x, const uint32 y)
    {
    assert( screen ); 
    assert( x < screen->resolution().x );
    assert( y < screen->resolution().y );
 
-   _display = dynamic_pointer_cast<CommonDisplay>(screen);
+   _display = std::dynamic_pointer_cast<CommonDisplay>(screen);
 
    uint32v2 relativeStart = _display->_position;
    return (bool)SetCursorPos(relativeStart.x + x, relativeStart.y + y);

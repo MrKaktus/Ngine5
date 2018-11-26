@@ -122,7 +122,7 @@ namespace en
       virtual float3    position(void) const = 0;                    // HMD's position 
                                                                      
                                                                      // Rendering scene per eye:
-      virtual shared_ptr<en::gpu::Texture> color(Eye eye = LeftEye) const = 0;  // Acquire rendering destination texture for given eye
+      virtual std::shared_ptr<en::gpu::Texture> color(Eye eye = LeftEye) const = 0;  // Acquire rendering destination texture for given eye
       virtual float3    position(Eye eye) const = 0;                 // HMD's predicted position for dT when given eye is rendered
       virtual float4x4  orientation(Eye eye) const = 0;              // HMD's predicted orientation for dT when given eye is rendered
       virtual float3    vector(Eye eye) const = 0;                   // HMD's offset from it's position to given eye position
@@ -139,8 +139,8 @@ namespace en
       public:
       virtual float3   position(void) const = 0;                                    // Controller position
       virtual float4x4 orientation(void) const = 0;                                 // Controller orientation
-      virtual shared_ptr<en::resource::Model> model(void) const = 0;                       // Model of controller that can be used to show it in VR
-      virtual shared_ptr<en::gpu::Texture>    texture(void) const = 0;                     // Texture that can be used with controllers model
+      virtual std::shared_ptr<en::resource::Model> model(void) const = 0;                       // Model of controller that can be used to show it in VR
+      virtual std::shared_ptr<en::gpu::Texture>    texture(void) const = 0;                     // Texture that can be used with controllers model
       virtual Time     cooldown(void) const = 0;                                    // Returns controller cooldown time for Force Feedback
       virtual Time     maxDuration(void) const = 0;                                 // Returns Force Feedback max duration time, or 0 if Force Feedback is not supported
       virtual bool     pulse(uint32 axis, Time duration) = 0;                       // Spawns Force Feedback pulse for given period of time on given controller Axis

@@ -599,7 +599,7 @@ namespace en
             // - if so, update screen pointer it lays on
             
             // WA: FIXME: For now, always position on main display.
-            mouse->_display = dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay()); // CGMainDisplayID();
+            mouse->_display = std::dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay()); // CGMainDisplayID();
             
             
             // Requires mouse position in global screen coordinates, we get it in window coordinates.
@@ -837,10 +837,10 @@ namespace en
    return true;
    }
 
-   bool OSXMouse::position(const shared_ptr<Display> __display, const uint32 x, const uint32 y)
+   bool OSXMouse::position(const std::shared_ptr<Display> __display, const uint32 x, const uint32 y)
    {
    assert( __display );
-   _display = dynamic_pointer_cast<CommonDisplay>(__display);
+   _display = std::dynamic_pointer_cast<CommonDisplay>(__display);
    DisplayMTL* ptr = reinterpret_cast<DisplayMTL*>(_display.get());
    NSScreen* handle = ptr->handle;
    

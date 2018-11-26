@@ -10,7 +10,7 @@
 
 */
 
-#include "core/utilities/alignment.h"
+#include "core/memory/alignment.h"
 #include "core/rendering/buffer.h"
    
 

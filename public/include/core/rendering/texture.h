@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_TEXTURE
 
 #include <memory>
-using namespace std;
 
 #include "core/types.h"
 
@@ -399,10 +398,10 @@ namespace en
    class Heap;
    class TextureView;
    
-   class Texture : public enable_shared_from_this<Texture>
+   class Texture : public std::enable_shared_from_this<Texture>
       {
       public:
-      virtual shared_ptr<Heap> parent(void) const = 0;
+      virtual std::shared_ptr<Heap> parent(void) const = 0;
       virtual TextureType type(void) const = 0;
       virtual Format   format(void) const = 0;
       virtual uint32   mipmaps(void) const = 0;
@@ -417,7 +416,7 @@ namespace en
       virtual uint16   samples(void) const = 0;
 
       // Default view representing this texture
-      virtual shared_ptr<TextureView> view(void) = 0;
+      virtual std::shared_ptr<TextureView> view(void) = 0;
       
       // Creates new texture view with given type, format, base mipmap and
       // mipmaps count as well as base layer and layers count. Layer property
@@ -425,10 +424,10 @@ namespace en
       // - for 3D it represents "depth" slice
       // - for CubeMap it represents "face" surface
       // - for CubeMapArray it represents "layer-face" surface
-      virtual shared_ptr<TextureView> view(const TextureType type,
-                                           const Format format,
-                                           const uint32v2 mipmaps,
-                                           const uint32v2 layers) = 0;
+      virtual std::shared_ptr<TextureView> view(const TextureType type,
+                                                const Format format,
+                                                const uint32v2 mipmaps,
+                                                const uint32v2 layers) = 0;
       
       virtual ~Texture() {};
       };
@@ -436,7 +435,7 @@ namespace en
    class TextureView
       {
       public:
-      virtual shared_ptr<Texture> parent(void) const = 0;
+      virtual std::shared_ptr<Texture> parent(void) const = 0;
       virtual TextureType  type(void) const = 0;
       virtual Format       format(void) const = 0;
       

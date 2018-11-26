@@ -119,11 +119,11 @@ namespace en
       }
    }
 
-   shared_ptr<BlendState> VulkanDevice::createBlendState(const BlendStateInfo& state,
+   std::shared_ptr<BlendState> VulkanDevice::createBlendState(const BlendStateInfo& state,
                                                          const uint32 attachments,
                                                          const BlendAttachmentInfo* color)
    {
-   return make_shared<BlendStateVK>(state, attachments, color);
+   return std::make_shared<BlendStateVK>(state, attachments, color);
    }
 
    }

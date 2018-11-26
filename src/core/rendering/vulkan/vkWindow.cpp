@@ -17,6 +17,7 @@
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
+#include "core/log/log.h"
 #include "core/rendering/vulkan/vkSynchronization.h"
 #include "core/rendering/vulkan/vkTexture.h"
 #include "core/rendering/vulkan/vkDevice.h"
@@ -26,20 +27,20 @@ namespace en
    namespace gpu
    { 
    WindowVK::WindowVK(VulkanDevice* _gpu,
-                      const shared_ptr<CommonDisplay> selectedDisplay,
+                      const std::shared_ptr<CommonDisplay> selectedDisplay,
                       const uint32v2 selectedResolution,
                       const WindowSettings& settings,
-                      const string title) :
+                      const std::string title) :
       gpu(_gpu),
       // Create native OS window or assert.
 #if defined(EN_PLATFORM_ANDROID)
-      andWindow(dynamic_pointer_cast<andDisplay>(selectedDisplay), selectedResolution, settings, title)
+      andWindow(std::dynamic_pointer_cast<andDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
 #if defined(EN_PLATFORM_LINUX)
-      linWindow(dynamic_pointer_cast<linDisplay>(selectedDisplay), selectedResolution, settings, title)
+      linWindow(std::dynamic_pointer_cast<linDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
-      winWindow(dynamic_pointer_cast<winDisplay>(selectedDisplay), selectedResolution, settings, title)
+      winWindow(std::dynamic_pointer_cast<winDisplay>(selectedDisplay), selectedResolution, settings, title)
 #endif
    {
    swapChainTexture           = nullptr;
@@ -80,7 +81,7 @@ namespace en
    Validate( api, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->handle, swapChainSurface, &swapChainCapabilities) )
    if (api->lastResult[0] != VK_SUCCESS)  // TODO FIXME! Assumes Thread 0 !
       {
-      string info;
+      std::string info;
       info += "ERROR: Vulkan error:\n";
       info += "       Cannot query Swap-Chain surface capabilities.\n";
       info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
@@ -93,7 +94,7 @@ namespace en
    Validate( api, vkGetPhysicalDeviceSurfaceSupportKHR(gpu->handle, gpu->queueTypeToFamily[underlyingType(QueueType::Universal)], swapChainSurface, &supportPresent) )
    if (supportPresent == VK_FALSE)
       {
-      string info;
+      std::string info;
       info += "ERROR: Vulkan error:\n";
       info += "       Queue Family supporting Present is different than queue family handling Universal queue type!\n";
       Log << info.c_str();
@@ -129,7 +130,7 @@ namespace en
    if ( (api->lastResult[0] != VK_SUCCESS) ||   // TODO FIXME! Assumes Thread 0 !
         (formats == 0) )
       {
-      string info;
+      std::string info;
       info += "ERROR: Vulkan error:\n";
       info += "       Cannot query Swap-Chain surface Pixel Formats count.\n";
       info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
@@ -144,7 +145,7 @@ namespace en
       {
       delete [] deviceFormats;
       
-      string info;
+      std::string info;
       info += "ERROR: Vulkan error:\n";
       info += "       Cannot query list of Swap-Chain surface supported Pixel Formats.\n";
       info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
@@ -176,7 +177,7 @@ namespace en
    
    if (!requestedFormatSupported)
       {
-      string info;
+      std::string info;
       info += "ERROR: Requested Pixel Format is not supported by this device.\n";
       Log << info.c_str();
       return;
@@ -249,7 +250,7 @@ namespace en
    if ( (api->lastResult[0] != VK_SUCCESS) ||    // TODO FIXME! Assumes Thread 0 !
         (modes == 0) )
       {
-      string info;
+      std::string info;
       info += "ERROR: Vulkan error:\n";
       info += "       Cannot query device Presentation Modes count.\n";
       info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
@@ -264,7 +265,7 @@ namespace en
       {
       delete [] presentationMode;
       
-      string info;
+      std::string info;
       info += "ERROR: Vulkan error:\n";
       info += "       Cannot query list of device Presentation Modes.\n";
       info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
@@ -367,10 +368,10 @@ namespace en
                                             swapChainResolution.width,
                                             swapChainResolution.height);
 
-   swapChainTexture = new shared_ptr<Texture>[swapChainImages];
+   swapChainTexture = new std::shared_ptr<Texture>[swapChainImages];
    for(uint32 i=0; i<swapChainImages; ++i)
       {
-      shared_ptr<TextureVK> texture = make_shared<TextureVK>(gpu, textureState);
+      std::shared_ptr<TextureVK> texture = std::make_shared<TextureVK>(gpu, textureState);
       texture->handle = swapChainImageHandles[i];
 
       swapChainTexture[i] = texture;
@@ -427,7 +428,7 @@ namespace en
    assert( 0 );
    }
 
-   shared_ptr<Texture> WindowVK::surface(const Semaphore* signalSemaphore)
+   std::shared_ptr<Texture> WindowVK::surface(const Semaphore* signalSemaphore)
    {
    if (needNewSurface)
       {
@@ -435,7 +436,7 @@ namespace en
 
       if (needNewSurface)
          {
-         uint32 thread = Scheduler.core();
+         uint32 thread = currentThreadId();
 
          // v1.0.38 p663
          //
@@ -509,7 +510,7 @@ namespace en
    // Data needed to transition to present :
    //
    // command buffer handle
-   // const shared_ptr<Texture> _texture, 
+   // const std::shared_ptr<Texture> _texture, 
    // barrier.srcAccessMask 
    // barrier.oldLayout     
    // VkPipelineStageFlags afterStage;  // Transition after this stage
@@ -517,7 +518,7 @@ namespace en
 
 
    // Presents current surface, after all work encoded on given Commnad Buffer is done
-   void WindowVK::present(const Semaphore* waitForSemaphore) // const shared_ptr<CommandBuffer> command ? <- pass command buffer in ??
+   void WindowVK::present(const Semaphore* waitForSemaphore) // const std::shared_ptr<CommandBuffer> command ? <- pass command buffer in ??
    {
    surfaceAcquire.lock();
    if (!needNewSurface)
@@ -542,7 +543,7 @@ namespace en
       //                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,     // Transition after this stage
       //                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);    // Transition before this stage
       // 
-      // shared_ptr<Semaphore> waitForSemaphore = gpu->createSemaphore();
+      // std::shared_ptr<Semaphore> waitForSemaphore = gpu->createSemaphore();
       // command->commit(waitForSemaphore);
       // window->present(preSemaphore); // Wait on semaphore
 
@@ -581,16 +582,16 @@ namespace en
    }
 
 
-   shared_ptr<Window> VulkanDevice::createWindow(const WindowSettings& settings, const string title)
+   std::shared_ptr<Window> VulkanDevice::createWindow(const WindowSettings& settings, const std::string title)
    {
-   shared_ptr<WindowVK> result = nullptr;
+   std::shared_ptr<WindowVK> result = nullptr;
 
    // Select destination display
-   shared_ptr<CommonDisplay> display = nullptr;
+   std::shared_ptr<CommonDisplay> display = nullptr;
    if (settings.display)
-      display = dynamic_pointer_cast<CommonDisplay>(settings.display);
+      display = std::dynamic_pointer_cast<CommonDisplay>(settings.display);
    else
-      display = dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay());
+      display = std::dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay());
       
    // Checking if app wants to use default resolution
    bool useNativeResolution = false;
@@ -617,7 +618,7 @@ namespace en
 
          if (!validResolution)
             {
-            Log << "Error! Requested window size for Fullscreen mode is not supported by selected display." << endl;
+            Log << "Error! Requested window size for Fullscreen mode is not supported by selected display.\n";
             return result;
             }
          }
@@ -626,12 +627,12 @@ namespace en
       if (settings.resolution.x != 0 ||
           settings.resolution.y != 0)
          {
-         Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead." << endl;
+         Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead.\n";
          return result;
          }
       }
 
-   result = make_shared<WindowVK>(this, display, selectedResolution, settings, title);
+   result = std::make_shared<WindowVK>(this, display, selectedResolution, settings, title);
 
    return result;
    }

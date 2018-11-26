@@ -225,10 +225,10 @@ namespace en
 /*    // Buffer formated views are currently unsupported:
 
       // Default buffer view, if it was created with formatting
-      virtual shared_ptr<BufferView> view(void) = 0;
+      virtual std::shared_ptr<BufferView> view(void) = 0;
  
       // New buffer view with specified formatting
-      virtual shared_ptr<BufferView> view(
+      virtual std::shared_ptr<BufferView> view(
          const uint32 elements,
          const Formatting& formatting,
          const uint32 step = 0,

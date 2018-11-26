@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_PIPELINE
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -95,16 +94,16 @@ namespace en
    // Helper structure for Pipeline object creation.
    struct PipelineState
       {
-      shared_ptr<RenderPass>         renderPass;
-      shared_ptr<InputLayout>        inputLayout;
-      shared_ptr<ViewportState>      viewportState;
-      shared_ptr<RasterState>        rasterState;
-      shared_ptr<MultisamplingState> multisamplingState;
-      shared_ptr<DepthStencilState>  depthStencilState;
-      shared_ptr<BlendState>         blendState;
-      shared_ptr<Shader>             shader[5];
-      std::string                    function[5];
-      shared_ptr<PipelineLayout>     pipelineLayout;
+      std::shared_ptr<RenderPass>         renderPass;
+      std::shared_ptr<InputLayout>        inputLayout;
+      std::shared_ptr<ViewportState>      viewportState;
+      std::shared_ptr<RasterState>        rasterState;
+      std::shared_ptr<MultisamplingState> multisamplingState;
+      std::shared_ptr<DepthStencilState>  depthStencilState;
+      std::shared_ptr<BlendState>         blendState;
+      std::shared_ptr<Shader>             shader[5];
+      std::string                         function[5];
+      std::shared_ptr<PipelineLayout>     pipelineLayout;
 
       PipelineState();
       PipelineState(const PipelineState& src);

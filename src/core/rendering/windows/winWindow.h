@@ -20,7 +20,6 @@
 #include "core/rendering/windows/winDisplay.h"
 
 #include <string>
-using namespace std;
 
 namespace en
 {
@@ -32,10 +31,10 @@ namespace en
       static HINSTANCE AppInstance; // Application handle (helper handle)
       HWND hWnd;                    // Window handle
 
-      winWindow(const shared_ptr<winDisplay> selectedDisplay,
+      winWindow(const std::shared_ptr<winDisplay> selectedDisplay,
                 const uint32v2 selectedResolution,
                 const WindowSettings& settings,
-                const string title);
+                const std::string title);
 
       virtual bool movable(void);
       virtual void move(const uint32v2 position);

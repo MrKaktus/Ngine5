@@ -36,7 +36,7 @@ namespace en
       NSView*       view;
       CAMetalLayer* layer;
       id <CAMetalDrawable> drawable;
-      shared_ptr<TextureMTL> framebuffer;
+      std::shared_ptr<TextureMTL> framebuffer;
       
       virtual bool movable(void);
       virtual void move(const uint32v2 position);
@@ -44,10 +44,10 @@ namespace en
       virtual void active(void);
       virtual void transparent(const float opacity);
       virtual void opaque(void);
-      virtual shared_ptr<Texture> surface(const Semaphore* signalSemaphore = nullptr);
+      virtual std::shared_ptr<Texture> surface(const Semaphore* signalSemaphore = nullptr);
       virtual void present(const Semaphore* waitForSemaphore = nullptr);
       
-      WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const string title); //id<MTLDevice> device
+      WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const std::string title); //id<MTLDevice> device
       virtual ~WindowMTL();
       };
    }

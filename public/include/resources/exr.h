@@ -19,7 +19,7 @@ namespace en
 {
    namespace exr
    {
-   shared_ptr<en::gpu::Texture> load(const string& filename);
+   std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
    }
 }
 

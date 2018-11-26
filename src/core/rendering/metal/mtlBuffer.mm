@@ -23,7 +23,7 @@ namespace en
 {
    namespace gpu
    {
-   BufferMTL::BufferMTL(shared_ptr<HeapMTL> _heap,
+   BufferMTL::BufferMTL(std::shared_ptr<HeapMTL> _heap,
                         id<MTLBuffer> _handle,
                         const BufferType type,
                         const uint32 size,
@@ -167,7 +167,7 @@ namespace en
 
    
 //            // Copy loaded texture to temporary staging buffer
-//            shared_ptr<gpu::Buffer> transfer = en::ResourcesContext.defaults.enHeap->createBuffer(gpu::BufferType::Transfer,
+//            std::shared_ptr<gpu::Buffer> transfer = en::ResourcesContext.defaults.enHeap->createBuffer(gpu::BufferType::Transfer,
 //                                                                          static_cast<uint32>(surfaceSize));
 //            
 //            void* ptr = transfer->content(); // like map (texture, mipmap, slice)
@@ -176,7 +176,7 @@ namespace en
 //      
 //            // like unmap
 //            // Copy data from staging buffer to final texture
-//            shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer();
+//            std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer();
 //            command->populate(transfer, texture, mipmap, slice); // blit
 //            command->commit();
 //      

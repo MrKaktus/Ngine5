@@ -39,11 +39,11 @@ namespace en
    return InputContext.camera.device.size();
    }
 
-   shared_ptr<input::Camera> Interface::Camera::get(uint8 index) const
+   std::shared_ptr<input::Camera> Interface::Camera::get(uint8 index) const
    {
    if (index < InputContext.camera.device.size())
       return InputContext.camera.device[index];
-   return shared_ptr<input::Camera>(nullptr);
+   return std::shared_ptr<input::Camera>(nullptr);
    }
 
 
@@ -71,7 +71,7 @@ namespace en
          private: 
          uint32                 id;           // Camera id on the devices list
          CameraState            currentState; // Is it turned on
-         string                 name;         // Device name
+         std::string            name;         // Device name
          CameraInfo             settings;     // Camera properties
          PXCCapture::DeviceInfo deviceInfo;   // Device properties
          PXCCapture::Device*    device;       // Device handle
@@ -232,7 +232,7 @@ namespace en
       if (!(deviceInfo.streams & type)) 
          continue;
 
-      string name = stringFromWchar(PXCCapture::StreamTypeToString(type), 1024);
+      std::string name = stringFromWchar(PXCCapture::StreamTypeToString(type), 1024);
 
       // Go through all available profiles for this stream type
       for (int p=0; p<device->QueryStreamProfileSetNum(type); ++p) 
@@ -256,11 +256,11 @@ namespace en
 
                    #ifdef EN_DEBUG
                    // Debug log profile information
-                   Log << "Stream[" << i << "-" << name << "] Profile[" << p << "]:" << endl;
+                   Log << "Stream[" << i << "-" << name << "] Profile[" << p << "]:\n";
                    Log << " - Format: " << stringFromWchar( reinterpret_cast<const wchar_t*>(PXCImage::PixelFormatToString(profile.imageInfo.format)), 256) << " " << 
-                                           static_cast<float>(profile.frameRate.min) << "Hz - " << static_cast<float>(profile.frameRate.max) << "Hz" << endl;
-                   Log << " - Width : " << (sint32)profile.imageInfo.width << endl;
-                   Log << " - Height: " << (sint32)profile.imageInfo.height << endl;
+                                           static_cast<float>(profile.frameRate.min) << "Hz - " << static_cast<float>(profile.frameRate.max) << "Hz\n";
+                   Log << " - Width : " << (sint32)profile.imageInfo.width << std::endl;
+                   Log << " - Height: " << (sint32)profile.imageInfo.height << std::endl;
                    #endif
                    }
 
@@ -276,11 +276,11 @@ namespace en
 
                    #ifdef EN_DEBUG
                    // Debug log profile information
-                   Log << "Stream[" << i << "-" << name << "] Profile[" << p << "]:" << endl;
+                   Log << "Stream[" << i << "-" << name << "] Profile[" << p << "]:\n";
                    Log << " - Format: " << stringFromWchar( reinterpret_cast<const wchar_t*>(PXCImage::PixelFormatToString(profile.imageInfo.format)), 256) << " " << 
-                                           static_cast<float>(profile.frameRate.min) << "Hz - " << static_cast<float>(profile.frameRate.max) << "Hz" << endl;
-                   Log << " - Width : " << (sint32)profile.imageInfo.width << endl;
-                   Log << " - Height: " << (sint32)profile.imageInfo.height << endl;
+                                           static_cast<float>(profile.frameRate.min) << "Hz - " << static_cast<float>(profile.frameRate.max) << "Hz\n";
+                   Log << " - Width : " << (sint32)profile.imageInfo.width << std::endl;
+                   Log << " - Height: " << (sint32)profile.imageInfo.height << std::endl;
                    #endif
                    }
           }
@@ -471,7 +471,7 @@ namespace en
          private:
          uint32      id;             // Kinect id on the devices list
          CameraState currentState;   // Is it turned on
-         string      name;           // Device name
+         std::string name;           // Device name
          CameraInfo  settings;       // Camera properties
          INuiSensor* sensor;         // Kiect sensor interface
          HANDLE      eventColor;     // Color, depth and skeleton events
@@ -785,7 +785,7 @@ namespace en
       {
       // SDK Version
       PXCSession::ImplVersion ver = session->QueryVersion();
-      Log << "Perceptual Computing SDK Version " << (uint16)(ver.major) << "." << (uint16)(ver.minor) << endl;
+      Log << "Perceptual Computing SDK Version " << (uint16)(ver.major) << "." << (uint16)(ver.minor) << std::endl;
 
       // Enumerate through available SDK modules
       PXCSession::ImplDesc desc;
@@ -807,7 +807,7 @@ namespace en
          if (status < PXC_STATUS_NO_ERROR)
             continue;
 
-		 string nameModule = stringFromWchar((wchar_t*)&result.friendlyName, 256);
+		 std::string nameModule = stringFromWchar((wchar_t*)&result.friendlyName, 256);
          Log << "Module[" << module << "]: " << nameModule << "\n";
 
          // Iterate over devices in module
@@ -826,7 +826,7 @@ namespace en
 
             // Add Depth Camera to cameras list
             CreativeDepthCamera* dev = new CreativeDepthCamera(device.size(), ptr, info);
-            device.push_back(shared_ptr<input::Camera>(dev));
+            device.push_back(std::shared_ptr<input::Camera>(dev));
 
             Log << "    Device[" << deviceId << "]: " << stringFromWchar((wchar_t*)&info.name, 1024) << "\n"; 
             }
@@ -861,7 +861,7 @@ namespace en
    
       // Add Kinect to cameras list
       input::Kinect* dev = new input::Kinect(device.size(), sensor);
-      device.push_back(shared_ptr<input::Camera>(dev));
+      device.push_back(std::shared_ptr<input::Camera>(dev));
 
       Log << "    Device[" << i << "]: KinectForXbox360\n"; 
       }
@@ -931,14 +931,14 @@ namespace en
 //               if (vstream->QueryValidate(p, &profile) != PXC_STATUS_NO_ERROR) 
 //                  break;
 //
-//               Log << "Stream[" << i << "] Profile[" << p << "]:" << endl;
-//               Log << " - Format: " << (uint32)(profile.imageInfo.format - 0x00010000) << endl;
-//               Log << " - Width : " << (uint32)profile.imageInfo.width << endl;
-//               Log << " - Height: " << (uint32)profile.imageInfo.height << endl;
-//               Log << " - FPS min: " << (uint32)profile.frameRateMin.numerator << endl;
-//               Log << " - FPS max: " << (uint32)profile.frameRateMax.numerator << endl;
-//               if ( profile.imageOptions == 1) Log << " - No UV MAP! " << endl;
-//               if ( profile.imageOptions == 2) Log << " - No IR MAP! " << endl;
+//               Log << "Stream[" << i << "] Profile[" << p << "]:\n";
+//               Log << " - Format: " << (uint32)(profile.imageInfo.format - 0x00010000) << std::endl;
+//               Log << " - Width : " << (uint32)profile.imageInfo.width << std::endl;
+//               Log << " - Height: " << (uint32)profile.imageInfo.height << std::endl;
+//               Log << " - FPS min: " << (uint32)profile.frameRateMin.numerator << std::endl;
+//               Log << " - FPS max: " << (uint32)profile.frameRateMax.numerator << std::endl;
+//               if ( profile.imageOptions == 1) Log << " - No UV MAP!\n";
+//               if ( profile.imageOptions == 2) Log << " - No IR MAP!\n";
 //               }
 //
 //            for(uint32 p=0; p<256; ++p) 
@@ -971,7 +971,7 @@ namespace en
 //                              if (timer.elapsed().seconds() > 1.0)
 //                                 break;
 //
-//                           Log << "COLOR: Stream[" << i << "] Profile[" << p << "]" << endl;
+//                           Log << "COLOR: Stream[" << i << "] Profile[" << p << "]\n";
 //
 //                           dev->color = vstream;
 //                           color = true;
@@ -995,7 +995,7 @@ namespace en
 //                              if (timer.elapsed().miliseconds() > 1.0)
 //                                 break;
 //
-//                           Log << "DEPTH: Stream[" << i << "] Profile[" << p << "]" << endl;
+//                           Log << "DEPTH: Stream[" << i << "] Profile[" << p << "]\n";
 //
 //                           dev->device->SetProperty(PXCCapture::Device::PROPERTY_DEPTH_SMOOTHING, 1.0f);
 //                           dev->depth = vstream;

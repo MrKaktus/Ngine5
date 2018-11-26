@@ -15,7 +15,6 @@
 #if defined(EN_PLATFORM_ANDROID)
 
 #include <fstream>
-using namespace std;
 
 // for native asset manager
 #include <sys/types.h>
@@ -100,31 +99,31 @@ namespace en
    manager = assetManager;
    }
    
-   bool AndInterface::exist(const string& filename)
+   bool AndInterface::exist(const std::string& filename)
    {
    // TODO: Finish!
    return false;
    }
    
-   shared_ptr<File> AndInterface::open(const string& filename, const FileAccess mode)
+   std::shared_ptr<File> AndInterface::open(const std::string& filename, const FileAccess mode)
    {
-   shared_ptr<AndFile> result = nullptr;
+   std::shared_ptr<AndFile> result = nullptr;
       
    // TODO: Open for writing
    assert( mode == Read );
 
    AAsset* asset = AAssetManager_open(manager, filename.c_str(), AASSET_MODE_STREAMING);
    if (asset)
-      result = make_shared<AndFile>(asset);
+      result = std::make_shared<AndFile>(asset);
    else
-      Log << string("Couldn't open file " + filename + "!"); 
+      Log << std::string("Couldn't open file " + filename + "!"); 
 
    return result;
    }
 
 
    
-   bool AndInterface::exist(const string& filename);
+   bool AndInterface::exist(const std::string& filename);
    {
    // Creates input stream
    AAsset* handle = AAssetManager_open(manager, filename.c_str(), AASSET_MODE_STREAMING); 

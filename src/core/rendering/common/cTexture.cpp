@@ -857,7 +857,7 @@ namespace en
       // Render Targets, and MSAA textures are out of scope of resource streamer.
       // ( ? But there need to be a simple way of streaming them back to RAM ? )
       //
-      // Is there a point in streaming MSAA textures?
+      // There is no point in streaming MSAA textures.
 
 
    uint16v2 tileSize2D(const Format format,
@@ -1105,7 +1105,7 @@ namespace en
    return state.samples;
    }
    
-   shared_ptr<TextureView> CommonTexture::view()
+   std::shared_ptr<TextureView> CommonTexture::view()
    {
    // Should be implemented by specialization class.
    // Texture cannot keep pointer to it's "default" view,
@@ -1114,7 +1114,7 @@ namespace en
    // it from beeing released. Thus default view needs to
    // always be created on the fly.
    assert( 0 );
-   return shared_ptr<TextureView>(nullptr);
+   return std::shared_ptr<TextureView>(nullptr);
    }
 
    CommonTextureView::CommonTextureView(const TextureType _type,

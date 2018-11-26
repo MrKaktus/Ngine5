@@ -19,7 +19,6 @@
 #define ENG_CORE_RENDERING_SURFACE
 
 #include <memory>
-using namespace std;
 
 #include "core/types.h"
 
@@ -41,7 +40,7 @@ namespace en
    class OpenGLContext
       {
       public:
-      virtual uint32 createSharedTexture(shared_ptr<SharedSurface> backingSurface) = 0;
+      virtual uint32 createSharedTexture(std::shared_ptr<SharedSurface> backingSurface) = 0;
       virtual void destroySharedTexture(const uint32 handle) = 0;
       
       virtual ~OpenGLContext() {};

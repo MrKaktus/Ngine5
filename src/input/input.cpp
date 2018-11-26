@@ -11,7 +11,6 @@
 */
 
 #include <string>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/log/log.h"
@@ -96,7 +95,7 @@ namespace en
 
    void Context::destroy(void)
    {
-   Log << "Closing module: Input." << endl;
+   Log << "Closing module: Input.\n";
 
    //joystick.destroy();
    camera.destroy();
@@ -153,19 +152,19 @@ namespace en
    bool Interface::create(void)
    {
    #if defined(EN_PLATFORM_ANDROID)
-   Input = make_shared<AndInterface>();
+   Input = std::make_shared<AndInterface>();
    return true;
    #elif defined(EN_PLATFORM_BLACKBERRY)
-   Input = make_shared<BBInterface>();
+   Input = std::make_shared<BBInterface>();
    return true;
    #elif defined(EN_PLATFORM_IOS)
-   Input = make_shared<IOSInterface>();
+   Input = std::make_shared<IOSInterface>();
    return true;
    #elif defined(EN_PLATFORM_OSX)
-   Input = make_shared<OSXInterface>();
+   Input = std::make_shared<OSXInterface>();
    return true;
    #elif defined(EN_PLATFORM_WINDOWS)
-   Input = make_shared<WinInterface>();
+   Input = std::make_shared<WinInterface>();
    
    // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
    reinterpret_cast<CommonInterface*>(Input.get())->init();
@@ -173,7 +172,7 @@ namespace en
    return true;
    #else
    // How did we ended up here?
-   Input = make_shared<CommonInterface>();
+   Input = std::make_shared<CommonInterface>();
    return false;
    #endif
    }
@@ -218,7 +217,7 @@ namespace en
    {
    }
  
-   shared_ptr<Display> CommonMouse::display(void) const
+   std::shared_ptr<Display> CommonMouse::display(void) const
    {
    return _display;
    }
@@ -279,7 +278,7 @@ namespace en
 
    CommonInterface::~CommonInterface()
    {
-   Log << "Closing module: Input." << endl;
+   Log << "Closing module: Input.\n";
 
 #if defined(EN_MODULE_OCULUS)
    CloseOculusSDK();
@@ -298,50 +297,50 @@ namespace en
    return count[underlyingType(type)];
    }
    
-   shared_ptr<Keyboard> CommonInterface::keyboard(uint8 index) const
+   std::shared_ptr<Keyboard> CommonInterface::keyboard(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Keyboard)])
-      return shared_ptr<Keyboard>(nullptr);
+      return std::shared_ptr<Keyboard>(nullptr);
       
    return keyboards[index];
    }
 
-   shared_ptr<Mouse> CommonInterface::mouse(uint8 index) const
+   std::shared_ptr<Mouse> CommonInterface::mouse(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Mouse)])
-      return shared_ptr<Mouse>(nullptr);
+      return std::shared_ptr<Mouse>(nullptr);
       
    return mouses[index];
    }
    
-   shared_ptr<Joystick> CommonInterface::joystick(uint8 index) const
+   std::shared_ptr<Joystick> CommonInterface::joystick(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Joystick)])
-      return shared_ptr<Joystick>(nullptr);
+      return std::shared_ptr<Joystick>(nullptr);
       
    return joysticks[index];
    }
 
-   shared_ptr<HMD> CommonInterface::hmd(uint8 index) const
+   std::shared_ptr<HMD> CommonInterface::hmd(uint8 index) const
    {
    if (index >= count[underlyingType(IO::HMD)])
-      return shared_ptr<HMD>(nullptr);
+      return std::shared_ptr<HMD>(nullptr);
       
    return hmds[index];
    }
 
-   shared_ptr<Controller> CommonInterface::controller(uint8 index) const
+   std::shared_ptr<Controller> CommonInterface::controller(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Controller)])
-      return shared_ptr<Controller>(nullptr);
+      return std::shared_ptr<Controller>(nullptr);
       
    return controllers[index];
    }
    
-   shared_ptr<Camera> CommonInterface::camera(uint8 index) const
+   std::shared_ptr<Camera> CommonInterface::camera(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Camera)])
-      return shared_ptr<Camera>(nullptr);
+      return std::shared_ptr<Camera>(nullptr);
       
    return cameras[index];
    }
@@ -924,7 +923,7 @@ namespace en
 
 #if 1
 
-shared_ptr<input::Interface> Input;
+std::shared_ptr<input::Interface> Input;
 
 #else
 input::Context   InputContext;

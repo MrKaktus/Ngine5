@@ -29,9 +29,9 @@ namespace en
 #endif
 
    // Bit manipulation 
-   #define setBit(number, bit)    number |= (1 << bit)
-   #define clearBit(number, bit)  number &= ~(1 << bit)
-   #define changeBit(number, bit) number ^= (1 << bit)
+   #define setBit(number, bit)    number |= (1ULL << bit)
+   #define clearBit(number, bit)  number &= ~(1ULL << bit)
+   #define changeBit(number, bit) number ^= (1ULL << bit)
 
    // Bitmask manipulation (some defines are longer than just using bit operators, but they are declared for readability of code, and prevention of typos)
    #define setBitmask(number, bitmask)    number |= bitmask

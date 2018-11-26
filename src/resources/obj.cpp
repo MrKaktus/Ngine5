@@ -44,20 +44,20 @@ namespace en
 
    //struct Material
    //       {
-   //       string                 name;   // Material name
+   //       std::string                 name;   // Material name
    //       en::resource::Material handle; // Material handle
    //       };
 
    struct Mesh
           {
-          string         name;      // Mesh name
-          string         material;  // Material name (only one per group allowed)
-          vector<Vertex> vertices;  // Array of vertices composition data
-          vector<uint32> indexes;   // Array of indexes
-          vector<uint32> optimized; // Array of indexes after Forsyth optimization
-          bool           coords;    // Does mesh contain texture coordinates 
-          bool           coordW;    // Does mesh uses 3 component texture coordinates
-          bool           normals;   // Does mesh contain normal vectors
+          std::string         name;      // Mesh name
+          std::string         material;  // Material name (only one per group allowed)
+          std::vector<Vertex> vertices;  // Array of vertices composition data
+          std::vector<uint32> indexes;   // Array of indexes
+          std::vector<uint32> optimized; // Array of indexes after Forsyth optimization
+          bool                coords;    // Does mesh contain texture coordinates 
+          bool                coordW;    // Does mesh uses 3 component texture coordinates
+          bool                normals;   // Does mesh contain normal vectors
           };
 
    bool Vertex::operator ==(const Vertex& b)
@@ -65,14 +65,14 @@ namespace en
    return !memcmp(this, &b, 12); // 12 = sizeof(obj::Vertex)
    }
 
-   Vertex parseVertex(string& word)
+   Vertex parseVertex(std::string& word)
    {
    Vertex vertex;
    size_t s1 = word.find('/');
    size_t s2 = word.find('/',s1+1);
    
    // There is always vertex id
-   if (s1 != string::npos)
+   if (s1 != std::string::npos)
       vertex.position = stringTo<uint32>(word.substr(0,s1));
    else
       vertex.position = stringTo<uint32>(word);
@@ -81,20 +81,20 @@ namespace en
    // number just after it, otherwise there is no Tex Coord
    vertex.uv = 0;
    // (case: v/t)
-   if ( (s1 != string::npos) &&
-        (s2 == string::npos) &&
+   if ( (s1 != std::string::npos) &&
+        (s2 == std::string::npos) &&
         ((s1+1) < word.length()) )
       vertex.uv = stringTo<uint32>(word.substr(s1+1));
    // (case: v/t/n)
-   if ( (s1 != string::npos) &&
-        (s2 != string::npos) &&
+   if ( (s1 != std::string::npos) &&
+        (s2 != std::string::npos) &&
         ((s1+1) < s2) )
       vertex.uv = stringTo<uint32>(word.substr(s1+1,s2-s1-1));
    
    // If there is no second slash there is no Normal
    // (cases: v and v/t)
    vertex.normal = 0;
-   if (s2 != string::npos)
+   if (s2 != std::string::npos)
       vertex.normal = stringTo<uint32>(word.substr(s2+1));
 
    return vertex;
@@ -106,7 +106,7 @@ namespace en
    // - reduces identical vertices inside mesh
    // - reduces index buffer size
    // - optimizes indices order
-   shared_ptr<en::resource::Model> load(const string& filename, const string& name)
+   std::shared_ptr<en::resource::Model> load(const std::string& filename, const std::string& name)
    {
    using namespace en::storage;
 
@@ -115,15 +115,15 @@ namespace en
       return ResourcesContext.models[name];
         
    // Open model file
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.models + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.models + filename << endl;
+         Log << en::ResourcesContext.path.models + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
-         return shared_ptr<en::resource::Model>(NULL);
+         return std::shared_ptr<en::resource::Model>(NULL);
          }
       }
    
@@ -134,14 +134,14 @@ namespace en
    if (!buffer)
       {
       Log << "ERROR: Not enough memory!\n";
-      return shared_ptr<en::resource::Model>(NULL);
+      return std::shared_ptr<en::resource::Model>(NULL);
       }
    
    // Read file to buffer and close file
    if (!file->read(buffer))
       {
       Log << "ERROR: Cannot read whole obj file!\n";
-      return shared_ptr<en::resource::Model>(NULL);
+      return std::shared_ptr<en::resource::Model>(NULL);
       }    
    file = nullptr;
    
@@ -153,12 +153,12 @@ namespace en
    Nparser text(buffer, size);
    
    // Temporary data
-   vector<float3> vertices;             // Vertices
-   vector<float3> normals;              // Normals
-   vector<float3> coordinates;          // Texture coordinates
-   vector<string> libraries;            // Material libraries
-   vector<en::obj::Mesh> meshes;        // Meshes
-   vector<en::resource::Material> materials; // Materials
+   std::vector<float3> vertices;             // Vertices
+   std::vector<float3> normals;              // Normals
+   std::vector<float3> coordinates;          // Texture coordinates
+   std::vector<std::string>   libraries;     // Material libraries
+   std::vector<en::obj::Mesh> meshes;        // Meshes
+   std::vector<en::resource::Material> materials; // Materials
 
    // Reserve memory for incoming data, to minimise
    // occurences of possible relocations during 
@@ -174,7 +174,7 @@ namespace en
 
    // Current mesh and material handles
    en::obj::Mesh* mesh = &meshes[meshes.size() - 1];
-   string material = "default";
+   std::string material = "default";
 
    // Fill first mesh descriptor with default data
    mesh->name     = "default";
@@ -189,8 +189,8 @@ namespace en
    // Collects geometry primitives data that will
    // be used to generate final meshes and perform
    // primitives assembly into unoptimized meshes
-   string command;
-   string word;
+   std::string command;
+   std::string word;
    bool eol = false;
    while(!text.end())
         {
@@ -405,7 +405,7 @@ namespace en
 
       // Check if material was found and properly loaded
       if (!loaded)
-         Log << "ERROR! Cannot find material: " << materials[i].name.c_str() << " !" << endl;
+         Log << "ERROR! Cannot find material: " << materials[i].name.c_str() << " !\n";
       }  
 
    //// Create model
@@ -413,12 +413,12 @@ namespace en
    //if (model == NULL)
    //   {
    //   Log << "ERROR: Models pool is full!\n";
-   //   return shared_ptr<en::resource::Model>(NULL);
+   //   return std::shared_ptr<en::resource::Model>(NULL);
    //   } 
    //model->mesh   = new en::resource::Mesh*[meshes.size()];
    //model->meshes = meshes.size();
     
-   shared_ptr<en::resource::Model> model = make_shared<en::resource::Model>();
+   std::shared_ptr<en::resource::Model> model = std::make_shared<en::resource::Model>();
    assert(model);
 
    // Generate meshes
@@ -603,15 +603,15 @@ namespace en
                }
             }
          }
-      shared_ptr<gpu::Buffer> vertexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertexes, formatting, 0u);
+      std::shared_ptr<gpu::Buffer> vertexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertexes, formatting, 0u);
 
       // Create staging buffer
       uint32 stagingSize = vertexes * rowSize;
-      shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
-         return shared_ptr<en::resource::Model>(nullptr);
+         return std::shared_ptr<en::resource::Model>(nullptr);
          }
 
       // Read texture to temporary buffer
@@ -625,7 +625,7 @@ namespace en
          queueType = gpu::QueueType::Transfer;
 
       // Copy data from staging buffer to final texture
-      shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+      std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
       command->start();
       command->copy(*staging, *vertexBuffer);
       command->commit();
@@ -694,14 +694,14 @@ namespace en
             srcIndex = ibo;
             }
          }
-      shared_ptr<gpu::Buffer> indexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexes, formatting, 0u);
+      std::shared_ptr<gpu::Buffer> indexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexes, formatting, 0u);
       
       // Create staging buffer
       staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
-         return shared_ptr<en::resource::Model>(nullptr);
+         return std::shared_ptr<en::resource::Model>(nullptr);
          }
 
       // Read buffer to temporary buffer
@@ -747,7 +747,7 @@ namespace en
       }
     
    // Update list of loaded models
-   ResourcesContext.models.insert(pair<string, shared_ptr<en::resource::Model> >(name, model));
+   ResourcesContext.models.insert(std::pair<std::string, std::shared_ptr<en::resource::Model> >(name, model));
  
    // Return model interface
    return model;

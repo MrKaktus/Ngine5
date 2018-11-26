@@ -16,12 +16,12 @@ void sample_ClearScreen(const char* title)
 {
    using namespace en::gpu;
 
-   Log << title << endl;
+   Log << title << std::endl;
 
-   Ptr<GpuDevice> gpu = Graphics->primaryDevice();
+   std::shared_ptr<GpuDevice> gpu = Graphics->primaryDevice();
 
    // Position Window at the center of the primary display
-   Ptr<Display> display = Graphics->primaryDisplay();
+   std::shared_ptr<Display> display = Graphics->primaryDisplay();
    uint32v2 resolution  = display->resolution();
    uint32v2 size        = uint32v2(1280, 720);
    uint32v2 position    = uint32v2((resolution.x - size.x) / 2, (resolution.y - size.y) / 2);
@@ -33,28 +33,28 @@ void sample_ClearScreen(const char* title)
    settings.format   = Format::BGRA_8;
    settings.mode     = Windowed;
 
-   Ptr<Window> window = gpu->createWindow(settings, string(title));
+   std::shared_ptr<Window> window = gpu->createWindow(settings, std::string(title));
    window->active();
 
-   Ptr<ColorAttachment> attachment = gpu->createColorAttachment(settings.format, 1u);
+   std::shared_ptr<ColorAttachment> attachment = gpu->createColorAttachment(settings.format, 1u);
    attachment->onLoad(LoadOperation::Clear, float4(1.0f, 0.5f, 0.0f, 0.0f));
    attachment->onStore(StoreOperation::Store);
    
-   Ptr<RenderPass> renderPass = gpu->createRenderPass(attachment, nullptr);
+   std::shared_ptr<RenderPass> renderPass = gpu->createRenderPass(*attachment, nullptr);
 
-   Ptr<Semaphore> waitForSwapChain = gpu->createSemaphore();
-   Ptr<Semaphore> waitForGPU       = gpu->createSemaphore();
+   std::shared_ptr<Semaphore> waitForSwapChain = gpu->createSemaphore();
+   std::shared_ptr<Semaphore> waitForGPU       = gpu->createSemaphore();
 
-   Ptr<Keyboard> keyboard = nullptr;
+   std::shared_ptr<Keyboard> keyboard = nullptr;
    assert( Input->available(IO::Keyboard) );
    keyboard = Input->keyboard();
    
    // Cached temporary resources (released after 5 frames)
    #define CommandBufferCacheSize 5
-   Ptr<CommandBuffer> command[CommandBufferCacheSize];
-   Ptr<Texture> swapChainSurface[CommandBufferCacheSize];
-   Ptr<TextureView> swapChainView[CommandBufferCacheSize];
-   Ptr<Framebuffer> framebuffer[CommandBufferCacheSize];
+   std::shared_ptr<CommandBuffer> command[CommandBufferCacheSize];
+   std::shared_ptr<Texture> swapChainSurface[CommandBufferCacheSize];
+   std::shared_ptr<TextureView> swapChainView[CommandBufferCacheSize];
+   std::shared_ptr<Framebuffer> framebuffer[CommandBufferCacheSize];
 
    // This loop is completly non blocking. CPU and GPU execute asynchronously and never synchronize.
    while(!keyboard->pressed(Key::Esc))
@@ -67,9 +67,9 @@ void sample_ClearScreen(const char* title)
       
       command[id] = gpu->createCommandBuffer();
          
-      swapChainSurface[id] = window->surface(waitForSwapChain);
-      command[id]->start(waitForSwapChain);
-      command[id]->barrier(swapChainSurface[id],
+      swapChainSurface[id] = window->surface(waitForSwapChain.get());
+      command[id]->start(waitForSwapChain.get());
+      command[id]->barrier(*swapChainSurface[id],
                            uint32v2(0,1),
                            uint32v2(0,1),
                            TextureAccess::Present,
@@ -85,14 +85,14 @@ void sample_ClearScreen(const char* title)
       // Finish encoding and Display when processed
       command[id]->endRenderPass();
       
-      command[id]->barrier(swapChainSurface[id],
+      command[id]->barrier(*swapChainSurface[id],
                        uint32v2(0,1),    // First mipmap
                        uint32v2(0,1),    // First layer
                        TextureAccess::RenderTargetWrite,
                        TextureAccess::Present);
       
-      command[id]->commit(waitForGPU);
-      window->present(waitForGPU);
+      command[id]->commit(waitForGPU.get());
+      window->present(waitForGPU.get());
       }
  
    // CommandBuffer is not released here, as it may still be processed by the GPU.
@@ -112,5 +112,5 @@ void sample_ClearScreen(const char* title)
    window = nullptr;
    gpu = nullptr;
 
-   Log << "Sample closing." << endl;
+   Log << "Sample closing." << std::endl;
 }

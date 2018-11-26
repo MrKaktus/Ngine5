@@ -37,7 +37,7 @@ namespace en
       id <MTLRenderPipelineState> handle;
 
       // Metal Dynamic State (Static in Vulkan)
-      shared_ptr<DepthStencilStateMTL> depthStencil;
+      std::shared_ptr<DepthStencilStateMTL> depthStencil;
       RasterStateMTL   raster;
       ViewportStateMTL viewport;
       MTLPrimitiveType primitive;

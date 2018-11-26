@@ -61,7 +61,7 @@ namespace en
    if (function == nullptr)                                                      \
       {                                                                          \
       function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
-      Log << "Error: Cannot bind function " << #function << endl;                \
+      Log << "Error: Cannot bind function " << #function << std::endl;           \
       }                                                                          \
    }
 
@@ -71,7 +71,7 @@ namespace en
    if (function == nullptr)                                                      \
       {                                                                          \
       function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
-      Log << "Error: Cannot bind global function " << #function << endl;         \
+      Log << "Error: Cannot bind global function " << #function << std::endl;    \
       }                                                                          \
    }
    
@@ -81,7 +81,7 @@ namespace en
    if (function == nullptr)                                                      \
       {                                                                          \
       function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
-      Log << "Error: Cannot bind instance function " << #function << endl;       \
+      Log << "Error: Cannot bind instance function " << #function << std::endl;  \
       }                                                                          \
    }
 
@@ -93,7 +93,7 @@ namespace en
    if (function == nullptr)                                                      \
       {                                                                          \
       function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
-      Log << "Error: Cannot bind device function " << #function << endl;         \
+      Log << "Error: Cannot bind device function " << #function << std::endl;    \
       }                                                                          \
    }
    
@@ -106,7 +106,7 @@ namespace en
       return false;
    
    // Compose error message
-   string info;
+   std::string info;
    info += "ERROR: Vulkan error: ";
    if (result == VK_ERROR_OUT_OF_HOST_MEMORY)
       info += "VK_ERROR_OUT_OF_HOST_MEMORY.\n";
@@ -152,7 +152,7 @@ namespace en
       return false;
    
    // Compose error message
-   string info;
+   std::string info;
    info += "WARNING: Vulkan error: ";
    if (result == VK_NOT_READY)
       info += "VK_NOT_READY.\n";
@@ -202,7 +202,7 @@ namespace en
        size_t                                      alignment,
        VkSystemAllocationScope                     allocationScope)
    {
-   void* ptr = reinterpret_cast<void*>(allocate<uint8>(alignment, size));
+   void* ptr = reinterpret_cast<void*>(allocate<uint8>(size, alignment));
    if (ptr)
       {
       VulkanDevice* deviceVK = reinterpret_cast<VulkanDevice*>(pUserData);
@@ -226,7 +226,7 @@ namespace en
    return nullptr;
    #else
    // THERE IS NO MEM ALIGNED REALLOC ON UNIX SYSTEMS !
-   void* ptr = reinterpret_cast<void*>(allocate<uint8>(alignment, size));
+   void* ptr = reinterpret_cast<void*>(allocate<uint8>(size, alignment));
    if (ptr)
       {
       // TODO: Needs to know size of original allocation !
@@ -420,20 +420,20 @@ namespace en
          // It's another combination of Queue Family flags that we don't support.
          // This shouldn't happen but if it will we will report it without asserting.
          
-         Log << "Unsupported type of Queue Family" << endl;
-         Log << "    Queues in Family: " << queueFamily[family].queueCount << endl;
-         Log << "    Queue Min Transfer Width : " << queueFamily[family].minImageTransferGranularity.width << endl;
-         Log << "    Queue Min Transfer Height: " << queueFamily[family].minImageTransferGranularity.height << endl;
-         Log << "    Queue Min Transfer Depth : " << queueFamily[family].minImageTransferGranularity.depth << endl;
+         Log << "Unsupported type of Queue Family\n";
+         Log << "    Queues in Family: " << queueFamily[family].queueCount << std::endl;
+         Log << "    Queue Min Transfer Width : " << queueFamily[family].minImageTransferGranularity.width << std::endl;
+         Log << "    Queue Min Transfer Height: " << queueFamily[family].minImageTransferGranularity.height << std::endl;
+         Log << "    Queue Min Transfer Depth : " << queueFamily[family].minImageTransferGranularity.depth << std::endl;
          if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            Log << "    Queue supports: GRAPHICS" << endl;
+            Log << "    Queue supports: GRAPHICS\n";
          if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
-            Log << "    Queue supports: COMPUTE" << endl;
+            Log << "    Queue supports: COMPUTE\n";
          if (queueFamily[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
-            Log << "    Queue supports: TRANSFER" << endl;
+            Log << "    Queue supports: TRANSFER\n";
          if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
-            Log << "    Queue supports: SPARSE_BINDING" << endl;
-         Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << endl << endl;
+            Log << "    Queue supports: SPARSE_BINDING\n";
+         Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << std::endl << std::endl;
          }
       }
    
@@ -441,12 +441,12 @@ namespace en
    // Debug log Queue Families
    for(uint32_t family=0; family<queueFamiliesCount; ++family)
       {
-      Log << "Queue Family: " << family << endl;
+      Log << "Queue Family: " << family << std::endl;
 
-      Log << "    Queues: " << queueFamily[family].queueCount << endl;
-      Log << "    Queue Min Transfer W: " << queueFamily[family].minImageTransferGranularity.width << endl;
-      Log << "    Queue Min Transfer H: " << queueFamily[family].minImageTransferGranularity.height << endl;
-      Log << "    Queue Min Transfer D: " << queueFamily[family].minImageTransferGranularity.depth << endl;
+      Log << "    Queues: " << queueFamily[family].queueCount << std::endl;
+      Log << "    Queue Min Transfer W: " << queueFamily[family].minImageTransferGranularity.width << std::endl;
+      Log << "    Queue Min Transfer H: " << queueFamily[family].minImageTransferGranularity.height << std::endl;
+      Log << "    Queue Min Transfer D: " << queueFamily[family].minImageTransferGranularity.depth << std::endl;
       if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
          Log << "    Family supports: GRAPHICS\n";
       if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
@@ -455,7 +455,7 @@ namespace en
          Log << "    Family supports: TRANSFER\n";
       if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
          Log << "    Family supports: SPARSE_BINDING\n";
-      Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << endl << endl;
+      Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << std::endl << std::endl;
       }
 #endif
 
@@ -464,7 +464,7 @@ namespace en
 
    // Acquire list of Device extensions
    Validate( api, vkEnumerateDeviceExtensionProperties(handle, nullptr, &globalExtensionsCount, nullptr) )
-   if (IsWarning(api->lastResult[Scheduler.core()]))
+   if (IsWarning(api->lastResult[currentThreadId()]))
       assert( 0 );
 
    if (globalExtensionsCount > 0)
@@ -522,10 +522,10 @@ namespace en
          
       if (!found)
          {
-         Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!" << endl;
+         Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!\n";
          Log << "       Supported extensions:\n";
          for(uint32 j=0; j<globalExtensionsCount; ++j)
-            Log << "       - " << globalExtension[j].extensionName << endl;
+            Log << "       - " << globalExtension[j].extensionName << std::endl;
 
          assert( 0 );
          }
@@ -562,7 +562,7 @@ namespace en
    //---------------
   
    // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
-   uint32 thread = Scheduler.core();
+   uint32 thread = currentThreadId();
    
    // Memory pool used to allocate CommandBuffers.
    // Once device is created, on each Worker Thread, we create Command Pool for each Queue Family
@@ -640,8 +640,8 @@ namespace en
 
    // Try to reuse pipeline cache from disk. 
    // It is assumed that devices are always enumerated in the same order.
-   string filename = string("gpu") + stringFrom(index) + string("pipelineCache.data");
-   shared_ptr<File> file = Storage->open(filename);
+   std::string filename = std::string("gpu") + stringFrom(index) + std::string("pipelineCache.data");
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       return nullptr;
 
@@ -771,8 +771,8 @@ namespace en
          uint8* cacheData = new uint8[cacheSize];
          Validate( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), cacheData) )
 
-         string filename = string("gpu") + stringFrom(index) + string("pipelineCache.data");
-         shared_ptr<File> file = Storage->open(filename, FileAccess::Write);
+         std::string filename = std::string("gpu") + stringFrom(index) + std::string("pipelineCache.data");
+         std::shared_ptr<File> file = Storage->open(filename, FileAccess::Write);
          if (file)
             {
             file->write(cacheSize, cacheData);
@@ -817,7 +817,7 @@ namespace en
    while(stillExecuting);
 
    // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
-   uint32 thread = Scheduler.core();
+   uint32 thread = currentThreadId();
 
    // Release all Command Pools used by this thread for Commands submission
    for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
@@ -1164,12 +1164,12 @@ namespace en
    return queuesCount[underlyingType(type)];  //Need translation table from (Type, N) -> (Family, Index)
    }
 
-   shared_ptr<Texture> VulkanDevice::createSharedTexture(shared_ptr<SharedSurface> backingSurface)
+   std::shared_ptr<Texture> VulkanDevice::createSharedTexture(std::shared_ptr<SharedSurface> backingSurface)
    {
    // Vulkan is not supporting cross-API / cross-process surfaces for now.
    // Implement it in the future.
    assert( 0 );
-   return shared_ptr<Texture>(nullptr);
+   return std::shared_ptr<Texture>(nullptr);
    }
 
 
@@ -1203,7 +1203,7 @@ namespace en
    //   
    //   // Profile will block here !!! FIXME !!!
    //   Validate( this, vkAllocateMemory(device, &allocInfo, &defaultAllocCallbacks, &handle) )
-   //   if (lastResult[Scheduler.core()] == VK_SUCCESS)
+   //   if (lastResult[currentThreadId()] == VK_SUCCESS)
    //      return handle;
    //   }
 
@@ -1409,7 +1409,7 @@ namespace en
       void*                                       pUserData)
    {
    // Log callback event type
-   string info = "Vulkan Debug Callback: ";
+   std::string info = "Vulkan Debug Callback: ";
    if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
       info += "INFO ";
    if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
@@ -1444,12 +1444,12 @@ namespace en
 
    // Layer prefix
    info += "    Layer: ";
-   info += string(pLayerPrefix);
+   info += std::string(pLayerPrefix);
    info += "\n";
 
    // Message
    info += "  Message: ";
-   info += string(pMessage);
+   info += std::string(pMessage);
    info += "\n\n";
 
    Log << info.c_str();
@@ -1462,7 +1462,7 @@ namespace en
 
 
 
-   VulkanAPI::VulkanAPI(string appName) :
+   VulkanAPI::VulkanAPI(std::string appName) :
 #if defined(EN_PLATFORM_WINDOWS)
       library(LoadLibrary(L"vulkan-1.dll")),
 #endif
@@ -1482,7 +1482,7 @@ namespace en
    // Verify load of Vulkan dynamic library
    if (library == nullptr)
       {
-      string info;
+      std::string info;
       info += "ERROR: Vulkan error: ";
       info += "       Cannot find Vulkan dynamic library.\n";
       info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
@@ -1588,10 +1588,10 @@ namespace en
          
       if (!found)
          {
-         Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!" << endl;
+         Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!\n";
          Log << "       Supported extensions:\n";
          for(uint32 j=0; j<globalExtensionsCount; ++j)
-            Log << "       - " << globalExtension[j].extensionName << endl;
+            Log << "       - " << globalExtension[j].extensionName << std::endl;
  
          assert( 0 );
          }
@@ -1608,7 +1608,7 @@ namespace en
       {
       Log << "Available Vulkan Layers:\n";
       for(uint32 i=0; i<layersCount; ++i)  
-         Log << "  " << layer[i].properties.layerName << endl;
+         Log << "  " << layer[i].properties.layerName << std::endl;
       }
 
    // TODO: Read list of requested layers to enable from config file
@@ -1706,9 +1706,9 @@ namespace en
    Validate( this, vkEnumeratePhysicalDevices(instance, &devicesCount, deviceHandle) )
 
    // Create interfaces for all available physical devices
-   _device = new shared_ptr<VulkanDevice>[devicesCount];
+   _device = new std::shared_ptr<VulkanDevice>[devicesCount];
    for(uint32 i=0; i<devicesCount; ++i)
-      _device[i] = make_shared<VulkanDevice>(this, i, deviceHandle[i]);
+      _device[i] = std::make_shared<VulkanDevice>(this, i, deviceHandle[i]);
  
    // Register debug callbacks
    //--------------------------
@@ -1828,12 +1828,12 @@ namespace en
    return devicesCount;
    }
          
-   shared_ptr<GpuDevice> VulkanAPI::primaryDevice(void) const
+   std::shared_ptr<GpuDevice> VulkanAPI::primaryDevice(void) const
    {
    return _device[0];
    }
 
-   shared_ptr<GpuDevice> VulkanAPI::device(const uint32 index) const
+   std::shared_ptr<GpuDevice> VulkanAPI::device(const uint32 index) const
    {
    assert( index < devicesCount );
    
@@ -1848,12 +1848,12 @@ namespace en
    return displaysCount;
    }
    
-   shared_ptr<Display> VulkanAPI::primaryDisplay(void) const
+   std::shared_ptr<Display> VulkanAPI::primaryDisplay(void) const
    {
    return displayArray[0];
    }
    
-   shared_ptr<Display> VulkanAPI::display(const uint32 index) const
+   std::shared_ptr<Display> VulkanAPI::display(const uint32 index) const
    {
    assert( index < displaysCount );
    
@@ -1889,7 +1889,7 @@ namespace en
 //   connection = xcb_connect(nullptr, &scr);
 //   if (demo->connection == nullptr) 
 //      {
-//      string info;
+//      std::string info;
 //      info += "ERROR: Vulkan error: ";
 //      info += "       Cannot find a compatible Vulkan installable client driver (ICD).\n";
 //      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";

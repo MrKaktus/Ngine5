@@ -23,81 +23,80 @@
 
 #include <cstddef>
 #include <string>
-using namespace std;
 
 namespace en
 {
    namespace exr
    {
    enum Compression
-        {
-        None          = 0,  // Uncompressed
-        RLE           = 1,  // Lossless (all types)
-        ZIPS          = 2,  // Lossless (all types)
-        ZIP           = 3,  // Lossless (all types)
-        PIZ           = 4,  // Lossless (no deep data)
-        PXR24         = 5,  // Lossy    (no deep data)
-        B44           = 6,  // Lossy    (no deep data)
-        B44A          = 7   // Lossy    (no deep data)
-        };
+      {
+      None          = 0,  // Uncompressed
+      RLE           = 1,  // Lossless (all types)
+      ZIPS          = 2,  // Lossless (all types)
+      ZIP           = 3,  // Lossless (all types)
+      PIZ           = 4,  // Lossless (no deep data)
+      PXR24         = 5,  // Lossy    (no deep data)
+      B44           = 6,  // Lossy    (no deep data)
+      B44A          = 7   // Lossy    (no deep data)
+      };
 
    enum PartType
-        {
-        ScanLineImage = 0,
-        TiledImage       ,
-        DeepScanLine     ,
-        DeepTile       
-        };
+      {
+      ScanLineImage = 0,
+      TiledImage       ,
+      DeepScanLine     ,
+      DeepTile       
+      };
 
    enum Environment
-        {
-        LatitudeLongitude = 0,
-        CubeMap           = 1
-        };
+      {
+      LatitudeLongitude = 0,
+      CubeMap           = 1
+      };
 
    aligned(1)
    struct Header
-          {
-          uint32 signature; // EXR file signature 0x01312F76 (Little Endian)
-
-          uint32 version      : 8;
-          uint32 singleTile   : 1;  // Is single part file with tiles ?
-          uint32 longNames    : 1;  // Does file contain long names?
-          uint32 containsData : 1;  // Is file containing non image data ?
-          uint32 multiPart    : 1;  // Does file contain multiple parts ?
-          uint32 reserved     : 20; // Must be zero
-          };
+      {
+      uint32 signature; // EXR file signature 0x01312F76 (Little Endian)
+      
+      uint32 version      : 8;
+      uint32 singleTile   : 1;  // Is single part file with tiles ?
+      uint32 longNames    : 1;  // Does file contain long names?
+      uint32 containsData : 1;  // Is file containing non image data ?
+      uint32 multiPart    : 1;  // Does file contain multiple parts ?
+      uint32 reserved     : 20; // Must be zero
+      };
    aligndefault
 
    struct Channel
-          {
-          string name;              // 1-255 length
-          uint32 type;              // Pixel type: 0-uint32 1-half 2-float
-          uint8  pLinear;
-          uint32 xSampling;
-          uint32 ySampling;
-          };
+      {
+      std::string name;              // 1-255 length
+      uint32 type;              // Pixel type: 0-uint32 1-half 2-float
+      uint8  pLinear;
+      uint32 xSampling;
+      uint32 ySampling;
+      };
 
    struct PartHeader
-          {
-          uint32v4 displayWindow;
-          uint32v4 dataWindow;
-          float2   screenWindowCenter;
-          float    screenWindowWidth;
-          float    pixelAspect;        // Should be 1.0
-          Channel* channel;            // Channels description array
-          uint8    channels;           // Channels count
-          uint8    compression;
-          uint8    lineOrder;
-          string   commenet;
-          string   name;
-          PartType type;
-          uint32   version;
-          sint32   chunkCount;
-          uint32   maxSamplesPerPixel;
-
-          PartHeader();
-          };
+      {
+      uint32v4 displayWindow;
+      uint32v4 dataWindow;
+      float2   screenWindowCenter;
+      float    screenWindowWidth;
+      float    pixelAspect;        // Should be 1.0
+      Channel* channel;            // Channels description array
+      uint8    channels;           // Channels count
+      uint8    compression;
+      uint8    lineOrder;
+      std::string   commenet;
+      std::string   name;
+      PartType type;
+      uint32   version;
+      sint32   chunkCount;
+      uint32   maxSamplesPerPixel;
+      
+      PartHeader();
+      };
 
    PartHeader::PartHeader() :
       displayWindow(),
@@ -119,12 +118,12 @@ namespace en
    }
 
    struct HeaderAttribute
-          {
-          const char*  name;   // Attribute name as null terminated string
-          const char*  type;   // Attribute type as null terminated string
-          uint32 size;   // Size of data
-          uint32 offset; // Offset in PartHeader structure
-          };
+      {
+      const char*  name;   // Attribute name as null terminated string
+      const char*  type;   // Attribute type as null terminated string
+      uint32 size;   // Size of data
+      uint32 offset; // Offset in PartHeader structure
+      };
 
    const HeaderAttribute attribute[] = {
       // Name                  Type          Size   Offset
@@ -173,20 +172,20 @@ namespace en
    return true;
    }
 
-   shared_ptr<en::gpu::Texture> load(const string& filename)
+   std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
    {
    using namespace en::storage;
 
    // Open image file
-   shared_ptr<File> file = Storage->open(filename);
+   std::shared_ptr<File> file = Storage->open(filename);
    if (!file)
       {
       file = Storage->open(en::ResourcesContext.path.textures + filename);
       if (!file)
          {
-         Log << en::ResourcesContext.path.textures + filename << endl;
+         Log << en::ResourcesContext.path.textures + filename << std::endl;
          Log << "ERROR: There is no such file!\n";
-         return shared_ptr<gpu::Texture>();
+         return std::shared_ptr<gpu::Texture>();
          }
       }
    
@@ -197,7 +196,7 @@ namespace en
       {
       Log << "ERROR: EXR file header signature incorrect!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>();
+      return std::shared_ptr<gpu::Texture>();
       }
    
    // TODO: Support multi-part types
@@ -205,7 +204,7 @@ namespace en
       {
       Log << "ERROR: EXR multi-part files are not supported!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>();
+      return std::shared_ptr<gpu::Texture>();
       }
 
    // If Single Part, determine part type
@@ -227,11 +226,11 @@ namespace en
       {
       Log << "ERROR: Engine supports only scan lined EXR images!\n";
       file = nullptr;
-      return shared_ptr<gpu::Texture>();
+      return std::shared_ptr<gpu::Texture>();
       }
 
    // Read Part Headers
-   vector<PartHeader> headers;
+   std::vector<PartHeader> headers;
    bool readingHeaders = true;
    uint64 offset = sizeof(Header);
    uint32 maxChars = header.longNames ? 255 : 31;
@@ -242,14 +241,14 @@ namespace en
         while(true)
              {
              // Read “name”  
-             string name;   
+             std::string name;   
              uint32 length = file->read(offset, maxChars, name);
              offset += (length + 1);
              if (length == 0)
                 break;
 
              // Read “type”
-             string type;
+             std::string type;
              length = file->read(offset, maxChars, type); 
              offset += (length + 1);
              
@@ -278,7 +277,7 @@ namespace en
                 if ( (name.compare("channels") == 0) &&
                      (type.compare("chlist") == 0) ) 
                    {
-                   vector<Channel> channels;
+                   std::vector<Channel> channels;
                    Channel channel;
                    uint64 counter = offset;
 
@@ -307,7 +306,7 @@ namespace en
                         channels.push_back(channel);
                         }
                               
-                   partHeader.channels = channels.size();
+                   partHeader.channels = static_cast<uint8>(channels.size());
                    partHeader.channel = new Channel[partHeader.channels];
                    for(uint8 i=0; i<partHeader.channels; ++i)
                       partHeader.channel[i] = channels[i];
@@ -340,7 +339,7 @@ namespace en
                 if ( (name.compare("type") == 0) &&
                      (type.compare("string") == 0) ) 
                    {
-                   string type;
+                   std::string type;
                    length = file->read(offset, size, type); 
                    offset += length;
 
@@ -490,7 +489,7 @@ namespace en
          }
    
       // Create texture in gpu
-      shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+      std::shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
       if (!texture)
          {
          Log << "ERROR: Cannot create texture in GPU!\n";
@@ -605,7 +604,7 @@ namespace en
                Log << "Error: Cannot initialize Zlib decompressor!\n";
                delete [] input;
                delete [] output;
-               return shared_ptr<gpu::Texture>(nullptr);
+               return std::shared_ptr<gpu::Texture>(nullptr);
                }
             sint32 ret = 0;
             ret = inflate(&stream, Z_FINISH);
@@ -615,7 +614,7 @@ namespace en
                Log << "Error: Cannot decompress using ZLIB!\n";
                delete [] input;
                delete [] output;
-               return shared_ptr<gpu::Texture>(nullptr);
+               return std::shared_ptr<gpu::Texture>(nullptr);
                }
             inflateEnd(&stream);
             delete [] input;
@@ -645,7 +644,7 @@ namespace en
       delete [] offsets;
 
       // Create staging buffer
-      shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, texture->size());
+      std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, texture->size());
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
@@ -670,7 +669,7 @@ namespace en
          type = gpu::QueueType::Transfer;
 
       // Copy data from staging buffer to final texture
-      shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
+      std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
       command->start();
       command->copy(*staging, 0u, settings.rowSize(mipmap), *texture, mipmap, slice);
       command->commit();
@@ -689,7 +688,7 @@ namespace en
       return texture;   // TODO: Rework for multipart files!
       }
 
-   return shared_ptr<gpu::Texture>(nullptr);
+   return std::shared_ptr<gpu::Texture>(nullptr);
    }
 
 

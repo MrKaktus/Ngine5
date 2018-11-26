@@ -14,7 +14,6 @@
 #define ENG_UTILITIES_TCONTAINER
 
 #include <vector>
-using namespace std;
 
 #include "core/types.h"
 

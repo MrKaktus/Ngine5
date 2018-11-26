@@ -322,9 +322,9 @@ namespace en
 
 
 
-   shared_ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state)
+   std::shared_ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state)
    {
-   shared_ptr<TextureVK> texture = nullptr;
+   std::shared_ptr<TextureVK> texture = nullptr;
 
    VkImageCreateInfo textureInfo = {};
    textureInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -476,7 +476,7 @@ namespace en
       textureInfo.flags,
       &formatInfo) )
 
-   uint32 threadId = Scheduler.core();
+   uint32 threadId = currentThreadId();
 
    assert( gpu->lastResult[threadId] != VK_ERROR_FORMAT_NOT_SUPPORTED );
    assert( textureInfo.extent.width  <= formatInfo.maxExtent.width );
@@ -492,7 +492,7 @@ namespace en
    Validate( gpu, vkCreateImage(gpu->device, &textureInfo, nullptr, &handle) )
    if (gpu->lastResult[threadId] == VK_SUCCESS)  
       {
-      texture = make_shared<TextureVK>(gpu, state);
+      texture = std::make_shared<TextureVK>(gpu, state);
       texture->handle = handle;
       // texture->heap is assigned higher in call hierarchy
 
@@ -527,14 +527,14 @@ namespace en
       }
    }
  
-   shared_ptr<Heap> TextureVK::parent(void) const
+   std::shared_ptr<Heap> TextureVK::parent(void) const
    {
    return heap;
    }
 
-   shared_ptr<TextureView> TextureVK::view(void)
+   std::shared_ptr<TextureView> TextureVK::view(void)
    {
-   shared_ptr<TextureViewVK> result = nullptr;
+   std::shared_ptr<TextureViewVK> result = nullptr;
    
    // Default view is not swizzling anything
    VkComponentMapping components = {};
@@ -563,25 +563,25 @@ namespace en
    VkImageView viewHandle = VK_NULL_HANDLE;
 
    Validate( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
-   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
       {
-      result = make_shared<TextureViewVK>(dynamic_pointer_cast<TextureVK>(shared_from_this()),
-                                          viewHandle,
-                                          state.type,
-                                          state.format,
-                                          uint32v2(0, state.mipmaps),
-                                          uint32v2(0, state.layers));
+      result = std::make_shared<TextureViewVK>(std::dynamic_pointer_cast<TextureVK>(shared_from_this()),
+                                               viewHandle,
+                                               state.type,
+                                               state.format,
+                                               uint32v2(0, state.mipmaps),
+                                               uint32v2(0, state.layers));
       }
 
    return result;
    }
 
-   shared_ptr<TextureView> TextureVK::view(const TextureType _type,
+   std::shared_ptr<TextureView> TextureVK::view(const TextureType _type,
       const Format _format,
       const uint32v2 _mipmaps,
       const uint32v2 _layers)
    {
-   shared_ptr<TextureView> result = nullptr;
+   std::shared_ptr<TextureView> result = nullptr;
    
    // Engine is not supporting swizzling (as Metal doesn't support it)
    VkComponentMapping components = {};
@@ -610,21 +610,21 @@ namespace en
    VkImageView viewHandle = VK_NULL_HANDLE;
 
    Validate( gpu, vkCreateImageView(gpu->device, &viewInfo, nullptr, &viewHandle) )
-   if (gpu->lastResult[Scheduler.core()] == VK_SUCCESS)
+   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
       {
-      result = make_shared<TextureViewVK>(dynamic_pointer_cast<TextureVK>(shared_from_this()),
-                                          viewHandle,
-                                          _type,
-                                          _format,
-                                          _mipmaps,
-                                          _layers);
+      result = std::make_shared<TextureViewVK>(std::dynamic_pointer_cast<TextureVK>(shared_from_this()),
+                                               viewHandle,
+                                               _type,
+                                               _format,
+                                               _mipmaps,
+                                               _layers);
       }
       
    return result;
    }
  
  
-   TextureViewVK::TextureViewVK(shared_ptr<TextureVK> parent,
+   TextureViewVK::TextureViewVK(std::shared_ptr<TextureVK> parent,
          const VkImageView view,
          const TextureType _type,
          const Format _format,
@@ -642,7 +642,7 @@ namespace en
    texture = nullptr;
    }
    
-   shared_ptr<Texture> TextureViewVK::parent(void) const
+   std::shared_ptr<Texture> TextureViewVK::parent(void) const
    {
    return texture;
    }

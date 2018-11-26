@@ -37,54 +37,54 @@ namespace en
 
    struct Material
           { 
-          string name;                      // Material name
+          std::string name;                 // Material name
                                             
           struct Emmisive                   
                  {                          
-                 string map;                // Ke emmisive coefficients for each point of surface
+                 std::string map;           // Ke emmisive coefficients for each point of surface
                  float3 color;              // Ke default emissive coefficient 
                  } emmisive;
          
           struct Ambient
                  {
-                 string map;                // Ka incoming irradiance coefficients for each point of surface in Phong/Lambert models
+                 std::string map;           // Ka incoming irradiance coefficients for each point of surface in Phong/Lambert models
                  float3 color;              // Ka default incoming irradiance coefficient in Phong/Lambert models
                  } ambient;                 
                                             
           struct Diffuse                    
                  {                          
-                 string map;                // Kd leaving irradiance coefficients for each point of surface in Phong/Lambert models
+                 std::string map;           // Kd leaving irradiance coefficients for each point of surface in Phong/Lambert models
                  float3 color;              // Kd base color of material, it's albedo, or diffuse term in Phong/Lambert models
                  } diffuse;                 
                                             
           struct Specular                   
                  {                          
-                 string map;                // Ks reflection coefficients for each point of surface in Phong model
+                 std::string map;           // Ks reflection coefficients for each point of surface in Phong model
                  float3 color;              // Ks default reflection coefficient in Phong model
                  float  exponent;           // Specular exponent "shininess" factor for specular equation
                  } specular;
          
           struct Transparency
                  {
-                 string map;                // Transparency coefficients for each point of surface
+                 std::string map;           // Transparency coefficients for each point of surface
                  float3 color;              // Transparency default coefficient
                  } transparency;            
                                             
           struct Normal                     
                  {                          
-                 string map;                // Normal vector for each point of surface
+                 std::string map;           // Normal vector for each point of surface
                  } normal;                  
                                             
           struct Displacement               
                  {                          
-                 string map;                // Displacement value for each point of surface
-                 string vectors;            // Vector Displacement map for each point of surface
+                 std::string map;           // Displacement value for each point of surface
+                 std::string vectors;       // Vector Displacement map for each point of surface
                  } displacement;
           };
 
    struct Mesh
           {
-          string   name;                    // Mesh name
+          std::string name;                 // Mesh name
           float4x4 matrix;                  // Local transformation matrix
           Material material;                // Material
 
@@ -106,10 +106,10 @@ namespace en
 
    struct Model
           {
-          string         name;
-          vector<Buffer> geometry;
-          vector<Buffer> elements;
-          vector<Mesh>   mesh;
+          std::string         name;
+          std::vector<Buffer> geometry;
+          std::vector<Buffer> elements;
+          std::vector<Mesh>   mesh;
           };
    }
 
@@ -256,12 +256,12 @@ struct Vertex
 
 struct UnpackedMesh
        {
-       string   name;            // Name
+       std::string   name;       // Name
        en::resource::Material material;        // Material
        uint32   polygons;        // Polygons count
-       vector<Vertex> vertices;  // Array of references describing geometry
-       vector<uint32> indexes;   // Polygons references to vertices
-       vector<uint32> optimized; // Optimized index array
+       std::vector<Vertex> vertices;  // Array of references describing geometry
+       std::vector<uint32> indexes;   // Polygons references to vertices
+       std::vector<uint32> optimized; // Optimized index array
        en::resource::BoundingBox AABB;        
        };
 
@@ -373,7 +373,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    return true;
    }
 
-   bool LoadMaterialPropertyMap(FbxSurfaceMaterial* material, const char* fbxPropertyName, shared_ptr<en::gpu::Texture> map)
+   bool LoadMaterialPropertyMap(FbxSurfaceMaterial* material, const char* fbxPropertyName, std::shared_ptr<en::gpu::Texture> map)
    {
    const FbxProperty fbxProperty = material->FindProperty( fbxPropertyName );
    if (!fbxProperty.IsValid())
@@ -388,7 +388,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       return false;
 
    // FBX WA: Remove global path, leaving only filename
-   string filename(fbxTextureFile->GetFileName());
+   std::string filename(fbxTextureFile->GetFileName());
    sint64 nameStart = filename.rfind('\\');
    if (nameStart != std::string::npos)
       filename.erase(0, nameStart + 1);
@@ -410,7 +410,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       return material;
 
    // Name
-   material.name = string(fbxMaterial->GetName());
+   material.name = std::string(fbxMaterial->GetName());
    
    // // Emmisive
    // LoadMaterialPropertyMap(fbxMaterial, FbxSurfaceMaterial::sEmissive, material.emmisive.map);
@@ -494,9 +494,9 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
 
 
-   vector<en::resource::Mesh> LoadMesh(FbxMesh* fbxMesh)
+   std::vector<en::resource::Mesh> LoadMesh(FbxMesh* fbxMesh)
    {
-   vector<en::resource::Mesh> meshes;
+   std::vector<en::resource::Mesh> meshes;
 
    enum MeshMaterialType
         {
@@ -928,11 +928,11 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
          }
       }
 
-   shared_ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting, 0u);
+   std::shared_ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting, 0u);
 
    // Create staging buffer
    uint32 stagingSize = vertices * rowSize;
-   shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -950,7 +950,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       queueType = gpu::QueueType::Transfer;
 
    // Copy data from staging buffer to final texture
-   shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
+   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
    command->start();
    command->copy(*staging, *vbo);
    command->commit();
@@ -1019,7 +1019,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
       vboBegin += unpackedMesh[mesh].vertices.size();
       }
-   shared_ptr<gpu::Buffer> ibo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexCount, format);
+   std::shared_ptr<gpu::Buffer> ibo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexCount, format);
 
    // Create staging buffer
    stagingSize = indexCount * indexSize;
@@ -1100,7 +1100,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
 
 
-   shared_ptr<en::resource::Model> load(const string& filename, const string& name)
+   std::shared_ptr<en::resource::Model> load(const std::string& filename, const std::string& name)
    {
    using namespace en::storage;
 
@@ -1113,15 +1113,15 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
    if (!fbxImporter) 
       {
       Log << "ERROR: Cannot create FBX importer!\n";
-      return shared_ptr<en::resource::Model>(NULL);
+      return std::shared_ptr<en::resource::Model>(NULL);
       }
 
    // Load FBX file to importer
    if (!fbxImporter->Initialize(filename.c_str(), -1, ResourcesContext.fbxManager->GetIOSettings()))
       if (!fbxImporter->Initialize((ResourcesContext.path.models + filename).c_str(), -1, ResourcesContext.fbxManager->GetIOSettings())) 
          {
-         Log << string("ERROR: FBX importer initialization failed with error: " + string(fbxImporter->GetStatus().GetErrorString()) + "\n");
-         return shared_ptr<en::resource::Model>(NULL);
+         Log << std::string("ERROR: FBX importer initialization failed with error: " + std::string(fbxImporter->GetStatus().GetErrorString()) + "\n");
+         return std::shared_ptr<en::resource::Model>(NULL);
          }
       
    // Create local scene for imported model
@@ -1138,7 +1138,7 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
    // (1) Load textures used in scene
    #ifdef EN_DEBUG
-   Log << string("FBX uses " + stringFrom(fbxScene->GetTextureCount()) + " textures:\n");
+   Log << std::string("FBX uses " + stringFrom(fbxScene->GetTextureCount()) + " textures:\n");
    #endif
    for(sint32 i=0; i<fbxScene->GetTextureCount(); ++i)
       {
@@ -1148,26 +1148,26 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
       // Check importer consistency
       if (!fileTexture)
          {
-         Log << string("ERROR: FBX file has corrupted texture description!\n");
-         return shared_ptr<en::resource::Model>(NULL);
+         Log << std::string("ERROR: FBX file has corrupted texture description!\n");
+         return std::shared_ptr<en::resource::Model>(NULL);
          }
 
       // Check if texture is resident in FBX
       if (fileTexture->GetUserDataPtr())
          {
-         Log << string("ERROR: Engine doesn't support import of textures resident in FBX files!\n");
-         return shared_ptr<en::resource::Model>(NULL);
+         Log << std::string("ERROR: Engine doesn't support import of textures resident in FBX files!\n");
+         return std::shared_ptr<en::resource::Model>(NULL);
          }
 
       // Load texture from file
-      string filename(fileTexture->GetFileName());
+      std::string filename(fileTexture->GetFileName());
 
       // FBX WA: Remove global path, leaving only filename
       sint64 nameStart = filename.rfind('\\');
       if (nameStart != std::string::npos)
          filename.erase(0, nameStart + 1);
       #ifdef EN_DEBUG
-      Log << filename << endl;
+      Log << filename << std::endl;
 	  #endif
 
       Resources.load.texture(filename);
@@ -1204,10 +1204,10 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
 
    // Create model
-   shared_ptr<en::resource::Model> model = make_shared<en::resource::Model>();
+   std::shared_ptr<en::resource::Model> model = std::make_shared<en::resource::Model>();
 
    // TODO: Refactor to new Model description
-   // model->name = string(fbxScene->GetName());
+   // model->name = std::string(fbxScene->GetName());
 
    // (x) Load skeleton
    //     There should be only one skeleton child node of root
@@ -1484,7 +1484,7 @@ double timeStep = 1.0 / 46186158000.0;  // FBX Time Unit - Fraction of second
             }
 
          // Load mesh as set of submeshes
-         vector<en::resource::Mesh> submeshes = LoadMesh( fbxMesh );
+         std::vector<en::resource::Mesh> submeshes = LoadMesh( fbxMesh );
 
          // Each Node has additional Geometry offset that is local
          // and therefore need to be post-multiplied locally and

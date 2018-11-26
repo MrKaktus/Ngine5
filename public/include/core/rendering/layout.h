@@ -17,7 +17,6 @@
 #define ENG_CORE_RENDERING_RESOURCE_LAYOUT
 
 #include <memory>
-using namespace std;
 
 #include "core/defines.h"
 #include "core/types.h"
@@ -151,16 +150,16 @@ namespace en
       };
       
    // Range of Descriptors that can be used, to allocated from it set of Descriptors
-   class Descriptors : public enable_shared_from_this<Descriptors>
+   class Descriptors : public std::enable_shared_from_this<Descriptors>
       {
       public:
-      virtual shared_ptr<DescriptorSet> allocate(
-         const shared_ptr<SetLayout> layout) = 0;
+      virtual std::shared_ptr<DescriptorSet> allocate(
+         const std::shared_ptr<SetLayout> layout) = 0;
          
       virtual bool allocate(
          const uint32 count,
-         const shared_ptr<SetLayout>(&layouts)[],
-         shared_ptr<DescriptorSet>** sets) = 0;
+         const std::shared_ptr<SetLayout>(&layouts)[],
+         std::shared_ptr<DescriptorSet>** sets) = 0;
 
       virtual ~Descriptors() {};
       };

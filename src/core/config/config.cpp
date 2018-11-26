@@ -46,15 +46,15 @@ namespace en
       return false;
 
    // Overload Startup Settings from config file
-   string filepath = EN_CFG_CONFIGURATION_PATH;
-   string filename = EN_CFG_CONFIGURATION_FILE;
+   std::string filepath = EN_CFG_CONFIGURATION_PATH;
+   std::string filename = EN_CFG_CONFIGURATION_FILE;
 
    // Open config file 
-   shared_ptr<File> file = Storage->open(filepath + filename);
+   std::shared_ptr<File> file = Storage->open(filepath + filename);
    if (file)
       {
       // Config file should have max 1MB size
-      if (file->size() > 1024*1024)
+      if (file->size() > 1*MB)
          {
          file = nullptr;
          return false;
@@ -85,7 +85,7 @@ namespace en
 
    // Terminal parameters override config file ones
    assert( argc >= 0 );
-   for(uint32 i=1; i<argc; ++i)
+   for(uint32 i=1; i<static_cast<uint32>(argc); ++i)
       {
       // Parameters should be in format:
       //
@@ -110,7 +110,7 @@ namespace en
       // Extract key name if there is one
       if (endKeyOffset >= startKeyOffset)
          {
-         string keyName(&argv[i][startKeyOffset], endKeyOffset - startKeyOffset + 1);
+         std::string keyName(&argv[i][startKeyOffset], endKeyOffset - startKeyOffset + 1);
 
          // Check if there is optional separator, and following value
          if (argv[i][endKeyOffset + 1] == '=' &&
@@ -125,16 +125,16 @@ namespace en
             // Extract value string
             const char* valueStart = &argv[i][startValueOffset];
             uint32 valueLength = endValueOffset - startValueOffset + 1;
-            string value(valueStart, valueLength);
+            std::string value(valueStart, valueLength);
 
             // Determine value type
             if (isFloat(valueStart, valueLength))
-               doubles.insert( std::pair<string, double>(keyName, stringTo<double>(value)) );
+               doubles.insert( std::pair<std::string, double>(keyName, stringTo<double>(value)) );
             else
             if (isInteger(valueStart, valueLength))
-               ints.insert( std::pair<string, sint64>(keyName, stringTo<sint64>(value)) );
+               ints.insert( std::pair<std::string, sint64>(keyName, stringTo<sint64>(value)) );
             else
-               strings.insert( std::pair<string, string>(keyName, value) );
+               strings.insert( std::pair<std::string, std::string>(keyName, value) );
             }
          else
             {
@@ -157,12 +157,12 @@ namespace en
    versions.clear();
    }
 
-   bool Interface::get(const string& name)
+   bool Interface::get(const std::string& name)
    {
    return get(name.c_str());
    }
  
-   bool Interface::get(const string  name)
+   bool Interface::get(const std::string  name)
    {
    return get(name.c_str());
    }
@@ -177,12 +177,12 @@ namespace en
    return false;
    }
 
-   bool Interface::get(const string& name, bool* destination)
+   bool Interface::get(const std::string& name, bool* destination)
    {
    return get(name.c_str(), destination);
    }
 
-   bool Interface::get(const string name, bool* destination)
+   bool Interface::get(const std::string name, bool* destination)
    {
    return get(name.c_str(), destination);
    }
@@ -193,7 +193,7 @@ namespace en
    if (ConfigContext.bools.empty())
       return false;
 
-   map<string, bool>::iterator it = ConfigContext.bools.find(name);
+   std::map<std::string, bool>::iterator it = ConfigContext.bools.find(name);
    if (it == ConfigContext.bools.end())
       return false;
 
@@ -201,12 +201,12 @@ namespace en
    return true;
    }
 
-   bool Interface::get(const string& name, sint64* destination)
+   bool Interface::get(const std::string& name, sint64* destination)
    {
    return get(name.c_str(), destination);
    }
 
-   bool Interface::get(const string name, sint64* destination)
+   bool Interface::get(const std::string name, sint64* destination)
    {
    return get(name.c_str(), destination);
    }
@@ -217,7 +217,7 @@ namespace en
    if (ConfigContext.ints.empty())
       return false;
 
-   map<string, sint64>::iterator it = ConfigContext.ints.find(name);
+   std::map<std::string, sint64>::iterator it = ConfigContext.ints.find(name);
    if (it == ConfigContext.ints.end())
       return false;
 
@@ -225,12 +225,12 @@ namespace en
    return true;
    }
 
-   bool Interface::get(const string& name, double* destination)
+   bool Interface::get(const std::string& name, double* destination)
    {
    return get(name.c_str(), destination);
    }
  
-   bool Interface::get(const string name, double* destination)
+   bool Interface::get(const std::string name, double* destination)
    {
    return get(name.c_str(), destination);
    }
@@ -241,7 +241,7 @@ namespace en
    if (ConfigContext.doubles.empty())
       return false;
 
-   map<string, double>::iterator it = ConfigContext.doubles.find(name);
+   std::map<std::string, double>::iterator it = ConfigContext.doubles.find(name);
    if (it == ConfigContext.doubles.end())
       return false;
 
@@ -249,23 +249,23 @@ namespace en
    return true;
    }
 
-   bool Interface::get(const string& name, string& destination)
+   bool Interface::get(const std::string& name, std::string& destination)
    {
    return get(name.c_str(), destination);
    }
 
-   bool Interface::get(const string name, string& destination)
+   bool Interface::get(const std::string name, std::string& destination)
    {
    return get(name.c_str(), destination);
    }
 
-   bool Interface::get(const char* name, string& destination)
+   bool Interface::get(const char* name, std::string& destination)
    {
    // WA: std::map::find() crashes when map is empty!
    if (ConfigContext.strings.empty())
       return false;
 
-   map<string, string>::iterator it = ConfigContext.strings.find(name);
+   std::map<std::string, std::string>::iterator it = ConfigContext.strings.find(name);
    if (it == ConfigContext.strings.end())
       return false;
 
@@ -273,13 +273,13 @@ namespace en
    return true;
    }
 
-   bool Interface::get(const string& name, Nversion& destination)
+   bool Interface::get(const std::string& name, Nversion& destination)
    {
    // WA: std::map::find() crashes when map is empty!
    if (ConfigContext.versions.empty())
       return false;
 
-   map<string, Nversion>::iterator it = ConfigContext.versions.find(name);
+   std::map<std::string, Nversion>::iterator it = ConfigContext.versions.find(name);
    if (it == ConfigContext.versions.end())
       return false;
 
@@ -287,13 +287,13 @@ namespace en
    return true;
    }
 
-   bool Interface::get(const string name, Nversion& destination)
+   bool Interface::get(const std::string name, Nversion& destination)
    {
    // WA: std::map::find() crashes when map is empty!
    if (ConfigContext.versions.empty())
       return false;
 
-   map<string, Nversion>::iterator it = ConfigContext.versions.find(name);
+   std::map<std::string, Nversion>::iterator it = ConfigContext.versions.find(name);
    if (it == ConfigContext.versions.end())
       return false;
 
@@ -307,7 +307,7 @@ namespace en
    if (ConfigContext.versions.empty())
       return false;
 
-   map<string, Nversion>::iterator it = ConfigContext.versions.find(name);
+   std::map<std::string, Nversion>::iterator it = ConfigContext.versions.find(name);
    if (it == ConfigContext.versions.end())
       return false;
 

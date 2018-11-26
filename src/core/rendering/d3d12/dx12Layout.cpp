@@ -82,7 +82,7 @@ namespace en
    // DESCRIPTOR SET
    //////////////////////////////////////////////////////////////////////////
 
-   DescriptorSetD3D12::DescriptorSetD3D12(Direct3D12Device* _gpu, shared_ptr<DescriptorsD3D12> _parent, const uint64* _offsets, const uint32* _slots, RangeMapping* const _mappings, uint32 _mappingsCount) :
+   DescriptorSetD3D12::DescriptorSetD3D12(Direct3D12Device* _gpu, std::shared_ptr<DescriptorsD3D12> _parent, const uint64* _offsets, const uint32* _slots, RangeMapping* const _mappings, uint32 _mappingsCount) :
       gpu(_gpu),
       parent(_parent),
       mappings(_mappings),
@@ -232,9 +232,9 @@ namespace en
    return firstHandle;
    }
 
-   shared_ptr<DescriptorSet> DescriptorsD3D12::allocate(const shared_ptr<SetLayout> _layout)
+   std::shared_ptr<DescriptorSet> DescriptorsD3D12::allocate(const std::shared_ptr<SetLayout> _layout)
    {
-   shared_ptr<DescriptorSetD3D12> result = nullptr;
+   std::shared_ptr<DescriptorSetD3D12> result = nullptr;
 
    assert( _layout );
    
@@ -276,7 +276,7 @@ namespace en
    uint32 rangesCount = layout->mappingsCount;
 
    // Copy array of RangeMappings from SetLayout
-   RangeMapping* mappings = en::allocate<RangeMapping>(cacheline, rangesCount);
+   RangeMapping* mappings = en::allocate<RangeMapping>(rangesCount, cacheline);
    memcpy(mappings, layout->mappings, rangesCount * sizeof(RangeMapping));
 
    // Patch copied array with newly allocated heapOffsets.
@@ -286,8 +286,8 @@ namespace en
    for(uint32 i=0; i<rangesCount; ++i)
       mappings[i].heapOffset += descriptorIndex[mappings[i].heap];
 
-   result = make_shared<DescriptorSetD3D12>(gpu,
-                                            dynamic_pointer_cast<DescriptorsD3D12>(shared_from_this()),
+   result = std::make_shared<DescriptorSetD3D12>(gpu,
+                                            std::dynamic_pointer_cast<DescriptorsD3D12>(shared_from_this()),
                                             &descriptorIndex[0],
                                             &layout->descriptors[0],
                                             mappings,
@@ -297,11 +297,11 @@ namespace en
    }
    
    bool DescriptorsD3D12::allocate(const uint32 count,
-                                   const shared_ptr<SetLayout>(&layouts)[],
-                                   shared_ptr<DescriptorSet>** sets)
+                                   const std::shared_ptr<SetLayout>(&layouts)[],
+                                   std::shared_ptr<DescriptorSet>** sets)
    {
    // Allocate group of Descriptor Sets from Desriptor Pool
-   *sets = new shared_ptr<DescriptorSet>[count];
+   *sets = new std::shared_ptr<DescriptorSet>[count];
    for(uint32 i=0; i<count; ++i)
       {
       (*sets)[i] = allocate(layouts[i]);
@@ -366,7 +366,7 @@ namespace en
 
    void CommandBufferD3D12::setDescriptors(const PipelineLayout& _layout,
                                            const uint32 count,
-                                           const shared_ptr<DescriptorSet>(&sets)[],
+                                           const std::shared_ptr<DescriptorSet>(&sets)[],
                                            const uint32 firstIndex)
    {
    assert( started );
@@ -422,14 +422,14 @@ namespace en
    //   D3D12_SHADER_VISIBILITY_PIXEL                  // Fragment
    //   };
          
-   shared_ptr<SetLayout> Direct3D12Device::createSetLayout(const uint32 count, 
+   std::shared_ptr<SetLayout> Direct3D12Device::createSetLayout(const uint32 count, 
                                                            const ResourceGroup* group,
                                                            const ShaderStages stageMask)
    {
    assert( count );
    assert( group );
 
-   shared_ptr<SetLayoutD3D12> result = make_shared<SetLayoutD3D12>();
+   std::shared_ptr<SetLayoutD3D12> result = std::make_shared<SetLayoutD3D12>();
 
    // Total count of descriptors per Descriptor Table
    uint32 descriptors[2];
@@ -715,13 +715,13 @@ namespace en
    return result;
    }
 
-   shared_ptr<PipelineLayout> Direct3D12Device::createPipelineLayout(const uint32 sets,
-                                                              const shared_ptr<SetLayout>* set,
+   std::shared_ptr<PipelineLayout> Direct3D12Device::createPipelineLayout(const uint32 sets,
+                                                              const std::shared_ptr<SetLayout>* set,
                                                               const uint32 immutableSamplers,
-                                                              const shared_ptr<Sampler>* sampler,
+                                                              const std::shared_ptr<Sampler>* sampler,
                                                               const ShaderStages stageMask)
    {
-   shared_ptr<PipelineLayoutD3D12> result = nullptr; 
+   std::shared_ptr<PipelineLayoutD3D12> result = nullptr; 
 
    // Root Signature 1.1:
    // https://msdn.microsoft.com/en-us/library/windows/desktop/mt709473(v=vs.85).aspx
@@ -921,8 +921,8 @@ namespace en
                                       signature->GetBufferPointer(),
                                       signature->GetBufferSize(),
                                       IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12RootSignature), reinterpret_cast<void**>(&handle)
-   if (SUCCEEDED(lastResult[Scheduler.core()]))
-      result = make_shared<PipelineLayoutD3D12>(handle, sets, setBindingIndex);
+   if (SUCCEEDED(lastResult[currentThreadId()]))
+      result = std::make_shared<PipelineLayoutD3D12>(handle, sets, setBindingIndex);
 
    if (sets)
       deallocate<D3D12_ROOT_PARAMETER>(tables);
@@ -932,9 +932,9 @@ namespace en
    return result;
    }
 
-   shared_ptr<Descriptors> Direct3D12Device::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
+   std::shared_ptr<Descriptors> Direct3D12Device::createDescriptorsPool(const uint32 maxSets, const uint32 (&count)[underlyingType(ResourceType::Count)])
    {
-   shared_ptr<DescriptorsD3D12> result = nullptr;
+   std::shared_ptr<DescriptorsD3D12> result = nullptr;
    
    // All resources except of Samplers share the same heap in D3D12.
    // We set D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE to indicate that
@@ -958,7 +958,7 @@ namespace en
       desc.NodeMask       = 0u; // TODO: Set bit to current GPU index in SLI
    
       Validate( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&samplersHandle)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handleSamplers)
-      if (!SUCCEEDED(lastResult[Scheduler.core()]))
+      if (!SUCCEEDED(lastResult[currentThreadId()]))
          {
          return result;
          }
@@ -981,14 +981,14 @@ namespace en
       desc.NodeMask       = 0u; // TODO: Set bit to current GPU index in SLI
    
       Validate( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&handle)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handle)
-      if (!SUCCEEDED(lastResult[Scheduler.core()]))
+      if (!SUCCEEDED(lastResult[currentThreadId()]))
          {
          return result;
          }
       }
 
    // D3D12 has no limit of Descriptor Sets that can be allocated from it.
-   result = make_shared<DescriptorsD3D12>(this);
+   result = std::make_shared<DescriptorsD3D12>(this);
    result->handle[0]    = handle;
    result->handle[1]    = samplersHandle;
    result->allocator[0] = new BasicAllocator(slots);
