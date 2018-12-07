@@ -20,7 +20,6 @@
 namespace en
 {
    constexpr uint32 MaxThreads      = 256;
-   constexpr uint32 InvalidThreadID = 0xFFFFFFFF;
 
    static Mutex  lockThreadID;                 // Used when modifying thread ID translation table
    static uint32 threadsSpawned = 0;           // Amount of threads spawned since start of application
@@ -218,22 +217,27 @@ namespace en
    {
    assert( GetThreadId(handle) == GetCurrentThreadId() );
 
-   isSleeping = true;
+   // TODO: Possible race condition? 
+   //       What if this thread sets atomic to true, other thread acquires that
+   //       and tries to wake up this thread before propert sleep is called?
+   isSleeping.store(true, std::memory_order_release);
    WaitForSingleObject(sleepSemaphore, INFINITE);
    }
 
    void winThread::wakeUp(void)
    {
-   if (!isSleeping)
-      return;
-
-   isSleeping = false;
-   ReleaseSemaphore(sleepSemaphore, 1, nullptr);
+   if (isSleeping.load(std::memory_order_acquire))
+      {
+      // Try to prevent Release before Acquire by injecting micro-sleep.
+      _mm_pause();
+      ReleaseSemaphore(sleepSemaphore, 1, nullptr);
+      isSleeping.store(false, std::memory_order_release);
+      }
    }
 
    bool winThread::sleeping(void)
    {
-   return isSleeping;
+   return isSleeping.load(std::memory_order_acquire);
    }
    
    bool winThread::working(void)

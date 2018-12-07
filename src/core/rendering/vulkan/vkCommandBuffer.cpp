@@ -28,51 +28,56 @@ namespace en
    namespace gpu
    {
 
-   CommandBufferVK::CommandBufferVK(VulkanDevice* _gpu, 
-         const VkQueue _queue, 
-         const QueueType type, 
-         const VkCommandBuffer _handle, 
-         const VkFence _fence) :
-      gpu(_gpu),
-      queue(_queue),
-      queueType(type),
-      handle(_handle),
-      semaphore(nullptr),
-      fence(_fence),
-      started(false),
-      encoding(false),
-      commited(false),
-      currentIndexBuffer(nullptr),
-      CommandBuffer()
-   {
-   }
+CommandBufferVK::CommandBufferVK(
+        VulkanDevice* _gpu, 
+        const VkQueue _queue, 
+        const QueueType type, 
+        const uint32 _parentWorker,
+        const VkCommandBuffer _handle, 
+        const VkFence _fence) :
+    gpu(_gpu),
+    queue(_queue),
+    queueType(type),
+    handle(_handle),
+    semaphore(nullptr),
+    fence(_fence),
+    parentWorker(_parentWorker),
+    started(false),
+    encoding(false),
+    commited(false),
+    currentIndexBuffer(nullptr),
+    CommandBuffer()
+{
+}
    
-   CommandBufferVK::~CommandBufferVK()
-   {
-   // Finish encoded tasks
-   if (!commited)
-      commit();
-      
-   // Don't wait for completion
-   
-   // Add yourself's fence and CB handle to Garbage Collector
-   
-   //gpu->add
-   
-   
-   // TODO: Release buffer
-   
-   // We need to wait until Command Buffer is finished, before we can release the Fence.
-   // Therefore this Command Buffer need to be added to Device's Garbage Collector,
-   // which will remove it automatically, when completion is signaled through Fence.
+CommandBufferVK::~CommandBufferVK()
+{
+    // Finish encoded tasks
+    if (!commited)
+    {
+        // TODO: Should engine auto-commit command buffers on their release?
+        commit();
+    }
 
-   // Release fence
-   ValidateNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
+    // Don't wait for completion
    
-   // Release Command Buffer
-   uint32 thread = currentThreadId();
-   ValidateNoRet( gpu, vkFreeCommandBuffers(gpu->device, gpu->commandPool[thread][underlyingType(queueType)], 1, &handle) )
-   }
+    // Add yourself's fence and CB handle to Garbage Collector
+   
+    //gpu->add
+   
+   
+    // TODO: Release buffer
+   
+    // We need to wait until Command Buffer is finished, before we can release the Fence.
+    // Therefore this Command Buffer need to be added to Device's Garbage Collector,
+    // which will remove it automatically, when completion is signaled through Fence.
+
+    // Release fence
+    ValidateNoRet( gpu, vkDestroyFence(gpu->device, fence, nullptr) )
+   
+    // Release Command Buffer
+    ValidateNoRet( gpu, vkFreeCommandBuffers(gpu->device, gpu->commandPool[parentWorker][underlyingType(queueType)], 1, &handle) )
+}
 
 
 
@@ -652,108 +657,110 @@ namespace en
    commited = true;
    }
 
-   bool CommandBufferVK::isCompleted(void)
-   {
-   // Unrolled "Profile" macro, to prevent outputting of false Warning messages.
-   uint32 thread = currentThreadId();
+bool CommandBufferVK::isCompleted(void)
+{
+    // Unrolled "Profile" macro, to prevent outputting of false Warning messages.
+    uint32 thread = currentThreadId();
 #ifdef EN_DEBUG
-   #ifdef EN_PROFILER_TRACE_GRAPHICS_API
-   Log << "[" << setw(2) << thread << "] ";
-   Log << "Vulkan GPU " << setbase(16) << gpu << ": vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u)\n";
-   gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
-   if (en::gpu::IsError(gpu->lastResult[thread]))
-      assert( 0 );
-   #else 
-   gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
-   if (en::gpu::IsError(gpu->lastResult[thread]))
-      assert( 0 );
-   #endif
+    #ifdef EN_PROFILER_TRACE_GRAPHICS_API
+    Log << "[" << setw(2) << thread << "] ";
+    Log << "Vulkan GPU " << setbase(16) << gpu << ": vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u)\n";
+    gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
+    if (en::gpu::IsError(gpu->lastResult[thread]))
+        assert( 0 );
+    #else 
+    gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
+    if (en::gpu::IsError(gpu->lastResult[thread]))
+        assert( 0 );
+    #endif
 #else 
-   gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
+    gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
 #endif
-   return gpu->lastResult[thread] == VK_SUCCESS ? true : false;
-   }
+    return gpu->lastResult[thread] == VK_SUCCESS ? true : false;
+}
     
-   void CommandBufferVK::waitUntilCompleted(void)
-   {
-   // Wait maximum 1 second, then assume GPU hang.
-   uint64 gpuWatchDog = 1000000000; // TODO: This should be configurable global
+void CommandBufferVK::waitUntilCompleted(void)
+{
+    // Wait maximum 1 second, then assume GPU hang.
+    uint64 gpuWatchDog = 1000000000; // TODO: This should be configurable global
    
-   Validate( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
-   if (gpu->lastResult[currentThreadId()] == VK_TIMEOUT)
-      {
-      Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << std::endl;   // TODO: File / line doesn't make sense as it will always point this method!
-      }
+    Validate( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
+    if (gpu->lastResult[currentThreadId()] == VK_TIMEOUT)
+    {
+        Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << std::endl;   // TODO: File / line doesn't make sense as it will always point this method!
+    }
 
+    // TODO:
 
+    // v1.0.36 p97
+    //
+    // " Note
+    //   Signaling a fence and waiting on the host does not guarantee that the results of memory accesses will be visible
+    //   to the host. To provide that guarantee, the application must insert a memory barrier between the device writes
+    //   and the end of the submission that will signal the fence, with dstAccessMask having the VK_ACCESS_HOST_
+    //   READ_BIT bit set, with dstStageMask having the VK_PIPELINE_STAGE_HOST_BIT bit set, and with the
+    //   appropriate srcStageMask and srcAccessMask members set to guarantee completion of the writes. If the
+    //   memory was allocated without the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT set, then vkInval
+    //   idateMappedMemoryRanges must be called after the fence is signaled in order to ensure the writes are
+    //   visible to the host, as described in Host Access to Device Memory Objects. "
+    //
 
-   // TODO:
-
-   // v1.0.36 p97
-   //
-   // " Note
-   //   Signaling a fence and waiting on the host does not guarantee that the results of memory accesses will be visible
-   //   to the host. To provide that guarantee, the application must insert a memory barrier between the device writes
-   //   and the end of the submission that will signal the fence, with dstAccessMask having the VK_ACCESS_HOST_
-   //   READ_BIT bit set, with dstStageMask having the VK_PIPELINE_STAGE_HOST_BIT bit set, and with the
-   //   appropriate srcStageMask and srcAccessMask members set to guarantee completion of the writes. If the
-   //   memory was allocated without the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT set, then vkInval
-   //   idateMappedMemoryRanges must be called after the fence is signaled in order to ensure the writes are
-   //   visible to the host, as described in Host Access to Device Memory Objects. "
-   //
-
-   // v1.0.36 p219
-   // 
-   // " vkInvalidateMappedMemoryRanges must be used to guarantee that device writes to non-coherent memory are
-   //   visible to the host. It must be called after command buffers that execute and flush (via memory barriers) the device writes
-   //   have completed, and before the host will read or write any of those locations. If a range of non-coherent memory is
-   //   written by the host and then invalidated without first being flushed, its contents are undefined.
-   //   
-   //   Note
-   //   Mapping non-coherent memory does not implicitly invalidate the mapped memory, and device writes that have
-   //   not been invalidated must be made visible before the host reads or overwrites them. "
-   // 
-   }
+    // v1.0.36 p219
+    // 
+    // " vkInvalidateMappedMemoryRanges must be used to guarantee that device writes to non-coherent memory are
+    //   visible to the host. It must be called after command buffers that execute and flush (via memory barriers) the device writes
+    //   have completed, and before the host will read or write any of those locations. If a range of non-coherent memory is
+    //   written by the host and then invalidated without first being flushed, its contents are undefined.
+    //   
+    //   Note
+    //   Mapping non-coherent memory does not implicitly invalidate the mapped memory, and device writes that have
+    //   not been invalidated must be made visible before the host reads or overwrites them. "
+    // 
+}
    
-   std::shared_ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
-   {
-   assert( queuesCount[underlyingType(type)] > parentQueue );
+std::shared_ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType type, const uint32 parentQueue)
+{
+    assert( queuesCount[underlyingType(type)] > parentQueue );
    
-   // CommandBuffers can be recycled / reused (in Metal Buffers and Encoders are single time use)
-   // Multiple buffers can be created simultaneously for one queue
-   // Buffers are executed in order in queue
+    // CommandBuffers can be recycled / reused (in Metal Buffers and Encoders are single time use)
+    // Multiple command buffers can be created simultaneously for one queue
+    // CommandBuffers are executed in order in queue
 
+    // Each worker thread creates it's Command Buffers from separate Command Pool
+    uint32 workerId = Scheduler->currentWorkerId();
+    if (workerId == InvalidWorkerId)
+    {
+        assert( 0 );
+        return nullptr;
+    }
 
-   // Each thread creates it's Command Buffers from separate Command Pool
-   uint32 thread = currentThreadId();
-
-   VkCommandBuffer handle;
+    VkCommandBuffer handle;
  
-   VkCommandBufferAllocateInfo commandInfo;
-   commandInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-   commandInfo.pNext              = nullptr;
-   commandInfo.commandPool        = commandPool[thread][underlyingType(type)];
-   commandInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Secondary CB's need VK_COMMAND_BUFFER_LEVEL_SECONDARY
-   commandInfo.commandBufferCount = 1; // Can create multiple CB's at once
+    VkCommandBufferAllocateInfo commandInfo;
+    commandInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandInfo.pNext              = nullptr;
+    commandInfo.commandPool        = commandPool[workerId][underlyingType(type)];
+    commandInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Secondary CB's need VK_COMMAND_BUFFER_LEVEL_SECONDARY
+    commandInfo.commandBufferCount = 1; // Can create multiple CB's at once
    
-   Validate( this, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
+    Validate( this, vkAllocateCommandBuffers(device, &commandInfo, &handle) )
 
-   // Create Fence that will be signaled when the Command Buffer execution is finished.
-   VkFence fence = VK_NULL_HANDLE;
+    // Create Fence that will be signaled when the Command Buffer execution is finished.
+    VkFence fence = VK_NULL_HANDLE;
    
-   VkFenceCreateInfo fenceInfo;
-   fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-   fenceInfo.pNext = nullptr;
-   fenceInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT if want to create it in signaled state from start
+    VkFenceCreateInfo fenceInfo;
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.pNext = nullptr;
+    fenceInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT if want to create it in signaled state from start
    
-   Validate( this, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
+    Validate( this, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
 
-   // Acquire queue handle (queues are created at device creation time)
-   VkQueue queue;
-   ValidateNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
+    // Acquire queue handle (queues are created at device creation time)
+    VkQueue queue;
+    ValidateNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
-   return std::make_shared<CommandBufferVK>(this, queue, type, handle, fence);
-   }
+    return std::make_shared<CommandBufferVK>(this, queue, type, workerId, handle, fence);
+}
 
    void VulkanDevice::addCommandBufferToQueue(std::shared_ptr<CommandBuffer> command)
    {

@@ -20,8 +20,70 @@
 #include "memory/circularQueue.h"
 #include "memory/workStealingDeque.h"
 
+
+// temp for MPSC
+#include "threading/mutex.h"
+
 namespace en
 {
+   // TEMP Implementation !!!! DIRTY SHIT FIXME!!!
+   template<typename T>
+   class MPSCDeque
+      {
+      private:
+      Mutex                lockPush;  // Ensures producers won't collide, this is low frequency container so we don't care for now
+      WorkStealingDeque<T> container; // Will be used in reverse order so that consumer steals wihout locking
+
+      public:
+      // First element starting address is always aligned to page size (4KB).
+      // When deque is growing, it's size is doubling until reaching doubleSizeUntil 
+      // size in bytes. After that, it always grows by that size, until reaching 
+      // maxCapacity.
+      MPSCDeque(const uint32 capacity,                               // In entries
+                const uint32 maxCapacity,                            // In entries
+                const uint32 doubleSizeUntil = PoolDoublingBarrier); // In bytes
+
+      DequeResult take(T& value);   // Called only by consumer thread
+      void        push(T value);    // Called by producer threads
+      };
+
+   // CompileTimeSizeReporting( sizeof(MPSCDeque<void*>) );
+   static_assert(sizeof(MPSCDeque<void*>) == 128, "en::MPSCDeque<void*> size mismatch!");
+
+   template<typename T>
+   MPSCDeque<T>::MPSCDeque(const uint32 capacity,                               // In entries
+                           const uint32 maxCapacity,                            // In entries
+                           const uint32 doubleSizeUntil) :
+      lockPush(),
+      container(capacity, maxCapacity, doubleSizeUntil)
+   {
+   }
+
+   template<typename T>
+   void MPSCDeque<T>::push(T value)
+   {
+   // Pushing elements to deque by multiple producers is guarded with mutex
+   // critical section. Thats fine because threads pushing tasks will be IO 
+   // threads so they can be stalled for a moment in case of concurrent access.
+   // It's more important that Worker thread consuming those elements won't ever
+   // block.
+   lockPush.lock();
+   container.push(value);
+   lockPush.unlock();
+   }
+
+   template<typename T>
+   DequeResult MPSCDeque<T>::take(T& value)
+   {
+   // Non-blocking try to take something from this queue
+   return container.steal(value);
+   }
+   // TEMP Implementation !!!! DIRTY SHIT FIXME!!!
+
+
+
+
+
    // Container keeping all neccessary information about given task
    struct Task
       {
@@ -59,11 +121,25 @@ namespace en
 
 
       // Tasks local to this worker thread
+      
+      // [WWWWWWWWW][E][RRRRRRRRRRRRRRR]
+      // W - Waiting Fibers
+      // E - Currently executing Fiber (starts to wait, resumes or picks new task)
+      // R - Ready Fibers, waiting 
+      //
+      std::unique_ptr<Fiber>*   localFibers;        // Pool of local Fibers (array of pointers to platform dependent objects) 
+      uint32                    waitingFibersCount; // Count of fibers since start of the pool, that are waiting for other work to finish 
+                                                    // Fibers can be in one of two states (Ready to execute or Waiting)
+      uint32                    currentFiber;       // Pointer to fiber currently executing on this worker thread
 
-      std::unique_ptr<Fiber>*   localFibers;        // Pool of local Fibers 
-      CircularQueue<Task*>      localTasks;         // Tasks that wait for execution on this worker thread
-      CircularQueue<Fiber*>     localFibersWaiting; // Tasks that are waiting for other work to finish (or IO event)
 
+
+    //CircularQueue<Task*>      localTasks;         // Tasks that wait for execution on this worker thread
+    //CircularQueue<Fiber*>     localFibersWaiting; // Tasks that are waiting for other work to finish (or IO event)
+
+      
+      MPSCDeque<Task*>          queueOfIncomingTasks;      ///< Tasks submitted for execution by IO threads
+      MPSCDeque<Task*>          queueOfIncomingLocalTasks; ///< Tasks submitted for execution on this worker CPU core (locked)
 
       // Tasks that can be executed on any worker
 
@@ -71,6 +147,8 @@ namespace en
     //WorkStealingDeque<Fiber*> queueOfTasksStalled; // Tasks that are paused (as control was switched to resume execution of other task)
     //WorkStealingDeque<Fiber*> queueOfTasksWaiting; // Tasks that are waiting for other work to finish (or IO event)
   
+
+
       uint32 index;                     // Index of worker thread in the pool
       uint32 tasksCount;
       uint32 stalledTasksCount;
@@ -79,7 +157,8 @@ namespace en
      ~Worker();
       };
 
-   static_assert(sizeof(Worker) == 128+16, "en::Worker size mismatch!");  // 248
+   // CompileTimeSizeReporting( sizeof(Worker) );
+   static_assert(sizeof(Worker) == 384, "en::Worker size mismatch!");  // 248, 128+16 -> 320 -> 448 after adding MPSC hmm (so multiple of cache line)
 
    class TaskScheduler : public parallel::Interface
       {
@@ -90,17 +169,32 @@ namespace en
       Worker* worker;                      // Array of worker thread states
       std::atomic<bool> executing;         // Synchronizes start of worker threads execution
 
-      CircularQueue<Task*> mainThreadQueue; // Separate queue of tasks to execute by main thread
+      // Task submitted for execution by IO threads
+      MPSCDeque<Task*>          queueOfMainThreadTasks; // Separate queue of tasks for execution on main thread
+
+      //CircularQueue<Task*> mainThreadQueue; // Separate queue of tasks to execute by main thread
       PoolAllocator<Task>  mainThreadTasks;
 
       TaskScheduler(const uint32 workerThreads, const uint32 fibersPerWorker);
 
       virtual uint32 workers(void) const;
 
+      virtual uint32 currentWorkerId(void) const;   // Id of first worker thread
+
       virtual void run(TaskFunction function,            // Task to execute
                        void* data = nullptr,             // Data to be processed by task
                        TaskState* state = nullptr);      // State to use, so that caller can synchronize
-                     //const uint32 worker = AnyThread); // Specify if task execution can migrate between CPU cores
+                                                         // Task execution can migrate between CPU cores
+
+      virtual void runOnMainThread(TaskFunction function,       // Task to execute
+                                   void* data = nullptr,        // Data to be processed by task
+                                   TaskState* state = nullptr); // State to use, so that caller can synchronize
+
+      virtual void runOnWorker(const uint32 worker,         // Task execution is locked to CPU core of given Worker thread
+                               TaskFunction function,       // Task to execute
+                               void* data = nullptr,        // Data to be processed by task
+                               TaskState* state = nullptr); // State to use, so that caller can synchronize
+
 
       // virtual void run(TaskParallelFunction function,      // Task to execute
       //                  void* taskData = nullptr,   // Data to be processed by task

@@ -23,7 +23,6 @@
 namespace en
 {
    constexpr uint32 MaxThreads      = 256;
-   constexpr uint32 InvalidThreadID = 0xFFFFFFFF;
 
    static Mutex  lockThreadID;                 // Used when modifying thread ID translation table
    static uint32 threadsSpawned = 0;           // Amount of threads spawned since start of application

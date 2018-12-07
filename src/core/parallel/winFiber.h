@@ -27,7 +27,9 @@ namespace en
       uint32 maximumStackSize;
          
       winFiber(void);
-      winFiber(const uint32 stackSize,
+      winFiber(const FiberFunction function, 
+               void* fiberState,
+               const uint32 stackSize,
                const uint32 maximumStackSize);
      ~winFiber();
       };

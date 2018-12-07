@@ -20,6 +20,7 @@
 #include "core/log/log.h"
 #include "core/rendering/d3d12/dx12Device.h"
 #include "core/rendering/d3d12/dx12Texture.h"
+#include "parallel/scheduler.h"
 #include "utilities/strings.h"
 
 namespace en
@@ -218,7 +219,7 @@ namespace en
       parameters.pScrollRect     = nullptr;
       parameters.pScrollOffset   = nullptr;
 
-      if (verticalSync & _frame > 0)
+      if (verticalSync && (_frame > 0))
          swapChain->Present1(1, 0, &parameters);
       else
          swapChain->Present1(0, DXGI_PRESENT_RESTART, &parameters);
@@ -230,7 +231,38 @@ namespace en
       }
    surfaceAcquire.unlock();
    }
-      
+   
+
+struct taskCreateWindowState
+{
+    Direct3D12Device* gpu;
+    std::shared_ptr<CommonDisplay> selectedDisplay;
+    uint32v2 selectedResolution;
+    const WindowSettings* settings;
+    std::string title;
+    std::shared_ptr<WindowD3D12> result;
+
+    taskCreateWindowState(const WindowSettings* _settings);
+};
+
+taskCreateWindowState::taskCreateWindowState(const WindowSettings* _settings) :
+    gpu(nullptr),
+    selectedDisplay(nullptr),
+    selectedResolution(),
+    settings(_settings),
+    title(),
+    result(nullptr)
+{
+}
+
+void taskCreateWindow(void* data)
+{
+    taskCreateWindowState& state = *(taskCreateWindowState*)(data);
+
+    state.result = std::make_shared<WindowD3D12>(state.gpu, state.selectedDisplay, state.selectedResolution, *state.settings, state.title);
+}
+
+
    std::shared_ptr<Window> Direct3D12Device::createWindow(const WindowSettings& settings, const std::string title)
    {
    std::shared_ptr<WindowD3D12> result = nullptr;
@@ -281,9 +313,22 @@ namespace en
          }
       }
 
-   result = std::make_shared<WindowD3D12>(this, display, selectedResolution, settings, title);
+   taskCreateWindowState state(&settings);
+   state.gpu                = this;
+   state.selectedDisplay    = display;
+   state.selectedResolution = selectedResolution;
+   state.title              = title;
 
-   return result;
+   TaskState taskState;
+
+   // Window needs to be created on main thread
+   en::Scheduler->runOnMainThread(taskCreateWindow, (void*)&state, &taskState);
+   en::Scheduler->wait(&taskState);
+
+   return state.result;
+
+   //result = std::make_shared<WindowD3D12>(this, display, selectedResolution, settings, title);
+   //return result;
    }
 
    }

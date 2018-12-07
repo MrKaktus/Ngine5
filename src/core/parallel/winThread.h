@@ -18,6 +18,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include <atomic>
+
 namespace en
 {
    // Windows has different entry point for threads, thus passed function and
@@ -34,13 +36,13 @@ namespace en
    class winThread : public Thread
       {
       public:
-      HANDLE handle;              // Thread handle
-      HANDLE sleepSemaphore;      // Sleeping semaphore
-      winThreadContainer package; // Packaged app thread and this class instance pointer
-      void*  localState;          // State passed on thread creation
-      uint32 index;               // Thread unique ID
-      volatile bool isSleeping;   // Thread sleeps
-      volatile bool valid;        // Thread is executing (may sleep)
+      HANDLE handle;                // Thread handle
+      HANDLE sleepSemaphore;        // Sleeping semaphore
+      winThreadContainer package;   // Packaged app thread and this class instance pointer
+      void*  localState;            // State passed on thread creation
+      uint32 index;                 // Thread unique ID
+      std::atomic<bool> isSleeping; // Thread sleeps
+      std::atomic<bool> valid;      // Thread is executing (may sleep)
 
       winThread(ThreadFunction function, void* threadState);
       virtual ~winThread();

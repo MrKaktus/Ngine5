@@ -30,6 +30,8 @@
 #define MaxCommandBuffersAllocated 32
 #define AllocatorCacheSize         2
 
+constexpr uint32 MaxSupportedThreads = 256; /// Max count of threads supported by rendering backends (workers and IO threads)
+
 namespace en
 {
    namespace gpu

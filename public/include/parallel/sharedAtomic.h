@@ -32,7 +32,7 @@ namespace en
       std::atomic<uint32> value;
       
       public:
-      SharedAtomic() : value(0) {};
+      SharedAtomic() { value.store(0U, std::memory_order_release); };
      ~SharedAtomic() {};
       };
 

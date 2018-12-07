@@ -277,7 +277,71 @@ namespace en
    }
 
    // TODO: Currently max is 16MB. This should be configurable through config file.
-   #define PipelineCacheMaximumSize 16*1024*1024
+   #define PipelineCacheMaximumSize 16*MB
+
+struct taskClosure
+{
+    VulkanDevice* device;
+    uint32 worker;
+    std::atomic<uint32>* workersInitialized;
+};
+
+void taskCreateCommandPools(void* data)
+{
+    taskClosure* state = (taskClosure*)(data);
+
+    // Memory pool used to allocate CommandBuffers.
+    // Once device is created, on each Worker Thread, we create Command Pool for each Queue Family
+    // that was associated to each of our Queue Types. Then each time Command Buffer creation will
+    // be requested for Queue from given Queue Type, apropriate Command Pool for matching Queue
+    // Family will be used (taking into notice parent thread).
+    for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
+    {
+        if (state->device->queuesCount[i] > 0)
+        {
+            uint32 queueFamilyId = state->device->queueTypeToFamily[i];
+    
+            // It's abstract object as it has no size.
+            // It's not tied to Queueu, but to Queue Family, so it can be shared by all Queues in this family.
+            // It's single threaded, and so should be Command Buffers allocated from it
+            // (so each Thread gets it's own Pool per each Family, and have it's own Command Buffers).
+            VkCommandPoolCreateInfo poolInfo;
+            poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+            poolInfo.pNext            = nullptr;
+            poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT; // To reuse CB's use VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+            poolInfo.queueFamilyIndex = queueFamilyId;
+            
+            Validate( state->device, vkCreateCommandPool(state->device->device, &poolInfo, nullptr, (VkCommandPool*)(&state->device->commandPool[state->worker][i])) )
+        }
+    }
+
+    // TODO: Do we want to support reset of Command Pools? Should it go to API?
+    //
+    // // Resets Command Pool, frees all resources encoded on all CB's created from this pool. CB's are reset to initial state.
+    // uint32 thread = 0; 
+    // uint32 type = 0;
+    // Validate( vkResetCommandPool(VkDevice device, commandPool[thread][type], VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT) )
+
+    // Increase counter of worker threads that are initialized
+    state->workersInitialized->fetch_add(1, std::memory_order_relaxed);
+}
+
+void taskDestroyCommandPools(void* data)
+{
+    taskClosure* state = (taskClosure*)(data);
+
+    // Release all Command Pools used by this thread for Commands submission
+    for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
+    {
+        if (state->device->queuesCount[i] > 0)
+        {
+            ValidateNoRet( state->device, vkDestroyCommandPool(state->device->device, state->device->commandPool[state->worker][i], nullptr) )
+        }
+    }
+
+    // Increase counter of worker threads that are de-initialized
+    state->workersInitialized->fetch_add(1, std::memory_order_relaxed);
+}
 
 
    VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysicalDevice _handle) :
@@ -295,7 +359,7 @@ namespace en
       memoryDriver(0),
       CommonDevice()
    {
-   for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
+   for(uint32 i=0; i<MaxSupportedThreads; ++i)
       lastResult[i] = VK_SUCCESS;
       
    // Clear Device function pointers
@@ -560,43 +624,34 @@ namespace en
 
    // Command Pools
    //---------------
-  
-   // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
-   uint32 thread = currentThreadId();
-   
-   // Memory pool used to allocate CommandBuffers.
-   // Once device is created, on each Worker Thread, we create Command Pool for each Queue Family
-   // that was associated to each of our Queue Types. Then each time Command Buffer creation will
-   // be requested for Queue from given Queue Type, apropriate Command Pool for matching Queue
-   // Family will be used (taking into notice parent thread).
-   for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
-      if (queuesCount[i] > 0)
-         {
-         uint32 queueFamilyId = queueTypeToFamily[i];
+ 
+taskClosure state[MaxSupportedWorkerThreads];
 
-         // It's abstract object as it has no size.
-         // It's not tied to Queueu, but to Queue Family, so it can be shared by all Queues in this family.
-         // It's single threaded, and so should be Command Buffers allocated from it
-         // (so each Thread gets it's own Pool per each Family, and have it's own Command Buffers).
-         VkCommandPoolCreateInfo poolInfo;
-         poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-         poolInfo.pNext            = nullptr;
-         poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT; // To reuse CB's use VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-         poolInfo.queueFamilyIndex = queueFamilyId;
-         
-         Validate( this, vkCreateCommandPool(device, &poolInfo, nullptr, (VkCommandPool*)(&commandPool[thread][i])) )
-         }
+// Vulkan device is created on main thread, outside of worker threads pool.
+// This means that main thread needs to wait until all worker threads will 
+// process their tasks, but as it's IO thread, it needs to use manual 
+// synchronization (IO threads cannot wait on Tasks).
+// This will stall main thread, but that's ok, since this happens at engine
+// initialization stage, before application main() function will be spawned.
+std::atomic<uint32> workersInitialized = 0;
 
-   // <<<< Per Thread Section
+// Each thread has separate command pool for each Queue Type
+for(uint32 worker=0; worker<en::Scheduler->workers(); ++worker)
+{
+    
+    state[worker].device = this;
+    state[worker].worker = worker;
+    state[worker].workersInitialized = &workersInitialized;
 
+    en::Scheduler->runOnWorker(worker, taskCreateCommandPools, (void*)&state[worker]);
+}
 
-   // TODO: Do we want to support reset of Command Pools? Should it go to API?
-   //
-   // // Resets Command Pool, frees all resources encoded on all CB's created from this pool. CB's are reset to initial state.
-   // uint32 thread = 0; 
-   // uint32 type = 0;
-   // Validate( vkResetCommandPool(VkDevice device, commandPool[thread][type], VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT) )
-
+// Wait until scheduler finishes initialization of this device on all workers
+bool executing = false;
+while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) < en::Scheduler->workers())
+{
+    _mm_pause();
+}
 
    // Pipeline Cache
    //---------------
@@ -816,15 +871,35 @@ namespace en
    }
    while(stillExecuting);
 
-   // <<<< Per Thread Section (TODO: Execute on each Worker Thread)
-   uint32 thread = currentThreadId();
 
-   // Release all Command Pools used by this thread for Commands submission
-   for(uint32 i=0; i<underlyingType(QueueType::Count); ++i)
-      if (queuesCount[i] > 0)
-         ValidateNoRet( this, vkDestroyCommandPool(device, commandPool[thread][i], nullptr) )
+taskClosure state[MaxSupportedWorkerThreads];
 
-   // <<<< Per Thread Section
+// Vulkan device is destroyed on main thread, outside of worker threads pool.
+// This means that main thread needs to wait until all worker threads will 
+// process their tasks, but as it's IO thread, it needs to use manual 
+// synchronization (IO threads cannot wait on Tasks).
+// This will stall main thread, but that's ok, since this happens at engine
+// de-initialization stage, after application main() function completes.
+std::atomic<uint32> workersInitialized = 0;
+
+// Each thread has separate command pool for each Queue Type
+for(uint32 worker=0; worker<en::Scheduler->workers(); ++worker)
+{
+    
+    state[worker].device = this;
+    state[worker].worker = worker;
+    state[worker].workersInitialized = &workersInitialized;
+
+    en::Scheduler->runOnWorker(worker, taskDestroyCommandPools, (void*)&state[worker]);
+}
+
+// Wait until scheduler finishes de-initialization of this device on all workers
+bool executing = false;
+while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) < en::Scheduler->workers())
+{
+    _mm_pause();
+}
+
 
    if (device != VK_NULL_HANDLE)
       ValidateNoRet( this, vkDestroyDevice(device, nullptr) )  // Instance or Device function ?
@@ -1476,18 +1551,20 @@ namespace en
       devicesCount(0),
       CommonGraphicAPI()
    {
-   for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
+   for(uint32 i=0; i<MaxSupportedThreads; ++i)
       lastResult[i] = VK_SUCCESS;
       
    // Verify load of Vulkan dynamic library
    if (library == nullptr)
       {
       std::string info;
-      info += "ERROR: Vulkan error: ";
+      info += "ERROR: Vulkan error:\n";
       info += "       Cannot find Vulkan dynamic library.\n";
       info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
       Log << info.c_str();
       assert( 0 );
+
+      // TODO: Terminate application in Release build
       }
 
    // Load using OS, main function pointer used to acquire other Vulkan function pointers

@@ -403,9 +403,6 @@ namespace en
 #if defined(EN_PLATFORM_ANDROID)
    Graphics = std::make_shared<VulkanAPI>();
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY)
-   Graphics = std::make_shared<OpenGLESAPI>();
-#endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
    Graphics = std::make_shared<MetalAPI>();
 #endif

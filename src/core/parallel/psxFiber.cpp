@@ -24,11 +24,10 @@ namespace en
    // and for which, task should be executed.
    Fiber* fiber = (Fiber*)( ((uint64)hiAdress << 32) | (uint64)loAdress );
       
-      // TODO:
-      //
-      // 1) Execute task
-      //    fiber->task();
-      // 2) If reached this point, return to scheduler for new task to execute or sleep
+   assert( fiber->function );
+
+   // Executer provided function
+   fiber->function(fiber->state);
    }
    
 
@@ -40,7 +39,10 @@ namespace en
    // (will be used to save state fo this thread on first switch)
    }
 
-   psxFiber::psxFiber(const uint32 stackSize, const uint32 _maximumStackSize) :
+   psxFiber::psxFiber(const FiberFunction _function, void* fiberState, const uint32 stackSize, const uint32 _maximumStackSize) :
+      function(_function),
+      state(fiberState),
+      waitingForTask(nullptr),
       stack(nullptr),
       maximumStackSize(_maximumStackSize)
    {
@@ -88,9 +90,9 @@ namespace en
    return std::make_unique<psxFiber>();
    }
 
-   std::unique_ptr<Fiber> createFiber(const uint32 stackSize, const uint32 maximumStackSize)
+   std::unique_ptr<Fiber> createFiber(const FiberFunction function, void* fiberState, const uint32 stackSize, const uint32 maximumStackSize)
    {
-   return std::make_unique<psxFiber>(stackSize, maximumStackSize);
+   return std::make_unique<psxFiber>(function, fiberState, stackSize, maximumStackSize);
    }
 
    void switchToFiber(Fiber& _current, Fiber& _fiber)

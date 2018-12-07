@@ -40,6 +40,7 @@ namespace en
       VkCommandBuffer  handle;
       const SemaphoreVK* semaphore; // Execution order synchronization    
       VkFence          fence;     // Completion notification
+      uint32           parentWorker;
       bool             started;
       bool             encoding;
       bool             commited;
@@ -53,6 +54,7 @@ namespace en
       CommandBufferVK(VulkanDevice*         gpu,
                       const VkQueue         queue,
                       const QueueType       queueType,
+                      const uint32          parentWorker,
                       const VkCommandBuffer handle,
                       const VkFence         fence);
 

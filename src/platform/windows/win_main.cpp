@@ -73,24 +73,31 @@ void taskMain(void* taskData)
 // Entry point for console applications
 int ConsoleMain(int argc, const char **argv)
 {
-// Hide console window in Release build
-#ifndef EN_DEBUG
-HWND hWnd = GetConsoleWindow();
-ShowWindow( hWnd, SW_HIDE );
-#else
-// Show console window in Debug build, and make it bigger
-HWND hWnd = GetConsoleWindow();
+    // Console window:
 
-system("mode con cols=160 lines=50");
+    // TODO: Move it to proper place in code
 
-//ShowWindow( hWnd, SW_HIDE );
-//
-//BOOL WINAPI SetConsoleWindowInfo(
-//  _In_  HANDLE hConsoleOutput,
-//  _In_  BOOL bAbsolute,
-//  _In_  const SMALL_RECT *lpConsoleWindow
-//);
-#endif
+    // Hide console window in Release build
+    #ifndef EN_DEBUG
+    HWND hWnd = GetConsoleWindow();
+    ShowWindow( hWnd, SW_HIDE );
+    #else
+    // Show console window in Debug build, and make it bigger
+    HWND hWnd = GetConsoleWindow();
+    
+    system("mode con cols=160 lines=50");
+    
+    //ShowWindow( hWnd, SW_HIDE );
+    //
+    //BOOL WINAPI SetConsoleWindowInfo(
+    //  _In_  HANDLE hConsoleOutput,
+    //  _In_  BOOL bAbsolute,
+    //  _In_  const SMALL_RECT *lpConsoleWindow
+    //);
+    #endif
+
+
+
 
 // Init Math
 en::initHalfs();
@@ -152,6 +159,12 @@ arguments.argv = argv;
 en::Scheduler->run(taskMain, (void*)&arguments);
 
 // TODO: Here run main event loop and proces scheduler events dedicated to main thread 
+
+    while(true)
+    {
+        en::Input->update();
+        en::Scheduler->processMainThreadTasks();
+    }
 
 // Close modules in order
 en::StateContext.destroy();

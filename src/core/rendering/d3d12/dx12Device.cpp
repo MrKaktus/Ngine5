@@ -119,22 +119,58 @@ namespace en
    return true; 
    }
    
-   // Checks Vulkan warning state
+   // Checks warning state
    bool IsWarning(const HRESULT result)
    {
    // Direct3D12 is not providing Warning codes.
    return false;
    }
 
+
+struct taskClosure
+{
+    Direct3D12Device* device;
+    uint32 worker;
+    std::atomic<uint32>* workersInitialized;
+};
+
+void taskCreateCommandAllocators(void* data)
+{
+    taskClosure* state = (taskClosure*)(data);
+
+    // Allocate command allocators for current worker thread
+    for(uint32 cache=0; cache<AllocatorCacheSize; ++cache)
+    {
+        // " A given allocator can be associated with no more than one
+        //   currently recording command list at a time, . . . "
+        //
+        state->device->commandAllocator[state->worker][cache] = nullptr;
+        Validate( state->device, CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, // or D3D12_COMMAND_LIST_TYPE_BUNDLE
+                                                        IID_PPV_ARGS(&(state->device->commandAllocator[state->worker][cache]) )) ) // __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&commandAllocator[thread][type][cache])
+        
+        // TODO: BUG: FIXME: Why it fails to create more allocators than 8 ????? 
+        //                   It's not throwing any errors, and while RefCount for
+        //                   device grows, pointer is not beeing returned. 
+        //                   Looks like internal driver error.
+        assert( state->device->commandAllocator[state->worker][cache] );
+    }
+    
+    state->device->currentAllocator[state->worker] = 0;
+    state->device->commandBuffersAllocated[state->worker] = 0;
+
+    // Increase counter of worker threads that are initialized
+    state->workersInitialized->fetch_add(1, std::memory_order_relaxed);
+}
+
+
    Direct3D12Device::Direct3D12Device(Direct3DAPI* _api, const uint32 _index, IDXGIAdapter3* _adapter) :
       api(_api),
       index(_index),
       adapter(_adapter),
       device(nullptr),
-      initThreads(MaxThreads) // min(Scheduler.workers(), MaxSupportedWorkerThreads)
-
+      initThreads(en::Scheduler->workers())
    {
-   for(uint32 i=0; i<initThreads; ++i)
+   for(uint32 i=0; i<MaxSupportedThreads; ++i)
       lastResult[i] = 0;
 
    // Way to find HW Adapter from which given D3D12 Device was created (DXGI 1.4+):
@@ -193,32 +229,39 @@ namespace en
    // All queues start with inital fence state
    memset((void*)&fenceValue[0], 0, sizeof(fenceValue));
 
-   // COMMAND ALLOCATORS
-   // ==================
 
-   // Each thread has separate pool of allocators for each Queue Type
-   for(uint32 thread=0; thread<initThreads; ++thread)
-      for(uint32 type=0; type<underlyingType(QueueType::Count); ++type)
-         {
-         for(uint32 cache=0; cache<AllocatorCacheSize; ++cache)
-            {
-            // " A given allocator can be associated with no more than one
-            //   currently recording command list at a time, . . . "
-            //
-            commandAllocator[thread][type][cache] = nullptr;
-            Validate( this, CreateCommandAllocator(TranslateQueueType[type],
-                                                  IID_PPV_ARGS(&(commandAllocator[thread][type][cache]) )) ) // __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&commandAllocator[thread][type][cache])
-         
-            // TODO: BUG: FIXME: Why it fails to create more allocators than 8 ????? 
-            //                   It's not throwing any errors, and while RefCount for
-            //                   device grows, pointer is not beeing returned. 
-            //                   Looks like internal driver error.
-            assert( commandAllocator[thread][type][cache] );
-            }
-         
-         currentAllocator[thread][type] = 0;
-         commandBuffersAllocated[thread][type] = 0;
-         }
+// COMMAND ALLOCATORS
+// ==================
+
+taskClosure state[MaxSupportedWorkerThreads];
+
+// D3D12 device is created on main thread, outside of worker threads pool.
+// This means that main thread needs to wait until all worker threads will 
+// process their tasks, but as it's IO thread, it needs to use manual 
+// synchronization (IO threads cannot wait on Tasks).
+// This will stall main thread, but that's ok, since this happens at engine
+// initialization stage, before application main() function will be spawned.
+std::atomic<uint32> workersInitialized = 0;
+
+// Each thread has separate pool of allocators 
+for(uint32 worker=0; worker<initThreads; ++worker)
+{
+    
+    state[worker].device = this;
+    state[worker].worker = worker;
+    state[worker].workersInitialized = &workersInitialized;
+
+    en::Scheduler->runOnWorker(worker, taskCreateCommandAllocators, (void*)&state[worker]);
+}
+
+// Wait until scheduler finishes initialization of this device on all workers
+bool executing = false;
+while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) < initThreads)
+{
+    _mm_pause();
+}
+
+
 
    // RENDER PASS
    // ===========
@@ -302,50 +345,50 @@ namespace en
    {
    stillExecuting = false;
    for(uint32 thread=0; thread<initThreads; ++thread)
-      for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
-         for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
+      for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
+         {
+         uint32 executing = commandBuffersExecuting[thread][cacheId];
+         for(uint32 i=0; i<executing; ++i)
             {
-            uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
-            for(uint32 i=0; i<executing; ++i)
+            CommandBufferD3D12* command = reinterpret_cast<CommandBufferD3D12*>(commandBuffers[thread][cacheId][i].get());
+            if (command->isCompleted())
                {
-               CommandBufferD3D12* command = reinterpret_cast<CommandBufferD3D12*>(commandBuffers[thread][queueType][cacheId][i].get());
-               if (command->isCompleted())
+               // Safely release Command Buffer object
+               commandBuffers[thread][cacheId][i] = nullptr;
+               if (i < (executing - 1))
                   {
-                  // Safely release Command Buffer object
-                  commandBuffers[thread][queueType][cacheId][i] = nullptr;
-                  if (i < (executing - 1))
-                     {
-                     commandBuffers[thread][queueType][cacheId][i] = commandBuffers[thread][queueType][cacheId][executing - 1];
-                     commandBuffers[thread][queueType][cacheId][executing - 1] = nullptr;
-                     }
-            
-                  executing--;
-                  commandBuffersExecuting[thread][queueType][cacheId]--;
+                  commandBuffers[thread][cacheId][i] = commandBuffers[thread][cacheId][executing - 1];
+                  commandBuffers[thread][cacheId][executing - 1] = nullptr;
                   }
-               else
-                  stillExecuting = true;
+         
+               executing--;
+               commandBuffersExecuting[thread][cacheId]--;
                }
+            else
+               stillExecuting = true;
             }
+         }
    }
    while(stillExecuting);
 
-   // Destroy Command Queues, their Fences and Allocators
+   // Destroy Command Queues and their Fences
    for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
       {
-      for(uint32 thread=0; thread<initThreads; ++thread)
-         for(uint32 cache=0; cache<AllocatorCacheSize; ++cache)
-            {
-            commandAllocator[thread][queueType][cache]->Reset();
-            commandAllocator[thread][queueType][cache]->Release();
-            commandAllocator[thread][queueType][cache] = nullptr;
-            }
-
       fence[queueType]->Release();
       fence[queueType] = nullptr;
 
       queue[queueType]->Release();
       queue[queueType] = nullptr;
       }
+
+   // Destroy Allocators
+   for(uint32 thread=0; thread<initThreads; ++thread)
+      for(uint32 cache=0; cache<AllocatorCacheSize; ++cache)
+         {
+         commandAllocator[thread][cache]->Reset();
+         commandAllocator[thread][cache]->Release();
+         commandAllocator[thread][cache] = nullptr;
+         }
 
    // Destroy device
    device->Release();
@@ -648,9 +691,9 @@ namespace en
       for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
          for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
             {
-            commandBuffersExecuting[thread][queueType][cacheId] = 0u;
+            commandBuffersExecuting[thread][cacheId] = 0u;
             for(uint32 i=0; i<MaxCommandBuffersExecuting; i++)      
-               commandBuffers[thread][queueType][cacheId][i] = nullptr;
+               commandBuffers[thread][cacheId][i] = nullptr;
             }
 
    CommonDevice::init();
@@ -686,7 +729,7 @@ namespace en
       devicesCount(0),
       CommonGraphicAPI()
    {
-   for(uint32 i=0; i<MaxSupportedWorkerThreads; ++i)
+   for(uint32 i=0; i<MaxSupportedThreads; ++i)
       lastResult[i] = 0;
 
    UINT dxgiFactoryFlags = 0;

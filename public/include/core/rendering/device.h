@@ -40,69 +40,69 @@
 #include "core/rendering/viewport.h"
 #include "core/rendering/window.h"
 
-// Resources life-time management:
-// -------------------------------
-//
-// Life-time of enumerated objects, which cannot be created or destroyed by
-// application itself, is managed by rendering abstraction. Such resources can
-// still come and go, following Plug & Play rules:
-//
-// - GraphicAPI
-// - GpuDevice
-// - Display
-//
-// Rendering abstraction is designed to be as lightweight as possible, thus
-// there is no mechanism tracking life-time of resources that are created by
-// application. The only exception are CommandBuffer objects, which even though
-// created by application, are tracked by given device garbage collector, and
-// automatically destroyed once signaled as processed.
-//
-// Application is responsible for ensuring that all resources, referenced by
-// Command Buffers (no matter if still being encoded by CPU, waiting in queue
-// or already being in the middle of processing on GPU) need to be present and
-// alive until encoded and submitted work is done. This refers only to objects
-// directly referenced by Command Buffers:
-//
-// - Heap
-// - Buffer
-// - Texture
-// - Sampler
-// - Pipeline
-// - Descriptor
-// - DescriptorSet
-// - Framebuffer
-// - RenderPass
-// - Semaphore
-// - Window
-//
-// Below state objects used to describe given pipeline state can be released
-// once Pipeline object is created (or reused for other Pipeline objects
-// creation):
-//
-// - BlendState
-// - DepthStencilState
-// - RasterState
-// - MultisamplingState
-// - ViewportState
-// - Shader
-//
-// Resources layout objects can be released once Pipeline objects are created
-// and needed DescriptorSets are allocated:
-//
-// - InputLayout
-// - SetLayout
-// - PipelineLayout
-//
-// The same rule refers to RenderPass helper objects:
-//
-// - ColorAttachment
-// - DepthStencilAttachment
-//
+/// Resources life-time management:
+/// -------------------------------
+///
+/// Life-time of enumerated objects, which cannot be created or destroyed by
+/// application itself, is managed by rendering abstraction. Such resources can
+/// still come and go, following Plug & Play rules:
+///
+/// - GraphicAPI
+/// - GpuDevice
+/// - Display
+///
+/// Rendering abstraction is designed to be as lightweight as possible, thus
+/// there is no mechanism tracking life-time of resources that are created by
+/// application. The only exception are CommandBuffer objects, which even though
+/// created by application, are tracked by given device garbage collector, and
+/// automatically destroyed once signaled as processed.
+///
+/// Application is responsible for ensuring that all resources, referenced by
+/// Command Buffers (no matter if still being encoded by CPU, waiting in queue
+/// or already being in the middle of processing on GPU) need to be present and
+/// alive until encoded and submitted work is done. This refers only to objects
+/// directly referenced by Command Buffers:
+///
+/// - Heap
+/// - Buffer
+/// - Texture
+/// - Sampler
+/// - Pipeline
+/// - Descriptor
+/// - DescriptorSet
+/// - Framebuffer
+/// - RenderPass
+/// - Semaphore
+/// - Window
+///
+/// Below state objects used to describe given pipeline state can be released
+/// once Pipeline object is created (or reused for other Pipeline objects
+/// creation):
+///
+/// - BlendState
+/// - DepthStencilState
+/// - RasterState
+/// - MultisamplingState
+/// - ViewportState
+/// - Shader
+///
+/// Resources layout objects can be released once Pipeline objects are created
+/// and needed DescriptorSets are allocated:
+///
+/// - InputLayout
+/// - SetLayout
+/// - PipelineLayout
+///
+/// The same rule refers to RenderPass helper objects:
+///
+/// - ColorAttachment
+/// - DepthStencilAttachment
+///
 namespace en
 {
    namespace gpu
    {
-   // For use of API specific features (shouldn't be used if not really needed).
+   /// For use of API specific features (shouldn't be used if not really needed).
    enum class RenderingAPI : uint32
       {
       Direct3D = 0,
@@ -110,15 +110,15 @@ namespace en
       Vulkan      ,
       };
 
-   // All queues support transfer operations.If device support Sparse resources,
-   // Universal and Compute queues support Sparse Transfer as well. (can we make
-   // this assumption ?)
+   /// All queues support transfer operations.If device support Sparse resources,
+   /// Universal and Compute queues support Sparse Transfer as well. (can we make
+   /// this assumption ?)
    enum class QueueType : uint32
       {
-      Universal      = 0, // Supports both Rendering and Compute workloads
-      Compute           , // Only Compute workloads
-      Transfer          , // Only Transfer operations
-      SparseTransfer    , // Only Transfer and Sparse Resource operations
+      Universal      = 0, ///< Supports both Rendering and Compute workloads
+      Compute           , ///< Only Compute workloads
+      Transfer          , ///< Only Transfer operations
+      SparseTransfer    , ///< Only Transfer and Sparse Resource operations
       Count
       };
       
@@ -128,7 +128,7 @@ namespace en
       public:
       
       
-      // Presentment:
+      // Presentation:
       
       
       // List of displays to which this device can render to (may not be the

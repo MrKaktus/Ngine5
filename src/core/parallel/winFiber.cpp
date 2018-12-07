@@ -22,18 +22,30 @@ namespace en
    // and for which, task should be executed.
    Fiber* fiber = (Fiber*)(lpFiberParameter);
 
+   assert( fiber->function );
+
+   // Executer provided function
+   fiber->function(fiber->state);
    }
 
    winFiber::winFiber(void) :
       maximumStackSize(0)
    {
+   function       = nullptr;
+   state          = nullptr;
+   waitingForTask = nullptr;
+
    handle = ConvertThreadToFiberEx(nullptr, FIBER_FLAG_FLOAT_SWITCH);
    assert( handle != nullptr );
    }
 
-   winFiber::winFiber(const uint32 stackSize, const uint32 _maximumStackSize) :
+   winFiber::winFiber(const FiberFunction _function, void* fiberState, const uint32 stackSize, const uint32 _maximumStackSize) :
       maximumStackSize(_maximumStackSize)
    {
+   function       = _function;
+   state          = fiberState;
+   waitingForTask = nullptr;
+
    handle = CreateFiberEx(stackSize,
                           maximumStackSize,
                           FIBER_FLAG_FLOAT_SWITCH,
@@ -52,9 +64,9 @@ namespace en
    return std::make_unique<winFiber>();
    }
 
-   std::unique_ptr<Fiber> createFiber(const uint32 stackSize, const uint32 maximumStackSize)
+   std::unique_ptr<Fiber> createFiber(const FiberFunction function, void* fiberState, const uint32 stackSize, const uint32 maximumStackSize)
    {
-   return std::make_unique<winFiber>(stackSize, maximumStackSize);
+   return std::make_unique<winFiber>(function, fiberState, stackSize, maximumStackSize);
    }
 
    void switchToFiber(Fiber& _current, Fiber& _fiber)

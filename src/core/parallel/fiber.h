@@ -18,20 +18,33 @@
 
 namespace en
 {
-   class Fiber
-      {
-      public:
-      virtual ~Fiber() {};
-      };
 
-   // Converts calling thread to Fiber, from now on it can safely switch to other Fibers
-   extern std::unique_ptr<Fiber> convertToFiber(void);
+class TaskState;
 
-   extern std::unique_ptr<Fiber> createFiber(const uint32 stackSize, const uint32 maximumStackSize);
+typedef void(*FiberFunction)(void*);
 
-   // Switch fiber running on current thread, to given one.
-   // Actual fiber state will be saved in "current" fiber object
-   extern void switchToFiber(Fiber& current, Fiber& fiber);
+class Fiber
+{
+    public:
+    FiberFunction function;    // Function this fiber will execute
+    void*         state;       // Optional state passed to fiber
+    TaskState* waitingForTask; // State of task, that this Fiber is waiting to finish (otherwise nullptr)
+    
+    virtual ~Fiber() {};
+};
+
+/// Converts calling thread to Fiber, from now on it can safely switch to other Fibers
+extern std::unique_ptr<Fiber> convertToFiber(void);
+
+extern std::unique_ptr<Fiber> createFiber(const FiberFunction function, 
+                                          void* fiberState,
+                                          const uint32 stackSize, 
+                                          const uint32 maximumStackSize);
+
+/// Switch fiber running on current thread, to given one.
+/// Actual fiber state will be saved in "current" fiber object
+extern void switchToFiber(Fiber& current, Fiber& fiber);
+
 }
 
 #endif

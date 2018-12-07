@@ -2,17 +2,32 @@
 
  Ngine v5.0
  
- Module        : Work-Stealing Deque
- Multi-Threaded: Safe
- Access pattern: Non-blocking
- Memory model  : Dynamic (growing only), circular 
- Description   : Implementation of Chase-Lev "Dynamic Circular Work-Stealing Deque".
-                 http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.170.1097&rep=rep1&type=pdf
+ Module           : Work-Stealing Deque
+ Multi-Threaded   : Safe
+ Type             : Deque (Double-ended circular queue)
+ Producers/Consum : Single-Producer / Multiple-Consumers (SPMC)
+ Data structure   : Array-based (growing Virtual Memory, no relocation)
+ Intrusiveness    : Intrusive (array based, so no extra allocations)
+ Maximum size     : Unbounded (to defined VM limit)
+ Overflow behavior: Fails on overflow (debug assert)
+ Garbage collector: Not Required
+ Priorities       : No support
+ Ordering         : FIFO (for producer), no ordering (for consumers)
+ Producer FPG     : Wait-freedom
+ Consumer FPG     : Lock-freedom
+ Expected usage   : A queue usually contains substantial amount of elements
+ Failure behavior : Non-blocking (error message on empty/full**)
+ Description      : Implementation of Chase-Lev "Dynamic Circular Work-Stealing Deque".
+                    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.170.1097&rep=rep1&type=pdf
                 
-                 Implementation is based on below:
-                 "Correct and Efficient Work-Stealing for Weak Memory Models"
-                 https://www.di.ens.fr/~zappa/readings/ppopp13.pdf
+                    Implementation is based on below:
+                    "Correct and Efficient Work-Stealing for Weak Memory Models"
+                    https://www.di.ens.fr/~zappa/readings/ppopp13.pdf
 
+    ** TODO: Implement proper error message on full 
+
+    FPG - Forward Progress Guarantee:
+    http://www.1024cores.net/home/lock-free-algorithms/introduction
 */
 
 #ifndef ENG_MEMORY_WORK_STEALING_DEQUE
@@ -95,7 +110,7 @@ int steal(Deque *q)
    std::atomic_thread_fence(std::memory_order_seq_cst);
    size_t b = std::atomic_load_explicit(&q->bottom, std::memory_order_acquire);
    int x = EMPTY;
-   if (t < b)      // <-- shouldn't it be <= like in take case? Currently it won't steal if there is only one element on queue
+   if (t < b)      // <-- shouldn't it be <= like in take() case? Currently it won't steal if there is only one element on queue
       {
       // Non-empty queue.
       Array *a = std::atomic_load_explicit(&q->array, std::memory_order_consume);
@@ -119,7 +134,7 @@ namespace en
       Empty       ,
       Abort       ,
       };
-   
+
 /*
    template<typename T>
    typedef struct 
@@ -133,8 +148,8 @@ namespace en
       {
       private:
     //std::atomic<Array<T*>*> array; // Pointer to array (so that whole array can be atomically replaced after growing)
-      std::atomic<uint64> top;    // Head of the queue
-      std::atomic<uint64> bottom; // Tail of the queue
+      std::atomic<sint64> top;    // Head of the queue
+      std::atomic<sint64> bottom; // Tail of the queue
       std::atomic<T>*     buffer; // Backing memory (array of elements of type T)
       std::atomic<uint64> size;   // Current memory size in bytes (rounded up to multiple of 4KB)
       uint64 maxSize;             // Max memory allocation in bytes (rounded up to multiple of 4KB)
@@ -171,6 +186,10 @@ namespace en
          maxSize(roundUp(sizeof(T) * maxCapacity, 4096)),
          doubleSizeUntil(_doubleSizeUntil)
    {
+   // Managed elements cannot exceed pointer size (max 8 bytes), to ensure that
+   // they will be loaded and stored in atomic manner within single operation
+   assert( sizeof(T) <= sizeof(void*) );
+
    //assert( powerOfTwo(sizeof(T)) );
  
    buffer = reinterpret_cast<std::atomic<T>*>(virtualAllocate(size, maxSize));
@@ -194,9 +213,10 @@ namespace en
    // Note [1]:
    //
    // Because circular deque is backed by virtual alocation, it's growing doesn't
-   // affect data location in memory, preserving all pointers, nor deque logical 
+   // affect data location in memory (preserving all pointers), nor deque logical 
    // structure (when deque is full, bottom index points at it's end, and after 
    // growing, it's pointing at next available element in memory).
+   // This allows optimization where atomic loads of array adress can be skipped.
    bool resize = virtualReallocate((void*)buffer, size, newSize);
    assert( resize );
 
@@ -207,11 +227,22 @@ namespace en
    template<typename T>
    DequeResult WorkStealingDeque<T>::take(T& value)
    {
-      uint64 b = std::atomic_load_explicit(&bottom, std::memory_order_relaxed) - 1;
+      // Note [2]:
+      //
+      // Original Chase-Lev algorithm uses signed integers for Top and Bottom
+      // markers. Algorithm from which this implementation is derived exposes
+      // pseudocode where Top and Bottom are of type size_t. size_t type is
+      // guaranteed to be unsigned. 
+      // As a result, this algorithm doesn't work, as below subtraction changes
+      // B to be equal to MAX_INT instead of -1, which breaks below conditions 
+      // and as a result, is never increased. Thus in this implementation Top and
+      // Bottom are of type sint64.
+      sint64 b = std::atomic_load_explicit(&bottom, std::memory_order_relaxed) - 1;
+
     //Array *a = std::atomic_load_explicit(&array, std::memory_order_relaxed);  // Optimized out due to [1]
       std::atomic_store_explicit(&bottom, b, std::memory_order_relaxed);
       std::atomic_thread_fence(std::memory_order_seq_cst);
-      uint64 t = std::atomic_load_explicit(&top, std::memory_order_relaxed);
+      sint64 t = std::atomic_load_explicit(&top, std::memory_order_relaxed);
    
       DequeResult result = DequeResult::Success;
       T temp;
@@ -244,8 +275,8 @@ namespace en
    template<typename T>
    void WorkStealingDeque<T>::push(T value)
    {
-      uint64 b = std::atomic_load_explicit(&bottom, std::memory_order_relaxed);
-      uint64 t = std::atomic_load_explicit(&top, std::memory_order_acquire);
+      sint64 b = std::atomic_load_explicit(&bottom, std::memory_order_relaxed);
+      sint64 t = std::atomic_load_explicit(&top, std::memory_order_acquire);
     //Array *a = std::atomic_load_explicit(&array, std::memory_order_relaxed);      // Optimized out due to [1]
       uint32 capacity = static_cast<uint32>(size / sizeof(T));
       if (b - t > capacity - 1)
@@ -263,9 +294,9 @@ namespace en
    template<typename T>
    DequeResult WorkStealingDeque<T>::steal(T& value)
    {
-      uint64 t = std::atomic_load_explicit(&top, std::memory_order_acquire);
+      sint64 t = std::atomic_load_explicit(&top, std::memory_order_acquire);
       std::atomic_thread_fence(std::memory_order_seq_cst);
-      uint64 b = std::atomic_load_explicit(&bottom, std::memory_order_acquire);
+      sint64 b = std::atomic_load_explicit(&bottom, std::memory_order_acquire);
    
       DequeResult result = DequeResult::Empty;
       T temp;

@@ -67,19 +67,21 @@ namespace en
 
    #define Validate( _gpu, command )                                                         \
            {                                                                                 \
-           uint32 thread = en::currentThreadId();                                            \
-           Log << "[" << std::setw(2) << thread << "] ";                                     \
+           uint32 threadId = currentThreadId();                                              \
+           assert( threadId < MaxSupportedThreads );                                         \
+           Log << "[" << std::setw(2) << threadId << "] ";                                   \
            Log << "D3D12 GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
-           _gpu->lastResult[thread] = _gpu->device->command;                                 \
-           if (en::gpu::IsError(_gpu->lastResult[thread]))                                   \
+           _gpu->lastResult[threadId] = _gpu->device->command;                               \
+           if (en::gpu::IsError(_gpu->lastResult[threadId]))                                 \
               assert( 0 );                                                                   \
-           en::gpu::IsWarning(_gpu->lastResult[thread]);                                     \
+           en::gpu::IsWarning(_gpu->lastResult[threadId]);                                   \
            }
 
    #define ValidateCom( command )                                                            \
            {                                                                                 \
-           uint32 thread = en::currentThreadId();                                            \
-           Log << "[" << std::setw(2) << thread << "] ";                                     \
+           uint32 threadId = currentThreadId();                                              \
+           assert( threadId < MaxSupportedThreads );                                         \
+           Log << "[" << std::setw(2) << threadId << "] ";                                   \
            Log << "D3D12 GPU 0xXXXXXXXX: " << #command << std::endl;                         \
            HRESULT hr = command;                                                             \
            assert( SUCCEEDED(hr) );                                                          \
@@ -87,28 +89,31 @@ namespace en
 
    #define ValidateNoRet( _gpu, command )                                                    \
            {                                                                                 \
-           uint32 thread = en::currentThreadId();                                            \
-           Log << "[" << std::setw(2) << thread << "] ";                                     \
+           uint32 threadId = currentThreadId();                                              \
+           assert( threadId < MaxSupportedThreads );                                         \
+           Log << "[" << std::setw(2) << threadId << "] ";                                   \
            Log << "D3D12 GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
            _gpu->device->command;                                                            \
            }
 
    #define ValidateComNoRet( command )                                                       \
            {                                                                                 \
-           uint32 thread = en::currentThreadId();                                            \
-           Log << "[" << std::setw(2) << thread << "] ";                                     \
+           uint32 threadId = currentThreadId();                                              \
+           assert( threadId < MaxSupportedThreads );                                         \
+           Log << "[" << std::setw(2) << threadId << "] ";                                   \
            Log << "D3D12 GPU 0xXXXXXXXX: " << #command << std::endl;                         \
            command;                                                                          \
            }
    #else 
 
-   #define Validate( _gpu, command )                                                \
-           {                                                                        \
-           uint32 thread = en::currentThreadId();                                   \
-           _gpu->lastResult[thread] = _gpu->device->command;                        \
-           if (en::gpu::IsError(_gpu->device, _gpu->lastResult[thread]))            \
-              assert( 0 );                                                          \
-           en::gpu::IsWarning(_gpu->lastResult[thread]);                            \
+   #define Validate( _gpu, command )                                                         \
+           {                                                                                 \
+           uint32 threadId = currentThreadId();                                              \
+           assert( threadId < MaxSupportedThreads );                                         \
+           _gpu->lastResult[threadId] = _gpu->device->command;                               \
+           if (en::gpu::IsError(_gpu->device, _gpu->lastResult[threadId]))                   \
+              assert( 0 );                                                                   \
+           en::gpu::IsWarning(_gpu->lastResult[threadId]);                                   \
            }
 
    #define ValidateCom( command )                                      \
@@ -128,8 +133,8 @@ namespace en
    
 #else // Release
 
-   #define Validate( _gpu, command )                                  \
-           _gpu->lastResult[en::currentThreadId()] = _gpu->device->command;
+   #define Validate( _gpu, command )                                   \
+           _gpu->lastResult[currentThreadId()] = _gpu->device->command;
 
    #define ValidateCom( command )                                     \
            command;
@@ -165,7 +170,8 @@ namespace en
    class Direct3D12Device : public CommonDevice
       {
       public:
-      HRESULT                 lastResult[MaxSupportedWorkerThreads];
+      HRESULT                 lastResult[MaxSupportedThreads];   // Result of last D3D12 call on each thread (not only worker thread)
+
       Direct3DAPI*            api;      // Direct3D API 
       uint32                  index;    // This device number on the list
       IDXGIAdapter3*          adapter;  // HW Adapter, physical GPU from which this D3D12 GPU was created
@@ -174,12 +180,12 @@ namespace en
       ID3D12CommandQueue*     queue[underlyingType(QueueType::Count)];
       ID3D12Fence*            fence[underlyingType(QueueType::Count)];        // One Fence per Queue, synchronizing CommandBuffers execution
       volatile uint32         fenceValue[underlyingType(QueueType::Count)];   // Each queue fence increasing value for proper ordering of events
-      Mutex                  queueAcquire[underlyingType(QueueType::Count)]; // Ensures CommandBuffer commit and fence signal is atomic operation.
-      uint32                  currentAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)]; // Specifies currently used Allocator on given thread for given queue
-      uint32                  commandBuffersAllocated[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];  // Specifies current amount of CommandBuffers allocated from current allocator
-      uint32                  commandBuffersExecuting[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize]; // Count of CommandBuffers still executing per allocator
-      std::shared_ptr<CommandBuffer> commandBuffers[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize][MaxCommandBuffersExecuting];
-      ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)][AllocatorCacheSize]; // Each thread can encode separate CommandBuffer,
+      Mutex                   queueAcquire[underlyingType(QueueType::Count)]; // Ensures CommandBuffer commit and fence signal is atomic operation.
+      uint32                  currentAllocator[MaxSupportedWorkerThreads];    // Specifies currently used Allocator on given thread for given queue
+      uint32                  commandBuffersAllocated[MaxSupportedWorkerThreads];  // Specifies current amount of CommandBuffers allocated from current allocator
+      uint32                  commandBuffersExecuting[MaxSupportedWorkerThreads][AllocatorCacheSize]; // Count of CommandBuffers still executing per allocator
+      std::shared_ptr<CommandBuffer> commandBuffers[MaxSupportedWorkerThreads][AllocatorCacheSize][MaxCommandBuffersExecuting];
+      ID3D12CommandAllocator* commandAllocator[MaxSupportedWorkerThreads][AllocatorCacheSize]; // Each thread can encode separate CommandBuffer,
                                                                               // using pool of allocators. This allows them to be reset without CPU-GPU synchronization.
       uint32                  initThreads;                                    // Amount of threads handled by this device
 
@@ -312,7 +318,7 @@ namespace en
       {
       public:
       HMODULE                library;
-      HRESULT                lastResult[MaxSupportedWorkerThreads];
+      HRESULT                lastResult[MaxSupportedThreads];
 
       ID3D12Debug*           debugController;
       IDXGIFactory5*         factory;         // Application Direct3D API Factory

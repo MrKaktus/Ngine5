@@ -23,6 +23,7 @@
 #include "core/rendering/d3d12/dx12Texture.h"
 #include "core/rendering/d3d12/dx12Pipeline.h"
 #include "utilities/strings.h"
+#include "parallel/scheduler.h"
 
 namespace en
 {
@@ -826,117 +827,131 @@ namespace en
    // https://msdn.microsoft.com/en-us/library/windows/desktop/dn899171(v=vs.85).aspx
 
  
-   // DEVICE
-   //////////////////////////////////////////////////////////////////////////
+// DEVICE
+////////////////////////////////////////////////////////////////////////////////
 
 
-   std::shared_ptr<CommandBuffer> Direct3D12Device::createCommandBuffer(const QueueType type, const uint32 parentQueue)
-   {
-   // Each thread creates it's Command Buffers from separate Command Allocator
-   uint32 thread    = currentThreadId();
-   uint32 queueType = underlyingType(type);
-   uint32 cacheId   = currentAllocator[thread][queueType];
+std::shared_ptr<CommandBuffer> Direct3D12Device::createCommandBuffer(const QueueType type, const uint32 parentQueue)
+{
+    std::shared_ptr<CommandBufferD3D12> result = nullptr;
 
-   assert( queuesCount[queueType] > parentQueue );
+    // Each worker thread creates it's Command Buffers from separate Command Allocator
+    uint32 workerId = Scheduler->currentWorkerId();
+    if (workerId == InvalidWorkerId)
+    {
+        assert( 0 );
+        return result;
+    }
+
+    uint32 queueType = underlyingType(type);
+    uint32 cacheId   = currentAllocator[workerId];
+
+    assert( queuesCount[queueType] > parentQueue );
    
-   std::shared_ptr<CommandBufferD3D12> result = nullptr;
 
-   ID3D12CommandList* handle = nullptr;
+    ID3D12CommandList* handle = nullptr;
    
-   Validate( this, CreateCommandList(0u,      /* No Multi-GPU support for now */
-                                     TranslateQueueType[queueType],
-                                     commandAllocator[thread][queueType][cacheId],
-                                     nullptr, /* No initial PipelineState for now */
-                                     IID_PPV_ARGS(&handle)) )
-   if ( SUCCEEDED(lastResult[thread]) )
-      {
-      result = std::make_shared<CommandBufferD3D12>(this, queue[queueType], queueType, handle);
+    Validate( this, CreateCommandList(0u,      /* No Multi-GPU support for now */
+                                      TranslateQueueType[queueType],
+                                      commandAllocator[workerId][cacheId],
+                                      nullptr, /* No initial PipelineState for now */
+                                      IID_PPV_ARGS(&handle)) )
+    if ( SUCCEEDED(lastResult[currentThreadId()]) )
+    {
+        result = std::make_shared<CommandBufferD3D12>(this, queue[queueType], queueType, handle);
 
 #if defined(EN_DEBUG)
-      // Name CommandBuffer for debugging
-      std::string name("CommandBuffer_T: ");
-      name += stringFrom(thread);
-      name += " Q: ";
-      name += stringFrom(queueType);
-      name += " C: ";
-      name += stringFrom(cacheId);
-      handle->SetPrivateData( WKPDID_D3DDebugObjectName, name.length(), name.c_str());
+        // Name CommandBuffer for debugging
+        std::string name("CommandBuffer_T: ");
+        name += stringFrom(workerId);
+        name += " Q: ";
+        name += stringFrom(queueType);
+        name += " C: ";
+        name += stringFrom(cacheId);
+        handle->SetPrivateData( WKPDID_D3DDebugObjectName, name.length(), name.c_str());
 #endif
 
-      // Switch to next CommandAllocator in Cache, if enough CommandBuffers were allocated on this one
-      commandBuffersAllocated[thread][queueType]++;
-      if (commandBuffersAllocated[thread][queueType] == MaxCommandBuffersAllocated)
-         {
-         currentAllocator[thread][queueType] = (currentAllocator[thread][queueType] + 1) % AllocatorCacheSize;
-         commandBuffersAllocated[thread][queueType]  = 0;
+        // Switch to next CommandAllocator in Cache, if enough CommandBuffers were allocated on this one
+        commandBuffersAllocated[workerId]++;
+        if (commandBuffersAllocated[workerId] == MaxCommandBuffersAllocated)
+        {
+            currentAllocator[workerId] = (currentAllocator[workerId] + 1) % AllocatorCacheSize;
+            commandBuffersAllocated[workerId] = 0;
  
-         // It is assumed, that all CommandBuffers execution on newly selected 
-         // allocator from cache was finished, and allocator was already reset.
-         uint32 cacheId = currentAllocator[thread][queueType];
-         assert( commandBuffersExecuting[thread][queueType][cacheId] == 0 );
-         }
-      }
+            // It is assumed, that all CommandBuffers execution on newly selected 
+            // allocator from cache was finished, and allocator was already reset.
+            uint32 cacheId = currentAllocator[workerId];
+            assert( commandBuffersExecuting[workerId][cacheId] == 0 );
+        }
+    }
 
-   // ID3D12GraphicsCommandList extends ID3D12CommandList
-   // https://msdn.microsoft.com/en-us/library/windows/desktop/dn903537(v=vs.85).aspx
-   // and alows all types of operations (draws, dispatches & copies)
+    // ID3D12GraphicsCommandList extends ID3D12CommandList
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/dn903537(v=vs.85).aspx
+    // and alows all types of operations (draws, dispatches & copies)
 
-   return result;
-   }
+    return result;
+}
    
-   void Direct3D12Device::addCommandBufferToQueue(std::shared_ptr<CommandBuffer> command)
-   {
-   CommandBufferD3D12* ptr = reinterpret_cast<CommandBufferD3D12*>(command.get());
+void Direct3D12Device::addCommandBufferToQueue(std::shared_ptr<CommandBuffer> command)
+{
+    CommandBufferD3D12* ptr = reinterpret_cast<CommandBufferD3D12*>(command.get());
 
-   uint32 thread    = currentThreadId();
-   uint32 queueType = ptr->queueIndex;
-   uint32 cacheId   = currentAllocator[thread][queueType];
-   uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
+    uint32 workerId = Scheduler->currentWorkerId();
+    assert( workerId != InvalidWorkerId );
+
+    uint32 queueType = ptr->queueIndex;
+    uint32 cacheId   = currentAllocator[workerId];
+    uint32 executing = commandBuffersExecuting[workerId][cacheId];
    
-   assert( executing < MaxCommandBuffersExecuting );
+    assert( executing < MaxCommandBuffersExecuting );
 
-   commandBuffers[thread][queueType][cacheId][executing] = command;
-   commandBuffersExecuting[thread][queueType][cacheId]++;
-   }
+    commandBuffers[workerId][cacheId][executing] = command;
+    commandBuffersExecuting[workerId][cacheId]++;
+}
 
-   void Direct3D12Device::clearCommandBuffersQueue(void)
-   {
-   // Iterate over list of Command Buffers submitted for execution by this thread (per each Queue type and allocator in pool).
-   uint32 thread = currentThreadId();
-   for(uint32 queueType=0; queueType<underlyingType(QueueType::Count); ++queueType)
-      for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
-         {
-         uint32 executing = commandBuffersExecuting[thread][queueType][cacheId];
-         for(uint32 i=0; i<executing; ++i)
-            {
-            CommandBufferD3D12* command = reinterpret_cast<CommandBufferD3D12*>(commandBuffers[thread][queueType][cacheId][i].get());
+void Direct3D12Device::clearCommandBuffersQueue(void)
+{
+    // Iterate over list of Command Buffers submitted for execution by this worker thread (per each allocator in pool).
+    uint32 workerId = Scheduler->currentWorkerId();
+    assert( workerId != InvalidWorkerId );
+   
+    for(uint32 cacheId=0; cacheId<AllocatorCacheSize; ++cacheId)
+    {
+        uint32 executing = commandBuffersExecuting[workerId][cacheId];
+        for(uint32 i=0; i<executing; ++i)
+        {
+            CommandBufferD3D12* command = reinterpret_cast<CommandBufferD3D12*>(commandBuffers[workerId][cacheId][i].get());
 
             // Assume that CommandBuffer is finished, after next Fence event is passed (so with one event of delay).
             // This way driver has time to clean-up, and is not throwing Debug errors that we reset CommandAllocator
             // which CommandBuffers are still in flight.
             if (fence[command->queueIndex]->GetCompletedValue() > command->commitValue)
-            //if (command->isCompleted())
-               {
-               // Safely release Command Buffer object
-               commandBuffers[thread][queueType][cacheId][i] = nullptr;
-               if (i < (executing - 1))
-                  {
-                  commandBuffers[thread][queueType][cacheId][i] = commandBuffers[thread][queueType][cacheId][executing - 1];
-                  commandBuffers[thread][queueType][cacheId][executing - 1] = nullptr;
-                  }
-         
-               executing--;
-               commandBuffersExecuting[thread][queueType][cacheId]--;
+          //if (command->isCompleted())
+            {
+                // Safely release Command Buffer object
+                commandBuffers[workerId][cacheId][i] = nullptr;
+                if (i < (executing - 1))
+                {
+                    commandBuffers[workerId][cacheId][i] = commandBuffers[workerId][cacheId][executing - 1];
+                    commandBuffers[workerId][cacheId][executing - 1] = nullptr;
+                }
+      
+                executing--;
+                commandBuffersExecuting[workerId][cacheId]--;
 
-               // If this CommandAllocator queue of CommandBuffers in flight just get 
-               // emptied, and it's not actually used CommandAllocator, it may be reset.
-               if (cacheId != currentAllocator[thread][queueType])
-                  if (commandBuffersExecuting[thread][queueType][cacheId] == 0)
-                     commandAllocator[thread][queueType][cacheId]->Reset();
-               }
+                // If this CommandAllocator queue of CommandBuffers in flight just get 
+                // emptied, and it's not actually used CommandAllocator, it may be reset.
+                if (cacheId != currentAllocator[workerId])
+                {
+                    if (commandBuffersExecuting[workerId][cacheId] == 0)
+                    {
+                        commandAllocator[workerId][cacheId]->Reset();
+                    }
+                }
             }
-         }
-   }
+        }
+    }
+}
 
    }
 }

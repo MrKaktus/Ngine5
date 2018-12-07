@@ -215,7 +215,8 @@ return false;
    // - f/d postfix is optional
    //
    // Minimum case: .x
-   assert( length >= 2 );
+   if (length < 2)
+      return false;
 
    uint32 offset = 0;
 
