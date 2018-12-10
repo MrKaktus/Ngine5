@@ -40,7 +40,7 @@ namespace en
       virtual ~AndFile();
       };
       
-   class AndInterface : public CommonInterface
+   class AndInterface : public CommonStorage
       {
       public:
       AAssetManager* manager;

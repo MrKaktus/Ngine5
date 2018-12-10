@@ -20,6 +20,8 @@
 
 //#include "core/rendering/device.h"   // Mouse - position on current screen
 
+#include "parallel/task.h"
+
 #include "input/keyboard.h"
 #include "input/hmd.h"
 
@@ -260,10 +262,7 @@ namespace en
        
        
        
-       
-       
-   // Event callback function type
-   typedef void (*EventHandlingFuncPtr)(Event& event);
+
 
    struct Touch
           {
@@ -411,7 +410,7 @@ namespace en
       public:
       static bool create(void);                      // Creates instance of this class (OS specific) and assigns it to "Input".
 
-      virtual uint8           available(IO type) const = 0;          // Count of available peripherials of given type
+      virtual uint8                       available(IO type) const = 0;          // Count of available peripherials of given type
       virtual std::shared_ptr<Keyboard>   keyboard(uint8 index = 0) const = 0;   // N'th Keyboard
       virtual std::shared_ptr<Mouse>      mouse(uint8 index = 0) const = 0;      // N'th Mouse
       virtual std::shared_ptr<Joystick>   joystick(uint8 index = 0) const = 0;   // N'th Joystick

@@ -33,7 +33,7 @@ namespace en
       virtual ~OSXMouse();                           // Polymorphic deletes require a virtual base destructor
       };
       
-   class OSXInterface : public CommonInterface
+   class OSXInterface : public CommonInput
       {
       public:
       uint32 stateFlags; // Keys lock state

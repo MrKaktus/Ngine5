@@ -72,7 +72,7 @@ namespace en
    }
     
    BBInterface::BBInterface() :
-      CommonInterface()
+      CommonStorage()
    {
    // TODO: Finish!
    }

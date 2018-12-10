@@ -493,7 +493,7 @@ namespace en
       };
 
    OSXInterface::OSXInterface() :
-      CommonInterface()
+      CommonInput()
    {
    // Register keyboard
    keyboards.push_back(make_shared<CommonKeyboard>());
@@ -547,9 +547,9 @@ namespace en
             mouse->buttons[underlyingType(MouseButton::Left)] = KeyState::Pressed;
 
             // Call event handling function
-            MouseEvent outEvent(MouseButtonPressed);
-            outEvent.button = MouseButton::Left;
-            callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            MouseEvent* outEvent = new MouseEvent(MouseButtonPressed);
+            outEvent->button = MouseButton::Left;
+            input->forwardEvent(reinterpret_cast<Event*>(outEvent));
             break;
             }
             
@@ -559,9 +559,9 @@ namespace en
             mouse->buttons[underlyingType(MouseButton::Left)] = KeyState::Released;
             
             // Call event handling function
-            MouseEvent outEvent(MouseButtonReleased);
-            outEvent.button = MouseButton::Left;
-            callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            MouseEvent* outEvent = new MouseEvent(MouseButtonReleased);
+            outEvent->button = MouseButton::Left;
+            input->forwardEvent(reinterpret_cast<Event*>(outEvent));
             break;
             }
             
@@ -571,9 +571,9 @@ namespace en
             mouse->buttons[underlyingType(MouseButton::Right)] = KeyState::Pressed;
 
             // Call event handling function
-            MouseEvent outEvent(MouseButtonPressed);
-            outEvent.button = MouseButton::Right;
-            callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            MouseEvent* outEvent = new MouseEvent(MouseButtonPressed);
+            outEvent->button = MouseButton::Right;
+            input->forwardEvent(reinterpret_cast<Event*>(outEvent));
             break;
             }
             
@@ -583,9 +583,9 @@ namespace en
             mouse->buttons[underlyingType(MouseButton::Right)] = KeyState::Released;
             
             // Call event handling function
-            MouseEvent outEvent(MouseButtonReleased);
-            outEvent.button = MouseButton::Right;
-            callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            MouseEvent* outEvent = new MouseEvent(MouseButtonReleased);
+            outEvent->button = MouseButton::Right;
+            input->forwardEvent(reinterpret_cast<Event*>(outEvent));
             break;
             }
             
@@ -624,10 +624,10 @@ namespace en
                }
                
             // Call event handling function
-            MouseEvent outEvent(MouseMoved);
-            outEvent.x = static_cast<uint16>(mouse->x);
-            outEvent.y = static_cast<uint16>(mouse->y);
-            callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            MouseEvent* outEvent = new MouseEvent(MouseMoved);
+            outEvent->x = static_cast<uint16>(mouse->x);
+            outEvent->y = static_cast<uint16>(mouse->y);
+            input->forwardEvent(reinterpret_cast<Event*>(outEvent));
             break;
             }
             
@@ -686,22 +686,22 @@ namespace en
             // Send event only for recognized keys
             if (key != Key::Unknown)
                {
-               KeyboardEvent outEvent(key);
+               KeyboardEvent* outEvent = new KeyboardEvent(key);
                
                if ([event type] == NSEventTypeKeyDown)
                   {
                   reinterpret_cast<CommonKeyboard*>(keyboards[0].get())->keys[underlyingType(key)] = KeyState::Pressed;
-                  outEvent.type = KeyPressed;
+                  outEvent->type = KeyPressed;
                   }
                else
                if ([event type] == NSEventTypeKeyUp)
                   {
                   reinterpret_cast<CommonKeyboard*>(keyboards[0].get())->keys[underlyingType(key)] = KeyState::Released;
-                  outEvent.type = KeyReleased;
+                  outEvent->type = KeyReleased;
                   }
    
                // Call event handling function
-               callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+               input->forwardEvent(reinterpret_cast<Event*>(outEvent));
                }
             }
             break;

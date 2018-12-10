@@ -51,7 +51,7 @@ namespace en
       virtual ~WinFile();
       };
       
-   class WinInterface : public CommonInterface
+   class WinInterface : public CommonStorage
       {
       public:
       virtual bool exist(const std::string& filename); // Check if file exist

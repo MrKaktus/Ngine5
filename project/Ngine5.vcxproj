@@ -24,6 +24,9 @@
     <ClCompile Include="..\src\core\algorithm\MurmurHash2.cpp" />
     <ClCompile Include="..\src\core\algorithm\MurmurHash3.cpp" />
     <ClCompile Include="..\src\core\config\config.cpp" />
+    <ClCompile Include="..\src\core\input\winEvents.cpp" />
+    <ClCompile Include="..\src\core\input\winInput.cpp" />
+    <ClCompile Include="..\src\core\input\winJoystick.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
     <ClCompile Include="..\src\core\memory\pageAllocator.cpp" />
     <ClCompile Include="..\src\core\parallel\psxFiber.cpp" />
@@ -111,15 +114,12 @@
     <ClCompile Include="..\src\input\input.cpp" />
     <ClCompile Include="..\src\input\oculus.cpp" />
     <ClCompile Include="..\src\input\vive.cpp" />
-    <ClCompile Include="..\src\input\winInput.cpp" />
-    <ClCompile Include="..\src\input\winJoystick.cpp" />
     <ClCompile Include="..\src\monetization\monetization.cpp" />
     <ClCompile Include="..\src\parallel\scheduler.cpp" />
     <ClCompile Include="..\src\platform\android\and_events.cpp" />
     <ClCompile Include="..\src\platform\android\and_main.cpp" />
     <ClCompile Include="..\src\platform\blackberry\bb_main.cpp" />
     <ClCompile Include="..\src\platform\system.cpp" />
-    <ClCompile Include="..\src\platform\windows\win_events.cpp" />
     <ClCompile Include="..\src\platform\windows\win_main.cpp" />
     <ClCompile Include="..\src\rendering\stereo.cpp" />
     <ClCompile Include="..\src\rendering\streamer.cpp" />
@@ -222,6 +222,7 @@
     <ClInclude Include="..\public\include\Ngine.h" />
     <ClInclude Include="..\public\include\parallel\scheduler.h" />
     <ClInclude Include="..\public\include\parallel\sharedAtomic.h" />
+    <ClInclude Include="..\public\include\parallel\task.h" />
     <ClInclude Include="..\public\include\platform\android\and_events.h" />
     <ClInclude Include="..\public\include\platform\android\and_init.h" />
     <ClInclude Include="..\public\include\platform\android\and_main.h" />
@@ -276,6 +277,8 @@
     <ClInclude Include="..\src\core\algorithm\MurmurHash3.h" />
     <ClInclude Include="..\src\core\configuration.h" />
     <ClInclude Include="..\src\core\config\context.h" />
+    <ClInclude Include="..\src\core\input\winInput.h" />
+    <ClInclude Include="..\src\core\input\winJoystick.h" />
     <ClInclude Include="..\src\core\log\context.h" />
     <ClInclude Include="..\src\core\parallel\fiber.h" />
     <ClInclude Include="..\src\core\parallel\psxFiber.h" />
@@ -367,10 +370,8 @@
     <ClInclude Include="..\src\input\oculus.h" />
     <ClInclude Include="..\src\input\osxInput.h" />
     <ClInclude Include="..\src\input\vive.h" />
-    <ClInclude Include="..\src\input\winInput.h" />
-    <ClInclude Include="..\src\input\winJoystick.h" />
     <ClInclude Include="..\src\monetization\context.h" />
-    <ClInclude Include="..\src\parallel\scheduler.h" />
+    <ClInclude Include="..\src\parallel\comScheduler.h" />
     <ClInclude Include="..\src\platform\context.h" />
     <ClInclude Include="..\src\resources\context.h" />
     <ClInclude Include="..\src\scene\context.h" />

@@ -10,7 +10,7 @@
 
 #include "core/log/log.h"
 #include "platform/system.h"
-#include "scheduler.h"
+#include "parallel/comScheduler.h"
 
 #include "utilities/random.h"
 
@@ -1080,51 +1080,6 @@ namespace en
 
 
 // en::gpu - nested namespaces since C++17
-
-
-
-
-/*
-   assert( (worker < workerThreads) ||
-           worker == SingleThread ||
-           worker == MainThread ||
-           worker == AnyThread );
-
-   uint32 selectedWorker = InvalidWorkerID;
-
-   // Select thread to execute task
-   if (worker == SingleThread ||
-       worker == AnyThread)
-      {
-      // Find worker thread with smallest amount of tasks to process, and assign
-      // this task to it's queue. Amount of work on each worker thread queue can 
-      // change during iterating over them, but thats fine - such estimation is 
-      // coarse anyway, as different tasks will take different amount of time to 
-      // execute (so it's hard to easily load balance amount of work in terms of
-      // execution time).
-      uint32 minimumTasks = MaxWorkerThreadTasks;
-      for(uint32 i=0; i<workerThreads; ++i)
-         {
-         uint32 tasksCount = workerState[i].tasksCount; // (!) Possible hazard
-         if (tasksCount < minimumTasks)
-            {
-            selectedWorker = i;
-            minimumTasks   = tasksCount;
-            if (minimumTasks == 0)
-               break;
-            }
-         }
-
-      assert( selectedWorker != InvalidWorkerID );
-      }
-   else
-   if (worker < workerThreads)
-      selectedWorker = worker;
-*/
-
-
-   // bool local = false;   // Indicates if task should be locked to current worker thread
-
 
 
 

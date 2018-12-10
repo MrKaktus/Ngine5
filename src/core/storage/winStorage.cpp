@@ -93,7 +93,7 @@ namespace en
    }
  
    WinInterface::WinInterface() :
-      CommonInterface()
+      CommonStorage()
    {
 
    }
@@ -193,7 +193,7 @@ namespace en
    }
 
    WinInterface::WinInterface() :
-      CommonInterface()
+      CommonStorage()
    {
 
    }

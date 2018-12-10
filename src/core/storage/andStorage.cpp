@@ -90,7 +90,7 @@ namespace en
 
    AndInterface::AndInterface() :
       manager(nullptr),
-      CommonInterface()
+      CommonStorage()
    {
    Log << "Starting module: Storage.\n";
    

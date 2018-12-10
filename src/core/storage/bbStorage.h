@@ -43,7 +43,7 @@ namespace en
       virtual ~BBFile();
       };
       
-   class BBInterface : public CommonInterface
+   class BBInterface : public CommonStorage
       {
       public:
       virtual bool exist(const std::string& filename); // Check if file exist

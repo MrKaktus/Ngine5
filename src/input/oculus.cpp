@@ -716,7 +716,7 @@ namespace en
       }
 
    // Register Oculus HMD
-   CommonInterface* input = reinterpret_cast<CommonInterface*>(en::Input.get());
+   CommonInput* input = reinterpret_cast<CommonInput*>(en::Input.get());
    input->hmds.push_back(make_shared<OculusDK2>(0));
    }
 

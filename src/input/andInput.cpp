@@ -18,7 +18,7 @@ namespace en
       sensorManager(nullptr),
       fileDescriptor(0),
       allowCallback(false),
-      CommonInterface()
+      CommonInput()
    {
    // Queue for input events
    inputQueue = NULL;

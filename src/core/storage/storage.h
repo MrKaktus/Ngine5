@@ -48,15 +48,15 @@ namespace en
       virtual ~CommonFile() {};
       };
       
-   class CommonInterface : public Interface
+   class CommonStorage : public Interface
       {
       public:
       std::string processPath;     // Global path to this process
       
       virtual uint64 read(const std::string& filename, std::string& dst);
 
-      CommonInterface();
-      virtual ~CommonInterface();
+      CommonStorage();
+      virtual ~CommonStorage();
       };
    }
 }

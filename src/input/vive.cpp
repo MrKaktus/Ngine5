@@ -47,7 +47,7 @@ namespace en
    void InitOpenVR(void)
    {
    // Register OpenVR Head Mounted Display
-   CommonInterface* input = reinterpret_cast<CommonInterface*>(en::Input.get());
+   CommonInput* input = reinterpret_cast<CommonInput*>(en::Input.get());
    if (vr::VR_IsHmdPresent())
       input->hmds.push_back(make_shared<ValveHMD>(0u));
    }
@@ -849,7 +849,7 @@ namespace en
          }
       }
 
-   CommonInterface* interface = reinterpret_cast<CommonInterface*>(en::Input.get());
+   CommonInput* interface = reinterpret_cast<CommonInput*>(en::Input.get());
 
    // Process SteamVR events
    vr::VREvent_t vrevent;
@@ -862,7 +862,7 @@ namespace en
             //memset(&outEvent, 0, sizeof(outEvent));
             //outEvent.type   = MouseButtonReleased;
             //outEvent.button = MouseButton::Right;
-            //callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            //task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             
             
             
@@ -879,7 +879,7 @@ namespace en
             // Send event with new controller
             ControllerEvent outEvent(ControllerActivated);
             outEvent.pointer = std::dynamic_pointer_cast<Controller>(handle[deviceId]);
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
    
             Log << "Device " << deviceId << " attached.\n";
             }
@@ -895,7 +895,7 @@ namespace en
             // Send event to discard controller
             ControllerEvent outEvent(ControllerDeactivated);
             outEvent.pointer = std::dynamic_pointer_cast<Controller>(handle[deviceId]);
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
 
             // Remove controller
             handle[deviceId] = nullptr;
@@ -932,7 +932,7 @@ namespace en
 
             ControllerEvent outEvent(ControllerButtonPressed);
             outEvent.pointer = std::dynamic_pointer_cast<Controller>(handle[deviceId]);
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
@@ -942,7 +942,7 @@ namespace en
             
             ControllerEvent outEvent(ControllerButtonReleased);
             outEvent.pointer = std::dynamic_pointer_cast<Controller>(handle[deviceId]);
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
@@ -955,7 +955,7 @@ namespace en
 
             ControllerEvent outEvent(ControllerButtonTouched);
             outEvent.pointer = std::dynamic_pointer_cast<Controller>(handle[deviceId]);
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
@@ -965,7 +965,7 @@ namespace en
             
             ControllerEvent outEvent(ControllerButtonUntouched);
             outEvent.pointer = std::dynamic_pointer_cast<Controller>(handle[deviceId]);
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
@@ -988,7 +988,7 @@ namespace en
 //         case vr::VREvent_InputFocusCaptured: 
 //            {
 //            Event outEvent(VRInputFocusLost);
-//            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+//            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
 //            // TODO: We could pass more data (process info) in the future
 //            }
 //            break;
@@ -997,7 +997,7 @@ namespace en
 //         case vr::VREvent_InputFocusReleased: 
 //            {
 //            Event outEvent(VRInputFocusAvailable);
-//            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+//            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
 //            // TODO: We could pass more data (process info) in the future
 //            }
 //            break;
@@ -1007,7 +1007,7 @@ namespace en
             {
             Event outEvent(VRSceneFocusLost);
             // TODO: Fill the event with data, data is process
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
@@ -1015,7 +1015,7 @@ namespace en
             {
             Event outEvent(VRSceneFocusGained);
             // TODO: Fill the event with data, data is process
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
          
@@ -1023,7 +1023,7 @@ namespace en
             {
             Event outEvent(VRSceneApplicationChanged);
             // TODO: Fill the event with data, data is process
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
 
@@ -1080,7 +1080,7 @@ namespace en
          case vr::VREvent_ProcessQuit:
             {
             Event outEvent(AppClose);
-            interface->callback[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
+            interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
             }
             break;
          

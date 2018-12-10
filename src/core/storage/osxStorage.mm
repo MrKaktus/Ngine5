@@ -205,7 +205,7 @@ namespace en
 
 
    OSXInterface::OSXInterface() :
-      CommonInterface()
+      CommonStorage()
    {
    // Query executable path length
    uint32_t pathSize = 0;

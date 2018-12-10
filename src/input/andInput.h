@@ -73,7 +73,7 @@ namespace en
           void (*process)(struct android_app* app, struct android_poll_source* source);
           };
 
-   class AndInterface : public CommonInterface
+   class AndInterface : public CommonInput
       {
       public:
       ALooper*            looper;

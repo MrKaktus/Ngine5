@@ -178,6 +178,9 @@
     <Filter Include="Header Files\memory">
       <UniqueIdentifier>{0fc2eb22-a895-4fab-a439-79e181530c40}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\core\input">
+      <UniqueIdentifier>{4c1e4e00-3c86-462f-9950-4c77130c5779}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio\audio.cpp">
@@ -312,9 +315,6 @@
     <ClCompile Include="..\src\platform\blackberry\bb_main.cpp">
       <Filter>Source Files\platform\blackberry</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\platform\windows\win_events.cpp">
-      <Filter>Source Files\platform\windows</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\platform\windows\win_main.cpp">
       <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
@@ -421,12 +421,6 @@
       <Filter>Source Files\input</Filter>
     </ClCompile>
     <ClCompile Include="..\src\input\bbInput.cpp">
-      <Filter>Source Files\input</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\input\winInput.cpp">
-      <Filter>Source Files\input</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\input\winJoystick.cpp">
       <Filter>Source Files\input</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp">
@@ -584,6 +578,15 @@
     </ClCompile>
     <ClCompile Include="..\src\core\memory\pageAllocator.cpp">
       <Filter>Source Files\core\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\input\winEvents.cpp">
+      <Filter>Source Files\core\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\input\winInput.cpp">
+      <Filter>Source Files\core\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\input\winJoystick.cpp">
+      <Filter>Source Files\core\input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1004,14 +1007,8 @@
     <ClInclude Include="..\src\input\osxInput.h">
       <Filter>Source Files\input</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\input\winInput.h">
-      <Filter>Source Files\input</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\input\keyboard.h">
       <Filter>Header Files\input</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\input\winJoystick.h">
-      <Filter>Source Files\input</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\rendering\common\buffer.h">
       <Filter>Source Files\core\rendering\common</Filter>
@@ -1214,9 +1211,6 @@
     <ClInclude Include="..\src\core\parallel\winFiber.h">
       <Filter>Source Files\core\parallel</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\parallel\scheduler.h">
-      <Filter>Source Files\parallel</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\core\parallel\fiber.h">
       <Filter>Source Files\core\parallel</Filter>
     </ClInclude>
@@ -1240,6 +1234,18 @@
     </ClInclude>
     <ClInclude Include="..\public\include\memory\circularQueue.h">
       <Filter>Header Files\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\input\winInput.h">
+      <Filter>Source Files\core\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\input\winJoystick.h">
+      <Filter>Source Files\core\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\parallel\task.h">
+      <Filter>Header Files\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\parallel\comScheduler.h">
+      <Filter>Source Files\parallel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

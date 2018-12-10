@@ -29,7 +29,7 @@ namespace en
 {
    namespace storage
    {      
-   class OSXInterface : public CommonInterface
+   class OSXInterface : public CommonStorage
       {
       public:
       virtual bool exist(const std::string& filename); // Check if file exist

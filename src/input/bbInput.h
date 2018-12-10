@@ -18,7 +18,7 @@ namespace en
 {
    namespace input
    {      
-   class BBInterface : public CommonInterface
+   class BBInterface : public CommonInput
       {
       public:
 

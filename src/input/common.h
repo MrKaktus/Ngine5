@@ -61,7 +61,7 @@ namespace en
       ~CommonMouse();                 // Polymorphic deletes require a virtual base destructor
       };
       
-   class CommonInterface : public Interface
+   class CommonInput : public Interface
       {
       public:
       // General
@@ -73,11 +73,11 @@ namespace en
       std::vector< std::shared_ptr<Controller> > controllers;
       std::vector< std::shared_ptr<Camera> >     cameras;
       
-      // Events
-      EventHandlingFuncPtr callback[InputEventsCount];    // Callback per event type
+      // Tasks
+      TaskFunction task[InputEventsCount];    // Task to spawn per event type
       
       public:
-      virtual uint8           available(IO type) const;          // Count of available peripherials of given type
+      virtual uint8                       available(IO type) const;          // Count of available peripherials of given type
       virtual std::shared_ptr<Keyboard>   keyboard(uint8 index = 0) const;   // N'th Keyboard
       virtual std::shared_ptr<Mouse>      mouse(uint8 index = 0) const;      // N'th Mouse
       virtual std::shared_ptr<Joystick>   joystick(uint8 index = 0) const;   // N'th Joystick
@@ -85,11 +85,12 @@ namespace en
       virtual std::shared_ptr<Controller> controller(uint8 index = 0) const; // N'th Motion Controller
       virtual std::shared_ptr<Camera>     camera(uint8 index = 0) const;     // N'th Camera (Color, Depth, IR, or other)
 
+      virtual void forwardEvent(Event* event);
       virtual void update(void);                                 // Gets actual input state, call function handling cached events
          
-      CommonInterface();
+      CommonInput();
       virtual void init(void);
-      virtual ~CommonInterface();
+      virtual ~CommonInput();
       };
    }
 }

@@ -9,8 +9,8 @@
 #include <InitGuid.h> // Include to avoid linking error on x64 architecture: error LNK2001: unresolved external symbol IID_IDirectInput8W
 #include "platform/windows/win_events.h"  // Window events
 
-#include "input/winInput.h"
-#include "input/winJoystick.h"
+#include "core/input/winInput.h"
+#include "core/input/winJoystick.h"
 #include "core/rendering/device.h"
 
 #if OCULUS_VR
@@ -364,7 +364,7 @@ namespace en
 
 
    WinInterface::WinInterface() :
-      CommonInterface()
+      CommonInput()
    {
    // Register keyboard
    keyboards.push_back(std::make_shared<CommonKeyboard>());
@@ -393,7 +393,7 @@ namespace en
 
    void WinInterface::init(void)
    {
-   CommonInterface::init();
+   CommonInput::init();
 
    // Create DirectInput device
    HRESULT hr;       
@@ -404,17 +404,60 @@ namespace en
       }
    }
 
-   void WinInterface::update()
-   {
-   if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // | PM_QS_INPUT
-      {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);   // Call WndProc to process incoming events
-      }
 
-   // Process events from all attached peripherials
-   CommonInterface::update();
-   }
+// Main thread should sleep until Windows will provide new events, or until
+// application will request it to process Tasks that need to be executed on
+// main thread (for e.g. Window creation to link it's events queue with main 
+// thread).
+// So main thread needs to sleep() until there are tasks to process, and 
+// periodically wake up to process incoming events(). It will also be woken
+// up by the app, if it wants to process incoming events immediately.
+
+// Backend events are translated to unified engine events, that are then pushed
+// to internal queue. Application is responsible for draining those events on
+// it's end.
+
+// There are two types of events. Real-Time ones, that require immediate attention
+// from application, and regular events that can be queued. Application can register
+// task that will be spawned for execution for Real-Time events. Such task will be 
+// spawned for execution by Scheduler.
+// Each event can be treated as Real-Time one, and for each event task can be
+// registered. This gives application flexiility to decide how it wants events
+// to be handled (event tasks can be executed out of order?).
+
+// Application can:
+//
+// 1) Query events directly from the event queue when it sees fit.
+// 2) Register single task, to handle events. Then those events are handled 
+//    by that task when they occur. Application uses switch statement or 
+//    similar algorithm to handle each type of event in proper way.
+//    Events for which dedicated task is registered are not pushed to the
+//    event queue anymore. Tasks spawned by events are executed in order of
+//    those events appearance.
+// 3) Application registers separate tasks for different events. This way it
+//    can bind actions to events, and registered tasks can directly perform
+//    application logic (for e.g. "taskFire" will fire player weapon when 
+//    if will be triggered by event  "MouseButtonPressed" with LeftButton set).
+//
+// All three options can be mixed and used together to acomplish desired logic.
+// If State manager is used, all above can be registered in it, per each State,
+// and State manager will properly map those local state settings to Input
+// system.
+
+void WinInterface::update()
+{
+    // For more details see:
+    // https://en.wikipedia.org/wiki/Message_loop_in_Microsoft_Windows
+    //
+    if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // | PM_QS_INPUT
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);   // Passes incoming events to instance of WinEvents() function, registered for each window in the system
+    }
+
+    // Process events from all attached peripherials
+    CommonInput::update();
+}
 
 
    // MOUSE

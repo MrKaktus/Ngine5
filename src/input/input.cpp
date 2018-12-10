@@ -19,12 +19,14 @@
 #include "utilities/gpcpu/gpcpu.h"
 #include "audio/context.h"
 
+#include "parallel/scheduler.h"
+
 //#include "input/context.h"
 #if defined(EN_PLATFORM_OSX)  // New dynamic Interface
 #include "input/osxInput.h"
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
-#include "input/winInput.h"
+#include "core/input/winInput.h"
 #endif
 #if defined(EN_MODULE_OCULUS)
 #include "input/oculus.h"
@@ -167,12 +169,12 @@ namespace en
    Input = std::make_shared<WinInterface>();
    
    // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
-   reinterpret_cast<CommonInterface*>(Input.get())->init();
+   reinterpret_cast<CommonInput*>(Input.get())->init();
    
    return true;
    #else
    // How did we ended up here?
-   Input = std::make_shared<CommonInterface>();
+   Input = std::make_shared<CommonInput>();
    return false;
    #endif
    }
@@ -245,7 +247,7 @@ namespace en
    ////////////////////////////////////////////////////////////////////////////////
    
    
-   CommonInterface::CommonInterface() :
+   CommonInput::CommonInput() :
       Interface()
    {
    // General
@@ -259,10 +261,10 @@ namespace en
    
    // Clear callbacks array
    for(uint32 i=0; i<InputEventsCount; ++i)
-      callback[i] = &en::state::HandleEventByState;
+      task[i] = nullptr;
    }
 
-   void CommonInterface::init(void)
+   void CommonInput::init(void)
    {
    // Init all engine input modules
 #if defined(EN_MODULE_OCULUS)
@@ -276,7 +278,7 @@ namespace en
    // TODO: Other modules like Kinect, etc.
    }
 
-   CommonInterface::~CommonInterface()
+   CommonInput::~CommonInput()
    {
    Log << "Closing module: Input.\n";
 
@@ -291,13 +293,13 @@ namespace en
    // TODO: Unregister all remaining common devices
    }
 
-   uint8 CommonInterface::available(IO type) const
+   uint8 CommonInput::available(IO type) const
    {
    assert( type != IO::Count );
    return count[underlyingType(type)];
    }
    
-   std::shared_ptr<Keyboard> CommonInterface::keyboard(uint8 index) const
+   std::shared_ptr<Keyboard> CommonInput::keyboard(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Keyboard)])
       return std::shared_ptr<Keyboard>(nullptr);
@@ -305,7 +307,7 @@ namespace en
    return keyboards[index];
    }
 
-   std::shared_ptr<Mouse> CommonInterface::mouse(uint8 index) const
+   std::shared_ptr<Mouse> CommonInput::mouse(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Mouse)])
       return std::shared_ptr<Mouse>(nullptr);
@@ -313,7 +315,7 @@ namespace en
    return mouses[index];
    }
    
-   std::shared_ptr<Joystick> CommonInterface::joystick(uint8 index) const
+   std::shared_ptr<Joystick> CommonInput::joystick(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Joystick)])
       return std::shared_ptr<Joystick>(nullptr);
@@ -321,7 +323,7 @@ namespace en
    return joysticks[index];
    }
 
-   std::shared_ptr<HMD> CommonInterface::hmd(uint8 index) const
+   std::shared_ptr<HMD> CommonInput::hmd(uint8 index) const
    {
    if (index >= count[underlyingType(IO::HMD)])
       return std::shared_ptr<HMD>(nullptr);
@@ -329,7 +331,7 @@ namespace en
    return hmds[index];
    }
 
-   std::shared_ptr<Controller> CommonInterface::controller(uint8 index) const
+   std::shared_ptr<Controller> CommonInput::controller(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Controller)])
       return std::shared_ptr<Controller>(nullptr);
@@ -337,7 +339,7 @@ namespace en
    return controllers[index];
    }
    
-   std::shared_ptr<Camera> CommonInterface::camera(uint8 index) const
+   std::shared_ptr<Camera> CommonInput::camera(uint8 index) const
    {
    if (index >= count[underlyingType(IO::Camera)])
       return std::shared_ptr<Camera>(nullptr);
@@ -345,7 +347,7 @@ namespace en
    return cameras[index];
    }
 
-   void CommonInterface::update(void)
+   void CommonInput::update(void)
    {
    // Joystick events
    for(uint8 i=0; i<count[underlyingType(IO::Joystick)]; ++i)
@@ -359,6 +361,19 @@ namespace en
    for(uint8 i=0; i<count[underlyingType(IO::Camera)]; ++i)
       cameras[i]->update();
    }
+
+void CommonInput::forwardEvent(Event* event)
+{
+    if (task[event->type])
+    {
+        // Spawn task to handle this event
+        Scheduler->run(task[event->type], (void*)event);
+    }
+    else
+    {
+        // TODO: Push event on event queue
+    }
+}
 
 
 

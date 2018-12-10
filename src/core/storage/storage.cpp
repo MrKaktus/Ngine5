@@ -120,17 +120,17 @@ namespace en
 
 
 
-   CommonInterface::CommonInterface() :
+   CommonStorage::CommonStorage() :
       Interface()
    {
    processPath.clear();
    }
    
-   CommonInterface::~CommonInterface()
+   CommonStorage::~CommonStorage()
    {
    }
    
-   uint64 CommonInterface::read(const std::string& filename, std::string& dst)
+   uint64 CommonStorage::read(const std::string& filename, std::string& dst)
    {
    std::shared_ptr<File> file = open(filename);
    if (!file)

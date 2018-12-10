@@ -63,7 +63,7 @@ namespace en
       virtual ~WinMouse();                           // Polymorphic deletes require a virtual base destructor
       };
 
-   class WinInterface : public CommonInterface
+   class WinInterface : public CommonInput
       {
       public:
       MSG msg;                    // Message handle

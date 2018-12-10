@@ -20,7 +20,7 @@ namespace en
    namespace input
    {
    BBInterface::BBInterface() :
-      CommonInterface()
+      CommonInput()
    {
    // TODO: Spawn touchscreen and set it's variables
    
