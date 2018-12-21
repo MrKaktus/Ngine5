@@ -16,7 +16,7 @@
 
 namespace en
 {
-   void functionExecutingTask(LPVOID lpFiberParameter)
+   void WINAPI functionExecutingTask(LPVOID lpFiberParameter)
    {
    // Reconstruct pointer to Fiber object, on which this function is running,
    // and for which, task should be executed.

@@ -77,6 +77,7 @@ namespace en
       void deallocate(T& resource);
       };
 
+   // CompileTimeSizeReporting( PoolAllocator<void*> );
    static_assert(sizeof(PoolAllocator<void*>) == 48, "en::PoolAllocator<void*> size mismatch!");
 
    template<typename T>

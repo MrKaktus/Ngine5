@@ -47,8 +47,9 @@ namespace en
       void        push(T value);    // Called by producer threads
       };
 
-   // CompileTimeSizeReporting( sizeof(MPSCDeque<void*>) );
+   // CompileTimeSizeReporting( MPSCDeque<void*> );
    static_assert(sizeof(MPSCDeque<void*>) == 128, "en::MPSCDeque<void*> size mismatch!");
+
 
    template<typename T>
    MPSCDeque<T>::MPSCDeque(const uint32 capacity,                               // In entries
@@ -157,7 +158,7 @@ namespace en
      ~Worker();
       };
 
-   // CompileTimeSizeReporting( sizeof(Worker) );
+   // CompileTimeSizeReporting( Worker );
    static_assert(sizeof(Worker) == 384, "en::Worker size mismatch!");  // 248, 128+16 -> 320 -> 448 after adding MPSC hmm (so multiple of cache line)
 
    class TaskScheduler : public parallel::Interface

@@ -24,7 +24,12 @@
 // Compile-Time Object Size Calculation
 #define CompileTimeSizeReporting( a )                     \
    template<int s> struct GivenObjectSizeIs;              \
-   GivenObjectSizeIs<a> wow;
+   GivenObjectSizeIs< sizeof(a) > wow;
+
+// Compile-Time Member Offset Calculation
+#define CompileTimeOffsetReporting( a, b )                \
+   template<int s> struct GivenMemberIsAtOffset;          \
+   GivenMemberIsAtOffset< offsetof(a, b) > wow;
 
 // Determine target platform
 #if defined(ANDROID)

@@ -69,6 +69,7 @@ $array | Set-Content '.\ENGINE_PROJECT_NAME.sln'
 # Patching: ENGINE_PROJECT_NAME.vcxproj
 ########################################################
 
+# VS 2015
 
 $beforeBuildDebug="ENGINE_PROJECT_NAME\\project\\vs2015\\Debug\\</OutDir>"
 $afterBuildDebug="ENGINE_PROJECT_NAME\bin\win64\Debug\</OutDir>"
@@ -77,14 +78,6 @@ $afterBuildDebug="ENGINE_PROJECT_NAME\bin\win64\Debug\</OutDir>"
 $beforeBuildRelease="ENGINE_PROJECT_NAME\\project\\vs2015\\Release\\</OutDir>"
 $afterBuildRelease="ENGINE_PROJECT_NAME\bin\win64\Release\</OutDir>"
 (Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildRelease", "$afterBuildRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
-
-$beforeIntermediateDebug="ENGINE_PROJECT_NAME.dir\\Debug\\</IntDir>"
-$afterIntermediateDebug="`$(SolutionDir)..\..\build\win64\Debug\</IntDir>"
-(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeIntermediateDebug", "$afterIntermediateDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
-
-$beforeIntermediateRelease="ENGINE_PROJECT_NAME.dir\\Release\\</IntDir>"
-$afterIntermediateRelease="`$(SolutionDir)..\..\build\win64\Release\</IntDir>"
-(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeIntermediateRelease", "$afterIntermediateRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
 
 $beforeDatabaseDebug="project/vs2015/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
 $afterDatabaseDebug="bin/win64/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
@@ -101,6 +94,42 @@ $afterImportDebug="build/win64/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
 $beforeImportRelease="project/vs2015/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
 $afterImportRelease="build/win64/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
 (Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportRelease", "$afterImportRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+# VS 2017
+
+$beforeBuildDebug="ENGINE_PROJECT_NAME\\project\\vs2017\\Debug\\</OutDir>"
+$afterBuildDebug="ENGINE_PROJECT_NAME\bin\win64\Debug\</OutDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildDebug", "$afterBuildDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeBuildRelease="ENGINE_PROJECT_NAME\\project\\vs2017\\Release\\</OutDir>"
+$afterBuildRelease="ENGINE_PROJECT_NAME\bin\win64\Release\</OutDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildRelease", "$afterBuildRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeDatabaseDebug="project/vs2017/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+$afterDatabaseDebug="bin/win64/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeDatabaseDebug", "$afterDatabaseDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeDatabaseRelease="project/vs2017/Release/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+$afterDatabaseRelease="bin/win64/Release/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeDatabaseRelease", "$afterDatabaseRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeImportDebug="project/vs2017/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+$afterImportDebug="build/win64/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportDebug", "$afterImportDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeImportRelease="project/vs2017/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+$afterImportRelease="build/win64/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportRelease", "$afterImportRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+# Common
+
+$beforeIntermediateDebug="ENGINE_PROJECT_NAME.dir\\Debug\\</IntDir>"
+$afterIntermediateDebug="`$(SolutionDir)..\..\build\win64\Debug\</IntDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeIntermediateDebug", "$afterIntermediateDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeIntermediateRelease="ENGINE_PROJECT_NAME.dir\\Release\\</IntDir>"
+$afterIntermediateRelease="`$(SolutionDir)..\..\build\win64\Release\</IntDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeIntermediateRelease", "$afterIntermediateRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
 
 $beforeCMakeDebug="CMAKE_INTDIR=`"Debug`";"
 (Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeCMakeDebug", "" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'

@@ -53,6 +53,8 @@ namespace en
       };
 
    // Type doesn't make a difference here
+   // CompileTimeOffsetReporting( CircularQueue<uint8>, head );
+   // CompileTimeSizeReporting( CircularQueue<uint8> );
    static_assert(sizeof(CircularQueue<uint8>) == 32, "en::CircularQueue size mismatch!");
    
    // TODO: Simplify by replacing head and tail from pointers to uint64 indexes wrapping around % size
