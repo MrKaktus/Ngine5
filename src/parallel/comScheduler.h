@@ -169,6 +169,7 @@ namespace en
                                            // (all workers have consecutive ID's).
       Worker* worker;                      // Array of worker thread states
       std::atomic<bool> executing;         // Synchronizes start of worker threads execution
+      std::atomic<bool> appQuit;           // Signals to main thread that application finished teardown on it's side
 
       // Task submitted for execution by IO threads
       MPSCDeque<Task*>          queueOfMainThreadTasks; // Separate queue of tasks for execution on main thread
@@ -189,7 +190,8 @@ namespace en
 
       virtual void runOnMainThread(TaskFunction function,       // Task to execute
                                    void* data = nullptr,        // Data to be processed by task
-                                   TaskState* state = nullptr); // State to use, so that caller can synchronize
+                                   TaskState* state = nullptr,  // State to use, so that caller can synchronize
+                                   bool immediately = false);   // Indicates if this task should be processed immediately or pushed on queue (if main thread should be woken up or not)
 
       virtual void runOnWorker(const uint32 worker,         // Task execution is locked to CPU core of given Worker thread
                                TaskFunction function,       // Task to execute
@@ -207,6 +209,8 @@ namespace en
 
       virtual void processMainThreadTasks(void);  // Will process all tasks that should be executed on main thread.
                                                   // Main thread should call it each time it processes events from OS.
+      virtual void shutdown(void);                // Send signal to terminate all workers and finish application
+      virtual bool closing(void) const;           // Returns true if Thread-Pool is shutting down
 
       virtual ~TaskScheduler();
       };

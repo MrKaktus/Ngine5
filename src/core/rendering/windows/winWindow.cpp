@@ -30,6 +30,7 @@
 #if defined(EN_PLATFORM_WINDOWS)
 #include "platform/windows/win_events.h"
 #include "core/log/log.h"
+#include "parallel/scheduler.h"
 
 namespace en
 {
@@ -81,10 +82,17 @@ namespace en
    WindowRect.right     = (long)selectedResolution.width;
    WindowRect.top       = (long)0;    
    WindowRect.bottom    = (long)selectedResolution.height;
-          
+
+   // Window position
+   sint16v2 windowPosition;
+   windowPosition.x = settings.position.x;
+   windowPosition.y = settings.position.y;
+
    // Preparing for displays native fullscreen mode
    if (settings.mode == Fullscreen)
       {
+      windowPosition = sint16v2(0, 0);
+
       // Display Device settings
       DEVMODE DispDevice;
       memset(&DispDevice, 0, sizeof(DispDevice));       // Clearing structure
@@ -127,6 +135,10 @@ namespace en
          ExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;     // Window extended style  
       
          AdjustWindowRectEx(&WindowRect, Style, FALSE, ExStyle);  // Calculates true size of window with bars and borders
+
+         // Subtract border and bar sizes
+         windowPosition.x += WindowRect.left;
+         windowPosition.y += WindowRect.top;
          }
       else // Borderless window
          {
@@ -142,7 +154,7 @@ namespace en
       L"WindowClass",                      // Window class name
       (LPCWSTR)windowTitle.c_str(),        // Title of window            
       Style,                               // Additional styles
-      settings.position.x, settings.position.y, // Position on desktop    <-- TODO: Shouldn't be display.pos + settings.pos? Is this on Desktop or on Window ?
+      windowPosition.x, windowPosition.y,  // Position in screen coordinates    <-- TODO: Shouldn't be display.pos + settings.pos? Is this on Desktop or on Window ?
       WindowRect.right  - WindowRect.left, // True window widht
       WindowRect.bottom - WindowRect.top,  // True window height
       nullptr, //GetDesktopWindow(),       // Desktop is parent window
@@ -205,7 +217,7 @@ namespace en
    // or MoveWindow();
    }
    
-   // TODO: This method should be called by specialization class implementation that will chage Swap-Chain !
+   // TODO: This method should be called by specialization class implementation that will change Swap-Chain !
    void winWindow::resize(const uint32v2 size)
    {
    if (_mode != WindowMode::Windowed)
@@ -235,13 +247,24 @@ namespace en
                 SWP_NOMOVE | SWP_NOZORDER);
    }
    
-   void winWindow::active(void)
-   {
-   ShowWindow(hWnd, SW_SHOW);
-   SetForegroundWindow(hWnd);
-   SetFocus(hWnd);
-   SetActiveWindow(hWnd);
-   }
+void taskMakeWindowActive(void* data)
+{
+    HWND& hWnd = *(HWND*)(data);
+
+    ShowWindow(hWnd, SW_SHOW);
+    SetForegroundWindow(hWnd);
+    SetFocus(hWnd);
+    SetActiveWindow(hWnd);
+}
+
+void winWindow::active(void)
+{
+    TaskState taskState;
+
+    // Window needs to be activated on main thread
+    en::Scheduler->runOnMainThread(taskMakeWindowActive, (void*)&hWnd, &taskState, true);
+    en::Scheduler->wait(&taskState);
+}
 
    void winWindow::transparent(const float opacity)
    {

@@ -85,10 +85,32 @@ namespace en
       setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
    }
 
-   void TranslateTextureAccess(TextureAccess usage, Format format, VkAccessFlags& access, VkImageLayout& layout)
+   void TranslateTextureAccess(TextureAccess usage, Format format, VkAccessFlags& access, VkImageLayout& layout, VkPipelineStageFlagBits& stage)
    {
    access = static_cast<VkAccessFlags>(0u);
    layout = static_cast<VkImageLayout>(0u);
+   stage  = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+
+   // VK_ACCESS_SHADER_READ_BIT: 
+   // VK_ACCESS_SHADER_WRITE_BIT:
+   // 
+   // VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV, 
+   // VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV, 
+   // VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, 
+   // VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT, 
+   // VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT, 
+   // VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT, 
+   // VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 
+   // or
+   // VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+   
+   // VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT:
+   // VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT:
+   //
+   // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+   // or 
+   // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
+   
 
    bool canBeWritten = false;
 
@@ -125,11 +147,19 @@ namespace en
             layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; 
          else
             layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+         // TODO: Needs to know context in which it will be used!
+         //
+         // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+         // or 
+         // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
+         stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
          }
       else
          {
-         setBitmask(access, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT); // Read via Blening / LogicOp or Subpass load
+         setBitmask(access, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT); // Read via Blending / LogicOp or Subpass load
          layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+         stage  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
          }
       }
 
@@ -142,11 +172,19 @@ namespace en
          {
          setBitmask(access, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
          layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;         // Overrides Read-Only Depth-Stencil mode
+
+         // TODO: Needs to know context in which it will be used!
+         //
+         // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+         // or 
+         // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
+         stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
          }
       else
          {
-         setBitmask(access, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT); // Written via Output write or Blening / LogicOp
+         setBitmask(access, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT); // Written via Output write or Blending / LogicOp
          layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+         stage  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
          }
       }
 
@@ -157,11 +195,13 @@ namespace en
       {
       setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
       layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+      stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
       }
    if (checkBitmask(usageMask, underlyingType(TextureAccess::ResolveDestination)))
       {
       setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
       layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+      stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
       }
 
    // Transfer between System Memory and Dedicated Memory
@@ -169,11 +209,13 @@ namespace en
       {
       setBitmask(access, VK_ACCESS_HOST_READ_BIT);
       layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+      stage  = VK_PIPELINE_STAGE_HOST_BIT;
       }
    if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferDestination)))
       {
       setBitmask(access, VK_ACCESS_HOST_WRITE_BIT);
       layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+      stage  = VK_PIPELINE_STAGE_HOST_BIT;
       }
 
    // Copy and Blit operations
@@ -181,11 +223,13 @@ namespace en
       {
       setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
       layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+      stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
       }
    if (checkBitmask(usageMask, underlyingType(TextureAccess::CopyDestination)))
       {
       setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
       layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+      stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
       }
 
    // Present
@@ -289,7 +333,8 @@ namespace en
    // Determine texture inital access and layout
    VkAccessFlags vNewAccess;
    VkImageLayout vNewLayout;
-   TranslateTextureAccess(initAccess, texture.state.format, vNewAccess, vNewLayout);
+   VkPipelineStageFlagBits vNewStage;
+   TranslateTextureAccess(initAccess, texture.state.format, vNewAccess, vNewLayout, vNewStage);
 
    barrier(_texture, 
            uint32v2(0, _texture.mipmaps()),
@@ -299,7 +344,7 @@ namespace en
            VK_IMAGE_LAYOUT_UNDEFINED,
            vNewLayout,
            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  
-           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+           vNewStage);
    }
 
    void CommandBufferVK::barrier(const Texture& _texture,
@@ -323,15 +368,17 @@ namespace en
    {
    const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
 
-   // Determine current texture access bitmask and layout type
+   // Determine current texture access, layout and stage after which resource transition is allowed
    VkAccessFlags vOldAccess;
    VkImageLayout vOldLayout;
-   TranslateTextureAccess(currentAccess, texture.state.format, vOldAccess, vOldLayout);
+   VkPipelineStageFlagBits vOldStage;
+   TranslateTextureAccess(currentAccess, texture.state.format, vOldAccess, vOldLayout, vOldStage);
 
-   // Determine texture new access and layout
+   // Determine texture new access, layout and stage before which resource transition is allowed
    VkAccessFlags vNewAccess;
    VkImageLayout vNewLayout;
-   TranslateTextureAccess(newAccess, texture.state.format, vNewAccess, vNewLayout);
+   VkPipelineStageFlagBits vNewStage;
+   TranslateTextureAccess(newAccess, texture.state.format, vNewAccess, vNewLayout, vNewStage);
 
    barrier(_texture,
            mipmaps, 
@@ -340,8 +387,8 @@ namespace en
            vNewAccess,
            vOldLayout,
            vNewLayout,
-           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  
-           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+           vOldStage,  
+           vNewStage);
    }
 
 

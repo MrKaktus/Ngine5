@@ -51,7 +51,7 @@ void ConvertWindowPositionToScreenPosition(HWND hWnd, LPARAM lParam, uint32& x, 
 
 LRESULT CALLBACK WinEvents(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    WinInterface* input = reinterpret_cast<WinInterface*>(en::Input.get());
+    WinInput* input = reinterpret_cast<WinInput*>(en::Input.get());
 
     switch(msg)
     {

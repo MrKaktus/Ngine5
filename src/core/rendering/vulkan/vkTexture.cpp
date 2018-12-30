@@ -515,16 +515,18 @@ namespace en
 
    TextureVK::~TextureVK()
    {
-   ValidateNoRet( gpu, vkDestroyImage(gpu->device, handle, nullptr) )
-   handle = VK_NULL_HANDLE;
-
    // Textures backed with Swap-Chain surfaces have no backing heap.
    if (heap)
       {
+      // TODO: Are Swap-Chain textures automatically destroyed with Swap-Chain ?
+      ValidateNoRet(gpu, vkDestroyImage(gpu->device, handle, nullptr))
+         
       // Deallocate from the Heap (let Heap allocator know that memory region is available again)
       heap->allocator->deallocate(offset, memoryRequirements.size);
       heap = nullptr;
       }
+
+   handle = VK_NULL_HANDLE;
    }
  
    std::shared_ptr<Heap> TextureVK::parent(void) const

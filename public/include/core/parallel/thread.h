@@ -44,11 +44,11 @@ class Thread
 
 std::unique_ptr<Thread> startThread(ThreadFunction function, void* threadState);
 
-extern uint32 currentThreadId(void); ///< Index of current thread (calling this function)
-extern uint32 spawnedThreads(void);  ///< Threads created since application start
-extern uint32 runningThreads(void);  ///< Count of threads that are still running
-
-extern uint32 currentCoreId(void);   ///< Index of CPU core on which this thread is currently executing
+extern uint32 currentThreadId(void);  ///< Index of current thread (calling this function)
+extern uint32 spawnedThreads(void);   ///< Threads created since application start
+extern uint32 runningThreads(void);   ///< Count of threads that are still running
+extern void   wakeUpMainThread(void); ///< Wakes up main thread to process incoming events
+extern uint32 currentCoreId(void);    ///< Index of CPU core on which this thread is currently executing
 }
 
 #endif

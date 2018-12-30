@@ -69,7 +69,8 @@ class Interface
     virtual void runOnMainThread(
         TaskFunction function,           ///< Task to execute
         void* data = nullptr,            ///< Data to be processed by task
-        TaskState* state = nullptr) = 0; ///< State to use, so that caller can synchronize
+        TaskState* state = nullptr,      ///< State to use, so that caller can synchronize
+        bool immediately = false) = 0;   ///< Indicates if this task should be processed immediately or pushed on queue (if main thread should be woken up or not)
     
     /// This method should be used only in rare cases, for e.g. when some system 
     /// needs to have internal state per CPU core or worker thread using it. This 
@@ -100,14 +101,13 @@ class Interface
     
     virtual void processMainThreadTasks(void) = 0; // Will process all tasks that should be executed on main thread.
                                                    // Main thread should call it each time it processes events from OS.
-    
+
+
+
     // TODO: Add support for handling I/O requests (wait & wake up)
 
-      // virtual void       shutdown(void) = 0;              // Send signal to terminate all workers and finish application
-      // virtual bool       closing(void) const = 0;         // Returns true if Thread-Pool is shutting down
-
-
-
+    virtual void shutdown(void) = 0;              // Send signal to terminate all workers and finish application
+    virtual bool closing(void) const = 0;         // Returns true if Thread-Pool is shutting down
 
     virtual ~Interface() {};                       // Polymorphic deletes require a virtual base destructor
 };

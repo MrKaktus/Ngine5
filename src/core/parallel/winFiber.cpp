@@ -53,10 +53,14 @@ namespace en
                           this);
    }
 
-   winFiber::~winFiber()
-   {
-   DeleteFiber(handle);
-   }
+winFiber::~winFiber()
+{
+    // Don't destroy fiber that represents original thread that converted to it
+    if (function)
+    {
+        DeleteFiber(handle);
+    }
+}
 
    std::unique_ptr<Fiber> convertToFiber(void)
    {

@@ -94,5 +94,13 @@ namespace en
    //assert( 0 );
    //}
 
+   uint32v4 windowBorders(void)
+   {
+   // TODO: Those values are hardcoded based on Windows 10.
+   //       They should be queried by engine on application 
+   //       start based on backing OS.
+   return uint32v4(8, 8, 32, 8);
+   }
+
    }
 }

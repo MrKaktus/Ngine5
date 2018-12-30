@@ -47,10 +47,10 @@ namespace en
       Write               = 0x0002,  // Allows Writing to Textures (by Compute Shaders)
       Atomic              = 0x0004,  // Allows Atomic operations on Texture
       RenderTargetRead    = 0x0008,  // Texture can be source of reads during rendering operations:
-                                     // Color         - read via Blening / LogicOp or Subpass load
+                                     // Color         - read via Blending / LogicOp or Subpass load
                                      // Depth-Stencil - read via HiZ, Early-Z and Depth Test
       RenderTargetWrite   = 0x0010,  // Texture can be destination for rendering operations:
-                                     // Color         - written via Subpass save or Blening / LogicOp
+                                     // Color         - written via Subpass save or Blending / LogicOp
                                      // Depth-Stencil - written via Depth Write
       ResolveSource       = 0x0020,  // Can be source of MSAA resolve operation.
       ResolveDestination  = 0x0040,  // Can be destination of MSAA resolve operation.

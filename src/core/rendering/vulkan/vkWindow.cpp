@@ -213,6 +213,31 @@ namespace en
          Log << "Warning: Requested Swap-Chain resolution is unsupported. Using window resolution instead.\n";
       }
 
+/* TODO: FIXME: Corner case!
+//              Requested Window, Swap-Chain size is matching display native resolution.
+//              This means that window will need to take into notice borders and bar 
+//              and be bigger, or reduce Swap-Chain surface size to fit window into 
+//              display resolution. On Windows, window is extended (bigger), yet
+//              Vulkan returns wrong supported "ImageExtent".
+
+   // If Swap-Chain resolution is expected to match requested window surface size, 
+   // verify that it's supported by Vulkan (this looks like Vulkan driver bug?)
+   if ( (settings.mode != Fullscreen) &&
+        (settings.resolution.width  == 0) &&
+        (settings.resolution.height == 0) )
+      {
+      // If requested resolution is outside of allowed range, terminate
+      if ( (selectedResolution.width < swapChainCapabilities.minImageExtent.width) ||
+           (selectedResolution.width > swapChainCapabilities.maxImageExtent.width) ||
+           (selectedResolution.height < swapChainCapabilities.minImageExtent.height) ||
+           (selectedResolution.height > swapChainCapabilities.maxImageExtent.height))
+         {
+         Log << "Warning: Requested Swap-Chain resolution is unsupported by Vulkan for final Window size.\n";
+         return;
+         }
+      }
+//*/
+
    // Verify supported usage
    //------------------------
    
@@ -407,14 +432,11 @@ namespace en
  
    // TODO: Do we release swap-chain surfaces in any particular way?
 
-   // Release Swap-Chain surfaces attached to Swap-Chain textures in their descriptors.
-   delete [] swapChainTexture;
-
    // Destroy Swap-Chain
+   ValidateNoRet( gpu, vkDestroySwapchainKHR(gpu->device, swapChain, nullptr) )
 
-   // TODO: FIXME: WA: NVIDIA Driver crashes on it!
-   //ValidateNoRet( gpu, vkDestroySwapchainKHR(gpu->device, swapChain, nullptr) )
-
+   // Release Swap-Chain surfaces attached to Swap-Chain textures in their descriptors.
+   delete[] swapChainTexture;
 
    // Destroy Surface
    VulkanAPI* api = reinterpret_cast<VulkanAPI*>(en::Graphics.get());
@@ -581,6 +603,35 @@ namespace en
    surfaceAcquire.unlock();
    }
 
+// There is no way of hiding struct inside of single translation unit
+struct taskCreateWindowStateVK
+{
+    VulkanDevice* gpu;
+    std::shared_ptr<CommonDisplay> selectedDisplay;
+    uint32v2 selectedResolution;
+    const WindowSettings* settings;
+    std::string title;
+    std::shared_ptr<WindowVK> result;
+
+    taskCreateWindowStateVK(const WindowSettings* _settings);
+};
+
+taskCreateWindowStateVK::taskCreateWindowStateVK(const WindowSettings* _settings) :
+    gpu(nullptr),
+    selectedDisplay(nullptr),
+    selectedResolution(),
+    settings(_settings),
+    title(),
+    result(nullptr)
+{
+}
+
+static void taskCreateWindow(void* data)
+{
+   taskCreateWindowStateVK& state = *(taskCreateWindowStateVK*)(data);
+
+   state.result = std::make_shared<WindowVK>(state.gpu, state.selectedDisplay, state.selectedResolution, *state.settings, state.title);
+}
 
    std::shared_ptr<Window> VulkanDevice::createWindow(const WindowSettings& settings, const std::string title)
    {
@@ -631,10 +682,37 @@ namespace en
          return result;
          }
       }
+   else // Verify that desired resolution together with window borders and bars fits on the display
+   if (settings.mode == Windowed)
+      {
+      uint32v4 borders = windowBorders(); // width and height that needs to be added to content size
 
-   result = std::make_shared<WindowVK>(this, display, selectedResolution, settings, title);
+      if ( (selectedResolution.width  + borders.left + borders.rigth)  > display->_resolution.width ||
+           (selectedResolution.height + borders.top  + borders.bottom) > display->_resolution.height)
+         {
+         Log << "Error! In Windowed mode, final window size (requested size plus borders) is greater than selected display native resolution.\n";
+         return result;
+         }
+      }
 
-   return result;
+
+   taskCreateWindowStateVK state(&settings);
+   state.gpu = this;
+   state.selectedDisplay = display;
+   state.selectedResolution = selectedResolution;
+   state.title = title;
+
+   TaskState taskState;
+
+   // Window needs to be created on main thread
+   en::Scheduler->runOnMainThread(taskCreateWindow, (void*)&state, &taskState, true);
+   en::Scheduler->wait(&taskState);
+
+   return state.result;
+
+   //result = std::make_shared<WindowVK>(this, display, selectedResolution, settings, title);
+
+   //return result;
    }
 
    }

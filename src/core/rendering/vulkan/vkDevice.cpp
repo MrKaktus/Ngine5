@@ -340,7 +340,17 @@ void taskDestroyCommandPools(void* data)
     }
 
     // Increase counter of worker threads that are de-initialized
-    state->workersInitialized->fetch_add(1, std::memory_order_relaxed);
+    uint32 previousValue = state->workersInitialized->fetch_add(1, std::memory_order_relaxed);
+
+#ifdef EN_DEBUG
+    std::string workerIndex = "Worker ";
+    workerIndex.append(stringFrom(state->worker));
+    workerIndex.append(": ");
+    workerIndex.append(stringFrom(previousValue + 1));
+    workerIndex.append("\n");
+
+    Log << workerIndex;
+#endif
 }
 
 
@@ -719,23 +729,16 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
    PipelineCacheHeader diskHeader;
    file->read(0u, sizeof(PipelineCacheHeader), &diskHeader);
 
-   // Read size of driver cache in RAM (should be at least size of a header)
-   uint64 cacheSize = 0u;
-   Validate( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), nullptr) )
-   if (cacheSize < sizeof(PipelineCacheHeader))
+   // Check if cache is matching this GPU
+   if (diskHeader.vendorID != properties.vendorID ||
+       diskHeader.deviceID != properties.deviceID) 
       {
       file = nullptr;
       return nullptr;
       }
 
-   // Read driver cache header
-   PipelineCacheHeader driverHeader;
-   uint64 headerSize = sizeof(PipelineCacheHeader);
-   Validate( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&headerSize), &driverHeader) )
-
-   // Ensure that both headers match. This means that cache stored on 
-   // disk is still valid (headers won't match after drivers update, GPU change, etc.).
-   if (memcmp(&diskHeader, &driverHeader, sizeof(PipelineCacheHeader)) != 0u)
+   // Check if cache needs to be rebuild due to changed UUID (it won't match after drivers update, GPU change, etc.).
+   if (memcmp(&diskHeader.cacheUUID[0], &properties.pipelineCacheUUID[0], 16) != 0)
       {
       file = nullptr;
       return nullptr;
@@ -743,7 +746,7 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
 
    // Load previously cached pipeline state objects from disk
    uint8* cacheData = new uint8[diskCacheSize];
-   file->read(&cacheData);
+   file->read((volatile void*)cacheData);
    file = nullptr;
 
    size = diskCacheSize;
@@ -840,65 +843,49 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
 
    ValidateNoRet( this, vkDestroyPipelineCache(device, pipelineCache, nullptr) )
 
-   // Release CommandBuffers in flight once they are done
-   bool stillExecuting;
-   do
-   {
-   stillExecuting = false;
-   for(uint32 thread=0; thread<MaxSupportedWorkerThreads; ++thread)
-      {
-      uint32 executing = commandBuffersExecuting[thread];
-      for(uint32 i=0; i<executing; ++i)
-         {
-         CommandBufferVK* command = reinterpret_cast<CommandBufferVK*>(commandBuffers[thread][i].get());
-         if (command->isCompleted())
-            {
+    // Release CommandBuffers in flight once they are done
+    for(uint32 workerId=0; workerId<MaxSupportedWorkerThreads; ++workerId)
+    {
+        uint32 executing = commandBuffersExecuting[workerId];
+        for(uint32 i=0; i<executing; ++i)
+        {
+            CommandBufferVK* command = reinterpret_cast<CommandBufferVK*>(commandBuffers[workerId][i].get());
+            command->waitUntilCompleted();
+
             // Safely release Command Buffer object
-            commandBuffers[thread][i] = nullptr;
-            if (i < (executing - 1))
-               {
-               commandBuffers[thread][i] = commandBuffers[thread][executing - 1];
-               commandBuffers[thread][executing - 1] = nullptr;
-               }
-      
-            executing--;
-            commandBuffersExecuting[thread]--;
-            }
-         else
-            stillExecuting = true;
-         }
-      }
-   }
-   while(stillExecuting);
+            commandBuffers[workerId][i] = nullptr;
+        }
+    }
 
+    taskClosure state[MaxSupportedWorkerThreads];
 
-taskClosure state[MaxSupportedWorkerThreads];
-
-// Vulkan device is destroyed on main thread, outside of worker threads pool.
-// This means that main thread needs to wait until all worker threads will 
-// process their tasks, but as it's IO thread, it needs to use manual 
-// synchronization (IO threads cannot wait on Tasks).
-// This will stall main thread, but that's ok, since this happens at engine
-// de-initialization stage, after application main() function completes.
-std::atomic<uint32> workersInitialized = 0;
-
-// Each thread has separate command pool for each Queue Type
-for(uint32 worker=0; worker<en::Scheduler->workers(); ++worker)
-{
+    // Vulkan device is destroyed on main thread, outside of worker threads pool.
+    // This means that main thread needs to wait until all worker threads will 
+    // process their tasks, but as it's IO thread, it needs to use manual 
+    // synchronization (IO threads cannot wait on Tasks).
+    // This will stall main thread, but that's ok, since this happens at engine
+    // de-initialization stage, after application main() function completes.
+    std::atomic<uint32> workersInitialized = 0;
     
-    state[worker].device = this;
-    state[worker].worker = worker;
-    state[worker].workersInitialized = &workersInitialized;
+    // Each thread has separate command pool for each Queue Type
+    for(uint32 worker=0; worker<en::Scheduler->workers(); ++worker)
+    {
+        
+        state[worker].device = this;
+        state[worker].worker = worker;
+        state[worker].workersInitialized = &workersInitialized;
+    
+        en::Scheduler->runOnWorker(worker, taskDestroyCommandPools, (void*)&state[worker]);
+    }
 
-    en::Scheduler->runOnWorker(worker, taskDestroyCommandPools, (void*)&state[worker]);
-}
+    // Wait until scheduler finishes de-initialization of this device on all workers
+    bool executing = false;
+    while(std::atomic_load_explicit(&workersInitialized, std::memory_order_acquire) < en::Scheduler->workers())
+    {
+        _mm_pause();
+    }
 
-// Wait until scheduler finishes de-initialization of this device on all workers
-bool executing = false;
-while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) < en::Scheduler->workers())
-{
-    _mm_pause();
-}
+    cleanupCommonResources();
 
 
    if (device != VK_NULL_HANDLE)
@@ -1693,12 +1680,17 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
    // Cannot enable more layers than all currently available
    layersPtrs = new char*[layersCount];
 
+   // Layers available on machine with raw graphic driver
+   // VK_LAYER_NV_optimus
+   // VK_LAYER_VALVE_steam_overlay
+   // VK_LAYER_LUNARG_standard_validation
+
    // Temporary WA to manually select layers to load
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_api_dump";
-   layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_core_validation";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_core_validation";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_image";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_object_tracker";
-   layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_parameter_validation";
+   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_parameter_validation";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_screenshot";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_swapchain";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_GOOGLE_threading";
@@ -1707,7 +1699,7 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_NV_optimus";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_RENDERDOC_Capture";
    //layersPtrs[enabledLayersCount++] = "VK_LAYER_VALVE_steam_overlay";
-   //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_standard_validation";  // Meta-layer - Loads standard set of validation layers in optimal order (all of them in fact)
+   layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_standard_validation";  // Meta-layer - Loads standard set of validation layers in optimal order (all of them in fact)
 
 
    //// In debug mode enable additional layers for debugging,
@@ -1805,37 +1797,44 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
    delete [] deviceHandle;
    }
 
-   VulkanAPI::~VulkanAPI()
-   {
+VulkanAPI::~VulkanAPI()
+{
     // Remove debug callbacks (Error, Warning, Performance)
 #if defined(EN_DEBUG)
     vkDestroyDebugReportCallbackEXT(instance, debugCallbackHandle, nullptr);
 #endif
 
-   // Release Layers and Extensions information
-   for(uint32 i=0; i<layersCount; ++i)
-      delete [] layer[i].extension;
-   delete [] layer;
-   delete [] globalExtension;
+    // Release Vulkan Devices
+    for(uint32 i = 0; i<devicesCount; ++i)
+        _device[i] = nullptr;
+
+    // Release Layers and Extensions information
+    for(uint32 i=0; i<layersCount; ++i)
+        delete [] layer[i].extension;
+
+    delete [] layer;
+    delete [] globalExtension;
    
-   // Release Vulkan instance
-   if (instance != VK_NULL_HANDLE)
-      ValidateNoRet( this, vkDestroyInstance(instance, nullptr) )
- 
-   // Clear Vulkan function pointers
-   clearInterfaceFunctionPointers();
+    // Release Vulkan instance
+    if (instance != VK_NULL_HANDLE)
+    {
+        ValidateNoRet( this, vkDestroyInstance(instance, nullptr) )
+    }
+
+    // Clear Vulkan function pointers
+    clearInterfaceFunctionPointers();
    
-   // Release Dynamically Linked Vulkan Library
-   if (library)
-      {
+    // Release Dynamically Linked Vulkan Library
+    if (library)
+    {
 #if defined(EN_PLATFORM_WINDOWS)
-      FreeLibrary(library);
+        FreeLibrary(library);
 #endif
 #if defined(EN_PLATFORM_LINUX)
-      dlclose(library);
+        dlclose(library);
 #endif
-      }
-   }
+    }
+}
 
    void VulkanAPI::loadInterfaceFunctionPointers(void)
    {

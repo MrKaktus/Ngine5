@@ -34,6 +34,8 @@ extern void initHalfs(void);
 
 #ifdef EN_PLATFORM_WINDOWS
 #include "core/types.h"
+#include "core/input/winInput.h"
+#include "parallel/comScheduler.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -61,6 +63,7 @@ struct Arguments
    const char **argv;
    };
 
+DWORD  mainThreadId;
 uint32 mainResult;
 
 void taskMain(void* taskData)
@@ -73,7 +76,16 @@ void taskMain(void* taskData)
 // Entry point for console applications
 int ConsoleMain(int argc, const char **argv)
 {
-    // Console window:
+    // Init global variables
+    //////////////////////////
+
+    mainThreadId = GetCurrentThreadId();
+
+    // Init Math
+    en::initHalfs();
+
+    // Console window
+    ///////////////////
 
     // TODO: Move it to proper place in code
 
@@ -99,8 +111,7 @@ int ConsoleMain(int argc, const char **argv)
 
 
 
-// Init Math
-en::initHalfs();
+
 
 // Init modules in proper order
 en::storage::Interface::create();
@@ -151,22 +162,83 @@ en::SchedulerContext.start(new MainTask(argc,argv));
 
 
 
-// Package input arguments
-Arguments arguments;
-arguments.argc = argc;
-arguments.argv = argv;
+    // Package input arguments
+    Arguments arguments;
+    arguments.argc = argc;
+    arguments.argv = argv;
 
-en::Scheduler->run(taskMain, (void*)&arguments);
+    // Enqueue main task for execution
+    en::Scheduler->run(taskMain, (void*)&arguments);
 
-// TODO: Here run main event loop and proces scheduler events dedicated to main thread 
+// Run main event loop and proces scheduler events dedicated to main thread 
 
-    while(true)
+// Main thread sleeps waiting for incoming messages.
+// It is woken up by sending special message to it, that
+// indicates that there are tasks to process.
+// https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-postthreadmessagea
+
+
+
+    en::input::WinInput* input = reinterpret_cast<en::input::WinInput*>(en::Input.get());
+
+    MSG  msg;               // Message handle
+    BOOL messageResult = 0; // Bool, yet can have -1, 0, >0 states
+
+    // Query incoming messages (from system, or wakeup one from worker threads).
+    // If there are no messages left, sleep to yeld CPU to worker thread.
+    // For more details see:
+    // https://en.wikipedia.org/wiki/Message_loop_in_Microsoft_Windows
+    while((messageResult = GetMessage(&msg, nullptr, 0, 0)) != 0)
     {
-        en::Input->update();
-        en::Scheduler->processMainThreadTasks();
+        if (messageResult == -1)
+        {
+            // This shouldn't happened
+        }
+        else
+        {
+            // Decode first mesage after woking up, then let Input system peek remaining messages in non blocking way.
+            // Once all messages are processed from all inputs, tasks dedicated to main thread will be processed,
+            // and finally, main thread will sleep again on calling GetMessage().
+            input->decodeMessage(msg);
+            input->update();
+        }
+
+        // Break processing of incoming events if application decided to quit on it's own
+        if (en::Scheduler->closing())
+        {
+            break;
+        }
     }
 
-// Close modules in order
+    // Main thread loop is terminated due to quit signal received from OS. 
+    if (messageResult == 0)
+    {
+        assert(msg.message == WM_QUIT);
+        
+        // Application was requested by the system to terminate.
+        // Engine notifies application about such fact, and lets it teardown.
+        input->forwardEvent(new en::input::Event(en::input::AppClose));
+        
+        // Wait here for app to terminate
+        while(!en::Scheduler->closing())
+        {
+            // All inputs and tasks dedicated to main thread are still processed during application shutdown
+            input->update();
+        }
+    }
+
+
+    //while(true)
+    //{
+    //    en::Input->update();
+    //    en::Scheduler->processMainThreadTasks();
+    //}
+
+
+
+    // Close modules in reverse order to their initialization
+    ///////////////////////////////////////////////////////////
+
 en::StateContext.destroy();
 
 //en::ResourcesContext.destroy();

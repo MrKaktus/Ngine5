@@ -18,10 +18,10 @@ namespace en
    class uint32v4
       {
       public:
-      uint32 x;
-      uint32 y;
-      union { uint32 z; uint32 width;  };
-      union { uint32 w; uint32 height; };
+      union { uint32 x; uint32 left;  };
+      union { uint32 y; uint32 rigth; };
+      union { uint32 z; uint32 top;    uint32 width;  };
+      union { uint32 w; uint32 bottom; uint32 height; };
       
       uint32v4(void);
       uint32v4(const uint32 x, const uint32 y, const uint32 z, const uint32 w);

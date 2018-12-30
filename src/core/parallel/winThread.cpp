@@ -100,6 +100,12 @@ namespace en
    return running;
    }
 
+   void wakeUpMainThread(void)
+   {
+      // Send custom application message to main thread. This will wake it up, to process it, and thus allow it to also process all other input and tasks queued.
+      PostThreadMessageA(mainThreadId, WM_APP, 0, 0);
+   }
+
    uint32 currentCoreId(void)
    {
    return GetCurrentProcessorNumber();

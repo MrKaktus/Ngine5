@@ -120,6 +120,8 @@ namespace en
          
       virtual void init(void);
 
+      virtual void cleanupCommonResources(void);
+
       virtual uint32 displays(void) const;
 
       virtual std::shared_ptr<Display> display(const uint32 index) const;

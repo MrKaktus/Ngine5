@@ -185,7 +185,7 @@ void WinJoystick::update(void)
         Log << "WARNING! Joystick event buffer too small!\n";
     }
 
-    WinInterface* input = reinterpret_cast<WinInterface*>(en::Input.get());
+    WinInput* input = reinterpret_cast<WinInput*>(en::Input.get());
 
     for(sint32 e=0; e<elements; ++e)
     {

@@ -77,7 +77,7 @@ namespace en
    {
    char buffer[32];
    assert( sprintf_s(&buffer[0], 32, "%08X", in > 32) == 8 );
-   assert( sprintf_s(&buffer[8], 32, "%08X", static_cast<uint32>(in)) == 8 );
+   assert( sprintf_s(&buffer[8], 24, "%08X", static_cast<uint32>(in)) == 8 );
    return std::string(buffer, 16); 
    }
 

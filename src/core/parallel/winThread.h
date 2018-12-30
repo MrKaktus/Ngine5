@@ -20,6 +20,9 @@
 
 #include <atomic>
 
+// Global storing Windows ID of main thread
+extern DWORD mainThreadId;
+
 namespace en
 {
    // Windows has different entry point for threads, thus passed function and

@@ -312,6 +312,18 @@ void taskCreateWindow(void* data)
          return result;
          }
       }
+   else // Verify that desired resolution together with window borders and bars fits on the display
+   if (settings.mode == Windowed)
+      {
+         uint32v4 borders = windowBorders(); // width and height that needs to be added to content size
+
+         if ((selectedResolution.width  + borders.left + borders.rigth) > display->_resolution.width ||
+             (selectedResolution.height + borders.top + borders.bottom) > display->_resolution.height)
+         {
+            Log << "Error! In Windowed mode, final window size (requested size plus borders) is greater than selected display native resolution.\n";
+            return result;
+         }
+      }
 
    taskCreateWindowState state(&settings);
    state.gpu                = this;
@@ -322,7 +334,7 @@ void taskCreateWindow(void* data)
    TaskState taskState;
 
    // Window needs to be created on main thread
-   en::Scheduler->runOnMainThread(taskCreateWindow, (void*)&state, &taskState);
+   en::Scheduler->runOnMainThread(taskCreateWindow, (void*)&state, &taskState, true);
    en::Scheduler->wait(&taskState);
 
    return state.result;

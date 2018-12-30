@@ -118,6 +118,10 @@ namespace en
       
       virtual ~Window() {};
       };
+
+   // Size of left, right and bottom borders, as well as top bars. 
+   // Those sizes are added to requested window size in Windowed mode.
+   uint32v4 windowBorders(void);  
    }
 }
 #endif

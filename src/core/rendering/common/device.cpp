@@ -139,15 +139,33 @@ namespace en
        return support.systemMemorySize;
    }
    
-   CommonDevice::~CommonDevice()
-   {
-   // Release default device objects
-   defaultState->rasterState        = nullptr;
-   defaultState->multisamplingState = nullptr;
-   defaultState->depthStencilState  = nullptr;
-   defaultState->blendState         = nullptr;
-   delete defaultState;
-   }
+void CommonDevice::cleanupCommonResources(void)
+{
+    // Release default device objects
+    defaultState->renderPass         = nullptr;
+    defaultState->inputLayout        = nullptr;
+    defaultState->viewportState      = nullptr;
+    defaultState->rasterState        = nullptr;
+    defaultState->multisamplingState = nullptr;
+    defaultState->depthStencilState  = nullptr;
+    defaultState->blendState         = nullptr;
+    for(uint32 i=0; i<5; ++i)
+    {
+        defaultState->shader[i]      = nullptr;
+        defaultState->function[5].empty();
+    }
+    defaultState->pipelineLayout     = nullptr;
+
+    delete defaultState;
+
+    defaultState = nullptr;
+}
+
+CommonDevice::~CommonDevice()
+{
+    // Parent device should call cleanupCommonResources() before releasing main device handle
+    assert( defaultState == nullptr );
+}
    
    //std::shared_ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType,
    //                                                        const uint32 controlPoints,

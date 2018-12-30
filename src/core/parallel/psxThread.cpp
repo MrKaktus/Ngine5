@@ -121,6 +121,11 @@ namespace en
    return running;
    }
 
+   void wakeUpMainThread(void)
+   {
+   // TODO: How main thread messages processing looks like in POSIX?
+   }
+
    uint32 currentCoreId(void)
    {
    // Linux specific implementations:

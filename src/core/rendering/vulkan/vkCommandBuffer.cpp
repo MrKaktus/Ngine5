@@ -353,9 +353,19 @@ CommandBufferVK::~CommandBufferVK()
    
    assert( source.size < 0xFFFFFFFF );
 
+   // Vulkan spec 1.1.85 breaking change WA:
+   // 
+   // "bufferRowLength" was interpreted as row length in bytes (including padding),
+   // but this behavior is now changed to represent this value in "texels" instead.
+   // This is in opposite to D3D12, Metal and previous behavior. See more details
+   // here: https://github.com/KhronosGroup/Vulkan-Docs/issues/752
+   //
+   // Assuming source and destination texel sizes match, WA is introduced that 
+   // calculates row length in texels from provided row lenght in bytes.
+
    VkBufferImageCopy regionInfo;
    regionInfo.bufferOffset      = srcOffset;
-   regionInfo.bufferRowLength   = srcRowPitch;
+   regionInfo.bufferRowLength   = srcRowPitch / TextureCompressionInfo[underlyingType(destination.format())].blockSize;
    regionInfo.bufferImageHeight = 0u;
    regionInfo.imageSubresource  = layersInfo;
    regionInfo.imageOffset       = { 0u, 0u, 0u };

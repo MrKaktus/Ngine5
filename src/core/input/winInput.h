@@ -63,17 +63,23 @@ namespace en
       virtual ~WinMouse();                           // Polymorphic deletes require a virtual base destructor
       };
 
-   class WinInterface : public CommonInput
+   class WinInput : public CommonInput
       {
       public:
       MSG msg;                    // Message handle
       LPDIRECTINPUT8 directInput; // DirectInput device context
 
+      // Internal 
+
+      void decodeMessage(MSG& msg); // Decodes incoming message
+
+      // Interface
+
       void update(void);                             // Gets actual input state, call function handling cached events
       
-      WinInterface();
+      WinInput();
       virtual void init(void);
-      virtual ~WinInterface();                       // Polymorphic deletes require a virtual base destructor
+      virtual ~WinInput();                       // Polymorphic deletes require a virtual base destructor
       };
    }
 }

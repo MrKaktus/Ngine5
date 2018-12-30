@@ -12,6 +12,7 @@
 #include "core/input/winInput.h"
 #include "core/input/winJoystick.h"
 #include "core/rendering/device.h"
+#include "parallel/scheduler.h"
 
 #if OCULUS_VR
 #include "input/oculus.h"
@@ -316,7 +317,7 @@ namespace en
    LPDIRECTINPUTDEVICE8 handle;
    HRESULT hr;
 
-   WinInterface* input = reinterpret_cast<WinInterface*>(en::Input.get());
+   WinInput* input = reinterpret_cast<WinInput*>(en::Input.get());
 
    // Try to obtain interface to enumerated joystick. 
    // If it fails, it is possible that user unplugged it during enumeration.
@@ -363,7 +364,7 @@ namespace en
 
 
 
-   WinInterface::WinInterface() :
+   WinInput::WinInput() :
       CommonInput()
    {
    // Register keyboard
@@ -376,7 +377,7 @@ namespace en
 
    }
    
-   WinInterface::~WinInterface()
+   WinInput::~WinInput()
    {
    // Unregister all HMD's
    for(uint32 i=0; i<hmds.size(); ++i)
@@ -391,7 +392,7 @@ namespace en
 #endif
    }
 
-   void WinInterface::init(void)
+   void WinInput::init(void)
    {
    CommonInput::init();
 
@@ -430,7 +431,7 @@ namespace en
 // 1) Query events directly from the event queue when it sees fit.
 // 2) Register single task, to handle events. Then those events are handled 
 //    by that task when they occur. Application uses switch statement or 
-//    similar algorithm to handle each type of event in proper way.
+//    similar approach to handle each type of event in proper way.
 //    Events for which dedicated task is registered are not pushed to the
 //    event queue anymore. Tasks spawned by events are executed in order of
 //    those events appearance.
@@ -444,19 +445,38 @@ namespace en
 // and State manager will properly map those local state settings to Input
 // system.
 
-void WinInterface::update()
+
+void WinInput::decodeMessage(MSG& msg)
+{
+    if (msg.message == WM_APP &&
+        msg.lParam == 0 &&
+        msg.wParam == 0)
+    {
+        // Main thread was woken up to process special tasks.
+        // Nothin need to be done here, as it will be handled by main thread itself.
+    }
+    else
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);   // Passes incoming events to instance of WinEvents() function, registered for each window in the system
+    }
+}
+
+void WinInput::update()
 {
     // For more details see:
     // https://en.wikipedia.org/wiki/Message_loop_in_Microsoft_Windows
     //
     if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // | PM_QS_INPUT
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);   // Passes incoming events to instance of WinEvents() function, registered for each window in the system
+        decodeMessage(msg);
     }
 
     // Process events from all attached peripherials
     CommonInput::update();
+
+    // Process tasks that need to be executed on main thread
+    en::Scheduler->processMainThreadTasks();
 }
 
 

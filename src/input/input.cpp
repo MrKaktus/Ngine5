@@ -166,7 +166,7 @@ namespace en
    Input = std::make_shared<OSXInterface>();
    return true;
    #elif defined(EN_PLATFORM_WINDOWS)
-   Input = std::make_shared<WinInterface>();
+   Input = std::make_shared<WinInput>();
    
    // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
    reinterpret_cast<CommonInput*>(Input.get())->init();

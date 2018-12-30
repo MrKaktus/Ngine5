@@ -209,8 +209,9 @@ void* workerFunction(Thread* thread)
 
    Worker::~Worker()
    {
-   // Release worker thread fibers
-   for(uint32 i=0; i<MaxWorkerThreadFibers; ++i)
+   // Release worker thread fibers 
+   // (except of Fiber 0 which represent original worker thread).
+   for(uint32 i=1; i<MaxWorkerThreadFibers; ++i)
       localFibers[i] = nullptr;
 
    // Release fibers pool
@@ -225,6 +226,7 @@ void* workerFunction(Thread* thread)
       firstWorkerId(0),
       worker(nullptr),
       executing(false),
+      appQuit(false),
       queueOfMainThreadTasks(MainThreadTasks, MaxMainThreadTasks),
       //mainThreadQueue(MaxMainThreadTasks),
       mainThreadTasks(MainThreadTasks, MaxMainThreadTasks)
@@ -277,7 +279,13 @@ void* workerFunction(Thread* thread)
 
    // Wait until all worker threads are done
    for(uint32 i=0; i<workerThreads; ++i)
-      worker[i].thread->waitUntilCompleted();
+   {
+      if (worker[i].thread->working())
+      {
+         worker[i].thread->wakeUp();
+         worker[i].thread->waitUntilCompleted();
+      }
+   }
 
    // Release worker states
    for(uint32 i=0; i<workerThreads; ++i)
@@ -285,6 +293,17 @@ void* workerFunction(Thread* thread)
    
    deallocate<Worker>(worker);
    }
+
+void TaskScheduler::shutdown(void)
+{
+    appQuit.store(true, std::memory_order_release);
+    wakeUpMainThread();
+}
+
+bool TaskScheduler::closing(void) const
+{
+    return appQuit.load(std::memory_order_acquire);
+}
 
 uint32 TaskScheduler::workers(void) const
 {
@@ -308,16 +327,6 @@ uint32 TaskScheduler::currentWorkerId(void) const
 
 
 /* TODO:
-
-   // Task is executed on main thread (can migrate between CPU cores)
-   void TaskScheduler::runOnMainThread(TaskFunction function,
-                                       void* data,
-                                       TaskState* state)
-   {
-   // TODO: Multiple-Producers Single Consumer queue implementation is required,
-   //       or simple queue protected with mutex. Those calls should be rare,
-   //       and only main thread processes pushed tasks which cannot be stolen.
-   }
 
    // Task is executed on worker thread assigned to given CPU core (cannot migrate between CPU cores)
    void TaskScheduler::runOnCore(const uint16 core,
@@ -405,7 +414,8 @@ void TaskScheduler::run(TaskFunction function,
 
 void TaskScheduler::runOnMainThread(TaskFunction function,
                                     void* data,
-                                    TaskState* state)
+                                    TaskState* state,
+                                    bool immediately)
 {
     // Allocator is not thread safe
     Mutex lock;
@@ -429,8 +439,14 @@ void TaskScheduler::runOnMainThread(TaskFunction function,
     
     task->state->acquire();
 
-   // Queue task for execution on main thread
+    // Queue task for execution on main thread
     queueOfMainThreadTasks.push(task);
+
+    if (immediately)
+    {
+        // Wake up main thread, so that it can process this task immediately
+        wakeUpMainThread();
+    }
 }
 
 void TaskScheduler::runOnWorker(const uint32 selectedWorker,             
@@ -449,12 +465,12 @@ void TaskScheduler::runOnWorker(const uint32 selectedWorker,
     task->state      = state;
     task->localState = false;
     if (!task->state)
-       {
-       // When dynamically allocated, ensure that it is aligned to cache line
-       task->state = allocate<TaskState>(1, cacheline);
-       new (task->state) TaskState();
-       task->localState = true;
-       }
+    {
+        // When dynamically allocated, ensure that it is aligned to cache line
+        task->state = allocate<TaskState>(1, cacheline);
+        new (task->state) TaskState();
+        task->localState = true;
+    }
     
     task->state->acquire();
     

@@ -53,6 +53,8 @@
 #include "platform/windows/win_init.h"
 #include "platform/windows/win_main.h"
 
+#include "parallel/scheduler.h"
+
 #include "audio/audio.h"         // Public interface - TODO: Finish!
 
 #include "core/rendering/device.h" // Public interface

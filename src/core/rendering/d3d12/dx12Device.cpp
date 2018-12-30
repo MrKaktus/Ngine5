@@ -148,10 +148,6 @@ void taskCreateCommandAllocators(void* data)
         Validate( state->device, CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, // or D3D12_COMMAND_LIST_TYPE_BUNDLE
                                                         IID_PPV_ARGS(&(state->device->commandAllocator[state->worker][cache]) )) ) // __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&commandAllocator[thread][type][cache])
         
-        // TODO: BUG: FIXME: Why it fails to create more allocators than 8 ????? 
-        //                   It's not throwing any errors, and while RefCount for
-        //                   device grows, pointer is not beeing returned. 
-        //                   Looks like internal driver error.
         assert( state->device->commandAllocator[state->worker][cache] );
     }
     
@@ -389,6 +385,9 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
          commandAllocator[thread][cache]->Release();
          commandAllocator[thread][cache] = nullptr;
          }
+
+   // Destroy common resources
+   cleanupCommonResources();
 
    // Destroy device
    device->Release();

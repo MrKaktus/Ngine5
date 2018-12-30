@@ -98,7 +98,7 @@ namespace en
    samplerInfo.addressModeV            = static_cast<VkSamplerAddressMode>(underlyingType(state.coordV)); // Optimisation: TranslateSamplerAdressing[underlyingType(state.coordV)];
    samplerInfo.addressModeW            = static_cast<VkSamplerAddressMode>(underlyingType(state.coordW)); // Optimisation: TranslateSamplerAdressing[underlyingType(state.coordW)];
    samplerInfo.mipLodBias              = state.LodBias;
-   samplerInfo.anisotropyEnable        = (state.anisotropy < 1.0f) ? VK_FALSE : VK_TRUE;
+   samplerInfo.anisotropyEnable        = (state.anisotropy <= 1.0f) ? VK_FALSE : VK_TRUE;
    samplerInfo.maxAnisotropy           = min(state.anisotropy, support.maxAnisotropy);                    // [1.0f - VkPhysicalDeviceLimits::maxSamplerAnisotropy]
    samplerInfo.compareEnable           = state.compare == CompareOperation::Always ? VK_FALSE :  VK_TRUE;
    samplerInfo.compareOp               = static_cast<VkCompareOp>(underlyingType(state.compare));         // Optimisation: TranslateCompareOperation[underlyingType(state.compare)];
