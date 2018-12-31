@@ -275,7 +275,7 @@ void* workerFunction(Thread* thread)
    //       means that main thread events loop was ended. By that time all tasks
    //       should be drained properly.
    //
-   std::atomic_store_explicit(&executing, false, std::memory_order_relaxed);
+   std::atomic_store_explicit(&executing, false, std::memory_order_release);
 
    // Wait until all worker threads are done
    for(uint32 i=0; i<workerThreads; ++i)
@@ -398,11 +398,8 @@ void TaskScheduler::run(TaskFunction function,
         worker[selectedWorker].queueOfIncomingTasks.push(task);
         
         // Selected worker thread may be sleeping, in such case wake it up
-        if (worker[selectedWorker].thread->sleeping())
-        {
-            worker[selectedWorker].thread->wakeUp();
-        }
-        
+        worker[selectedWorker].thread->wakeUp();
+
         return;
     }
     
@@ -478,10 +475,7 @@ void TaskScheduler::runOnWorker(const uint32 selectedWorker,
     worker[selectedWorker].queueOfIncomingLocalTasks.push(task);
     
     // Selected worker thread may be sleeping, in such case wake it up
-    if (worker[selectedWorker].thread->sleeping())
-    {
-        worker[selectedWorker].thread->wakeUp();
-    }
+    worker[selectedWorker].thread->wakeUp();
     
     return;
 }
@@ -635,7 +629,7 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
     assert( currentCoreId() == workerState->index );
 
     // Execute main scheduling loop, until task scheduler terminates
-    std::atomic<bool> executing = std::atomic_load_explicit(&scheduler.executing, std::memory_order_relaxed);
+    bool executing = std::atomic_load_explicit(&scheduler.executing, std::memory_order_relaxed);
     while(executing)
     {
         // Iterate over waiting fibers, if any of them can be resumed do that
@@ -808,7 +802,7 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
             // to process more work (from IO threads or main thread), or shutdown.
             
             // Check if task scheduler is still executing
-            executing = std::atomic_load_explicit(&scheduler.executing, std::memory_order_relaxed);
+            executing = std::atomic_load_explicit(&scheduler.executing, std::memory_order_acquire);
             if (executing)
             {
                 workerState->thread->sleep();
@@ -820,11 +814,6 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
     }
 
     // TODO: Worker thread is terminating, cleanup
-
-
-
-    // Fiber selects new task to execute
-
 
     return nullptr;
 }

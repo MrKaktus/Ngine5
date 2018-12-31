@@ -230,16 +230,11 @@ namespace en
    WaitForSingleObject(sleepSemaphore, INFINITE);
    }
 
-   void winThread::wakeUp(void)
-   {
-   if (isSleeping.load(std::memory_order_acquire))
-      {
-      // Try to prevent Release before Acquire by injecting micro-sleep.
-      _mm_pause();
-      ReleaseSemaphore(sleepSemaphore, 1, nullptr);
-      isSleeping.store(false, std::memory_order_release);
-      }
-   }
+void winThread::wakeUp(void)
+{
+    ReleaseSemaphore(sleepSemaphore, 1, nullptr);
+    isSleeping.store(false, std::memory_order_release);
+}
 
    bool winThread::sleeping(void)
    {

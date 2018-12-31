@@ -1632,8 +1632,7 @@ namespace en
    descInternal->uploading = true;
    
    // If streaming thread was idle, it went to sleep, wake it up for upload
-   if (streamingThread->sleeping())
-      streamingThread->wakeUp();
+   streamingThread->wakeUp();
 
    return true;
    }
@@ -2608,7 +2607,7 @@ namespace en
       }
    
    // If streaming thread was idle, it is sleeping, so wake it up
-   if (result && streamingThread->sleeping())
+   if (result)
       streamingThread->wakeUp();
 
    return result;
@@ -2634,8 +2633,7 @@ namespace en
    descInternal->uploading++;  // TODO: Atomic
    
    // If streaming thread was idle, it is sleeping, so wake it up
-   if (streamingThread->sleeping())
-      streamingThread->wakeUp();
+   streamingThread->wakeUp();
 
    return true;
    }
@@ -2658,8 +2656,7 @@ namespace en
    descInternal->uploading++;  // TODO: Atomic
    
    // If streaming thread was idle, it is sleeping, so wake it up
-   if (streamingThread->sleeping())
-      streamingThread->wakeUp();
+   streamingThread->wakeUp();
 
    return true;
    }
@@ -2685,8 +2682,7 @@ namespace en
    descInternal->uploading++;  // TODO: Atomic
    
    // If streaming thread was idle, it is sleeping, so wake it up
-   if (streamingThread->sleeping())
-      streamingThread->wakeUp();
+   streamingThread->wakeUp();
 
    return true;
    }
@@ -2710,8 +2706,7 @@ namespace en
    descInternal->uploading++;  // TODO: Atomic
    
    // If streaming thread was idle, it is sleeping, so wake it up
-   if (streamingThread->sleeping())
-      streamingThread->wakeUp();
+   streamingThread->wakeUp();
 
    return true;
    }
