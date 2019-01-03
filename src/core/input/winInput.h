@@ -72,11 +72,10 @@ namespace en
       // Internal 
 
       void decodeMessage(MSG& msg); // Decodes incoming message
+      virtual void updateIO(void);                             // Gets actual input state, call function handling cached events
 
       // Interface
 
-      void update(void);                             // Gets actual input state, call function handling cached events
-      
       WinInput();
       virtual void init(void);
       virtual ~WinInput();                       // Polymorphic deletes require a virtual base destructor

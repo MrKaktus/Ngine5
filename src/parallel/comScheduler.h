@@ -128,25 +128,20 @@ namespace en
       // E - Currently executing Fiber (starts to wait, resumes or picks new task)
       // R - Ready Fibers, waiting 
       //
-      std::unique_ptr<Fiber>*   localFibers;        // Pool of local Fibers (array of pointers to platform dependent objects) 
-      uint32                    waitingFibersCount; // Count of fibers since start of the pool, that are waiting for other work to finish 
-                                                    // Fibers can be in one of two states (Ready to execute or Waiting)
-      uint32                    currentFiber;       // Pointer to fiber currently executing on this worker thread
-
-
-
-    //CircularQueue<Task*>      localTasks;         // Tasks that wait for execution on this worker thread
-    //CircularQueue<Fiber*>     localFibersWaiting; // Tasks that are waiting for other work to finish (or IO event)
-
+      std::unique_ptr<Fiber>*   localFibers;        ///< Pool of local Fibers (array of pointers to platform dependent objects) 
+      uint32                    currentFiber;       ///< Pointer to fiber currently executing on this worker thread
       
       MPSCDeque<Task*>          queueOfIncomingTasks;      ///< Tasks submitted for execution by IO threads
       MPSCDeque<Task*>          queueOfIncomingLocalTasks; ///< Tasks submitted for execution on this worker CPU core (locked)
 
       // Tasks that can be executed on any worker
 
-      WorkStealingDeque<Task*>  queueOfTasks;        // Tasks ready and waiting to be executed
-    //WorkStealingDeque<Fiber*> queueOfTasksStalled; // Tasks that are paused (as control was switched to resume execution of other task)
-    //WorkStealingDeque<Fiber*> queueOfTasksWaiting; // Tasks that are waiting for other work to finish (or IO event)
+      WorkStealingDeque<Task*>  queueOfTasks;        ///< Tasks ready and waiting to be executed
+
+      // Fibers that can be executed on any worker (migration of tasks in progress)
+
+    //WorkStealingDeque<Fiber*> queueOfTasksStalled; ///< Tasks that are paused (as control was switched to resume execution of other task)
+    //WorkStealingDeque<Fiber*> queueOfTasksWaiting; ///< Tasks that are waiting for other work to finish (or IO event)
   
 
 

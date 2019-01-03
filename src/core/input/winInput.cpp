@@ -462,7 +462,7 @@ void WinInput::decodeMessage(MSG& msg)
     }
 }
 
-void WinInput::update()
+void WinInput::updateIO(void)
 {
     // For more details see:
     // https://en.wikipedia.org/wiki/Message_loop_in_Microsoft_Windows
@@ -471,12 +471,15 @@ void WinInput::update()
     {
         decodeMessage(msg);
     }
-
+ 
     // Process events from all attached peripherials
-    CommonInput::update();
+    CommonInput::updateIO();
 
     // Process tasks that need to be executed on main thread
     en::Scheduler->processMainThreadTasks();
+
+    // Indicate that input state is updated to latest available
+    updateInProgress.store(false, std::memory_order_release);
 }
 
 

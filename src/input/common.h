@@ -72,7 +72,10 @@ namespace en
       std::vector< std::shared_ptr<HMD> >        hmds;
       std::vector< std::shared_ptr<Controller> > controllers;
       std::vector< std::shared_ptr<Camera> >     cameras;
-      
+
+      std::atomic<bool>     updateInProgress; // Indicates if worker thread called for update of input state. It's cleared once update is finished
+      CircularQueue<Event*> eventQueue;       // Queue of events to process by application
+
       // Tasks
       TaskFunction task[InputEventsCount];    // Task to spawn per event type
       
@@ -85,9 +88,16 @@ namespace en
       virtual std::shared_ptr<Controller> controller(uint8 index = 0) const; // N'th Motion Controller
       virtual std::shared_ptr<Camera>     camera(uint8 index = 0) const;     // N'th Camera (Color, Depth, IR, or other)
 
+      // Internal 
+
+      virtual void updateIO(void);
       virtual void forwardEvent(Event* event);
-      virtual void update(void);                                 // Gets actual input state, call function handling cached events
-         
+
+      // Interface
+
+      virtual void update(Execution run = Execution::Synchronous);                                 // Gets actual input state
+      virtual bool pullEvent(Event*& event);
+
       CommonInput();
       virtual void init(void);
       virtual ~CommonInput();

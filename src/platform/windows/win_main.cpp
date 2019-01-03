@@ -200,7 +200,7 @@ en::SchedulerContext.start(new MainTask(argc,argv));
             // Once all messages are processed from all inputs, tasks dedicated to main thread will be processed,
             // and finally, main thread will sleep again on calling GetMessage().
             input->decodeMessage(msg);
-            input->update();
+            input->updateIO();
         }
 
         // Break processing of incoming events if application decided to quit on it's own

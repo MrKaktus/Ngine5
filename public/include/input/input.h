@@ -405,6 +405,12 @@ namespace en
       virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
       };
       
+enum class Execution : uint32
+{
+    Asynchronous = 0,
+    Synchronous  
+};
+
    class Interface
       {
       public:
@@ -418,8 +424,9 @@ namespace en
       virtual std::shared_ptr<Controller> controller(uint8 index = 0) const = 0; // N'th Motion Controller
       virtual std::shared_ptr<Camera>     camera(uint8 index = 0) const = 0;     // N'th Camera (Color, Depth, IR, or other)
 
-      virtual void update(void) = 0;                                 // Gets actual input state, call function handling cached events
-      
+      virtual void update(Execution run = Execution::Synchronous) = 0;           // Updates all input state, can be executed async (without waiting)
+      virtual bool pullEvent(Event*& event) = 0;    // Pulls queued event for processing
+
       virtual ~Interface() {};                       // Polymorphic deletes require a virtual base destructor
       };
 

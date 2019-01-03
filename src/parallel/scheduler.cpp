@@ -184,9 +184,6 @@ void* workerFunction(Thread* thread)
    Worker::Worker(const uint32 _index) :
       thread(nullptr),
       localFibers(nullptr),
-    //localTasks(MaxWorkerThreadTasks),
-    //localFibersWaiting(MaxWorkerThreadFibers),
-      waitingFibersCount(0),
       currentFiber(0),
       queueOfIncomingTasks(WorkerThreadTasks, MaxWorkerThreadTasks),
       queueOfIncomingLocalTasks(WorkerThreadTasks, MaxWorkerThreadTasks),
@@ -761,6 +758,8 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
                     if (scheduler.worker[i].thread->sleeping())
                     {
                         // TODO: What if other thread will wake it up in the middle of searching this list?
+
+                        // TODO: Find a way to safely iterate waiting fibers list while parent thread is alive.
 
                         // Check if this worker has fibers that could be resumed
                         // and thus, if there is a point of waking it up.

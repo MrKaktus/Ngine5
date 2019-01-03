@@ -248,6 +248,8 @@ namespace en
    
    
    CommonInput::CommonInput() :
+      updateInProgress(false),
+      eventQueue(1024),
       Interface()
    {
    // General
@@ -347,20 +349,38 @@ namespace en
    return cameras[index];
    }
 
-   void CommonInput::update(void)
-   {
-   // Joystick events
-   for(uint8 i=0; i<count[underlyingType(IO::Joystick)]; ++i)
-      joysticks[i]->update();
+void CommonInput::update(Execution run)
+{
+   updateInProgress.store(true, std::memory_order_release);
 
-   // VR/AR HMD's update
-   for(uint8 i=0; i<count[underlyingType(IO::HMD)]; ++i)
-      hmds[i]->update();
-      
-   // Camera stream events
-   for(uint8 i=0; i<count[underlyingType(IO::Camera)]; ++i)
-      cameras[i]->update();
-   }
+    // Wake up main thread, so that it can process latest 
+    // state in OS and plugin queues.
+    wakeUpMainThread();
+
+    if (run == Execution::Synchronous)
+    {
+        // TODO: In future sleep/switch this worker until update is done
+        while(updateInProgress.load(std::memory_order_relaxed))
+        {
+            _mm_pause();
+        }
+    }
+}
+
+void CommonInput::updateIO(void)
+{
+    // Joystick events
+    for(uint8 i=0; i<count[underlyingType(IO::Joystick)]; ++i)
+        joysticks[i]->update();
+    
+    // VR/AR HMD's update
+    for(uint8 i=0; i<count[underlyingType(IO::HMD)]; ++i)
+        hmds[i]->update();
+       
+    // Camera stream events
+    for(uint8 i=0; i<count[underlyingType(IO::Camera)]; ++i)
+        cameras[i]->update();
+}
 
 void CommonInput::forwardEvent(Event* event)
 {
@@ -371,12 +391,15 @@ void CommonInput::forwardEvent(Event* event)
     }
     else
     {
-        // TODO: Push event on event queue
+        // Push event on event queue
+        eventQueue.push(event);
     }
 }
 
-
-
+bool CommonInput::pullEvent(Event*& event)
+{
+    return eventQueue.pop(&event);
+}
 
 
 #else
