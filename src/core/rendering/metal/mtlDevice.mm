@@ -32,6 +32,7 @@
 #include "core/rendering/metal/mtlWindow.h"
 #include "core/rendering/metal/mtlDisplay.h"
 
+#include "parallel/scheduler.h"
 #include "utilities/osxStrings.h"
 
 #if defined(EN_PLATFORM_IOS)
@@ -321,10 +322,48 @@ namespace en
    return api->_display[index];
    }
 
-   std::shared_ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const std::string title)
-   {
-   return std::make_shared<WindowMTL>(this, settings, title);
-   }
+
+
+struct taskCreateWindowStateMTL
+{
+    MetalDevice* gpu;
+    const WindowSettings* settings;
+    std::string title;
+    std::shared_ptr<WindowMTL> result;
+
+    taskCreateWindowStateMTL(const WindowSettings* _settings);
+};
+
+taskCreateWindowStateMTL::taskCreateWindowStateMTL(const WindowSettings* _settings) :
+    gpu(nullptr),
+    settings(_settings),
+    title(),
+    result(nullptr)
+{
+}
+
+void taskCreateWindow(void* data)
+{
+    taskCreateWindowStateMTL& state = *(taskCreateWindowStateMTL*)(data);
+
+    state.result = std::make_shared<WindowMTL>(state.gpu, *state.settings, state.title);
+}
+
+
+std::shared_ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const std::string title)
+{
+    taskCreateWindowStateMTL state(&settings);
+    state.gpu   = this;
+    state.title = title;
+
+    TaskState taskState;
+
+    // Window needs to be created on main thread
+    en::Scheduler->runOnMainThread(taskCreateWindow, (void*)&state, &taskState, true);
+    en::Scheduler->wait(&taskState);
+
+    return state.result;
+}
 
    uint32 MetalDevice::queues(const QueueType type) const
    {

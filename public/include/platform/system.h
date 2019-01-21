@@ -58,11 +58,12 @@ namespace en
 
    struct Interface
           {
-          uint32 cores(void);       // Number of physical cores in the system
-          Platform platform(void);  // Returns type of device
-          OperatingSystem os(void); // Returns type of Operating System
-          Name name(void);          // Returns name of Operating System
-          bool sleeping(void);      // Check if application is in sleep mode
+          uint32 physicalCores(void); // Number of physical cores in the system
+          uint32 logicalCores(void);  // Number of logical cores in the system
+          Platform platform(void);    // Returns type of device
+          OperatingSystem os(void);   // Returns type of Operating System
+          Name name(void);            // Returns name of Operating System
+          bool sleeping(void);        // Check if application is in sleep mode
           };
    }
 

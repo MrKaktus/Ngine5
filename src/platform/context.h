@@ -24,7 +24,8 @@ namespace en
    { 
    struct Context
           {
-          uint32          cores;
+          uint32          physicalCores;
+          uint32          logicalCores;
           Platform        platform;
           OperatingSystem system;
           Name            name;

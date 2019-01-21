@@ -33,7 +33,7 @@ namespace en
         IndexedHuffman4pass = 33
         };
 
-   aligned(1) 
+   alignTo(1) 
    struct Header
           {
           uint8  idSize;           // Size of identification string placed after header
@@ -55,7 +55,7 @@ namespace en
                                    // 2 - four-way interleaving
                                    // 3 - reserved
           };
-   aligndefault
+   alignToDefault
     
    bool load(std::shared_ptr<en::gpu::Texture> dst, const uint16 layer, const std::string& filename)
    {

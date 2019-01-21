@@ -34,7 +34,7 @@ namespace en
       AlphaBitField = 6
       };
 
-   aligned(1) 
+   alignTo(1) 
    struct Header
       {
       uint16 signature;   // BMP file signature 'BM' -> 0x4D42
@@ -66,7 +66,7 @@ namespace en
       uint32      colors;      // Colors used in image
       uint32      colorsImp;   // Important colors in image
       }; 
-   aligndefault
+   alignToDefault
 
    bool load(std::shared_ptr<en::gpu::Texture> dst, const uint16 layer, const std::string& filename)
    {

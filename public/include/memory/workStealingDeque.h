@@ -182,8 +182,8 @@ namespace en
          top(0),
          bottom(0),
          buffer(nullptr),
-         size(roundUp(sizeof(T) * capacity, 4096)),
-         maxSize(roundUp(sizeof(T) * maxCapacity, 4096)),
+         size(roundUp(static_cast<uint64>(sizeof(T)) * capacity, static_cast<uint64>(4096))),
+         maxSize(roundUp(static_cast<uint64>(sizeof(T)) * maxCapacity, static_cast<uint64>(4096))),
          doubleSizeUntil(_doubleSizeUntil)
    {
    // Managed elements cannot exceed pointer size (max 8 bytes), to ensure that

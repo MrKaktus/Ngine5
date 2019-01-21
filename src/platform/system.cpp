@@ -14,11 +14,15 @@
 #include "core/log/log.h"
 #include "platform/context.h"
 
-#ifdef EN_PLATFORM_ANDROID
+#if defined(EN_PLATFORM_ANDROID)
 #include "platform/android/and_events.h"
 #endif
 
-#ifdef EN_PLATFORM_WINDOWS
+#if defined(EN_PLATFORM_OSX)
+#include <sys/sysctl.h>
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
@@ -28,9 +32,11 @@ namespace en
 {
    namespace system
    {
-
+   // TODO: Refactor this whole subsystem to per OS implementation and move to CORE
+   
    Context::Context() :
-      cores(1),
+      physicalCores(1),
+      logicalCores(1),
       platform(Unknown),
 #if   defined( EN_PLATFORM_ANDROID )
       system(Android),
@@ -48,11 +54,26 @@ namespace en
       name(Unsupported)
    {
    // Determine CPU cores count
-#ifdef EN_PLATFORM_WINDOWS
-   SYSTEM_INFO si;
-   GetSystemInfo(&si);
-   cores = si.dwNumberOfProcessors;
+   /////////////////////////////////////////////////////////////////////////////
+   
+#if defined(EN_PLATFORM_OSX)
+    // Query count of physical cores
+    size_t bufferLength = sizeof(physicalCores);
+    int ret = sysctlbyname("hw.physicalcpu_max", &physicalCores, &bufferLength, nullptr, 0);
+    assert( ret == 0 );
 
+    // Query count of logical cores
+    bufferLength = sizeof(logicalCores);
+    ret = sysctlbyname("hw.logicalcpu_max", &logicalCores, &bufferLength, nullptr, 0);
+    assert( ret == 0 );
+#endif
+
+#if defined(EN_PLATFORM_WINDOWS)
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    physicalCores = si.dwNumberOfProcessors;
+    logicalCores  = physicalCores;
+   
 /*
    // TOOD: Distinguish amount of physical & logical cores
 
@@ -85,23 +106,36 @@ namespace en
 #endif
 
    // Determine Platform type
-#if   defined( EN_PLATFORM_ANDROID )
+   /////////////////////////////////////////////////////////////////////////////
+   
+   // TODO: Separate concepts of:
+   //       - CPU Architecture (ARM/x64)
+   //       - device type (PC/iPad/iPhone)
+   //       - and OS (Android, iOS, tvOS, macOS, Windows)
+   
+#if defined(EN_PLATFORM_ANDROID)
    platform = ARM;
-   // TODO: Check if platform is not x86/x64 !!!
-#elif defined( EN_PLATFORM_BLACKBERRY )
-   platform = ARM;
-#elif defined( EN_PLATFORM_IOS )
-   platform = iPhone;
-   #if (__IPHONE_OS_VERSION_MAX_ALLOWED >= 30200)
-   if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-      platform = iPad;
-   #endif
-#elif defined( EN_PLATFORM_OSX )
-   platform = PC;
-#elif defined( EN_PLATFORM_WINDOWS )
-   platform = PC;
+   // TODO: Check if platform is not x86/x64 for rare Intel cases and Chromebooks? !!!
+   
+#elif defined(EN_PLATFORM_BLACKBERRY)
+    platform = ARM;
+   
+#elif defined(EN_PLATFORM_IOS)
+    platform = iPhone;
+    #if (__IPHONE_OS_VERSION_MAX_ALLOWED >= 30200)
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+        platform = iPad;
+    #endif
+   
+#elif defined(EN_PLATFORM_OSX)
+    platform = PC;
+   
+#elif defined(EN_PLATFORM_WINDOWS)
+    platform = PC;
+    
 #else
    assert(0);
+   
 #endif
 
    // Determine major version of OS
@@ -181,11 +215,16 @@ namespace en
    Log << "Closing module: System.\n";
    }
 
-   uint32 Interface::cores(void)
+   uint32 Interface::physicalCores(void)
    {
-   return SystemContext.cores;
+   return SystemContext.physicalCores;
    }
 
+   uint32 Interface::logicalCores(void)
+   {
+   return SystemContext.logicalCores;
+   }
+   
    Platform Interface::platform(void)
    {
    return SystemContext.platform;

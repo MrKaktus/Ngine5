@@ -56,11 +56,12 @@ namespace en
    template <typename T>
    T* allocate(const uint32 count, const uint32 alignment)
    {
-   T* temp;
+   T* temp = nullptr;
+   uint32 size = count * sizeof(T);
 #ifdef EN_PLATFORM_WINDOWS
-   temp = static_cast<T*>(_aligned_malloc(count * sizeof(T), alignment));
+   temp = static_cast<T*>(_aligned_malloc(size, alignment));
 #else
-   sint32 ret = posix_memalign((void **)(&temp), alignment, count * sizeof(T)); 
+   int ret = posix_memalign((void **)(&temp), alignment, size);
    if (ret == ENOMEM)
       return nullptr;
    if (ret == EINVAL)

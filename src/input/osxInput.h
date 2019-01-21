@@ -33,15 +33,15 @@ namespace en
       virtual ~OSXMouse();                           // Polymorphic deletes require a virtual base destructor
       };
       
-   class OSXInterface : public CommonInput
+   class macInput : public CommonInput
       {
       public:
       uint32 stateFlags; // Keys lock state
 
-      void update(void);                             // Gets actual input state, call function handling cached events
+      virtual void updateIO(void);                   
       
-      OSXInterface();
-      virtual ~OSXInterface();                       // Polymorphic deletes require a virtual base destructor
+      macInput();
+      virtual ~macInput();                           // Polymorphic deletes require a virtual base destructor
       };
    }
 }

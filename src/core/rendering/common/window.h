@@ -31,7 +31,7 @@ namespace en
       uint32v2 _position;
       uint32v2 _size;
       uint32v2 _resolution;
-      Mutex   surfaceAcquire;   // Window instance mutex.
+      Mutex    surfaceAcquire;   // Window instance mutex.
       WindowMode _mode;          // Windowed / Borderless / Fullscreen
       uint32   _frame;           // Frame counter, increased after each present
       bool     needNewSurface;

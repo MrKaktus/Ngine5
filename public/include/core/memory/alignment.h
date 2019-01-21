@@ -18,16 +18,16 @@
 #if defined(EN_COMPILER_VISUAL_STUDIO) || defined(EN_COMPILER_INTEL)
 #define cachealign  __declspec(align(cacheline))
 #else
-#define cachealign
+#define cachealign  __attribute__ ((aligned(cacheline)))
 #endif
 
 // Specific data alignment
 #if defined(EN_COMPILER_VISUAL_STUDIO) || defined(EN_COMPILER_INTEL)
-#define aligned(value) __pragma( pack(push, value) )
-#define aligndefault __pragma(pack())
+#define alignTo(value) __pragma( pack(push, value) )
+#define alignToDefault __pragma(pack())
 #elif defined(EN_COMPILER_CLANG) || defined(EN_COMPILER_GCC) || defined(EN_COMPILER_QCC)
-#define aligned(value) _Pragma("pack(push, value)")
-#define aligndefault _Pragma("pack(pop)")
+#define alignTo(value) _Pragma("pack(push, value)")
+#define alignToDefault _Pragma("pack(pop)")
 #else
 // Concatenates preprocessor tokens A and B before stage of macro-expanding.
 #define concatenate_before(a,b) a ## b
@@ -40,11 +40,11 @@
 
 #define packPart1 pack(push
 #define packPart2 )
-#define aligned(value) _Pragma(tostring(concatenate(packPart1,concatenate(value,packPart2))))
+#define alignTo(value) _Pragma(tostring(concatenate(packPart1,concatenate(value,packPart2))))
 #undef packPart1
 #undef packPart2
 
-#define aligndefault _Pragma("pack()")
+#define alignToDefault _Pragma("pack()")
 #endif
 
 #endif

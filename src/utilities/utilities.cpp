@@ -160,7 +160,7 @@ namespace en
    if (alignment == 0u)
       return adress;
    
-   return ( (adress + (uint64(alignment) - 1ull)) & ~(uint64(alignment) - 1ull) );
+   return static_cast<uint32>( (adress + (uint64(alignment) - 1ull)) & ~(uint64(alignment) - 1ull) );
    }
 
    uint64 align(uint64 adress, uint32 alignment)

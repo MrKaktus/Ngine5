@@ -20,7 +20,7 @@ namespace en
    class Time
       {
       private:
-      uint64 dt;
+      uint64 dt;  // In nanoseconds
 
       public:
       Time();
@@ -34,10 +34,10 @@ namespace en
       void nanoseconds(double time);
       void nanoseconds(uint64 time);
 
-      double seconds(void);
-      uint64 miliseconds(void);
-      uint64 microseconds(void);
-      uint64 nanoseconds(void);
+      double seconds(void) const;
+      uint64 miliseconds(void) const;
+      uint64 microseconds(void) const;
+      uint64 nanoseconds(void) const;
 
       bool  operator== (Time right);
       bool  operator!= (Time right);
@@ -58,6 +58,8 @@ namespace en
       Time& operator/= (Time   right);
       Time& operator/= (uint64 right);
       };
+    
+   static_assert(sizeof(Time) == 8, "en::Time size mismatch!");
 
    class Timer
       {
@@ -65,12 +67,16 @@ namespace en
       Time time;
 
       public:
-      void start(void);    // Starts counting time
+      void start(void);    // Starts counting time (or restarts if already running)
       Time elapsed(void);  // Returns current elapsed time
       };
    
+   static_assert(sizeof(Timer) == 8, "en::Timer size mismatch!");
+
    Time currentTime(void);
-   void sleepUntil(Time time);
+   
+   void sleepFor(Time time);   ///< Sleeps for given period of time
+   void sleepUntil(Time time); ///< Slepps until given absolute moment in time
 }
 
 #endif

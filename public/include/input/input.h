@@ -140,7 +140,7 @@ namespace en
           KinectTrackingState  state;
           };
 
-   aligned(1)
+   alignTo(1)
    struct Event
       {
       EventType type; // 32 bits
@@ -204,13 +204,13 @@ namespace en
           Skeleton* skeleton;
           };
       
-   aligndefault
+   alignToDefault
 
   
        
    // Event is a 128 bit structure
    // ( -fpermissive under GCC and QCC )
-//   aligned(1)
+//   alignTo(1)
 //   struct Event
 //          {
 //          EventType type; // 32 bits
@@ -254,7 +254,7 @@ namespace en
 //          }; // Union
 //
 //          };
-//   aligndefault
+//   alignToDefault
 //   static_assert(sizeof(Event) == 16, "Event size mismatch!");
 
        

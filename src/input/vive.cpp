@@ -496,13 +496,13 @@ namespace en
       model->mesh[eye].geometry.end    = vertices;
 
       // Fill Vertex Buffer with data
-      aligned(1);
+      alignTo(1);
       struct DistortionVertex
              {
              float2 position;
              float2 uv[3];
              };
-      aligndefault
+      alignToDefault
 
       // Create staging vertex buffer
       uint32 stagingSize = vertices * formatting.elementSize();

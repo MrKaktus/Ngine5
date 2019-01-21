@@ -21,7 +21,7 @@ namespace en
 {
    namespace wav
    {   
-   aligned(1)
+   alignTo(1)
    struct Header 
           {
           uint32 id;              // Header ID 'RIFF' in Big Endian
@@ -46,7 +46,7 @@ namespace en
           uint32 id;              // Chunk ID 'data' in Big Endian
           uint32 size;            // Size of raw data in chunk
           };
-   aligndefault
+   alignToDefault
     
    std::shared_ptr<audio::Sample> load(const std::string& filename)
    {

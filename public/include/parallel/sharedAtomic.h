@@ -30,12 +30,13 @@ namespace en
       {
       protected:
       std::atomic<uint32> value;
-      
+
       public:
       SharedAtomic() { value.store(0U, std::memory_order_release); };
      ~SharedAtomic() {};
       };
-
+   
+   // CompileTimeSizeReporting( SharedAtomic );
    static_assert(sizeof(SharedAtomic) == 64, "en::SharedAtomic size mismatch!");
 }
 #endif

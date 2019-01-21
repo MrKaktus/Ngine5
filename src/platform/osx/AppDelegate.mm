@@ -50,14 +50,7 @@ using namespace en::input;
 
 // NSApplication - receives events from OS, translates them and sends them to NSWindow, which sends them to NSView 
 
-pthread_t thread;
-pthread_attr_t attr;
 
-static void* mainGameThread(void* ptr)
-{
-   //returnValue = ApplicationMainC(0, nullptr);
-   return nullptr;
-}
 
 
 
@@ -84,9 +77,7 @@ static void* mainGameThread(void* ptr)
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-    assert( pthread_attr_init(&attr) == 0 );
-    // Spawn new thread that will handle game main loop
-    assert( pthread_create(&thread, &attr, mainGameThread, nullptr) == 0 );
+
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
@@ -94,7 +85,7 @@ static void* mainGameThread(void* ptr)
    //  Send to main app thread info about request to quit.
    // App should register this event and return control to this thread, then on it's thread close itself and return.
    Event event(AppClose);
-   //shared_ptr<en::input::OSXInterface> ptr = en::ptr_reinterpret_cast<en::input::OSXInterface>(&Input);
+   //shared_ptr<en::input::macInput> ptr = en::ptr_reinterpret_cast<en::input::macInput>(&Input);
    //ptr->callback(event);
 
    // TODO: There should be 2 types of events.

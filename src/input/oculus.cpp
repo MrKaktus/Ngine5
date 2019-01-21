@@ -384,7 +384,7 @@ namespace en
    //   model->mesh[eye].geometry.end    = ovrMesh.VertexCount;
    //
    //   // Fill Vertex Buffer with data
-   //   aligned(1);
+   //   alignTo(1);
    //   struct DistortionVertex
    //          {
    //          float2 position;
@@ -392,7 +392,7 @@ namespace en
    //          uint8  vignette;
    //          uint8  timewarp;
    //          };
-   //   aligndefault
+   //   alignToDefault
    //
    //   DistortionVertex*    dst = static_cast<DistortionVertex*>(model->mesh[eye].geometry.buffer.map());
    //   ovrDistortionVertex* src = ovrMesh.pVertexData;

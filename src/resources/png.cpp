@@ -60,7 +60,7 @@ namespace en
       };
 
    // Signature
-   aligned(1) 
+   alignTo(1) 
    struct Header
       {
       uint32   signature;   // PNG file signature '.PNG' -> 474E5089 
@@ -108,7 +108,7 @@ namespace en
       uint32   signature;   // Chunk signature
       uint8    intent;      // Rendering intent, values 0-3
       };
-   aligndefault
+   alignToDefault
 
    bool CheckError(sint32 code)
    {

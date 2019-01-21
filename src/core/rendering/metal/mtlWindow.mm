@@ -25,6 +25,8 @@ namespace en
 {
    namespace gpu
    {
+// Window and View related calls need to be executed on Main Thread
+
    WindowMTL::WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const std::string title) :
       window(nil),
       layer(nil),
@@ -40,9 +42,8 @@ namespace en
    
    // Determine destination screen properties
    //
-   // For rendring in native resolution on Retina displays,
-   // application need to opt-in to Retina support by setting
-   // in it's Info.plist file:
+   // For rendring in native resolution on Retina displays, application need to
+   // opt-in to Retina support by setting in it's Info.plist file:
    //
    // <key>NSHighResolutionCapable</key>
    // <string>True</string>

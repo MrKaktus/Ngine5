@@ -26,7 +26,8 @@ namespace en
       LPVOID handle;           // Pointer to fiber object
       uint32 maximumStackSize;
          
-      winFiber(void);
+      winFiber(const uint32 stackSize,
+               const uint32 maximumStackSize);
       winFiber(const FiberFunction function, 
                void* fiberState,
                const uint32 stackSize,

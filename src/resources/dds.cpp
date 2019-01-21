@@ -247,7 +247,7 @@ namespace en
       DXGI_FORMAT_FORCE_UINT                  = 0xffffffff
       } DXGI_FORMAT;
 
-   aligned(1) 
+   alignTo(1) 
    // 32 bytes
    struct DDS_PIXELFORMAT 
       {
@@ -289,7 +289,7 @@ namespace en
       UINT                     arraySize;
       UINT                     miscFlags2;
       } DDS_HEADER_DXT10;
-   aligndefault
+   alignToDefault
 
    bool DetermineTextureType(DDS_HEADER& header, DDS_HEADER_DXT10* header10, gpu::TextureType& type)
    {
