@@ -31,7 +31,7 @@ namespace en
    //enScene = program.block("enScene");
    }
    
-   void Frustum::draw(const std::shared_ptr<Buffer> sceneParameters)
+   void Frustum::draw(const std::shared_ptr<gpu::Buffer> sceneParameters)
    {
    //enModelMatrix.set(*pWorldMatrix);
    //enScene.set(sceneParameters);

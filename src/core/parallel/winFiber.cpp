@@ -28,13 +28,15 @@ namespace en
    fiber->function(fiber->state);
    }
 
-   winFiber::winFiber(void) :
+   winFiber::winFiber(const uint32 stackSize, const uint32 maximumStackSize) :
       maximumStackSize(0)
    {
    function       = nullptr;
    state          = nullptr;
    waitingForTask = nullptr;
 
+   // As thread is converted to fiber and reuses its stack, stackSize and
+   // maximumStackSize are ignored.
    handle = ConvertThreadToFiberEx(nullptr, FIBER_FLAG_FLOAT_SWITCH);
    assert( handle != nullptr );
    }
@@ -62,16 +64,24 @@ winFiber::~winFiber()
     }
 }
 
-   std::unique_ptr<Fiber> convertToFiber(void)
-   {
-   // Creates Fiber, that will be used to store thread current state 
-   return std::make_unique<winFiber>();
-   }
+Fiber* convertToFiber(const uint32 stackSize, const uint32 maximumStackSize)
+{
+    // Creates Fiber, that will be used to store thread current state
+    winFiber* fiber = allocate<winFiber>(1, cacheline);
+    new (fiber) winFiber(stackSize, maximumStackSize);
+    return fiber;
 
-   std::unique_ptr<Fiber> createFiber(const FiberFunction function, void* fiberState, const uint32 stackSize, const uint32 maximumStackSize)
-   {
-   return std::make_unique<winFiber>(function, fiberState, stackSize, maximumStackSize);
-   }
+  //return std::make_unique<winFiber>(stackSize, maximumStackSize);
+}
+
+Fiber* createFiber(const FiberFunction function, void* fiberState, const uint32 stackSize, const uint32 maximumStackSize)
+{
+    winFiber* fiber = allocate<winFiber>(1, cacheline);
+    new (fiber) winFiber(function, fiberState, stackSize, maximumStackSize);
+    return fiber;
+   
+  //return std::make_unique<winFiber>(function, fiberState, stackSize, maximumStackSize);
+}
 
    void switchToFiber(Fiber& _current, Fiber& _fiber)
    {

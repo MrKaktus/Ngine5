@@ -21,7 +21,7 @@ namespace en
    using namespace gpu;
 
    // Engine model file format description
-   aligned(1)
+   alignTo(1)
    struct Header
       {
       uint32 version;     // Model file format version
@@ -56,7 +56,7 @@ namespace en
    // MeshDescriptor    tree[header.meshes]  
    // RAW
    // RAW
-   aligndefault
+   alignToDefault
 
 
    }

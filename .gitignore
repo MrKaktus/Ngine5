@@ -21,3 +21,4 @@ project/Ngine5.VC.db
 project/Ngine5.VC.opendb
 middleware/zlib-1.2.10/contrib/vstudio/vc14/x64/ZlibDllDebug/Tmp/
 public/bin/
+installs/fbx20151_fbxsdk_clang_macos.pkg

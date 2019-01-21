@@ -692,7 +692,7 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
    using namespace en::storage;
 
    // Pipeline cache header
-   aligned(1) 
+   alignTo(1) 
    struct PipelineCacheHeader
       {
       uint32 headerSize;
@@ -701,7 +701,7 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
       uint32 deviceID;
       uint32 cacheUUID[4];
       };
-   aligndefault
+   alignToDefault
 
    // Try to reuse pipeline cache from disk. 
    // It is assumed that devices are always enumerated in the same order.

@@ -163,7 +163,7 @@ namespace en
    Input = std::make_shared<IOSInterface>();
    return true;
    #elif defined(EN_PLATFORM_OSX)
-   Input = std::make_shared<OSXInterface>();
+   Input = std::make_shared<macInput>();
    return true;
    #elif defined(EN_PLATFORM_WINDOWS)
    Input = std::make_shared<WinInput>();

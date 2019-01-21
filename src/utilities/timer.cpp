@@ -89,22 +89,22 @@ namespace en
    dt = time;
    }
 
-   double Time::seconds(void)
+   double Time::seconds(void) const
    {
    return static_cast<double>(dt) / 1000000000.0;
    }
 
-   uint64 Time::miliseconds(void)
+   uint64 Time::miliseconds(void) const
    {
    return dt / 1000000;
    }
 
-   uint64 Time::microseconds(void)
+   uint64 Time::microseconds(void) const
    {
    return dt / 1000;
    }
 
-   uint64 Time::nanoseconds(void)
+   uint64 Time::nanoseconds(void) const
    {
    return dt;
    }
@@ -247,12 +247,25 @@ namespace en
    return current;
    }
 
+   void sleepFor(Time time)
+   {
+#if defined(EN_PLATFORM_OSX)
+   if (timebase.denom == 0 )
+      mach_timebase_info(&timebase);
+   uint64 machAbsoluteTime = mach_absolute_time() + (time.nanoseconds() * timebase.denom) / timebase.numer;
+   mach_wait_until(machAbsoluteTime);
+#else
+   // TODO: Windows
+   assert( 0 );
+#endif
+   }
+
    void sleepUntil(Time time)
    {
 #if defined(EN_PLATFORM_OSX)
    if (timebase.denom == 0 )
       mach_timebase_info(&timebase);
-   uint64 machAbsoluteTime = time.nanoseconds() * timebase.denom / timebase.numer;
+   uint64 machAbsoluteTime = (time.nanoseconds() * timebase.denom) / timebase.numer;
    mach_wait_until(machAbsoluteTime);
 #else
    // TODO: Windows 
@@ -286,6 +299,77 @@ namespace en
 #endif
    }
 }
+
+/*
+
+TODO: Consider completly separate implementation for macOS that stores time as native mach time instead of in nanoseconds
+
+#if defined(EN_PLATFORM_OSX)
+
+#define machToSeconds(x)      (((double)(x) / 1000000000.0) * (double(timebase.numer) / double(timebase.denom)))
+#define machToMiliSeconds(x)  (((double)(x) / 1000000.0) * (double(timebase.numer) / double(timebase.denom)))
+#define machToMicroSeconds(x) (((double)(x) / 1000.0) * (double(timebase.numer) / double(timebase.denom)))
+#define machToNanoSeconds(x)  ((double)(x) * (double(timebase.numer) / double(timebase.denom)))
+
+Time::Time() :
+    value(0)
+{
+    if (timebase.denom == 0)
+        mach_timebase_info(&timebase);
+}
+
+Time::Time(double time)
+{
+    if (timebase.denom == 0)
+        mach_timebase_info(&timebase);
+   
+    value = uint64(time * 1000000000.0 * ( double(timebase.denom) / double(timebase.numer) ));
+}
+
+
+Time Time::now(void)
+{
+    XRTime time;
+    time.value = mach_absolute_time();
+   
+    return time;
+}
+
+Time Time::delta(Time past)
+{
+    XRTime time;
+    time.value = mach_absolute_time() - past.value;
+   
+    return time;
+}
+
+double Time::seconds(void)
+{
+    return machToSeconds(value);
+}
+
+double Time::miliseconds(void)
+{
+    return machToMiliSeconds(value);
+}
+
+double Time::microseconds(void)
+{
+    return machToMicroSeconds(value);
+}
+
+double Time::nanoseconds(void)
+{
+    return machToNanoSeconds(value);
+}
+
+void Time::seconds(double time)
+{
+    value = uint64(time * 1000000000.0 * ( double(timebase.denom) / double(timebase.numer) ));
+}
+
+#endif
+//*/
 
 
 

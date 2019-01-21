@@ -19,6 +19,9 @@
 
 namespace en
 {
+
+/* DEPRECATED:
+
    constexpr uint32 MaxThreads      = 256;
 
    static Mutex  lockThreadID;                 // Used when modifying thread ID translation table
@@ -99,17 +102,36 @@ namespace en
 
    return running;
    }
+//*/
 
-   void wakeUpMainThread(void)
-   {
-      // Send custom application message to main thread. This will wake it up, to process it, and thus allow it to also process all other input and tasks queued.
-      PostThreadMessageA(mainThreadId, WM_APP, 0, 0);
-   }
+uint64 currentThreadSystemId(void)
+{
+    return GetCurrentThreadId();;
+}
 
-   uint32 currentCoreId(void)
-   {
-   return GetCurrentProcessorNumber();
-   }
+void wakeUpMainThread(void)
+{
+    // Send custom application message to main thread. This will wake main thread
+    // up, to process this message, and thus will allow it to also process all
+    // other input and tasks queued.
+    PostThreadMessageA(mainThreadId, WM_APP, 0, 0);
+}
+
+void setThreadName(std::string threadName)
+{
+    // Sets name of current thread
+   
+   // Available since Windows 10 Creators Update
+   // Requires latest Windows SDK, which in turn requires Visual Studio 2017
+
+   // TODO: FIXME! Uncomment once engine migrated to VS2017!
+   // HRESULT result = SetThreadDescription(GetCurrentThread(), stringToWchar(threadName.c_str(), threadName.length()));
+}
+
+uint32 currentCoreId(void)
+{
+    return GetCurrentProcessorNumber();
+}
 
    winThreadContainer::winThreadContainer(ThreadFunction _function, Thread* _threadClass) :
       function(_function),
@@ -130,13 +152,17 @@ namespace en
    winThread::winThread(ThreadFunction function, void* threadState) :
       handle(INVALID_HANDLE_VALUE),
       sleepSemaphore(CreateSemaphore(nullptr, 0, 1, nullptr)),
+      timer(CreateWaitableTimer(nullptr, true, nullptr)),
       package(function, this),
       localState(threadState),
       index(0xFFFFFFFF),
-      isSleeping(false),
+    //isSleeping(false),
       valid(true),
       Thread()
    {
+   assert( sleepSemaphore != INVALID_HANDLE_VALUE );
+   assert( timer != INVALID_HANDLE_VALUE );
+   
    handle = CreateThread(nullptr,                       // Thread parameters
                          65536,                         // Thread stack size
                          winThreadFunctionHandler,      // Thread entry point
@@ -219,28 +245,69 @@ namespace en
    SetThreadAffinityMask(handle, coresMask);
    }
 
-   void winThread::sleep(void)
-   {
-   assert( GetThreadId(handle) == GetCurrentThreadId() );
+void winThread::sleep(void)
+{
+    assert( GetThreadId(handle) == GetCurrentThreadId() );
 
-   // TODO: Possible race condition? 
-   //       What if this thread sets atomic to true, other thread acquires that
-   //       and tries to wake up this thread before propert sleep is called?
-   isSleeping.store(true, std::memory_order_release);
-   WaitForSingleObject(sleepSemaphore, INFINITE);
-   }
+    // TODO: Possible race condition?
+    //       What if this thread sets atomic to true, other thread acquires that
+    //       and tries to wake up this thread before propert sleep is called?
+    //isSleeping.store(true, std::memory_order_release);
+   
+    DWORD result = WaitForSingleObject(sleepSemaphore, INFINITE);
+    assert( result == WAIT_OBJECT_0 );
+}
+
+void winThread::sleepFor(const Time time)
+{
+    assert( GetThreadId(handle) == GetCurrentThreadId() );
+   
+    // Relative time to sleep is provided as negative value in 100 nanosecond intervals.
+    LARGE_INTEGER timeInterval;
+    timeInterval.QuadPart = -static_cast<sint64>(time.nanoseconds() / 100);
+   
+    SetWaitableTimer(timer, &timeInterval, 0, NULL, NULL, 0);
+   
+    DWORD result = WaitForSingleObject(timer, INFINITE);
+    assert( result == WAIT_OBJECT_0 );
+}
+
+void winThread::sleepUntil(const Time time)
+{
+    assert( GetThreadId(handle) == GetCurrentThreadId() );
+    
+    // Absolute time to sleep is provided as positive value in 100 nanosecond intervals.
+    LARGE_INTEGER momentInTime;
+    momentInTime.QuadPart =(time.nanoseconds() / 100);
+   
+    SetWaitableTimer(timer, &momentInTime, 0, NULL, NULL, 0);
+   
+    DWORD result = WaitForSingleObject(timer, INFINITE);
+    assert( result == WAIT_OBJECT_0 );
+}
+
+// The time after which the state of the timer is to be set to signaled,
+// in 100 nanosecond intervals. Use the format described by the FILETIME structure.
+// Positive values indicate absolute time. Be sure to use a UTC-based absolute time,
+// as the system uses UTC-based time internally. Negative values indicate relative
+// time. The actual timer accuracy depends on the capability of your hardware.
+// For more information about UTC-based time, see System Time.
 
 void winThread::wakeUp(void)
 {
+    // It doesn't matter if this thread sleeps on timer or infinitely, just
+    // signal both semaphores to make sure it's woken up.
     ReleaseSemaphore(sleepSemaphore, 1, nullptr);
-    isSleeping.store(false, std::memory_order_release);
+    ReleaseSemaphore(timer, 1, nullptr);
+    //isSleeping.store(false, std::memory_order_release);
 }
 
+/*
    bool winThread::sleeping(void)
    {
    return isSleeping.load(std::memory_order_acquire);
    }
-   
+*/
    bool winThread::working(void)
    {
    if (WaitForSingleObject(handle, 0) == WAIT_OBJECT_0)

@@ -25,13 +25,13 @@ namespace en
    namespace gpu
    {
    // Compressed Sampler State used as cache hash
-   aligned(1)
+   alignTo(1)
    struct SamplerHash
       {
       uint32 mipmap        : 2;
       uint32 magnification : 2;
       uint32 minification  : 2;
-      uint32 anisotropy    : 3; // 0-1x, 1-2x, 2-4x, 3-8x, 4-16x
+      uint32 anisotropy    : 3; // 0-1x, 1-2x, 2-4x, 3-8x, 4-16x (2^N of anisotropy factor)
       uint32 coordU        : 3;
       uint32 coordV        : 3;
       uint32 coordW        : 3;
@@ -42,7 +42,7 @@ namespace en
       float  minLOD;
       float  maxLOD;
       };
-   aligndefault
+   alignToDefault
    }
 }
 

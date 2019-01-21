@@ -22,27 +22,27 @@ namespace en
    // stringWithUTF8String - returns autoreleased object
    // initWithUTF8String   - returns retained object
    
-   NSString* stringTo_NSString(const string& in)
+   NSString* stringTo_NSString(const std::string& in)
    {
    return [[NSString alloc] initWithUTF8String:in.c_str()];
    }
 
-   double stringTo_f64(const string& in)
+   double stringTo_f64(const std::string& in)
    {
    return [[[NSString alloc] initWithUTF8String:in.c_str()] doubleValue];
    }
    
-   float stringTo_f32(const string& in)
+   float stringTo_f32(const std::string& in)
    {
    return [[[NSString alloc] initWithUTF8String:in.c_str()] floatValue];
    }
 
-   sint32 stringTo_s32(const string& in)
+   sint32 stringTo_s32(const std::string& in)
    {
    return [[[NSString alloc] initWithUTF8String:in.c_str()] intValue];
    }
 
-   uint32 stringTo_u32(const string& in)
+   uint32 stringTo_u32(const std::string& in)
    {
    return static_cast<uint32>([[[NSString alloc] initWithUTF8String:in.c_str()] longLongValue]);
    }

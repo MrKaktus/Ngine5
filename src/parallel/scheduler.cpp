@@ -16,8 +16,11 @@
 
 #include "core/parallel/thread.h"
 
+// TODO: gcc/macOS only?
+#include <emmintrin.h>   // _mm_pause()
 
 #include "core/utilities/memory.h"    // allocate, TODO: move to core/memory
+#include "utilities/strings.h"
 
 namespace en
 {
@@ -132,19 +135,21 @@ namespace en
 // - waiting fiber decides to resume (it savet its own state before switching on wait)
 
 
-   constexpr uint32 FiberStackSize        = 65536;   // 64KB
-   constexpr uint32 MaxFiberStackSize     = 1048576; // 1MB
-   constexpr uint32 WorkerThreadFibers    = 128;
-   constexpr uint32 WorkerThreadTasks     = 256;
-   constexpr uint32 MaxWorkerThreadFibers = 256;
-   constexpr uint32 MaxWorkerThreadTasks  = 1024;
-   constexpr uint32 MainThreadTasks       = 64;
-   constexpr uint32 MaxMainThreadTasks    = 256;
+constexpr uint32 FiberStackSize        = 65536;   // 64KB
+constexpr uint32 MaxFiberStackSize     = 1048576; // 1MB
+constexpr uint32 WorkerThreadFibers    = 128;
+constexpr uint32 WorkerThreadTasks     = 256;
+constexpr uint32 MaxWorkerThreadFibers = 256;
+constexpr uint32 MaxWorkerThreadTasks  = 1024;
+constexpr uint32 MainThreadTasks       = 64;
+constexpr uint32 MaxMainThreadTasks    = 256;
 
 void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker);
 
-void schedulerFiber(void* data)
+void fiberFunction(void* data)
 {
+    assert( data );
+    
     uint32 thisWorker = *(uint32*)(data);
 
     schedulingFunction(*(TaskScheduler*)(en::Scheduler.get()), thisWorker);
@@ -153,25 +158,29 @@ void schedulerFiber(void* data)
 void* workerFunction(Thread* thread)
 {
     TaskScheduler& scheduler = *(TaskScheduler*)(thread->state());
-    
+   
     // Wait until scheduler finished initialization of all threads
-    bool executing = false;
-    while(executing == false) 
+    while(!scheduler.executing.load(std::memory_order_relaxed))
     {
         _mm_pause();
-        executing = std::atomic_load_explicit(&scheduler.executing, std::memory_order_relaxed);
     }
-    
+   
     // Determine current worker thread
     uint32 threadId   = currentThreadId();
     uint32 thisWorker = threadId - scheduler.firstWorkerId;
-    
+   
     // Acquire handle to worker state
-    Worker& workerState = *(Worker*)( &scheduler.worker[thisWorker] );
-    
+    //Worker& workerState = *(Worker*)( &scheduler.worker[thisWorker] );
+    Worker& workerState = *scheduler.worker[thisWorker];
+   
+    // Name thread for debugging purposes
+    std::string threadName("Worker");
+    threadName.append(stringFrom(thisWorker));
+    workerState.thread->name(threadName);
+   
     // Finish initialization of worker thread state, by converting it to fiber
-    workerState.localFibers[0] = convertToFiber();
-    
+    workerState.localFibers[0] = convertToFiber(FiberStackSize, MaxFiberStackSize);
+   
     // Start executing tasks
     schedulingFunction(scheduler, thisWorker);
     
@@ -181,115 +190,135 @@ void* workerFunction(Thread* thread)
     return nullptr;
 }
 
-   Worker::Worker(const uint32 _index) :
-      thread(nullptr),
-      localFibers(nullptr),
-      currentFiber(0),
-      queueOfIncomingTasks(WorkerThreadTasks, MaxWorkerThreadTasks),
-      queueOfIncomingLocalTasks(WorkerThreadTasks, MaxWorkerThreadTasks),
-      queueOfTasks(WorkerThreadTasks, MaxWorkerThreadTasks),       
-    //queueOfTasksStalled(WorkerThreadFibers, MaxWorkerThreadFibers),
-    //queueOfTasksWaiting(WorkerThreadFibers, MaxWorkerThreadFibers),
-      index(_index),
-      tasksCount(0),
-      stalledTasksCount(0)
-   {
-   // Allocate pool of fibers 
-   // (all except of fiber 0 which will be init by converting worker thread to it)
-   // Pointer to Worker thread local state is directly passed to fibers. That is
-   // fine as the moment worker thread will terminate, all fibers should terminate
-   // already anyway (in fact any fiber terminating will terminate worker thread).
-   localFibers = new std::unique_ptr<Fiber>[MaxWorkerThreadFibers];
-   for(uint32 i=1; i<MaxWorkerThreadFibers; ++i)
-      localFibers[i] = createFiber(schedulerFiber, (void*)&index, FiberStackSize, MaxFiberStackSize);
-   }
-
-   Worker::~Worker()
-   {
-   // Release worker thread fibers 
-   // (except of Fiber 0 which represent original worker thread).
-   for(uint32 i=1; i<MaxWorkerThreadFibers; ++i)
-      localFibers[i] = nullptr;
-
-   // Release fibers pool
-   delete [] localFibers;
-
-   // Release thread object
-   thread = nullptr;
-   }
-
-   TaskScheduler::TaskScheduler(const uint32 _workerThreads, const uint32 fibersPerWorker) :
-      workerThreads(_workerThreads),
-      firstWorkerId(0),
-      worker(nullptr),
-      executing(false),
-      appQuit(false),
-      queueOfMainThreadTasks(MainThreadTasks, MaxMainThreadTasks),
-      //mainThreadQueue(MaxMainThreadTasks),
-      mainThreadTasks(MainThreadTasks, MaxMainThreadTasks)
-   {
-   // Allocate per worker thread states
-   worker = allocate<Worker>(workerThreads, cacheline);
-
-   // Spawn worker threads (they will be spinning until execution flag is not set)
-   for(uint32 i=0; i<workerThreads; ++i)
-      {
-      // Init worker state
-      new (&worker[i]) Worker(i);
-      worker[i].thread = startThread(workerFunction, static_cast<void*>(this));
-
-      // Store ID of first worker thread. Implementation requires that all worker
-      // threads have ID's that are part of consecutive range, so that they can
-      // be easily used to index internal arrays of per thread states (after 
-      // subtracting first thread ID).
-      if (i == 0)
-         firstWorkerId = worker[i].thread->id();
-      else
-         {
-         assert( worker[i].thread->id() == firstWorkerId + i );
-         }
-
-      // Each worker thread is assigned to separate CPU core (physical or logical
-      // depending on if Hyper-Threading cores are used) and cannot migrate between
-      // those CPU cores.
-      uint64 executionMask = 0;
-      setBit(executionMask, static_cast<uint64>(i));
-      worker[i].thread->executeOn(executionMask);
-      }
-
-   // Start worker threads execution
-   std::atomic_store_explicit(&executing, true, std::memory_order_relaxed);
-   }
-
-   TaskScheduler::~TaskScheduler()
-   {
-   // Notify all worker threads that they should terminate. As this termination 
-   // is performed in Scheduler destructor, it means that application terminates
-   // immediatly. From this moment, workers won't process any new job, but 
-   // terminate as soon as current task ends (or calls wait).
-   //
-   // TODO: Is above scenario even possible? If we've reached destructor, it
-   //       means that main thread events loop was ended. By that time all tasks
-   //       should be drained properly.
-   //
-   std::atomic_store_explicit(&executing, false, std::memory_order_release);
-
-   // Wait until all worker threads are done
-   for(uint32 i=0; i<workerThreads; ++i)
-   {
-      if (worker[i].thread->working())
-      {
-         worker[i].thread->wakeUp();
-         worker[i].thread->waitUntilCompleted();
-      }
-   }
-
-   // Release worker states
-   for(uint32 i=0; i<workerThreads; ++i)
-      worker[i].~Worker();
+Worker::Worker(const uint32 _index, const uint32 _fibers) :
+    queueOfIncomingTasks(WorkerThreadTasks, MaxWorkerThreadTasks),
+    queueOfIncomingLocalTasks(WorkerThreadTasks, MaxWorkerThreadTasks),
+    queueOfTasks(WorkerThreadTasks, MaxWorkerThreadTasks),
+  //queueOfTasksStalled(WorkerThreadFibers, MaxWorkerThreadFibers),
+  //queueOfTasksWaiting(WorkerThreadFibers, MaxWorkerThreadFibers),
+    localFibers(nullptr),
+    currentFiber(0),
+    fibers(_fibers),
+    thread(nullptr),
+    sleeping(false),
+    index(_index)
+{
+    // Allocate pool of fibers
+    // (all except of fiber 0 which will be init by converting worker thread to it)
+    // Pointer to Worker thread local state is directly passed to fibers. That is
+    // fine as the moment worker thread will terminate, all fibers should terminate
+    // already anyway (in fact any fiber terminating will terminate worker thread).
    
-   deallocate<Worker>(worker);
-   }
+    //localFibers = new std::unique_ptr<Fiber>[fibers];
+    localFibers = new Fiber*[fibers];
+   
+    for(uint32 i=1; i<fibers; ++i)
+    {
+        // By the time this code executes, worker "index" field is initialized
+        localFibers[i] = createFiber(fiberFunction, (void*)&index, FiberStackSize, MaxFiberStackSize);
+    }
+}
+
+Worker::~Worker()
+{
+    // Release worker thread fibers
+    // (except of Fiber 0 which represent original worker thread).
+    for(uint32 i=1; i<fibers; ++i)
+    {
+        localFibers[i] = nullptr;
+    }
+
+    // Release fibers pool
+    delete [] localFibers;
+
+    // Release thread object
+    thread = nullptr;
+}
+
+TaskScheduler::TaskScheduler(const uint32 _workerThreads, const uint32 fibersPerWorker) :
+    workerThreads(_workerThreads),
+    firstWorkerId(0),
+    worker(nullptr),
+    executing(false),
+    appQuit(false),
+    queueOfMainThreadTasks(MainThreadTasks, MaxMainThreadTasks),
+  //mainThreadQueue(MaxMainThreadTasks),
+    mainThreadTasks(MainThreadTasks, MaxMainThreadTasks)
+{    
+    // Name main thread for debugging purposes
+    std::string threadName("MainThread");
+    setThreadName(threadName);
+   
+    // Allocate per worker thread states
+    //worker = allocate<Worker>(workerThreads, cacheline);
+    //worker = new std::unique_ptr<Worker>[workerThreads];
+    worker = new Worker*[workerThreads];
+   
+    for(uint32 i=0; i<workerThreads; ++i)
+    {
+        // Init worker state
+        //new (&worker[i]) Worker(i, fibersPerWorker);
+        //worker[i] = std::unique_ptr<Worker>(new Worker(i, fibersPerWorker));
+       worker[i] = allocate<Worker>(1, cacheline);
+       new (worker[i]) Worker(i, fibersPerWorker);
+    }
+    
+    // Spawn worker threads (they will be spinning until execution flag is not set)
+    for(uint32 i=0; i<workerThreads; ++i)
+    {
+        worker[i]->thread = startThread(workerFunction, static_cast<void*>(this));
+
+        // Each worker thread is assigned to separate CPU core (physical or logical
+        // depending on if Hyper-Threading cores are used) and cannot migrate between
+        // those CPU cores.
+        uint64 executionMask = 0;
+        setBit(executionMask, static_cast<uint64>(i));
+        worker[i]->thread->executeOn(executionMask);
+    }
+
+    // Store ID of first worker thread. Implementation requires that all worker
+    // threads have ID's that are part of consecutive range, so that they can
+    // be easily used to index internal arrays of per thread states (after
+    // subtracting first thread ID).
+    firstWorkerId = worker[0]->thread->id();
+
+    // Start worker threads execution
+    executing.store(true, std::memory_order_release);
+}
+
+TaskScheduler::~TaskScheduler()
+{
+    // Notify all worker threads that they should terminate. As this termination
+    // is performed in Scheduler destructor, it means that application terminates
+    // immediatly. From this moment, workers won't process any new job, but
+    // terminate as soon as current task ends (or calls wait).
+    //
+    // TODO: Is above scenario even possible? If we've reached destructor, it
+    //       means that main thread events loop was ended. By that time all tasks
+    //       should be drained properly.
+    //
+    std::atomic_store_explicit(&executing, false, std::memory_order_release);
+
+    // Wait until all worker threads are done
+    for(uint32 i=0; i<workerThreads; ++i)
+    {
+        if (worker[i]->thread->working())
+        {
+            worker[i]->thread->wakeUp();
+            worker[i]->thread->waitUntilCompleted();
+        }
+    }
+
+    /* Release worker states
+    for(uint32 i=0; i<workerThreads; ++i)
+        worker[i].~Worker();
+   
+    deallocate<Worker>(worker);
+    //*/
+    for(uint32 i=0; i<workerThreads; ++i)
+        worker[i] = nullptr;
+    delete worker;
+}
 
 void TaskScheduler::shutdown(void)
 {
@@ -347,7 +376,7 @@ void TaskScheduler::run(TaskFunction function,
                         TaskState* state)
 {
     // Allocate task ( TODO: from a pool? )
- //Task* task = worker[thisWorker].tasks.allocate(); 
+  //Task* task = worker[thisWorker].tasks.allocate();
     Task* task = new Task();
     
     // Init task state
@@ -392,10 +421,10 @@ void TaskScheduler::run(TaskFunction function,
         // it's consumer. 
       
         // Queue task for execution
-        worker[selectedWorker].queueOfIncomingTasks.push(task);
+        worker[selectedWorker]->queueOfIncomingTasks.push(task);
         
         // Selected worker thread may be sleeping, in such case wake it up
-        worker[selectedWorker].thread->wakeUp();
+        worker[selectedWorker]->thread->wakeUp();
 
         return;
     }
@@ -403,7 +432,7 @@ void TaskScheduler::run(TaskFunction function,
     uint32 thisWorker = threadId - firstWorkerId;
         
     // Queue task for execution
-    worker[thisWorker].queueOfTasks.push(task);
+    worker[thisWorker]->queueOfTasks.push(task);
 }
 
 void TaskScheduler::runOnMainThread(TaskFunction function,
@@ -469,13 +498,87 @@ void TaskScheduler::runOnWorker(const uint32 selectedWorker,
     task->state->acquire();
     
     // Queue task for execution on given worker thread
-    worker[selectedWorker].queueOfIncomingLocalTasks.push(task);
+    worker[selectedWorker]->queueOfIncomingLocalTasks.push(task);
     
     // Selected worker thread may be sleeping, in such case wake it up
-    worker[selectedWorker].thread->wakeUp();
+    worker[selectedWorker]->thread->wakeUp();
     
     return;
 }
+
+/*
+
+// This method is removed in favor of worker threads waking up periodically
+// to check if their stalled Fibers can be resumed. This ensures that in
+// normal conditions, worker threads won't need to do costly iteration over
+// stalled fibers of each sleeping worker to manually woke it.
+//
+// The drawback here is, that in such situation worker thread won't wake up
+// immediately after one of it's fibers is unblocked, but will sleep until
+// current sleep period elapses.
+//
+// Currently there are no metrics to guide which solution is more desired,
+// thus solution that minimizes cross-thread data sharing is choosed.
+// This method can be introduced back in the future, if needed.
+
+void TaskScheduler::resumeStalledWorkers(const uint32 skipWorker)
+{
+    // Iterate over all worker threads (optionally skiping selected one), and
+    // for each worker, check rare condition in which it went to sleep, waiting
+    // for any of it's fibers to get unblocked. If indeed at least one of them
+    // is no longer blocked, wake up such worker thread manually to resume it's
+    // execution. It's a corner case when worker threads are under-utilized.
+    for(uint32 i=0; i<workerThreads; ++i)
+    {
+        if (i == skipWorker)
+        {
+            continue;
+        }
+       
+        // It is crucial to enter this code only for threads that marked themselves
+        // as sleeping. This way in normal conditions, this loop will exit quickly,
+        // and will scale down to N atomic loads, where N is count of workers.
+        if (worker[i].sleeping.load(std::memory_order_relaxed))
+        {
+            // This is not the only place where sleeping workers can be woken up.
+           
+            // Try to lock selected sleeping worker for analyzing list of it's waiting
+            // fibers, without colliding with other worker threads trying to analyze
+            // it (or mentioned worker itself, if it would be woken up by other thread).
+            worker[i].lock.lock();
+    
+            // This thread is now allowed to analyze selected worker queue of stalled
+            // Fibers. Before doing that, ensure that other worker thread didn't woke
+            // up selected worker already.
+            if (worker[i].sleeping.load(std::memory_order_relaxed))
+            {
+                // Check if this worker has fibers that could be resumed
+                // and thus, if it should be woken up.
+                for(uint32 f=0; f<worker[i].fibers; ++f)
+                {
+                   
+                    TaskState* state = worker[i].localFibers[f]->waitingForTask;
+                    if (!state)
+                    {
+                        continue;
+                    }
+                   
+                    if (state->finished())   // <- Potential Race Condition! (TaskState may be already released)
+                    {
+                        // Wake this thread up and proceed to the next one
+                        worker[i].thread->wakeUp();
+ 
+                        break;
+                    }
+                }
+            }
+    
+            // Leave critical section
+            worker[i].lock.unlock();
+        }
+    }
+}
+//*/
 
 void TaskScheduler::wait(TaskState* state)
 {
@@ -495,9 +598,9 @@ void TaskScheduler::wait(TaskState* state)
 
     uint32 thisWorker = threadId - firstWorkerId;
 
-    Worker& workerState = worker[thisWorker];
+    Worker& workerState = *worker[thisWorker];
 
-    Fiber* fiber = workerState.localFibers[workerState.currentFiber].get();
+    Fiber* fiber = workerState.localFibers[workerState.currentFiber]; //.get();
 
     // This fiber is now waiting for some task to finish
     fiber->waitingForTask = state;
@@ -509,7 +612,7 @@ void TaskScheduler::wait(TaskState* state)
     workerState.currentFiber++;
 
     // Execute scheduling loop, until task scheduler terminates
-    std::atomic<bool> isExecuting = std::atomic_load_explicit(&executing, std::memory_order_relaxed);
+    bool isExecuting = std::atomic_load_explicit(&executing, std::memory_order_relaxed);
     while(isExecuting)
     {
         // This loop executes in one of Waiting fibers, but Current marker is 
@@ -518,7 +621,7 @@ void TaskScheduler::wait(TaskState* state)
         // Iterate over waiting fibers, if any of them can be resumed do that
         for(uint32 i=0; i<workerState.currentFiber; ++i)
         {
-            Fiber* waitingFiber = workerState.localFibers[i].get();
+            Fiber* waitingFiber = workerState.localFibers[i]; //.get();
             assert( waitingFiber->waitingForTask );
         
             if (waitingFiber->waitingForTask->finished())
@@ -527,7 +630,11 @@ void TaskScheduler::wait(TaskState* state)
                 // fibers, switch it with last one on the list (one before current).
                 if (i < (workerState.currentFiber - 1))
                 {
-                    workerState.localFibers[workerState.currentFiber - 1].swap(workerState.localFibers[i]);
+                    Fiber* temp = workerState.localFibers[workerState.currentFiber - 1];
+                    workerState.localFibers[workerState.currentFiber - 1] = workerState.localFibers[i];
+                    workerState.localFibers[i] = temp;
+                   
+                    //workerState.localFibers[workerState.currentFiber - 1].swap(workerState.localFibers[i]);
                 }
         
                 // Move selected fiber from Waiting state to Executing, by 
@@ -557,7 +664,7 @@ void TaskScheduler::wait(TaskState* state)
         // the meantime.
         if (workerState.currentFiber < MaxWorkerThreadFibers)
         {
-            Fiber* readyFiber = workerState.localFibers[workerState.currentFiber].get();
+            Fiber* readyFiber = workerState.localFibers[workerState.currentFiber]; //.get();
 
             // Resume fiber ready to pick new task
             switchToFiber(*fiber, *readyFiber);
@@ -581,10 +688,17 @@ void TaskScheduler::wait(TaskState* state)
             // indirectly one on another). This worker thread will go to sleep, 
             // until it will be woken up by other thread (once one of blocking 
             // tasks will finish, unblocking one of the fibers).
-            workerState.thread->sleep();
+            workerState.sleeping.store(true, std::memory_order_release);
+           
+            // Sleep for 1ms. Then wake up and check if any Fiber can be
+            // resumed. This is corner case that happens only on under-utilized
+            // configurations.
+            workerState.thread->sleepFor(Time(1000000));
 
             // <===================== SLEEP / WAKEUP ==========================>
 
+            workerState.sleeping.store(false, std::memory_order_release);
+           
             // This worker thread was just woken up. This mean that one of fibers
             // in Waiting state is unblocked, and can resume execution. Check if 
             // its not current fiber.
@@ -620,10 +734,13 @@ void TaskScheduler::wait(TaskState* state)
 void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
 {
     // Acquire handle to worker state
-    Worker* workerState = &scheduler.worker[thisWorker];
+    Worker* workerState = scheduler.worker[thisWorker]; //.get();
 
+#if not defined(EN_PLATFORM_OSX)
     // Verify that thread executes on expected CPU core
+    // ( There is no such guarantee on macOS unfortunately )
     assert( currentCoreId() == workerState->index );
+#endif
 
     // Execute main scheduling loop, until task scheduler terminates
     bool executing = std::atomic_load_explicit(&scheduler.executing, std::memory_order_relaxed);
@@ -632,18 +749,22 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
         // Iterate over waiting fibers, if any of them can be resumed do that
         for(uint32 i=0; i<workerState->currentFiber; ++i)
         {
-            Fiber* waitingFiber = workerState->localFibers[i].get();
+            Fiber* waitingFiber = workerState->localFibers[i]; //.get();
             assert( waitingFiber->waitingForTask );
         
             if (waitingFiber->waitingForTask->finished())
             {
-                Fiber* fiber = workerState->localFibers[workerState->currentFiber].get();
+                Fiber* fiber = workerState->localFibers[workerState->currentFiber]; //.get();
 
                 // If selected fiber is somewhere inside of sub-group of Waiting 
                 // fibers, switch it with last one on the list (one before current).
                 if (i < (workerState->currentFiber - 1))
                 {
-                    workerState->localFibers[workerState->currentFiber - 1].swap(workerState->localFibers[i]);
+                    Fiber* temp = workerState->localFibers[workerState->currentFiber - 1];
+                    workerState->localFibers[workerState->currentFiber - 1] = workerState->localFibers[i];
+                    workerState->localFibers[i] = temp;
+                   
+                    //workerState->localFibers[workerState->currentFiber - 1].swap(workerState->localFibers[i]);
                 }
         
                 // Move selected fiber from Waiting state to Executing, by 
@@ -725,7 +846,7 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
                     result = DequeResult::Abort;
                     while(result == DequeResult::Abort)
                     {
-                        result = scheduler.worker[workerId].queueOfTasks.steal(task);
+                        result = scheduler.worker[workerId]->queueOfTasks.steal(task);
                     }
                 }
             }
@@ -744,40 +865,14 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
             // shared by several tasks, to easily wait for all of them to finish, or 
             // in future, to allow task splitting for parallel execution).
             task->state->release();
-            
-// TODO: Is this section really thread-safe?
-//       Use mutex on each sleeping thread while traversing it's Tasks list!
-
-            // If there are tasks waiting for this task, they now point to task 
-            // state that is finished (assuming it is, when shared). If their 
-            // parent worker thread is sleeping, this thread needs to wake it.
-            for(uint32 i=0; i<scheduler.workerThreads; ++i)
-            {
-                if (i != thisWorker)
-                {
-                    if (scheduler.worker[i].thread->sleeping())
-                    {
-                        // TODO: What if other thread will wake it up in the middle of searching this list?
-
-                        // TODO: Find a way to safely iterate waiting fibers list while parent thread is alive.
-
-                        // Check if this worker has fibers that could be resumed
-                        // and thus, if there is a point of waking it up.
-                        for(uint32 f=0; f<scheduler.worker[i].currentFiber; ++f)
-                        {
-                            if (scheduler.worker[i].localFibers[f]->waitingForTask->finished())
-                            {
-                                // Wake this thread up and proceed to the next one
-                                scheduler.worker[i].thread->wakeUp();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-// TODO: Is this section really thread-safe?
-
+           
+            // It's possible that some worker threads went to sleep, as all their
+            // fibers were stalled waiting for some tasks to be finished, and
+            // there were no other tasks to execute or steal. In such corner case
+            // the only way to resume such worker execution, is to manually wake
+            // it up, if one of it's fibers is unblocked.
+            // scheduler.resumeStalledWorkers(thisWorker);
+ 
             // Release task local state (nobody waited on it)
             if (task->localState)
             {
@@ -790,7 +885,7 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
             // Determine worker thread on which fiber finished execution
             // (fiber could have migrated between workers during task execution)
             thisWorker = currentThreadId() - scheduler.firstWorkerId;
-            workerState = &scheduler.worker[thisWorker];
+            workerState = scheduler.worker[thisWorker]; //.get();
         }
         else // Worker is idle waiting for work (or for it's fibers to be resumed)
         {
@@ -804,7 +899,16 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
             executing = std::atomic_load_explicit(&scheduler.executing, std::memory_order_acquire);
             if (executing)
             {
-                workerState->thread->sleep();
+                workerState->sleeping.store(true, std::memory_order_release);
+               
+                // Sleep for 10ms. Then wake up and check if any Fiber can be
+                // resumed. This is corner case that happens only on under-utilized
+                // configurations.
+                workerState->thread->sleepFor(Time(10000000));
+               
+                // <===================== SLEEP / WAKEUP ==========================>
+               
+                workerState->sleeping.store(false, std::memory_order_release);
             }
         }
 
@@ -816,19 +920,6 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
 
     return nullptr;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -874,39 +965,7 @@ void TaskScheduler::processMainThreadTasks(void)
             {
                 deallocate<TaskState>(task->state);
             }
-            else
-            {
-                // There may be worker threds waiting for this task to finish
 
-// TODO: Is this section really thread-safe?
-//       Use mutex on each sleeping thread while traversing it's Tasks list!
-
-                // If there are tasks waiting for this task, they now point to task 
-                // state that is finished (assuming it is, when shared). If their 
-                // parent worker thread is sleeping, this thread needs to wake it.
-                for(uint32 i=0; i<workerThreads; ++i)
-                {
-                    if (worker[i].thread->sleeping())
-                    {
-                        // TODO: What if other thread will wake it up in the middle of searching this list?
-                    
-                        // Check if this worker has fibers that could be resumed
-                        // and thus, if there is a point of waking it up.
-                        for(uint32 f=0; f<worker[i].currentFiber; ++f)
-                        {
-                            if (worker[i].localFibers[f]->waitingForTask->finished())
-                            {
-                                // Wake this thread up and proceed to the next one
-                                worker[i].thread->wakeUp();
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-// TODO: Is this section really thread-safe?
-            }
-            
             // Task is raw data so doesn't need to call explicitly destructor
             mainThreadTasks.deallocate(*task);
         }
@@ -914,6 +973,13 @@ void TaskScheduler::processMainThreadTasks(void)
         // Try to query next task from the queue
         result = queueOfMainThreadTasks.take(task);
     }
+   
+    // It's possible that some worker threads went to sleep, as all their
+    // fibers were stalled waiting for some tasks to be finished, and
+    // there were no other tasks to execute or steal. In such corner case
+    // the only way to resume such worker execution, is to manually wake
+    // it up, if one of it's fibers is unblocked.
+    // resumeStalledWorkers(InvalidWorkerId);
 }
 
 
@@ -953,7 +1019,15 @@ void TaskScheduler::processMainThreadTasks(void)
 
    Log << "Starting module: Thread-Pool Scheduler.\n";
 
-   Scheduler = std::make_unique<TaskScheduler>(workers, workerFibers);
+   TaskScheduler* scheduler = allocate<TaskScheduler>(1, cacheline);
+   new (scheduler) TaskScheduler(workers, workerFibers);
+   std::unique_ptr<parallel::Interface> ptr(scheduler);
+
+   //std::unique_ptr<parallel::Interface> ptr(new TaskScheduler(workers, workerFibers));
+   
+   Scheduler.swap(ptr);
+   
+   //Scheduler = std::make_unique<TaskScheduler>(workers, workerFibers);
 
    return (Scheduler == nullptr) ? false : true;
    }

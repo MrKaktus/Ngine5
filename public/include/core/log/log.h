@@ -75,7 +75,8 @@ namespace en
 #if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 
    // In Debug mode logging is enabled by default to console window.
-   // In Release mode logging is disabled by default. It can be enabled from config file, to log to log file.
+   // In Release mode logging is disabled by default.
+   // It can be enabled from config file, to log to log file.
    class Interface 
       {
       private:

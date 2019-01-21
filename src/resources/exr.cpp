@@ -54,7 +54,7 @@ namespace en
       CubeMap           = 1
       };
 
-   aligned(1)
+   alignTo(1)
    struct Header
       {
       uint32 signature; // EXR file signature 0x01312F76 (Little Endian)
@@ -66,7 +66,7 @@ namespace en
       uint32 multiPart    : 1;  // Does file contain multiple parts ?
       uint32 reserved     : 20; // Must be zero
       };
-   aligndefault
+   alignToDefault
 
    struct Channel
       {

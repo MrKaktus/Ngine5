@@ -492,16 +492,16 @@ namespace en
       Key::Unknown,        // 0x7F
       };
 
-   OSXInterface::OSXInterface() :
+   macInput::macInput() :
       CommonInput()
    {
    // Register keyboard
-   keyboards.push_back(make_shared<CommonKeyboard>());
+   keyboards.push_back(std::make_shared<CommonKeyboard>());
    count[underlyingType(IO::Keyboard)]++;
    stateFlags = 0;
    
    // Register mouse (or Touchpad pretending to be mouse)
-   mouses.push_back(make_shared<OSXMouse>());
+   mouses.push_back(std::make_shared<OSXMouse>());
    count[underlyingType(IO::Mouse)]++;
    
    // Register touchpad
@@ -510,12 +510,14 @@ namespace en
    // count[underlyingType(IO::TouchPad)]++;
    }
    
-   OSXInterface::~OSXInterface()
+   macInput::~macInput()
    {
    }
 
-   void OSXInterface::update()
+   void macInput::updateIO(void)
    {
+   macInput* input = reinterpret_cast<macInput*>(en::Input.get());
+
    // Drain system events
    NSEvent* event = nil;
    do

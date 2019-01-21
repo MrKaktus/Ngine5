@@ -22,19 +22,19 @@
 
 namespace en
 {
-   // Could use std::mutex, but it's cache line protection needs to be guaranteed
-   class cachealign Mutex : private SharedAtomic, NonCopyable
-      {
-      public:
-      Mutex() : SharedAtomic() {};
-     ~Mutex() { unlock(); };
+// Could use std::mutex, but it's cache line protection needs to be guaranteed
+class cachealign Mutex : private SharedAtomic, NonCopyable
+{
+    public:
+    Mutex() : SharedAtomic() { assert( (uint64)(&value) % 64 == 0 ); };
+   ~Mutex() { unlock(); };
       
-      forceinline void lock(void)     { while(!tryLock()); }
-      forceinline bool tryLock(void)  { uint32 expected = 0U; return std::atomic_compare_exchange_strong_explicit(&value, &expected, 1U, std::memory_order_seq_cst, std::memory_order_relaxed); } //  AtomicSwap((volatile uint32*)&value, (uint32)1) == 0;
-      forceinline bool isLocked(void) { return std::atomic_load_explicit(&value, std::memory_order_relaxed) > 0U; }  // value > 0;
-      forceinline void unlock(void)   { std::atomic_store_explicit(&value, 0U, std::memory_order_release); } // AtomicSwap((volatile uint32*)&value, (uint32)0);
-      };
+    forceinline void lock(void)     { while(!tryLock()); }
+    forceinline bool tryLock(void)  { uint32 expected = 0U; return std::atomic_compare_exchange_strong_explicit(&value, &expected, 1U, std::memory_order_seq_cst, std::memory_order_relaxed); } //  AtomicSwap((volatile uint32*)&value, (uint32)1) == 0;
+    forceinline bool isLocked(void) { return std::atomic_load_explicit(&value, std::memory_order_relaxed) > 0U; }  // value > 0;
+    forceinline void unlock(void)   { std::atomic_store_explicit(&value, 0U, std::memory_order_release); } // AtomicSwap((volatile uint32*)&value, (uint32)0);
+};
 
-   static_assert(sizeof(Mutex) == 64, "en::Mutex size mismatch!");
+static_assert(sizeof(Mutex) == 64, "en::Mutex size mismatch!");
 }
 #endif

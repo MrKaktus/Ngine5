@@ -74,7 +74,7 @@ namespace en
       if (allocator->allocate(size, 0, offset))
          {
          [handle retain];
-         result = std::make_shared<BufferMTL>(dynamic_pointer_cast<HeapMTL>(shared_from_this()),
+         result = std::make_shared<BufferMTL>(std::dynamic_pointer_cast<HeapMTL>(shared_from_this()),
                                          handle,
                                          type,
                                          size,
@@ -97,7 +97,7 @@ namespace en
                                                  options:options];
          
       if (buffer)
-         result = std::make_shared<BufferMTL>(dynamic_pointer_cast<HeapMTL>(shared_from_this()),
+         result = std::make_shared<BufferMTL>(std::dynamic_pointer_cast<HeapMTL>(shared_from_this()),
                                          buffer,
                                          type,
                                          size,
@@ -158,7 +158,7 @@ namespace en
          }
          
       if (handle)
-         heap = std::make_shared<HeapMTL>(dynamic_pointer_cast<MetalDevice>(shared_from_this()),
+         heap = std::make_shared<HeapMTL>(std::dynamic_pointer_cast<MetalDevice>(shared_from_this()),
                                      handle,
                                      usage,
                                      roundedSize);
@@ -181,7 +181,7 @@ namespace en
    id<MTLHeap> handle = nil;
    handle = [device newHeapWithDescriptor:desc];
    if (handle)
-      heap = std::make_shared<HeapMTL>(dynamic_pointer_cast<MetalDevice>(shared_from_this()),
+      heap = std::make_shared<HeapMTL>(std::dynamic_pointer_cast<MetalDevice>(shared_from_this()),
                                   handle,
                                   usage,
                                   roundedSize);

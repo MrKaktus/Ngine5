@@ -46,7 +46,7 @@ namespace en
         };
 
    // Parameters common for whole scene/frame
-   aligned(1) 
+   alignTo(1) 
    struct SceneParameters
       {
       float4x4 camViewProjection[2];
@@ -57,7 +57,7 @@ namespace en
       sint32   res_0;
       sint32   res_1;
       };
-   aligndefault
+   alignToDefault
 
    class Effect
          {

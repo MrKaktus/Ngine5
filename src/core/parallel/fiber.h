@@ -33,12 +33,23 @@ class Fiber
     virtual ~Fiber() {};
 };
 
+/*
 /// Converts calling thread to Fiber, from now on it can safely switch to other Fibers
 extern std::unique_ptr<Fiber> convertToFiber(void);
 
 extern std::unique_ptr<Fiber> createFiber(const FiberFunction function, 
                                           void* fiberState,
                                           const uint32 stackSize, 
+                                          const uint32 maximumStackSize);
+//*/
+
+/// Converts calling thread to Fiber, from now on it can safely switch to other Fibers
+extern Fiber* convertToFiber(const uint32 stackSize,
+                             const uint32 maximumStackSize);
+
+extern Fiber* createFiber(const FiberFunction function,
+                                          void* fiberState,
+                                          const uint32 stackSize,
                                           const uint32 maximumStackSize);
 
 /// Switch fiber running on current thread, to given one.

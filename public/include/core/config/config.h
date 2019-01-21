@@ -55,6 +55,8 @@ namespace en
       };
    }
 
+extern config::Interface Config;
+
    // Helper function:
    //
    // uint32 workers;
@@ -74,8 +76,6 @@ namespace en
    if (value > maxValue)
       value = maxValue;
    }
-
-extern config::Interface Config;
 }
 
 #endif

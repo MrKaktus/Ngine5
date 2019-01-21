@@ -27,7 +27,8 @@ namespace en
       void*      stack;
       uint32     maximumStackSize;
           
-      psxFiber(void);
+      psxFiber(const uint32 stackSize,
+               const uint32 _maximumStackSize);
       psxFiber(const FiberFunction function,
                void* fiberState,
                const uint32 stackSize,

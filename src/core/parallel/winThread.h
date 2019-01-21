@@ -41,6 +41,7 @@ namespace en
       public:
       HANDLE handle;                // Thread handle
       HANDLE sleepSemaphore;        // Sleeping semaphore
+      HANDLE timer;                 // Timer allowing thread to wait for particular period of time
       winThreadContainer package;   // Packaged app thread and this class instance pointer
       void*  localState;            // State passed on thread creation
       uint32 index;                 // Thread unique ID
@@ -56,8 +57,10 @@ namespace en
       virtual uint64 coresExecutionMask(void);
       virtual void   executeOn(const uint64 coresMask);
       virtual void sleep(void);
+      virtual void sleepFor(const Time time);
+      virtual void sleepUntil(const Time time);
       virtual void wakeUp(void);
-      virtual bool sleeping(void);
+    //virtual bool sleeping(void);
       virtual bool working(void);
       virtual void exit(uint32 ret);
       virtual void waitUntilCompleted(void);

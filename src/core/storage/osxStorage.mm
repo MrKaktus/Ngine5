@@ -153,7 +153,7 @@ namespace en
    
    // Divide filename to name and extension
    sint64 pos = filename.rfind(".");
-   if (pos == string::npos)
+   if (pos == std::string::npos)
       name = filename;
    else
       {
@@ -225,6 +225,9 @@ namespace en
    delete [] path;
 
    // TODO: Finish
+   
+   // Alternative way of obtaining process path:
+   // const char* appPath = getenv("HOME");
    }
 
    OSXInterface::~OSXInterface()

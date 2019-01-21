@@ -121,7 +121,7 @@ en::SystemContext.create();
 
 
 uint32 workers;
-en::setConfigValue<uint32>("en.parallel.workers", workers, en::System.cores(), en::System.cores());
+en::setConfigValue<uint32>("en.parallel.workers", workers, en::System.physicalCores(), en::System.logicalCores());
 uint32 fibers;
 en::setConfigValue<uint32>("en.parallel.fibers", fibers, en::FibersPerWorker, en::MaxFibersPerWorker);
 

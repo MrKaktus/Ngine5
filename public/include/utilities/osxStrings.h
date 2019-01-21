@@ -24,12 +24,12 @@
 
 namespace en
 {
-   extern NSString* stringTo_NSString(const string& in);
+   extern NSString* stringTo_NSString(const std::string& in);
 
-// Looks like OSX sucks at Templates
+// Looks like OSX/gcc sucks at Templates
 
 //   template<>
-//   NSString* stringTo<NSString*>(const string& in)
+//   NSString* stringTo<NSString*>(const std::string& in)
 //   {
 //   return [NSString stringWithUTF8String:in.c_str()];
 //   }

@@ -12,6 +12,8 @@
  */
 
 #include "core/configuration.h"
+#include "platform/comMain.h"
+
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_IOS)
 
 #if defined(EN_PLATFORM_IOS)
@@ -36,14 +38,14 @@ extern void initHalfs(void);
 #include "core/rendering/device.h"
 #include "audio/context.h"
 #include "platform/context.h"
-#include "threading/context.h"
+//#include "threading/context.h"
 #include "input/context.h"
 #include "scene/context.h"
 
 #include "core/types.h"
 #include "platform/system.h"
 #include "platform/osx/osx_main.h"
-#include "threading/scheduler.h"
+#include "parallel/scheduler.h"
 
 namespace en
 {
@@ -67,37 +69,36 @@ namespace en
 #undef main
 #define ConsoleMain   main
 
+uint32 mainResult;
+
+void taskMain(void* taskData)
+{
+   Arguments& arguments = *(Arguments*)(taskData);
+
+   mainResult = ApplicationMainC(arguments.argc, arguments.argv);
+}
+
+#include "core/parallel/parallel.h" // Core - Parallel
+
 // Entry point for console applications
 int ConsoleMain(int argc, const char* argv[]) 
 {
-//NSAutoreleasePool* pool = allocateObjectiveC(NSAutoreleasePool);
-//@try
-{
-   // Init Math
-   en::initHalfs();
-      
-   // Init modules in proper order
-   en::storage::Interface::create();
-   en::ConfigContext.create(argc, argv);
-   en::LogContext.create();
-   en::SystemContext.create();
-   en::SchedulerContext.create();
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    @try
+    {
+        // Init engine modules
+        en::init(argc, argv);
+    
+        // Connect application to Window Server and Display Server. Init global variable NSApp.
+        // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSApplication_Class/index.html#//apple_ref/occ/cl/NSApplication
+        NSApplication* application = [NSApplication sharedApplication];
+    
+        // Create custom Application Delegate and assign it to global NSApp
+        AppDelegate* appDelegate = allocateObjectiveC(AppDelegate);
+        [application setDelegate:appDelegate];
+        [application setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-   en::gpu::GraphicAPI::create();
-
-   en::AudioContext.create();  // TODO: Figure out why it locks
-   en::input::Interface::create();
-   en::StateContext.create();
-
-   // Connect application to Window Server and Display Server. Init global variable NSApp.
-   // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSApplication_Class/index.html#//apple_ref/occ/cl/NSApplication
-   NSApplication* application = [NSApplication sharedApplication];
-
-   // Create custom Application Delegate and assign it to global NSApp
-   AppDelegate* appDelegate = allocateObjectiveC(AppDelegate);
-   [application setDelegate:appDelegate];
-   [application setActivationPolicy:NSApplicationActivationPolicyRegular];
-   
+/*
    // Example "Menu" creation:
 //   id menubar = [[NSMenu new] autorelease];
 //   id appMenuItem = [[NSMenuItem new] autorelease];
@@ -111,84 +112,37 @@ int ConsoleMain(int argc, const char* argv[])
 //   [appMenuItem setSubmenu:appMenu];
 //   [window setTitle:appName];
    
-   // Instead of passing control to NSApp Event loop, we handle it ourselves
-   //[application run];
-   [application finishLaunching];
+    // Instead of passing control to NSApp Event loop, we handle it ourselves
+    //[application run];
+    [application finishLaunching];
+//*/
 
-   // Main thread starts to work like other worker
-   // threads, by executing application as first
-   // task. When it will terminate from inside, it
-   // will return here. This will allow sheduler
-   // destructor to close rest of worker threads.
-   en::SchedulerContext.start(new MainTask(argc,argv));
+        // Give control over main thread to macOS, to send callbacks to Application Delegate
+        [application run];
    
-   deallocateObjectiveC(appDelegate);
-}
-//@catch(NSException* exception)
-//{
-//   en::Log << "Application crashed with exception:\n";
-//   en::Log << exception.reason << std::endl;
-//}
-//[pool release];
-   
+// TODO: There was no task pooling possible on iPhone in the past, verify if it's still true.
+// iOS alternative: ?
+// result = UIApplicationMain(argc, argv, nil, nil);
 
-
-
+        deallocateObjectiveC(appDelegate);
     
-// BEGIN: OSX & IOS temporary init code
-
-
-
-    // Set configuration variables
-    // const char* appPath = getenv("HOME");
-    // NcfgAppPath.assign(appPath);
-#ifdef DEBUG
-    // NcfgAppPath.assign("Users/ukasz/Desktop/Engine 4.0/trunk/projects/Invaders/");
-#endif
-    
-    // TODO: There was no task pooling possible on iPhone in the past, verify if it's still true.
-/*
-    // We need to give whole control over app to damn OS!
-    NSAutoreleasePool* pool = allocateObjectiveC(NSAutoreleasePool);
-    @try
-    {
-        result = UIApplicationMain(argc, argv, nil, nil);
+        // Deinitialize all engine modules
+        en::destroy();
     }
     @catch(NSException* exception)
     {
-        cout << "!!! CRITICAL CRASH OF APPLICATION !!!\n";
-        cout << "Exception: " << exception.reason << std::endl;
+        en::Log << "Application crashed with exception:\n";
+        en::Log << exception.reason << std::endl;
     }
     [pool release];
- */
-    
-   
-// END: OSX & IOS temporary init code
 
-    
-// Close modules in order
-en::StateContext.destroy();
- 
-en::Input = nullptr;
-
-//en::InputContext.destroy();
-en::AudioContext.destroy();
-
-en::Graphics = nullptr;
-//en::GpuContext.destroy();
-en::SchedulerContext.destroy();
-en::SystemContext.destroy();
-en::LogContext.destroy();
-en::ConfigContext.destroy();
-en::Storage = nullptr;
-return returnValue;
+    return returnValue;
 }
 
 #endif
 
 
 
-// TEMP:
 
 
 //   using namespace en;

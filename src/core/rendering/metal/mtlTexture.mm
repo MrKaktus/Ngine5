@@ -498,7 +498,7 @@ namespace en
                                          levels:NSMakeRange(0u, state.mipmaps)
                                          slices:NSMakeRange(0u, state.layers)];
    if (view)
-      result = std::make_shared<TextureViewMTL>(dynamic_pointer_cast<TextureMTL>(shared_from_this()),
+      result = std::make_shared<TextureViewMTL>(std::dynamic_pointer_cast<TextureMTL>(shared_from_this()),
                                            view,
                                            state.type,
                                            state.format,
@@ -524,7 +524,7 @@ namespace en
                                          levels:NSMakeRange(_mipmaps.base, _mipmaps.count)
                                          slices:NSMakeRange(_layers.base, _layers.count)];
    if (view)
-      result = std::make_shared<TextureViewMTL>(dynamic_pointer_cast<TextureMTL>(shared_from_this()),
+      result = std::make_shared<TextureViewMTL>(std::dynamic_pointer_cast<TextureMTL>(shared_from_this()),
                                            view,
                                            _type,
                                            _format,
