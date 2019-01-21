@@ -2,8 +2,8 @@
 REM Middleware
 REM ##########
 
-set PATH_FBX="C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013"
-set PATH_OPENVR=.\..\middleware\openvr-1.0.3\bin
+set PATH_FBX="C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\lib\vs2015"
+set PATH_OPENVR=.\..\middleware\openvr-1.1.3b\bin
 set PATH_ZLIB=.\..\middleware\zlib-1.2.10\contrib\vstudio\vc14
 
 REM Ngine Win32 Debug
