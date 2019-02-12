@@ -35,11 +35,11 @@ namespace en
    {
    }
    
-   std::shared_ptr<MultisamplingState> MetalDevice::createMultisamplingState(const uint32 samples,
-                                                                        const bool enableAlphaToCoverage,
-                                                                        const bool enableAlphaToOne)
+   MultisamplingState* MetalDevice::createMultisamplingState(const uint32 samples,
+                                                             const bool enableAlphaToCoverage,
+                                                             const bool enableAlphaToOne)
    {
-   return std::make_shared<MultisamplingStateMTL>(samples, enableAlphaToCoverage, enableAlphaToOne);
+   return new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne);
    }
    
    }

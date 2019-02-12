@@ -12,8 +12,8 @@
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
 
+#include "core/memory/alignedAllocator.h"
 #include "core/memory/pageAllocator.h"
-#include "core/utilities/memory.h"
 
 namespace en
 {

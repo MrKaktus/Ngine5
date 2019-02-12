@@ -62,9 +62,9 @@ namespace en
    disableRasterizer = desc.disableRasterizer;
    }
 
-   std::shared_ptr<RasterState> Direct3D12Device::createRasterState(const RasterStateInfo& state)
+   RasterState* Direct3D12Device::createRasterState(const RasterStateInfo& state)
    {
-   return std::make_shared<RasterStateD3D12>(state);
+   return new RasterStateD3D12(state);
    }
    
    }

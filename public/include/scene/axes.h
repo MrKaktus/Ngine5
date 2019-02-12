@@ -22,7 +22,7 @@ namespace en
    class Axes : public Drawable
       {
       public:
-      std::shared_ptr<gpu::Buffer>   buffer;
+      gpu::Buffer* buffer;  // Weak pointer to global shared mesh (TODO: Replace with higher level concept)
       std::shared_ptr<gpu::Pipeline> pipeline;
       
       //Parameter enModelMatrix;

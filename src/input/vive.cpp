@@ -506,7 +506,7 @@ namespace en
 
       // Create staging vertex buffer
       uint32 stagingSize = vertices * formatting.elementSize();
-      std::shared_ptr<gpu::Buffer> stagingVertex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      std::unique_ptr<gpu::Buffer> stagingVertex(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize));
       if (!stagingVertex)
          {
          Log << "ERROR: Cannot create staging buffer!\n";

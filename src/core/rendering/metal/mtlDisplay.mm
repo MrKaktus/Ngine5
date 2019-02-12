@@ -26,7 +26,7 @@
 #endif
 #include <sys/kdebug_signpost.h>
 
-#include "core/utilities/memory.h"
+#include "core/memory/alignedAllocator.h"
 
 // In plist, kTraceCode is calculated as value << 2 + 0x210A0000
 #define EN_SIGNPOST_DISPLAY_LINK 0x00000010

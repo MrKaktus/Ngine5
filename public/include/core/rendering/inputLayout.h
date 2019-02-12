@@ -23,33 +23,34 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   struct AttributeDesc
-      {
-      Attribute format;   // Format in which input data are represented
-      uint32    buffer;   // Index of bound buffer that will be used as source.
-      uint32    offset;   // Offset in bytes to first element of given attribute
-      };                  // in source buffer. This offset on some architectures
-                          // needs to be aligned.
+namespace gpu
+{
+struct AttributeDesc
+{
+    Attribute format;   ///< Format in which input data are represented
+    uint32    buffer;   ///< Index of bound buffer that will be used as source.
+    uint32    offset;   ///< Offset in bytes to first element of given attribute
+};                      ///< in source buffer. This offset on some architectures
+                        ///< needs to be aligned.
       
-   struct BufferDesc
-      {
-      uint32 elementSize; // Size of one element in buffer
-                          // (all attributes with their padding).
-      uint32 stepRate;    // Describes how often Input Assembler should switch
-      };                  // to next element. By default it's set to 0 which
-                          // means buffer will be iterated on per vertex rate.
-                          // If value is greater, it describes by how many
-                          // Draw Instances each structured element is shared,
-                          // before Input Assembler should proceed to next one.
+struct BufferDesc
+{
+    uint32 elementSize; ///< Size of one element in buffer
+                        ///< (all attributes with their padding).
+    uint32 stepRate;    ///< Describes how often Input Assembler should switch
+};                      ///< to next element. By default it's set to 0 which
+                        ///< means buffer will be iterated on per vertex rate.
+                        ///< If value is greater, it describes by how many
+                        ///< Draw Instances each structured element is shared,
+                        ///< before Input Assembler should proceed to next one.
 
-   // Handle for Input Assembler binding layout
-   class InputLayout
-      {
-      public:
-      virtual ~InputLayout() {};
-      };
-   }
-}
+/// Handle for Input Assembler binding layout
+class InputLayout
+{
+    public:
+    virtual ~InputLayout() {};
+};
+
+} // en::gpu
+} // en
 #endif

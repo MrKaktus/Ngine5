@@ -603,11 +603,11 @@ namespace en
                }
             }
          }
-      std::shared_ptr<gpu::Buffer> vertexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertexes, formatting, 0u);
+      std::unique_ptr<gpu::Buffer> vertexBuffer(en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertexes, formatting, 0u));
 
       // Create staging buffer
       uint32 stagingSize = vertexes * rowSize;
-      std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize));
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";
@@ -694,10 +694,10 @@ namespace en
             srcIndex = ibo;
             }
          }
-      std::shared_ptr<gpu::Buffer> indexBuffer = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexes, formatting, 0u);
+      std::unique_ptr<gpu::Buffer> indexBuffer(en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexes, formatting, 0u));
       
       // Create staging buffer
-      staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+      staging.swap(std::unique_ptr<gpu::Buffer>(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize)));
       if (!staging)
          {
          Log << "ERROR: Cannot create staging buffer!\n";

@@ -20,35 +20,39 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class CommonHeap : public Heap
-      {
-      public:
-      MemoryUsage _usage;
-      uint32 _size;
+namespace gpu
+{
+class CommonHeap : public Heap
+{
+    public:
+    MemoryUsage _usage;
+    uint32 _size;
 
-      CommonHeap(const MemoryUsage usage, const uint32 size);
+    CommonHeap(const MemoryUsage usage, const uint32 size);
 
-      virtual uint32 size(void) const;
+    virtual uint32 size(void) const;
 
-      // Create formatted Vertex buffer that can be bound to InputLayout.
-      virtual std::shared_ptr<Buffer> createBuffer(const uint32 elements,
-                                                   const Formatting& formatting,
-                                                   const uint32 step = 0u);
-        
-      // Create formatted Index buffer that can be bound to InputLayout.
-      virtual std::shared_ptr<Buffer> createBuffer(const uint32 elements,
-                                                   const Attribute format);
+    /// Create formatted Vertex buffer that can be bound to InputLayout.
+    virtual Buffer* createBuffer(const uint32 elements,
+                                 const Formatting& formatting,
+                                 const uint32 step = 0u);
+      
+    /// Create formatted Index buffer that can be bound to InputLayout.
+    virtual Buffer* createBuffer(const uint32 elements,
+                                 const Attribute format);
 
-      // Create unformatted generic buffer of given type and size.
-      // This method can still be used to create Vertex or Index buffers,
-      // but it's adviced to use ones with explicit formatting.
-      virtual std::shared_ptr<Buffer> createBuffer(const BufferType type,
-                                                   const uint32 size);
+    /// Create unformatted generic buffer of given type and size.
+    /// This method can still be used to create Vertex or Index buffers,
+    /// but it's adviced to use ones with explicit formatting.
+    virtual Buffer* createBuffer(const BufferType type,
+                                 const uint32 size);
 
-      virtual ~CommonHeap() {};
-      };
-   }
-}
+    virtual ~CommonHeap() {};
+};
+
+// CompileTimeSizeReporting( CommonHeap );
+static_assert(sizeof(CommonHeap) == 16, "en::gpu::CommonHeap size mismatch!");
+
+} // en::gpu
+} // en
 #endif

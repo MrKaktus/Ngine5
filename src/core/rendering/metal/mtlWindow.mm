@@ -275,7 +275,7 @@ namespace en
    [window setOpaque:YES];
    }
    
-   std::shared_ptr<Texture> WindowMTL::surface(const Semaphore* signalSemaphore)
+   Texture* WindowMTL::surface(const Semaphore* signalSemaphore)
    {
    // signalSemaphore is ignored, as Metal API waits for presentation
    // engine to finish reading from given surface before returning it

@@ -313,34 +313,34 @@ namespace en
       ResourceCache* next;       // Pointer to next Heap descriptor
       };
    
-   struct BufferCache : public ResourceCache // Buffer & Texture
-      {
-      std::shared_ptr<gpu::Buffer> buffer; // Linear buffer covering whole heap (it keeps reference to parent Heap, so Heap pointer doesn't need to be stored)
-      Allocator*     allocator;       // Algorithm used for sub-allocations in heap
-      volatile void* sysAddress;      // Adress of system memory mapped, linear buffer
+struct BufferCache : public ResourceCache // Buffer & Texture
+{
+    std::unique_ptr<gpu::Buffer> buffer; // Linear buffer covering whole heap (it keeps reference to parent Heap, so Heap pointer doesn't need to be stored)
+    Allocator*     allocator;         // Algorithm used for sub-allocations in heap
+    volatile void* sysAddress;        // Adress of system memory mapped, linear buffer
                                       // that spans across whole heap address range.
-      };
+};
    
-   static_assert(sizeof(BufferCache) == 40, "BufferChache size mismatch!");
+   static_assert(sizeof(BufferCache) == 32, "BufferChache size mismatch!");
    
    struct TextureCache : public ResourceCache
       {
-      std::shared_ptr<gpu::Heap> heap;
+      gpu::Heap* heap;
       };
    
-   static_assert(sizeof(TextureCache) == 24, "TextureChache size mismatch!");
+   static_assert(sizeof(TextureCache) == 16, "TextureChache size mismatch!");
    
    // GPU Buffer public structure for referencing resource
    struct BufferAllocation
       {
-      volatile void*          cpuPointer;     // Pointer to memory location in system memory (offset in mapped buffer)
-      std::shared_ptr<gpu::Buffer> gpuBuffer;      // Updated when made resident
-      uint32                  gpuOffset;      // Updated when made resident
-      uint32                  size     : 31;  // Max supported size of single GPU allocation is 2GB
-      uint32                  resident : 1;   // Set by Streamer when resource is resident in GPU dedicated memory
+      volatile void* cpuPointer;     // Pointer to memory location in system memory (offset in mapped buffer)
+      gpu::Buffer*   gpuBuffer;      // Updated when made resident
+      uint32         gpuOffset;      // Updated when made resident
+      uint32         size     : 31;  // Max supported size of single GPU allocation is 2GB
+      uint32         resident : 1;   // Set by Streamer when resource is resident in GPU dedicated memory
       };
    
-   static_assert(sizeof(BufferAllocation) == 32, "BufferAllocation size mismatch!");
+   static_assert(sizeof(BufferAllocation) == 24, "BufferAllocation size mismatch!");
    
    // GPU Buffer internal structure needed only during allocation/deallocation
    struct BufferAllocationInternal
@@ -375,10 +375,10 @@ namespace en
    // Mipmaps are assumed to be generated offline, or provided by CPU.
    struct TextureAllocation
       {
-      std::shared_ptr<gpu::Texture> gpuTexture; // Updated when made resident
-      gpu::TextureState state;             // Texture state (should be read only)
-      uint64 size     : 63;                // Max supported size of single GPU allocation
-      uint64 resident : 1;                 // Set by Streamer when resource is resident in GPU dedicated memory
+      gpu::Texture*     gpuTexture; // Updated when made resident
+      gpu::TextureState state;      // Texture state (should be read only)
+      uint64 size     : 63;         // Max supported size of single GPU allocation
+      uint64 resident : 1;          // Set by Streamer when resource is resident in GPU dedicated memory
       };
     
    // TODO: Above struct should be Resource Manager / Streamer interface.
@@ -389,7 +389,7 @@ namespace en
    // Asset -> (placed in) -> TextureAllocation -> (streamed to) -> Texture
     
     
-   static_assert(sizeof(TextureAllocation) == 40, "TextureAllocation size mismatch!");
+   static_assert(sizeof(TextureAllocation) == 32, "TextureAllocation size mismatch!");
    
    enum class SurfaceLayout : uint8
       {
@@ -557,7 +557,8 @@ namespace en
    
 
       // Dedicated Heap for downloading results of GPU operations from dedicated to system memory
-      std::shared_ptr<gpu::Buffer> downloadBuffer;
+      std::unique_ptr<gpu::Heap>   downloadHeap;
+      std::unique_ptr<gpu::Buffer> downloadBuffer;
       volatile void*          downloadAdress;
    
       // Queue of transfers to perform

@@ -16,386 +16,249 @@
 #include "resources/context.h"
 #include "resources/tga.h"    
 
+#define PageSize 4096
+
 namespace en
 {
-   namespace tga
-   {
-   enum Format
-        {
-        Invalid             = 0,
-        Indexed             = 1,
-        RGB                 = 2,
-        Bitmap              = 3,
-        IndexedRLE          = 9,
-        RGB_RLE             = 10,
-        BitmapRLE           = 11,
-        IndexedHuffman      = 32,
-        IndexedHuffman4pass = 33
-        };
+namespace tga
+{
+enum Format
+{
+    Invalid             = 0,
+    Indexed             = 1,
+    RGB                 = 2,
+    Bitmap              = 3,
+    IndexedRLE          = 9,
+    RGB_RLE             = 10,
+    BitmapRLE           = 11,
+    IndexedHuffman      = 32,
+    IndexedHuffman4pass = 33
+};
 
-   alignTo(1) 
-   struct Header
-          {
-          uint8  idSize;           // Size of identification string placed after header
-          uint8  palette;          // Indicates image with color palette
-          uint8  format;           // Image storage format
-          uint16 paletteStart;     // Offset to color palette
-          uint16 paletteEntries;   // Number of entries in color palette
-          uint8  paletteBits;      // Bits per field in color palette
-          sint16 offsetX;          // X coordinate of the lower-left image corner
-          sint16 offsetY;          // Y coordinate of the lower-left image corner
-          uint16 width;            // Image width
-          uint16 height;           // Image height
-          uint8  bpp;              // Bits per pixel: 1,16,24,32
-          uint8  alphaBits    : 4; // Bits for alpha channel
-          uint8  reserved     : 1; //
-          uint8  origin       : 1; // 0-lower left, 1-upper-left 
-          uint8  interleaving : 2; // 0 - none
-                                   // 1 - two-way even/odd interleaving
-                                   // 2 - four-way interleaving
-                                   // 3 - reserved
-          };
-   alignToDefault
-    
-   bool load(std::shared_ptr<en::gpu::Texture> dst, const uint16 layer, const std::string& filename)
-   {
-   using namespace en::storage;
+alignTo(1) 
+struct Header
+{
+    uint8  idSize;           // Size of identification string placed after header
+    uint8  palette;          // Indicates image with color palette
+    uint8  format;           // Image storage format
+    uint16 paletteStart;     // Offset to color palette
+    uint16 paletteEntries;   // Number of entries in color palette
+    uint8  paletteBits;      // Bits per field in color palette
+    sint16 offsetX;          // X coordinate of the lower-left image corner
+    sint16 offsetY;          // Y coordinate of the lower-left image corner
+    uint16 width;            // Image width
+    uint16 height;           // Image height
+    uint8  bpp;              // Bits per pixel: 1,16,24,32
+    uint8  alphaBits    : 4; // Bits for alpha channel
+    uint8  reserved     : 1; //
+    uint8  origin       : 1; // 0-lower left, 1-upper-left 
+    uint8  interleaving : 2; // 0 - none
+                             // 1 - two-way even/odd interleaving
+                             // 2 - four-way interleaving
+                             // 3 - reserved
+};
+alignToDefault
 
-  // Open image file 
-   std::shared_ptr<File> file = Storage->open(filename);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.textures + filename);
-      if (!file)
-         {
-         Log << "ERROR: There is no such file " << filename.c_str() << "!\n";
-         return false;
-         }
-      }
-  
-   // Read file header
-   Header header;
-   file->read(0,18,&header);
-  
-   // Check for supported image format
-   if (header.format != RGB &&
-       header.format != RGB_RLE )
-      {
-      Log << "ERROR: This TGA file format is not supported!\n";
-      file = nullptr;
-      return false;
-      }      
-  
-   // Check if not paletted
-   if (header.palette != 0)
-      {
-      Log << "ERROR: Paletted TGA files are not supported!\n";
-      file = nullptr;
-      return false;
-      }   
-          
-   // Determine texture parameters
-   gpu::TextureState textureState; 
-   textureState.width  = header.width;
-   textureState.height = header.height;
-   textureState.type   = gpu::TextureType::Texture2D;
-   // We shouldn't dynamically switch between 1D and 2D textures in TGA, always use 2D here
-   //if (Gpu.support.texture.type(gpu::TextureType::Texture1D))
-   //   if (header.height == 1)
-   //      textureState.type = gpu::TextureType::Texture1D;
-    
-   if (header.bpp == 24)
-      textureState.format = gpu::Format::BGR_8;
-   else
-   if (header.bpp == 32)
-      textureState.format = gpu::Format::BGRA_8;
-   else
-      {
-      Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      file = nullptr;
-      return false;
-      }
+// Reads first 4KB page of TGA file, and decodes it's header to TextureState and ColorSpace.
+bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& settings, gpu::ColorSpace& colorSpace)
+{
+    // Check if file has minimum required size
+    uint32 minimumFileSize = sizeof(Header);
+    if (readSize < minimumFileSize)
+    {
+        Log << "ERROR: TGA file size too small!\n";
+        return false;
+    }
 
-   // Check if image can be loaded to texture
-   if (dst->type() != gpu::TextureType::Texture1DArray            &&
-       dst->type() != gpu::TextureType::Texture2DArray            &&
-       dst->type() != gpu::TextureType::Texture2DMultisampleArray &&
-       dst->type() != gpu::TextureType::TextureCubeMapArray)
-      {
-      file = nullptr;
-      return false;
-      }
-   if ( (dst->layers() < layer) ||
-        (dst->width()  != textureState.width)  ||
-        (dst->height() != textureState.height) ||
-        (dst->format() != textureState.format) )
-      {
-      file = nullptr;
-      return false;
-      }
+    // Read file header
+    Header& header = *reinterpret_cast<Header*>(buffer);
 
-   // Calculate size of data to load
-   uint32 srcOffset = sizeof(Header) + header.idSize;
-   uint32 dataSize   = (header.width * header.height * header.bpp) / 8;
-      
-   // Create staging buffer
-   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
-   if (!staging)
-      {
-      Log << "ERROR: Cannot create staging buffer!\n";
-      file = nullptr;
-      return false;
-      }
-      
-   // Read image to gpu memory   
-   if (header.format == RGB) 
-      {
-      volatile void* ptr = staging->map();
-      file->read(srcOffset, dataSize, ptr);    
-      staging->unmap();
-      }
-   else
-   if (header.format == RGB_RLE)
-      {
-      uint8 counter;
-      uint32 dstOffset = 0;
-      uint8  pixelSize = header.bpp / 8;
-      void*  pixel = new uint8[pixelSize];
-      volatile void*  ptr   = staging->map();
+    // Check for supported image format
+    if (header.format != RGB &&
+        header.format != RGB_RLE)
+    {
+        Log << "ERROR: Unsupported texture format!\n";
+        return false;
+    }
 
-      while(dstOffset < dataSize)
-           {
-           // Read RLE header
-           file->read(srcOffset, 1, &counter);
-           srcOffset++;
+    // Check if not paletted
+    if (header.palette != 0)
+    {
+        Log << "ERROR: Paletted TGA files are not supported!\n";
+        return false;
+    }
 
-           // Run-length packet
-           if (counter & 0x80)
-              {
-              counter -= 127;
-              file->read(srcOffset, pixelSize, pixel);
+    // Set texture state
+    settings.type    = gpu::TextureType::Texture2D;
+    settings.format  = gpu::Format::Unsupported;
+    settings.usage   = gpu::TextureUsage::Read;
+    settings.width   = header.width;
+    settings.height  = header.height;
+    settings.layers  = 1;
+    settings.mipmaps = 1;
+    settings.samples = 1;
 
-              for(uint8 i=0; i<counter; ++i)
-                 {
-                 memcpy(((uint8*)ptr + dstOffset), pixel, pixelSize);
-                 dstOffset += pixelSize;
-                 }
+    // There is no way to determine if TGA is storing data using sRGB transfer function
+    colorSpace = gpu::ColorSpace::ColorSpaceLinear;
 
-              srcOffset += pixelSize;
-              }
-           // Non-run-length packet
-           else
-              {
-              counter++;
-              for(uint8 i=0; i<counter; ++i)
-                 {
-                 file->read(srcOffset, pixelSize, ((uint8*)ptr + dstOffset));
-                 dstOffset += pixelSize;
-                 srcOffset += pixelSize;
-                 }
-              }
-           }
+    // Determine stored texel format
+    if (header.bpp == 24)
+    {
+        settings.format = gpu::Format::BGR_8;
+    }
+    else
+    if (header.bpp == 32)
+    {
+        settings.format = gpu::Format::BGRA_8;
+    }
+    else
+    {
+        Log << "ERROR:  Unsupported texture format!\n";
+        return false;
+    }
 
-      staging->unmap();
-      delete [] static_cast<uint8*>(pixel);
-      }
-
-   // TODO: In future distribute transfers to different queues in the same queue type family
-   gpu::QueueType type = gpu::QueueType::Universal;
-   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
-      type = gpu::QueueType::Transfer;
-
-   // Copy data from staging buffer to final texture
-   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
-   command->start();
-   command->copy(*staging, 0u, textureState.rowSize(0u), *dst, 0u, layer);
-   command->commit();
-   
-   // TODO:
-   // here return completion handler callback !!! (no waiting for completion)
-   // - this callback destroys CommandBuffer object
-   // - destroys staging buffer
-   //
-   // Till it's done, wait for completion:
-   
-   command->waitUntilCompleted();
-   command = nullptr;
-   staging = nullptr;
- 
-   file = nullptr;
-   return true;
-   }
-
-   std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
-   {
-   using namespace en::storage;
-
-   // Try to reuse already loaded texture
-   if (ResourcesContext.textures.find(filename) != ResourcesContext.textures.end())
-      return ResourcesContext.textures[filename];
-
-   // Open image file 
-   std::shared_ptr<File> file = Storage->open(filename);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.textures + filename);
-      if (!file)
-         {
-         Log << "ERROR: There is no such file " << filename.c_str() << "!\n";
-         return std::shared_ptr<gpu::Texture>(nullptr);
-         }
-      }
-  
-   // Read file header
-   Header header;
-   file->read(0,18,&header);
-  
-   // Check for supported image format
-   if (header.format != RGB &&
-       header.format != RGB_RLE )
-      {
-      Log << "ERROR: This TGA file format is not supported!\n";
-      file = nullptr;
-      return std::shared_ptr<gpu::Texture>(nullptr);
-      }      
-  
-   // Check if not paletted
-   if (header.palette != 0)
-      {
-      Log << "ERROR: Paletted TGA files are not supported!\n";
-      file = nullptr;
-      return std::shared_ptr<gpu::Texture>(nullptr);
-      }   
-          
-   // Determine texture parameters
-   gpu::TextureState textureState; 
-   textureState.width  = header.width;
-   textureState.height = header.height;
-   textureState.type   = gpu::TextureType::Texture2D;
-   // We shouldn't dynamically switch between 1D and 2D textures in TGA, always use 2D here
-   //if (Gpu.support.texture.type(gpu::TextureType::Texture1D))
-   //   if (header.height == 1)
-   //      textureState.type = gpu::TextureType::Texture1D;
-    
-   if (header.bpp == 24)
-      textureState.format = gpu::Format::BGR_8;
-   else
-   if (header.bpp == 32)
-      textureState.format = gpu::Format::BGRA_8;
-   else
-      {
-      Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      file = nullptr;
-      return std::shared_ptr<gpu::Texture>(nullptr);
-      }
-
-   // Calculate size of data to load
-   uint32 srcOffset = sizeof(Header) + header.idSize;
-   uint32 dataSize  = (header.width * header.height * header.bpp) / 8;
-      
-   // Create texture
-   std::shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(textureState);
-   if (!texture)
-      {
-      Log << "ERROR: Cannot create texture object!\n";
-      file = nullptr;
-      return texture;
-      }
-
-   // Create staging buffer
-   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
-   if (!staging)
-      {
-      Log << "ERROR: Cannot create staging buffer!\n";
-      file = nullptr;
-      return texture;
-      }
-      
-   // Read image to gpu memory   
-   if (header.format == RGB) 
-      {     
-      volatile void* dst = staging->map();
-      file->read(srcOffset, dataSize, dst);    
-      staging->unmap();
-      }
-   else
-   if (header.format == RGB_RLE)
-      {
-      uint8 counter;
-      uint32 dstOffset = 0;
-      uint8  pixelSize = header.bpp / 8;
-      void*  pixel = new uint8[pixelSize];
-      volatile void*  dst   = staging->map();
-
-      while(dstOffset < dataSize)
-           {
-           // Read RLE header
-           file->read(srcOffset, 1, &counter);
-           srcOffset++;
-
-           // Run-length packet
-           if (counter & 0x80)
-              {
-              counter -= 127;
-              file->read(srcOffset, pixelSize, pixel);
-
-              for(uint8 i=0; i<counter; ++i)
-                 {
-                 memcpy(((uint8*)dst + dstOffset), pixel, pixelSize);
-                 dstOffset += pixelSize;
-                 }
-
-              srcOffset += pixelSize;
-              }
-           // Non-run-length packet
-           else
-              {
-              counter++;
-              for(uint8 i=0; i<counter; ++i)
-                 {
-                 file->read(srcOffset, pixelSize, ((uint8*)dst + dstOffset));
-                 dstOffset += pixelSize;
-                 srcOffset += pixelSize;
-                 }
-              }
-           }
-
-      staging->unmap();
-      delete [] static_cast<uint8*>(pixel);
-      }
- 
-   // TODO: Now blit from staging to texture
-   uint32 mipmap = 0u;
-   uint32 slice  = 0u;
-   
-   // TODO: In future distribute transfers to different queues in the same queue type family
-   gpu::QueueType type = gpu::QueueType::Universal;
-   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
-      type = gpu::QueueType::Transfer;
-
-   // Copy data from staging buffer to final texture
-   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
-   command->start();
-   command->copy(*staging, 0u, textureState.rowSize(0u), *texture, mipmap, slice);
-   command->commit();
-   
-   // TODO:
-   // here return completion handler callback !!! (no waiting for completion)
-   // - this callback destroys CommandBuffer object
-   // - destroys staging buffer
-   //
-   // Till it's done, wait for completion:
-   
-   command->waitUntilCompleted();
-   command = nullptr;
-   staging = nullptr;
- 
-   // Update list of loaded textures
-   ResourcesContext.textures.insert(std::pair<std::string, std::shared_ptr<en::gpu::Texture> >(filename, texture));
-  
-   file = nullptr;
-   return texture;
-   }
-  
-   }
+    return true;
 }
+
+bool load(
+    const std::string& filename,
+    uint8* const destination,
+    const uint32 width,
+    const uint32 height,
+    const gpu::Format format,
+    const gpu::ImageMemoryAlignment alignment,
+    const bool invertHorizontal)
+{
+    using namespace en::storage;
+    using namespace en::gpu;
+
+    // Open file 
+    std::shared_ptr<File> file = Storage->open(filename);
+    if (!file)
+    {
+        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        if (!file)
+        {
+            Log << en::ResourcesContext.path.textures + filename << std::endl;
+            Log << "ERROR: There is no such file!\n";
+            return false;
+        }
+    }
+
+
+    // ### Read file metadata
+
+
+    // Read file first 4KB into single 4KB memory page
+    uint32 readSize = min(file->size(), PageSize);
+    uint8* buffer = allocate<uint8>(readSize, PageSize);
+    file->read(0, readSize, buffer);
+
+    // Read file properties
+    TextureState settings;
+    ColorSpace colorSpace; // TODO: Determine file Color Space and compare with expected
+    bool success = readMetadata(buffer, readSize, settings, colorSpace);
+
+    // Free temporary 4KB memory page
+    deallocate<uint8>(buffer);
+
+    if (!success)
+    {
+        file = nullptr;
+        return false;
+    }
+
+    // Verify that file matches expected properties
+    if ((settings.width  != width) ||
+        (settings.height != height) ||
+        (settings.format != format))
+    {
+        file = nullptr;
+        return false;
+    }
+
+
+    // ### Read file to memory
+
+
+    // Read whole file at once to memory. 
+    // Size aligned to multiple of 4KB Page Size, and allocated at such boundary (can be memory mapped).
+    uint64 fileSize = file->size();
+    uint64 roundedSize = roundUp(fileSize, PageSize);
+    uint8* content = allocate<uint8>(roundedSize, PageSize);
+    if (!file->read(content))
+    {
+        Log << "ERROR: Couldn't read file to memory.\n";
+        deallocate<uint8>(content);
+        file = nullptr;
+        return false;
+    }
+
+    // Release file handle and work on copy in memory
+    file = nullptr;
+
+
+    // ### Parse and decompress file 
+
+
+    // Calculate size of raw data to read
+    Header& header = *reinterpret_cast<Header*>(content);
+    uint32 srcOffset = sizeof(Header) + header.idSize;
+    uint32 dataSize  = settings.surfaceSize(0);
+
+    // Copy data
+    if (header.format == RGB)
+    {
+        memcpy(destination, content + srcOffset, dataSize);
+    }
+    else // Decompress data
+    if (header.format == RGB_RLE)
+    {
+        uint8  counter;
+        uint32 dstOffset = 0;
+        uint8  texelSize = header.bpp / 8;
+        uint8* texel = new uint8[texelSize];
+
+        while (dstOffset < dataSize)
+        {
+            // Read RLE header
+            counter = *reinterpret_cast<uint8*>(content + srcOffset);
+            srcOffset++;
+
+            // Run-length packet
+            if (counter & 0x80)
+            {
+                counter -= 127;
+                memcpy(texel, content + srcOffset, texelSize);
+                srcOffset += texelSize;
+
+                // Repeat given texel N times
+                for (uint8 i=0; i<counter; ++i)
+                {
+                    memcpy(destination + dstOffset, texel, texelSize);
+                    dstOffset += texelSize;
+                }
+            }
+            // Non-run-length packet
+            else
+            {
+                counter++;
+                for (uint8 i=0; i<counter; ++i)
+                {
+                    memcpy(destination + dstOffset, content + srcOffset, texelSize);
+                    dstOffset += texelSize;
+                    srcOffset += texelSize;
+                }
+            }
+        }
+
+        delete[] texel;
+    }
+
+    // Release temporary data
+    deallocate<uint8>(content);
+    return true;
+}
+
+} // en::tga
+} // en

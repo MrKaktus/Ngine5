@@ -17,11 +17,16 @@
 
 namespace en
 {
-   namespace tga
-   {
-   bool load(std::shared_ptr<en::gpu::Texture> dst, const uint16 layer, const std::string& filename);
-   std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
-   }
-}
+namespace tga
+{
+bool load(const std::string& filename,
+          uint8* const destination,                  ///< Pointer to buffer where image should be decompressed and decoded
+          const uint32 width,                        ///< Expected width of surface
+          const uint32 height,                       ///< Expected height of surface
+          const gpu::Format format,                  ///< Expected format of surface
+          const gpu::ImageMemoryAlignment alignment, ///< Alignment in which data is supposed to be ordered in memory
+          const bool invertHorizontal = false);      ///< Determines if image should be flipped Horizontally
 
+} // en::tga
+} // en
 #endif

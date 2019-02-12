@@ -19,7 +19,7 @@
 // TODO: gcc/macOS only?
 #include <emmintrin.h>   // _mm_pause()
 
-#include "core/utilities/memory.h"    // allocate, TODO: move to core/memory
+#include "core/memory/alignedAllocator.h"
 #include "utilities/strings.h"
 
 namespace en
@@ -849,6 +849,12 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
                         result = scheduler.worker[workerId]->queueOfTasks.steal(task);
                     }
                 }
+
+                if (result == DequeResult::Success)
+                {
+                    assert( task );
+                    break;
+                }
             }
         }
         
@@ -1019,8 +1025,7 @@ void TaskScheduler::processMainThreadTasks(void)
 
    Log << "Starting module: Thread-Pool Scheduler.\n";
 
-   TaskScheduler* scheduler = allocate<TaskScheduler>(1, cacheline);
-   new (scheduler) TaskScheduler(workers, workerFibers);
+   TaskScheduler* scheduler = new TaskScheduler(workers, workerFibers);
    std::unique_ptr<parallel::Interface> ptr(scheduler);
 
    //std::unique_ptr<parallel::Interface> ptr(new TaskScheduler(workers, workerFibers));

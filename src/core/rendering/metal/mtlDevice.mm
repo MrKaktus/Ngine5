@@ -18,8 +18,8 @@
 #if defined(EN_MODULE_RENDERER_METAL)
 
 #include "core/log/log.h"
+#include "core/memory/alignedAllocator.h"
 #include "core/rendering/metal/mtlAPI.h"
-#include "core/utilities/memory.h"
 
 #include "core/rendering/metal/mtlBuffer.h"
 
@@ -329,7 +329,7 @@ struct taskCreateWindowStateMTL
     MetalDevice* gpu;
     const WindowSettings* settings;
     std::string title;
-    std::shared_ptr<WindowMTL> result;
+    WindowMTL* result;
 
     taskCreateWindowStateMTL(const WindowSettings* _settings);
 };
@@ -346,11 +346,11 @@ void taskCreateWindow(void* data)
 {
     taskCreateWindowStateMTL& state = *(taskCreateWindowStateMTL*)(data);
 
-    state.result = std::make_shared<WindowMTL>(state.gpu, *state.settings, state.title);
+    state.result = en::allocate<WindowMTL>(1, cacheline);
+    new (state.result) WindowMTL(state.gpu, *state.settings, state.title);
 }
 
-
-std::shared_ptr<Window> MetalDevice::createWindow(const WindowSettings& settings, const std::string title)
+Window* MetalDevice::createWindow(const WindowSettings& settings, const std::string title)
 {
     taskCreateWindowStateMTL state(&settings);
     state.gpu   = this;
@@ -365,12 +365,12 @@ std::shared_ptr<Window> MetalDevice::createWindow(const WindowSettings& settings
     return state.result;
 }
 
-   uint32 MetalDevice::queues(const QueueType type) const
-   {
-   if (type == QueueType::Universal)
-      return 1u;
-   return 0u;
-   }
+uint32 MetalDevice::queues(const QueueType type) const
+{
+    if (type == QueueType::Universal)
+        return 1u;
+    return 0u;
+}
 
 
 

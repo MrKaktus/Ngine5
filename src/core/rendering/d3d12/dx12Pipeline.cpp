@@ -88,19 +88,19 @@ namespace en
    const InputLayoutD3D12*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutD3D12*>(pipelineState.inputLayout.get())
                                                                              : reinterpret_cast<InputLayoutD3D12*>(defaultState->inputLayout.get());
 
-   const ViewportStateD3D12*      viewport       = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState.get());
+   const ViewportStateD3D12*      viewport       = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState);
 
-   const RasterStateD3D12*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateD3D12*>(pipelineState.rasterState.get())
-                                                                             : reinterpret_cast<RasterStateD3D12*>(defaultState->rasterState.get());
+   const RasterStateD3D12*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateD3D12*>(pipelineState.rasterState)
+                                                                             : reinterpret_cast<RasterStateD3D12*>(defaultState->rasterState);
 
-   const MultisamplingStateD3D12* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateD3D12*>(pipelineState.multisamplingState.get())
-                                                                                    : reinterpret_cast<MultisamplingStateD3D12*>(defaultState->multisamplingState.get());
+   const MultisamplingStateD3D12* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateD3D12*>(pipelineState.multisamplingState)
+                                                                                    : reinterpret_cast<MultisamplingStateD3D12*>(defaultState->multisamplingState);
       
-   const DepthStencilStateD3D12*  depthStencil   = pipelineState.depthStencilState ? reinterpret_cast<DepthStencilStateD3D12*>(pipelineState.depthStencilState.get())
-                                                                                   : reinterpret_cast<DepthStencilStateD3D12*>(defaultState->depthStencilState.get());
+   const DepthStencilStateD3D12*  depthStencil   = pipelineState.depthStencilState ? reinterpret_cast<DepthStencilStateD3D12*>(pipelineState.depthStencilState)
+                                                                                   : reinterpret_cast<DepthStencilStateD3D12*>(defaultState->depthStencilState);
 
-   const BlendStateD3D12*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateD3D12*>(pipelineState.blendState.get())
-                                                                            : reinterpret_cast<BlendStateD3D12*>(defaultState->blendState.get());
+   const BlendStateD3D12*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateD3D12*>(pipelineState.blendState)
+                                                                            : reinterpret_cast<BlendStateD3D12*>(defaultState->blendState);
 
    std::shared_ptr<PipelineLayoutD3D12> layout        = pipelineState.pipelineLayout ? std::dynamic_pointer_cast<PipelineLayoutD3D12>(pipelineState.pipelineLayout)
                                                                                 : std::dynamic_pointer_cast<PipelineLayoutD3D12>(defaultState->pipelineLayout);
@@ -215,7 +215,7 @@ namespace en
       result->buffersCount = input->buffersCount;
 
       // Defer dynamic state: Viewport & Scissor State 
-      const ViewportStateD3D12* viewport = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState.get());
+      const ViewportStateD3D12* viewport = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState);
       memcpy(&result->viewport[0], &viewport->viewport[0], viewport->count * sizeof(D3D12_VIEWPORT));
       memcpy(&result->scissor[0],  &viewport->scissor[0],  viewport->count * sizeof(D3D12_RECT));
       result->viewportsCount = viewport->count;

@@ -17,16 +17,22 @@
 
 namespace en
 {
-   namespace bmp
-   {
-   std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
-   bool             load(std::shared_ptr<en::gpu::Texture> dst, const uint16 layer, const std::string& filename);
-   //bool             save(std::shared_ptr<en::gpu::Texture> texture, const std::string& filename);
-   bool             save(const uint32 width, const uint32 height, const uint8* ptr, const std::string& filename);
+namespace bmp
+{
+bool load(const std::string& filename,
+          uint8* const destination,                  ///< Pointer to buffer where image should be decompressed and decoded
+          const uint32 width,                        ///< Expected width of surface
+          const uint32 height,                       ///< Expected height of surface
+          const gpu::Format format,                  ///< Expected format of surface
+          const gpu::ImageMemoryAlignment alignment, ///< Alignment in which data is supposed to be ordered in memory
+          const bool invertHorizontal = false);      ///< Determines if image should be flipped Horizontally
 
-   en::gpu::TextureState settings(const std::string& filename);
-   bool load(const std::string& filename, en::gpu::TextureState& settings, void* dst);
-   }
-}
+bool save(const std::string& filename,
+          const uint8* source,
+          const uint32 width, 
+          const uint32 height);
+
+} // en::bmp
+} // en
 
 #endif

@@ -223,7 +223,7 @@ namespace en
    // TODO: Ensure this Command Buffer is Graphic one !
    ID3D12GraphicsCommandList* command = reinterpret_cast<ID3D12GraphicsCommandList*>(handle);
 
-   MemoryUsage heapUsage = buffer.heap->_usage;
+   MemoryUsage heapUsage = buffer.heap._usage;
 
    // If buffer was created on Upload or Immediate Heap,
    // it's initial state is General, and it needs to 
@@ -263,7 +263,7 @@ namespace en
    {
    const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
 
-   MemoryUsage heapUsage = buffer.heap->_usage;
+   MemoryUsage heapUsage = buffer.heap._usage;
 
    // If buffer was created on Upload or Immediate Heap,
    // it's initial state is General, and it needs to 

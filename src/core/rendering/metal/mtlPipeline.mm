@@ -88,14 +88,14 @@ namespace en
    const InputLayoutMTL*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutMTL*>(pipelineState.inputLayout.get())
                                                                            : reinterpret_cast<InputLayoutMTL*>(defaultState->inputLayout.get());
 
-   const RasterStateMTL*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateMTL*>(pipelineState.rasterState.get())
-                                                                           : reinterpret_cast<RasterStateMTL*>(defaultState->rasterState.get());
+   const RasterStateMTL*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateMTL*>(pipelineState.rasterState)
+                                                                           : reinterpret_cast<RasterStateMTL*>(defaultState->rasterState);
 
-   const MultisamplingStateMTL* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateMTL*>(pipelineState.multisamplingState.get())
-                                                                                  : reinterpret_cast<MultisamplingStateMTL*>(defaultState->multisamplingState.get());
+   const MultisamplingStateMTL* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateMTL*>(pipelineState.multisamplingState)
+                                                                                  : reinterpret_cast<MultisamplingStateMTL*>(defaultState->multisamplingState);
       
-   const BlendStateMTL*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateMTL*>(pipelineState.blendState.get())
-                                                                          : reinterpret_cast<BlendStateMTL*>(defaultState->blendState.get());
+   const BlendStateMTL*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateMTL*>(pipelineState.blendState)
+                                                                          : reinterpret_cast<BlendStateMTL*>(defaultState->blendState);
 
    const PipelineLayoutMTL*     layout         = pipelineState.pipelineLayout ? reinterpret_cast<PipelineLayoutMTL*>(pipelineState.pipelineLayout.get())
                                                                               : reinterpret_cast<PipelineLayoutMTL*>(defaultState->pipelineLayout.get());
@@ -158,7 +158,7 @@ namespace en
       pipeDesc.colorAttachments[i].pixelFormat = TranslateTextureFormat[underlyingType(renderPass->format[i])];
 
    // Optional Multisample State
-   if (multisampling != reinterpret_cast<MultisamplingStateMTL*>(defaultState->multisamplingState.get()))
+   if (multisampling != reinterpret_cast<MultisamplingStateMTL*>(defaultState->multisamplingState))
       {
       pipeDesc.sampleCount               = multisampling->samples;
       pipeDesc.alphaToCoverageEnabled    = multisampling->alphaToCoverage;
@@ -203,8 +203,8 @@ namespace en
    else // Populate Pipeline with Metal dynamic states
       {
       pipeline->depthStencil = std::dynamic_pointer_cast<DepthStencilStateMTL>(pipelineState.depthStencilState);
-      pipeline->raster       = *reinterpret_cast<RasterStateMTL*>(pipelineState.rasterState.get());
-      pipeline->viewport     = *reinterpret_cast<ViewportStateMTL*>(pipelineState.viewportState.get());
+      pipeline->raster       = *reinterpret_cast<RasterStateMTL*>(pipelineState.rasterState);
+      pipeline->viewport     = *reinterpret_cast<ViewportStateMTL*>(pipelineState.viewportState);
       pipeline->primitive    = TranslateDrawableType[input->primitive];
       }
 

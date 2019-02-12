@@ -25,51 +25,50 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class VulkanDevice;
+namespace gpu
+{
+class VulkanDevice;
+
+class BufferVK : public CommonBuffer
+{
+    public:
+    VulkanDevice* gpu;
+    VkBuffer      handle;
+    VkMemoryRequirements memoryRequirements; // Memory requirements of this Buffer
+    HeapVK&       heap;               // Memory backing heap
+    uint64        offset;             // Offset in the heap
+
+    BufferVK(VulkanDevice* gpu, HeapVK& _heap, const VkBuffer handle, const BufferType type, const uint32 size);
+    virtual ~BufferVK();
    
-   class BufferVK : public CommonBuffer
-      {
-      public:
-      VulkanDevice* gpu;
-      VkBuffer      handle;
-      VkMemoryRequirements memoryRequirements; // Memory requirements of this Buffer
-      std::shared_ptr<HeapVK>   heap;               // Memory backing heap
-      uint64               offset;             // Offset in the heap
+    virtual volatile void* map(void);
+    virtual volatile void* map(const uint64 offset, const uint64 size);
+    virtual void  unmap(void);
+};
 
-      BufferVK(VulkanDevice* gpu, const VkBuffer handle, const BufferType type, const uint32 size);
-      virtual ~BufferVK();
-      
-      virtual volatile void* map(void);
-      virtual volatile void* map(const uint64 offset, const uint64 size);
-      virtual void  unmap(void);
-      };
-
-   // Vulkan Buffer View is created only for Linear Textures backed by Buffers - not supported currently.
-   //
+// Vulkan Buffer View is created only for Linear Textures backed by Buffers - not supported currently.
 #if 0
-   class BufferViewVK : public CommonBufferView
-      {
-      public:
-      std::shared_ptr<BufferVK> buffer; // Parent buffer
-      VkBufferView  handle;  
+class BufferViewVK : public CommonBufferView
+{
+    public:
+    std::shared_ptr<BufferVK> buffer; // Parent buffer
+    VkBufferView  handle;  
 
-      BufferViewVK(std::shared_ptr<BufferVK> parent,
-                   const VkBufferView view,
-                   const Format       format,
-                   const uint32       offset,
-                   const uint32       length);
+    BufferViewVK(std::shared_ptr<BufferVK> parent,
+                 const VkBufferView view,
+                 const Format       format,
+                 const uint32       offset,
+                 const uint32       length);
+    
+    std::shared_ptr<Buffer> parent(void) const;
 
-      std::shared_ptr<Buffer> parent(void) const;
-   
-      virtual ~BufferViewVK();
-      };
+    virtual ~BufferViewVK();
+};
 #endif
 
-   std::shared_ptr<BufferVK> createBuffer(const HeapVK* heap, const BufferType type, const uint32 size);
-   }
-}
+BufferVK* createBuffer(HeapVK& heap, const BufferType type, const uint32 size);
+} // en::gpu
+} // en
 #endif
 
 #endif

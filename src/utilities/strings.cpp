@@ -142,9 +142,10 @@ namespace en
    wchar_t* stringToWchar(const char* text, const uint32 size)
    {
    size_t i;
-   wchar_t* buffer = new wchar_t[size];
+   size_t outputSize = size + 1; // Plus one for terminating null
+   wchar_t* buffer = new wchar_t[outputSize];
 
-   mbstowcs_s(&i, buffer, (size_t)size, text, (size_t)size);  
+   mbstowcs_s(&i, buffer, outputSize, text, (size_t)size);
    return buffer;
    }
 #endif

@@ -697,7 +697,7 @@ namespace en
       settings.layers *= 6;
 
    // Create texture in GPU
-   std::shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+   std::unique_ptr<gpu::Texture> texture(en::ResourcesContext.defaults.enHeapTextures->createTexture(settings));
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
@@ -717,7 +717,7 @@ namespace en
             uint64 surfaceSize = texture->size(mipmap);
             
             // Create staging buffer
-            std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, static_cast<uint32>(surfaceSize));
+            std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, static_cast<uint32>(surfaceSize)));
             if (!staging)
                {
                Log << "ERROR: Cannot create staging buffer!\n";

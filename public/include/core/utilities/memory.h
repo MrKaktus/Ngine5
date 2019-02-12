@@ -36,6 +36,7 @@
 
 namespace en
 {
+/*
    template <typename T>
    T* allocate(uint32 count = 1)
    {
@@ -101,6 +102,7 @@ namespace en
 #endif
    return temp;
    }
+//*/
 }
 
 #endif

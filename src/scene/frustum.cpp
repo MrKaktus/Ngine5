@@ -20,7 +20,7 @@ namespace en
    {
 
    Frustum::Frustum(const FrustumSettings settings) :
-      buffer(settings.wireframe(en::ResourcesContext.defaults.enHeapBuffers)),
+      buffer(settings.wireframe(*en::ResourcesContext.defaults.enHeapBuffers)),
       //program(nullptr),
       //enModelMatrix(nullptr),
       Drawable()

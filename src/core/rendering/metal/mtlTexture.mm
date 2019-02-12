@@ -481,85 +481,85 @@ namespace en
    ioSurface = nullptr;
    }
 
-   std::shared_ptr<Heap> TextureMTL::parent(void) const
-   {
-   return heap;
-   }
+Heap* TextureMTL::parent(void) const
+{
+    return heap;
+}
 
-   std::shared_ptr<TextureView> TextureMTL::view(void)
-   {
-   std::shared_ptr<TextureViewMTL> result = nullptr;
+TextureView* TextureMTL::view(void)
+{
+    TextureViewMTL* result = nullptr;
    
-   // Metal is not supporting components swizzling.
+    // Metal is not supporting components swizzling.
    
-   id<MTLTexture> view = nullptr;
-   view = [handle newTextureViewWithPixelFormat:TranslateTextureFormat[underlyingType(state.format)]
-                                    textureType:TranslateTextureType[underlyingType(state.type)]
-                                         levels:NSMakeRange(0u, state.mipmaps)
-                                         slices:NSMakeRange(0u, state.layers)];
-   if (view)
-      result = std::make_shared<TextureViewMTL>(std::dynamic_pointer_cast<TextureMTL>(shared_from_this()),
-                                           view,
-                                           state.type,
-                                           state.format,
-                                           uint32v2(0u, state.mipmaps),
-                                           uint32v2(0u, state.layers));
-      
-   return result;
-   }
-   
-   std::shared_ptr<TextureView> TextureMTL::view(
-      const TextureType _type,
-      const Format _format,
-      const uint32v2 _mipmaps,
-      const uint32v2 _layers)
-   {
-   std::shared_ptr<TextureViewMTL> result = nullptr;
-   
-   // Metal is not supporting components swizzling.
-   
-   id<MTLTexture> view = nullptr;
-   view = [handle newTextureViewWithPixelFormat:TranslateTextureFormat[underlyingType(_format)]
-                                    textureType:TranslateTextureType[underlyingType(_type)]
-                                         levels:NSMakeRange(_mipmaps.base, _mipmaps.count)
-                                         slices:NSMakeRange(_layers.base, _layers.count)];
-   if (view)
-      result = std::make_shared<TextureViewMTL>(std::dynamic_pointer_cast<TextureMTL>(shared_from_this()),
-                                           view,
-                                           _type,
-                                           _format,
-                                           _mipmaps,
-                                           _layers);
+    id<MTLTexture> view = nullptr;
+    view = [handle newTextureViewWithPixelFormat:TranslateTextureFormat[underlyingType(state.format)]
+                                     textureType:TranslateTextureType[underlyingType(state.type)]
+                                          levels:NSMakeRange(0u, state.mipmaps)
+                                          slices:NSMakeRange(0u, state.layers)];
+    if (view)
+	{
+        result = new TextureViewMTL(*this,
+                                    view,
+                                    state.type,
+                                    state.format,
+                                    uint32v2(0u, state.mipmaps),
+                                    uint32v2(0u, state.layers));
+    }
 
-   return result;
-   }
+    return result;
+}
+   
+TextureView* TextureMTL::view(
+    const TextureType _type,
+    const Format _format,
+    const uint32v2 _mipmaps,
+    const uint32v2 _layers)
+{
+    TextureViewMTL* result = nullptr;
+   
+    // Metal is not supporting components swizzling.
+   
+    id<MTLTexture> view = nullptr;
+    view = [handle newTextureViewWithPixelFormat:TranslateTextureFormat[underlyingType(_format)]
+                                     textureType:TranslateTextureType[underlyingType(_type)]
+                                          levels:NSMakeRange(_mipmaps.base, _mipmaps.count)
+                                          slices:NSMakeRange(_layers.base, _layers.count)];
+    if (view)
+	{
+        result = new TextureViewMTL(*this,
+                                    view,
+                                    _type,
+                                    _format,
+                                    _mipmaps,
+                                    _layers);
+    }
+
+    return result;
+}
  
+TextureViewMTL::TextureViewMTL(
+        TextureMTL& parent,
+        id<MTLTexture> view,
+        const TextureType _type,
+        const Format _format,
+        const uint32v2 _mipmaps,
+        const uint32v2 _layers) :
+    texture(parent),
+    handle(view),
+    CommonTextureView(_type, _format, _mipmaps, _layers)
+{
+}
+   
+TextureViewMTL::~TextureViewMTL()
+{
+    deallocateObjectiveC(handle);
+}
 
-   TextureViewMTL::TextureViewMTL(
-      std::shared_ptr<TextureMTL> parent,
-      id<MTLTexture> view,
-      const TextureType _type,
-      const Format _format,
-      const uint32v2 _mipmaps,
-      const uint32v2 _layers) :
-         texture(parent),
-         handle(view),
-         CommonTextureView(_type, _format, _mipmaps, _layers)
-   {
-   }
-   
-   TextureViewMTL::~TextureViewMTL()
-   {
-   // Release reference to parent
-   texture = nullptr;
-   
-   deallocateObjectiveC(handle);
-   }
-   
-   std::shared_ptr<Texture> TextureViewMTL::parent(void) const
-   {
-   return texture;
-   }
+Texture& TextureViewMTL::parent(void) const
+{
+    return texture;
+}
 
  
    // DEVICE

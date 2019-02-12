@@ -67,9 +67,9 @@ namespace en
    // conservativeRaster = desc.enableConservativeRasterization;
    }
 
-   std::shared_ptr<RasterState> VulkanDevice::createRasterState(const RasterStateInfo& state)
+   RasterState* VulkanDevice::createRasterState(const RasterStateInfo& state)
    {
-   return std::make_shared<RasterStateVK>(state);
+   return new RasterStateVK(state);
    }
 
    }

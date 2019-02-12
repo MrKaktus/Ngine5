@@ -373,8 +373,16 @@ namespace en
    // Reads first 4KB page of PNG file, and decodes it's header to TextureState and ColorSpace.
    // If operation is successfull, returns handle to that file, so that engine can continue with
    // it's decompression.
-   bool readMetadata(uint8* buffer, gpu::TextureState& settings, gpu::ColorSpace& colorSpace)
-   {
+bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& settings, gpu::ColorSpace& colorSpace)
+{
+    // Check if file has minimum required size
+    uint32 minimumFileSize = sizeof(Header) + sizeof(IHDR);
+    if (readSize < minimumFileSize)
+    {
+        Log << "ERROR: PNG file size too small!\n";
+        return false;
+    }
+
    // Read file signature
    Header& signature = *reinterpret_cast<Header*>(buffer);
    if ( signature.signature != 0x474E5089 ||
@@ -557,16 +565,23 @@ namespace en
 
 
    // Read file first 4KB into single 4KB memory page
-   uint8* buffer = allocate<uint8>(PageSize, PageSize);
-   file->read(0, PageSize, buffer);
+   uint32 readSize = min(file->size(), PageSize);
+   uint8* buffer = allocate<uint8>(readSize, PageSize);
+   file->read(0, readSize, buffer);
 
    // Read file properties
    TextureState settings;
    ColorSpace colorSpace; // TODO: Determine file Color Space and compare with expected
-   assert( readMetadata(buffer, settings, colorSpace) );
+   bool success = readMetadata(buffer, readSize, settings, colorSpace);
 
    // Free temporary 4KB memory page
    deallocate<uint8>(buffer);
+
+   if (!success)
+   {
+       file = nullptr;
+       return false;
+   }
 
    // Verify that file matches expected properties
    if ( (settings.width != width) ||

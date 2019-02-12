@@ -11,6 +11,8 @@
 #ifndef ENG_PARALLEL_SHARED_ATOMIC
 #define ENG_PARALLEL_SHARED_ATOMIC
 
+#include "assert.h"
+
 #include "core/defines.h"
 #include "core/types.h"
 #include "core/memory/alignment.h"
@@ -32,11 +34,11 @@ namespace en
       std::atomic<uint32> value;
 
       public:
-      SharedAtomic() { value.store(0U, std::memory_order_release); };
+      SharedAtomic() { assert((uint64)(&value) % cacheline == 0); value.store(0U, std::memory_order_release); };
      ~SharedAtomic() {};
       };
    
    // CompileTimeSizeReporting( SharedAtomic );
-   static_assert(sizeof(SharedAtomic) == 64, "en::SharedAtomic size mismatch!");
+   static_assert(sizeof(SharedAtomic) == cacheline, "en::SharedAtomic size mismatch!");
 }
 #endif

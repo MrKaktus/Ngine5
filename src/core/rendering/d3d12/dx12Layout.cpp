@@ -17,13 +17,13 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
+#include "core/memory/alignedAllocator.h"
 #include "core/rendering/d3d12/dx12Device.h"
 #include "core/rendering/d3d12/dx12CommandBuffer.h"
 #include "core/rendering/d3d12/dx12Buffer.h"
 #include "core/rendering/d3d12/dx12Sampler.h"
 #include "core/rendering/d3d12/dx12Texture.h"
 #include "core/utilities/basicAllocator.h"
-#include "core/utilities/memory.h"
 
 namespace en
 {
@@ -165,7 +165,7 @@ namespace en
    // Views are created in D3D12 by encoding them directly into 
    // Descriptor in DescriptorSet's backing DescriptorPool (Heap)
    const TextureViewD3D12& view = reinterpret_cast<const TextureViewD3D12&>(_view);
-   ValidateNoRet( gpu, CreateShaderResourceView(view.texture->handle, &view.desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
+   ValidateNoRet( gpu, CreateShaderResourceView(view.texture.handle, &view.desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
    }
 
    // DESCRIPTOR POOL

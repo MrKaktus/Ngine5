@@ -29,6 +29,7 @@
     <ClCompile Include="..\src\core\input\winJoystick.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
     <ClCompile Include="..\src\core\memory\pageAllocator.cpp" />
+    <ClCompile Include="..\src\core\parallel\parallel.cpp" />
     <ClCompile Include="..\src\core\parallel\psxFiber.cpp" />
     <ClCompile Include="..\src\core\parallel\psxThread.cpp" />
     <ClCompile Include="..\src\core\parallel\winFiber.cpp" />
@@ -50,7 +51,7 @@
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Synchronization.cpp" />
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Window.cpp" />
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp" />
-    <ClCompile Include="..\src\core\rendering\common\cTexture.cpp" />
+    <ClCompile Include="..\src\core\rendering\common\texture.cpp" />
     <ClCompile Include="..\src\core\rendering\common\device.cpp" />
     <ClCompile Include="..\src\core\rendering\common\heap.cpp" />
     <ClCompile Include="..\src\core\rendering\common\inputLayout.cpp" />
@@ -119,8 +120,9 @@
     <ClCompile Include="..\src\platform\android\and_events.cpp" />
     <ClCompile Include="..\src\platform\android\and_main.cpp" />
     <ClCompile Include="..\src\platform\blackberry\bb_main.cpp" />
+    <ClCompile Include="..\src\platform\comMain.cpp" />
     <ClCompile Include="..\src\platform\system.cpp" />
-    <ClCompile Include="..\src\platform\windows\win_main.cpp" />
+    <ClCompile Include="..\src\platform\windows\winMain.cpp" />
     <ClCompile Include="..\src\rendering\stereo.cpp" />
     <ClCompile Include="..\src\rendering\streamer.cpp" />
     <ClCompile Include="..\src\resources\bmp.cpp" />
@@ -162,6 +164,7 @@
     <ClInclude Include="..\public\include\core\config\config.h" />
     <ClInclude Include="..\public\include\core\defines.h" />
     <ClInclude Include="..\public\include\core\log\log.h" />
+    <ClInclude Include="..\public\include\core\memory\alignedAllocator.h" />
     <ClInclude Include="..\public\include\core\memory\alignment.h" />
     <ClInclude Include="..\public\include\core\memory\pageAllocator.h" />
     <ClInclude Include="..\public\include\core\parallel\thread.h" />
@@ -281,6 +284,7 @@
     <ClInclude Include="..\src\core\input\winJoystick.h" />
     <ClInclude Include="..\src\core\log\context.h" />
     <ClInclude Include="..\src\core\parallel\fiber.h" />
+    <ClInclude Include="..\src\core\parallel\parallel.h" />
     <ClInclude Include="..\src\core\parallel\psxFiber.h" />
     <ClInclude Include="..\src\core\parallel\psxThread.h" />
     <ClInclude Include="..\src\core\parallel\winFiber.h" />
@@ -372,7 +376,9 @@
     <ClInclude Include="..\src\input\vive.h" />
     <ClInclude Include="..\src\monetization\context.h" />
     <ClInclude Include="..\src\parallel\comScheduler.h" />
+    <ClInclude Include="..\src\platform\comMain.h" />
     <ClInclude Include="..\src\platform\context.h" />
+    <ClInclude Include="..\src\platform\osx\AppDelegate.h" />
     <ClInclude Include="..\src\resources\context.h" />
     <ClInclude Include="..\src\scene\context.h" />
   </ItemGroup>
@@ -401,14 +407,15 @@
     <None Include="..\src\core\rendering\osxSurface.mm" />
     <None Include="..\src\core\storage\osxStorage.mm" />
     <None Include="..\src\input\osxInput.mm" />
+    <None Include="..\src\platform\osx\AppDelegate.mm" />
+    <None Include="..\src\platform\osx\macMain.mm" />
     <None Include="..\src\platform\osx\osx_callbacks.mm" />
-    <None Include="..\src\platform\osx\osx_main.mm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F61E4BF3-8B99-4C06-8297-45627D38D88B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Ngine5</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -506,7 +513,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);_ENABLE_EXTENDED_ALIGNED_STORAGE </PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./../public/include/;./../src/;./../middleware/zlib-1.2.10/;./../middleware/;C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/include/;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>

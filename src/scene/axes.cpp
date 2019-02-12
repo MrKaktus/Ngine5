@@ -160,7 +160,7 @@ namespace en
 
 
    Axes::Axes() :
-      buffer(en::ResourcesContext.defaults.enAxes),
+      buffer(en::ResourcesContext.defaults.enAxes.get()),
       //program(nullptr),
       //enModelMatrix(nullptr),
       Drawable()

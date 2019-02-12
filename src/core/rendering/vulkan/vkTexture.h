@@ -26,60 +26,60 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   //extern static const VkImageType TranslateType[];
+namespace gpu
+{
+//extern static const VkImageType TranslateType[];
 
-   extern const VkFormat TranslateTextureFormat[underlyingType(Format::Count)];
+extern const VkFormat TranslateTextureFormat[underlyingType(Format::Count)];
 
-   class VulkanDevice;
-   class Heap;
+class VulkanDevice;
+class Heap;
 
-   class TextureVK : public CommonTexture
-      {
-      public:
-      VulkanDevice* gpu;
-      VkImage       handle;        // Vulkan Image ID
-      VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
-      std::shared_ptr<HeapVK>   heap;          // Memory backing heap
-      uint64        offset;        // Offset in the heap
+class TextureVK : public CommonTexture
+{
+    public:
+    VulkanDevice* gpu;
+    VkImage       handle;        // Vulkan Image ID
+    VkMemoryRequirements memoryRequirements; // Memory requirements of this Texture
+    HeapVK*       heap;          // Memory backing heap
+    uint64        offset;        // Offset in the heap
 
-      TextureVK(VulkanDevice* gpu, const TextureState& state);
- 
-      virtual std::shared_ptr<Heap>        parent(void) const;
-      virtual std::shared_ptr<TextureView> view(void);
-      virtual std::shared_ptr<TextureView> view(const TextureType type,
-                                           const Format format,
-                                           const uint32v2 mipmaps,
-                                           const uint32v2 layers);
+    TextureVK(VulkanDevice* gpu, const TextureState& state);
+
+    virtual Heap*        parent(void) const;
+    virtual TextureView* view(void);
+    virtual TextureView* view(const TextureType type,
+                              const Format format,
+                              const uint32v2 mipmaps,
+                              const uint32v2 layers);
 
 
-      virtual ~TextureVK();
-      };
+    virtual ~TextureVK();
+};
       
-   class TextureViewVK : public CommonTextureView
-      {
-      public:
-      std::shared_ptr<TextureVK> texture; // Parent texture
-      VkImageView    handle;  // Vulkan Image View ID
+class TextureViewVK : public CommonTextureView
+{
+    public:
+    TextureVK&  texture; // Parent texture
+    VkImageView handle;  // Vulkan Image View ID
 
-      TextureViewVK(std::shared_ptr<TextureVK>    parent,
-                    const VkImageView view,
-                    const TextureType type,
-                    const Format      format,
-                    const uint32v2    mipmaps,
-                    const uint32v2    layers);
+    TextureViewVK(TextureVK&        parent,
+                  const VkImageView view,
+                  const TextureType type,
+                  const Format      format,
+                  const uint32v2    mipmaps,
+                  const uint32v2    layers);
 
-      std::shared_ptr<Texture> parent(void) const;
-   
-      virtual ~TextureViewVK();
-      };
+    Texture& parent(void) const;
+ 
+    virtual ~TextureViewVK();
+};
 
-   VkImageAspectFlags TranslateImageAspect(const Format format);
-   std::shared_ptr<TextureVK> createTexture(VulkanDevice* gpu, const TextureState& state);
-   }
-}
+VkImageAspectFlags TranslateImageAspect(const Format format);
+TextureVK* createTexture(VulkanDevice* gpu, const TextureState& state);
 
+} // en::gpu
+} // en
 #endif
 
 #endif

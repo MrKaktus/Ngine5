@@ -13,6 +13,7 @@
 #if defined(EN_PLATFORM_WINDOWS)
 
 #include <assert.h>
+#include "core/memory/alignedAllocator.h"
 
 namespace en
 {

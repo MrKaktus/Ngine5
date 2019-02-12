@@ -51,7 +51,7 @@ class Interface
         const uint32 workerFibers, 
         const uint32 maxWorkerTasks);
     
-    virtual uint32 workers(void) const = 0;                // Worker Threads count
+    virtual uint32 workers(void) const = 0;                /// Worker threads count
     
     virtual uint32 currentWorkerId(void) const = 0;   // Id of first worker thread. If current thread is not worker thread, it will return InvalidWorkerId.
 
@@ -64,7 +64,7 @@ class Interface
 
     // TODO: Add:
     // runOnCurrentCore()  - Task will execute on the same CPU core as parent task
-    // runOnSingleCore() - Task will execute on any core, but it cannot migrate once it's started
+    // runOnSingleCore() - Task will execute on any core, but it cannot migrate once it's started (required when fibers migration/stealing is implemented)
 
     virtual void runOnMainThread(
         TaskFunction function,           ///< Task to execute
@@ -109,7 +109,7 @@ class Interface
     virtual void shutdown(void) = 0;              // Send signal to terminate all workers and finish application
     virtual bool closing(void) const = 0;         // Returns true if Thread-Pool is shutting down
 
-    virtual ~Interface() {};                       // Polymorphic deletes require a virtual base destructor
+    virtual ~Interface() {};                       /// Polymorphic deletes require a virtual base destructor
 };
 
 }

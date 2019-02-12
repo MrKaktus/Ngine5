@@ -60,11 +60,11 @@ namespace en
       uint32 displays(void) const;            // Screens count the device can render to
       std::shared_ptr<Display> display(const uint32 id) const;  // Return N'th screen handle
       
-      virtual std::shared_ptr<Window>  createWindow(
+      virtual Window* createWindow(
          const WindowSettings& settings,
          const std::string title); // Create window
       
-      virtual std::shared_ptr<Heap>    createHeap(
+      virtual Heap* createHeap(
          const MemoryUsage usage, 
          const uint32 size);
 
@@ -148,21 +148,21 @@ namespace en
 
 
 
-      virtual std::shared_ptr<RasterState>        createRasterState(const RasterStateInfo& state);
+      virtual RasterState*        createRasterState(const RasterStateInfo& state);
 
-      virtual std::shared_ptr<MultisamplingState> createMultisamplingState(const uint32 samples,
-                                                                      const bool enableAlphaToCoverage,
-                                                                      const bool enableAlphaToOne);
+      virtual MultisamplingState* createMultisamplingState(const uint32 samples,
+                                                           const bool enableAlphaToCoverage,
+                                                           const bool enableAlphaToOne);
 
-      virtual std::shared_ptr<DepthStencilState>  createDepthStencilState(const DepthStencilStateInfo& desc);
+      virtual DepthStencilState*  createDepthStencilState(const DepthStencilStateInfo& desc);
       
-      virtual std::shared_ptr<BlendState>         createBlendState(const BlendStateInfo& state,
-                                                              const uint32 attachments,
-                                                              const BlendAttachmentInfo* color);
+      virtual BlendState*         createBlendState(const BlendStateInfo& state,
+                                                   const uint32 attachments,
+                                                   const BlendAttachmentInfo* color);
       
-      virtual std::shared_ptr<ViewportState>      createViewportState(const uint32 count,
-                                                                 const ViewportStateInfo* viewports,
-                                                                 const ScissorStateInfo* scissors);
+      virtual ViewportState*      createViewportState(const uint32 count,
+                                                      const ViewportStateInfo* viewports,
+                                                      const ScissorStateInfo* scissors);
          
       virtual std::shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 

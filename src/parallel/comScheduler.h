@@ -17,6 +17,7 @@
 #include "core/parallel/fiber.h"
 
 #include "core/utilities/poolAllocator.h"
+#include "core/memory/alignedAllocator.h"
 #include "memory/circularQueue.h"
 #include "memory/workStealingDeque.h"
 
@@ -155,7 +156,7 @@ struct Worker
 };
 
 // CompileTimeSizeReporting( Worker );
-static_assert(sizeof(Worker) == 384, "en::Worker size mismatch!");
+static_assert(sizeof(Worker) == 384, "en::Worker size mismatch!");  // 336 padded to 384
 
 class TaskScheduler : public parallel::Interface
 {
@@ -211,6 +212,20 @@ class TaskScheduler : public parallel::Interface
                                                 // Main thread should call it each time it processes events from OS.
     virtual void shutdown(void);                // Send signal to terminate all workers and finish application
     virtual bool closing(void) const;           // Returns true if Thread-Pool is shutting down
+
+    void* operator new(size_t size)
+    {
+        // New and delete are overloaded to make sure that Mutex is always 
+        // aligned at proper adress. This also allows application to use 
+        // std::unique_ptr() to manage object lifecycle, without growing 
+        // unique pointer size (as there is no custom deleter needed).
+        return en::allocate<TaskScheduler>(1, cacheline);
+    }
+
+    void operator delete(void* pointer)
+    {
+        en::deallocate<TaskScheduler>(static_cast<TaskScheduler*>(pointer));
+    }
 
     virtual ~TaskScheduler();
 };

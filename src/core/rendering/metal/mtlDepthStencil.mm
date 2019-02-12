@@ -88,9 +88,9 @@ namespace en
    state = nil;
    }
 
-   std::shared_ptr<DepthStencilState> MetalDevice::createDepthStencilState(const DepthStencilStateInfo& desc)
+   DepthStencilState* MetalDevice::createDepthStencilState(const DepthStencilStateInfo& desc)
    {
-   return std::make_shared<DepthStencilStateMTL>(this, desc);
+   return new DepthStencilStateMTL(this, desc);
    }
    
    }

@@ -256,260 +256,286 @@ namespace en
    }
 
 
-   // RENDER PASS
-   //////////////////////////////////////////////////////////////////////////
+// RENDER PASS
+//////////////////////////////////////////////////////////////////////////
 
 
-   RenderPassVK::RenderPassVK(VulkanDevice* _gpu,
-                              const VkRenderPass _handle,
-                              const uint32 _usedAttachments,
-                              const uint32 _surfaces,
-                              const bool   _resolve,
-                              const bool   _depthStencil) :
-      gpu(_gpu),
-      handle(_handle),
-      usedAttachments(_usedAttachments),
-      surfaces(_surfaces),
-      clearValues(surfaces ? new VkClearValue[surfaces] : nullptr),
-      resolve(_resolve),
-      depthStencil(_depthStencil)
-   {
-   // Init clear values array
-   if (surfaces)
-      memset(clearValues, 0, sizeof(float) * 4 * surfaces);
-   }
+RenderPassVK::RenderPassVK(
+        VulkanDevice* _gpu,
+        const VkRenderPass _handle,
+        const uint32 _usedAttachments,
+        const uint32 _surfaces,
+        const bool   _resolve,
+        const bool   _depthStencil) :
+    gpu(_gpu),
+    handle(_handle),
+    usedAttachments(_usedAttachments),
+    surfaces(_surfaces),
+    clearValues(surfaces ? new VkClearValue[surfaces] : nullptr),
+    resolve(_resolve),
+    depthStencil(_depthStencil)
+{
+    // Init clear values array
+    if (surfaces)
+        memset(clearValues, 0, sizeof(float) * 4 * surfaces);
+}
 
-   RenderPassVK::~RenderPassVK()
-   {
-   delete [] clearValues;
-   ValidateNoRet( gpu, vkDestroyRenderPass(gpu->device, handle, nullptr) )
-   }
+RenderPassVK::~RenderPassVK()
+{
+    delete [] clearValues;
+    ValidateNoRet( gpu, vkDestroyRenderPass(gpu->device, handle, nullptr) )
+}
 
-   std::shared_ptr<Framebuffer> RenderPassVK::createFramebuffer(const uint32v2 resolution,
-                                                           const uint32   layers,
-                                                           const uint32   _surfaces,
-                                                           const std::shared_ptr<TextureView>* surface,
-                                                           const std::shared_ptr<TextureView> _depthStencil,
-                                                           const std::shared_ptr<TextureView> _stencil,
-                                                           const std::shared_ptr<TextureView> _depthResolve)
-   {
-   // TODO: If there is only one surface view.
-   //       If this view is default, and points to one of the Swap-Chain textures of any created Window.
-   //       Get this window pre-created Framebuffer object and return pointer to it.
+std::shared_ptr<Framebuffer> RenderPassVK::createFramebuffer(
+    const uint32v2 resolution,
+    const uint32   layers,
+    const uint32   _surfaces,
+    const TextureView** surface,
+    const TextureView* _depthStencil,
+    const TextureView* _stencil,
+    const TextureView* _depthResolve)
+{
+    // TODO: If there is only one surface view.
+    //       If this view is default, and points to one of the Swap-Chain textures of any created Window.
+    //       Get this window pre-created Framebuffer object and return pointer to it.
 
-   std::shared_ptr<FramebufferVK> result = nullptr;
+    std::shared_ptr<FramebufferVK> result = nullptr;
 
-   uint32 attachments = bitsCount(usedAttachments);
+    uint32 attachments = bitsCount(usedAttachments);
 
-   assert( layers >= 1 );
-   assert( surface );
-   assert( _surfaces >= attachments );   // Used color attachments count (or double that if resolving)
-   assert( _depthStencil == nullptr ||   // Vulkan is not supporting separate Depth and Stencil at the same time.
-           _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
-   assert( _depthResolve == nullptr );   // Vulkan is not supporting Depth resolve
+    assert( layers >= 1 );
+    assert( surface );
+    assert( _surfaces >= attachments );   // Used color attachments count (or double that if resolving)
+    assert( _depthStencil == nullptr ||   // Vulkan is not supporting separate Depth and Stencil at the same time.
+            _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
+    assert( _depthResolve == nullptr );   // Vulkan is not supporting Depth resolve
 
-   // Create Framebuffer object only if render pass usues any destination surfaces
-   if (attachments == 0u && depthStencil == false)
-      return std::shared_ptr<Framebuffer>(nullptr);
+    // Create Framebuffer object only if render pass usues any destination surfaces
+    if (attachments == 0u && depthStencil == false)
+        return std::shared_ptr<Framebuffer>(nullptr);
 
-   // Surface Views for all attachments (color, resolve, depth and stencil)
-   VkImageView* views = new VkImageView[surfaces];
+    // Surface Views for all attachments (color, resolve, depth and stencil)
+    VkImageView* views = new VkImageView[surfaces];
 
-   // Gather Texture Views 
-   uint32 index = 0;
-   for(uint32 i=0; i<attachments; ++i)
-      {
-      views[index] = reinterpret_cast<TextureViewVK*>(surface[index].get())->handle;
-      index++;
-      }
+    // Gather Texture Views 
+    uint32 index = 0;
+    for(uint32 i=0; i<attachments; ++i)
+    {
+        assert( surface[index] );
+        views[index] = reinterpret_cast<const TextureViewVK*>(surface[index])->handle;
+        index++;
+    }
       
-   if (resolve)
-      for(uint32 i=0; i<attachments; ++i)
-         {
-         views[index] = reinterpret_cast<TextureViewVK*>(surface[index].get())->handle;
-         index++;
-         }
-      
-   if (depthStencil)
-      {
-      if (_depthStencil)
-         views[index] = reinterpret_cast<TextureViewVK*>(_depthStencil.get())->handle;
-      else
-      if (_stencil)
-         views[index] = reinterpret_cast<TextureViewVK*>(_stencil.get())->handle;
-      }
+    if (resolve)
+    {
+        for(uint32 i=0; i<attachments; ++i)
+        {
+            assert( surface[index] );
+            views[index] = reinterpret_cast<const TextureViewVK*>(surface[index])->handle;
+            index++;
+        }
+    }
 
-   // TODO: This function should only validate that all surfaces have the same
-   //       resolution and layers count!
-   //       Calculation of common resolution and layers should be done by the app !
+    if (depthStencil)
+    {
+        if (_depthStencil)
+        {
+            views[index] = reinterpret_cast<const TextureViewVK*>(_depthStencil)->handle;
+        }
+        else
+        if (_stencil)
+        {
+            views[index] = reinterpret_cast<const TextureViewVK*>(_stencil)->handle;
+        }
+    }
+
+    // TODO: This function should only validate that all surfaces have the same
+    //       resolution and layers count!
+    //       Calculation of common resolution and layers should be done by the app!
    
-   // Describe Framebuffer
-   VkFramebufferCreateInfo framebufferInfo;
-   framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-   framebufferInfo.pNext           = nullptr;
-   framebufferInfo.flags           = 0; // Reserved for future.
-   framebufferInfo.renderPass      = handle;
-   framebufferInfo.attachmentCount = surfaces;
-   framebufferInfo.pAttachments    = views;
-   framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
-   framebufferInfo.height          = resolution.height;
-   framebufferInfo.layers          = layers;
+    // Describe Framebuffer
+    VkFramebufferCreateInfo framebufferInfo;
+    framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.pNext           = nullptr;
+    framebufferInfo.flags           = 0; // Reserved for future.
+    framebufferInfo.renderPass      = handle;
+    framebufferInfo.attachmentCount = surfaces;
+    framebufferInfo.pAttachments    = views;
+    framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
+    framebufferInfo.height          = resolution.height;
+    framebufferInfo.layers          = layers;
 
-   // Create framebuffer object
-   VkFramebuffer framebuffer = VK_NULL_HANDLE;
-   Validate( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
-   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
-      result = std::make_shared<FramebufferVK>(gpu, framebuffer, resolution, layers);
-      
-   delete [] views;
-
-   return result;
-   }
+    // Create framebuffer object
+    VkFramebuffer framebuffer = VK_NULL_HANDLE;
+    Validate( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
+    if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
+    {
+        result = std::make_shared<FramebufferVK>(gpu, framebuffer, resolution, layers);
+    }
    
-   std::shared_ptr<Framebuffer> RenderPassVK::createFramebuffer(const uint32v2 resolution,
-                                                           const std::shared_ptr<TextureView> swapChainSurface,
-                                                           const std::shared_ptr<TextureView> _depthStencil,
-                                                           const std::shared_ptr<TextureView> _stencil)
-   {
-   assert( swapChainSurface );
-   assert( _depthStencil == nullptr ||   // Vulkan is not supporting separate Depth and Stencil at the same time.
-           _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
+    delete [] views;
 
-   // Resolution cannot be greater than selected destination size (Swap-Chain surfaces have no mipmaps)
-   TextureViewVK* ptr = reinterpret_cast<TextureViewVK*>(swapChainSurface.get());
-   assert( resolution.width  <= ptr->texture->state.width );
-   assert( resolution.height <= ptr->texture->state.height );
+    return result;
+}
+   
+std::shared_ptr<Framebuffer> RenderPassVK::createFramebuffer(
+    const uint32v2 resolution,
+    const TextureView* swapChainSurface,
+    const TextureView* _depthStencil,
+    const TextureView* _stencil)
+{
+    assert( swapChainSurface );
+    assert( _depthStencil == nullptr ||   // Vulkan is not supporting separate Depth and Stencil at the same time.
+            _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
 
-   assert( surfaces > 0 );
-   assert( surfaces <= 2 );
+    // Resolution cannot be greater than selected destination size (Swap-Chain surfaces have no mipmaps)
+    const TextureViewVK* ptr = reinterpret_cast<const TextureViewVK*>(swapChainSurface);
+    assert( resolution.width  <= ptr->texture.state.width );
+    assert( resolution.height <= ptr->texture.state.height );
 
-   uint32 attachments = bitsCount(usedAttachments);
-   assert( attachments == 1 );
+    assert( surfaces > 0 );
+    assert( surfaces <= 2 );
 
-   std::shared_ptr<FramebufferVK> result = nullptr;
+    uint32 attachments = bitsCount(usedAttachments);
+    assert( attachments == 1 );
 
-   // Surface Views for all attachments (color, depth and stencil)
-   VkImageView* views = new VkImageView[surfaces];
+    std::shared_ptr<FramebufferVK> result = nullptr;
+
+    // Surface Views for all attachments (color, depth and stencil)
+    VkImageView* views = new VkImageView[surfaces];
       
-   // Gather Texture Views 
-   uint32 index = 0;
-   views[index] = ptr->handle;
-   index++;
+    // Gather Texture Views 
+    uint32 index = 0;
+    views[index] = ptr->handle;
+    index++;
   
-   // Check if there is depth / depth-stencil / stencil destination
-   if (surfaces == 2)
-      {
-      assert( _depthStencil || _stencil );
+    // Check if there is depth / depth-stencil / stencil destination
+    if (surfaces == 2)
+    {
+        assert( _depthStencil || _stencil );
 
-      if (_depthStencil)
-         views[index] = reinterpret_cast<TextureViewVK*>(_depthStencil.get())->handle;
-      else
-      if (_stencil)
-         views[index] = reinterpret_cast<TextureViewVK*>(_stencil.get())->handle;
-      }
+        if (_depthStencil)
+        {
+            views[index] = reinterpret_cast<const TextureViewVK*>(_depthStencil)->handle;
+        }
+        else
+        if (_stencil)
+        {
+            views[index] = reinterpret_cast<const TextureViewVK*>(_stencil)->handle;
+        }
+    }
 
-   // TODO: This function should only validate that all surfaces have the same
-   //       resolution and layers count!
-   //       Calculation of common resolution and layers should be done by the app !
+    // TODO: This function should only validate that all surfaces have the same
+    //       resolution and layers count!
+    //       Calculation of common resolution and layers should be done by the app !
 
-   // Describe Framebuffer
-   VkFramebufferCreateInfo framebufferInfo;
-   framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-   framebufferInfo.pNext           = nullptr;
-   framebufferInfo.flags           = 0u; // Reserved for future.
-   framebufferInfo.renderPass      = handle;
-   framebufferInfo.attachmentCount = surfaces;
-   framebufferInfo.pAttachments    = views;
-   framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
-   framebufferInfo.height          = resolution.height;
-   framebufferInfo.layers          = 1u;
+    // Describe Framebuffer
+    VkFramebufferCreateInfo framebufferInfo;
+    framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.pNext           = nullptr;
+    framebufferInfo.flags           = 0u; // Reserved for future.
+    framebufferInfo.renderPass      = handle;
+    framebufferInfo.attachmentCount = surfaces;
+    framebufferInfo.pAttachments    = views;
+    framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
+    framebufferInfo.height          = resolution.height;
+    framebufferInfo.layers          = 1u;
 
-   // Create framebuffer object
-   VkFramebuffer framebuffer = VK_NULL_HANDLE;
-   Validate( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
-   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
-      result = std::make_shared<FramebufferVK>(gpu, framebuffer, resolution, 1u);
+    // Create framebuffer object
+    VkFramebuffer framebuffer = VK_NULL_HANDLE;
+    Validate( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
+    if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
+    {
+        result = std::make_shared<FramebufferVK>(gpu, framebuffer, resolution, 1u);
+    }
+
+    delete [] views;
+
+    return result;
+}
       
-   delete [] views;
+std::shared_ptr<Framebuffer> RenderPassVK::createFramebuffer(
+    const uint32v2 resolution,
+    const TextureView* temporaryMSAA,
+    const TextureView* swapChainSurface,
+    const TextureView* _depthStencil,
+    const TextureView* _stencil)
+{
+    assert( temporaryMSAA );
+    assert( swapChainSurface );
+    assert( _depthStencil == nullptr ||   // Vulkan is not supporting separate Depth and Stencil at the same time.
+            _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
 
-   return result;
-   }
+    // Resolution cannot be greater than selected destination size (Swap-Chain surfaces have no mipmaps)
+    const TextureViewVK* source      = reinterpret_cast<const TextureViewVK*>(temporaryMSAA);
+    const TextureViewVK* destination = reinterpret_cast<const TextureViewVK*>(swapChainSurface);
+    assert( source->texture.state.width  == destination->texture.state.width );
+    assert( source->texture.state.height == destination->texture.state.height );
+    assert( resolution.width  <= destination->texture.state.width );
+    assert( resolution.height <= destination->texture.state.height );
+
+    assert( surfaces >= 2 );
+    assert( surfaces <= 3 );
+
+    uint32 attachments = bitsCount(usedAttachments);
+    assert( attachments == 1 );
+
+    std::shared_ptr<FramebufferVK> result = nullptr;
+
+    // Surface Views for all attachments (color, resolve, depth and stencil)
+    VkImageView* views = new VkImageView[surfaces];
       
-   std::shared_ptr<Framebuffer> RenderPassVK::createFramebuffer(const uint32v2 resolution,
-                                                           const std::shared_ptr<TextureView> temporaryMSAA,
-                                                           const std::shared_ptr<TextureView> swapChainSurface,
-                                                           const std::shared_ptr<TextureView> _depthStencil,
-                                                           const std::shared_ptr<TextureView> _stencil)
-   {
-   assert( temporaryMSAA );
-   assert( swapChainSurface );
-   assert( _depthStencil == nullptr ||   // Vulkan is not supporting separate Depth and Stencil at the same time.
-           _stencil      == nullptr );   // (but it supports Depth / DepthStencil or just Stencil setups).
+    // Gather Texture Views 
+    uint32 index = 0;
+    views[index] = source->handle;
+    index++;
 
-   // Resolution cannot be greater than selected destination size (Swap-Chain surfaces have no mipmaps)
-   TextureViewVK* source      = reinterpret_cast<TextureViewVK*>(temporaryMSAA.get());
-   TextureViewVK* destination = reinterpret_cast<TextureViewVK*>(swapChainSurface.get());
-   assert( source->texture->state.width  == destination->texture->state.width );
-   assert( source->texture->state.height == destination->texture->state.height );
-   assert( resolution.width  <= destination->texture->state.width );
-   assert( resolution.height <= destination->texture->state.height );
-
-   assert( surfaces >= 2 );
-   assert( surfaces <= 3 );
-
-   uint32 attachments = bitsCount(usedAttachments);
-   assert( attachments == 1 );
-
-   std::shared_ptr<FramebufferVK> result = nullptr;
-
-   // Surface Views for all attachments (color, resolve, depth and stencil)
-   VkImageView* views = new VkImageView[surfaces];
-      
-   // Gather Texture Views 
-   uint32 index = 0;
-   views[index] = source->handle;
-   index++;
-
-   // Resolve to Swap-Chain
-   views[index] = destination->handle;
-   index++;
+    // Resolve to Swap-Chain
+    views[index] = destination->handle;
+    index++;
   
-   // Check if there is depth-stencil destination
-   if (surfaces == 3)
-      {
-      if (_depthStencil)
-         views[index] = reinterpret_cast<TextureViewVK*>(_depthStencil.get())->handle;
-      else
-      if (_stencil)
-         views[index] = reinterpret_cast<TextureViewVK*>(_stencil.get())->handle;
-      }
+    // Check if there is depth-stencil destination
+    if (surfaces == 3)
+    {
+        if (_depthStencil)
+        {
+            views[index] = reinterpret_cast<const TextureViewVK*>(_depthStencil)->handle;
+        }
+        else
+        if (_stencil)
+        {
+            views[index] = reinterpret_cast<const TextureViewVK*>(_stencil)->handle;
+        }
+    }
 
-   // TODO: This function should only validate that all surfaces have the same
-   //       resolution and layers count!
-   //       Calculation of common resolution and layers should be done by the app !
+    // TODO: This function should only validate that all surfaces have the same
+    //       resolution and layers count!
+    //       Calculation of common resolution and layers should be done by the app !
 
-   // Describe Framebuffer
-   VkFramebufferCreateInfo framebufferInfo;
-   framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-   framebufferInfo.pNext           = nullptr;
-   framebufferInfo.flags           = 0; // Reserved for future.
-   framebufferInfo.renderPass      = handle;
-   framebufferInfo.attachmentCount = surfaces;
-   framebufferInfo.pAttachments    = views;
-   framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
-   framebufferInfo.height          = resolution.height;
-   framebufferInfo.layers          = 1u;
+    // Describe Framebuffer
+    VkFramebufferCreateInfo framebufferInfo;
+    framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.pNext           = nullptr;
+    framebufferInfo.flags           = 0; // Reserved for future.
+    framebufferInfo.renderPass      = handle;
+    framebufferInfo.attachmentCount = surfaces;
+    framebufferInfo.pAttachments    = views;
+    framebufferInfo.width           = resolution.width;  // Resolution is also used on RenderPass start on CommandBuffer
+    framebufferInfo.height          = resolution.height;
+    framebufferInfo.layers          = 1u;
 
-   // Create framebuffer object
-   VkFramebuffer framebuffer = VK_NULL_HANDLE;
-   Validate( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
-   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
-      result = std::make_shared<FramebufferVK>(gpu, framebuffer, resolution, 1u);
-      
-   delete [] views;
+    // Create framebuffer object
+    VkFramebuffer framebuffer = VK_NULL_HANDLE;
+    Validate( gpu, vkCreateFramebuffer(gpu->device, &framebufferInfo, nullptr, &framebuffer) )
+    if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
+    {
+        result = std::make_shared<FramebufferVK>(gpu, framebuffer, resolution, 1u);
+    }
 
-   return result;
-   }
+    delete [] views;
+
+    return result;
+}
    
 
    // DEVICE

@@ -13,6 +13,11 @@
 */
 
 #include "core/defines.h"
+#include "platform/comMain.h"
+
+
+
+
 #include "input/input.h"
 
 namespace en
@@ -55,34 +60,22 @@ extern void initHalfs(void);
 #define ConsoleMain   main
 #define WindowsMain   WinMain
 
-
-// Container for main task
-struct Arguments
-   {
-   int argc;
-   const char **argv;
-   };
-
-DWORD  mainThreadId;
-uint32 mainResult;
+sint32 mainResult = 0;
 
 void taskMain(void* taskData)
 {
-   Arguments& arguments = *(Arguments*)(taskData);
+    Arguments& arguments = *(Arguments*)(taskData);
 
-   mainResult = ApplicationMainC(arguments.argc, arguments.argv);
+    mainResult = ApplicationMainC(arguments.argc, arguments.argv);
 }
+
+DWORD  mainThreadId;
 
 // Entry point for console applications
 int ConsoleMain(int argc, const char **argv)
 {
-    // Init global variables
-    //////////////////////////
-
+    // Store main thread Id, so that it can be used to wake up main thread by workers
     mainThreadId = GetCurrentThreadId();
-
-    // Init Math
-    en::initHalfs();
 
     // Console window
     ///////////////////
@@ -111,6 +104,14 @@ int ConsoleMain(int argc, const char **argv)
 
 
 
+    // Init engine modules
+    en::init(argc, argv);
+
+
+
+
+/*
+
 
 
 // Init modules in proper order
@@ -126,21 +127,21 @@ uint32 fibers;
 en::setConfigValue<uint32>("en.parallel.fibers", fibers, en::FibersPerWorker, en::MaxFibersPerWorker);
 
 
-/*
-uint32 cores = System.cores();
-
-// Choose number of worker threads (by default equal to logical cores count)
-uint32 workers = cores;
-
-// Worker threads count can be overriden from config file
-sint64 value = workers;
-Config.get("en.threading.workers", &value);
-workers = static_cast<uint32>(value);
-
-// Ensure worker threads count doesn't exceed logical cores count
-if (workers > cores)
-   workers = cores;
-*/
+//
+// uint32 cores = System.cores();
+// 
+// // Choose number of worker threads (by default equal to logical cores count)
+// uint32 workers = cores;
+// 
+// // Worker threads count can be overriden from config file
+// sint64 value = workers;
+// Config.get("en.threading.workers", &value);
+// workers = static_cast<uint32>(value);
+// 
+// // Ensure worker threads count doesn't exceed logical cores count
+// if (workers > cores)
+//    workers = cores;
+//
 
 en::parallel::Interface::create(workers, fibers, en::MaxTasksPerWorker);
 //en::GpuContext.create();
@@ -151,14 +152,14 @@ en::input::Interface::create();
 
 en::StateContext.create();
 
-/*
-// Main thread starts to work like other worker 
-// threads, by executing application as first 
-// task. When it will terminate from inside, it 
-// will return here. This will allow sheduler 
-// destructor to close rest of worker threads.
-en::SchedulerContext.start(new MainTask(argc,argv));
-*/
+// 
+// // Main thread starts to work like other worker 
+// // threads, by executing application as first 
+// // task. When it will terminate from inside, it 
+// // will return here. This will allow sheduler 
+// // destructor to close rest of worker threads.
+// en::SchedulerContext.start(new MainTask(argc,argv));
+// 
 
 
 
@@ -177,6 +178,7 @@ en::SchedulerContext.start(new MainTask(argc,argv));
 // indicates that there are tasks to process.
 // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-postthreadmessagea
 
+*/
 
 
     en::input::WinInput* input = reinterpret_cast<en::input::WinInput*>(en::Input.get());
@@ -228,6 +230,7 @@ en::SchedulerContext.start(new MainTask(argc,argv));
     }
 
 
+/*
     //while(true)
     //{
     //    en::Input->update();
@@ -255,6 +258,13 @@ en::ConfigContext.destroy();
 en::Storage = nullptr;
 
 return mainResult;
+
+*/
+
+    // Deinitialize all engine modules
+    en::destroy();
+
+    return mainResult;
 }
 
 // Entry point for Windows non-console applications

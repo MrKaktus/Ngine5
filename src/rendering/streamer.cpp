@@ -1155,6 +1155,7 @@ namespace en
       residentAllocationSize(ResidentAllocationSize*MB),
       maxBufferResidentSize(BufferResidentMemorySize*residentAllocationSize),
       maxTextureResidentSize(TextureResidentMemorySize*residentAllocationSize),
+      downloadHeap(nullptr),
       downloadBuffer(nullptr),
       downloadAdress(0),
       terminating(false)
@@ -1250,9 +1251,10 @@ namespace en
    if (downloadAllocationSize)
       {
       // Create staging Heap, that can be accessed through linear Buffer.
-      std::shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Download, downloadAllocationSize);
+      Heap* heap = gpu->createHeap(MemoryUsage::Download, downloadAllocationSize);
       assert( heap );
-      std::shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Transfer, downloadAllocationSize);
+
+      std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Transfer, downloadAllocationSize));
       assert( buffer );
    
       // Buffer will be always used as source of transfers from GPU VRAM
@@ -1266,7 +1268,8 @@ namespace en
       command->waitUntilCompleted();
    
       // Buffer is always mapped, so that several resources can be downloaded at the same time.
-      downloadBuffer = buffer;
+      downloadHeap.swap(std::unique_ptr<Heap>(heap));
+      downloadBuffer.swap(buffer);
       downloadAdress = buffer->map();
       }
       
@@ -1337,9 +1340,9 @@ namespace en
    //       new backing Heap allocation is spawned in the background.
    
    // Create staging Heap, that can be accessed through linear Buffer.
-   std::shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Upload, systemAllocationSize);
+   std::unique_ptr<Heap> heap(gpu->createHeap(MemoryUsage::Upload, systemAllocationSize));
    assert( heap );
-   std::shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Transfer, systemAllocationSize);
+   std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Transfer, systemAllocationSize));
    assert( buffer );
    
    // Buffer will be always used as source of transfers to GPU VRAM
@@ -1350,7 +1353,7 @@ namespace en
    command->waitUntilCompleted();  // TODO: Command completion may be delayed by whole frame!!!!!
    
    systemCache.next       = nullptr;  
-   systemCache.buffer     = buffer; 
+   systemCache.buffer.swap(buffer); 
    systemCache.allocator  = new BasicAllocator(systemAllocationSize);
    systemCache.sysAddress = buffer->map(); // Buffer is always mapped, so that several resources can be uploaded at the same time.
    
@@ -1360,9 +1363,9 @@ namespace en
    bool Streamer::initBufferHeap(BufferCache& bufferCache)
    {
    // Create linear Heap, that can be accessed through linear Buffer.
-   std::shared_ptr<Heap> heap = gpu->createHeap(MemoryUsage::Linear, residentAllocationSize);
+   std::unique_ptr<Heap> heap(gpu->createHeap(MemoryUsage::Linear, residentAllocationSize));
    assert( heap );
-   std::shared_ptr<Buffer> buffer = heap->createBuffer(gpu::BufferType::Vertex, residentAllocationSize);   // TODO: Buffer bitmask! Buffer for everything!
+   std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Vertex, residentAllocationSize));   // TODO: Buffer bitmask! Buffer for everything!
    assert( buffer );
    
    // Buffer will be always used as source of transfers to GPU VRAM
@@ -1373,7 +1376,7 @@ namespace en
    command->waitUntilCompleted();  // TODO: Command completion may be delayed by whole frame!!!!!
    
    bufferCache.next       = nullptr;  
-   bufferCache.buffer     = buffer; 
+   bufferCache.buffer.swap(buffer); 
    bufferCache.allocator  = new BasicAllocator(residentAllocationSize);
    bufferCache.sysAddress = nullptr; // Not used by resident buffers
    
@@ -1570,7 +1573,7 @@ namespace en
          }
    
       // Resource Streamer state of buffer allocation (sub-allocated from Heap)
-      desc.gpuBuffer = (*cache)->buffer;
+      desc.gpuBuffer = (*cache)->buffer.get(); // Weak reference to backing Buffer
       desc.gpuOffset = static_cast<uint32>(gpuOffset);
 
       // Resource Streamer internal state of buffer allocation
@@ -1598,7 +1601,7 @@ namespace en
          assert( allocated );
 
          // Resource Streamer state of buffer allocation (sub-allocated from Heap)
-         desc.gpuBuffer = (*cache)->buffer;
+         desc.gpuBuffer = (*cache)->buffer.get();  // Weak reference to backing Buffer
          desc.gpuOffset = static_cast<uint32>(gpuOffset);
 
          // Resource Streamer internal state of buffer allocation
@@ -1712,8 +1715,8 @@ namespace en
    
 
 
-   #include "core/utilities/memory.h"
-   #include "utilities/utilities.h"
+#include "core/memory/alignedAllocator.h"
+#include "utilities/utilities.h"
    
    /*
    
@@ -2263,7 +2266,7 @@ namespace en
 
    TextureCache** cache = &gpuTextureHeapList;
    
-   std::shared_ptr<Texture> texture = nullptr;
+   Texture* texture = nullptr;
 
    // Currently it is simplest possible allocation algorithm, iterating over all
    // available heaps to find one with enough free memory. This needs to be redone

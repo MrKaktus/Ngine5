@@ -76,9 +76,9 @@ namespace en
       }
    }
 
-   std::shared_ptr<DepthStencilState> VulkanDevice::createDepthStencilState(const DepthStencilStateInfo& desc)
+   DepthStencilState* VulkanDevice::createDepthStencilState(const DepthStencilStateInfo& desc)
    {
-   return std::make_shared<DepthStencilStateVK>(desc);
+   return new DepthStencilStateVK(desc);
    }
 
    }

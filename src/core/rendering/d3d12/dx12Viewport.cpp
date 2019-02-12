@@ -44,11 +44,11 @@ namespace en
    memcpy(&scissor[0],  &scissors[0],  count * sizeof(ScissorStateInfo));
    }
    
-   std::shared_ptr<ViewportState> Direct3D12Device::createViewportState(const uint32 count,
-                                                                   const ViewportStateInfo* viewports,
-                                                                   const ScissorStateInfo* scissors)
+   ViewportState* Direct3D12Device::createViewportState(const uint32 count,
+                                                        const ViewportStateInfo* viewports,
+                                                        const ScissorStateInfo* scissors)
    {
-   return std::make_shared<ViewportStateD3D12>(count, viewports, scissors);
+   return new ViewportStateD3D12(count, viewports, scissors);
    }
 
    }

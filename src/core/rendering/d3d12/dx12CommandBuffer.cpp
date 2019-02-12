@@ -120,7 +120,7 @@ namespace en
       if (checkBit(renderPass->usedAttachments, i))
          {
          lastUsedIndex = i;
-         ValidateNoRet( gpu, CreateRenderTargetView(framebuffer->colorHandle[i]->texture->handle,
+         ValidateNoRet( gpu, CreateRenderTargetView(framebuffer->colorHandle[i]->texture.handle,
                                                    &framebuffer->colorDesc[i],
                                                     gpu->handleRTV[i]) )
          ++index;
@@ -136,7 +136,7 @@ namespace en
    // Create Depth-Stencil View
    if (renderPass->depthStencil)
       {
-      ValidateNoRet( gpu, CreateDepthStencilView(framebuffer->depthHandle->texture->handle,
+      ValidateNoRet( gpu, CreateDepthStencilView(framebuffer->depthHandle->texture.handle,
                                                 &framebuffer->depthDesc,
                                                  gpu->handleDSV) )
       }
@@ -226,9 +226,9 @@ namespace en
                                                           layers); 
 
                // Resolves original resources (on top of which Views for rendering were created)
-               ValidateComNoRet( command->ResolveSubresource(framebuffer->resolveHandle[i]->texture->handle,
+               ValidateComNoRet( command->ResolveSubresource(framebuffer->resolveHandle[i]->texture.handle,
                                                              dstSubresource,
-                                                             framebuffer->colorHandle[i]->texture->handle,
+                                                             framebuffer->colorHandle[i]->texture.handle,
                                                              srcSubresource,
                                                              format) )
                }

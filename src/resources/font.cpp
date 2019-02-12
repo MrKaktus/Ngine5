@@ -124,7 +124,7 @@ namespace en
 
    // Create buffer in GPU (CCW Triangles)
    Formatting formatting(Attribute::v2f32, Attribute::v2f32); // inPosition, inTexCoord0
-   std::shared_ptr<Buffer> vertex = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting);
+   std::unique_ptr<Buffer> vertex(en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting));
    
    // TODO: !!! populate vertex with data
    

@@ -23,7 +23,7 @@ namespace en
 {
    namespace gpu
    {
-   BufferMTL::BufferMTL(std::shared_ptr<HeapMTL> _heap,
+   BufferMTL::BufferMTL(HeapMTL& _heap,
                         id<MTLBuffer> _handle,
                         const BufferType type,
                         const uint32 size,
@@ -194,9 +194,7 @@ namespace en
    handle = nil;
    
    if (offset)
-      heap->allocator->deallocate(offset, size);
-      
-   heap = nullptr;
+      heap.allocator->deallocate(offset, size);
    }
 
    volatile void* BufferMTL::map(void)
@@ -209,9 +207,9 @@ namespace en
    assert( _offset + _size <= size );
    
    // Buffers can be mapped only on Upload, Download and Immediate Heaps.
-   assert( heap->_usage == MemoryUsage::Upload   ||
-           heap->_usage == MemoryUsage::Download ||
-           heap->_usage == MemoryUsage::Immediate );
+   assert( heap._usage == MemoryUsage::Upload   ||
+           heap._usage == MemoryUsage::Download ||
+           heap._usage == MemoryUsage::Immediate );
       
    // Just return pointer to buffer data
    return (void*)((uint64)[handle contents] + (uint64)offset + (uint64)_offset);

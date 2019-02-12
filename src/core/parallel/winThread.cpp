@@ -20,93 +20,9 @@
 namespace en
 {
 
-/* DEPRECATED:
-
-   constexpr uint32 MaxThreads      = 256;
-
-   static Mutex  lockThreadID;                 // Used when modifying thread ID translation table
-   static uint32 threadsSpawned = 0;           // Amount of threads spawned since start of application
-   static uint32 registeredThread[MaxThreads]; // Thread global to local ID translation table
-
-   uint32 currentThreadId(void)
-   {
-   DWORD systemThreadId = GetCurrentThreadId();
-
-   // Initialize thread global ID to local ID translation table. This also means 
-   // that this code is executing on main thread, and thus we can query it's 
-   // global ID and init table with it.
-   if (threadsSpawned == 0)   
-      {
-      memset(&registeredThread[0], 0, sizeof(uint32) * MaxThreads);
-      registeredThread[0] = systemThreadId;
-      threadsSpawned = 1;
-      }
-
-   // This thread is already created, so is already on the list. As list can only
-   // grow, there is no risk of colliding with other thread being created during
-   // this thread iterating over list.
-   uint32 index = 0;
-   for(; index<threadsSpawned; ++index)
-      if (registeredThread[index] == systemThreadId)
-         return index;
-
-   // Code execution should never reach this place
-   assert( 0 );
-   return InvalidThreadID;
-
-   // Alternative:
-   // 
-   // #include <thread>
-   // 
-   // std::thread::id id = std::this_thread::get_id();
-   //
-   // id still needs to be translated to local index that can be used to access arrays.
-   }
-
-   uint32 spawnedThreads(void)
-   {
-   // Initialize thread global ID to local ID translation table. This also means 
-   // that this code is executing on main thread, and thus we can query it's 
-   // global ID and init table with it.
-   if (threadsSpawned == 0)   
-      {
-      memset(&registeredThread[0], 0, sizeof(uint32) * MaxThreads);
-      registeredThread[0] = GetCurrentThreadId();
-      threadsSpawned = 1;
-      }
-
-   return threadsSpawned;
-   }
-
-   uint32 runningThreads(void)
-   {
-   // Initialize thread global ID to local ID translation table. This also means 
-   // that this code is executing on main thread, and thus we can query it's 
-   // global ID and init table with it.
-   if (threadsSpawned == 0)   
-      {
-      memset(&registeredThread[0], 0, sizeof(uint32) * MaxThreads);
-      registeredThread[0] = GetCurrentThreadId();
-      threadsSpawned = 1;
-      }
-
-   lockThreadID.lock();
-
-   // Check how many threads are still running
-   uint32 running = 0;
-   for(uint32 i=0; i<threadsSpawned; ++i)
-      if (registeredThread[i] != InvalidThreadID)
-         running++;
-
-   lockThreadID.unlock();
-
-   return running;
-   }
-//*/
-
 uint64 currentThreadSystemId(void)
 {
-    return GetCurrentThreadId();;
+    return GetCurrentThreadId();
 }
 
 void wakeUpMainThread(void)
@@ -120,12 +36,10 @@ void wakeUpMainThread(void)
 void setThreadName(std::string threadName)
 {
     // Sets name of current thread
-   
-   // Available since Windows 10 Creators Update
-   // Requires latest Windows SDK, which in turn requires Visual Studio 2017
+    HRESULT result = SetThreadDescription(GetCurrentThread(), stringToWchar(threadName.c_str(), threadName.length()));
 
-   // TODO: FIXME! Uncomment once engine migrated to VS2017!
-   // HRESULT result = SetThreadDescription(GetCurrentThread(), stringToWchar(threadName.c_str(), threadName.length()));
+    // Info: Available since Windows 10 Creators Update 2018 (version 1607)
+    //       Requires matching Windows SDK, which in turn requires Visual Studio 2017
 }
 
 uint32 currentCoreId(void)
@@ -133,117 +47,98 @@ uint32 currentCoreId(void)
     return GetCurrentProcessorNumber();
 }
 
-   winThreadContainer::winThreadContainer(ThreadFunction _function, Thread* _threadClass) :
-      function(_function),
-      threadClass(_threadClass)
-   {
-   }
+winThreadContainer::winThreadContainer(ThreadFunction _function, Thread* _threadClass) :
+    function(_function),
+    threadClass(_threadClass)
+{
+}
 
-   DWORD WINAPI winThreadFunctionHandler(LPVOID lpThreadParameter)
-   {
-   winThreadContainer* container = reinterpret_cast<winThreadContainer*>(lpThreadParameter);
+DWORD WINAPI winThreadFunctionHandler(LPVOID lpThreadParameter)
+{
+    winThreadContainer* container = reinterpret_cast<winThreadContainer*>(lpThreadParameter);
 
-   // Call actual function   
-   container->function(container->threadClass);
+    // Call actual function   
+    container->function(container->threadClass);
 
-   return 0;
-   }
+    return 0;
+}
 
-   winThread::winThread(ThreadFunction function, void* threadState) :
-      handle(INVALID_HANDLE_VALUE),
-      sleepSemaphore(CreateSemaphore(nullptr, 0, 1, nullptr)),
-      timer(CreateWaitableTimer(nullptr, true, nullptr)),
-      package(function, this),
-      localState(threadState),
-      index(0xFFFFFFFF),
-    //isSleeping(false),
-      valid(true),
-      Thread()
-   {
-   assert( sleepSemaphore != INVALID_HANDLE_VALUE );
-   assert( timer != INVALID_HANDLE_VALUE );
+winThread::winThread(ThreadFunction function, void* threadState) :
+    handle(INVALID_HANDLE_VALUE),
+    sleepSemaphore(CreateSemaphore(nullptr, 0, 1, nullptr)),
+    timer(CreateWaitableTimer(nullptr, true, nullptr)),
+    package(function, this),
+    localState(threadState),
+    index(0xFFFFFFFF),
+    valid(true),
+    Thread()
+{
+    assert( sleepSemaphore != INVALID_HANDLE_VALUE );
+    assert( timer != INVALID_HANDLE_VALUE );
    
-   handle = CreateThread(nullptr,                       // Thread parameters
-                         65536,                         // Thread stack size
-                         winThreadFunctionHandler,      // Thread entry point
-                         static_cast<LPVOID>(&package), // Thread startup parameters
-                         0,                             // Creation flags
-                         nullptr);                      // Thread id  (LPDWORD)(&m_id)
+    handle = CreateThread(nullptr,                       // Thread parameters
+                          65536,                         // Thread stack size
+                          winThreadFunctionHandler,      // Thread entry point
+                          static_cast<LPVOID>(&package), // Thread startup parameters
+                          0,                             // Creation flags
+                          nullptr);                      // Thread id  (LPDWORD)(&m_id)
       
-   assert( handle != INVALID_HANDLE_VALUE );
+    assert( handle != INVALID_HANDLE_VALUE );
 
-   // If this is first call to create thread since application start, initialize 
-   // thread global ID to local ID translation table. This also means that this
-   // code is executing on main thread, and thus we can query it's global ID and
-   // init table with it.
-   if (threadsSpawned == 0)   
-      {
-      memset(&registeredThread[0], 0, sizeof(uint32) * MaxThreads);
-      registeredThread[0] = GetCurrentThreadId();
-      threadsSpawned = 1;
-      }
+    // Query this thread system ID.
+    uint64 thisThreadSystemId = GetThreadId(handle);
 
-   // Register unique thread ID for indexing into thread specific data structures.
-   // Threads should never reuse destroyed thread indexes, instead threads should
-   // be kept alive through whole application lifecycle, and Thread-Pool should
-   // be employed.
-   lockThreadID.lock();
+    // Register unique local thread ID
+    index = registerThread(thisThreadSystemId);
+}
 
-   assert( threadsSpawned < MaxThreads );
-   index = threadsSpawned;
-   registeredThread[threadsSpawned] = GetThreadId(handle);
-   threadsSpawned++;
+winThread::~winThread() 
+{
+    // Mark that thread as terminated
+    releaseThread(index);
 
-   lockThreadID.unlock();
-   }
+    valid = !(bool)TerminateThread(handle, 0);
+    CloseHandle(handle);
+    CloseHandle(sleepSemaphore);
+    handle = INVALID_HANDLE_VALUE;
+    sleepSemaphore = INVALID_HANDLE_VALUE;
+}
 
-   winThread::~winThread() 
-   {
-   // Mark that thread as terminated
-   registeredThread[index] = InvalidThreadID;
-
-   valid = !(bool)TerminateThread(handle, 0);
-   CloseHandle(handle);
-   CloseHandle(sleepSemaphore);
-   handle = INVALID_HANDLE_VALUE;
-   sleepSemaphore = INVALID_HANDLE_VALUE;
-   }
-
-   void* winThread::state(void)
-   {
-   return localState;
-   }
+void* winThread::state(void)
+{
+    return localState;
+}
    
-   void winThread::name(std::string threadName)
-   {
-   // Available since Windows 10 Creators Update 
-   // Requires latest Windows SDK, which in turn requires Visual Studio 2017
+void winThread::name(std::string threadName)
+{
+    // Sets name of current thread
+    HRESULT result = SetThreadDescription(handle, stringToWchar(threadName.c_str(), threadName.length()));
 
-   // TODO: FIXME! Uncomment once engine migrated to VS2017!
-   // HRESULT result = SetThreadDescription(handle, stringToWchar(threadName.c_str(), threadName.length()));
-   }
+    // Info: Available since Windows 10 Creators Update 2018 (version 1607)
+    //       Requires matching Windows SDK, which in turn requires Visual Studio 2017
+}
    
-   uint32 winThread::id(void) 
-   {
-   return index;
-   }
+uint32 winThread::id(void) 
+{
+    return index;
+}
 
-   uint64 winThread::coresExecutionMask(void)
-   {
-   uint64 result = 0;
+uint64 winThread::coresExecutionMask(void)
+{
+    uint64 result = 0;
 
-   // Receive oiginal cores mask, during setting up temporary one, then restore
-   uint64 tempMask = 1;
-   result = SetThreadAffinityMask(handle, tempMask);
-   SetThreadAffinityMask(handle, result);
+    // Receive oiginal cores mask, during setting up temporary one, then restore
+    uint64 tempMask = 1;
+    result = SetThreadAffinityMask(handle, tempMask);
+    SetThreadAffinityMask(handle, result);
 
-   return result;
-   }
+    return result;
+}
 
-   void winThread::executeOn(const uint64 coresMask)
-   {
-   SetThreadAffinityMask(handle, coresMask);
-   }
+void winThread::executeOn(const uint64 coresMask)
+{
+    SetThreadAffinityMask(handle, coresMask);
+}
 
 void winThread::sleep(void)
 {
@@ -299,44 +194,38 @@ void winThread::wakeUp(void)
     // signal both semaphores to make sure it's woken up.
     ReleaseSemaphore(sleepSemaphore, 1, nullptr);
     ReleaseSemaphore(timer, 1, nullptr);
-    //isSleeping.store(false, std::memory_order_release);
 }
 
-/*
-   bool winThread::sleeping(void)
-   {
-   return isSleeping.load(std::memory_order_acquire);
-   }
-*/
-   bool winThread::working(void)
-   {
-   if (WaitForSingleObject(handle, 0) == WAIT_OBJECT_0)
-      {
-      handle = INVALID_HANDLE_VALUE;
-      return false;
-      }
+bool winThread::working(void)
+{
+    if (WaitForSingleObject(handle, 0) == WAIT_OBJECT_0)
+    {
+        handle = INVALID_HANDLE_VALUE;
+        return false;
+    }
 
-   return true;
-   }
+    return true;
+}
 
-   void winThread::exit(uint32 ret)
-   {
-   assert( GetThreadId(handle) == GetCurrentThreadId() );
+void winThread::exit(uint32 ret)
+{
+    assert( GetThreadId(handle) == GetCurrentThreadId() );
 
-   handle = INVALID_HANDLE_VALUE;
-   ExitThread(ret);
-   }
+    handle = INVALID_HANDLE_VALUE;
+    ExitThread(ret);
+}
    
-   void winThread::waitUntilCompleted(void)
-   {
-   assert( GetThreadId(handle) != GetCurrentThreadId() );
+void winThread::waitUntilCompleted(void)
+{
+    assert( GetThreadId(handle) != GetCurrentThreadId() );
    
-   WaitForSingleObject(handle, INFINITE);
-   }
+    WaitForSingleObject(handle, INFINITE);
+}
    
-   std::unique_ptr<Thread> startThread(ThreadFunction function, void* threadState)
-   {
-   return std::make_unique<winThread>(function, threadState);
-   }
+std::unique_ptr<Thread> startThread(ThreadFunction function, void* threadState)
+{
+    return std::make_unique<winThread>(function, threadState);
+}
+
 }
 #endif

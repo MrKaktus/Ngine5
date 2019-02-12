@@ -26,116 +26,126 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class ColorAttachmentVK : public ColorAttachment
-      {
-      public:
-      VkAttachmentDescription state[2];   // Attachment and optional Resolve
-      VkClearValue            clearValue;
-      bool                    resolve;
+namespace gpu
+{
+class ColorAttachmentVK : public ColorAttachment
+{
+    public:
+    VkAttachmentDescription state[2];   // Attachment and optional Resolve
+    VkClearValue            clearValue;
+    bool                    resolve;
 
-      ColorAttachmentVK(const Format format, const uint32 samples);
+    ColorAttachmentVK(const Format format, const uint32 samples);
 
-      virtual void onLoad(const LoadOperation load,
-         const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
-      virtual void onLoad(const LoadOperation load,
-         const uint32v4 clearColor = uint32v4(0u, 0u, 0u, 1u));
-      virtual void onLoad(const LoadOperation load,
-         const sint32v4 clearColor = sint32v4(0, 0, 0, 1));
-         
-      virtual void onStore(const StoreOperation store);
+    virtual void onLoad(
+        const LoadOperation load,
+        const float4 clearColor = float4(0.0f, 0.0f, 0.0f, 1.0f));
+    virtual void onLoad(
+        const LoadOperation load,
+        const uint32v4 clearColor = uint32v4(0u, 0u, 0u, 1u));
+    virtual void onLoad(
+        const LoadOperation load,
+        const sint32v4 clearColor = sint32v4(0, 0, 0, 1));
+       
+    virtual void onStore(const StoreOperation store);
 
-      virtual ~ColorAttachmentVK();
-      };
+    virtual ~ColorAttachmentVK();
+};
 
-   class DepthStencilAttachmentVK : public DepthStencilAttachment
-      {
-      public:
-      VkAttachmentDescription state;        // Shared DepthStencil, Depth or Stencil
-      float                   clearDepth;
-      uint32                  clearStencil;
+class DepthStencilAttachmentVK : public DepthStencilAttachment
+{
+    public:
+    VkAttachmentDescription state;        // Shared DepthStencil, Depth or Stencil
+    float                   clearDepth;
+    uint32                  clearStencil;
 
-      DepthStencilAttachmentVK(const Format depthFormat, 
-                               const Format stencilFormat = Format::Unsupported,
-                               const uint32 samples = 1u);
+    DepthStencilAttachmentVK(
+        const Format depthFormat, 
+        const Format stencilFormat = Format::Unsupported,
+        const uint32 samples = 1u);
 
-      virtual void onLoad(const LoadOperation loadDepthStencil,
-                          const float  clearDepth = 1.0f,
-                          const uint32 clearStencil = 0u);
+    virtual void onLoad(
+        const LoadOperation loadDepthStencil,
+        const float  clearDepth = 1.0f,
+        const uint32 clearStencil = 0u);
 
-      // Specify store operation, and Depth resolve method if it's supported by the GPU.
-      virtual void onStore(const StoreOperation storeDepthStencil,
-                           const DepthResolve resolveMode = DepthResolve::Sample0);
+    // Specify store operation, and Depth resolve method if it's supported by the GPU.
+    virtual void onStore(
+        const StoreOperation storeDepthStencil,
+        const DepthResolve resolveMode = DepthResolve::Sample0);
 
-      virtual void onStencilLoad(const LoadOperation loadStencil);
+    virtual void onStencilLoad(const LoadOperation loadStencil);
 
-      virtual void onStencilStore(const StoreOperation storeStencil);
+    virtual void onStencilStore(const StoreOperation storeStencil);
 
-      virtual ~DepthStencilAttachmentVK();
-      };
+    virtual ~DepthStencilAttachmentVK();
+};
 
-   class FramebufferVK : public Framebuffer
-      {
-      public:
-      VulkanDevice* gpu;
-      VkFramebuffer handle;
-      uint32v2      resolution;
-      uint32        layers;
-      
-      FramebufferVK(VulkanDevice* gpu,
-                    const VkFramebuffer handle,
-                    const uint32v2 resolution,
-                    const uint32 layers);
-                    
-      virtual ~FramebufferVK();
-      };
+class FramebufferVK : public Framebuffer
+{
+    public:
+    VulkanDevice* gpu;
+    VkFramebuffer handle;
+    uint32v2      resolution;
+    uint32        layers;
+    
+    FramebufferVK(VulkanDevice* gpu,
+                  const VkFramebuffer handle,
+                  const uint32v2 resolution,
+                  const uint32 layers);
+                  
+    virtual ~FramebufferVK();
+};
 
-   class RenderPassVK : public RenderPass
-      {
-      public:
-      VulkanDevice* gpu;
-      VkRenderPass  handle;
-      uint32        usedAttachments;  // Bitmask
-      uint32        surfaces;
-      VkClearValue* clearValues;   // Array of clear values per attachment
-      bool          resolve;
-      bool          depthStencil;
-      
-      RenderPassVK(VulkanDevice* gpu, 
-                   const VkRenderPass handle, 
-                   const uint32 usedAttachments, 
-                   const uint32 surfaces,
-                   const bool   _resolve,
-                   const bool   _depthStencil);
+class RenderPassVK : public RenderPass
+{
+    public:
+    VulkanDevice* gpu;
+    VkRenderPass  handle;
+    uint32        usedAttachments;  // Bitmask
+    uint32        surfaces;
+    VkClearValue* clearValues;   // Array of clear values per attachment
+    bool          resolve;
+    bool          depthStencil;
+    
+    RenderPassVK(VulkanDevice* gpu, 
+                 const VkRenderPass handle, 
+                 const uint32 usedAttachments, 
+                 const uint32 surfaces,
+                 const bool   _resolve,
+                 const bool   _depthStencil);
 
-      virtual ~RenderPassVK();
+    virtual ~RenderPassVK();
 
-      virtual std::shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                        const uint32   layers,
-                                                        const uint32   attachments,
-                                                        const std::shared_ptr<TextureView>* attachment,
-                                                        const std::shared_ptr<TextureView> depthStencil = nullptr,
-                                                        const std::shared_ptr<TextureView> stencil      = nullptr,
-                                                        const std::shared_ptr<TextureView> depthResolve = nullptr);
+    virtual std::shared_ptr<Framebuffer> createFramebuffer(
+        const uint32v2 resolution,
+        const uint32   layers,
+        const uint32   attachments,
+        const TextureView** attachment,
+        const TextureView* depthStencil = nullptr,
+        const TextureView* stencil      = nullptr,
+        const TextureView* depthResolve = nullptr);
 
-      // Creates framebuffer using window Swap-Chain surface.
-      virtual std::shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                        const std::shared_ptr<TextureView> swapChainSurface,
-                                                        const std::shared_ptr<TextureView> depthStencil = nullptr,
-                                                        const std::shared_ptr<TextureView> stencil      = nullptr);
-      
-      // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
-      // window Swap-Chain surface. Depth-Stencil can still be nullptr, but that need to be 
-      // explicitly stated by the application (to prevent ambiguous call).
-      virtual std::shared_ptr<Framebuffer> createFramebuffer(const uint32v2 resolution,
-                                                        const std::shared_ptr<TextureView> temporaryMSAA,
-                                                        const std::shared_ptr<TextureView> swapChainSurface,
-                                                        const std::shared_ptr<TextureView> depthStencil,
-                                                        const std::shared_ptr<TextureView> stencil);
-      };
-   }
-}
+    // Creates framebuffer using window Swap-Chain surface.
+    virtual std::shared_ptr<Framebuffer> createFramebuffer(
+        const uint32v2 resolution,
+        const TextureView* swapChainSurface,
+        const TextureView* depthStencil = nullptr,
+        const TextureView* stencil      = nullptr);
+    
+    // Creates framebuffer for rendering to temporary MSAA that is then resolved directly to
+    // window Swap-Chain surface. Depth-Stencil can still be nullptr, but that need to be 
+    // explicitly stated by the application (to prevent ambiguous call).
+    virtual std::shared_ptr<Framebuffer> createFramebuffer(
+        const uint32v2 resolution,
+        const TextureView* temporaryMSAA,
+        const TextureView* swapChainSurface,
+        const TextureView* depthStencil,
+        const TextureView* stencil);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

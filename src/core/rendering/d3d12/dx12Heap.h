@@ -48,10 +48,10 @@ namespace en
       // Create unformatted generic buffer of given type and size.
       // This method can still be used to create Vertex or Index buffers,
       // but it's adviced to use ones with explicit formatting.
-      virtual std::shared_ptr<Buffer> createBuffer(const BufferType type,
-                                              const uint32 size);
+      virtual Buffer* createBuffer(const BufferType type,
+                                   const uint32 size);
       
-      virtual std::shared_ptr<Texture> createTexture(const TextureState state);
+      virtual Texture* createTexture(const TextureState state);
 
       virtual ~HeapD3D12();
       };

@@ -35,82 +35,82 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   // Cross API issues:
-   //
-   // Logic Operation:
-   // D3D12  - per Rendertarget
-   // Vulkan - shared
-   // Metal  - none
-   //
-   // Alpha To Coverage:
-   // D3D12  - Stored in Blend State
-   // Vulkan - Stored in Multisample State -> Multisample State choosed
-   // Metal  - Pipeline State
-   //
-   // Rasterization Enabler:
-   // D3D12  -
-   // Vulkan - Stored in Raster State
-   // Metal  - Pipeline State
-   //
-   // Samples count:
-   // D3D12  - Rasterizer State (ForcedSampleCount)
-   // Vulkan - Stored in Multisample State -> Multisample State choosed
-   // Metal  - Pipeline State
-   //
-   // Multisample Enable:
-   // D3D12  - Rasterizer Desc
-   // Vulkan - Multisample State
-   //
-   // Depth Bias:
-   // D3D12  - int
-   // Vulkan - float
-   // Metal  - none
-   //
-   // D3D12 decided not to support Points Fill Mode ?
-   // D3D12 has Depth "clip", Vulkan has "clamp"
-   //
-   // Add feature flags:
-   //
-   // struct Support
-   //    {
-   //    bool logicOperation;                  // Supports global logic operation appliced to all Render Targets
-   //    bool logicOperationPerRenderTarget;   // Supports local logic operation specified per Render Target
-   //    bool dualSourceBlending;              // Supports Dual-Source blending
-   //    } support;
-   //
-   // PSO Creation can take up to 500-700ms
-   
-   // Handle for Pipeline State Object binding specification
-   class Pipeline
-      {
-      public:
-      virtual ~Pipeline() {};
-      };
+namespace gpu
+{
+// Cross API issues:
+//
+// Logic Operation:
+// D3D12  - per Rendertarget
+// Vulkan - shared
+// Metal  - none
+//
+// Alpha To Coverage:
+// D3D12  - Stored in Blend State
+// Vulkan - Stored in Multisample State -> Multisample State choosed
+// Metal  - Pipeline State
+//
+// Rasterization Enabler:
+// D3D12  -
+// Vulkan - Stored in Raster State
+// Metal  - Pipeline State
+//
+// Samples count:
+// D3D12  - Rasterizer State (ForcedSampleCount)
+// Vulkan - Stored in Multisample State -> Multisample State choosed
+// Metal  - Pipeline State
+//
+// Multisample Enable:
+// D3D12  - Rasterizer Desc
+// Vulkan - Multisample State
+//
+// Depth Bias:
+// D3D12  - int
+// Vulkan - float
+// Metal  - none
+//
+// D3D12 decided not to support Points Fill Mode ?
+// D3D12 has Depth "clip", Vulkan has "clamp"
+//
+// Add feature flags:
+//
+// struct Support
+//    {
+//    bool logicOperation;                  // Supports global logic operation appliced to all Render Targets
+//    bool logicOperationPerRenderTarget;   // Supports local logic operation specified per Render Target
+//    bool dualSourceBlending;              // Supports Dual-Source blending
+//    } support;
+//
+// PSO Creation can take up to 500-700ms
 
-   class GpuDevice;
+/// Handle for Pipeline State Object binding specification
+class Pipeline
+{
+    public:
+    virtual ~Pipeline() {};
+};
 
-   // Helper structure for Pipeline object creation.
-   struct PipelineState
-      {
-      std::shared_ptr<RenderPass>         renderPass;
-      std::shared_ptr<InputLayout>        inputLayout;
-      std::shared_ptr<ViewportState>      viewportState;
-      std::shared_ptr<RasterState>        rasterState;
-      std::shared_ptr<MultisamplingState> multisamplingState;
-      std::shared_ptr<DepthStencilState>  depthStencilState;
-      std::shared_ptr<BlendState>         blendState;
-      std::shared_ptr<Shader>             shader[5];
-      std::string                         function[5];
-      std::shared_ptr<PipelineLayout>     pipelineLayout;
+class GpuDevice;
 
-      PipelineState();
-      PipelineState(const PipelineState& src);
-      PipelineState(GpuDevice& device);
-      };
+/// Helper structure for Pipeline object creation.
+struct PipelineState
+{
+    std::shared_ptr<RenderPass>     renderPass;
+    std::shared_ptr<InputLayout>    inputLayout;
+    ViewportState*                  viewportState;
+    RasterState*                    rasterState;
+    MultisamplingState*             multisamplingState;
+    DepthStencilState*              depthStencilState;
+    BlendState*                     blendState;
+    std::shared_ptr<Shader>         shader[5];
+    std::string                     function[5];
+    std::shared_ptr<PipelineLayout> pipelineLayout;
 
-   }
-}
+    PipelineState();
+    PipelineState(const PipelineState& src);
+    PipelineState(GpuDevice& device);
+};
+
+} // en::gpu
+} // en
 
 #endif

@@ -24,7 +24,6 @@
 #include "platform/osx/AppDelegate.h"
 #endif
 
-sint32 returnValue = 0;
 
 namespace en
 {
@@ -69,7 +68,7 @@ namespace en
 #undef main
 #define ConsoleMain   main
 
-uint32 mainResult;
+sint32 mainResult = 0;
 
 void taskMain(void* taskData)
 {
@@ -136,7 +135,7 @@ int ConsoleMain(int argc, const char* argv[])
     }
     [pool release];
 
-    return returnValue;
+    return mainResult;
 }
 
 #endif

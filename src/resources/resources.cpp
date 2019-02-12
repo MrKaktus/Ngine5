@@ -182,11 +182,11 @@ namespace en
 
    // Create default mesh for corrdinate system axes
    Formatting formatting(Attribute::v3f32, Attribute::v3f32); // inPosition, inColor
-   defaults.enAxes = defaults.enHeapBuffers->createBuffer(14u, formatting, 0u);
+   defaults.enAxes = std::unique_ptr<Buffer>(defaults.enHeapBuffers->createBuffer(14u, formatting, 0u));
 
    // Create staging buffer
    uint32 stagingSize = 14u;
-   std::shared_ptr<gpu::Buffer> staging = defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   std::unique_ptr<gpu::Buffer> staging(defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize));
    assert( staging );
 
    // Read texture to temporary buffer
@@ -549,7 +549,7 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
          // Bind first input buffer, only if it wasn't bound yet, it was bound 
          // with offset different than 0 in multi buffer draw, or other one was 
          // previously in use.
-         uint64 inputHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer.get());
+         uint64 inputHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer);
          if (state.inputHash != inputHash)
             {
             state.command.setInputBuffer(0, 1, *(levelBacking.gpuBuffer));
@@ -562,7 +562,7 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
          // Input buffers will need tobe bound for every mesh separately due to 
          // different starting offsets. Single buffer cache still needs to be
          // updated to currently bound backing.
-         state.inputHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer.get());
+         state.inputHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer);
          }
    
       // Draw each mesh that is part of this model Level Of Detail
@@ -638,7 +638,7 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
             // mesh Index Buffer. Do this only when index buffer is not bound yet,
             // other one was bound for previous encoded draw call, or if indexShift 
             // differs between previously drawn mesh, and currently drawn one.
-            uint64 indexHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer.get());
+            uint64 indexHash = reinterpret_cast<uint64>(levelBacking.gpuBuffer);
             if (state.indexHash != indexHash ||
                 state.indexShift != currentMesh.indexShift)
                {
@@ -998,7 +998,7 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
    switch(type)
       {
       case ExtensionBMP:
-         texture = bmp::load(filename);
+         //texture = bmp::load(filename);
          break;
 
       case ExtensionDDS:
@@ -1019,7 +1019,8 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
          break;
 
       case ExtensionTGA:
-         texture = tga::load(filename);
+         // TODO: All that need to be rewritten
+         //texture = tga::load(filename);
          break;
 
       default:
@@ -1074,7 +1075,7 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
    switch(type)
       {
       case ExtensionBMP:
-         result = bmp::load(dst, layer, filename);
+         //result = bmp::load(dst, layer, filename);
          break;
 
       case ExtensionPNG:
@@ -1083,7 +1084,8 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
          break;
 
       case ExtensionTGA:
-         result = tga::load(dst, layer, filename);
+          // TODO: This whole abstraction needs to be redone to streamer.
+         //result = tga::load(dst, layer, filename);
          break;
 
       default:
@@ -1172,10 +1174,12 @@ CommandState::CommandState(gpu::CommandBuffer& _command) :
    // by other part of code. If it isn't it can be
    // safely deleted (assigment operator will perform
    // automatic resource deletion).
-   std::map<std::string, std::shared_ptr<gpu::Texture> >::iterator it = ResourcesContext.textures.find(filename);
-   if (it != ResourcesContext.textures.end())
-      if (it->second.unique())
-         it->second = NULL;
+   std::map<std::string, std::unique_ptr<gpu::Texture> >::iterator it = ResourcesContext.textures.find(filename);
+
+   // TODO: This whole abstraction needs to be redone to streamer.
+   //if (it != ResourcesContext.textures.end())
+   //   if (it->second.unique())
+   //      it->second = NULL;
    }
 
    }

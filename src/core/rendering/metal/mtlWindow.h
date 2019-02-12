@@ -29,14 +29,15 @@ namespace en
    {
    class MetalDevice;
    
-   class WindowMTL : public CommonWindow
+   // Aligned to cacheline due to use of Mutex
+   class cachealign WindowMTL : public CommonWindow
       {
       public:
       NSWindow*     window;
       NSView*       view;
       CAMetalLayer* layer;
       id <CAMetalDrawable> drawable;
-      std::shared_ptr<TextureMTL> framebuffer;
+      TextureMTL*   framebuffer;
       
       virtual bool movable(void);
       virtual void move(const uint32v2 position);
@@ -44,7 +45,7 @@ namespace en
       virtual void active(void);
       virtual void transparent(const float opacity);
       virtual void opaque(void);
-      virtual std::shared_ptr<Texture> surface(const Semaphore* signalSemaphore = nullptr);
+      virtual Texture* surface(const Semaphore* signalSemaphore = nullptr);
       virtual void present(const Semaphore* waitForSemaphore = nullptr);
       
       WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const std::string title); //id<MTLDevice> device

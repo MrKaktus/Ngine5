@@ -18,7 +18,7 @@
 #define ENG_CORE_UTILITIES_ARRAY
 
 #include "core/defines.h"
-#include "core/utilities/memory.h"
+#include "core/memory/alignedAllocator.h"
 #include "threading/mutex.h"
 
 namespace en

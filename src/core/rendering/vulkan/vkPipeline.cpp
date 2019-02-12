@@ -154,19 +154,19 @@ namespace en
    const InputLayoutVK*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutVK*>(pipelineState.inputLayout.get())
                                                                           : reinterpret_cast<InputLayoutVK*>(defaultState->inputLayout.get());
 
-   const ViewportStateVK*      viewport       = reinterpret_cast<ViewportStateVK*>(pipelineState.viewportState.get());
+   const ViewportStateVK*      viewport       = reinterpret_cast<ViewportStateVK*>(pipelineState.viewportState);
 
-   const RasterStateVK*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateVK*>(pipelineState.rasterState.get())
-                                                                          : reinterpret_cast<RasterStateVK*>(defaultState->rasterState.get());
+   const RasterStateVK*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateVK*>(pipelineState.rasterState)
+                                                                          : reinterpret_cast<RasterStateVK*>(defaultState->rasterState);
 
-   const MultisamplingStateVK* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateVK*>(pipelineState.multisamplingState.get())
-                                                                                 : reinterpret_cast<MultisamplingStateVK*>(defaultState->multisamplingState.get());
+   const MultisamplingStateVK* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateVK*>(pipelineState.multisamplingState)
+                                                                                 : reinterpret_cast<MultisamplingStateVK*>(defaultState->multisamplingState);
       
-   const DepthStencilStateVK*  depthStencil   = pipelineState.depthStencilState ? reinterpret_cast<DepthStencilStateVK*>(pipelineState.depthStencilState.get())
-                                                                                : reinterpret_cast<DepthStencilStateVK*>(defaultState->depthStencilState.get());
+   const DepthStencilStateVK*  depthStencil   = pipelineState.depthStencilState ? reinterpret_cast<DepthStencilStateVK*>(pipelineState.depthStencilState)
+                                                                                : reinterpret_cast<DepthStencilStateVK*>(defaultState->depthStencilState);
 
-   const BlendStateVK*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateVK*>(pipelineState.blendState.get())
-                                                                         : reinterpret_cast<BlendStateVK*>(defaultState->blendState.get());
+   const BlendStateVK*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateVK*>(pipelineState.blendState)
+                                                                         : reinterpret_cast<BlendStateVK*>(defaultState->blendState);
 
    const PipelineLayoutVK*     layout         = pipelineState.pipelineLayout ? reinterpret_cast<PipelineLayoutVK*>(pipelineState.pipelineLayout.get())
                                                                              : reinterpret_cast<PipelineLayoutVK*>(defaultState->pipelineLayout.get());
@@ -206,8 +206,6 @@ namespace en
          if (stage == stages)
             break;
          }
-
-
 
    // Pipeline state
    VkGraphicsPipelineCreateInfo pipelineInfo;

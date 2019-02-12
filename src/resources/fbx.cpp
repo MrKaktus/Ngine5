@@ -928,11 +928,11 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
          }
       }
 
-   std::shared_ptr<Buffer> vbo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting, 0u);
+   std::unique_ptr<Buffer> vbo(en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting, 0u));
 
    // Create staging buffer
    uint32 stagingSize = vertices * rowSize;
-   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize));
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";
@@ -1019,11 +1019,11 @@ return memcmp(this, &b, sizeof(en::fbx::Vertex)) == 0;
 
       vboBegin += unpackedMesh[mesh].vertices.size();
       }
-   std::shared_ptr<gpu::Buffer> ibo = en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexCount, format);
+   std::unique_ptr<gpu::Buffer> ibo(en::ResourcesContext.defaults.enHeapBuffers->createBuffer(indexCount, format));
 
    // Create staging buffer
    stagingSize = indexCount * indexSize;
-   staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize);
+   staging.swap(std::unique_ptr<gpu::Buffer>(en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize)));
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";

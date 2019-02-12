@@ -52,145 +52,151 @@ namespace en
    return gpu;
    }
       
-   // Create unformatted generic buffer of given type and size.
-   // This method can still be used to create Vertex or Index buffers,
-   // but it's adviced to use ones with explicit formatting.
-   std::shared_ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size)
-   {
-   assert( _usage != MemoryUsage::Tiled &&
-           _usage != MemoryUsage::Renderable );
-   
-   std::shared_ptr<BufferMTL> result = nullptr;
-   
+// Create unformatted generic buffer of given type and size.
+// This method can still be used to create Vertex or Index buffers,
+// but it's adviced to use ones with explicit formatting.
+std::unique_ptr<Buffer> HeapMTL::createBuffer(const BufferType type, const uint32 size)
+{
+    assert( _usage != MemoryUsage::Tiled &&
+            _usage != MemoryUsage::Renderable );
+
+    BufferMTL* result = nullptr;
+
 #if defined(EN_PLATFORM_OSX)
-   // Sub-allocate region from backing MTLBuffer
-   if (_usage == MemoryUsage::Upload   ||
-       _usage == MemoryUsage::Download ||
-       _usage == MemoryUsage::Immediate)
-      {
-      // Find memory region in the buffer where new buffer can be placed.
-      // If allocation succeeded, buffer is mapped to given offset.
-      uint64 offset = 0u;
-      if (allocator->allocate(size, 0, offset))
-         {
-         [handle retain];
-         result = std::make_shared<BufferMTL>(std::dynamic_pointer_cast<HeapMTL>(shared_from_this()),
-                                         handle,
-                                         type,
-                                         size,
-                                         offset);
-         }
-      }
-   else
+    // Sub-allocate region from backing MTLBuffer
+    if (_usage == MemoryUsage::Upload   ||
+        _usage == MemoryUsage::Download ||
+        _usage == MemoryUsage::Immediate)
+    {
+        // Find memory region in the buffer where new buffer can be placed.
+        // If allocation succeeded, buffer is mapped to given offset.
+        uint64 offset = 0u;
+        if (allocator->allocate(size, 0, offset))
+        {
+            [handle retain];
+            result = new BufferMTL(*this,
+                                   handle,
+                                   type,
+                                   size,
+                                   offset);
+        }
+    }
+    else
 #endif
-      {
-      MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift);
+    {
+        MTLResourceOptions options = (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift);
    
-      // Based on buffer type, it's located in CPU RAM or GPU VRAM on NUMA architectures.
+        // Based on buffer type, it's located in CPU RAM or GPU VRAM on NUMA architectures.
 #if defined(EN_PLATFORM_IOS)
-      options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
+        options |= (MTLStorageModeShared << MTLResourceStorageModeShift);
 #else
-      options |= (MTLStorageModePrivate << MTLResourceStorageModeShift);
+        options |= (MTLStorageModePrivate << MTLResourceStorageModeShift);
 #endif
 
-      id<MTLBuffer> buffer = [handle newBufferWithLength:(NSUInteger)size
-                                                 options:options];
+        id<MTLBuffer> buffer = [handle newBufferWithLength:(NSUInteger)size
+                                                   options:options];
          
-      if (buffer)
-         result = std::make_shared<BufferMTL>(std::dynamic_pointer_cast<HeapMTL>(shared_from_this()),
-                                         buffer,
-                                         type,
-                                         size,
-                                         0);
-      }
+        if (buffer)
+		{
+            result = new BufferMTL(*this,
+                                   buffer,
+                                   type,
+                                   size,
+                                   0);
+        }
+    }
 
-   return result;
-   }
- 
-   std::shared_ptr<Texture> HeapMTL::createTexture(const TextureState state)
-   {
-   // Textures can be only created on Tiled or Renderable Heaps.
-   // (Engine currently is not supporting Linear Textures).
-   assert( _usage == MemoryUsage::Tiled ||
-           _usage == MemoryUsage::Renderable );
-   
-   // TODO: Refactor this mess
-   std::shared_ptr<TextureMTL> ptr = std::make_shared<TextureMTL>(handle, state);
-   if (ptr)
-      ptr->heap = std::dynamic_pointer_cast<HeapMTL>(shared_from_this());
-   
-   return ptr;
-   }
-   
-   std::shared_ptr<Heap> MetalDevice::createHeap(const MemoryUsage usage, const uint32 size)
-   {
-   std::shared_ptr<HeapMTL> heap = nullptr;
-
-   uint32 roundedSize = roundUp(size, 4096u);
-  
-#if defined(EN_PLATFORM_OSX)
-   // CPU accessible (with MTLStorageModeShared) staging Heaps,
-   // are emulated on macOS with MTLBuffers allocated directly
-   // from MTLDevice. Depending on Heap usage, it's cache model
-   // may be Default for Download, or WriteCombine for
-   // Upload and Immediate usages.
-   if (usage == MemoryUsage::Upload   ||
-       usage == MemoryUsage::Download ||
-       usage == MemoryUsage::Immediate)
-      {
-      MTLResourceOptions options = (MTLStorageModeShared << MTLResourceStorageModeShift);
-      
-      id<MTLBuffer> handle = nil;
-      if (usage == MemoryUsage::Download)
-         {
-         options |= (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift);
-      
-         handle = [device newBufferWithLength:(NSUInteger)roundedSize
-                                      options:options];
-         }
-      else
-         {
-         options |= (MTLCPUCacheModeWriteCombined << MTLResourceCPUCacheModeShift);
-      
-         handle = [device newBufferWithLength:(NSUInteger)roundedSize
-                                      options:options];
-         
-         }
-         
-      if (handle)
-         heap = std::make_shared<HeapMTL>(std::dynamic_pointer_cast<MetalDevice>(shared_from_this()),
-                                     handle,
-                                     usage,
-                                     roundedSize);
-
-      return heap;
-      }
-#endif
-  
-   MTLHeapDescriptor* desc = allocateObjectiveC(MTLHeapDescriptor);
-   desc.size         = roundedSize;
-   desc.cpuCacheMode = MTLCPUCacheModeDefaultCache;
-#if defined(EN_PLATFORM_IOS)
-   desc.storageMode  = MTLStorageModeShared;
-#else
-   // At this point we know that usage is one of
-   // Linear, Tiled or Renderable
-   desc.storageMode  = MTLStorageModePrivate;
-#endif
-   
-   id<MTLHeap> handle = nil;
-   handle = [device newHeapWithDescriptor:desc];
-   if (handle)
-      heap = std::make_shared<HeapMTL>(std::dynamic_pointer_cast<MetalDevice>(shared_from_this()),
-                                  handle,
-                                  usage,
-                                  roundedSize);
-
-   deallocateObjectiveC(desc);
-
-   return heap;
-   }
-      
-   }
+    return std::unique_ptr<Buffer>(result);
 }
+
+Texture* HeapMTL::createTexture(const TextureState state)
+{
+    // Textures can be only created on Tiled or Renderable Heaps.
+    // (Engine currently is not supporting Linear Textures).
+    assert( _usage == MemoryUsage::Tiled ||
+            _usage == MemoryUsage::Renderable );
+   
+    TextureMTL* ptr = new TextureMTL(handle, state);
+    if (ptr)
+	{
+        ptr->heap = *this;
+    }
+
+    return ptr;
+}
+   
+Heap* MetalDevice::createHeap(const MemoryUsage usage, const uint32 size)
+{
+    HeapMTL* heap = nullptr;
+
+    uint32 roundedSize = roundUp(size, 4096u);
+  
+#if defined(EN_PLATFORM_OSX)
+    // CPU accessible (with MTLStorageModeShared) staging Heaps,
+    // are emulated on macOS with MTLBuffers allocated directly
+    // from MTLDevice. Depending on Heap usage, it's cache model
+    // may be Default for Download, or WriteCombine for
+    // Upload and Immediate usages.
+    if (usage == MemoryUsage::Upload   ||
+        usage == MemoryUsage::Download ||
+        usage == MemoryUsage::Immediate)
+    {
+        MTLResourceOptions options = (MTLStorageModeShared << MTLResourceStorageModeShift);
+      
+        id<MTLBuffer> handle = nil;
+        if (usage == MemoryUsage::Download)
+        {
+            options |= (MTLCPUCacheModeDefaultCache << MTLResourceCPUCacheModeShift);
+      
+            handle = [device newBufferWithLength:(NSUInteger)roundedSize
+                                         options:options];
+        }
+        else
+        {
+            options |= (MTLCPUCacheModeWriteCombined << MTLResourceCPUCacheModeShift);
+      
+            handle = [device newBufferWithLength:(NSUInteger)roundedSize
+                                         options:options];
+         
+        }
+         
+        if (handle)
+		{
+            heap = new HeapMTL(std::dynamic_pointer_cast<MetalDevice>(shared_from_this()),
+                               handle,
+                               usage,
+                               roundedSize);
+        }
+
+        return heap;
+    }
+#endif
+
+    MTLHeapDescriptor* desc = allocateObjectiveC(MTLHeapDescriptor);
+    desc.size         = roundedSize;
+    desc.cpuCacheMode = MTLCPUCacheModeDefaultCache;
+#if defined(EN_PLATFORM_IOS)
+    desc.storageMode  = MTLStorageModeShared;
+#else
+    // At this point we know that usage is one of
+    // Linear, Tiled or Renderable
+    desc.storageMode  = MTLStorageModePrivate;
+#endif
+   
+    id<MTLHeap> handle = nil;
+    handle = [device newHeapWithDescriptor:desc];
+    if (handle)
+	{
+        heap = new HeapMTL*(std::dynamic_pointer_cast<MetalDevice>(shared_from_this()),
+                            handle,
+                            usage,
+                            roundedSize);
+    }
+    deallocateObjectiveC(desc);
+
+    return heap;
+}
+      
+} // en::gpu
+} // en
 #endif

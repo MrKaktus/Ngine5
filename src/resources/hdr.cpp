@@ -340,7 +340,7 @@ namespace en
    settings.type   = TextureType::Texture2D;
 
    // Create texture in gpu
-   std::shared_ptr<Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+   std::unique_ptr<Texture> texture(en::ResourcesContext.defaults.enHeapTextures->createTexture(settings));
    if (!texture)
       {
       Log << "ERROR: Cannot create texture in GPU!\n";
@@ -349,7 +349,7 @@ namespace en
    
    // Create staging buffer
    uint32 stagingSize = texture->size();
-   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
+   std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize));
    if (!staging)
       {
       Log << "ERROR: Cannot create staging buffer!\n";

@@ -18,11 +18,10 @@
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/log/log.h"
-
+#include "core/memory/alignedAllocator.h"
 #include "core/storage.h"   // For Pipeline Cache handling
 #include "utilities/strings.h"
 
-#include "core/utilities/memory.h"
 #include "core/rendering/vulkan/vkCommandBuffer.h"
 #include "core/rendering/vulkan/vkTexture.h"
 #include "core/rendering/vulkan/vkSynchronization.h"

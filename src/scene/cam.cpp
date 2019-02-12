@@ -138,7 +138,7 @@ namespace en
    }
 
    // TODO: Input should be pointer to buffer (ideally Staging buffer on Heap).
-   std::shared_ptr<Buffer> FrustumSettings::wireframe(std::shared_ptr<Heap> heap) const
+   std::unique_ptr<Buffer> FrustumSettings::wireframe(Heap& heap) const
    {
    //assert(Gpu.screen.created());
 
@@ -166,10 +166,10 @@ namespace en
    points[15] = float3( nearEdges.w, -nearEdges.y, nearPlane); // Lower-right connector
 
    // Create geometry buffer for given frustum
-   std::shared_ptr<Buffer> buffer = heap->createBuffer(16, Formatting(Attribute::v3f32)); 
+   std::unique_ptr<Buffer> buffer(heap.createBuffer(16, Formatting(Attribute::v3f32))); 
 
    // Create staging buffer
-   std::shared_ptr<Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, 16);
+   std::unique_ptr<Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, 16));
    assert( staging );
    
    // Save wireframe to temporary buffer
@@ -197,7 +197,6 @@ namespace en
    
    command->waitUntilCompleted();
    command = nullptr;
-   staging = nullptr;
 
    delete [] points;
    

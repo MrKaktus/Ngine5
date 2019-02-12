@@ -170,9 +170,9 @@ namespace en
 //                 std::shared_ptr<gpu::Pipeline> pipeline;            // Default program for materials
 //                 std::shared_ptr<gpu::Shader>   vertex;
 //                 std::shared_ptr<gpu
-                 std::shared_ptr<gpu::Heap>    enHeapBuffers;
-                 std::shared_ptr<gpu::Heap>    enHeapTextures;
-                 std::shared_ptr<gpu::Heap>    enStagingHeap;
+                 gpu::Heap*    enHeapBuffers;
+                 gpu::Heap*    enHeapTextures;
+                 gpu::Heap*    enStagingHeap;
                  std::shared_ptr<gpu::Texture> enAlbedoMap;
                  std::shared_ptr<gpu::Texture> enMetallicMap;
                  std::shared_ptr<gpu::Texture> enCavityMap;
@@ -191,7 +191,7 @@ namespace en
                  // std::shared_ptr<gpu::Texture> enNormalMap;
                  // std::shared_ptr<gpu::Texture> enDisplacementMap;
                  // std::shared_ptr<gpu::Texture> enVectorsMap;
-                 std::shared_ptr<gpu::Buffer>  enAxes;             // Default axes buffer
+                 std::unique_ptr<gpu::Buffer> enAxes;             // Default axes buffer
 
                  Defaults();
                 ~Defaults();
@@ -200,7 +200,7 @@ namespace en
           std::map<std::string, std::shared_ptr<FontImp> >       fonts;
           std::map<std::string, std::shared_ptr<Model> >         models;
           std::map<std::string, Material>            materials;
-          std::map<std::string, std::shared_ptr<gpu::Texture> >  textures;
+          std::map<std::string, std::unique_ptr<gpu::Texture> >  textures;
           std::map<std::string, std::shared_ptr<audio::Sample> > sounds;
 
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)

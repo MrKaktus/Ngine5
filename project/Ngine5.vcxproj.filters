@@ -192,9 +192,6 @@
     <ClCompile Include="..\src\core\log\log.cpp">
       <Filter>Source Files\core\log</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\rendering\common\cTexture.cpp">
-      <Filter>Source Files\core\rendering\common</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\d3d12\dx12Blend.cpp">
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
@@ -314,9 +311,6 @@
     </ClCompile>
     <ClCompile Include="..\src\platform\blackberry\bb_main.cpp">
       <Filter>Source Files\platform\blackberry</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\platform\windows\win_main.cpp">
-      <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
     <ClCompile Include="..\src\rendering\stereo.cpp">
       <Filter>Source Files\rendering</Filter>
@@ -587,6 +581,18 @@
     </ClCompile>
     <ClCompile Include="..\src\core\input\winJoystick.cpp">
       <Filter>Source Files\core\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\parallel\parallel.cpp">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\windows\winMain.cpp">
+      <Filter>Source Files\platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\comMain.cpp">
+      <Filter>Source Files\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\texture.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1247,6 +1253,18 @@
     <ClInclude Include="..\src\parallel\comScheduler.h">
       <Filter>Source Files\parallel</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\parallel\parallel.h">
+      <Filter>Source Files\core\parallel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\osx\AppDelegate.h">
+      <Filter>Source Files\platform\osx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform\comMain.h">
+      <Filter>Source Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\memory\alignedAllocator.h">
+      <Filter>Header Files\core\memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\public\include\core\log\log.inl">
@@ -1291,9 +1309,6 @@
     <None Include="..\src\platform\osx\osx_callbacks.mm">
       <Filter>Source Files\platform\osx</Filter>
     </None>
-    <None Include="..\src\platform\osx\osx_main.mm">
-      <Filter>Source Files\platform\osx</Filter>
-    </None>
     <None Include="..\src\core\rendering\metal\mtlBuffer.mm">
       <Filter>Source Files\core\rendering\metal</Filter>
     </None>
@@ -1326,6 +1341,12 @@
     </None>
     <None Include="..\src\core\rendering\metal\mtlWindow.mm">
       <Filter>Source Files\core\rendering\metal</Filter>
+    </None>
+    <None Include="..\src\platform\osx\AppDelegate.mm">
+      <Filter>Source Files\platform\osx</Filter>
+    </None>
+    <None Include="..\src\platform\osx\macMain.mm">
+      <Filter>Source Files\platform\osx</Filter>
     </None>
   </ItemGroup>
 </Project>

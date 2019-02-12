@@ -21,18 +21,18 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   CommonHeap::CommonHeap(const MemoryUsage usage, const uint32 size) :
-      _usage(usage),
-      _size(size)
-   {
-   }
+namespace gpu
+{
+CommonHeap::CommonHeap(const MemoryUsage usage, const uint32 size) :
+    _usage(usage),
+    _size(size)
+{
+}
 
-   uint32 CommonHeap::size(void) const
-   {
-      return _size;
-   }
+uint32 CommonHeap::size(void) const
+{
+    return _size;
+}
 
 //   bool allocate(uint64 size, uint64 alignment, uint64* offset)
 //   {
@@ -47,53 +47,53 @@ namespace en
 //   return false;
 //   }
    
-   std::shared_ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
-   {
-   assert( elements );
-   assert( formatting.column[0] != Attribute::None );
+Buffer* CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
+{
+    assert( elements );
+    assert( formatting.column[0] != Attribute::None );
 
-   uint32 elementSize = formatting.elementSize();
-   uint32 size        = elements * elementSize;
-   std::shared_ptr<Buffer> buffer = createBuffer(BufferType::Vertex, size);
-   if (buffer)
-      {
-      CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer.get());
+    uint32 elementSize = formatting.elementSize();
+    uint32 size        = elements * elementSize;
+    Buffer* buffer = createBuffer(BufferType::Vertex, size);
+    if (buffer)
+    {
+        CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer);
       
-      common->formatting = formatting;
-      common->elements   = elements;
-      common->step       = step;
-      }
+        common->formatting = formatting;
+        common->elements   = elements;
+        common->step       = step;
+    }
 
-   return buffer;
-   }
-      
-   std::shared_ptr<Buffer> CommonHeap::createBuffer(const uint32 elements, const Attribute format)
-   {
-   assert( elements );
-   assert( format == Attribute::u8  ||
-           format == Attribute::u16 ||
-           format == Attribute::u32 );
-     
-   uint32 elementSize = AttributeSize[underlyingType(format)];
-   uint32 size        = elements * elementSize;
-   std::shared_ptr<Buffer> buffer = createBuffer(BufferType::Index, size);
-   if (buffer)
-      {
-      CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer.get());
-      
-      common->formatting.column[0] = format;
-      common->elements = elements;
-      }
-      
-   return buffer;
-   }
-
-   // Should be implemented by API class
-   std::shared_ptr<Buffer> CommonHeap::createBuffer(const BufferType type, const uint32 size)
-   {
-   assert(0);
-   return std::shared_ptr<Buffer>(nullptr);
-   }
-
-   }
+    return buffer;
 }
+      
+Buffer* CommonHeap::createBuffer(const uint32 elements, const Attribute format)
+{
+    assert( elements );
+    assert( format == Attribute::u8  ||
+            format == Attribute::u16 ||
+            format == Attribute::u32 );
+     
+    uint32 elementSize = AttributeSize[underlyingType(format)];
+    uint32 size        = elements * elementSize;
+    Buffer* buffer = createBuffer(BufferType::Index, size);
+    if (buffer)
+    {
+        CommonBuffer* common = reinterpret_cast<CommonBuffer*>(buffer);
+      
+        common->formatting.column[0] = format;
+        common->elements = elements;
+    }
+      
+    return buffer;
+}
+
+// Should be implemented by API class
+Buffer* CommonHeap::createBuffer(const BufferType type, const uint32 size)
+{
+    assert( 0 );
+    return nullptr;
+}
+
+} // en::gpu
+} // en

@@ -18,7 +18,7 @@
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
 #include "core/log/log.h"
-#include "core/utilities/memory.h"
+#include "core/memory/alignedAllocator.h"
 #include "core/rendering/d3d12/dx12CommandBuffer.h"
 #include "core/rendering/d3d12/dx12Texture.h"
 #include "parallel/scheduler.h"
@@ -787,7 +787,7 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
          if (SUCCEEDED(deviceHandle->QueryInterface(IID_PPV_ARGS(&adapter)))) // __uuidof(IDXGIAdapter3), reinterpret_cast<void**>(&adapter)
             {
             // Create actual device 
-            _device[deviceIndex] = std::make_shared<Direct3D12Device>(this, deviceIndex, adapter);
+            _device[deviceIndex] = std::shared_ptr<Direct3D12Device>(new Direct3D12Device(this, deviceIndex, adapter));
             ++deviceIndex;
             }
          }

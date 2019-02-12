@@ -76,7 +76,7 @@ namespace en
    return false;
    }
 
-   std::shared_ptr<gpu::Texture> load(const std::string& filename)
+   std::unique_ptr<gpu::Texture>* load(const std::string& filename)
    {
    using namespace en::storage;
    using namespace en::gpu;
@@ -122,7 +122,7 @@ namespace en
    TextureHeader_v1* textures = new TextureHeader_v1[header.textures];
    uint32 datasize = sizeof(TextureHeader_v1) * header.textures;
    file->read(20, datasize, textures);
-   std::shared_ptr<gpu::Texture>* out = new std::shared_ptr<gpu::Texture>[header.textures];
+   std::unique_ptr<gpu::Texture>* out = new std::unique_ptr<gpu::Texture>[header.textures];
 
    // Process textures
    for(uint32 i=0; i<header.textures; ++i)
@@ -139,7 +139,7 @@ namespace en
                             1, // TODO: Mipmaps count
                             textures[i].layers,
                             textures[i].samples);
-      out[i] = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
+      out[i] = std::unique_ptr<Texture>(en::ResourcesContext.defaults.enHeapTextures->createTexture(settings));
 
       // TODO: Add proper support for error reporting
       assert( out[i] );
@@ -153,7 +153,7 @@ namespace en
       for(uint16 j=0; j<textures[i].surfaces; ++j)
          {
          // Create staging buffer
-         std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, (uint32)surfaces[j].size);
+         std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, (uint32)surfaces[j].size));
          if (!staging)
             {
             Log << "ERROR: Cannot create staging buffer!\n";
@@ -194,7 +194,7 @@ namespace en
    delete [] textures;
 
    // TODO: Add support for more than one texture
-   return out[0];
+   return out;
    }
 
    }

@@ -52,7 +52,7 @@ namespace en
 
          void set(const float4 tangents);
          void set(const float vFov, const float aspect);
-         std::shared_ptr<gpu::Buffer> wireframe(std::shared_ptr<gpu::Heap> heap) const;
+         std::unique_ptr<gpu::Buffer> wireframe(gpu::Heap& heap) const;
          float4x4 projection(void);
          };
 

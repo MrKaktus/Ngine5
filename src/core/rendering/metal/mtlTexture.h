@@ -29,59 +29,60 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   extern const MTLTextureType TranslateTextureType[underlyingType(TextureType::Count)];
-   extern const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)];
+namespace gpu
+{
+extern const MTLTextureType TranslateTextureType[underlyingType(TextureType::Count)];
+extern const MTLPixelFormat TranslateTextureFormat[underlyingType(Format::Count)];
 
-   class TextureMTL : public CommonTexture
-      {
-      public:
-      id<MTLTexture>        handle;      // Metal texture ID
-      std::shared_ptr<HeapMTL>          heap;        // Memory backing heap
-      std::shared_ptr<SharedSurfaceOSX> ioSurface;   // Texture object may own backing, but this backing may be in form of shared IOSurface
-      bool                  ownsBacking; // Is this texture container the owner of backing surface (no for Swap-Chain surfaces)
+class TextureMTL : public CommonTexture
+{
+    public:
+    id<MTLTexture> handle;      // Metal texture ID
+    HeapMTL*       heap;        // Memory backing heap
+    std::shared_ptr<SharedSurfaceOSX> ioSurface;   // Texture object may own backing, but this backing may be in form of shared IOSurface
+    bool           ownsBacking; // Is this texture container the owner of backing surface (no for Swap-Chain surfaces)
+    
+    TextureMTL(const id<MTLHeap> heap,
+               const TextureState& state);
+       
+    TextureMTL(const id<MTLHeap> heap,
+               const TextureState& state,
+               const bool allocateBacking);
+    
+    // Creates Texture backed by IOSurface, that can be shared between processes.
+    TextureMTL(const id<MTLDevice> device,
+               const std::shared_ptr<SharedSurface> backingSurface);
+    
+    virtual Heap*        parent(void) const;
+    virtual TextureView* view(void);
+    virtual TextureView* view(const TextureType type,
+                         const Format format,
+                         const uint32v2 mipmaps,
+                         const uint32v2 layers);
+                          
+    virtual ~TextureMTL();
+};
       
-      TextureMTL(const id<MTLHeap> heap,
-                 const TextureState& state);
-         
-      TextureMTL(const id<MTLHeap> heap,
-                 const TextureState& state,
-                 const bool allocateBacking);
-      
-      // Creates Texture backed by IOSurface, that can be shared between processes.
-      TextureMTL(const id<MTLDevice> device,
-                 const std::shared_ptr<SharedSurface> backingSurface);
-      
-      virtual std::shared_ptr<Heap>        parent(void) const;
-      virtual std::shared_ptr<TextureView> view(void);
-      virtual std::shared_ptr<TextureView> view(const TextureType type,
-                                           const Format format,
-                                           const uint32v2 mipmaps,
-                                           const uint32v2 layers);
-                            
-      virtual ~TextureMTL();
-      };
-      
-   class TextureViewMTL : public CommonTextureView
-      {
-      public:
-      std::shared_ptr<TextureMTL> texture; // Parent texture
-      id<MTLTexture>  handle;  // Vulkan Image View ID
+class TextureViewMTL : public CommonTextureView
+{
+    public:
+    TextureMTL&    texture; // Parent texture
+    id<MTLTexture> handle;  // Vulkan Image View ID
 
-      TextureViewMTL(std::shared_ptr<TextureMTL> parent,
-                     id<MTLTexture>    view,
-                     const TextureType type,
-                     const Format      format,
-                     const uint32v2    mipmaps,
-                     const uint32v2    layers);
-         
-      std::shared_ptr<Texture> parent(void) const;
-   
-      virtual ~TextureViewMTL();
-      };
-   }
-}
+    TextureViewMTL(TextureMTL&       parent,
+                   id<MTLTexture>    view,
+                   const TextureType type,
+                   const Format      format,
+                   const uint32v2    mipmaps,
+                   const uint32v2    layers);
+       
+    Texture& parent(void) const;
+ 
+    virtual ~TextureViewMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

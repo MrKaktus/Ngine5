@@ -27,58 +27,58 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   extern const DXGI_FORMAT TranslateTextureFormat[underlyingType(Format::Count)];
+namespace gpu
+{
+extern const DXGI_FORMAT TranslateTextureFormat[underlyingType(Format::Count)];
 
-   extern UINT D3D12CalcSubresource(UINT MipSlice, UINT ArraySlice, UINT PlaneSlice, UINT MipLevels, UINT ArraySize);
+extern UINT D3D12CalcSubresource(UINT MipSlice, UINT ArraySlice, UINT PlaneSlice, UINT MipLevels, UINT ArraySize);
 
-   class TextureD3D12 : public CommonTexture
-      {
-      public:
-      ID3D12Resource*   handle;      // Vulkan Image ID
-      std::shared_ptr<HeapD3D12> heap;    // Memory backing heap
-      uint64            offset;      // Offset in the heap
-      uint64            textureSize; // Texture total size in memory (all mips and layers)
+class TextureD3D12 : public CommonTexture
+{
+    public:
+    ID3D12Resource* handle;      // Vulkan Image ID
+    HeapD3D12*      heap;        // Memory backing heap
+    uint64          offset;      // Offset in the heap
+    uint64          textureSize; // Texture total size in memory (all mips and layers)
+    
+    TextureD3D12(HeapD3D12* heap,
+                 ID3D12Resource* handle,
+                 uint64 offset,
+                 uint64 size,
+                 const TextureState& state);
+                 
+    TextureD3D12(Direct3D12Device* gpu,
+                 const TextureState& state); // Create texture interface for texture that already exists
+    
+    virtual Heap* parent(void) const;
+    virtual TextureView* view(void);
+    virtual TextureView* view(const TextureType type,
+                              const Format format,
+                              const uint32v2 mipmaps,
+                              const uint32v2 layers);
+       
+    virtual ~TextureD3D12();
+};
       
-      TextureD3D12(std::shared_ptr<HeapD3D12> heap,
-                   ID3D12Resource* handle,
-                   uint64 offset,
-                   uint64 size,
-                   const TextureState& state);
-                   
-      TextureD3D12(Direct3D12Device* gpu,
-                   const TextureState& state); // Create texture interface for texture that already exists
+class TextureViewD3D12 : public CommonTextureView
+{
+    public:
+    TextureD3D12& texture;                // Parent texture
+    D3D12_SHADER_RESOURCE_VIEW_DESC desc; // View descriptor
+    
+    TextureViewD3D12(TextureD3D12& parent,
+                     const TextureType _type,
+                     const Format _format,
+                     const uint32v2 _mipmaps,
+                     const uint32v2 _layers);
+    
+    Texture& parent(void) const;
+    
+    virtual ~TextureViewD3D12();
+};
 
-      virtual std::shared_ptr<Heap>        parent(void) const;
-      virtual std::shared_ptr<TextureView> view(void);
-      virtual std::shared_ptr<TextureView> view(const TextureType type,
-                                           const Format format,
-                                           const uint32v2 mipmaps,
-                                           const uint32v2 layers);
-         
-              
-      virtual ~TextureD3D12();
-      };
-      
-   class TextureViewD3D12 : public CommonTextureView
-      {
-      public:
-      std::shared_ptr<TextureD3D12> texture;     // Parent texture
-      D3D12_SHADER_RESOURCE_VIEW_DESC desc; // View descriptor
-
-      TextureViewD3D12(std::shared_ptr<TextureD3D12> parent,
-                       const TextureType _type,
-                       const Format _format,
-                       const uint32v2 _mipmaps,
-                       const uint32v2 _layers);
-
-      std::shared_ptr<Texture> parent(void) const;
-   
-      virtual ~TextureViewD3D12();
-      };
-   }
-}
+} // en::gpu
+} // en
 #endif
 
 #endif

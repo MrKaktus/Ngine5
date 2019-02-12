@@ -22,34 +22,36 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class CommonWindow : public Window
-      {
-      public:
-      std::shared_ptr<CommonDisplay> _display;
-      uint32v2 _position;
-      uint32v2 _size;
-      uint32v2 _resolution;
-      Mutex    surfaceAcquire;   // Window instance mutex.
-      WindowMode _mode;          // Windowed / Borderless / Fullscreen
-      uint32   _frame;           // Frame counter, increased after each present
-      bool     needNewSurface;
-      bool     verticalSync;
+namespace gpu
+{
+/// Aligned to cache line due to use of Mutex
+class cachealign CommonWindow : public Window
+{
+    public:
+    Mutex    surfaceAcquire;   ///< Window instance mutex.
+    std::shared_ptr<CommonDisplay> _display;
+    uint32v2 _position;
+    uint32v2 _size;
+    uint32v2 _resolution;
+    WindowMode _mode;          ///< Windowed / Borderless / Fullscreen
+    uint32   _frame;           ///< Frame counter, increased after each present
+    bool     needNewSurface;
+    bool     verticalSync;
+    
+    CommonWindow();
+    
+    virtual std::shared_ptr<Display> display(void) const;   ///< Display on which window's center point is currently located
+    virtual uint32v2 position(void) const;
+    virtual uint32v2 size(void) const;
+    virtual uint32v2 resolution(void) const;
+    virtual uint32   frame(void) const;
+    
+    virtual void transparent(const float opacity); // TODO: Do we really want that here? (Transp. should be enabled on window creation time, and queried later)
+    virtual void opaque(void);
+    
+    virtual ~CommonWindow();
+};
 
-      CommonWindow();
-      
-      virtual std::shared_ptr<Display> display(void) const;   // Display on which window's center point is currently located
-      virtual uint32v2 position(void) const;
-      virtual uint32v2 size(void) const;
-      virtual uint32v2 resolution(void) const;
-      virtual uint32   frame(void) const;
-      
-      virtual void transparent(const float opacity); // TODO: Do we really want that here? (Transp. should be enabled on window creation time, and queried later)
-      virtual void opaque(void);
-
-      virtual ~CommonWindow();
-      };
-   }
-}
+} // en::Gpu
+} // en
 #endif

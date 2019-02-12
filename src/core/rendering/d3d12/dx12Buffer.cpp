@@ -23,7 +23,7 @@ namespace en
 {
    namespace gpu
    {
-   BufferD3D12::BufferD3D12(std::shared_ptr<HeapD3D12> _heap,
+   BufferD3D12::BufferD3D12(HeapD3D12& _heap,
                             ID3D12Resource* _handle,
                             const BufferType _type,
                             const uint64 _offset,
@@ -62,9 +62,9 @@ namespace en
          
          // Engine currently doesn't support updates of DescriptorSets. 
          // When it will, RootSignature pointer needs to be passed here.
-         Validate( heap->gpu, CreateCommandSignature(&desc,
-                                                     nullptr,
-                                                     IID_PPV_ARGS(&signatureIndexed)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
+         Validate( heap.gpu, CreateCommandSignature(&desc,
+                                                    nullptr,
+                                                    IID_PPV_ARGS(&signatureIndexed)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
          }
 
       // Signature for Indirect draws
@@ -84,9 +84,9 @@ namespace en
          
          // Engine currently doesn't support updates of DescriptorSets. 
          // When it will, RootSignature pointer needs to be passed here.
-         Validate( heap->gpu, CreateCommandSignature(&desc,
-                                                     nullptr,
-                                                     IID_PPV_ARGS(&signature)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
+         Validate( heap.gpu, CreateCommandSignature(&desc,
+                                                    nullptr,
+                                                    IID_PPV_ARGS(&signature)) ) // __uuidof(ID3D12CommandSignature), reinterpret_cast<void**>(&signature)
          }
       
       delete [] argDescs;
@@ -109,22 +109,21 @@ namespace en
    handle = nullptr;
    
    // Deallocate from the Heap (let Heap allocator know that memory region is available again)
-   reinterpret_cast<HeapD3D12*>(heap.get())->allocator->deallocate(offset, size);
-   heap = nullptr;
+   heap.allocator->deallocate(offset, size);
    }
       
    // Map whole buffer for read or write depending on backing Heap type
    volatile void* BufferD3D12::map(void)
    {
    // Buffers can be mapped only on Upload, Download and Immediate Heaps.
-   assert( heap->_usage == MemoryUsage::Upload   ||
-           heap->_usage == MemoryUsage::Download ||
-           heap->_usage == MemoryUsage::Immediate );
+   assert( heap._usage == MemoryUsage::Upload   ||
+           heap._usage == MemoryUsage::Download ||
+           heap._usage == MemoryUsage::Immediate );
   
    // Range mapped for read (by default mapped for write)
    range.Begin = 0; 
    range.End   = 0;
-   if (heap->_usage == MemoryUsage::Download)
+   if (heap._usage == MemoryUsage::Download)
       {
       range.Begin = 0; 
       range.End   = size;
@@ -141,9 +140,9 @@ namespace en
    assert( _offset + _size <= size );
    
    // Buffers can be mapped only on Upload, Download and Immediate Heaps.
-   assert( heap->_usage == MemoryUsage::Upload   ||
-           heap->_usage == MemoryUsage::Download ||
-           heap->_usage == MemoryUsage::Immediate );
+   assert( heap._usage == MemoryUsage::Upload   ||
+           heap._usage == MemoryUsage::Download ||
+           heap._usage == MemoryUsage::Immediate );
   
 #ifdef EN_ARCHITECTURE_X86    
    // TODO: 
@@ -154,7 +153,7 @@ namespace en
 #endif
 
    // If possible, map this buffer only for write, otherwise for CPU read
-   if (heap->_usage != MemoryUsage::Download &&
+   if (heap._usage != MemoryUsage::Download &&
        _offset == 0 &&
        _size == size)
       {
@@ -173,81 +172,85 @@ namespace en
    return pointer;
    }
    
-   void BufferD3D12::unmap(void)
-   {
-   ValidateComNoRet( handle->Unmap(0, &range) )
-   }
-   
-   // Create unformatted generic buffer of given type and size.
-   // This method can still be used to create Vertex or Index buffers,
-   // but it's adviced to use ones with explicit formatting.
-   std::shared_ptr<Buffer> HeapD3D12::createBuffer(const BufferType type, const uint32 size)
-   {
-   std::shared_ptr<BufferD3D12> result = nullptr;
-
-   // Buffers cannot be created in Heaps dedicated to Texture storage
-   assert( _usage != MemoryUsage::Tiled   &&
-           _usage != MemoryUsage::Renderable );
-
-   // Buffer descriptor
-   D3D12_RESOURCE_DESC desc;
-   desc.Dimension          = D3D12_RESOURCE_DIMENSION_BUFFER;
-   desc.Alignment          = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-   desc.Width              = static_cast<UINT64>(size);
-   desc.Height             = 1u;
-   desc.DepthOrArraySize   = 1u;
-   desc.MipLevels          = 1u;
-   desc.Format             = DXGI_FORMAT_UNKNOWN;
-   desc.SampleDesc.Count   = 1u;
-   desc.SampleDesc.Quality = 0u;
-   desc.Layout             = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-   desc.Flags              = D3D12_RESOURCE_FLAG_NONE;
-
-   // Acquire buffer alignment and size
-   D3D12_RESOURCE_ALLOCATION_INFO allocInfo;
-   allocInfo = gpu->device->GetResourceAllocationInfo(0u /* currently no multi-GPU support */, 1u, &desc);
-
-   // Find memory region in the Heap where this texture can be placed.
-   // If allocation succeeded, texture is mapped to given offset.
-   uint64 offset = 0;
-   if (!allocator->allocate(static_cast<uint64>(allocInfo.SizeInBytes),
-                            static_cast<uint64>(allocInfo.Alignment),
-                            offset))
-      return result;
-
-   // Patch descriptor with proper alignment and rounded-up size
-   desc.Alignment          = allocInfo.Alignment;
-   desc.Width              = allocInfo.SizeInBytes;
-
-   // Initial resource state is dictate by type of backing Heap
-   D3D12_RESOURCE_STATES initState;
-   if (_usage == MemoryUsage::Upload ||
-       _usage == MemoryUsage::Immediate)
-      initState = D3D12_RESOURCE_STATE_GENERIC_READ;
-   else
-   if (_usage == MemoryUsage::Download ||
-       _usage == MemoryUsage::Linear)
-      initState = D3D12_RESOURCE_STATE_COPY_DEST;
-
-   ID3D12Resource* bufferHandle = nullptr;
-
-   Validate( gpu, CreatePlacedResource(handle,
-                                       static_cast<UINT64>(offset),
-                                       &desc,
-                                       initState,
-                                       nullptr,                       // Clear value - currently not supported
-                                       IID_PPV_ARGS(&bufferHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&bufferHandle)
-      
-   if ( SUCCEEDED(gpu->lastResult[en::currentThreadId()]) )
-      result = std::make_shared<BufferD3D12>(std::dynamic_pointer_cast<HeapD3D12>(shared_from_this()),
-                                             bufferHandle,
-                                             type,
-                                             offset,
-                                             static_cast<uint64>(allocInfo.SizeInBytes) );
-
-   return result;
-   }
-   
-   }
+void BufferD3D12::unmap(void)
+{
+    ValidateComNoRet( handle->Unmap(0, &range) )
 }
+   
+// Create unformatted generic buffer of given type and size.
+// This method can still be used to create Vertex or Index buffers,
+// but it's adviced to use ones with explicit formatting.
+Buffer* HeapD3D12::createBuffer(const BufferType type, const uint32 size)
+{
+    BufferD3D12* result = nullptr;
+
+    // Buffers cannot be created in Heaps dedicated to Texture storage
+    assert( _usage != MemoryUsage::Tiled   &&
+            _usage != MemoryUsage::Renderable );
+
+    // Buffer descriptor
+    D3D12_RESOURCE_DESC desc;
+    desc.Dimension          = D3D12_RESOURCE_DIMENSION_BUFFER;
+    desc.Alignment          = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+    desc.Width              = static_cast<UINT64>(size);
+    desc.Height             = 1u;
+    desc.DepthOrArraySize   = 1u;
+    desc.MipLevels          = 1u;
+    desc.Format             = DXGI_FORMAT_UNKNOWN;
+    desc.SampleDesc.Count   = 1u;
+    desc.SampleDesc.Quality = 0u;
+    desc.Layout             = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    desc.Flags              = D3D12_RESOURCE_FLAG_NONE;
+
+    // Acquire buffer alignment and size
+    D3D12_RESOURCE_ALLOCATION_INFO allocInfo;
+    allocInfo = gpu->device->GetResourceAllocationInfo(0u /* currently no multi-GPU support */, 1u, &desc);
+
+    // Find memory region in the Heap where this texture can be placed.
+    // If allocation succeeded, texture is mapped to given offset.
+    uint64 offset = 0;
+    if (!allocator->allocate(static_cast<uint64>(allocInfo.SizeInBytes),
+                             static_cast<uint64>(allocInfo.Alignment),
+                             offset))
+    {
+        return result;
+    }
+
+    // Patch descriptor with proper alignment and rounded-up size
+    desc.Alignment = allocInfo.Alignment;
+    desc.Width     = allocInfo.SizeInBytes;
+
+    // Initial resource state is dictate by type of backing Heap
+    D3D12_RESOURCE_STATES initState;
+    if (_usage == MemoryUsage::Upload ||
+        _usage == MemoryUsage::Immediate)
+        initState = D3D12_RESOURCE_STATE_GENERIC_READ;
+    else
+    if (_usage == MemoryUsage::Download ||
+        _usage == MemoryUsage::Linear)
+        initState = D3D12_RESOURCE_STATE_COPY_DEST;
+
+    ID3D12Resource* bufferHandle = nullptr;
+
+    Validate( gpu, CreatePlacedResource(handle,
+                                        static_cast<UINT64>(offset),
+                                        &desc,
+                                        initState,
+                                        nullptr,                       // Clear value - currently not supported
+                                        IID_PPV_ARGS(&bufferHandle)) ) // __uuidof(ID3D12Resource), reinterpret_cast<void**>(&bufferHandle)
+      
+    if ( SUCCEEDED(gpu->lastResult[en::currentThreadId()]) )
+    {
+        result = new BufferD3D12(*this,
+                                 bufferHandle,
+                                 type,
+                                 offset,
+                                 static_cast<uint64>(allocInfo.SizeInBytes) );
+    }
+
+    return result;
+}
+   
+} // en::gpu
+} // en
 #endif

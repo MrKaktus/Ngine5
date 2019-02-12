@@ -19,596 +19,401 @@
 
 #include <string>
 
+#define PageSize 4096
+
 namespace en
 {
-   namespace bmp
-   {
-   enum Compression
-      {
-      None          = 0,  // Uncompressed
-      RLE8          = 1,  // 8bpp RLE
-      RLE4          = 2,  // 4bpp RLE
-      Huffman       = 3,  // Bit field / Huffman 1D 
-      JPEG          = 4,  // JPEG / 24bpp RLE
-      PNG           = 5,  // PNG
-      AlphaBitField = 6
-      };
+namespace bmp
+{
+// BMP file format is described here:
+// https://docs.microsoft.com/en-us/windows/desktop/gdi/bitmap-header-types
+// https://www.fileformat.info/format/bmp/egff.htm
 
-   alignTo(1) 
-   struct Header
-      {
-      uint16 signature;   // BMP file signature 'BM' -> 0x4D42
-      uint32 size;        // File size in bytes
-      uint32 reserved;    // Reserved
-      uint32 dataOffset;  // Offset in file to image data
-      };
+enum Compression : uint32
+{
+    None          = 0,  // Uncompressed
+    RLE8          = 1,  // 8bpp RLE
+    RLE4          = 2,  // 4bpp RLE
+    Huffman       = 3,  // Bit field / Huffman 1D 
+    JPEG          = 4,  // JPEG / 24bpp RLE
+    PNG           = 5,  // PNG
+    AlphaBitField = 6
+};
+
+enum ColorSpaceType : uint32
+{
+    CalibratedRGB       = 0,  // Defined by the 1931 CIE XYZ standard
+    DeviceDependentRGB  = 1,
+    DeviceDependentCMYK = 2,
+};
+
+alignTo(1) 
+struct Header
+{
+    uint16 signature;   // BMP file signature 'BM' -> 0x4D42
+    uint32 size;        // File size in bytes
+    uint32 reserved;    // Reserved
+    uint32 dataOffset;  // Offset in file to image data
+};
+
+// Official documentation at:
+// https://docs.microsoft.com/en-us/windows/desktop/api/Wingdi/ns-wingdi-tagbitmapcoreheader
+//
+struct DIBHeaderV2Win
+{
+    uint32      headerSize;  // DIB header size
+    sint16      width;       // Image width
+    sint16      height;      // Image height
+    uint16      planes;      // Color planes (must be 1)
+    uint16      bpp;         // Bits per pixel: 1,4,8,24
+};
+
+static_assert(sizeof(DIBHeaderV2Win) == 12, "en::bmp::DIBHeaderV2Win size mismatch!");
+
+struct DIBHeaderV2OS2
+{
+    uint32      headerSize;  // DIB header size
+    uint16      width;       // Image width
+    uint16      height;      // Image height
+    uint16      planes;      // Color planes (must be 1)
+    uint16      bpp;         // Bits per pixel: 1,4,8,24
+};
+
+static_assert(sizeof(DIBHeaderV2OS2) == 12, "en::bmp::DIBHeaderV2OS2 size mismatch!");
  
-   struct DIBHeaderOS2
-      {
-      uint32      headerSize;  // DIB header size
-      uint16      width;       // Image width
-      uint16      height;      // Image height
-      uint16      planes;      // Color planes
-      uint16      bpp;         // Bits per pixel: 1,4,8,24
-      };
-    
-   struct DIBHeaderV1
-      {
-      uint32      headerSize;  // DIB header size
-      sint32      width;       // Image width
-      sint32      height;      // Image height
-      uint16      planes;      // Color planes
-      uint16      bpp;         // Bits per pixel: 1,4,8,16,24,32
-      Compression compression; // Compression method
-      uint32      size;        // Image size
-      sint32      hres;        // Horizontal pixels per meter
-      sint32      vres;        // Vertical pixels per meter
-      uint32      colors;      // Colors used in image
-      uint32      colorsImp;   // Important colors in image
-      }; 
-   alignToDefault
+// Official documentation at:
+// https://docs.microsoft.com/en-us/previous-versions/dd183376(v%3Dvs.85)
+//
+struct DIBHeaderV3
+{
+    uint32      headerSize;  // DIB header size
+    sint32      width;       // Image width
+    sint32      height;      // Image height
+    uint16      planes;      // Color planes
+    uint16      bpp;         // Bits per pixel: 1,4,8,16,24,32
+    Compression compression; // Compression method
+    uint32      size;        // Image size
+    sint32      hres;        // Horizontal pixels per meter
+    sint32      vres;        // Vertical pixels per meter
+    uint32      colors;      // Colors used in image
+    uint32      colorsImp;   // Important colors in image
+}; 
 
-   bool load(std::shared_ptr<en::gpu::Texture> dst, const uint16 layer, const std::string& filename)
-   {
-   using namespace en::storage;
+static_assert(sizeof(DIBHeaderV3) == 40, "en::bmp::DIBHeaderV3 size mismatch!");
 
-   // Open image file
-   std::shared_ptr<File> file = Storage->open(filename);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.textures + filename);
-      if (!file)
-         {
-         Log << en::ResourcesContext.path.textures + filename << std::endl;
-         Log << "ERROR: There is no such file!\n";
-         return false;
-         }
-      }
-      
-   // Check file header signature
-   uint16 signature;
-   file->read(0,2,&signature);
-   if (signature != 0x4D42)
-      {
-      Log << "ERROR: BMP file header signature incorrect!\n";
-      file = nullptr;
-      return false;
-      }
-   
-   // Read file header
-   Header header;
-   file->read(0,14,&header);
-   if (file->size() != header.size)
-      {
-      Log << "ERROR: BMP file header incorrect!\n";
-      file = nullptr;
-      return false;
-      }
-   
-   // Read DIB header
-   DIBHeaderV1 DIBHeader;
-   uint32 headerSize;
-   file->read(14,4,&headerSize);
-   if (headerSize == sizeof(DIBHeaderOS2))
-      file->read(14,sizeof(DIBHeaderOS2),&DIBHeader);
-   else
-   if (headerSize == sizeof(DIBHeaderV1))
-      file->read(14,sizeof(DIBHeaderV1),&DIBHeader);   
-   else
-      {
-      Log << "ERROR: Unsupported DIB header!\n";
-      file = nullptr;
-      return false;
-      }    
-   
-   // Check if image is not compressed
-   if (DIBHeader.compression != None)
-      {
-      Log << "ERROR: Compressed BMP files are not supported!\n";
-      file = nullptr;
-      return false;
-      }
-   
-   // Determine texture parameters
-   gpu::TextureState settings;
-   settings.width  = DIBHeader.width;
-   settings.height = DIBHeader.height;
-   if (DIBHeader.bpp == 24)
-      settings.format = gpu::Format::BGR_8;
-   else
-   if (DIBHeader.bpp == 32)
-      settings.format = gpu::Format::BGRA_8;
-   else
-      {
-      Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      file = nullptr;
-      return false;
-      }
-   
-   // Determine texture type
-   settings.type    = gpu::TextureType::Texture2D;
-   if (DIBHeader.height == 1)
-      settings.type = gpu::TextureType::Texture1D;
-   //if (!powerOfTwo(settings.width) ||
-   //    !powerOfTwo(settings.height) )
-   //   settings.type = gpu::TextureType::Texture2DRectangle;
-   
-   // Calculate size of data to load
-   uint32 lineSize = (DIBHeader.width * DIBHeader.bpp) / 8;
-   uint32 dataSize = 0;
-   if (DIBHeader.headerSize == sizeof(DIBHeaderV1))
-      dataSize = DIBHeader.size; 
-   if (dataSize == 0)
-      dataSize = lineSize * DIBHeader.height;
+// Present after DIBHeaderV3, if 16 or 32bpp
+struct DIBHeaderV3NT
+{
+    uint32 redMask;          // Red component bits
+    uint32 greenMask;        // Green component bits
+    uint32 blueMask;         // Blue component bits
+};
 
-   // Check if image can be loaded to texture
-   if (dst->type() != gpu::TextureType::Texture1DArray            &&
-       dst->type() != gpu::TextureType::Texture2DArray            &&
-       dst->type() != gpu::TextureType::Texture2DMultisampleArray &&
-       dst->type() != gpu::TextureType::TextureCubeMapArray)
-      return false;
-   if (dst->layers() < layer)
-      return false;
-   if (dst->width() != settings.width)
-      return false;
-   if (dst->height() != settings.height)
-      return false;
-   if (dst->format() != settings.format)
-      return false;
+// Official documentation at:
+// https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/ns-wingdi-bitmapv4header
+//
+struct DIBHeaderV4 : public DIBHeaderV3
+{
+    uint32 redMask;          // Red component bits
+    uint32 greenMask;        // Green component bits
+    uint32 blueMask;         // Blue component bits
+    uint32 alphaMask;        // Alpha component bits
+    uint32 colorSpaceType;   // Color space
+    sint32 redX;             // CIE X coordinate of red endpoint
+    sint32 redY;             // CIE Y coordinate of red endpoint
+    sint32 redZ;             // CIE Z coordinate of red endpoint
+    sint32 greenX;           // CIE X coordinate of green endpoint
+    sint32 greenY;           // CIE Y coordinate of green endpoint
+    sint32 greenZ;           // CIE Z coordinate of green endpoint
+    sint32 blueX;            // CIE X coordinate of blue endpoint
+    sint32 blueY;            // CIE Y coordinate of blue endpoint
+    sint32 blueZ;            // CIE Z coordinate of blue endpoint
+    uint32 gammaRed;         // Gamma red coordinate scale value
+    uint32 gammaGreen;       // Gamma green coordinate scale value
+    uint32 gammaBlue;        // Gamma blue coordinate scale value
+};
 
-   // Create staging buffer
-   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
-   if (!staging)
-      {
-      Log << "ERROR: Cannot create staging buffer!\n";
-      file = nullptr;
-      return false;
-      }
+static_assert(sizeof(DIBHeaderV4) == 108, "en::bmp::DIBHeaderV4 size mismatch!");
 
-   // Read texture to temporary buffer
-   volatile void* ptr = staging->map();
-   file->read(header.dataOffset, dataSize, ptr);
-   staging->unmap();
- 
-   // TODO: In future distribute transfers to different queues in the same queue type family
-   gpu::QueueType type = gpu::QueueType::Universal;
-   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
-      type = gpu::QueueType::Transfer;
+// Official documentation at:
+// https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/ns-wingdi-bitmapv5header
+//
+struct DIBHeaderV5 : public DIBHeaderV4
+{
+    uint32 intent;           //
+    uint32 profileData;      // Offset from start of this header, to profile data
+    uint32 profileSize;      // Profile data size
+    uint32 reserved;         //
+};
 
-   // Copy data from staging buffer to final texture
-   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
-   command->start();
-   command->copy(*staging, 0u, settings.rowSize(0), *dst, 0u, layer);
-   command->commit();
-   
-   // TODO:
-   // here return completion handler callback !!! (no waiting for completion)
-   // - this callback destroys CommandBuffer object
-   // - destroys staging buffer
-   //
-   // Till it's done, wait for completion:
-   
-   command->waitUntilCompleted();
-   command = nullptr;
-   staging = nullptr;
+static_assert(sizeof(DIBHeaderV5) == 124, "en::bmp::DIBHeaderV5 size mismatch!");
 
-   return true;
-   }
+alignToDefault
 
-   std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
-   {
-   using namespace en::storage;
+// Reads first 4KB page of BMP file, and decodes it's header to TextureState and ColorSpace.
+bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& settings, gpu::ColorSpace& colorSpace)
+{
+    // Check if file has minimum required size
+    uint32 minimumFileSize = sizeof(Header) + sizeof(DIBHeaderV2Win);
+    if (readSize < minimumFileSize)
+    {
+        Log << "ERROR: BMP file size too small!\n";
+        return false;
+    }
 
-   // Try to reuse already loaded texture
-   if (ResourcesContext.textures.find(filename) != ResourcesContext.textures.end())
-      return ResourcesContext.textures[filename];
+    // Read file header
+    Header& header = *reinterpret_cast<Header*>(buffer);
+    if (header.signature != 0x4D42)
+    {
+        Log << "ERROR: BMP file header signature is incorrect!\n";
+        return false;
+    }
+    if (header.size < minimumFileSize)
+    {
+        Log << "ERROR: BMP file header is incorrect!\n";
+        return false;
+    }
 
-   // Open image file
-   std::shared_ptr<File> file = Storage->open(filename);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.textures + filename);
-      if (!file)
-         {
-         Log << en::ResourcesContext.path.textures + filename << std::endl;
-         Log << "ERROR: There is no such file!\n";
-         return std::shared_ptr<gpu::Texture>(nullptr);
-         }
-      }
-   
-   // Check file header signature
-   uint16 signature;
-   file->read(0,2,&signature);
-   if (signature != 0x4D42)
-      {
-      Log << "ERROR: BMP file header signature incorrect!\n";
-      file = nullptr;
-      return std::shared_ptr<gpu::Texture>(nullptr);
-      }
-   
-   // Read file header
-   Header header;
-   file->read(0,14,&header);
-   if (file->size() != header.size)
-      {
-      Log << "ERROR: BMP file header incorrect!\n";
-      file = nullptr;
-      return std::shared_ptr<gpu::Texture>(nullptr);
-      }
-   
-   // Read DIB header
-   DIBHeaderV1 DIBHeader;
-   uint32 headerSize;
-   file->read(14,4,&headerSize);
-   if (headerSize == sizeof(DIBHeaderOS2))
-      file->read(14,sizeof(DIBHeaderOS2),&DIBHeader);
-   else
-   if (headerSize == sizeof(DIBHeaderV1))
-      file->read(14,sizeof(DIBHeaderV1),&DIBHeader);   
-   else
-      {
-      Log << "ERROR: Unsupported DIB header!\n";
-      file = nullptr;
-      return std::shared_ptr<gpu::Texture>(nullptr);
-      }    
-   
-   // Check if image is not compressed
-   if (DIBHeader.compression != None)
-      {
-      Log << "ERROR: Compressed BMP files are not supported!\n";
-      file = nullptr;
-      return std::shared_ptr<gpu::Texture>(nullptr);
-      }
-   
-   // Determine texture parameters
-   gpu::TextureState settings;
-   settings.width  = DIBHeader.width;
-   settings.height = DIBHeader.height;
-   if (DIBHeader.bpp == 24)
-      settings.format = gpu::Format::BGR_8;
-   else
-   if (DIBHeader.bpp == 32)
-      settings.format = gpu::Format::BGRA_8;
-   else
-      {
-      Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      file = nullptr;
-      return std::shared_ptr<gpu::Texture>(nullptr);
-      }
-   
-   // Determine texture type
-   settings.type    = gpu::TextureType::Texture2D;
-   if (DIBHeader.height == 1)
-      settings.type = gpu::TextureType::Texture1D;
-   //if (!powerOfTwo(settings.width) ||
-   //    !powerOfTwo(settings.height) )
-   //   settings.type = gpu::TextureType::Texture2DRectangle;
-   
-   // Calculate size of data to load
-   uint32 lineSize = (DIBHeader.width * DIBHeader.bpp) / 8;
-   uint32 dataSize = 0;
-   if (DIBHeader.headerSize == sizeof(DIBHeaderV1))
-      dataSize = DIBHeader.size; 
-   if (dataSize == 0)
-      dataSize = lineSize * DIBHeader.height;
+    // Detect present DIB header version based on it's size
+    uint32 headerSize = *reinterpret_cast<uint32*>(buffer + sizeof(Header));
 
-   // Create texture in gpu
-   std::shared_ptr<gpu::Texture> texture = en::ResourcesContext.defaults.enHeapTextures->createTexture(settings);
-   if (!texture)
-      {
-      Log << "ERROR: Cannot create texture in GPU!\n";
-      file = nullptr;
-      return texture;
-      }
-      
-   // Create staging buffer
-   std::shared_ptr<gpu::Buffer> staging = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, dataSize);
-   if (!staging)
-      {
-      Log << "ERROR: Cannot create staging buffer!\n";
-      file = nullptr;
-      return texture;
-      }
+    // Check if image is not compressed
+    if (headerSize >= sizeof(DIBHeaderV3))
+    {
+        DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(buffer + sizeof(Header));
+        if (DIBHeader.compression != None)
+        {
+            Log << "ERROR: Compressed BMP files are not supported!\n";
+            return false;
+        }
+    }
 
-   // Read texture to temporary buffer
-   volatile void* dst = staging->map();
-   file->read(header.dataOffset, dataSize, dst);
-   staging->unmap();
- 
-   // TODO: Now blit from staging to texture
-   uint32 mipmap = 0u;
-   uint32 slice  = 0u;
-   
-   // TODO: In future distribute transfers to different queues in the same queue type family
-   gpu::QueueType type = gpu::QueueType::Universal;
-   if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
-      type = gpu::QueueType::Transfer;
+    // Set texture state to default
+    settings.type    = gpu::TextureType::Texture2D;
+    settings.format  = gpu::Format::Unsupported;
+    settings.usage   = gpu::TextureUsage::Read;
+    settings.width   = 1;
+    settings.height  = 1;
+    settings.layers  = 1;
+    settings.mipmaps = 1;
+    settings.samples = 1;
 
-   // Copy data from staging buffer to final texture
-   std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(type);
-   command->start();
-   command->copy(*staging, 0u, settings.rowSize(mipmap), *texture, mipmap, slice);
-   command->commit();
-   
-   // TODO:
-   // here return completion handler callback !!! (no waiting for completion)
-   // - this callback destroys CommandBuffer object
-   // - destroys staging buffer
-   //
-   // Till it's done, wait for completion:
-   
-   command->waitUntilCompleted();
-   command = nullptr;
-   staging = nullptr;
- 
-   // Update list of loaded textures
-   ResourcesContext.textures.insert(std::pair<std::string, std::shared_ptr<en::gpu::Texture> >(filename, texture));
-    
-   return texture;
-   }
+    // There is no way to determine if BMP is storing data using sRGB transfer function
+    colorSpace = gpu::ColorSpace::ColorSpaceLinear;
 
-   en::gpu::TextureState settings(const std::string& filename)
-   {
-   using namespace en::storage;
+    // Determine texture resolution
+    if (headerSize == sizeof(DIBHeaderV2Win))
+    {
+        DIBHeaderV2Win& DIBHeader = *reinterpret_cast<DIBHeaderV2Win*>(buffer + sizeof(Header));
 
-   // Open image file 
-   std::shared_ptr<File> file = Storage->open(filename);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.textures + filename);
-      if (!file)
-         {
-         Log << en::ResourcesContext.path.textures + filename << std::endl;
-         Log << "ERROR: There is no such file!\n";
-         return gpu::TextureState();
-         }
-      }
-   
-   // Check file header signature
-   uint16 signature;
-   file->read(0,2,&signature);
-   if (signature != 0x4D42)
-      {
-      Log << "ERROR: BMP file header signature incorrect!\n";
-      file = nullptr;
-      return gpu::TextureState();
-      }
-   
-   // Read file header
-   Header header;
-   file->read(0,14,&header);
-   if (file->size() != header.size)
-      {
-      Log << "ERROR: BMP file header incorrect!\n";
-      file = nullptr;
-      return gpu::TextureState();
-      }
-   
-   // Read DIB header
-   DIBHeaderV1 DIBHeader;
-   uint32 headerSize;
-   file->read(14,4,&headerSize);
-   if (headerSize == sizeof(DIBHeaderOS2))
-      file->read(14,sizeof(DIBHeaderOS2),&DIBHeader);
-   else
-   if (headerSize == sizeof(DIBHeaderV1))
-      file->read(14,sizeof(DIBHeaderV1),&DIBHeader);   
-   else
-      {
-      Log << "ERROR: Unsupported DIB header!\n";
-      file = nullptr;
-      return gpu::TextureState();
-      }    
-   
-   // Check if image is not compressed
-   if (DIBHeader.compression != None)
-      {
-      Log << "ERROR: Compressed BMP files are not supported!\n";
-      file = nullptr;
-      return gpu::TextureState();
-      }
-   
-   // Determine texture parameters
-   gpu::TextureState settings;
-   settings.width  = DIBHeader.width;
-   settings.height = DIBHeader.height;
-   if (DIBHeader.bpp == 24)
-      settings.format = gpu::Format::BGR_8;
-   else
-   if (DIBHeader.bpp == 32)
-      settings.format = gpu::Format::BGRA_8;
-   else
-      {
-      Log << "ERROR: Unsupported Bits Per Pixel quality!\n";
-      file = nullptr;
-      return en::gpu::TextureState();
-      }
-   
-   // Determine texture type
-   settings.type    = gpu::TextureType::Texture2D;
-   if (DIBHeader.height == 1)
-      settings.type = gpu::TextureType::Texture1D;
-   //if (!powerOfTwo(settings.width) ||
-   //    !powerOfTwo(settings.height) )
-   //   settings.type = gpu::TextureType::Texture2DRectangle;
-   
-   // Texture can be decompressed
-   file = nullptr;
-   return settings;
-   }
+        settings.width  = DIBHeader.width;
+        settings.height = DIBHeader.height < 0 ? -DIBHeader.height : DIBHeader.height;
+    }
+    else
+    if (headerSize >= sizeof(DIBHeaderV3))
+    {
+        DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(buffer + sizeof(Header));
 
-   bool load(const std::string& filename, en::gpu::TextureState& settings, void* dst)
-   {
-   using namespace en::storage;
-   
-   assert(dst);
-   
-   if(bmp::settings(filename) != settings)
-     return false;
-   
-   // Open image file 
-   std::shared_ptr<File> file = Storage->open(filename);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.textures + filename);
-      if (!file)
-         return false;
-      }
-   
-   // Read file header
-   Header header;
-   file->read(0,14,&header);
-   
-   // Read size of DIB header
-   uint32 headerSize;
-   file->read(14,4,&headerSize);
-   
-   // Read DIB header
-   DIBHeaderV1 DIBHeader;
-   if (headerSize == sizeof(DIBHeaderOS2))
-      file->read(14,sizeof(DIBHeaderOS2),&DIBHeader);
-   else
-   if (headerSize == sizeof(DIBHeaderV1))
-      file->read(14,sizeof(DIBHeaderV1),&DIBHeader);   
-    
-   // Calculate size of data to load
-   uint32 lineSize = (DIBHeader.width * DIBHeader.bpp) / 8;
-   uint32 dataSize = 0;
-   if (DIBHeader.headerSize == sizeof(DIBHeaderV1))
-      dataSize = DIBHeader.size; 
-   if (dataSize == 0)
-      dataSize = lineSize * DIBHeader.height;
-   
-   file->read(header.dataOffset, dataSize, dst);
-   return true;
-   }
+        settings.width  = DIBHeader.width;
+        settings.height = DIBHeader.height < 0 ? -DIBHeader.height : DIBHeader.height;
+    }
 
+    // Determine stored texel format
+    if (headerSize >= sizeof(DIBHeaderV2Win))
+    {
+        DIBHeaderV2Win& DIBHeader = *reinterpret_cast<DIBHeaderV2Win*>(buffer + sizeof(Header));
 
-   //bool save(std::shared_ptr<en::gpu::Texture> texture, const std::string& filename)
-   //{
-   //using namespace en::storage;
+        // 1, 4, 8 bpp formats are not supported
+        if (DIBHeader.bpp == 24)
+        {
+            settings.format = gpu::Format::BGR_8;
+        }
+    }
+    if (headerSize >= sizeof(DIBHeaderV3))
+    {
+        DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(buffer + sizeof(Header));
 
-   //gpu::Format format = texture->format();
-   //if (format != gpu::Format::RGB_8 &&
-   //    format != gpu::Format::RGBA_8)  // Check if shouldn't be RGBA, how GPU returns uncompressed data ?
-   //   return false;
+        // 16bpp formats are not supported
+        if (DIBHeader.bpp == 32)
+        {
+            settings.format = gpu::Format::BGRA_8;
+        }
+    }
 
-   //// Open image file 
-   //std::shared_ptr<File> file = Storage->open(filename, en::storage::Write);
-   //if (!file)
-   //   {
-   //   file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
-   //   if (!file)
-   //      {
-   //      Log << en::ResourcesContext.path.screenshots + filename << std::endl;
-   //      Log << "ERROR: Cannot create such file!\n";
-   //      return false;
-   //      }
-   //   }
-  
-   //uint32 headersSize = sizeof(Header) + sizeof(DIBHeaderOS2);
-   //uint32 dataSize    = texture->size();
+    if (settings.format == gpu::Format::Unsupported)
+    {
+        Log << "ERROR: Unsupported texture format!\n";
+        return false;
+    }
 
-   //// Write file headers
-   //Header header;
-   //header.signature  = 0x4D42;  
-   //header.size       = headersSize + dataSize;
-   //header.reserved   = 0;       
-   //header.dataOffset = headersSize;
-   //file->write(0, 14, &header);
-
-   //DIBHeaderOS2 DIBHeader;
-   //DIBHeader.headerSize = sizeof(DIBHeaderOS2);
-   //DIBHeader.width      = texture->width();
-   //DIBHeader.height     = texture->height();
-   //DIBHeader.planes     = 1;
-   //if (format == gpu::Format::RGB_8)  DIBHeader.bpp = 24;
-   //if (format == gpu::Format::RGBA_8) DIBHeader.bpp = 32;
-   //file->write(14, sizeof(DIBHeaderOS2), &DIBHeader);
- 
-   //// Write texture data
-   //uint8* buffer = new uint8[texture->size()];
-   //texture->read(buffer);
-
-   ////Swap R and B components - BMP is saved in BGR, BGRA
-   //if (format == gpu::Format::RGB_8 ||
-   //    format == gpu::Format::RGBA_8) 
-   //   for(uint32 i=0; i<uint32(DIBHeader.width * DIBHeader.height); ++i)
-   //      {
-   //      uint8 temp    = buffer[i*4];
-   //      buffer[i*4]   = buffer[i*4+2]; // R <- B
-   //      buffer[i*4+2] = temp;          // B -> R
-   //      }
-
-   //file->write(header.dataOffset, dataSize, buffer);
-   //delete [] buffer;
-   //return true;
-   //}
-
-   bool save(const uint32 width, const uint32 height, const uint8* ptr, const std::string& filename)
-   {
-   using namespace en::storage;
-
-   if ( ( width == 0 )   ||
-        ( height == 0 )  ||
-        ( ptr == nullptr) )
-      return false;
-
-   // Open image file 
-   std::shared_ptr<File> file = Storage->open(filename, en::storage::Write);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
-      if (!file)
-         {
-         Log << en::ResourcesContext.path.screenshots + filename << std::endl;
-         Log << "ERROR: Cannot create such file!\n";
-         return false;
-         }
-      }
-  
-   uint32 headersSize = sizeof(Header) + sizeof(DIBHeaderOS2);
-   uint32 dataSize    = width * height * 3;
-
-   // Write file headers
-   Header header;
-   header.signature  = 0x4D42;  
-   header.size       = headersSize + dataSize;
-   header.reserved   = 0;       
-   header.dataOffset = headersSize;
-   file->write(0, 14, &header);
-
-   DIBHeaderOS2 DIBHeader;
-   DIBHeader.headerSize = sizeof(DIBHeaderOS2);
-   DIBHeader.width      = width;
-   DIBHeader.height     = height;
-   DIBHeader.planes     = 1;
-   DIBHeader.bpp        = 24;
-   file->write(14, sizeof(DIBHeaderOS2), &DIBHeader);
- 
-   file->write(header.dataOffset, dataSize, (void*)(ptr));
-   return true;
-   }
-
-   }
+    return true;
 }
+
+bool load(
+    const std::string& filename,
+    uint8* const destination,
+    const uint32 width,
+    const uint32 height,
+    const gpu::Format format,
+    const gpu::ImageMemoryAlignment alignment,
+    const bool invertHorizontal)
+{
+    using namespace en::storage;
+    using namespace en::gpu;
+
+    // Open file 
+    std::shared_ptr<File> file = Storage->open(filename);
+    if (!file)
+    {
+        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        if (!file)
+        {
+            Log << en::ResourcesContext.path.textures + filename << std::endl;
+            Log << "ERROR: There is no such file!\n";
+            return false;
+        }
+    }
+
+
+    // ### Read file metadata
+
+
+    // Read file first 4KB into single 4KB memory page
+    uint32 readSize = min(file->size(), PageSize);
+    uint8* buffer = allocate<uint8>(readSize, PageSize);
+    file->read(0, readSize, buffer);
+
+    // Read file properties
+    TextureState settings;
+    ColorSpace colorSpace; // TODO: Determine file Color Space and compare with expected
+    bool success = readMetadata(buffer, readSize, settings, colorSpace);
+
+    // Free temporary 4KB memory page
+    deallocate<uint8>(buffer);
+
+    if (!success)
+    {
+        file = nullptr;
+        return false;
+    }
+
+    // Verify that file matches expected properties
+    if ((settings.width  != width)  ||
+        (settings.height != height) ||
+        (settings.format != format))
+    {
+        file = nullptr;
+        return false;
+    }
+
+
+    // ### Read file to memory
+
+
+    // Read whole file at once to memory. 
+    // Size aligned to multiple of 4KB Page Size, and allocated at such boundary (can be memory mapped).
+    uint64 fileSize = file->size();
+    uint64 roundedSize = roundUp(fileSize, PageSize);
+    uint8* content = allocate<uint8>(roundedSize, PageSize);
+    if (!file->read(content))
+    {
+        Log << "ERROR: Couldn't read file to memory.\n";
+        deallocate<uint8>(content);
+        file = nullptr;
+        return false;
+    }
+
+    // Release file handle and work on copy in memory
+    file = nullptr;
+
+
+    // ### Parse and decompress file 
+
+
+    // Calculate size of raw data to read
+    uint32 dataSize = 0;
+    uint32 headerSize = *reinterpret_cast<uint32*>(content + sizeof(Header));
+    if (headerSize >= sizeof(DIBHeaderV3))
+    {
+        DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(content + sizeof(Header));
+        dataSize = DIBHeader.size;
+    }
+    else
+    {
+        dataSize = settings.surfaceSize(0);
+    }
+
+    // Verify that data is correct
+    Header& header = *reinterpret_cast<Header*>(content);
+    if ( (header.size != fileSize) ||
+         (header.dataOffset + dataSize > header.size) )
+    {
+        Log << "ERROR: File or its header is corrupted.\n";
+        deallocate<uint8>(content);
+        return false;
+    }
+    if (dataSize != alignment.surfaceSize(settings.width, settings.height))
+    {
+        Log << "ERROR: Data layout in memory is not matching expected layout in destination.\n";
+        deallocate<uint8>(content);
+        return false;
+    }
+
+    // Copy data
+    memcpy(destination, content + header.dataOffset, dataSize);
+
+    // Release temporary data
+    deallocate<uint8>(content);
+    return true;
+}
+
+bool save(
+    const std::string& filename,
+    const uint8* source,
+    const uint32 width, 
+    const uint32 height)
+{
+    using namespace en::storage;
+
+    assert( width > 0 );
+    assert( height > 0 );
+    assert( source != nullptr );
+
+    // Open image file 
+    std::shared_ptr<File> file = Storage->open(filename, en::storage::Write);
+    if (!file)
+    {
+        file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
+        if (!file)
+        {
+            Log << en::ResourcesContext.path.screenshots + filename << std::endl;
+            Log << "ERROR: Cannot create such file!\n";
+            return false;
+        }
+    }
+
+    uint32 headersSize = sizeof(Header) + sizeof(DIBHeaderV2Win);
+    uint32 dataSize = width * height * 3;
+
+    // Write file headers
+    Header header;
+    header.signature  = 0x4D42;
+    header.size       = headersSize + dataSize;
+    header.reserved   = 0;
+    header.dataOffset = headersSize;
+    file->write(0, 14, &header);
+
+    DIBHeaderV2Win DIBHeader;
+    DIBHeader.headerSize = sizeof(DIBHeaderV2Win);
+    DIBHeader.width      = width;
+    DIBHeader.height     = height;
+    DIBHeader.planes     = 1;
+    DIBHeader.bpp        = 24;
+    file->write(14, sizeof(DIBHeaderV2Win), &DIBHeader);
+
+    file->write(header.dataOffset, dataSize, (void*)(source));
+    return true;
+}
+
+} // en::bmp
+} // en
