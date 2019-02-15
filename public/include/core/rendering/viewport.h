@@ -13,7 +13,6 @@
 
 */
 
-
 #ifndef ENG_CORE_RENDERING_VIEWPORT_STENCIL_STATE
 #define ENG_CORE_RENDERING_VIEWPORT_STENCIL_STATE
 
@@ -26,26 +25,40 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   struct ViewportStateInfo
-      {
-      float4 rect;
-      float2 depthRange;
-      };
+namespace gpu
+{
+/// Default state:
+///
+/// - rect              = float4(0.0f, 0.0f, 1.0f, 1.0f);
+/// - depthRange        = float2(0.0f, 1.0f)
+///
+/// Rect defines viewport rectangle as follows:
+/// x - top left origin x coordinate
+/// y - top left origin y coordinate
+/// z - viewport width
+/// w - viewport height
+///
+struct ViewportStateInfo
+{
+    float4 rect;
+    float2 depthRange;
 
-   typedef uint32v4 ScissorStateInfo;
+    ViewportStateInfo();
+};
 
-   class ViewportState
-      {
-      public:
-      virtual ~ViewportState() {};
-      };
+typedef uint32v4 ScissorStateInfo;
 
-   // glViewport() does not clip, unlike the viewport in D3D
-   // Set the scissor rect to match viewport area, unless it is explicitly set smaller, to emulate D3D.
-   // In D3D12 viewports and scissors are separate dynamic states.
-   }
-}
+class ViewportState
+{
+    public:
+    virtual ~ViewportState() {};
+};
+
+// glViewport() does not clip, unlike the viewport in D3D
+// Set the scissor rect to match viewport area, unless it is explicitly set smaller, to emulate D3D.
+// In D3D12 viewports and scissors are separate dynamic states.
+
+} // en::gpu
+} // en
 
 #endif

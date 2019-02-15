@@ -157,4 +157,5 @@ class RenderPass
 
 } // en::Gpu
 } // en
+
 #endif

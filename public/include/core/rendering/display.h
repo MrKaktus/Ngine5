@@ -20,17 +20,19 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class Display
-      {
-      public:
-      virtual uint32v2 position(void) = 0;    // Position on Virtual Desktop
-      virtual uint32v2 resolution(void) = 0;  // Native resolution
-      virtual uint32   refreshRate(void) = 0; // Display refresh rate
-      
-      virtual ~Display() {};
-      };
-   }
-}
+namespace gpu
+{
+class Display
+{
+    public:
+    virtual uint32v2 position(void) = 0;    ///< Position on Virtual Desktop
+    virtual uint32v2 resolution(void) = 0;  ///< Native resolution
+    virtual uint32   refreshRate(void) = 0; ///< Display refresh rate
+    
+    virtual ~Display() {};
+};
+
+} // en::gpu
+} // en
+
 #endif

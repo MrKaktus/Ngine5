@@ -107,5 +107,6 @@ class Heap
 
 } // en::gpu
 } // en
+
 #endif
 

@@ -395,5 +395,6 @@ class GraphicAPI
 } // en::gpu
 
 extern std::shared_ptr<gpu::GraphicAPI> Graphics;
-}
+} // en
+
 #endif

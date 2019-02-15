@@ -24,30 +24,32 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   // Surface that can be shared between processes and API's
-   // (by using it as backing surface for API specific Textures).
-   class SharedSurface
-      {
-      public:
-      virtual ~SharedSurface() {};
-      };
+namespace gpu
+{
+/// Surface that can be shared between processes and API's
+/// (by using it as backing surface for API specific Textures).
+class SharedSurface
+{
+    public:
+    virtual ~SharedSurface() {};
+};
+
+/// Deprecated:
+/// Dummy OpenGL Context. Should be used only to create OpenGL handle,
+/// of SharedSurface, for passing to process that accepts only OpenGL
+/// handles. (for e.g. Valve VRCompositor on macOS).
+class OpenGLContext
+{
+    public:
+    virtual uint32 createSharedTexture(std::shared_ptr<SharedSurface> backingSurface) = 0;
+    virtual void destroySharedTexture(const uint32 handle) = 0;
+    
+    virtual ~OpenGLContext() {};
+};
       
-   // Dummy OpenGL Context. Should be used only to create OpenGL handle,
-   // of SharedSurface, for passing to process that accepts only OpenGL
-   // handles. (for e.g. Valve VRCompositor on macOS).
-   class OpenGLContext
-      {
-      public:
-      virtual uint32 createSharedTexture(std::shared_ptr<SharedSurface> backingSurface) = 0;
-      virtual void destroySharedTexture(const uint32 handle) = 0;
-      
-      virtual ~OpenGLContext() {};
-      };
-      
-   OpenGLContext* createDummyOpenGLContext(void);
-   }
-}
+OpenGLContext* createDummyOpenGLContext(void);
+
+} // en::gpu
+} // en
 
 #endif

@@ -24,41 +24,43 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   // Render pipeline shader stage
-   enum class ShaderStage : uint8
-      {
-      Vertex                    = 0,
-      Control                      ,
-      Evaluation                   ,
-      Geometry                     ,
-      Fragment                     ,
-      Count
-      };
+namespace gpu
+{
+/// Render pipeline shader stage
+enum class ShaderStage : uint8
+{
+    Vertex                    = 0,
+    Control                      ,
+    Evaluation                   ,
+    Geometry                     ,
+    Fragment                     ,
+    Count
+};
      
-   // Render pipeline shader stages mask
-   enum class ShaderStages : uint8
-      {
-      Vertex                 = 0x01,
-      Control                = 0x02,
-      Evaluation             = 0x04,
-      Geometry               = 0x08,
-      Fragment               = 0x10,
-      All                    = 0xFF,
-      Count                  = 5
-      };
+/// Render pipeline shader stages mask
+enum class ShaderStages : uint8
+{
+    Vertex                 = 0x01,
+    Control                = 0x02,
+    Evaluation             = 0x04,
+    Geometry               = 0x08,
+    Fragment               = 0x10,
+    All                    = 0xFF,
+    Count                  = 5
+};
      
-   inline ShaderStages operator| (ShaderStages a, ShaderStages b)
-   {
-   return static_cast<ShaderStages>(underlyingType(a) | underlyingType(b));
-   }
-      
-   class Shader
-      {
-      public:
-      virtual ~Shader() {};
-      };
-   }
+inline ShaderStages operator| (ShaderStages a, ShaderStages b)
+{
+    return static_cast<ShaderStages>(underlyingType(a) | underlyingType(b));
 }
+      
+class Shader
+{
+    public:
+    virtual ~Shader() {};
+};
+
+} // en::gpu
+} // en
+
 #endif

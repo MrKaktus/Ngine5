@@ -26,14 +26,15 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MultisamplingState
-      {
-      public:
-      virtual ~MultisamplingState() {};
-      };
-   }
-}
+namespace gpu
+{
+class MultisamplingState
+{
+    public:
+    virtual ~MultisamplingState() {};
+};
+
+} // en::gpu
+} // en
 
 #endif

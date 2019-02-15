@@ -594,6 +594,9 @@
     <ClCompile Include="..\src\core\rendering\common\texture.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\rendering\common\viewport.cpp">
+      <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -780,9 +783,6 @@
       <Filter>Header Files\core\threading</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\utilities\array.h">
-      <Filter>Header Files\core\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\core\utilities\memory.h">
       <Filter>Header Files\core\utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\utilities\NonCopyable.h">

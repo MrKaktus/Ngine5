@@ -86,152 +86,152 @@ enum class TextureType : uint8
 ///
 enum class Format : uint8
 {
-    Unsupported         = 0,  //
-    R_8                    ,  // Uncompressed formats:
-    R_8_sRGB               ,  //
-    R_8_sn                 ,  //
-    R_8_u                  ,  //
-    R_8_s                  ,  //
-    R_16                   ,  //
-    R_16_sn                ,  //
-    R_16_u                 ,  //
-    R_16_s                 ,  //
-    R_16_hf                ,  //
-    R_32_u                 ,  //
-    R_32_s                 ,  //
-    R_32_f                 ,  //
-    RG_8                   ,  //
-    RG_8_sRGB              ,  //
-    RG_8_sn                ,  //
-    RG_8_u                 ,  //
-    RG_8_s                 ,  //
-    RG_16                  ,  //
-    RG_16_sn               ,  //
-    RG_16_u                ,  //
-    RG_16_s                ,  //
-    RG_16_hf               ,  //
-    RG_32_u                ,  //
-    RG_32_s                ,  //
-    RG_32_f                ,  //
-    RGB_8                  ,  // - Not reccomended (lack of memory alignment)
-    RGB_8_sRGB             ,  // - Not reccomended (lack of memory alignment)
-    RGB_8_sn               ,  // - Not reccomended (lack of memory alignment)
-    RGB_8_u                ,  // - Not reccomended (lack of memory alignment)
-    RGB_8_s                ,  // - Not reccomended (lack of memory alignment)
-    RGB_16                 ,  //
-    RGB_16_sn              ,  //
-    RGB_16_u               ,  //
-    RGB_16_s               ,  //
-    RGB_16_hf              ,  //
-    RGB_32_u               ,  //
-    RGB_32_s               ,  //
-    RGB_32_f               ,  //
-    RGBA_8                 ,  //
-    RGBA_8_sRGB            ,  //
-    RGBA_8_sn              ,  //
-    RGBA_8_u               ,  //
-    RGBA_8_s               ,  //
-    RGBA_16                ,  //
-    RGBA_16_sn             ,  //
-    RGBA_16_u              ,  //
-    RGBA_16_s              ,  //
-    RGBA_16_hf             ,  //
-    RGBA_32_u              ,  //
-    RGBA_32_s              ,  //
-    RGBA_32_f              ,  //
-    D_16                   ,  //
-    D_24                   ,  //
-    D_24_8                 ,  // - 24bit depth with 8 bit padding
-    D_32                   ,  // 
-    D_32_f                 ,  // 
-    S_8                    ,  // 
-    DS_16_8                ,  // - Stored in separate D & S channels, order is
-    DS_24_8                ,  //   implementation dependent. It doesn't matter
-    DS_32_f_8              ,  //   as this texture is GPU only visible.
-    RGB_5_6_5              ,  // Packed/special formats:
-    BGR_5_6_5              ,  // - iOS only (MTLPixelFormatB5G6R5Unorm)
-    BGR_8                  ,  // - Special swizzled format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
-    BGR_8_sRGB             ,  // - Special swizzled sRGB format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
-    BGR_8_sn               ,  // 
-    BGR_8_u                ,  // 
-    BGR_8_s                ,  // 
-    RGB_11_11_10_uf        ,  // - Packed unsigned float for HDR Textures, UAV's and Render Targets
-    RGBE_9_9_9_5_uf        ,  // - Packed unsigned float for HDR Textures only
-    BGRA_8                 ,  // - Special swizzled format for PNG, BMP, TGA used by Windows-based systems (MTLPixelFormatBGRA8Unorm)
-    BGRA_8_sRGB            ,  // - (MTLPixelFormatBGRA8Unorm_sRGB)
-    BGRA_8_sn              ,  //
-    BGRA_8_u               ,  //
-    BGRA_8_s               ,  //
-    BGRA_5_5_5_1           ,  //
-    ARGB_1_5_5_5           ,  //
-    ABGR_1_5_5_5           ,  // - iOS only (MTLPixelFormatA1BGR5Unorm)
-    RGBA_10_10_10_2        ,  // - *Less precise than 8bit sRGB compression in dark areas
-    RGBA_10_10_10_2_u      ,  //
-    BGRA_10_10_10_2        ,  // - Special swizzled format for 30bpp BMP used by Windows-based systems
-    BC1_RGB                ,  // Compressed formats:
-    BC1_RGB_sRGB           ,  // -S3TC DXT1
-    BC1_RGBA               ,  // -S3TC DXT1
-    BC1_RGBA_sRGB          ,  // -S3TC DXT1
-    BC2_RGBA_pRGB          ,  // -S3TC DXT2
-    BC2_RGBA               ,  // -S3TC DXT3
-    BC2_RGBA_sRGB          ,  // -S3TC DXT3
-    BC3_RGBA_pRGB          ,  // -S3TC DXT4
-    BC3_RGBA               ,  // -S3TC DXT5
-    BC3_RGBA_sRGB          ,  // -S3TC DXT5
-    BC4_R                  ,  // -RGTC
-    BC4_R_sn               ,  // -RGTC
-    BC5_RG                 ,  // -RGTC
-    BC5_RG_sn              ,  // -RGTC
-    BC6H_RGB_f             ,  // -BPTC
-    BC6H_RGB_uf            ,  // -BPTC
-    BC7_RGBA               ,  // -BPTC
-    BC7_RGBA_sRGB          ,  // -BPTC
-    ETC2_R_11              ,  // -EAC
-    ETC2_R_11_sn           ,  // -EAC
-    ETC2_RG_11             ,  // -EAC
-    ETC2_RG_11_sn          ,  // -EAC
-    ETC2_RGB_8             ,  // -ETC1
-    ETC2_RGB_8_sRGB        ,  // 
-    ETC2_RGBA_8            ,  // -EAC
-    ETC2_RGBA_8_sRGB       ,  // -EAC
-    ETC2_RGB8_A1           ,  //
-    ETC2_RGB8_A1_sRGB      ,  //
-    PVRTC_RGB_2            ,  //
-    PVRTC_RGB_2_sRGB       ,  //
-    PVRTC_RGB_4            ,  //
-    PVRTC_RGB_4_sRGB       ,  //
-    PVRTC_RGBA_2           ,  //
-    PVRTC_RGBA_2_sRGB      ,  //
-    PVRTC_RGBA_4           ,  //
-    PVRTC_RGBA_4_sRGB      ,  //
-    ASTC_4x4               ,  //
-    ASTC_5x4               ,  //
-    ASTC_5x5               ,  //
-    ASTC_6x5               ,  //
-    ASTC_6x6               ,  //
-    ASTC_8x5               ,  //
-    ASTC_8x6               ,  //
-    ASTC_8x8               ,  //
-    ASTC_10x5              ,  //
-    ASTC_10x6              ,  //
-    ASTC_10x8              ,  //
-    ASTC_10x10             ,  //
-    ASTC_12x10             ,  //
-    ASTC_12x12             ,  //
-    ASTC_4x4_sRGB          ,  //
-    ASTC_5x4_sRGB          ,  //
-    ASTC_5x5_sRGB          ,  //
-    ASTC_6x5_sRGB          ,  //
-    ASTC_6x6_sRGB          ,  //
-    ASTC_8x5_sRGB          ,  //
-    ASTC_8x6_sRGB          ,  //
-    ASTC_8x8_sRGB          ,  //
-    ASTC_10x5_sRGB         ,  //
-    ASTC_10x6_sRGB         ,  //
-    ASTC_10x8_sRGB         ,  //
-    ASTC_10x10_sRGB        ,  //
-    ASTC_12x10_sRGB        ,  //
-    ASTC_12x12_sRGB        ,  //
+    Unsupported         = 0,  ///<
+    R_8                    ,  ///< Uncompressed formats:
+    R_8_sRGB               ,  ///<
+    R_8_sn                 ,  ///<
+    R_8_u                  ,  ///<
+    R_8_s                  ,  ///<
+    R_16                   ,  ///<
+    R_16_sn                ,  ///<
+    R_16_u                 ,  ///<
+    R_16_s                 ,  ///<
+    R_16_hf                ,  ///<
+    R_32_u                 ,  ///<
+    R_32_s                 ,  ///<
+    R_32_f                 ,  ///<
+    RG_8                   ,  ///<
+    RG_8_sRGB              ,  ///<
+    RG_8_sn                ,  ///<
+    RG_8_u                 ,  ///<
+    RG_8_s                 ,  ///<
+    RG_16                  ,  ///<
+    RG_16_sn               ,  ///<
+    RG_16_u                ,  ///<
+    RG_16_s                ,  ///<
+    RG_16_hf               ,  ///<
+    RG_32_u                ,  ///<
+    RG_32_s                ,  ///<
+    RG_32_f                ,  ///<
+    RGB_8                  ,  ///< - Not reccomended (lack of memory alignment)
+    RGB_8_sRGB             ,  ///< - Not reccomended (lack of memory alignment)
+    RGB_8_sn               ,  ///< - Not reccomended (lack of memory alignment)
+    RGB_8_u                ,  ///< - Not reccomended (lack of memory alignment)
+    RGB_8_s                ,  ///< - Not reccomended (lack of memory alignment)
+    RGB_16                 ,  ///<
+    RGB_16_sn              ,  ///<
+    RGB_16_u               ,  ///<
+    RGB_16_s               ,  ///<
+    RGB_16_hf              ,  ///<
+    RGB_32_u               ,  ///<
+    RGB_32_s               ,  ///<
+    RGB_32_f               ,  ///<
+    RGBA_8                 ,  ///<
+    RGBA_8_sRGB            ,  ///<
+    RGBA_8_sn              ,  ///<
+    RGBA_8_u               ,  ///<
+    RGBA_8_s               ,  ///<
+    RGBA_16                ,  ///<
+    RGBA_16_sn             ,  ///<
+    RGBA_16_u              ,  ///<
+    RGBA_16_s              ,  ///<
+    RGBA_16_hf             ,  ///<
+    RGBA_32_u              ,  ///<
+    RGBA_32_s              ,  ///<
+    RGBA_32_f              ,  ///<
+    D_16                   ,  ///<
+    D_24                   ,  ///<
+    D_24_8                 ,  ///< - 24bit depth with 8 bit padding
+    D_32                   ,  ///< 
+    D_32_f                 ,  ///< 
+    S_8                    ,  ///< 
+    DS_16_8                ,  ///< - Stored in separate D & S channels, order is
+    DS_24_8                ,  ///<   implementation dependent. It doesn't matter
+    DS_32_f_8              ,  ///<   as this texture is GPU only visible.
+    RGB_5_6_5              ,  ///< Packed/special formats:
+    BGR_5_6_5              ,  ///< - iOS only (MTLPixelFormatB5G6R5Unorm)
+    BGR_8                  ,  ///< - Special swizzled format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
+    BGR_8_sRGB             ,  ///< - Special swizzled sRGB format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
+    BGR_8_sn               ,  ///< 
+    BGR_8_u                ,  ///< 
+    BGR_8_s                ,  ///< 
+    RGB_11_11_10_uf        ,  ///< - Packed unsigned float for HDR Textures, UAV's and Render Targets
+    RGBE_9_9_9_5_uf        ,  ///< - Packed unsigned float for HDR Textures only
+    BGRA_8                 ,  ///< - Special swizzled format for PNG, BMP, TGA used by Windows-based systems (MTLPixelFormatBGRA8Unorm)
+    BGRA_8_sRGB            ,  ///< - (MTLPixelFormatBGRA8Unorm_sRGB)
+    BGRA_8_sn              ,  ///<
+    BGRA_8_u               ,  ///<
+    BGRA_8_s               ,  ///<
+    BGRA_5_5_5_1           ,  ///<
+    ARGB_1_5_5_5           ,  ///<
+    ABGR_1_5_5_5           ,  ///< - iOS only (MTLPixelFormatA1BGR5Unorm)
+    RGBA_10_10_10_2        ,  ///< - *Less precise than 8bit sRGB compression in dark areas
+    RGBA_10_10_10_2_u      ,  ///<
+    BGRA_10_10_10_2        ,  ///< - Special swizzled format for 30bpp BMP used by Windows-based systems
+    BC1_RGB                ,  ///< Compressed formats:
+    BC1_RGB_sRGB           ,  ///< -S3TC DXT1
+    BC1_RGBA               ,  ///< -S3TC DXT1
+    BC1_RGBA_sRGB          ,  ///< -S3TC DXT1
+    BC2_RGBA_pRGB          ,  ///< -S3TC DXT2
+    BC2_RGBA               ,  ///< -S3TC DXT3
+    BC2_RGBA_sRGB          ,  ///< -S3TC DXT3
+    BC3_RGBA_pRGB          ,  ///< -S3TC DXT4
+    BC3_RGBA               ,  ///< -S3TC DXT5
+    BC3_RGBA_sRGB          ,  ///< -S3TC DXT5
+    BC4_R                  ,  ///< -RGTC
+    BC4_R_sn               ,  ///< -RGTC
+    BC5_RG                 ,  ///< -RGTC
+    BC5_RG_sn              ,  ///< -RGTC
+    BC6H_RGB_f             ,  ///< -BPTC
+    BC6H_RGB_uf            ,  ///< -BPTC
+    BC7_RGBA               ,  ///< -BPTC
+    BC7_RGBA_sRGB          ,  ///< -BPTC
+    ETC2_R_11              ,  ///< -EAC
+    ETC2_R_11_sn           ,  ///< -EAC
+    ETC2_RG_11             ,  ///< -EAC
+    ETC2_RG_11_sn          ,  ///< -EAC
+    ETC2_RGB_8             ,  ///< -ETC1
+    ETC2_RGB_8_sRGB        ,  ///< 
+    ETC2_RGBA_8            ,  ///< -EAC
+    ETC2_RGBA_8_sRGB       ,  ///< -EAC
+    ETC2_RGB8_A1           ,  ///<
+    ETC2_RGB8_A1_sRGB      ,  ///<
+    PVRTC_RGB_2            ,  ///<
+    PVRTC_RGB_2_sRGB       ,  ///<
+    PVRTC_RGB_4            ,  ///<
+    PVRTC_RGB_4_sRGB       ,  ///<
+    PVRTC_RGBA_2           ,  ///<
+    PVRTC_RGBA_2_sRGB      ,  ///<
+    PVRTC_RGBA_4           ,  ///<
+    PVRTC_RGBA_4_sRGB      ,  ///<
+    ASTC_4x4               ,  ///<
+    ASTC_5x4               ,  ///<
+    ASTC_5x5               ,  ///<
+    ASTC_6x5               ,  ///<
+    ASTC_6x6               ,  ///<
+    ASTC_8x5               ,  ///<
+    ASTC_8x6               ,  ///<
+    ASTC_8x8               ,  ///<
+    ASTC_10x5              ,  ///<
+    ASTC_10x6              ,  ///<
+    ASTC_10x8              ,  ///<
+    ASTC_10x10             ,  ///<
+    ASTC_12x10             ,  ///<
+    ASTC_12x12             ,  ///<
+    ASTC_4x4_sRGB          ,  ///<
+    ASTC_5x4_sRGB          ,  ///<
+    ASTC_5x5_sRGB          ,  ///<
+    ASTC_6x5_sRGB          ,  ///<
+    ASTC_6x6_sRGB          ,  ///<
+    ASTC_8x5_sRGB          ,  ///<
+    ASTC_8x6_sRGB          ,  ///<
+    ASTC_8x8_sRGB          ,  ///<
+    ASTC_10x5_sRGB         ,  ///<
+    ASTC_10x6_sRGB         ,  ///<
+    ASTC_10x8_sRGB         ,  ///<
+    ASTC_10x10_sRGB        ,  ///<
+    ASTC_12x10_sRGB        ,  ///<
+    ASTC_12x12_sRGB        ,  ///<
     Count
 };
 

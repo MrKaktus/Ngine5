@@ -107,7 +107,7 @@ namespace en
       enableDepthBounds(false), 
       enableStencilTest(false),  
       depthFunction(Always),
-      depthRange(-1.0f, 1.0f)
+      depthRange(0.0f, 1.0f)
    {
    for(uint8 i=0; i<2; ++i)
       {
