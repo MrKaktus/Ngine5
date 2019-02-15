@@ -149,10 +149,10 @@ namespace en
    assert( pipelineState.viewportState );
 
    // Cast to Vulkan states
-   const RenderPassVK*         renderPass     = reinterpret_cast<RenderPassVK*>(pipelineState.renderPass.get());
+   const RenderPassVK*         renderPass     = reinterpret_cast<RenderPassVK*>(pipelineState.renderPass);
 
-   const InputLayoutVK*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutVK*>(pipelineState.inputLayout.get())
-                                                                          : reinterpret_cast<InputLayoutVK*>(defaultState->inputLayout.get());
+   const InputLayoutVK*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutVK*>(pipelineState.inputLayout)
+                                                                          : reinterpret_cast<InputLayoutVK*>(defaultState->inputLayout);
 
    const ViewportStateVK*      viewport       = reinterpret_cast<ViewportStateVK*>(pipelineState.viewportState);
 

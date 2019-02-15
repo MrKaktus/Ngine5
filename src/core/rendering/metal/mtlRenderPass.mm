@@ -495,118 +495,120 @@ namespace en
    return std::make_shared<DepthStencilAttachmentMTL>(depthFormat, stencilFormat, samples);
    }
 
-   std::shared_ptr<RenderPass> MetalDevice::createRenderPass(
-      const uint32 attachments,
-      const std::shared_ptr<ColorAttachment> color[],
-      const DepthStencilAttachment* depthStencil)
-   {
-   assert( attachments < MaxColorAttachmentsCount );
+RenderPass* MetalDevice::createRenderPass(
+    const uint32 attachments,
+    const std::shared_ptr<ColorAttachment> color[],
+    const DepthStencilAttachment* depthStencil)
+{
+    assert( attachments < MaxColorAttachmentsCount );
    
-   // Metal is not supporting Fragment Shaders working only on Side Effect Buffers without classic output ones
-   assert( depthStencil || attachments > 0 );
+    // Metal is not supporting Fragment Shaders working only on Side Effect Buffers without classic output ones
+    assert( depthStencil || attachments > 0 );
 
-   std::shared_ptr<RenderPassMTL> pass = std::make_shared<RenderPassMTL>();
+    RenderPassMTL* pass = new RenderPassMTL();
 
-   // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
+    // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
 
-   // Optional Color Attachments
-   for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
-      {
-      if (i >= attachments)
-         {
-         pass->format[i]  = Format::Unsupported;
-         pass->samples[i] = 0u;
-         continue;
-         }
+    // Optional Color Attachments
+    for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
+    {
+        if (i >= attachments)
+        {
+            pass->format[i]  = Format::Unsupported;
+            pass->samples[i] = 0u;
+            continue;
+        }
          
-      if (color[i] == nullptr)
-         {
-         pass->format[i]  = Format::Unsupported;
-         pass->samples[i] = 0u;
-         continue;
-         }
+        if (color[i] == nullptr)
+        {
+            pass->format[i]  = Format::Unsupported;
+            pass->samples[i] = 0u;
+            continue;
+        }
          
-      ColorAttachmentMTL* mtlColor = reinterpret_cast<ColorAttachmentMTL*>(color[i].get());
-      pass->desc.colorAttachments[i] = mtlColor->desc;
-      pass->format[i]  = mtlColor->format;
-      pass->samples[i] = mtlColor->samples;
-      setBit(pass->usedAttachments, i);
+        ColorAttachmentMTL* mtlColor = reinterpret_cast<ColorAttachmentMTL*>(color[i].get());
+        pass->desc.colorAttachments[i] = mtlColor->desc;
+        pass->format[i]  = mtlColor->format;
+        pass->samples[i] = mtlColor->samples;
+        setBit(pass->usedAttachments, i);
       
-      if (mtlColor->resolve)
-         pass->resolve = true;
-      }
+        if (mtlColor->resolve)
+		{
+            pass->resolve = true;
+		}
+    }
 
-   // Optional Depth-Stencil / Depth / Stencil
-   if (depthStencil)
-      {
-      const DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<const DepthStencilAttachmentMTL*>(depthStencil);
-      pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
-      pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
-      pass->format[MaxColorAttachmentsCount]   = mtlDepthStencil->depthFormat;
-      pass->format[MaxColorAttachmentsCount+1] = mtlDepthStencil->stencilFormat;
-      pass->samples[MaxColorAttachmentsCount]  = mtlDepthStencil->samples;
-      }
-   else
-      {
-      pass->format[MaxColorAttachmentsCount]   = Format::Unsupported;
-      pass->format[MaxColorAttachmentsCount+1] = Format::Unsupported;
-      pass->samples[MaxColorAttachmentsCount]  = 0u;
-      }
+    // Optional Depth-Stencil / Depth / Stencil
+    if (depthStencil)
+    {
+        const DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<const DepthStencilAttachmentMTL*>(depthStencil);
+        pass->desc.depthAttachment   = mtlDepthStencil->descDepth;
+        pass->desc.stencilAttachment = mtlDepthStencil->descStencil;
+        pass->format[MaxColorAttachmentsCount]   = mtlDepthStencil->depthFormat;
+        pass->format[MaxColorAttachmentsCount+1] = mtlDepthStencil->stencilFormat;
+        pass->samples[MaxColorAttachmentsCount]  = mtlDepthStencil->samples;
+    }
+    else
+    {
+        pass->format[MaxColorAttachmentsCount]   = Format::Unsupported;
+        pass->format[MaxColorAttachmentsCount+1] = Format::Unsupported;
+        pass->samples[MaxColorAttachmentsCount]  = 0u;
+    }
 
-   // Layered Rendering
-   pass->desc.renderTargetArrayLength = 0u;  // Set it at RenderPass Start using Framebuffer data
+    // Layered Rendering
+    pass->desc.renderTargetArrayLength = 0u;  // Set it at RenderPass Start using Framebuffer data
    
-   return pass;
-   }
+    return pass;
+}
    
-   std::shared_ptr<RenderPass> MetalDevice::createRenderPass(
-      const ColorAttachment& swapChainSurface,
-      const DepthStencilAttachment* depthStencil)
-   {
-   std::shared_ptr<RenderPassMTL> pass = std::make_shared<RenderPassMTL>();
+RenderPass* MetalDevice::createRenderPass(
+    const ColorAttachment& swapChainSurface,
+    const DepthStencilAttachment* depthStencil)
+{
+    RenderPassMTL* pass = new RenderPassMTL();
 
-   // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
+    // pass->desc.visibilityResultBuffer = buffer; // TODO: MTLBuffer for Occlusion Query
 
-   // Optional Color Attachments
-   for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
-      {
-      if (i == 0)
-         {
-         const ColorAttachmentMTL& mtlColor = reinterpret_cast<const ColorAttachmentMTL&>(swapChainSurface);
-         pass->desc.colorAttachments[0] = mtlColor.desc;
-         pass->format[0]  = mtlColor.format;
-         pass->samples[0] = mtlColor.samples;
-         setBit(pass->usedAttachments, 0);
-         }
-      else
-         {
-         pass->format[i]  = Format::Unsupported;
-         pass->samples[i] = 0u;
-         }
-      }
+    // Optional Color Attachments
+    for(uint32 i=0; i<MaxColorAttachmentsCount; ++i)
+    {
+        if (i == 0)
+        {
+            const ColorAttachmentMTL& mtlColor = reinterpret_cast<const ColorAttachmentMTL&>(swapChainSurface);
+            pass->desc.colorAttachments[0] = mtlColor.desc;
+            pass->format[0]  = mtlColor.format;
+            pass->samples[0] = mtlColor.samples;
+            setBit(pass->usedAttachments, 0);
+        }
+        else
+        {
+            pass->format[i]  = Format::Unsupported;
+            pass->samples[i] = 0u;
+        }
+    }
 
-   // Optional Depth-Stencil / Depth / Stencil
-   if (depthStencil)
-      {
-      const DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<const DepthStencilAttachmentMTL*>(depthStencil);
-      pass->desc.depthAttachment               = mtlDepthStencil->descDepth;
-      pass->desc.stencilAttachment             = mtlDepthStencil->descStencil;
-      pass->format[MaxColorAttachmentsCount]   = mtlDepthStencil->depthFormat;
-      pass->format[MaxColorAttachmentsCount+1] = mtlDepthStencil->stencilFormat;
-      pass->samples[MaxColorAttachmentsCount]  = mtlDepthStencil->samples;
-      }
-   else
-      {
-      pass->format[MaxColorAttachmentsCount]   = Format::Unsupported;
-      pass->format[MaxColorAttachmentsCount+1] = Format::Unsupported;
-      pass->samples[MaxColorAttachmentsCount]  = 0u;
-      }
+    // Optional Depth-Stencil / Depth / Stencil
+    if (depthStencil)
+    {
+        const DepthStencilAttachmentMTL* mtlDepthStencil = reinterpret_cast<const DepthStencilAttachmentMTL*>(depthStencil);
+        pass->desc.depthAttachment               = mtlDepthStencil->descDepth;
+        pass->desc.stencilAttachment             = mtlDepthStencil->descStencil;
+        pass->format[MaxColorAttachmentsCount]   = mtlDepthStencil->depthFormat;
+        pass->format[MaxColorAttachmentsCount+1] = mtlDepthStencil->stencilFormat;
+        pass->samples[MaxColorAttachmentsCount]  = mtlDepthStencil->samples;
+    }
+    else
+    {
+        pass->format[MaxColorAttachmentsCount]   = Format::Unsupported;
+        pass->format[MaxColorAttachmentsCount+1] = Format::Unsupported;
+        pass->samples[MaxColorAttachmentsCount]  = 0u;
+    }
 
-   // Layered Rendering
-   pass->desc.renderTargetArrayLength = 0u;  // Set it at RenderPass Start using Framebuffer data
+    // Layered Rendering
+    pass->desc.renderTargetArrayLength = 0u;  // Set it at RenderPass Start using Framebuffer data
    
-   return pass;
-   }
+    return pass;
+}
    
    
      // TODO: Use Views, mipmap and layer always equal to 0 !

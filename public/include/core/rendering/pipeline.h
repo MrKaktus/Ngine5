@@ -94,8 +94,8 @@ class GpuDevice;
 /// Helper structure for Pipeline object creation.
 struct PipelineState
 {
-    std::shared_ptr<RenderPass>     renderPass;
-    std::shared_ptr<InputLayout>    inputLayout;
+    RenderPass*                     renderPass;
+    InputLayout*                    inputLayout;
     ViewportState*                  viewportState;
     RasterState*                    rasterState;
     MultisamplingState*             multisamplingState;

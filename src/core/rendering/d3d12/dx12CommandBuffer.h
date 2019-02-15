@@ -42,8 +42,8 @@ namespace en
       ID3D12Fence*          fence;        // Fence to wait for before executing this CommandBuffer
       uint64                waitForValue; // Accompanying value representing unique moment in time
       uint64                commitValue;  // Value representing moment in time, when this CommandBuffer is executed
-      std::shared_ptr<RenderPassD3D12>  renderPass;  // Render Pass and Framebuffer used for currently encoded Render Pass
-      std::shared_ptr<FramebufferD3D12> framebuffer;
+      const RenderPassD3D12*      renderPass;   // Render Pass and Framebuffer used for currently encoded Render Pass
+      const FramebufferD3D12*     framebuffer;
       bool                  started;
       bool                  encoding;
       bool                  commited;
@@ -93,8 +93,8 @@ namespace en
          const uint32v2 region,
          const uint8    plane);
          
-      virtual void startRenderPass(const std::shared_ptr<RenderPass> pass, 
-                                   const std::shared_ptr<Framebuffer> framebuffer);
+      virtual void startRenderPass(const RenderPass& pass, 
+                                   const Framebuffer& framebuffer);
 
       virtual void setDescriptors(const PipelineLayout& layout,
                                   const DescriptorSet& set,

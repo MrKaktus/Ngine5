@@ -72,12 +72,12 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
    
  
-   void CommandBufferMTL::startRenderPass(const std::shared_ptr<RenderPass> pass, const std::shared_ptr<Framebuffer> _framebuffer)
+   void CommandBufferMTL::startRenderPass(const RenderPass& pass, const Framebuffer& _framebuffer)
    {
    assert( renderEncoder == nil );
   
-   RenderPassMTL*  renderPass  = reinterpret_cast<RenderPassMTL*>(pass.get());
-   FramebufferMTL* framebuffer = reinterpret_cast<FramebufferMTL*>(_framebuffer.get());
+   const RenderPassMTL*  renderPass  = reinterpret_cast<const RenderPassMTL*>(&pass);
+   const FramebufferMTL* framebuffer = reinterpret_cast<const FramebufferMTL*>(&_framebuffer);
    
    // Patch Texture handles
    bool layeredRendering = false;

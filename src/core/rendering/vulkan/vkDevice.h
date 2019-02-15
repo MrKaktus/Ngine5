@@ -252,13 +252,14 @@ namespace en
       virtual std::shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
 
-      virtual std::shared_ptr<InputLayout> createInputLayout(const DrawableType primitiveType,
-                                                        const bool primitiveRestart,
-                                                        const uint32 controlPoints,
-                                                        const uint32 usedAttributes,
-                                                        const uint32 usedBuffers,
-                                                        const AttributeDesc* attributes,
-                                                        const BufferDesc* buffers);
+    virtual InputLayout* createInputLayout(
+        const DrawableType primitiveType,
+        const bool primitiveRestart,
+        const uint32 controlPoints,
+        const uint32 usedAttributes,
+        const uint32 usedBuffers,
+        const AttributeDesc* attributes,
+        const BufferDesc* buffers);
 
       virtual std::shared_ptr<SetLayout> createSetLayout(const uint32 count, 
                                                     const ResourceGroup* group,
@@ -280,14 +281,14 @@ namespace en
                                                                               const Format stencilFormat = Format::Unsupported,
                                                                               const uint32 samples = 1u);
 
-      virtual std::shared_ptr<RenderPass> createRenderPass(
-         const ColorAttachment& swapChainSurface,
-         const DepthStencilAttachment* depthStencil = nullptr);
+    virtual RenderPass* createRenderPass(
+        const ColorAttachment& swapChainSurface,
+        const DepthStencilAttachment* depthStencil = nullptr);
 
-      virtual std::shared_ptr<RenderPass> createRenderPass(
-         const uint32 attachments,
-         const std::shared_ptr<ColorAttachment> color[] = nullptr,
-         const DepthStencilAttachment* depthStencil = nullptr);
+    virtual RenderPass* createRenderPass(
+        const uint32 attachments,
+        const std::shared_ptr<ColorAttachment> color[] = nullptr,
+        const DepthStencilAttachment* depthStencil = nullptr);
 
       virtual std::shared_ptr<Semaphore> createSemaphore(void);
          

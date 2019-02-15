@@ -225,10 +225,10 @@ class Buffer
 /*  /// Buffer formated views are currently unsupported:
 
     /// Default buffer view, if it was created with formatting
-    virtual std::shared_ptr<BufferView> view(void) = 0;
+    virtual BufferView* view(void) = 0;
  
     /// New buffer view with specified formatting
-    virtual std::shared_ptr<BufferView> view(
+    virtual BufferView* view(
        const uint32 elements,
        const Formatting& formatting,
        const uint32 step = 0,

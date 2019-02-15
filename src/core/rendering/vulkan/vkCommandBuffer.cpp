@@ -135,16 +135,13 @@ CommandBufferVK::~CommandBufferVK()
    started = true;
    }
    
-   void CommandBufferVK::startRenderPass(const std::shared_ptr<RenderPass> pass, const std::shared_ptr<Framebuffer> _framebuffer)
+   void CommandBufferVK::startRenderPass(const RenderPass& pass, const Framebuffer& _framebuffer)
    {
    assert( started );
    assert( !encoding );
 
-   assert( pass );
-   assert( _framebuffer );
-
-   RenderPassVK*  renderPass  = reinterpret_cast<RenderPassVK*>(pass.get());
-   FramebufferVK* framebuffer = reinterpret_cast<FramebufferVK*>(_framebuffer.get());
+   const RenderPassVK*  renderPass  = reinterpret_cast<const RenderPassVK*>(&pass);
+   const FramebufferVK* framebuffer = reinterpret_cast<const FramebufferVK*>(&_framebuffer);
 
    // Begin encoding commands for this Render Pass
    VkRenderPassBeginInfo beginInfo;

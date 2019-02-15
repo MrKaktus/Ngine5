@@ -83,10 +83,10 @@ namespace en
    assert( pipelineState.viewportState );
 
    // Cast to D3D12 states
-   const RenderPassD3D12*         renderPass     = reinterpret_cast<RenderPassD3D12*>(pipelineState.renderPass.get());
+   const RenderPassD3D12*         renderPass     = reinterpret_cast<RenderPassD3D12*>(pipelineState.renderPass);
 
-   const InputLayoutD3D12*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutD3D12*>(pipelineState.inputLayout.get())
-                                                                             : reinterpret_cast<InputLayoutD3D12*>(defaultState->inputLayout.get());
+   const InputLayoutD3D12*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutD3D12*>(pipelineState.inputLayout)
+                                                                             : reinterpret_cast<InputLayoutD3D12*>(defaultState->inputLayout);
 
    const ViewportStateD3D12*      viewport       = reinterpret_cast<ViewportStateD3D12*>(pipelineState.viewportState);
 

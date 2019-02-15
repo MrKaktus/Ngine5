@@ -21,9 +21,9 @@
 
 namespace en
 {
-   namespace gpu
-   {   
-   // DXGIFormat.h
+namespace gpu
+{   
+// DXGIFormat.h
 //   typedef enum DXGI_FORMAT 
 //      { 
 //      DXGI_FORMAT_UNKNOWN                     = 0,
@@ -191,183 +191,188 @@ namespace en
 //      } DXGI_FORMAT;
 
 
-   // Direct3D12 is not supporting 3 component attributes which size is not aligned to 4 bytes, as well as 64bit attributes.
-   // More details on Input Assembler supported Vertex Buffer formats can be found here:
-   // https://msdn.microsoft.com/en-us/library/windows/desktop/mt426648(v=vs.85).aspx
-   //
-   static const DXGI_FORMAT TranslateAttributeFormat[underlyingType(Attribute::Count)] =
-      {                                    // New naming:                         Old naming: 
-      DXGI_FORMAT_UNKNOWN              ,   // Attribute::None                     VertexFormat::None
-      DXGI_FORMAT_R8_UNORM             ,   // Attribute::u8_norm                  VertexFormat::R_8                    Uncompressed formats:
-      DXGI_FORMAT_R8_SNORM             ,   // Attribute::s8_norm                  VertexFormat::R_8_sn
-      DXGI_FORMAT_R8_UINT              ,   // Attribute::u8                       VertexFormat::R_8_u
-      DXGI_FORMAT_R8_SINT              ,   // Attribute::s8                       VertexFormat::R_8_s
-      DXGI_FORMAT_R16_UNORM            ,   // Attribute::u16_norm                 VertexFormat::R_16
-      DXGI_FORMAT_R16_SNORM            ,   // Attribute::s16_norm                 VertexFormat::R_16_sn
-      DXGI_FORMAT_R16_UINT             ,   // Attribute::u16                      VertexFormat::R_16_u
-      DXGI_FORMAT_R16_SINT             ,   // Attribute::s16                      VertexFormat::R_16_s
-      DXGI_FORMAT_R16_FLOAT            ,   // Attribute::f16                      VertexFormat::R_16_hf
-      DXGI_FORMAT_R32_UINT             ,   // Attribute::u32                      VertexFormat::R_32_u
-      DXGI_FORMAT_R32_SINT             ,   // Attribute::s32                      VertexFormat::R_32_s
-      DXGI_FORMAT_R32_FLOAT            ,   // Attribute::f32                      VertexFormat::R_32_f
-      DXGI_FORMAT_R8G8_UNORM           ,   // Attribute::v2u8_norm                VertexFormat::RG_8
-      DXGI_FORMAT_R8G8_SNORM           ,   // Attribute::v2s8_norm                VertexFormat::RG_8_sn
-      DXGI_FORMAT_R8G8_UINT            ,   // Attribute::v2u8                     VertexFormat::RG_8_u
-      DXGI_FORMAT_R8G8_SINT            ,   // Attribute::v2s8                     VertexFormat::RG_8_s
-      DXGI_FORMAT_R16G16_UNORM         ,   // Attribute::v2u16_norm               VertexFormat::RG_16
-      DXGI_FORMAT_R16G16_SNORM         ,   // Attribute::v2s16_norm               VertexFormat::RG_16_sn
-      DXGI_FORMAT_R16G16_UINT          ,   // Attribute::v2u16                    VertexFormat::RG_16_u
-      DXGI_FORMAT_R16G16_SINT          ,   // Attribute::v2s16                    VertexFormat::RG_16_s
-      DXGI_FORMAT_R16G16_FLOAT         ,   // Attribute::v2f16                    VertexFormat::RG_16_hf
-      DXGI_FORMAT_R32G32_UINT          ,   // Attribute::v2u32                    VertexFormat::RG_32_u
-      DXGI_FORMAT_R32G32_SINT          ,   // Attribute::v2s32                    VertexFormat::RG_32_s
-      DXGI_FORMAT_R32G32_FLOAT         ,   // Attribute::v2f32                    VertexFormat::RG_32_f
-      DXGI_FORMAT_R32G32B32_UINT       ,   // Attribute::v3u32                    VertexFormat::RGB_32_u
-      DXGI_FORMAT_R32G32B32_SINT       ,   // Attribute::v3s32                    VertexFormat::RGB_32_s
-      DXGI_FORMAT_R32G32B32_FLOAT      ,   // Attribute::v3f32                    VertexFormat::RGB_32_f
-      DXGI_FORMAT_R8G8B8A8_UNORM       ,   // Attribute::v4u8_norm                VertexFormat::RGBA_8
-      DXGI_FORMAT_R8G8B8A8_SNORM       ,   // Attribute::v4s8_norm                VertexFormat::RGBA_8_sn
-      DXGI_FORMAT_R8G8B8A8_UINT        ,   // Attribute::v4u8                     VertexFormat::RGBA_8_u
-      DXGI_FORMAT_R8G8B8A8_SINT        ,   // Attribute::v4s8                     VertexFormat::RGBA_8_s
-      DXGI_FORMAT_R16G16B16A16_UNORM   ,   // Attribute::v4u16_norm               VertexFormat::RGBA_16
-      DXGI_FORMAT_R16G16B16A16_SNORM   ,   // Attribute::v4s16_norm               VertexFormat::RGBA_16_sn
-      DXGI_FORMAT_R16G16B16A16_UINT    ,   // Attribute::v4u16                    VertexFormat::RGBA_16_u
-      DXGI_FORMAT_R16G16B16A16_SINT    ,   // Attribute::v4s16                    VertexFormat::RGBA_16_s
-      DXGI_FORMAT_R16G16B16A16_FLOAT   ,   // Attribute::v4f16                    VertexFormat::RGBA_16_hf
-      DXGI_FORMAT_R32G32B32A32_UINT    ,   // Attribute::v4u32                    VertexFormat::RGBA_32_u
-      DXGI_FORMAT_R32G32B32A32_SINT    ,   // Attribute::v4s32                    VertexFormat::RGBA_32_s
-      DXGI_FORMAT_R32G32B32A32_FLOAT   ,   // Attribute::v4f32                    VertexFormat::RGBA_32_f
-      DXGI_FORMAT_R10G10B10A2_UNORM        // Attribute::v4u10_10_10_2_norm       VertexFormat::RGBA_10_10_10_2
-      };
+// Direct3D12 is not supporting 3 component attributes which size is not aligned to 4 bytes, as well as 64bit attributes.
+// More details on Input Assembler supported Vertex Buffer formats can be found here:
+// https://msdn.microsoft.com/en-us/library/windows/desktop/mt426648(v=vs.85).aspx
+//
+static const DXGI_FORMAT TranslateAttributeFormat[underlyingType(Attribute::Count)] =
+{                                        // New naming:                         Old naming: 
+    DXGI_FORMAT_UNKNOWN              ,   // Attribute::None                     VertexFormat::None
+    DXGI_FORMAT_R8_UNORM             ,   // Attribute::u8_norm                  VertexFormat::R_8                    Uncompressed formats:
+    DXGI_FORMAT_R8_SNORM             ,   // Attribute::s8_norm                  VertexFormat::R_8_sn
+    DXGI_FORMAT_R8_UINT              ,   // Attribute::u8                       VertexFormat::R_8_u
+    DXGI_FORMAT_R8_SINT              ,   // Attribute::s8                       VertexFormat::R_8_s
+    DXGI_FORMAT_R16_UNORM            ,   // Attribute::u16_norm                 VertexFormat::R_16
+    DXGI_FORMAT_R16_SNORM            ,   // Attribute::s16_norm                 VertexFormat::R_16_sn
+    DXGI_FORMAT_R16_UINT             ,   // Attribute::u16                      VertexFormat::R_16_u
+    DXGI_FORMAT_R16_SINT             ,   // Attribute::s16                      VertexFormat::R_16_s
+    DXGI_FORMAT_R16_FLOAT            ,   // Attribute::f16                      VertexFormat::R_16_hf
+    DXGI_FORMAT_R32_UINT             ,   // Attribute::u32                      VertexFormat::R_32_u
+    DXGI_FORMAT_R32_SINT             ,   // Attribute::s32                      VertexFormat::R_32_s
+    DXGI_FORMAT_R32_FLOAT            ,   // Attribute::f32                      VertexFormat::R_32_f
+    DXGI_FORMAT_R8G8_UNORM           ,   // Attribute::v2u8_norm                VertexFormat::RG_8
+    DXGI_FORMAT_R8G8_SNORM           ,   // Attribute::v2s8_norm                VertexFormat::RG_8_sn
+    DXGI_FORMAT_R8G8_UINT            ,   // Attribute::v2u8                     VertexFormat::RG_8_u
+    DXGI_FORMAT_R8G8_SINT            ,   // Attribute::v2s8                     VertexFormat::RG_8_s
+    DXGI_FORMAT_R16G16_UNORM         ,   // Attribute::v2u16_norm               VertexFormat::RG_16
+    DXGI_FORMAT_R16G16_SNORM         ,   // Attribute::v2s16_norm               VertexFormat::RG_16_sn
+    DXGI_FORMAT_R16G16_UINT          ,   // Attribute::v2u16                    VertexFormat::RG_16_u
+    DXGI_FORMAT_R16G16_SINT          ,   // Attribute::v2s16                    VertexFormat::RG_16_s
+    DXGI_FORMAT_R16G16_FLOAT         ,   // Attribute::v2f16                    VertexFormat::RG_16_hf
+    DXGI_FORMAT_R32G32_UINT          ,   // Attribute::v2u32                    VertexFormat::RG_32_u
+    DXGI_FORMAT_R32G32_SINT          ,   // Attribute::v2s32                    VertexFormat::RG_32_s
+    DXGI_FORMAT_R32G32_FLOAT         ,   // Attribute::v2f32                    VertexFormat::RG_32_f
+    DXGI_FORMAT_R32G32B32_UINT       ,   // Attribute::v3u32                    VertexFormat::RGB_32_u
+    DXGI_FORMAT_R32G32B32_SINT       ,   // Attribute::v3s32                    VertexFormat::RGB_32_s
+    DXGI_FORMAT_R32G32B32_FLOAT      ,   // Attribute::v3f32                    VertexFormat::RGB_32_f
+    DXGI_FORMAT_R8G8B8A8_UNORM       ,   // Attribute::v4u8_norm                VertexFormat::RGBA_8
+    DXGI_FORMAT_R8G8B8A8_SNORM       ,   // Attribute::v4s8_norm                VertexFormat::RGBA_8_sn
+    DXGI_FORMAT_R8G8B8A8_UINT        ,   // Attribute::v4u8                     VertexFormat::RGBA_8_u
+    DXGI_FORMAT_R8G8B8A8_SINT        ,   // Attribute::v4s8                     VertexFormat::RGBA_8_s
+    DXGI_FORMAT_R16G16B16A16_UNORM   ,   // Attribute::v4u16_norm               VertexFormat::RGBA_16
+    DXGI_FORMAT_R16G16B16A16_SNORM   ,   // Attribute::v4s16_norm               VertexFormat::RGBA_16_sn
+    DXGI_FORMAT_R16G16B16A16_UINT    ,   // Attribute::v4u16                    VertexFormat::RGBA_16_u
+    DXGI_FORMAT_R16G16B16A16_SINT    ,   // Attribute::v4s16                    VertexFormat::RGBA_16_s
+    DXGI_FORMAT_R16G16B16A16_FLOAT   ,   // Attribute::v4f16                    VertexFormat::RGBA_16_hf
+    DXGI_FORMAT_R32G32B32A32_UINT    ,   // Attribute::v4u32                    VertexFormat::RGBA_32_u
+    DXGI_FORMAT_R32G32B32A32_SINT    ,   // Attribute::v4s32                    VertexFormat::RGBA_32_s
+    DXGI_FORMAT_R32G32B32A32_FLOAT   ,   // Attribute::v4f32                    VertexFormat::RGBA_32_f
+    DXGI_FORMAT_R10G10B10A2_UNORM        // Attribute::v4u10_10_10_2_norm       VertexFormat::RGBA_10_10_10_2
+};
 
 
  
 
-   //static const DXGI_FORMAT TranslateAttributeFormat[underlyingType(Attribute::Count)] =
-   //   {
-   //   DXGI_FORMAT_UNKNOWN            ,  // None                     
-   //   DXGI_FORMAT_R16_FLOAT          ,  // Half                   
-   //   DXGI_FORMAT_R16G16_FLOAT       ,  // Half2                  
-   //   DXGI_FORMAT_UNKNOWN            ,  // Half3          (unsupported)                 
-   //   DXGI_FORMAT_R16G16B16A16_FLOAT ,  // Half4                  
-   //   DXGI_FORMAT_R32_FLOAT          ,  // Float                  
-   //   DXGI_FORMAT_R32G32_FLOAT       ,  // Float2                 
-   //   DXGI_FORMAT_R32G32B32_FLOAT    ,  // Float3                 
-   //   DXGI_FORMAT_R32G32B32A32_FLOAT ,  // Float4                 
-   //   DXGI_FORMAT_UNKNOWN            ,  // Double         (unsupported)        
-   //   DXGI_FORMAT_UNKNOWN            ,  // Double2        (unsupported)
-   //   DXGI_FORMAT_UNKNOWN            ,  // Double3        (unsupported)
-   //   DXGI_FORMAT_UNKNOWN            ,  // Double4        (unsupported)
-   //   DXGI_FORMAT_R8_SINT            ,  // Int8                   
-   //   DXGI_FORMAT_R8G8_SINT          ,  // Int8v2                 
-   //   DXGI_FORMAT_UNKNOWN            ,  // Int8v3         (unsupported)              
-   //   DXGI_FORMAT_R8G8B8A8_SINT      ,  // Int8v4                 
-   //   DXGI_FORMAT_R16_SINT           ,  // Int16                  
-   //   DXGI_FORMAT_R16G16_SINT        ,  // Int16v2                
-   //   DXGI_FORMAT_UNKNOWN            ,  // Int16v3        (unsupported)            
-   //   DXGI_FORMAT_R16G16B16A16_SINT  ,  // Int16v4                
-   //   DXGI_FORMAT_R32_SINT           ,  // Int32                  
-   //   DXGI_FORMAT_R32G32_SINT        ,  // Int32v2                
-   //   DXGI_FORMAT_R32G32B32_SINT     ,  // Int32v3                
-   //   DXGI_FORMAT_R32G32B32A32_SINT  ,  // Int32v4                
-   //   DXGI_FORMAT_UNKNOWN            ,  // Int64          (unsupported)                  
-   //   DXGI_FORMAT_UNKNOWN            ,  // Int64v2        (unsupported)
-   //   DXGI_FORMAT_UNKNOWN            ,  // Int64v3        (unsupported)
-   //   DXGI_FORMAT_UNKNOWN            ,  // Int64v4        (unsupported)
-   //   DXGI_FORMAT_R8_UINT            ,  // UInt8                  
-   //   DXGI_FORMAT_R8G8_UINT          ,  // UInt8v2                
-   //   DXGI_FORMAT_UNKNOWN            ,  // UInt8v3        (unsupported)        
-   //   DXGI_FORMAT_R8G8B8A8_UINT      ,  // UInt8v4                
-   //   DXGI_FORMAT_R16_UINT           ,  // UInt16                 
-   //   DXGI_FORMAT_R16G16_UINT        ,  // UInt16v2               
-   //   DXGI_FORMAT_UNKNOWN            ,  // UInt16v3       (unsupported)         
-   //   DXGI_FORMAT_R16G16B16A16_UINT  ,  // UInt16v4               
-   //   DXGI_FORMAT_R32_UINT           ,  // UInt32                 
-   //   DXGI_FORMAT_R32G32_UINT        ,  // UInt32v2               
-   //   DXGI_FORMAT_R32G32B32_UINT     ,  // UInt32v3               
-   //   DXGI_FORMAT_R32G32B32A32_UINT  ,  // UInt32v4               
-   //   DXGI_FORMAT_UNKNOWN            ,  // UInt64         (unsupported)     
-   //   DXGI_FORMAT_UNKNOWN            ,  // UInt64v2       (unsupported)
-   //   DXGI_FORMAT_UNKNOWN            ,  // UInt64v3       (unsupported)
-   //   DXGI_FORMAT_UNKNOWN            ,  // UInt64v4       (unsupported)
-   //   DXGI_FORMAT_R8_SNORM           ,  // Float8_SNorm           
-   //   DXGI_FORMAT_R8G8_SNORM         ,  // Float8v2_SNorm         
-   //   DXGI_FORMAT_UNKNOWN            ,  // Float8v3_SNorm          (unsupported)       
-   //   DXGI_FORMAT_R8G8B8A8_SNORM     ,  // Float8v4_SNorm         
-   //   DXGI_FORMAT_R16_SNORM          ,  // Float16_SNorm          
-   //   DXGI_FORMAT_R16G16_SNORM       ,  // Float16v2_SNorm        
-   //   DXGI_FORMAT_UNKNOWN            ,  // Float16v3_SNorm         (unsupported)    
-   //   DXGI_FORMAT_R16G16B16A16_SNORM ,  // Float16v4_SNorm        
-   //   DXGI_FORMAT_R8_UNORM           ,  // Float8_Norm            
-   //   DXGI_FORMAT_R8G8_UNORM         ,  // Float8v2_Norm          
-   //   DXGI_FORMAT_UNKNOWN            ,  // Float8v3_Norm           (unsupported)
-   //   DXGI_FORMAT_R8G8B8A8_UNORM     ,  // Float8v4_Norm          
-   //   DXGI_FORMAT_R16_UNORM          ,  // Float16_Norm           
-   //   DXGI_FORMAT_R16G16_UNORM       ,  // Float16v2_Norm         
-   //   DXGI_FORMAT_UNKNOWN            ,  // Float16v3_Norm          (unsupported)
-   //   DXGI_FORMAT_R16G16B16A16_UNORM ,  // Float16v4_Norm         
-   //   DXGI_FORMAT_UNKNOWN            ,  // Float4_10_10_10_2_SNorm (unsupported)
-   //   DXGI_FORMAT_R10G10B10A2_UNORM     // Float4_10_10_10_2_Norm 
-   //   };
+//static const DXGI_FORMAT TranslateAttributeFormat[underlyingType(Attribute::Count)] =
+//   {
+//   DXGI_FORMAT_UNKNOWN            ,  // None                     
+//   DXGI_FORMAT_R16_FLOAT          ,  // Half                   
+//   DXGI_FORMAT_R16G16_FLOAT       ,  // Half2                  
+//   DXGI_FORMAT_UNKNOWN            ,  // Half3          (unsupported)                 
+//   DXGI_FORMAT_R16G16B16A16_FLOAT ,  // Half4                  
+//   DXGI_FORMAT_R32_FLOAT          ,  // Float                  
+//   DXGI_FORMAT_R32G32_FLOAT       ,  // Float2                 
+//   DXGI_FORMAT_R32G32B32_FLOAT    ,  // Float3                 
+//   DXGI_FORMAT_R32G32B32A32_FLOAT ,  // Float4                 
+//   DXGI_FORMAT_UNKNOWN            ,  // Double         (unsupported)        
+//   DXGI_FORMAT_UNKNOWN            ,  // Double2        (unsupported)
+//   DXGI_FORMAT_UNKNOWN            ,  // Double3        (unsupported)
+//   DXGI_FORMAT_UNKNOWN            ,  // Double4        (unsupported)
+//   DXGI_FORMAT_R8_SINT            ,  // Int8                   
+//   DXGI_FORMAT_R8G8_SINT          ,  // Int8v2                 
+//   DXGI_FORMAT_UNKNOWN            ,  // Int8v3         (unsupported)              
+//   DXGI_FORMAT_R8G8B8A8_SINT      ,  // Int8v4                 
+//   DXGI_FORMAT_R16_SINT           ,  // Int16                  
+//   DXGI_FORMAT_R16G16_SINT        ,  // Int16v2                
+//   DXGI_FORMAT_UNKNOWN            ,  // Int16v3        (unsupported)            
+//   DXGI_FORMAT_R16G16B16A16_SINT  ,  // Int16v4                
+//   DXGI_FORMAT_R32_SINT           ,  // Int32                  
+//   DXGI_FORMAT_R32G32_SINT        ,  // Int32v2                
+//   DXGI_FORMAT_R32G32B32_SINT     ,  // Int32v3                
+//   DXGI_FORMAT_R32G32B32A32_SINT  ,  // Int32v4                
+//   DXGI_FORMAT_UNKNOWN            ,  // Int64          (unsupported)                  
+//   DXGI_FORMAT_UNKNOWN            ,  // Int64v2        (unsupported)
+//   DXGI_FORMAT_UNKNOWN            ,  // Int64v3        (unsupported)
+//   DXGI_FORMAT_UNKNOWN            ,  // Int64v4        (unsupported)
+//   DXGI_FORMAT_R8_UINT            ,  // UInt8                  
+//   DXGI_FORMAT_R8G8_UINT          ,  // UInt8v2                
+//   DXGI_FORMAT_UNKNOWN            ,  // UInt8v3        (unsupported)        
+//   DXGI_FORMAT_R8G8B8A8_UINT      ,  // UInt8v4                
+//   DXGI_FORMAT_R16_UINT           ,  // UInt16                 
+//   DXGI_FORMAT_R16G16_UINT        ,  // UInt16v2               
+//   DXGI_FORMAT_UNKNOWN            ,  // UInt16v3       (unsupported)         
+//   DXGI_FORMAT_R16G16B16A16_UINT  ,  // UInt16v4               
+//   DXGI_FORMAT_R32_UINT           ,  // UInt32                 
+//   DXGI_FORMAT_R32G32_UINT        ,  // UInt32v2               
+//   DXGI_FORMAT_R32G32B32_UINT     ,  // UInt32v3               
+//   DXGI_FORMAT_R32G32B32A32_UINT  ,  // UInt32v4               
+//   DXGI_FORMAT_UNKNOWN            ,  // UInt64         (unsupported)     
+//   DXGI_FORMAT_UNKNOWN            ,  // UInt64v2       (unsupported)
+//   DXGI_FORMAT_UNKNOWN            ,  // UInt64v3       (unsupported)
+//   DXGI_FORMAT_UNKNOWN            ,  // UInt64v4       (unsupported)
+//   DXGI_FORMAT_R8_SNORM           ,  // Float8_SNorm           
+//   DXGI_FORMAT_R8G8_SNORM         ,  // Float8v2_SNorm         
+//   DXGI_FORMAT_UNKNOWN            ,  // Float8v3_SNorm          (unsupported)       
+//   DXGI_FORMAT_R8G8B8A8_SNORM     ,  // Float8v4_SNorm         
+//   DXGI_FORMAT_R16_SNORM          ,  // Float16_SNorm          
+//   DXGI_FORMAT_R16G16_SNORM       ,  // Float16v2_SNorm        
+//   DXGI_FORMAT_UNKNOWN            ,  // Float16v3_SNorm         (unsupported)    
+//   DXGI_FORMAT_R16G16B16A16_SNORM ,  // Float16v4_SNorm        
+//   DXGI_FORMAT_R8_UNORM           ,  // Float8_Norm            
+//   DXGI_FORMAT_R8G8_UNORM         ,  // Float8v2_Norm          
+//   DXGI_FORMAT_UNKNOWN            ,  // Float8v3_Norm           (unsupported)
+//   DXGI_FORMAT_R8G8B8A8_UNORM     ,  // Float8v4_Norm          
+//   DXGI_FORMAT_R16_UNORM          ,  // Float16_Norm           
+//   DXGI_FORMAT_R16G16_UNORM       ,  // Float16v2_Norm         
+//   DXGI_FORMAT_UNKNOWN            ,  // Float16v3_Norm          (unsupported)
+//   DXGI_FORMAT_R16G16B16A16_UNORM ,  // Float16v4_Norm         
+//   DXGI_FORMAT_UNKNOWN            ,  // Float4_10_10_10_2_SNorm (unsupported)
+//   DXGI_FORMAT_R10G10B10A2_UNORM     // Float4_10_10_10_2_Norm 
+//   };
 
-   InputLayoutD3D12::InputLayoutD3D12(const DrawableType primitiveType,
-      const bool primitiveRestart,
-      const uint32 controlPoints, 
-      const uint32 usedAttributes, 
-      const uint32 usedBuffers, 
-      const AttributeDesc* attributes,  
-      const BufferDesc* buffers) :
-      buffersCount(usedBuffers),
-      primitive(primitiveType),
-      restart(primitiveRestart),
-      points(controlPoints)
-   {
-   state.pInputElementDescs = usedAttributes ? new D3D12_INPUT_ELEMENT_DESC[usedAttributes] : nullptr;
-   state.NumElements        = static_cast<UINT>(usedAttributes);
+InputLayoutD3D12::InputLayoutD3D12(
+        const DrawableType primitiveType,
+        const bool primitiveRestart,
+        const uint32 controlPoints, 
+        const uint32 usedAttributes, 
+        const uint32 usedBuffers, 
+        const AttributeDesc* attributes,  
+        const BufferDesc* buffers) :
+    buffersCount(usedBuffers),
+    primitive(primitiveType),
+    restart(primitiveRestart),
+    points(controlPoints)
+{
+    state.pInputElementDescs = usedAttributes ? new D3D12_INPUT_ELEMENT_DESC[usedAttributes] : nullptr;
+    state.NumElements        = static_cast<UINT>(usedAttributes);
 
-   // Per buffer stride cache
-   memset(&bufferStride[0], 0, MaxInputLayoutAttributesCount * sizeof(uint32));
-   for(uint32 i=0; i<usedBuffers; ++i)
-      bufferStride[i] = buffers[i].elementSize;
+    // Per buffer stride cache
+    memset(&bufferStride[0], 0, MaxInputLayoutAttributesCount * sizeof(uint32));
+    for(uint32 i=0; i<usedBuffers; ++i)
+    {
+        bufferStride[i] = buffers[i].elementSize;
+    }
 
-   for(uint32 i=0; i<usedAttributes; ++i)
-      {
-      uint32 stepRate = buffers[ attributes[i].buffer ].stepRate;
+    for(uint32 i=0; i<usedAttributes; ++i)
+    {
+        uint32 stepRate = buffers[ attributes[i].buffer ].stepRate;
 
-      D3D12_INPUT_ELEMENT_DESC* desc = (D3D12_INPUT_ELEMENT_DESC*)(state.pInputElementDescs);
+        D3D12_INPUT_ELEMENT_DESC* desc = (D3D12_INPUT_ELEMENT_DESC*)(state.pInputElementDescs);
 
-      desc[i].SemanticName         = "IN"; // Engine semantics are always: IN0, IN1, IN2, ...
-      desc[i].SemanticIndex        = i;    // For attributes split into several columns (like matrix4x4 would use 0,1,2,3 indexes). Not supported.
-      desc[i].Format               = TranslateAttributeFormat[underlyingType(attributes[i].format)];
-      desc[i].InputSlot            = static_cast<UINT>(attributes[i].buffer);
-      desc[i].AlignedByteOffset    = static_cast<UINT>(attributes[i].offset);
-      desc[i].InputSlotClass       = stepRate == 0 ? D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA : D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
-      desc[i].InstanceDataStepRate = static_cast<UINT>(stepRate);
-      }
-   }
-
-   InputLayoutD3D12::~InputLayoutD3D12()
-   {
-   delete [] state.pInputElementDescs;
-   }
-
-   std::shared_ptr<InputLayout> Direct3D12Device::createInputLayout(const DrawableType primitiveType,
-                                                               const bool primitiveRestart,
-                                                               const uint32 controlPoints,
-                                                               const uint32 usedAttributes,
-                                                               const uint32 usedBuffers,
-                                                               const AttributeDesc* attributes,
-                                                               const BufferDesc* buffers)
-   {
-   return std::make_shared<InputLayoutD3D12>(primitiveType,
-                                        primitiveRestart,
-                                        controlPoints,
-                                        usedAttributes,
-                                        usedBuffers,
-                                        attributes,
-                                        buffers);
-   }
-
-   }
+        desc[i].SemanticName         = "IN"; // Engine semantics are always: IN0, IN1, IN2, ...
+        desc[i].SemanticIndex        = i;    // For attributes split into several columns (like matrix4x4 would use 0,1,2,3 indexes). Not supported.
+        desc[i].Format               = TranslateAttributeFormat[underlyingType(attributes[i].format)];
+        desc[i].InputSlot            = static_cast<UINT>(attributes[i].buffer);
+        desc[i].AlignedByteOffset    = static_cast<UINT>(attributes[i].offset);
+        desc[i].InputSlotClass       = stepRate == 0 ? D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA : D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
+        desc[i].InstanceDataStepRate = static_cast<UINT>(stepRate);
+    }
 }
+
+InputLayoutD3D12::~InputLayoutD3D12()
+{
+    delete [] state.pInputElementDescs;
+}
+
+InputLayout* Direct3D12Device::createInputLayout(
+    const DrawableType primitiveType,
+    const bool primitiveRestart,
+    const uint32 controlPoints,
+    const uint32 usedAttributes,
+    const uint32 usedBuffers,
+    const AttributeDesc* attributes,
+    const BufferDesc* buffers)
+{
+    return new InputLayoutD3D12(primitiveType,
+                                primitiveRestart,
+                                controlPoints,
+                                usedAttributes,
+                                usedBuffers,
+                                attributes,
+                                buffers);
+}
+
+} // en::gpu
+} // en
+
 #endif

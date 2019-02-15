@@ -49,8 +49,8 @@ namespace en
          
       virtual void start(const Semaphore* waitForSemaphore = nullptr);
 
-      virtual void startRenderPass(const std::shared_ptr<RenderPass> pass, 
-                                   const std::shared_ptr<Framebuffer> framebuffer);
+      virtual void startRenderPass(const RenderPass& pass, 
+                                   const Framebuffer& framebuffer);
                                    
       virtual void setDescriptors(const PipelineLayout& layout,
                                   const DescriptorSet& set,

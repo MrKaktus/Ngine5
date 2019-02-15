@@ -206,19 +206,19 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
     
     /// Creates InputLayout description based on single buffer.
     /// Buffer needs to have specified internal formatting.
-    virtual std::shared_ptr<InputLayout> createInputLayout(
+    virtual InputLayout* createInputLayout(
         const DrawableType primitiveType,
         const bool primitiveRestart,
         const uint32 controlPoints,
         const Buffer& buffer) = 0;
 
     /// Creates empty input layout for Programmable Vertex Fetch.
-    virtual std::shared_ptr<InputLayout> createInputLayout(
+    virtual InputLayout* createInputLayout(
         const DrawableType primitiveType,
         const uint32 controlPoints = 0u) = 0;
 
     /// Specialized function for creation of any type of InputLayout.
-    virtual std::shared_ptr<InputLayout> createInputLayout(
+    virtual InputLayout* createInputLayout(
         const DrawableType primitiveType,
         const bool primitiveRestart,
         const uint32 controlPoints,
@@ -288,7 +288,7 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
 
     /// Creates render pass with Swap-Chain surface as destination.
     /// Swap-Chain surface may be destination of MSAA resolve operation.
-    virtual std::shared_ptr<RenderPass> createRenderPass(
+    virtual RenderPass* createRenderPass(
         const ColorAttachment& swapChainSurface,
         const DepthStencilAttachment* depthStencil = nullptr) = 0;
 
@@ -296,7 +296,7 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
     /// attachment slots in Fragment Shader. Entries in this array may be set
     /// to nullptr, which means that given output color attachment slot has no
     /// bound resource descriptor.
-    virtual std::shared_ptr<RenderPass> createRenderPass(
+    virtual RenderPass* createRenderPass(
         const uint32 attachments,
         const std::shared_ptr<ColorAttachment> color[] = nullptr,
         const DepthStencilAttachment* depthStencil = nullptr) = 0;

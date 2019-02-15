@@ -657,18 +657,18 @@ std::shared_ptr<DepthStencilAttachment> Direct3D12Device::createDepthStencilAtta
 
 // Creates render pass which's output goes to window framebuffer.
 // Swap-Chain surface may be destination of MSAA resolve operation.
-std::shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
+RenderPass* Direct3D12Device::createRenderPass(
     const ColorAttachment& swapChainSurface,
     const DepthStencilAttachment* depthStencil)
 {
-    std::shared_ptr<RenderPassD3D12> result = nullptr;
+    RenderPassD3D12* result = nullptr;
    
     // D3D12 doesn't support Render Passes, thus states of Color and
     // Depth-Stencil Attachment objects are stored in Render Pass
     // object, and used to emulate Rende Pass behavior when it is 
     // started and ended on Command Buffer.
 
-    result = std::make_shared<RenderPassD3D12>();
+    result = new RenderPassD3D12();
     assert( result );
 
     // Single Color Attachment
@@ -694,12 +694,12 @@ std::shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
 // color attachment slots in Fragment Shader. Entries in this 
 // array may be set to nullptr, which means that given output
 // color attachment slot has no bound resource descriptor.
-std::shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
+RenderPass* Direct3D12Device::createRenderPass(
     const uint32 attachments,
     const std::shared_ptr<ColorAttachment> color[],
     const DepthStencilAttachment* depthStencil)
 {
-    std::shared_ptr<RenderPassD3D12> result = nullptr;
+    RenderPassD3D12* result = nullptr;
    
     assert( attachments < support.maxColorAttachments );
 
@@ -720,7 +720,7 @@ std::shared_ptr<RenderPass> Direct3D12Device::createRenderPass(
     //       There should be separate method for creating such RenderPass that accepts only those parameters.
     //
 
-    result = std::make_shared<RenderPassD3D12>();
+    result = new RenderPassD3D12();
     assert( result );
 
     // Optional Color Attachments

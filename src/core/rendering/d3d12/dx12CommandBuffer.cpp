@@ -51,7 +51,7 @@ namespace en
 
    CommandBufferD3D12::~CommandBufferD3D12()
    {
-   // RendeRPass needs to be finished before Command Buffer is destroyed
+   // RenderPass needs to be finished before Command Buffer is destroyed
    assert( !encoding );
 
    // Finish encoded tasks
@@ -86,16 +86,13 @@ namespace en
    started = true;
    }
 
-   void CommandBufferD3D12::startRenderPass(const std::shared_ptr<RenderPass> pass, const std::shared_ptr<Framebuffer> _framebuffer)
+   void CommandBufferD3D12::startRenderPass(const RenderPass& pass, const Framebuffer& _framebuffer)
    {
    assert( started );
    assert( !encoding );
     
-   assert( pass );
-   assert( _framebuffer );
-   
-   renderPass  = std::dynamic_pointer_cast<RenderPassD3D12>(pass);
-   framebuffer = std::dynamic_pointer_cast<FramebufferD3D12>(_framebuffer);
+   renderPass  = reinterpret_cast<const RenderPassD3D12*>(&pass);
+   framebuffer = reinterpret_cast<const FramebufferD3D12*>(&_framebuffer);
 
    // Descriptor for empty Color Attachment output
    D3D12_RENDER_TARGET_VIEW_DESC nullColorDesc;

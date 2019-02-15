@@ -83,10 +83,10 @@ namespace en
    assert( pipelineState.viewportState );
 
    // Cast to D3D12 states
-   const RenderPassMTL*         renderPass     = reinterpret_cast<RenderPassMTL*>(pipelineState.renderPass.get());
+   const RenderPassMTL*         renderPass     = reinterpret_cast<RenderPassMTL*>(pipelineState.renderPass);
 
-   const InputLayoutMTL*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutMTL*>(pipelineState.inputLayout.get())
-                                                                           : reinterpret_cast<InputLayoutMTL*>(defaultState->inputLayout.get());
+   const InputLayoutMTL*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutMTL*>(pipelineState.inputLayout)
+                                                                           : reinterpret_cast<InputLayoutMTL*>(defaultState->inputLayout);
 
    const RasterStateMTL*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateMTL*>(pipelineState.rasterState)
                                                                            : reinterpret_cast<RasterStateMTL*>(defaultState->rasterState);

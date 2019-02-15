@@ -167,18 +167,18 @@ CommonDevice::~CommonDevice()
     assert( defaultState == nullptr );
 }
    
-   //std::shared_ptr<InputLayout> CommonDevice::createInputLayout(const DrawableType primitiveType,
-   //                                                        const uint32 controlPoints,
-   //                                                        const uint32 usedAttributes,
-   //                                                        const uint32 usedBuffers,
-   //                                                        const AttributeDesc* attributes,
-   //                                                        const BufferDesc* buffers)
-   //{
-   //// Should be implemented by API
-   //assert(0);
-   //return std::shared_ptr<InputLayout>(nullptr);
-   //}
-   
+//InputLayout* CommonDevice::createInputLayout(const DrawableType primitiveType,
+//                                             const uint32 controlPoints,
+//                                             const uint32 usedAttributes,
+//                                             const uint32 usedBuffers,
+//                                             const AttributeDesc* attributes,
+//                                             const BufferDesc* buffers)
+//{
+//// Should be implemented by API
+//assert(0);
+//return nullptr;
+//}
+
 
    // INFO: Descriptor is used when we want to be able to override any field with pur custom settings, but overall we want to use default ones
 

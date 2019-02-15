@@ -25,139 +25,141 @@
 
 namespace en
 {
-   namespace gpu
-   { 
-   static const VkAttachmentLoadOp TranslateLoadOperation[underlyingType(LoadOperation::Count)] =
-      {
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,          // None
-      VK_ATTACHMENT_LOAD_OP_LOAD,               // Load
-      VK_ATTACHMENT_LOAD_OP_CLEAR               // Clear
-      };
+namespace gpu
+{ 
+static const VkAttachmentLoadOp TranslateLoadOperation[underlyingType(LoadOperation::Count)] =
+{
+    VK_ATTACHMENT_LOAD_OP_DONT_CARE,          // None
+    VK_ATTACHMENT_LOAD_OP_LOAD,               // Load
+    VK_ATTACHMENT_LOAD_OP_CLEAR               // Clear
+};
    
-   static const VkAttachmentStoreOp TranslateStoreOperation[underlyingType(StoreOperation::Count)] =
-      {
-      VK_ATTACHMENT_STORE_OP_DONT_CARE,         // Discard
-      VK_ATTACHMENT_STORE_OP_STORE,             // Store
-      VK_ATTACHMENT_STORE_OP_DONT_CARE,         // Resolve
-      VK_ATTACHMENT_STORE_OP_STORE,             // StoreAndResolve
-      };
+static const VkAttachmentStoreOp TranslateStoreOperation[underlyingType(StoreOperation::Count)] =
+{
+    VK_ATTACHMENT_STORE_OP_DONT_CARE,         // Discard
+    VK_ATTACHMENT_STORE_OP_STORE,             // Store
+    VK_ATTACHMENT_STORE_OP_DONT_CARE,         // Resolve
+    VK_ATTACHMENT_STORE_OP_STORE,             // StoreAndResolve
+};
 
    
-   // COLOR ATTACHMENT
-   //////////////////////////////////////////////////////////////////////////
+// COLOR ATTACHMENT
+//////////////////////////////////////////////////////////////////////////
 
 
-   #define AttColor          0
-   #define AttResolve        1
+#define AttColor          0
+#define AttResolve        1
 
-   ColorAttachmentVK::ColorAttachmentVK(const Format format, const uint32 samples) :
-      resolve(false)
-   {
-   clearValue.color.float32[0] = 0.0f;
-   clearValue.color.float32[1] = 0.0f;
-   clearValue.color.float32[2] = 0.0f;
-   clearValue.color.float32[3] = 1.0f;
+ColorAttachmentVK::ColorAttachmentVK(const Format format, const uint32 samples) :
+    resolve(false)
+{
+    clearValue.color.float32[0] = 0.0f;
+    clearValue.color.float32[1] = 0.0f;
+    clearValue.color.float32[2] = 0.0f;
+    clearValue.color.float32[3] = 1.0f;
 
-   state[AttColor].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-   state[AttColor].format         = TranslateTextureFormat[underlyingType(format)];
-   state[AttColor].samples        = static_cast<VkSampleCountFlagBits>(samples);
-   state[AttColor].loadOp         = VK_ATTACHMENT_LOAD_OP_LOAD;
-   state[AttColor].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-   state[AttColor].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
-   state[AttColor].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
-   state[AttColor].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-   state[AttColor].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-   }
+    state[AttColor].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
+    state[AttColor].format         = TranslateTextureFormat[underlyingType(format)];
+    state[AttColor].samples        = static_cast<VkSampleCountFlagBits>(samples);
+    state[AttColor].loadOp         = VK_ATTACHMENT_LOAD_OP_LOAD;
+    state[AttColor].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+    state[AttColor].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
+    state[AttColor].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
+    state[AttColor].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    state[AttColor].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+}
 
-   ColorAttachmentVK::~ColorAttachmentVK()
-   {
-   }
+ColorAttachmentVK::~ColorAttachmentVK()
+{
+}
 
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 _clearValue)
-   {
-   state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.float32[0] = _clearValue.r;
-   clearValue.color.float32[1] = _clearValue.g;
-   clearValue.color.float32[2] = _clearValue.b;
-   clearValue.color.float32[3] = _clearValue.a;
-   }
+void ColorAttachmentVK::onLoad(const LoadOperation load, const float4 _clearValue)
+{
+    state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
+    clearValue.color.float32[0] = _clearValue.r;
+    clearValue.color.float32[1] = _clearValue.g;
+    clearValue.color.float32[2] = _clearValue.b;
+    clearValue.color.float32[3] = _clearValue.a;
+}
    
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const uint32v4 _clearValue)
-   {
-   state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.uint32[0]  = _clearValue.x;
-   clearValue.color.uint32[1]  = _clearValue.y;
-   clearValue.color.uint32[2]  = _clearValue.z;
-   clearValue.color.uint32[3]  = _clearValue.w;
-   }
+void ColorAttachmentVK::onLoad(const LoadOperation load, const uint32v4 _clearValue)
+{
+    state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
+    clearValue.color.uint32[0]  = _clearValue.x;
+    clearValue.color.uint32[1]  = _clearValue.y;
+    clearValue.color.uint32[2]  = _clearValue.z;
+    clearValue.color.uint32[3]  = _clearValue.w;
+}
    
-   void ColorAttachmentVK::onLoad(const LoadOperation load, const sint32v4 _clearValue)
-   {
-   state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
-   clearValue.color.int32[0] = _clearValue.x;
-   clearValue.color.int32[1] = _clearValue.y;
-   clearValue.color.int32[2] = _clearValue.z;
-   clearValue.color.int32[3] = _clearValue.w;
-   }
+void ColorAttachmentVK::onLoad(const LoadOperation load, const sint32v4 _clearValue)
+{
+    state[AttColor].loadOp = TranslateLoadOperation[underlyingType(load)];
+    clearValue.color.int32[0] = _clearValue.x;
+    clearValue.color.int32[1] = _clearValue.y;
+    clearValue.color.int32[2] = _clearValue.z;
+    clearValue.color.int32[3] = _clearValue.w;
+}
 
-   void ColorAttachmentVK::onStore(const StoreOperation store)
-   {
-   state[AttColor].storeOp = TranslateStoreOperation[underlyingType(store)];
-   resolve = false;
+void ColorAttachmentVK::onStore(const StoreOperation store)
+{
+    state[AttColor].storeOp = TranslateStoreOperation[underlyingType(store)];
+    resolve = false;
 
-   if (store == StoreOperation::Resolve ||
-       store == StoreOperation::StoreAndResolve)
-      {
-      // Source surface need to be MSAA to be later resolved
-      assert( state[AttColor].samples > 1 );
+    if (store == StoreOperation::Resolve ||
+        store == StoreOperation::StoreAndResolve)
+    {
+        // Source surface need to be MSAA to be later resolved
+        assert( state[AttColor].samples > 1 );
 
-      // If app want to just store resolved image, we discard temporary MSAA content
-      if (store == StoreOperation::Resolve)
-          state[AttColor].storeOp      = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        // If app want to just store resolved image, we discard temporary MSAA content
+        if (store == StoreOperation::Resolve)
+        {
+            state[AttColor].storeOp      = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        }
 
-      state[AttResolve].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
-      state[AttResolve].format         = state[AttColor].format;
-      state[AttResolve].samples        = VK_SAMPLE_COUNT_1_BIT;
-      state[AttResolve].loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // We Resolve to it, so don't care
-      state[AttResolve].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-      state[AttResolve].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
-      state[AttResolve].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
-      state[AttResolve].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
-      state[AttResolve].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO: Vulkan: Add special resolve for presenting surface
-      resolve = true;
-      }
-   }
-
-
-   // DEPTH-STENCIL ATTACHMENT
-   //////////////////////////////////////////////////////////////////////////
+        state[AttResolve].flags          = 0; // TODO: VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT - if attachments may alias/overlap in the same memory
+        state[AttResolve].format         = state[AttColor].format;
+        state[AttResolve].samples        = VK_SAMPLE_COUNT_1_BIT;
+        state[AttResolve].loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // We Resolve to it, so don't care
+        state[AttResolve].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+        state[AttResolve].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Ignored
+        state[AttResolve].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // Ignored
+        state[AttResolve].initialLayout  = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
+        state[AttResolve].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // TODO: Vulkan: Add special resolve for presenting surface
+        resolve = true;
+    }
+}
 
 
-   // Vulkan 1.0.9 WSI - Page 117:
-   // "Any given element of pResolveAttachments must have the same VkFormat as its corresponding color attachment"
-   //
-   //  Vulkan 1.0.9 WSI - Page 367:
-   //
-   // vkCmdResolveImage
-   //
-   // "srcSubresource and dstSubresource are VkImageSubresourceLayers structures specifying the
-   //  subresources of the images used for the source and destination image data, respectively. Resolve of depth/stencil
-   //  images is not supported."
-   //
-   // This leads to conclusion that Depth/Stencil cannot be resolved by the API at all.
-   //
-   // pDepthStencilAttachment field in VkSubpassDescription struct allows description of only one surface, thus
-   // Vulkan is not supporting separate Depth and Stencil attachments at the same time.
-   //
-   // Metal API 
-   //
-   // https://developer.apple.com/library/ios/documentation/Miscellaneous/Conceptual/MetalProgrammingGuide/MetalFeatureSetTables/MetalFeatureSetTables.html
-   // and details in https://developer.apple.com/library/ios/documentation/Metal/Reference/MTLRenderPassDepthAttachmentDescriptor_Ref/#//apple_ref/c/tdef/MTLMultisampleDepthResolveFilter
-   //
-   // Metal allows separate Depth and Stencil attachments.
-   //
-   // Metal allows Depth attachment resolve on iOS GPU Family 3 v1.
-   //
+// DEPTH-STENCIL ATTACHMENT
+//////////////////////////////////////////////////////////////////////////
+
+
+// Vulkan 1.0.9 WSI - Page 117:
+// "Any given element of pResolveAttachments must have the same VkFormat as its corresponding color attachment"
+//
+//  Vulkan 1.0.9 WSI - Page 367:
+//
+// vkCmdResolveImage
+//
+// "srcSubresource and dstSubresource are VkImageSubresourceLayers structures specifying the
+//  subresources of the images used for the source and destination image data, respectively. Resolve of depth/stencil
+//  images is not supported."
+//
+// This leads to conclusion that Depth/Stencil cannot be resolved by the API at all.
+//
+// pDepthStencilAttachment field in VkSubpassDescription struct allows description of only one surface, thus
+// Vulkan is not supporting separate Depth and Stencil attachments at the same time.
+//
+// Metal API 
+//
+// https://developer.apple.com/library/ios/documentation/Miscellaneous/Conceptual/MetalProgrammingGuide/MetalFeatureSetTables/MetalFeatureSetTables.html
+// and details in https://developer.apple.com/library/ios/documentation/Metal/Reference/MTLRenderPassDepthAttachmentDescriptor_Ref/#//apple_ref/c/tdef/MTLMultisampleDepthResolveFilter
+//
+// Metal allows separate Depth and Stencil attachments.
+//
+// Metal allows Depth attachment resolve on iOS GPU Family 3 v1.
+//
 
 
    // If you don't want to use Depth, nor Stencil surfaces, just don't assign
@@ -538,327 +540,345 @@ std::shared_ptr<Framebuffer> RenderPassVK::createFramebuffer(
 }
    
 
-   // DEVICE
-   //////////////////////////////////////////////////////////////////////////
+// DEVICE
+//////////////////////////////////////////////////////////////////////////
 
 
-   std::shared_ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Format format, const uint32 samples)
-   {
-   return std::make_shared<ColorAttachmentVK>(format, samples);
-   }
+std::shared_ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Format format, const uint32 samples)
+{
+    return std::make_shared<ColorAttachmentVK>(format, samples);
+}
 
-   std::shared_ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(const Format depthFormat, 
-                                                                                 const Format stencilFormat,
-                                                                                 const uint32 samples)
-   {
-   return std::make_shared<DepthStencilAttachmentVK>(depthFormat, stencilFormat, samples);
-   }
+std::shared_ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(
+    const Format depthFormat, 
+    const Format stencilFormat,
+    const uint32 samples)
+{
+    return std::make_shared<DepthStencilAttachmentVK>(depthFormat, stencilFormat, samples);
+}
    
-   // Creates render pass which's output goes to window framebuffer.
-   // Swap-Chain surface may be destination of MSAA resolve operation.
-   std::shared_ptr<RenderPass> VulkanDevice::createRenderPass(
-      const ColorAttachment& swapChainSurface,
-      const DepthStencilAttachment* depthStencil)
-   {
-   std::shared_ptr<RenderPassVK> result = nullptr;
+// Creates render pass which's output goes to window framebuffer.
+// Swap-Chain surface may be destination of MSAA resolve operation.
+RenderPass* VulkanDevice::createRenderPass(
+    const ColorAttachment& swapChainSurface,
+    const DepthStencilAttachment* depthStencil)
+{
+    RenderPassVK* result = nullptr;
    
-   uint32 surfaces = 0u;
-   bool   resolve  = false;
-   uint32 usedAttachments = 1u;
+    uint32 surfaces = 0u;
+    bool   resolve  = false;
+    uint32 usedAttachments = 1u;
 
-   const ColorAttachmentVK& ptr = reinterpret_cast<const ColorAttachmentVK&>(swapChainSurface);
+    const ColorAttachmentVK& ptr = reinterpret_cast<const ColorAttachmentVK&>(swapChainSurface);
    
-   // Color attachment
-   VkAttachmentReference attColor;
-   attColor.attachment = surfaces;
-   attColor.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
-   surfaces++;
+    // Color attachment
+    VkAttachmentReference attColor;
+    attColor.attachment = surfaces;
+    attColor.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
+    surfaces++;
 
-   // Optional Color Resolve
-   VkAttachmentReference attResolve;
-   if (resolve)
-      {
-      attResolve.attachment = surfaces;
-      attResolve.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-      surfaces++;
-      }
+    // Optional Color Resolve
+    VkAttachmentReference attResolve;
+    if (resolve)
+    {
+        attResolve.attachment = surfaces;
+        attResolve.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        surfaces++;
+    }
       
-   // Optional Depth-Stencil / Depth / Stencil
-   VkAttachmentReference attDepthStencil;
-   if (depthStencil)
-      {
-      attDepthStencil.attachment = surfaces;
-      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-      surfaces++;
+    // Optional Depth-Stencil / Depth / Stencil
+    VkAttachmentReference attDepthStencil;
+    if (depthStencil)
+    {
+        attDepthStencil.attachment = surfaces;
+        attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        surfaces++;
       
-      // TODO: How to determine below situation ?
-      // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL - is a once rendered depth buffer, now used for depth test OR sample as shadow map
-      // We would need to know from the current pipeline object if depth/stencil test/write is enabled to safely set it.
-      }
+        // TODO: How to determine below situation ?
+        // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL - is a once rendered depth buffer, now used for depth test OR sample as shadow map
+        // We would need to know from the current pipeline object if depth/stencil test/write is enabled to safely set it.
+    }
 
-   // Engine is currently not supporting multiple sub-passes described as one dependency graph
-   VkSubpassDescription subInfo;
-   subInfo.flags                   = 0u;  // Reserved for future
-   subInfo.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
-   subInfo.inputAttachmentCount    = 0u;
-   subInfo.pInputAttachments       = nullptr;
-   subInfo.colorAttachmentCount    = 1u;
-   subInfo.pColorAttachments       = &attColor;
-   subInfo.pResolveAttachments     = resolve      ? &attResolve      : nullptr;
-   subInfo.pDepthStencilAttachment = depthStencil ? &attDepthStencil : nullptr;
-   subInfo.preserveAttachmentCount = 0;
-   subInfo.pPreserveAttachments    = nullptr;
+    // Engine is currently not supporting multiple sub-passes described as one dependency graph
+    VkSubpassDescription subInfo;
+    subInfo.flags                   = 0u;  // Reserved for future
+    subInfo.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subInfo.inputAttachmentCount    = 0u;
+    subInfo.pInputAttachments       = nullptr;
+    subInfo.colorAttachmentCount    = 1u;
+    subInfo.pColorAttachments       = &attColor;
+    subInfo.pResolveAttachments     = resolve      ? &attResolve      : nullptr;
+    subInfo.pDepthStencilAttachment = depthStencil ? &attDepthStencil : nullptr;
+    subInfo.preserveAttachmentCount = 0;
+    subInfo.pPreserveAttachments    = nullptr;
 
-   // Gather global Attachment states (for all subpasses)
-   uint32 index = 0;
-   VkAttachmentDescription* attachment = new VkAttachmentDescription[surfaces];
-   memcpy(&attachment[index], &ptr.state[AttColor], sizeof(VkAttachmentDescription));
-   index++;
+    // Gather global Attachment states (for all subpasses)
+    uint32 index = 0;
+    VkAttachmentDescription* attachment = new VkAttachmentDescription[surfaces];
+    memcpy(&attachment[index], &ptr.state[AttColor], sizeof(VkAttachmentDescription));
+    index++;
 
-   if (resolve)
-      {
-      memcpy(&attachment[index], &ptr.state[AttResolve], sizeof(VkAttachmentDescription));
-      index++;
-      }
+    if (resolve)
+    {
+        memcpy(&attachment[index], &ptr.state[AttResolve], sizeof(VkAttachmentDescription));
+        index++;
+    }
 
-   if (depthStencil)
-      {
-      const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
-      memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
-      index++;
-      }
+    if (depthStencil)
+    {
+        const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
+        memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
+        index++;
+    }
 
-   // Sanity check
-   assert( surfaces == index );
+    // Sanity check
+    assert( surfaces == index );
 
-   // Describe final Render Pass
-   VkRenderPassCreateInfo passInfo;
-   passInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-   passInfo.pNext           = nullptr;
-   passInfo.flags           = 0u;
-   passInfo.attachmentCount = surfaces;
-   passInfo.pAttachments    = attachment;
-   passInfo.subpassCount    = 1;
-   passInfo.pSubpasses      = &subInfo;
-   passInfo.dependencyCount = 0;
-   passInfo.pDependencies   = nullptr;
+    // Describe final Render Pass
+    VkRenderPassCreateInfo passInfo;
+    passInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    passInfo.pNext           = nullptr;
+    passInfo.flags           = 0u;
+    passInfo.attachmentCount = surfaces;
+    passInfo.pAttachments    = attachment;
+    passInfo.subpassCount    = 1;
+    passInfo.pSubpasses      = &subInfo;
+    passInfo.dependencyCount = 0;
+    passInfo.pDependencies   = nullptr;
 
-   // Create renderpass object
-   VkRenderPass renderpass = VK_NULL_HANDLE;
-   Validate( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
-   if (lastResult[currentThreadId()] == VK_SUCCESS)
-      {
-      result = std::make_shared<RenderPassVK>(this,
-                                         renderpass,
-                                         usedAttachments,
-                                         surfaces,
-                                         resolve,
-                                         depthStencil ? true : false);
-      assert( result );
+    // Create renderpass object
+    VkRenderPass renderpass = VK_NULL_HANDLE;
+    Validate( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
+    if (lastResult[currentThreadId()] == VK_SUCCESS)
+    {
+        result = new RenderPassVK(this,
+                                  renderpass,
+                                  usedAttachments,
+                                  surfaces,
+                                  resolve,
+                                  depthStencil ? true : false);
+        assert( result );
 
-      // Those values will be used at beginning of RenderPass
-      index = 0;
-      result->clearValues[index] = ptr.clearValue;
-      index++;
+        // Those values will be used at beginning of RenderPass
+        index = 0;
+        result->clearValues[index] = ptr.clearValue;
+        index++;
 
-      // Were not specifying clear values for MSAA resolve destinations (but need to keep entries)
-      if (resolve)
-         index *= 2;
+        // Were not specifying clear values for MSAA resolve destinations (but need to keep entries)
+        if (resolve)
+        {
+            index *= 2;
+        }
       
-      if (depthStencil)
-         {
-         const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
-         result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
-         result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
-         }
-      }
+        if (depthStencil)
+        {
+            const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
+            result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
+            result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
+        }
+    }
 
-   delete [] attachment;
+    delete [] attachment;
 
-   return result;
-   }
+    return result;
+}
 
-   // Creates render pass. Entries in "color" array, match output
-   // color attachment slots in Fragment Shader. Entries in this 
-   // array may be set to nullptr, which means that given output
-   // color attachment slot has no bound resource descriptor.
-   std::shared_ptr<RenderPass> VulkanDevice::createRenderPass(
-      const uint32 attachments,
-      const std::shared_ptr<ColorAttachment> color[],
-      const DepthStencilAttachment* depthStencil)
-   {
-   std::shared_ptr<RenderPassVK> result = nullptr;
+// Creates render pass. Entries in "color" array, match output
+// color attachment slots in Fragment Shader. Entries in this 
+// array may be set to nullptr, which means that given output
+// color attachment slot has no bound resource descriptor.
+RenderPass* VulkanDevice::createRenderPass(
+    const uint32 attachments,
+    const std::shared_ptr<ColorAttachment> color[],
+    const DepthStencilAttachment* depthStencil)
+{
+    RenderPassVK* result = nullptr;
    
-   assert( attachments < support.maxColorAttachments );
+    assert( attachments < support.maxColorAttachments );
 
-   // Vulkan allows pass without any color and depth attachments.
-   // In such case, rasterization is still performed in width x height x layers x sampler space,
-   // but it is expected that results will be outputted as a result of side effects operation.
-   //
-   // Metal is not supporting that !
-   //
-   // TODO: Make this method universal and internal. Provide common width/height/layers paarameters.
-   //       There should be separate method for creating such RenderPass that accepts only those parameters.
-   //
-   uint32 surfaces = 0u;
-   bool   resolve  = false;
+    // Vulkan allows pass without any color and depth attachments.
+    // In such case, rasterization is still performed in width x height x layers x sampler space,
+    // but it is expected that results will be outputted as a result of side effects operation.
+    //
+    // Metal is not supporting that !
+    //
+    // TODO: Make this method universal and internal. Provide common width/height/layers paarameters.
+    //       There should be separate method for creating such RenderPass that accepts only those parameters.
+    //
+    uint32 surfaces = 0u;
+    bool   resolve  = false;
    
-   // Render Pass attachments layouy:
-   // 0..7  - Up to 8 Color Attachments (tightly packed)
-   // 8..15 - Up to 8 Resolve surfaces (tightly packed)
-   // 16    - Depth-Stencil / Depth / Stencil
+    // Render Pass attachments layouy:
+    // 0..7  - Up to 8 Color Attachments (tightly packed)
+    // 8..15 - Up to 8 Resolve surfaces (tightly packed)
+    // 16    - Depth-Stencil / Depth / Stencil
    
-   uint32 usedAttachments = 0u;
+    uint32 usedAttachments = 0u;
 
-   // Optional Color Attachments
-   VkAttachmentReference* attColor = nullptr;
-   if (attachments)
-      {
-      attColor = new VkAttachmentReference[attachments];
-      for(uint32 i=0; i<attachments; ++i)
-         {
-         // Passed in array of Color Attachment descriptors may have empty slots.
-         attColor[i].attachment = VK_ATTACHMENT_UNUSED;
-         attColor[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-         if (color[i])
+    // Optional Color Attachments
+    VkAttachmentReference* attColor = nullptr;
+    if (attachments)
+    {
+        attColor = new VkAttachmentReference[attachments];
+        for(uint32 i=0; i<attachments; ++i)
+        {
+            // Passed in array of Color Attachment descriptors may have empty slots.
+            attColor[i].attachment = VK_ATTACHMENT_UNUSED;
+            attColor[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            if (color[i])
             {
-            if (reinterpret_cast<ColorAttachmentVK*>(color[i].get())->resolve)
-               resolve = true;
-            attColor[i].attachment = surfaces;
-            setBit(usedAttachments, i);
-            surfaces++;
+                if (reinterpret_cast<ColorAttachmentVK*>(color[i].get())->resolve)
+                {
+                    resolve = true;
+                }
+
+                attColor[i].attachment = surfaces;
+                setBit(usedAttachments, i);
+                surfaces++;
             }
-         }
-      }
+        }
+    }
       
-   // Optional Color Resolve
-   VkAttachmentReference* attResolve = nullptr;
-   if (resolve)
-      {
-      attResolve = new VkAttachmentReference[attachments];
-      for(uint32 i=0; i<attachments; ++i)
-         {
-         attResolve[i].attachment = VK_ATTACHMENT_UNUSED;
-         attResolve[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-         if (checkBit(usedAttachments, i))
+    // Optional Color Resolve
+    VkAttachmentReference* attResolve = nullptr;
+    if (resolve)
+    {
+        attResolve = new VkAttachmentReference[attachments];
+        for(uint32 i=0; i<attachments; ++i)
+        {
+            attResolve[i].attachment = VK_ATTACHMENT_UNUSED;
+            attResolve[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            if (checkBit(usedAttachments, i))
             {
-            attResolve[i].attachment = surfaces;
-            surfaces++;
+                attResolve[i].attachment = surfaces;
+                surfaces++;
             }
-         }
-      }
+        }
+    }
       
-   // Optional Depth-Stencil / Depth / Stencil
-   VkAttachmentReference attDepthStencil;
-   if (depthStencil)
-      {
-      attDepthStencil.attachment = surfaces;
-      attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-      surfaces++;
+    // Optional Depth-Stencil / Depth / Stencil
+    VkAttachmentReference attDepthStencil;
+    if (depthStencil)
+    {
+        attDepthStencil.attachment = surfaces;
+        attDepthStencil.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        surfaces++;
       
-      // TODO: How to determine below situation ?
-      // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL - is a once rendered depth buffer, now used for depth test OR sample as shadow map
-      // We would need to know from the current pipeline object if depth/stencil test/write is enabled to safely set it.
-      }
+        // TODO: How to determine below situation ?
+        // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL - is a once rendered depth buffer, now used for depth test OR sample as shadow map
+        // We would need to know from the current pipeline object if depth/stencil test/write is enabled to safely set it.
+    }
 
-   // Engine is currently not supporting multiple sub-passes described as one dependency graph
-   VkSubpassDescription subInfo;
-   subInfo.flags                   = 0u;  // Reserved for future
-   subInfo.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
-   subInfo.inputAttachmentCount    = 0u;
-   subInfo.pInputAttachments       = nullptr;
-   subInfo.colorAttachmentCount    = attachments;
-   subInfo.pColorAttachments       = attachments  ? attColor         : nullptr;
-   subInfo.pResolveAttachments     = resolve      ? attResolve       : nullptr;
-   subInfo.pDepthStencilAttachment = depthStencil ? &attDepthStencil : nullptr;
-   subInfo.preserveAttachmentCount = 0;
-   subInfo.pPreserveAttachments    = nullptr;
+    // Engine is currently not supporting multiple sub-passes described as one dependency graph
+    VkSubpassDescription subInfo;
+    subInfo.flags                   = 0u;  // Reserved for future
+    subInfo.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subInfo.inputAttachmentCount    = 0u;
+    subInfo.pInputAttachments       = nullptr;
+    subInfo.colorAttachmentCount    = attachments;
+    subInfo.pColorAttachments       = attachments  ? attColor         : nullptr;
+    subInfo.pResolveAttachments     = resolve      ? attResolve       : nullptr;
+    subInfo.pDepthStencilAttachment = depthStencil ? &attDepthStencil : nullptr;
+    subInfo.preserveAttachmentCount = 0;
+    subInfo.pPreserveAttachments    = nullptr;
 
+    // Gather global Attachment states (for all subpasses)
+    uint32 index = 0;
+    VkAttachmentDescription* attachment = nullptr;
+    if (surfaces)
+    {
+        attachment = new VkAttachmentDescription[surfaces];
+    }
 
-   // Gather global Attachment states (for all subpasses)
-   uint32 index = 0;
-   VkAttachmentDescription* attachment = nullptr;
-   if (surfaces)
-      attachment = new VkAttachmentDescription[surfaces];
-   for(uint32 i=0; i<attachments; ++i)
-      if (checkBit(usedAttachments, i))
-         {
-         ColorAttachmentVK* ptr = reinterpret_cast<ColorAttachmentVK*>(color[i].get());
-         memcpy(&attachment[index], &ptr->state[AttColor], sizeof(VkAttachmentDescription));
-         index++;
-         }
-      
-   if (resolve)
-      for(uint32 i=0; i<attachments; ++i)
-         if (checkBit(usedAttachments, i))
-            {
+    for(uint32 i=0; i<attachments; ++i)
+    {
+        if (checkBit(usedAttachments, i))
+        {
             ColorAttachmentVK* ptr = reinterpret_cast<ColorAttachmentVK*>(color[i].get());
-            memcpy(&attachment[index], &ptr->state[AttResolve], sizeof(VkAttachmentDescription));
+            memcpy(&attachment[index], &ptr->state[AttColor], sizeof(VkAttachmentDescription));
             index++;
-            }
-            
-   if (depthStencil)
-      {
-      const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
-      memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
-      index++;
-      }
+        }
+    }
 
-   // Sanity check
-   assert( surfaces == index );
-
-   // Describe final Render Pass
-   VkRenderPassCreateInfo passInfo;
-   passInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-   passInfo.pNext           = nullptr;
-   passInfo.attachmentCount = surfaces;
-   passInfo.pAttachments    = attachment;
-   passInfo.subpassCount    = 1;
-   passInfo.pSubpasses      = &subInfo;
-   passInfo.dependencyCount = 0;
-   passInfo.pDependencies   = nullptr;
-
-   // Create renderpass object
-   VkRenderPass renderpass = VK_NULL_HANDLE;
-   Validate( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
-   if (lastResult[currentThreadId()] == VK_SUCCESS)
-      {
-      result = std::make_shared<RenderPassVK>(this,
-                                         renderpass,
-                                         usedAttachments,
-                                         surfaces,
-                                         resolve,
-                                         depthStencil ? true : false);
-      assert( result );
-
-      // Those values will be used at beginning of RenderPass
-      index = 0;
-      for(uint32 i=0; i<attachments; ++i)
-         if (checkBit(usedAttachments, i))
+    if (resolve)
+    {
+        for(uint32 i=0; i<attachments; ++i)
+        {
+            if (checkBit(usedAttachments, i))
             {
-            ColorAttachmentVK* ptr = reinterpret_cast<ColorAttachmentVK*>(color[i].get());
-            result->clearValues[index] = ptr->clearValue;
-            index++;
+                ColorAttachmentVK* ptr = reinterpret_cast<ColorAttachmentVK*>(color[i].get());
+                memcpy(&attachment[index], &ptr->state[AttResolve], sizeof(VkAttachmentDescription));
+                index++;
             }
+        }
+    }
+     
+    if (depthStencil)
+    {
+        const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
+        memcpy(&attachment[index], &ptr->state, sizeof(VkAttachmentDescription));
+        index++;
+    }
+
+    // Sanity check
+    assert( surfaces == index );
+
+    // Describe final Render Pass
+    VkRenderPassCreateInfo passInfo;
+    passInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    passInfo.pNext           = nullptr;
+    passInfo.attachmentCount = surfaces;
+    passInfo.pAttachments    = attachment;
+    passInfo.subpassCount    = 1;
+    passInfo.pSubpasses      = &subInfo;
+    passInfo.dependencyCount = 0;
+    passInfo.pDependencies   = nullptr;
+
+    // Create renderpass object
+    VkRenderPass renderpass = VK_NULL_HANDLE;
+    Validate( this, vkCreateRenderPass(device, &passInfo, nullptr, &renderpass) )
+    if (lastResult[currentThreadId()] == VK_SUCCESS)
+    {
+        result = new RenderPassVK(this,
+                                  renderpass,
+                                  usedAttachments,
+                                  surfaces,
+                                  resolve,
+                                  depthStencil ? true : false);
+        assert( result );
+
+        // Those values will be used at beginning of RenderPass
+        index = 0;
+        for(uint32 i=0; i<attachments; ++i)
+        {
+            if (checkBit(usedAttachments, i))
+            {
+                ColorAttachmentVK* ptr = reinterpret_cast<ColorAttachmentVK*>(color[i].get());
+                result->clearValues[index] = ptr->clearValue;
+                index++;
+            }
+        }
          
-      // Were not specifying clear values for MSAA resolve destinations (but need to keep entries)
-      if (resolve)
-         index *= 2;
-      
-      if (depthStencil)
-         {
-         const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
-         result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
-         result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
-         }
-      }
+        // Were not specifying clear values for MSAA resolve destinations (but need to keep entries)
+        if (resolve)
+        {
+            index *= 2;
+        }
 
-   delete [] attColor;
-   delete [] attResolve;
-   delete [] attachment;
+        if (depthStencil)
+        {
+            const DepthStencilAttachmentVK* ptr = reinterpret_cast<const DepthStencilAttachmentVK*>(depthStencil);
+            result->clearValues[index].depthStencil.depth   = ptr->clearDepth;
+            result->clearValues[index].depthStencil.stencil = ptr->clearStencil;
+        }
+    }
 
-   return result;
-   }
+    delete [] attColor;
+    delete [] attResolve;
+    delete [] attachment;
+
+    return result;
+}
 
 
 

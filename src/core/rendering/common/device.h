@@ -126,18 +126,18 @@ class CommonDevice : public GpuDevice
 
     virtual std::shared_ptr<Display> display(const uint32 index) const;
 
-    virtual std::shared_ptr<InputLayout> createInputLayout(
+    virtual InputLayout* createInputLayout(
         const DrawableType primitiveType,
         const uint32 controlPoints = 0u);
 
-    virtual std::shared_ptr<InputLayout> createInputLayout(
+    virtual InputLayout* createInputLayout(
         const DrawableType primitiveType,
         const bool primitiveRestart,
         const uint32 controlPoints,
         const Buffer& buffer);
        
   // Needs to be Declared and Defined to allow calls to it from itself
-  //virtual std::shared_ptr<InputLayout> createInputLayout(
+  //virtual InputLayout* createInputLayout(
   //    const DrawableType primitiveType,
   //    const uint32 controlPoints,
   //    const uint32 usedAttributes,

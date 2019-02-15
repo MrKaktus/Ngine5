@@ -170,8 +170,8 @@ class CommandBuffer : public std::enable_shared_from_this<CommandBuffer>
       
       
     virtual void startRenderPass(
-        const std::shared_ptr<RenderPass> pass,
-        const std::shared_ptr<Framebuffer> framebuffer) = 0;
+        const RenderPass& pass,
+        const Framebuffer& framebuffer) = 0;
 
     virtual void endRenderPass(void) = 0;
 

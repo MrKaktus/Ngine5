@@ -89,7 +89,7 @@ namespace en
          const QueueType type = QueueType::Universal,
          const uint32 parentQueue = 0u);
 
-      virtual std::shared_ptr<InputLayout> createInputLayout(
+      virtual InputLayout* createInputLayout(
          const DrawableType primitiveType,
          const bool primitiveRestart,
          const uint32 controlPoints,
@@ -125,14 +125,14 @@ namespace en
          const Format stencilFormat = Format::Unsupported,
          const uint32 samples = 1u);
 
-      virtual std::shared_ptr<RenderPass> createRenderPass(
-         const ColorAttachment& swapChainSurface,
-         const DepthStencilAttachment* depthStencil = nullptr);
+    virtual RenderPass* createRenderPass(
+        const ColorAttachment& swapChainSurface,
+        const DepthStencilAttachment* depthStencil = nullptr);
 
-      virtual std::shared_ptr<RenderPass> createRenderPass(
-         const uint32 attachments,
-         const std::shared_ptr<ColorAttachment> color[] = nullptr,
-         const DepthStencilAttachment* depthStencil = nullptr);
+    virtual RenderPass* createRenderPass(
+        const uint32 attachments,
+        const std::shared_ptr<ColorAttachment> color[] = nullptr,
+        const DepthStencilAttachment* depthStencil = nullptr);
 
 
       virtual std::shared_ptr<Semaphore> createSemaphore(void);

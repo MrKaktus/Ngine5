@@ -230,7 +230,7 @@ class Direct3D12Device : public CommonDevice
 
     virtual std::shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
 
-    virtual std::shared_ptr<InputLayout> createInputLayout(
+    virtual InputLayout* createInputLayout(
         const DrawableType primitiveType,
         const bool primitiveRestart,
         const uint32 controlPoints,
@@ -240,7 +240,7 @@ class Direct3D12Device : public CommonDevice
         const BufferDesc* buffers);
 
     // TODO:
-    virtual std::shared_ptr<Shader>  createShader(
+    virtual std::shared_ptr<Shader> createShader(
         const ShaderStage stage,
         const std::string& source);
 
@@ -258,11 +258,11 @@ class Direct3D12Device : public CommonDevice
         const Format stencilFormat = Format::Unsupported,
         const uint32 samples = 1u);
 
-    virtual std::shared_ptr<RenderPass> createRenderPass(
+    virtual RenderPass* createRenderPass(
         const ColorAttachment& swapChainSurface,
         const DepthStencilAttachment* depthStencil = nullptr);
 
-    virtual std::shared_ptr<RenderPass> createRenderPass(
+    virtual RenderPass* createRenderPass(
         const uint32 attachments,
         const std::shared_ptr<ColorAttachment> color[] = nullptr,
         const DepthStencilAttachment* depthStencil = nullptr);
