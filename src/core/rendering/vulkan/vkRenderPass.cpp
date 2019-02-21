@@ -544,17 +544,28 @@ std::shared_ptr<Framebuffer> RenderPassVK::createFramebuffer(
 //////////////////////////////////////////////////////////////////////////
 
 
-std::shared_ptr<ColorAttachment> VulkanDevice::createColorAttachment(const Format format, const uint32 samples)
+ColorAttachment* VulkanDevice::createColorAttachment(
+    const Format format, 
+    const uint32 samples)
 {
-    return std::make_shared<ColorAttachmentVK>(format, samples);
+    assert( format != Format::Unsupported );
+    assert( samples > 0u );
+
+    return new ColorAttachmentVK(format, samples);
 }
 
-std::shared_ptr<DepthStencilAttachment> VulkanDevice::createDepthStencilAttachment(
+DepthStencilAttachment* VulkanDevice::createDepthStencilAttachment(
     const Format depthFormat, 
     const Format stencilFormat,
     const uint32 samples)
 {
-    return std::make_shared<DepthStencilAttachmentVK>(depthFormat, stencilFormat, samples);
+    // Needs to be DepthStencil, Depth or Stencil
+    assert( isDepthStencil(depthFormat) ||
+            isDepth(depthFormat)        ||
+            isStencil(stencilFormat) );
+    assert( samples > 0u );
+
+    return new DepthStencilAttachmentVK(depthFormat, stencilFormat, samples);
 }
    
 // Creates render pass which's output goes to window framebuffer.

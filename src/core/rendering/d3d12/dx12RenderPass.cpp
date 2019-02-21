@@ -640,19 +640,28 @@ std::shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(
 //////////////////////////////////////////////////////////////////////////
 
 
-std::shared_ptr<ColorAttachment> Direct3D12Device::createColorAttachment(
+ColorAttachment* Direct3D12Device::createColorAttachment(
     const Format format,
     const uint32 samples)
 {
-    return std::make_shared<ColorAttachmentD3D12>(format, samples);
+    assert( format != Format::Unsupported );
+    assert( samples > 0u );
+
+    return new ColorAttachmentD3D12(format, samples);
 }
 
-std::shared_ptr<DepthStencilAttachment> Direct3D12Device::createDepthStencilAttachment(
+DepthStencilAttachment* Direct3D12Device::createDepthStencilAttachment(
     const Format depthFormat,
     const Format stencilFormat,
     const uint32 samples)
 {
-    return std::make_shared<DepthStencilAttachmentD3D12>(depthFormat, stencilFormat, samples);
+    // Needs to be DepthStencil, Depth or Stencil
+    assert( isDepthStencil(depthFormat) ||
+            isDepth(depthFormat)        ||
+            isStencil(stencilFormat) );
+    assert( samples > 0u );
+
+    return new DepthStencilAttachmentD3D12(depthFormat, stencilFormat, samples);
 }
 
 // Creates render pass which's output goes to window framebuffer.

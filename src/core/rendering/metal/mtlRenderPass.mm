@@ -466,33 +466,30 @@ namespace en
    //////////////////////////////////////////////////////////////////////////
 
    
-   std::shared_ptr<ColorAttachment> MetalDevice::createColorAttachment(
+   ColorAttachment* MetalDevice::createColorAttachment(
       const Format format,
       const uint32 samples)
    {
    assert( format != Format::Unsupported );
    assert( samples > 0u );
    
-   return std::make_shared<ColorAttachmentMTL>(format, samples);
+   return new ColorAttachmentMTL(format, samples);
    }
    
-   std::shared_ptr<DepthStencilAttachment> MetalDevice::createDepthStencilAttachment(
+   DepthStencilAttachment* MetalDevice::createDepthStencilAttachment(
       const Format depthFormat,
       const Format stencilFormat,
       const uint32 samples)
    {
-   assert( depthFormat   != Format::Unsupported || 
-           stencilFormat != Format::Unsupported );
-   assert( samples > 0u );
-   
    // Needs to be DepthStencil, Depth or Stencil
    assert( isDepthStencil(depthFormat) ||
            isDepth(depthFormat)        ||
            isStencil(stencilFormat) );
-
+   assert( samples > 0u );
+   
    // TODO: In Debug mode check if Format is supported at current HW in Real-Time
    
-   return std::make_shared<DepthStencilAttachmentMTL>(depthFormat, stencilFormat, samples);
+   return new DepthStencilAttachmentMTL(depthFormat, stencilFormat, samples);
    }
 
 RenderPass* MetalDevice::createRenderPass(

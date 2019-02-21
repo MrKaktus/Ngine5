@@ -116,11 +116,11 @@ namespace en
          
 
 
-      virtual std::shared_ptr<ColorAttachment> createColorAttachment(
+      virtual ColorAttachment* createColorAttachment(
          const Format format, 
          const uint32 samples = 1u);
 
-      virtual std::shared_ptr<DepthStencilAttachment> createDepthStencilAttachment(
+      virtual DepthStencilAttachment* createDepthStencilAttachment(
          const Format depthFormat, 
          const Format stencilFormat = Format::Unsupported,
          const uint32 samples = 1u);

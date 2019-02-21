@@ -276,12 +276,12 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
     /// When binding 3D texture, pass it's "depth" plane through "layer"
     /// parameter. Similarly when binding CubeMap texture, pass it's "face"
     /// through "layer".
-    virtual std::shared_ptr<ColorAttachment> createColorAttachment(
+    virtual ColorAttachment* createColorAttachment(
         const Format format,
         const uint32 samples = 1u) = 0;
 
     /// By default, Load operation is set to Load, and Store operation to Store
-    virtual std::shared_ptr<DepthStencilAttachment> createDepthStencilAttachment(
+    virtual DepthStencilAttachment* createDepthStencilAttachment(
         const Format depthFormat,
         const Format stencilFormat = Format::Unsupported,
         const uint32 samples = 1u) = 0;

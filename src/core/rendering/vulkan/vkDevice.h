@@ -274,12 +274,14 @@ namespace en
       virtual std::shared_ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
                                                             const uint32 (&count)[underlyingType(ResourceType::Count)]);
 
-      virtual std::shared_ptr<ColorAttachment> createColorAttachment(const Format format, 
-                                                                const uint32 samples = 1u);
+    virtual ColorAttachment* createColorAttachment(
+        const Format format, 
+        const uint32 samples = 1u);
 
-      virtual std::shared_ptr<DepthStencilAttachment> createDepthStencilAttachment(const Format depthFormat, 
-                                                                              const Format stencilFormat = Format::Unsupported,
-                                                                              const uint32 samples = 1u);
+    virtual DepthStencilAttachment* createDepthStencilAttachment(
+        const Format depthFormat, 
+        const Format stencilFormat = Format::Unsupported,
+        const uint32 samples = 1u);
 
     virtual RenderPass* createRenderPass(
         const ColorAttachment& swapChainSurface,
