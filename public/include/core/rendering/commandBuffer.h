@@ -192,7 +192,7 @@ class CommandBuffer : public std::enable_shared_from_this<CommandBuffer>
     virtual void setDescriptors(
         const PipelineLayout& layout,
         const uint32 count,
-        const std::shared_ptr<DescriptorSet>(&sets)[],
+        const DescriptorSet*(&sets)[],
         const uint32 firstIndex = 0u) = 0;
 
     /// Input Assembler:

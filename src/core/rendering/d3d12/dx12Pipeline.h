@@ -26,33 +26,33 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class Direct3D12Device;
+namespace gpu
+{
+class Direct3D12Device;
 
-   class PipelineD3D12 : public Pipeline
-      {
-      public:
-      Direct3D12Device* gpu;
-      ID3D12PipelineState* handle;
-      std::shared_ptr<PipelineLayoutD3D12> layout; // Reference to Pipeline Layout
+class PipelineD3D12 : public Pipeline
+{
+    public:
+    Direct3D12Device* gpu;
+    ID3D12PipelineState* handle;
+    const PipelineLayoutD3D12* layout; // Reference to Pipeline Layout
 
-      // Dynamic - Set on CommandBuffer
-      FLOAT blendColor[4];
-      D3D12_VIEWPORT viewport[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-      D3D12_RECT     scissor[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-      uint32 viewportsCount;  // Count of enabled states from the beginning of the array
-      D3D_PRIMITIVE_TOPOLOGY topology;
-      UINT stencilRef;
-      uint32 bufferStride[MaxInputLayoutAttributesCount]; // Element size per bound buffer (passed to Pipeline, and cached on CommandBuffer when Pipeline is bound)
-      uint32 buffersCount;
+    // Dynamic - Set on CommandBuffer
+    FLOAT blendColor[4];
+    D3D12_VIEWPORT viewport[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+    D3D12_RECT     scissor[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+    uint32 viewportsCount;  // Count of enabled states from the beginning of the array
+    D3D_PRIMITIVE_TOPOLOGY topology;
+    UINT stencilRef;
+    uint32 bufferStride[MaxInputLayoutAttributesCount]; // Element size per bound buffer (passed to Pipeline, and cached on CommandBuffer when Pipeline is bound)
+    uint32 buffersCount;
 
-      PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle, std::shared_ptr<PipelineLayoutD3D12> layout);
-      virtual ~PipelineD3D12();
-      };
+    PipelineD3D12(Direct3D12Device* gpu, ID3D12PipelineState* handle, const PipelineLayoutD3D12* layout);
+    virtual ~PipelineD3D12();
+};
 
-   }
-}
+} // en::gpu
+} // en
 #endif
 
 #endif

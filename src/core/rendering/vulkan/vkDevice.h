@@ -249,8 +249,8 @@ namespace en
                                                const uint8* data,
                                                const uint64 size);
 
-      virtual std::shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
-
+    virtual Pipeline* createPipeline(
+        const PipelineState& pipelineState);
 
     virtual InputLayout* createInputLayout(
         const DrawableType primitiveType,
@@ -261,18 +261,21 @@ namespace en
         const AttributeDesc* attributes,
         const BufferDesc* buffers);
 
-      virtual std::shared_ptr<SetLayout> createSetLayout(const uint32 count, 
-                                                    const ResourceGroup* group,
-                                                    const ShaderStages stagesMask = ShaderStages::All);
+    virtual SetLayout* createSetLayout(
+        const uint32 count, 
+        const ResourceGroup* group,
+        const ShaderStages stagesMask = ShaderStages::All);
 
-      virtual std::shared_ptr<PipelineLayout> createPipelineLayout(const uint32 sets,
-                                                              const std::shared_ptr<SetLayout>* set,
-                                                              const uint32 immutableSamplers = 0u,
-                                                              const std::shared_ptr<Sampler>* sampler = nullptr,
-                                                              const ShaderStages stagesMask = ShaderStages::All);
+    virtual PipelineLayout* createPipelineLayout(
+        const uint32      setsCount,
+        const SetLayout** sets,
+        const uint32      immutableSamplersCount = 0u,
+        const Sampler**   immutableSamplers = nullptr,
+        const ShaderStages stagesMask = ShaderStages::All);
 
-      virtual std::shared_ptr<Descriptors> createDescriptorsPool(const uint32 maxSets, 
-                                                            const uint32 (&count)[underlyingType(ResourceType::Count)]);
+    virtual Descriptors* createDescriptorsPool(
+        const uint32 maxSets, 
+        const uint32 (&count)[underlyingType(ResourceType::Count)]);
 
     virtual ColorAttachment* createColorAttachment(
         const Format format, 

@@ -80,10 +80,10 @@ namespace en
       D3D12_CPU_DESCRIPTOR_HANDLE pointerToSamplerDescriptorOnCPU(uint32 index);
       D3D12_GPU_DESCRIPTOR_HANDLE pointerToSamplerDescriptorOnGPU(uint32 index);
 
-      virtual std::shared_ptr<DescriptorSet> allocate(const std::shared_ptr<SetLayout> layout);
+      virtual DescriptorSet* allocate(const SetLayout& layout);
       virtual bool allocate(const uint32 count,
-                            const std::shared_ptr<SetLayout>(&layouts)[],
-                            std::shared_ptr<DescriptorSet>** sets);
+                            const SetLayout*(&layouts)[],
+                            DescriptorSet**& sets);
          
       DescriptorsD3D12(Direct3D12Device* gpu);
       virtual ~DescriptorsD3D12();
@@ -92,14 +92,14 @@ namespace en
    class DescriptorSetD3D12 : public DescriptorSet
       {
       public:
-      Direct3D12Device*     gpu;
-      std::shared_ptr<DescriptorsD3D12> parent;    // Reference to Descriptors Pool
-      uint64                offset[2]; // Index of first Descriptor Slot for given allocation
-      uint32                slots[2];
-      RangeMapping* const   mappings;  // Mappings of Layout slots to backing Heap sub-allocations
-      uint32                mappingsCount;
+      Direct3D12Device*   gpu;
+      DescriptorsD3D12*   parent;    // Reference to Descriptors Pool
+      uint64              offset[2]; // Index of first Descriptor Slot for given allocation
+      uint32              slots[2];
+      RangeMapping* const mappings;  // Mappings of Layout slots to backing Heap sub-allocations
+      uint32              mappingsCount;
 
-      DescriptorSetD3D12(Direct3D12Device* gpu, std::shared_ptr<DescriptorsD3D12> parent, const uint64* offsets, const uint32* slots, RangeMapping* const mappings, uint32 mappingsCount);
+      DescriptorSetD3D12(Direct3D12Device* gpu, DescriptorsD3D12* parent, const uint64* offsets, const uint32* slots, RangeMapping* const mappings, uint32 mappingsCount);
       virtual ~DescriptorSetD3D12();
 
       // Helper method translating layout slot index into backing heap index

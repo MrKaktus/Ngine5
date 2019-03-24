@@ -103,7 +103,7 @@ struct PipelineState
     BlendState*                     blendState;
     std::shared_ptr<Shader>         shader[5];
     std::string                     function[5];
-    std::shared_ptr<PipelineLayout> pipelineLayout;
+    PipelineLayout*                 pipelineLayout;
 
     PipelineState();
     PipelineState(const PipelineState& src);

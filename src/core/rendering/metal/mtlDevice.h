@@ -98,32 +98,32 @@ namespace en
          const AttributeDesc* attributes,
          const BufferDesc* buffers);
  
-      virtual std::shared_ptr<SetLayout> createSetLayout(
-         const uint32 count, 
-         const ResourceGroup* group,
-         const ShaderStages stagesMask = ShaderStages::All);
+    virtual SetLayout* createSetLayout(
+        const uint32 count, 
+        const ResourceGroup* group,
+        const ShaderStages stagesMask = ShaderStages::All);
 
-      virtual std::shared_ptr<PipelineLayout> createPipelineLayout(
-         const uint32 sets,
-         const std::shared_ptr<SetLayout>* set,
-         const uint32 immutableSamplers = 0u,
-         const std::shared_ptr<Sampler>* sampler = nullptr,
-         const ShaderStages stagesMask = ShaderStages::All);
+    virtual PipelineLayout* createPipelineLayout(
+        const uint32      setsCount,
+        const SetLayout** sets,
+        const uint32      immutableSamplersCount = 0u,
+        const Sampler**   immutableSamplers = nullptr,
+        const ShaderStages stagesMask = ShaderStages::All);
 
-      virtual std::shared_ptr<Descriptors> createDescriptorsPool(
-         const uint32 maxSets,
-         const uint32 (&count)[underlyingType(ResourceType::Count)]);
+    virtual Descriptors* createDescriptorsPool(
+        const uint32 maxSets,
+        const uint32 (&count)[underlyingType(ResourceType::Count)]);
          
 
 
-      virtual ColorAttachment* createColorAttachment(
-         const Format format, 
-         const uint32 samples = 1u);
+    virtual ColorAttachment* createColorAttachment(
+        const Format format, 
+        const uint32 samples = 1u);
 
-      virtual DepthStencilAttachment* createDepthStencilAttachment(
-         const Format depthFormat, 
-         const Format stencilFormat = Format::Unsupported,
-         const uint32 samples = 1u);
+    virtual DepthStencilAttachment* createDepthStencilAttachment(
+        const Format depthFormat, 
+        const Format stencilFormat = Format::Unsupported,
+        const uint32 samples = 1u);
 
     virtual RenderPass* createRenderPass(
         const ColorAttachment& swapChainSurface,
@@ -131,7 +131,7 @@ namespace en
 
     virtual RenderPass* createRenderPass(
         const uint32 attachments,
-        const std::shared_ptr<ColorAttachment> color[] = nullptr,
+        const ColorAttachment* color[] = nullptr,
         const DepthStencilAttachment* depthStencil = nullptr);
 
 
@@ -148,30 +148,38 @@ namespace en
 
 
 
-      virtual RasterState*        createRasterState(const RasterStateInfo& state);
+    virtual RasterState* createRasterState(
+        const RasterStateInfo& state);
 
-      virtual MultisamplingState* createMultisamplingState(const uint32 samples,
-                                                           const bool enableAlphaToCoverage,
-                                                           const bool enableAlphaToOne);
+    virtual MultisamplingState* createMultisamplingState(
+        const uint32 samples,
+        const bool enableAlphaToCoverage,
+        const bool enableAlphaToOne);
 
-      virtual DepthStencilState*  createDepthStencilState(const DepthStencilStateInfo& desc);
+    virtual DepthStencilState* createDepthStencilState(
+        const DepthStencilStateInfo& desc);
       
-      virtual BlendState*         createBlendState(const BlendStateInfo& state,
-                                                   const uint32 attachments,
-                                                   const BlendAttachmentInfo* color);
+    virtual BlendState* createBlendState(
+        const BlendStateInfo& state,
+        const uint32 attachments,
+        const BlendAttachmentInfo* color);
       
-      virtual ViewportState*      createViewportState(const uint32 count,
-                                                      const ViewportStateInfo* viewports,
-                                                      const ScissorStateInfo* scissors);
+    virtual ViewportState* createViewportState(
+        const uint32 count,
+        const ViewportStateInfo* viewports,
+        const ScissorStateInfo* scissors);
          
-      virtual std::shared_ptr<Pipeline> createPipeline(const PipelineState& pipelineState);
+    virtual Pipeline* createPipeline(
+        const PipelineState& pipelineState);
 
-      virtual ImageMemoryAlignment textureMemoryAlignment(const TextureState& state,
-                                                          const uint32 mipmap,
-                                                          const uint32 layer) const;
-      };
-   }
-}
+    virtual ImageMemoryAlignment textureMemoryAlignment(
+        const TextureState& state,
+        const uint32 mipmap,
+        const uint32 layer) const;
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

@@ -242,19 +242,19 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
     // to it.
     //
     // TODO: Could this be done on the D3D12/Metal backend side instead?
-    virtual std::shared_ptr<SetLayout> createSetLayout(
+    virtual SetLayout* createSetLayout(
         const uint32 count,
         const ResourceGroup* group,
         const ShaderStages stagesMask = ShaderStages::All) = 0;
 
-    virtual std::shared_ptr<PipelineLayout> createPipelineLayout(
-        const uint32 sets,
-        const std::shared_ptr<SetLayout>* set,
-        const uint32 immutableSamplers = 0u,
-        const std::shared_ptr<Sampler>* sampler = nullptr,
+    virtual PipelineLayout* createPipelineLayout(
+        const uint32      setsCount,
+        const SetLayout** sets,
+        const uint32      immutableSamplersCount = 0u,
+        const Sampler**   immutableSamplers      = nullptr,
         const ShaderStages stagesMask = ShaderStages::All) = 0;
 
-    virtual std::shared_ptr<Descriptors> createDescriptorsPool(
+    virtual Descriptors* createDescriptorsPool(
         const uint32 maxSets,
         const uint32 (&count)[underlyingType(ResourceType::Count)]) = 0;
 
@@ -340,7 +340,7 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
     /// App still needs to set Viewport State and assign Shaders.
     virtual PipelineState defaultPipelineState(void) = 0;
 
-    virtual std::shared_ptr<Pipeline> createPipeline(
+    virtual Pipeline* createPipeline(
         const PipelineState& pipelineState) = 0;
 
 

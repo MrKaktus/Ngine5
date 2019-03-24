@@ -24,62 +24,63 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class VulkanDevice;
+namespace gpu
+{
+class VulkanDevice;
 
-   class SetLayoutVK : public SetLayout
-      {
-      public:
-      VulkanDevice* gpu;
-      VkDescriptorSetLayout handle;
+class SetLayoutVK : public SetLayout
+{
+    public:
+    VulkanDevice* gpu;
+    VkDescriptorSetLayout handle;
 
-      SetLayoutVK(VulkanDevice* gpu, VkDescriptorSetLayout layout);
-      virtual ~SetLayoutVK();
-      };
+    SetLayoutVK(VulkanDevice* gpu, VkDescriptorSetLayout layout);
+    virtual ~SetLayoutVK();
+};
 
-   class PipelineLayoutVK : public PipelineLayout
-      {
-      public:
-      VulkanDevice* gpu;
-      VkPipelineLayout handle;
+class PipelineLayoutVK : public PipelineLayout
+{
+    public:
+    VulkanDevice* gpu;
+    VkPipelineLayout handle;
 
-      PipelineLayoutVK(VulkanDevice* gpu, VkPipelineLayout handle);
-      virtual ~PipelineLayoutVK();
-      };
+    PipelineLayoutVK(VulkanDevice* gpu, VkPipelineLayout handle);
+    virtual ~PipelineLayoutVK();
+};
 
-   class DescriptorsVK : public Descriptors
-      {
-      public:
-      VulkanDevice*    gpu;
-      VkDescriptorPool handle;
-      
-      virtual std::shared_ptr<DescriptorSet> allocate(const std::shared_ptr<SetLayout> layout);
-      virtual bool allocate(const uint32 count,
-                            const std::shared_ptr<SetLayout>(&layouts)[],
-                            std::shared_ptr<DescriptorSet>** sets);
-         
-      DescriptorsVK(VulkanDevice* gpu, VkDescriptorPool handle);
-      virtual ~DescriptorsVK();
-      };
+class DescriptorsVK : public Descriptors
+{
+    public:
+    VulkanDevice*    gpu;
+    VkDescriptorPool handle;
+    
+    virtual DescriptorSet* allocate(const SetLayout& layout);
+    virtual bool allocate(const uint32 count,
+                          const SetLayout*(&layouts)[],
+                          DescriptorSet**& sets);
+       
+    DescriptorsVK(VulkanDevice* gpu, VkDescriptorPool handle);
+    virtual ~DescriptorsVK();
+};
 
-   // AMD hints on Descriptors:
-   // http://32ipi028l5q82yhj72224m8j.wpengine.netdna-cdn.com/wp-content/uploads/2016/03/VulkanFastPaths.pdf
-   class DescriptorSetVK : public DescriptorSet
-      {
-      public:
-      std::shared_ptr<DescriptorsVK> parent; // Reference to Descriptors Pool
-      VkDescriptorSet    handle;
-      
-      DescriptorSetVK(std::shared_ptr<DescriptorsVK> parent, VkDescriptorSet handle);
-      virtual ~DescriptorSetVK();
+// AMD hints on Descriptors:
+// http://32ipi028l5q82yhj72224m8j.wpengine.netdna-cdn.com/wp-content/uploads/2016/03/VulkanFastPaths.pdf
+class DescriptorSetVK : public DescriptorSet
+{
+    public:
+    DescriptorsVK*  parent; // Reference to Descriptors Pool
+    VkDescriptorSet handle;
+    
+    DescriptorSetVK(DescriptorsVK* parent, VkDescriptorSet handle);
+    virtual ~DescriptorSetVK();
 
-      virtual void setBuffer(const uint32 slot, const Buffer& buffer);
-      virtual void setSampler(const uint32 slot, const Sampler& sampler);
-      virtual void setTextureView(const uint32 slot, const TextureView& view);
-      };
-   }
-}
+    virtual void setBuffer(const uint32 slot, const Buffer& buffer);
+    virtual void setSampler(const uint32 slot, const Sampler& sampler);
+    virtual void setTextureView(const uint32 slot, const TextureView& view);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

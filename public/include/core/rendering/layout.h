@@ -152,16 +152,16 @@ class DescriptorSet
 };
       
 // Range of Descriptors that can be used, to allocated from it set of Descriptors
-class Descriptors : public std::enable_shared_from_this<Descriptors>
+class Descriptors
 {
     public:
-    virtual std::shared_ptr<DescriptorSet> allocate(
-        const std::shared_ptr<SetLayout> layout) = 0;
+    virtual DescriptorSet* allocate(
+        const SetLayout& layout) = 0;
        
     virtual bool allocate(
         const uint32 count,
-        const std::shared_ptr<SetLayout>(&layouts)[],
-        std::shared_ptr<DescriptorSet>** sets) = 0;
+        const SetLayout*(&layouts)[],
+        DescriptorSet**& sets) = 0;
 
     virtual ~Descriptors() {};
 };

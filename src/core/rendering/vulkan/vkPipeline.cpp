@@ -25,35 +25,35 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   //enum ProvokingVertex
-   //   {
-   //   ProvokingVertexFirst     = 0,
-   //   ProvokingVertexLast         ,
-   //   ProvokingVertexesCount
-   //   };
-   //
-   //enum CoordinateOrigin
-   //   {
-   //   OriginUpperLeft          = 0,
-   //   OriginLowerLeft             ,
-   //   CoordinateOriginsCount
-   //   };
-   
+namespace gpu
+{
+//enum ProvokingVertex
+//   {
+//   ProvokingVertexFirst     = 0,
+//   ProvokingVertexLast         ,
+//   ProvokingVertexesCount
+//   };
+//
+//enum CoordinateOrigin
+//   {
+//   OriginUpperLeft          = 0,
+//   OriginLowerLeft             ,
+//   CoordinateOriginsCount
+//   };
 
 
-   //static const VkProvokingVertex TranslateProvokingVertex[ProvokingVertexesCount] = 
-   //   {
-   //   VK_PROVOKING_VERTEX_FIRST,
-   //   VK_PROVOKING_VERTEX_LAST  
-   //   };
-   //
-   //static const VkCoordinateOrigin TranslateCoordinateOrigin[CoordinateOriginsCount] = 
-   //   {
-   //   VK_COORDINATE_ORIGIN_UPPER_LEFT,
-   //   VK_COORDINATE_ORIGIN_LOWER_LEFT
-   //   };
+
+//static const VkProvokingVertex TranslateProvokingVertex[ProvokingVertexesCount] = 
+//   {
+//   VK_PROVOKING_VERTEX_FIRST,
+//   VK_PROVOKING_VERTEX_LAST  
+//   };
+//
+//static const VkCoordinateOrigin TranslateCoordinateOrigin[CoordinateOriginsCount] = 
+//   {
+//   VK_COORDINATE_ORIGIN_UPPER_LEFT,
+//   VK_COORDINATE_ORIGIN_LOWER_LEFT
+//   };
 
 
 
@@ -87,164 +87,174 @@ namespace en
 
 
 
-   /*
+/*
    
-   DYNAMIC RENDER PASS STATE
-   
-   enum VkDynamicState
-   
-   VkPipelineDynamicStateCreateInfo dynamicInfo;
-   dynamicInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-   dynamicInfo.pNext             = nullptr;
-   dynamicInfo.flags             = 0; // Reserved for future
-   dynamicInfo.dynamicStateCount = //elements in array;
-   dynamicInfo.pDynamicStates    = //ptr to array of enums
+DYNAMIC RENDER PASS STATE
 
+enum VkDynamicState
 
-   VK_DYNAMIC_STATE_VIEWPORT = 0,
-   VK_DYNAMIC_STATE_SCISSOR = 1,
-   VK_DYNAMIC_STATE_LINE_WIDTH = 2,
-   VK_DYNAMIC_STATE_DEPTH_BIAS = 3,
-   VK_DYNAMIC_STATE_BLEND_CONSTANTS = 4,
-   VK_DYNAMIC_STATE_DEPTH_BOUNDS = 5,
-   VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK = 6,
-   VK_DYNAMIC_STATE_STENCIL_WRITE_MASK = 7,
-   VK_DYNAMIC_STATE_STENCIL_REFERENCE
+VkPipelineDynamicStateCreateInfo dynamicInfo;
+dynamicInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+dynamicInfo.pNext             = nullptr;
+dynamicInfo.flags             = 0; // Reserved for future
+dynamicInfo.dynamicStateCount = //elements in array;
+dynamicInfo.pDynamicStates    = //ptr to array of enums
+
+VK_DYNAMIC_STATE_VIEWPORT = 0,
+VK_DYNAMIC_STATE_SCISSOR = 1,
+VK_DYNAMIC_STATE_LINE_WIDTH = 2,
+VK_DYNAMIC_STATE_DEPTH_BIAS = 3,
+VK_DYNAMIC_STATE_BLEND_CONSTANTS = 4,
+VK_DYNAMIC_STATE_DEPTH_BOUNDS = 5,
+VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK = 6,
+VK_DYNAMIC_STATE_STENCIL_WRITE_MASK = 7,
+VK_DYNAMIC_STATE_STENCIL_REFERENCE
+
+vkCmdSetStencilReference();
    
-   vkCmdSetStencilReference();
-   
-   */
-   
+*/
    
    
-   // Translate Rendering Pipeline Shader Stage 
-   const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
-      {
-      VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
-      VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
-      VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
-      VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
-      VK_SHADER_STAGE_FRAGMENT_BIT                   // Fragment     
-      };
+   
+// Translate Rendering Pipeline Shader Stage 
+const VkShaderStageFlagBits TranslateShaderStage[underlyingType(ShaderStage::Count)] = 
+{
+    VK_SHADER_STAGE_VERTEX_BIT                  ,  // Vertex     
+    VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT    ,  // Control    
+    VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT ,  // Evaluation 
+    VK_SHADER_STAGE_GEOMETRY_BIT                ,  // Geometry   
+    VK_SHADER_STAGE_FRAGMENT_BIT                   // Fragment     
+};
 
-   PipelineVK::PipelineVK(VulkanDevice* _gpu, VkPipeline _handle, bool _graphics) :
-      gpu(_gpu),
-      handle(_handle),
-      graphics(_graphics)
-   {
-   }
+PipelineVK::PipelineVK(
+        VulkanDevice* _gpu, 
+        VkPipeline _handle, 
+        bool _graphics) :
+    gpu(_gpu),
+    handle(_handle),
+    graphics(_graphics)
+{
+}
 
-   PipelineVK::~PipelineVK()
-   {
-   ValidateNoRet( gpu, vkDestroyPipeline(gpu->device, handle, nullptr) )
-   }
+PipelineVK::~PipelineVK()
+{
+    ValidateNoRet( gpu, vkDestroyPipeline(gpu->device, handle, nullptr) )
+}
 
-   std::shared_ptr<Pipeline> VulkanDevice::createPipeline(const PipelineState& pipelineState)
-   {
-   std::shared_ptr<PipelineVK> result = nullptr;
+Pipeline* VulkanDevice::createPipeline(const PipelineState& pipelineState)
+{
+    PipelineVK* result = nullptr;
 
-   // Pipeline object is always created against Render Pass, and app responsibility is to
-   // provide missing states (ViewportState, Shaders).
-   assert( pipelineState.renderPass );
-   assert( pipelineState.viewportState );
+    // Pipeline object is always created against Render Pass, and app responsibility is to
+    // provide missing states (ViewportState, Shaders).
+    assert( pipelineState.renderPass );
+    assert( pipelineState.viewportState );
 
-   // Cast to Vulkan states
-   const RenderPassVK*         renderPass     = reinterpret_cast<RenderPassVK*>(pipelineState.renderPass);
+    // Cast to Vulkan states
+    const RenderPassVK*         renderPass    = reinterpret_cast<RenderPassVK*>(pipelineState.renderPass);
 
-   const InputLayoutVK*        input          = pipelineState.inputLayout ? reinterpret_cast<InputLayoutVK*>(pipelineState.inputLayout)
+    const InputLayoutVK*        input         = pipelineState.inputLayout ? reinterpret_cast<InputLayoutVK*>(pipelineState.inputLayout)
                                                                           : reinterpret_cast<InputLayoutVK*>(defaultState->inputLayout);
 
-   const ViewportStateVK*      viewport       = reinterpret_cast<ViewportStateVK*>(pipelineState.viewportState);
+    const ViewportStateVK*      viewport      = reinterpret_cast<ViewportStateVK*>(pipelineState.viewportState);
 
-   const RasterStateVK*        raster         = pipelineState.rasterState ? reinterpret_cast<RasterStateVK*>(pipelineState.rasterState)
+    const RasterStateVK*        raster        = pipelineState.rasterState ? reinterpret_cast<RasterStateVK*>(pipelineState.rasterState)
                                                                           : reinterpret_cast<RasterStateVK*>(defaultState->rasterState);
 
-   const MultisamplingStateVK* multisampling  = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateVK*>(pipelineState.multisamplingState)
+    const MultisamplingStateVK* multisampling = pipelineState.multisamplingState ? reinterpret_cast<MultisamplingStateVK*>(pipelineState.multisamplingState)
                                                                                  : reinterpret_cast<MultisamplingStateVK*>(defaultState->multisamplingState);
       
-   const DepthStencilStateVK*  depthStencil   = pipelineState.depthStencilState ? reinterpret_cast<DepthStencilStateVK*>(pipelineState.depthStencilState)
+    const DepthStencilStateVK*  depthStencil  = pipelineState.depthStencilState ? reinterpret_cast<DepthStencilStateVK*>(pipelineState.depthStencilState)
                                                                                 : reinterpret_cast<DepthStencilStateVK*>(defaultState->depthStencilState);
 
-   const BlendStateVK*         blend          = pipelineState.blendState ? reinterpret_cast<BlendStateVK*>(pipelineState.blendState)
+    const BlendStateVK*         blend         = pipelineState.blendState ? reinterpret_cast<BlendStateVK*>(pipelineState.blendState)
                                                                          : reinterpret_cast<BlendStateVK*>(defaultState->blendState);
 
-   const PipelineLayoutVK*     layout         = pipelineState.pipelineLayout ? reinterpret_cast<PipelineLayoutVK*>(pipelineState.pipelineLayout.get())
-                                                                             : reinterpret_cast<PipelineLayoutVK*>(defaultState->pipelineLayout.get());
+    const PipelineLayoutVK*     layout        = pipelineState.pipelineLayout ? reinterpret_cast<PipelineLayoutVK*>(pipelineState.pipelineLayout)
+                                                                             : reinterpret_cast<PipelineLayoutVK*>(defaultState->pipelineLayout);
 
+    // Patch States
 
-
-   // Patch States
-
-   // Can shader module keep source code of more than one shader stage, and then be bound several times to different stages to reuse it ?
+    // Can shader module keep source code of more than one shader stage, and then be bound several times to different stages to reuse it ?
  
-   // Count amount of shader stages in use
-   uint32 stages = 0;
-   for(uint32 i=0; i<5; ++i)
-      if (pipelineState.shader[i])
-         stages++;
+    // Count amount of shader stages in use
+    uint32 stages = 0;
+    for(uint32 i=0; i<5; ++i)
+    {
+        if (pipelineState.shader[i])
+        {
+            stages++;
+        }
+    }
 
-   assert( stages > 0 );
+    assert( stages > 0 );
 
-   // Create shader stages descriptions
-   VkPipelineShaderStageCreateInfo* shaderInfo = new VkPipelineShaderStageCreateInfo[stages];
-   uint32 stage = 0;
-   for(uint32 i=0; i<5; ++i)
-      if (pipelineState.shader[i])
-         {
-         ShaderVK* shader = reinterpret_cast<ShaderVK*>(pipelineState.shader[i].get());
+    // Create shader stages descriptions
+    VkPipelineShaderStageCreateInfo* shaderInfo = new VkPipelineShaderStageCreateInfo[stages];
+    uint32 stage = 0;
+    for(uint32 i=0; i<5; ++i)
+    {
+        if (pipelineState.shader[i])
+        {
+            ShaderVK* shader = reinterpret_cast<ShaderVK*>(pipelineState.shader[i].get());
          
-         shaderInfo[stage].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-         shaderInfo[stage].pNext  = nullptr;
-         shaderInfo[stage].flags  = 0u; // Reserved for future use
-         shaderInfo[stage].stage  = TranslateShaderStage[underlyingType(shader->stage)];
-         shaderInfo[stage].module = shader->handle;
-         shaderInfo[stage].pName  = pipelineState.function[i].c_str();
-         shaderInfo[stage].pSpecializationInfo = nullptr; // Engine is not supporting specialization for now. (const VkSpecializationInfo*)
-         stage++;
+            shaderInfo[stage].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            shaderInfo[stage].pNext  = nullptr;
+            shaderInfo[stage].flags  = 0u; // Reserved for future use
+            shaderInfo[stage].stage  = TranslateShaderStage[underlyingType(shader->stage)];
+            shaderInfo[stage].module = shader->handle;
+            shaderInfo[stage].pName  = pipelineState.function[i].c_str();
+            shaderInfo[stage].pSpecializationInfo = nullptr; // Engine is not supporting specialization for now. (const VkSpecializationInfo*)
+            stage++;
          
-         // Early out
-         if (stage == stages)
-            break;
-         }
+            // Early out
+            if (stage == stages)
+            {
+                break;
+            }
+        }
+    }
 
-   // Pipeline state
-   VkGraphicsPipelineCreateInfo pipelineInfo;
-   pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-   pipelineInfo.pNext               = nullptr;
-   pipelineInfo.flags               = 0;
+    // Pipeline state
+    VkGraphicsPipelineCreateInfo pipelineInfo;
+    pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.pNext               = nullptr;
+    pipelineInfo.flags               = 0;
 #ifdef EN_DEBUG
-//   pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
+  //pipelineInfo.flags              |= VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
 #endif
-   pipelineInfo.stageCount          = stages;
-   pipelineInfo.pStages             = shaderInfo;
-   pipelineInfo.pVertexInputState   = &input->state;
-   pipelineInfo.pInputAssemblyState = &input->statePrimitive;
-   pipelineInfo.pTessellationState  = (input->stateTessellator.patchControlPoints > 0) ?  &input->stateTessellator : VK_NULL_HANDLE; // optional - nullptr == Tessellation is Disabled
-   pipelineInfo.pViewportState      = viewport      ? &viewport->state         : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled
-   pipelineInfo.pRasterizationState = &raster->state;
-   pipelineInfo.pMultisampleState   = multisampling ? &multisampling->state    : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled
-   pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled (or subpass has no Depth-Stencil Attachments)
-   pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled (or subpass has no Color Attachments)
-   pipelineInfo.pDynamicState       = nullptr;        // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
-   pipelineInfo.layout              = layout->handle;
-   pipelineInfo.renderPass          = renderPass->handle;
-   pipelineInfo.subpass             = 0u;             // TODO: For now engine is not supporting subpasses except default one.
-   pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE; // Pipeline to derive from. (optional)
-   pipelineInfo.basePipelineIndex   = -1;
+    pipelineInfo.stageCount          = stages;
+    pipelineInfo.pStages             = shaderInfo;
+    pipelineInfo.pVertexInputState   = &input->state;
+    pipelineInfo.pInputAssemblyState = &input->statePrimitive;
+    pipelineInfo.pTessellationState  = (input->stateTessellator.patchControlPoints > 0) ?  &input->stateTessellator : VK_NULL_HANDLE; // optional - nullptr == Tessellation is Disabled
+    pipelineInfo.pViewportState      = viewport      ? &viewport->state         : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled
+    pipelineInfo.pRasterizationState = &raster->state;
+    pipelineInfo.pMultisampleState   = multisampling ? &multisampling->state    : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled
+    pipelineInfo.pDepthStencilState  = depthStencil  ? &depthStencil->state     : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled (or subpass has no Depth-Stencil Attachments)
+    pipelineInfo.pColorBlendState    = blend         ? &blend->state            : VK_NULL_HANDLE; // optional - nullptr == Rasterization is Disabled (or subpass has no Color Attachments)
+    pipelineInfo.pDynamicState       = nullptr;        // No dynamic state. Use VkPipelineDynamicStateCreateInfo*
+    pipelineInfo.layout              = layout->handle;
+    pipelineInfo.renderPass          = renderPass->handle;
+    pipelineInfo.subpass             = 0u;             // TODO: For now engine is not supporting subpasses except default one.
+    pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE; // Pipeline to derive from. (optional)
+    pipelineInfo.basePipelineIndex   = -1;
 
-   // Create pipeline state object
-   VkPipeline pipeline = VK_NULL_HANDLE;
-   Validate( this, vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) )  // pipelineCache
-   if (lastResult[currentThreadId()] == VK_SUCCESS)
-      result = std::make_shared<PipelineVK>(this, pipeline, true);
+    // Create pipeline state object
+    VkPipeline pipeline = VK_NULL_HANDLE;
+    Validate( this, vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) )  // pipelineCache
+    if (lastResult[currentThreadId()] == VK_SUCCESS)
+    {
+        result = new PipelineVK(this, pipeline, true);
+    }
 
-   delete [] shaderInfo;
+    delete [] shaderInfo;
 
-   return result;
-   }
-
-   }
+    return result;
 }
+
+} // en::gpu
+} // en
 #endif
 
 // clipOrigin          = VK_COORDINATE_ORIGIN_LOWER_LEFT;   // optional (GL45) - Can specify Direct3D way: VK_COORDINATE_ORIGIN_UPPER_LEFT 

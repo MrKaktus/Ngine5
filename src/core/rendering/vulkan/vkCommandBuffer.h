@@ -27,54 +27,57 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class VulkanDevice;
+namespace gpu
+{
+class VulkanDevice;
 
-   class CommandBufferVK : public CommandBuffer
-      {
-      public:
-      VulkanDevice*    gpu;       // Vulkan Device (for Device function calls)
-      VkQueue          queue;
-      QueueType        queueType;
-      VkCommandBuffer  handle;
-      const SemaphoreVK* semaphore; // Execution order synchronization    
-      VkFence          fence;     // Completion notification
-      uint32           parentWorker;
-      bool             started;
-      bool             encoding;
-      bool             commited;
+class CommandBufferVK : public CommandBuffer
+{
+    public:
+    VulkanDevice*    gpu;       // Vulkan Device (for Device function calls)
+    VkQueue          queue;
+    QueueType        queueType;
+    VkCommandBuffer  handle;
+    const SemaphoreVK* semaphore; // Execution order synchronization    
+    VkFence          fence;     // Completion notification
+    uint32           parentWorker;
+    bool             started;
+    bool             encoding;
+    bool             commited;
 
-      // State cache
+    // State cache
 
-      const BufferVK* currentIndexBuffer;
+    const BufferVK* currentIndexBuffer;
 
-      // Internal methods
+    // Internal methods
 
-      CommandBufferVK(VulkanDevice*         gpu,
-                      const VkQueue         queue,
-                      const QueueType       queueType,
-                      const uint32          parentWorker,
-                      const VkCommandBuffer handle,
-                      const VkFence         fence);
+    CommandBufferVK(
+        VulkanDevice*         gpu,
+        const VkQueue         queue,
+        const QueueType       queueType,
+        const uint32          parentWorker,
+        const VkCommandBuffer handle,
+        const VkFence         fence);
 
-      void barrier(const Buffer& buffer,
-                   const uint64 offset,
-                   const uint64 size,
-                   const VkAccessFlags currentAccess,
-                   const VkAccessFlags newAccess,
-                   const VkPipelineStageFlags afterStage,   // Transition after this stage
-                   const VkPipelineStageFlags beforeStage); // Transition before this stage
+    void barrier(
+        const Buffer& buffer,
+        const uint64 offset,
+        const uint64 size,
+        const VkAccessFlags currentAccess,
+        const VkAccessFlags newAccess,
+        const VkPipelineStageFlags afterStage,   // Transition after this stage
+        const VkPipelineStageFlags beforeStage); // Transition before this stage
 
-      void barrier(const Texture& texture,
-                   const uint32v2 mipmaps, 
-                   const uint32v2 layers,
-                   const VkAccessFlags currentAccess,
-                   const VkAccessFlags newAccess,
-                   const VkImageLayout currentLayout,
-                   const VkImageLayout newLayout,
-                   const VkPipelineStageFlags afterStage,   // Transition after this stage
-                   const VkPipelineStageFlags beforeStage); // Transition before this stage
+    void barrier(
+        const Texture& texture,
+        const uint32v2 mipmaps, 
+        const uint32v2 layers,
+        const VkAccessFlags currentAccess,
+        const VkAccessFlags newAccess,
+        const VkImageLayout currentLayout,
+        const VkImageLayout newLayout,
+        const VkPipelineStageFlags afterStage,   // Transition after this stage
+        const VkPipelineStageFlags beforeStage); // Transition before this stage
 
       // Vulkan specific API (thus private for now)
       std::shared_ptr<Event> signal(void);                      // Event will be signaled, once execution reaches this point in Command Buffer
@@ -122,10 +125,11 @@ namespace en
                                   const DescriptorSet& set,
                                   const uint32 index = 0u);
 
-      virtual void setDescriptors(const PipelineLayout& layout, 
-                                  const uint32 count,
-                                  const std::shared_ptr<DescriptorSet>(&sets)[],
-                                  const uint32 firstIndex = 0u);
+    virtual void setDescriptors(
+        const PipelineLayout& layout, 
+        const uint32 count,
+        const DescriptorSet*(&sets)[],
+        const uint32 firstIndex = 0u);
 
       virtual void setPipeline(const Pipeline& pipeline);
 

@@ -105,11 +105,11 @@ namespace en
 //   maxPatchSize                   = 0;
    }
 
-   void CommonDevice::init(void)
-   {
-   defaultState = new PipelineState(*this);
-   }
-   
+void CommonDevice::init(void)
+{
+    defaultState = new PipelineState(*this);
+}
+
    class CommonGraphicsAPI;
 
    uint32 CommonDevice::displays(void) const
@@ -142,21 +142,23 @@ namespace en
 void CommonDevice::cleanupCommonResources(void)
 {
     // Release default device objects
-    defaultState->renderPass         = nullptr;
-    defaultState->inputLayout        = nullptr;
-    defaultState->viewportState      = nullptr;
-    defaultState->rasterState        = nullptr;
-    defaultState->multisamplingState = nullptr;
-    defaultState->depthStencilState  = nullptr;
-    defaultState->blendState         = nullptr;
-    for(uint32 i=0; i<5; ++i)
+    if (defaultState)
     {
-        defaultState->shader[i]      = nullptr;
-        defaultState->function[5].empty();
-    }
-    defaultState->pipelineLayout     = nullptr;
+        // There is no default render pass and viewport state
+        delete defaultState->inputLayout;
+        delete defaultState->rasterState;
+        delete defaultState->multisamplingState;
+        delete defaultState->depthStencilState;
+        delete defaultState->blendState;
+        for (uint32 i = 0; i < 5; ++i)
+        {
+            defaultState->shader[i] = nullptr;
+            defaultState->function[5].empty();
+        }
+        delete defaultState->pipelineLayout;
 
-    delete defaultState;
+        delete defaultState;
+    }
 
     defaultState = nullptr;
 }
