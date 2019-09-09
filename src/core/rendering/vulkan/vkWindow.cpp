@@ -19,6 +19,7 @@
 
 #include "core/log/log.h"
 #include "core/memory/alignedAllocator.h"
+#include "core/rendering/vulkan/vkValidate.h"
 #include "core/rendering/vulkan/vkSynchronization.h"
 #include "core/rendering/vulkan/vkTexture.h"
 #include "core/rendering/vulkan/vkDevice.h"

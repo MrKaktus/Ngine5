@@ -18,6 +18,7 @@
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/log/log.h"
+#include "core/rendering/vulkan/vkValidate.h"
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/rendering/vulkan/vkBuffer.h"
 #include "core/rendering/vulkan/vkTexture.h"

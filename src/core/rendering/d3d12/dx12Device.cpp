@@ -19,6 +19,7 @@
 
 #include "core/log/log.h"
 #include "core/memory/alignedAllocator.h"
+#include "core/rendering/d3d12/dx12Validate.h"
 #include "core/rendering/d3d12/dx12CommandBuffer.h"
 #include "core/rendering/d3d12/dx12Texture.h"
 #include "parallel/scheduler.h"

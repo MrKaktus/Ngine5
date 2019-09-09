@@ -17,6 +17,7 @@
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
+#include "core/rendering/vulkan/vkValidate.h"
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/rendering/vulkan/vkHeap.h"
 

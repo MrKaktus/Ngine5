@@ -18,6 +18,7 @@
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/log/log.h"
+#include "core/rendering/d3d12/dx12Validate.h"
 #include "core/rendering/d3d12/dx12Device.h"
 #include "core/rendering/d3d12/dx12Buffer.h"
 #include "core/rendering/d3d12/dx12Texture.h"

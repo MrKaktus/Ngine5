@@ -16,7 +16,7 @@
 
 namespace en
 {
-   class quaternion
+   class Quaternion
       {
       public:
       union { float s; float q0; };
@@ -24,19 +24,19 @@ namespace en
       union { float y; float q2; };
       union { float z; float q3; };
       
-      quaternion();
-      quaternion(const float degrees, const float3 vector);
-     ~quaternion();
+      Quaternion();
+      Quaternion(const float degrees, const float3 vector);
+     ~Quaternion();
       
       float magnitude(void) const;
       void normalize(void);
       float4x4 matrix(void);
       };
    
-   bool       operator==(const quaternion a, const quaternion b);
-   quaternion operator- (const quaternion a, const quaternion b);
-   quaternion operator+ (const quaternion a, const quaternion b);
-   quaternion mul(const quaternion a, const quaternion b);
+   bool       operator==(const Quaternion a, const Quaternion b);
+   Quaternion operator- (const Quaternion a, const Quaternion b);
+   Quaternion operator+ (const Quaternion a, const Quaternion b);
+   Quaternion mul(const Quaternion a, const Quaternion b);
 }
 
 #endif

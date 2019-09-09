@@ -20,6 +20,7 @@
 #include "core/log/log.h"
 #include "core/memory/alignedAllocator.h"
 #include "core/rendering/state.h"
+#include "core/rendering/d3d12/dx12Validate.h"
 #include "core/rendering/d3d12/dx12Device.h"
 
 namespace en

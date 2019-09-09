@@ -181,6 +181,24 @@
     <Filter Include="Source Files\core\input">
       <UniqueIdentifier>{4c1e4e00-3c86-462f-9950-4c77130c5779}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\core\xr">
+      <UniqueIdentifier>{966f1369-7001-447a-94f3-9149e422cebd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\xr">
+      <UniqueIdentifier>{a08c3f2a-939b-40ac-a3b2-41fa3caa8ad5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\xr\openxr">
+      <UniqueIdentifier>{db2e2c1f-b1b6-4ee2-828c-101e9316acc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\xr\openxr\d3d12">
+      <UniqueIdentifier>{6aa46f4b-ea54-4bcb-9845-e3e76c536637}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\xr\openxr\vulkan">
+      <UniqueIdentifier>{02146430-11ad-4041-b582-b1cf2f0abd39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\xr\common">
+      <UniqueIdentifier>{1fa4f822-a5cb-4fc2-bf57-f38719b1a3c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio\audio.cpp">
@@ -596,6 +614,39 @@
     </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\viewport.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\oxrHeadset.cpp">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\oxrInterface.cpp">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\d3d12\oxrdx12PresentationSession.cpp">
+      <Filter>Source Files\core\xr\openxr\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\vulkan\oxrvkPresentationSession.cpp">
+      <Filter>Source Files\core\xr\openxr\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\oxrPresentationSession.cpp">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\oxrFrame.cpp">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\oxrFrameState.cpp">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\oxrView.cpp">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\vulkan\oxrvkHeadset.cpp">
+      <Filter>Source Files\core\xr\openxr\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\openxr\d3d12\oxrdx12Headset.cpp">
+      <Filter>Source Files\core\xr\openxr\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\xr\common\xrInterface.cpp">
+      <Filter>Source Files\core\xr\common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1264,6 +1315,69 @@
     </ClInclude>
     <ClInclude Include="..\public\include\core\memory\alignedAllocator.h">
       <Filter>Header Files\core\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\xr\headset.h">
+      <Filter>Header Files\core\xr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\oxrHeadset.h">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\xr\interface.h">
+      <Filter>Header Files\core\xr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\oxrInterface.h">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\d3d12\oxrdx12PresentationSession.h">
+      <Filter>Source Files\core\xr\openxr\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\oxrPresentationSession.h">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\xr\presentationSession.h">
+      <Filter>Header Files\core\xr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\vulkan\oxrvkPresentationSession.h">
+      <Filter>Source Files\core\xr\openxr\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\vulkan\vkValidate.h">
+      <Filter>Source Files\core\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\oxrValidate.h">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\rendering\d3d12\dx12Validate.h">
+      <Filter>Source Files\core\rendering\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\oxrDLL.h">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\oxrFrame.h">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\xr\frameState.h">
+      <Filter>Header Files\core\xr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\xr\frame.h">
+      <Filter>Header Files\core\xr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\oxrFrameState.h">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\oxrView.h">
+      <Filter>Source Files\core\xr\openxr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\xr\view.h">
+      <Filter>Header Files\core\xr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\vulkan\oxrvkHeadset.h">
+      <Filter>Source Files\core\xr\openxr\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\xr\pose.h">
+      <Filter>Header Files\core\xr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\xr\openxr\d3d12\oxrdx12Headset.h">
+      <Filter>Source Files\core\xr\openxr\d3d12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

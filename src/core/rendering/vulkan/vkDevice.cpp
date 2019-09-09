@@ -22,6 +22,7 @@
 #include "core/storage.h"   // For Pipeline Cache handling
 #include "utilities/strings.h"
 
+#include "core/rendering/vulkan/vkValidate.h"
 #include "core/rendering/vulkan/vkCommandBuffer.h"
 #include "core/rendering/vulkan/vkTexture.h"
 #include "core/rendering/vulkan/vkSynchronization.h"
@@ -1586,6 +1587,8 @@ while(std::atomic_load_explicit(&workersInitialized, std::memory_order_relaxed) 
    if (layersCount > 0)
       {
       VkLayerProperties* layerProperties = new VkLayerProperties[layersCount];
+      assert( layerProperties );
+
       Validate( this, vkEnumerateInstanceLayerProperties(&layersCount, layerProperties) )
       
       layer = new LayerDescriptor[layersCount];

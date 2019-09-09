@@ -22,6 +22,7 @@
 #include "core/rendering/common/inputLayout.h"
 #include "core/rendering/common/display.h"
 #include "utilities/Nversion.h"
+#include "platform/system.h"
 #include "threading/mutex.h"
 
 // TODO: Move it to Thread Pool Scheduler
@@ -29,8 +30,6 @@
 #define MaxCommandBuffersExecuting 32
 #define MaxCommandBuffersAllocated 32
 #define AllocatorCacheSize         2
-
-constexpr uint32 MaxSupportedThreads = 256; /// Max count of threads supported by rendering backends (workers and IO threads)
 
 namespace en
 {

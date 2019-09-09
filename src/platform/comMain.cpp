@@ -25,6 +25,7 @@
 
 #include "parallel/comScheduler.h"  // Scheduler
 #include "core/rendering/device.h"  // Core - Graphics
+#include "core/xr/interface.h"      // Core - XR
 #include "audio/context.h"          // Audio
 #include "input/input.h"            // Input
 //#include "resources/context.h"    // Resources
@@ -72,6 +73,7 @@ void init(int argc, const char **argv)
     en::parallel::Interface::create(workers, fibers, en::MaxTasksPerWorker);
 
     en::gpu::GraphicAPI::create();
+    en::xr::Interface::create();
     en::AudioContext.create();
     en::input::Interface::create();
   //en::ResourcesContext.create();  <-- TODO: FIXME: Creation before Window causes Vulkan to crash on NV :/
@@ -94,6 +96,7 @@ void destroy(void)
   //en::ResourcesContext.destroy();
     en::Input     = nullptr;
     en::AudioContext.destroy();
+    en::XR        = nullptr;
     en::Graphics  = nullptr;
     en::Scheduler = nullptr;
     en::SystemContext.destroy();

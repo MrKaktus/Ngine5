@@ -18,6 +18,7 @@
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
 #include "core/defines.h"
+#include "core/rendering/vulkan/vkValidate.h"
 #include "core/rendering/vulkan/vkTexture.h"   // For TranslateTextureFormat[]
 #include "core/rendering/vulkan/vkDevice.h"    // TODO: We only want Device class, not all subsystems
 

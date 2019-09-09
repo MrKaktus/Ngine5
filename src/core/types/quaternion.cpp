@@ -16,12 +16,12 @@
 
 namespace en
 {
-   quaternion::quaternion(void)
+   Quaternion::Quaternion(void)
    {
-   memset(this, 0, sizeof(quaternion));
+   memset(this, 0, sizeof(Quaternion));
    }
    
-   quaternion::quaternion(const float degrees, const float3 vector)
+   Quaternion::Quaternion(const float degrees, const float3 vector)
    {
    float angle = radians(degrees) / 2.0f;
    float sinus = sin(angle);
@@ -31,16 +31,16 @@ namespace en
    q3 = vector.z * sinus;
    }
    
-   quaternion::~quaternion(void)
+   Quaternion::~Quaternion(void)
    {
    }
    
-   float quaternion::magnitude(void) const
+   float Quaternion::magnitude(void) const
    {
    return sqrt(s*s + x*x + y*y + z*z);
    }
    
-   void quaternion::normalize(void)
+   void Quaternion::normalize(void)
    {
    float temp = magnitude();
    q0 /= temp;
@@ -49,7 +49,7 @@ namespace en
    q3 /= temp;
    }
    
-   float4x4 quaternion::matrix(void)
+   float4x4 Quaternion::matrix(void)
    {
    float4x4 m;
    
@@ -73,14 +73,14 @@ namespace en
    return m;
    }
    
-   bool operator ==(const quaternion a, const quaternion b)
+   bool operator ==(const Quaternion a, const Quaternion b)
    {
-   return memcmp(static_cast<const void*>(&a), static_cast<const void*>(&b), sizeof(quaternion)) == 0;
+   return memcmp(static_cast<const void*>(&a), static_cast<const void*>(&b), sizeof(Quaternion)) == 0;
    }
    
-   quaternion operator+ (const quaternion a, const quaternion b)
+   Quaternion operator+ (const Quaternion a, const Quaternion b)
    {
-   quaternion temp;
+   Quaternion temp;
    
    temp.q0 = a.q0 + b.q0;
    temp.q1 = a.q1 + b.q1;
@@ -90,9 +90,9 @@ namespace en
    return temp;
    }
    
-   quaternion operator- (const quaternion a, const quaternion b)
+   Quaternion operator- (const Quaternion a, const Quaternion b)
    {
-   quaternion temp;
+   Quaternion temp;
    
    temp.q0 = a.q0 - b.q0;
    temp.q1 = a.q1 - b.q1;
@@ -102,9 +102,9 @@ namespace en
    return temp;
    }
    
-   quaternion mul(const quaternion a, const quaternion b)
+   Quaternion mul(const Quaternion a, const Quaternion b)
    {
-   quaternion temp;
+   Quaternion temp;
    
    temp.q0 = (b.q0 * a.q0) - (b.q1 * a.q1) - (b.q2 * a.q2) - (b.q3 * a.q3);
    temp.q1 = (b.q0 * a.q1) + (b.q1 * a.q0) - (b.q2 * a.q3) + (b.q3 * a.q2);

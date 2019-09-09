@@ -33,83 +33,6 @@
 #include "core/rendering/vulkan/vkDepthStencil.h"
 #include "core/rendering/vulkan/vkPipeline.h"
 
-
-#ifdef EN_DEBUG
-namespace en
-{
-   namespace gpu
-   {
-   extern bool IsError(const VkResult result);
-   extern bool IsWarning(const VkResult result);
-   }
-}
-#endif
-
-// gpu     - pointer to class storing pointer to called function.
-//           Should be VulkanDevice*, or VulkanGPU*.
-// command - Vulkan API function call to execute.
-//
-// Result of function call is stored per GPU, per Thread.
-//
-#if defined(Validate)
-#undef Validate
-#endif 
-#if defined(ValidateNoRet)
-#undef ValidateNoRet
-#endif 
-
-#ifdef EN_DEBUG
-   #ifdef EN_PROFILER_TRACE_GRAPHICS_API
-
-   #define Validate( _gpu, command )                                                          \
-           {                                                                                  \
-           uint32 threadId = currentThreadId();                                               \
-           assert( threadId < MaxSupportedThreads );                                          \
-           Log << "[" << std::setw(2) << threadId << "] ";                                    \
-           Log << "Vulkan GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
-           _gpu->lastResult[threadId] = _gpu->command;                                        \
-           if (en::gpu::IsError(_gpu->lastResult[threadId]))                                  \
-              { assert( 0 ); }                                                                \
-           en::gpu::IsWarning(_gpu->lastResult[threadId]);                                    \
-           }
-
-   #define ValidateNoRet( _gpu, command )                                                     \
-           {                                                                                  \
-           uint32 threadId = currentThreadId();                                               \
-           assert( threadId < MaxSupportedThreads );                                          \
-           Log << "[" << std::setw(2) << threadId << "] ";                                    \
-           Log << "Vulkan GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
-           _gpu->command;                                                                     \
-           }
-
-   #else 
-
-   #define Validate( _gpu, command )                                   \
-           {                                                           \
-           uint32 threadId = currentThreadId();                        \
-           assert( threadId < MaxSupportedThreads );                   \
-           _gpu->lastResult[threadId] = _gpu->command;                 \
-           if (en::gpu::IsError(_gpu->lastResult[threadId]))           \
-              { assert( 0 ); }                                         \
-           en::gpu::IsWarning(_gpu->lastResult[threadId]);             \
-           }
-
-   #define ValidateNoRet( _gpu, command )                              \
-           _gpu->command;
-
-   #endif
-   
-#else // Release
-
-   #define Validate( _gpu, command )                                   \
-           _gpu->lastResult[en::currentThreadId()] = _gpu->command;
-
-   #define ValidateNoRet( _gpu, command )                              \
-           _gpu->command;
-
-#endif
-
-
 namespace en
 {
    namespace gpu
@@ -122,7 +45,7 @@ namespace en
    #define LoadProcAddress GetProcAddress
 #endif
 
-   #define DeclareFunction(function)                                             \
+   #define DeclareFunction(function) \
    PFN_##function function;
 
    class VulkanAPI;
