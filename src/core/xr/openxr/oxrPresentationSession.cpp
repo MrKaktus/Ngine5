@@ -626,7 +626,7 @@ oxrPresentationSession::~oxrPresentationSession()
 
 
 // TODO: How events are returned?
-void oxrPresentationSession::nextEvent(void)
+void oxrPresentationSession::queryNextEvent(void)
 {
     XrEventDataBuffer eventBase;
     eventBase.type = XR_TYPE_EVENT_DATA_BUFFER;
@@ -789,7 +789,7 @@ FrameState* oxrPresentationSession::startFrame(void)
     // TODO: Consider how to emulate this behavior over OpenXR, or how to hide and simplify it
     // 
     // frameState->targetPresentationEvent = uint64 
-    // frameState->compositorSyncValue     = uint64 
+    // frameState->synchronizationValue    = uint64 
     // frameState->shadingRate             = uint64 
     frameState->renderingFrame          = ++renderedFrameIndex;
 

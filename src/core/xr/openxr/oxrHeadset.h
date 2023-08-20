@@ -69,12 +69,12 @@ public:
 
 
 
-    gpu::GpuDevice*      device(void);
+    virtual gpu::GpuDevice* device(void);
     HeadsetProperties*   properties(void);
     HeadsetPresentationProperties* properties(const PresentationSessionDescriptor* descriptor); // TODO: Error code
     PresentationSessionDescriptor* prefferedPresentationSessionDescriptor(void);
     bool supportsPresentation(const PresentationSessionDescriptor* descriptor); // TODO: Error code
-    PresentationSession* createPresentationSession(const PresentationSessionDescriptor* descriptor);
+    virtual PresentationSession* createPresentationSession(const PresentationSessionDescriptor& descriptor);
 
     oxrHeadset(oxrInterface& session);
     ~oxrHeadset();

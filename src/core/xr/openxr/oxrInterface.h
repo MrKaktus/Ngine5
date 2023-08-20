@@ -79,7 +79,7 @@ public:
     XrSpace                worldSpace; // Space in relation to which player and objects are tracked
     XrSpace                headSpace;  // Head space, in relation to which views are tracked
 
-    oxrHeadset*            headset;    // OpenXR supports only one headset
+    oxrHeadset*            primaryHeadset; // OpenXR supports only one headset
 
     // OS function pointer
     //DeclareFunction( xrGetInstanceProcAddr )
@@ -139,6 +139,9 @@ public:
 
     void loadInterfaceFunctionPointers(void);
     void clearInterfaceFunctionPointers(void);
+
+    virtual uint32 headsets(void);
+    virtual Headset* headset(const uint32 index);
 };
 
 } // en::xr

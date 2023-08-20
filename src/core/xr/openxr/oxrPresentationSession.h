@@ -132,12 +132,14 @@ class oxrPresentationSession : public PresentationSession
 
     // Public API's
 
-    virtual void   nextEvent(void);
+    virtual void   queryNextEvent(void);
 
-    virtual FrameState* startFrame(void);
-    virtual void   waitForOptimalPrediction(void);
+    virtual uint64 startFrame(void);
+    virtual FrameState* waitForOptimalPrediction(void);
+    virtual void   startEncoding(void);
     virtual Frame* currentFrame(void);
     virtual void   presentWithPose(const Pose& pose);
+    virtual void   endEncoding(void);
 };
 
 

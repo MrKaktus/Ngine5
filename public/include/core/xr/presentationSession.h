@@ -72,14 +72,16 @@ struct PresentationSessionDescriptor
 class PresentationSession
 {
     public:
-    virtual void nextEvent(void) = 0;
+    virtual void queryNextEvent(void) = 0;
 
-    virtual FrameState* startFrame(void) = 0;
-    virtual void   waitForOptimalPrediction(void) = 0;
+    virtual uint64 startFrame(void) = 0;
+    virtual FrameState* waitForOptimalPrediction(void) = 0;
 
+    virtual void   startEncoding(void) = 0;
     /// Application receives ownership of returned frame, and should release it once it's done.
     virtual Frame* currentFrame(void) = 0;
     virtual void   presentWithPose(const Pose& pose) = 0;
+    virtual void   endEncoding(void) = 0;
 
     virtual ~PresentationSession() {};
 };

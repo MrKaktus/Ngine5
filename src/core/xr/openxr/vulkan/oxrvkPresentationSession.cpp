@@ -77,7 +77,7 @@ void oxrVkInterfaceInit(void)
 
 
 
-oxrVkPresentationSession::oxrVkPresentationSession(
+oxrPresentationSessionVK::oxrPresentationSessionVK(
         const XrSystemId runtime,
         const XrViewConfigurationType viewConfigurationType, 
         const PresentationSessionDescriptor& descriptor,
@@ -94,7 +94,7 @@ oxrVkPresentationSession::oxrVkPresentationSession(
 {
 }
 
-void oxrVkPresentationSession::createPresentationSessionWithGraphicBinding(
+void oxrPresentationSessionVK::createPresentationSessionWithGraphicBinding(
     const XrSystemId runtime,
     const gpu::GpuDevice* gpu,
     const gpu::QueueType type, 
@@ -122,12 +122,12 @@ void oxrVkPresentationSession::createPresentationSessionWithGraphicBinding(
     Validate( session, xrCreateSession(session->instance, &info, &presentationSession) )
 }
 
-uint64 oxrVkPresentationSession::translateTextureFormat(const gpu::Format format)
+uint64 oxrPresentationSessionVK::translateTextureFormat(const gpu::Format format)
 {
     return gpu::TranslateTextureFormat[underlyingType(format)];
 }
 
-void oxrVkPresentationSession::extendColorSwapChainInfo(XrSwapchainCreateInfo& info)
+void oxrPresentationSessionVK::extendColorSwapChainInfo(XrSwapchainCreateInfo& info)
 {
     // Below structure would be used to pass list of Vulkan texel formats that application 
     // wants to overlay onto each other when using swap chain textures (to create texture
@@ -148,7 +148,7 @@ void oxrVkPresentationSession::extendColorSwapChainInfo(XrSwapchainCreateInfo& i
     // info.usageFlags |= XR_SWAPCHAIN_USAGE_MUTABLE_FORMAT_BIT;
 }
 
-XrSwapchainImageBaseHeader* oxrVkPresentationSession::allocateSwapChainImagesArray(uint32 framesCount)
+XrSwapchainImageBaseHeader* oxrPresentationSessionVK::allocateSwapChainImagesArray(uint32 framesCount)
 {
     XrSwapchainImageBaseHeader* result = (XrSwapchainImageBaseHeader*) new XrSwapchainImageVulkanKHR[framesCount];
 
@@ -163,7 +163,7 @@ XrSwapchainImageBaseHeader* oxrVkPresentationSession::allocateSwapChainImagesArr
     return result;
 }
 
-gpu::Texture* oxrVkPresentationSession::createTextureBackedBySwapChainImage(const gpu::GpuDevice* gpu, gpu::TextureState& textureState, XrSwapchainImageBaseHeader* imageDesc)
+gpu::Texture* oxrPresentationSessionVK::createTextureBackedBySwapChainImage(const gpu::GpuDevice* gpu, gpu::TextureState& textureState, XrSwapchainImageBaseHeader* imageDesc)
 {
     // Create textures backed by image from Swap-Chain
     gpu::TextureVK* texture = new gpu::TextureVK((gpu::VulkanDevice*)gpu, textureState);
@@ -175,7 +175,7 @@ gpu::Texture* oxrVkPresentationSession::createTextureBackedBySwapChainImage(cons
     return texture;
 }
 
-oxrVkPresentationSession::~oxrVkPresentationSession()
+oxrPresentationSessionVK::~oxrPresentationSessionVK()
 {
     Validate( session, xrEndSession(presentationSession) )
 
@@ -199,12 +199,6 @@ oxrVkPresentationSession::~oxrVkPresentationSession()
 
     Validate( session, xrDestroySession(presentationSession) )
 }
-
-
-
-
-
-
 
 } // en::xr
 } // en

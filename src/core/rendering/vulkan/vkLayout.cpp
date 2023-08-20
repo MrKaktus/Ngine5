@@ -500,7 +500,7 @@ PipelineLayout* VulkanDevice::createPipelineLayout(
     const SetLayout** sets,
     const uint32      immutableSamplersCount,
     const Sampler**   immutableSamplers,
-    const ShaderStages stageMask)
+    const ShaderStages stagesMask)
 {
     PipelineLayoutVK* result = nullptr; 
 
@@ -546,7 +546,7 @@ PipelineLayout* VulkanDevice::createPipelineLayout(
         rangeInfo.binding            = 0u; // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         rangeInfo.descriptorType     = VK_DESCRIPTOR_TYPE_SAMPLER;
         rangeInfo.descriptorCount    = immutableSamplersCount;
-        rangeInfo.stageFlags         = static_cast<VkShaderStageFlagBits>(underlyingType(stageMask));
+        rangeInfo.stageFlags         = static_cast<VkShaderStageFlagBits>(underlyingType(stagesMask));
         rangeInfo.pImmutableSamplers = immutable;
 
         // Descriptor Range Table

@@ -22,10 +22,10 @@ namespace en
 {
 namespace xr
 {
-class oxrVkPresentationSession : public oxrPresentationSession
+class oxrPresentationSessionVK : public oxrPresentationSession
 {
     public:
-    oxrVkPresentationSession(const XrSystemId runtime,
+    oxrPresentationSessionVK(const XrSystemId runtime,
                              const XrViewConfigurationType viewConfigurationType, 
                              const PresentationSessionDescriptor& descriptor,
                              const gpu::GpuDevice* gpu,
@@ -43,7 +43,7 @@ class oxrVkPresentationSession : public oxrPresentationSession
     virtual XrSwapchainImageBaseHeader* allocateSwapChainImagesArray(uint32 framesCount);
     virtual gpu::Texture* createTextureBackedBySwapChainImage(const gpu::GpuDevice* gpu, gpu::TextureState& textureState, XrSwapchainImageBaseHeader* imageDesc);
 
-    virtual ~oxrVkPresentationSession();
+    virtual ~oxrPresentationSessionVK();
 };
 
 } // en::xr

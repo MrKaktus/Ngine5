@@ -108,7 +108,7 @@ class Direct3D12Device : public CommonDevice
 
     virtual Heap* createHeap(const MemoryUsage usage, const uint32 size);
 
-    virtual std::shared_ptr<Sampler> createSampler(const SamplerState& state);
+    virtual Sampler* createSampler(const SamplerState& state);
     
     virtual std::shared_ptr<Texture> createSharedTexture(std::shared_ptr<SharedSurface> backingSurface);
 
@@ -163,10 +163,10 @@ class Direct3D12Device : public CommonDevice
         const ShaderStages stagesMask = ShaderStages::All);
 
     virtual PipelineLayout* createPipelineLayout(
-        const uint32      sets,
-        const SetLayout** set,
-        const uint32      immutableSamplers = 0u,
-        const Sampler**   sampler = nullptr,
+        const uint32      setsCount,
+        const SetLayout** sets,
+        const uint32      immutableSamplersCount = 0u,
+        const Sampler**   immutableSamplers = nullptr,
         const ShaderStages stagesMask = ShaderStages::All);
 
     virtual Descriptors* createDescriptorsPool(

@@ -154,7 +154,7 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
         const MemoryUsage usage,
         const uint32 size) = 0;
       
-    virtual std::shared_ptr<Sampler> createSampler(
+    virtual Sampler* createSampler(
         const SamplerState& state) = 0;
       
     /// Buffers and Textures are allocated from the Heaps.

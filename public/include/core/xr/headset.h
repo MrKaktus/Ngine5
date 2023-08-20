@@ -15,6 +15,7 @@
 #ifndef ENG_CORE_XR_HEADSET
 #define ENG_CORE_XR_HEADSET
 
+#include "core/rendering/device.h"
 #include "core/rendering/texture.h"
 #include "core/xr/presentationSession.h"
 
@@ -25,7 +26,8 @@ namespace xr
 class Headset
 {
     public:
-    virtual PresentationSession* createPresentationSession(const PresentationSessionDescriptor* descriptor) = 0;
+    virtual gpu::GpuDevice* device(void) = 0;
+    virtual PresentationSession* createPresentationSession(const PresentationSessionDescriptor& descriptor) = 0;
 
     virtual ~Headset() {};
 };

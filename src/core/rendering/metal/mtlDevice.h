@@ -68,7 +68,7 @@ namespace en
          const MemoryUsage usage, 
          const uint32 size);
 
-      virtual std::shared_ptr<Sampler> createSampler(
+      virtual Sampler* createSampler(
          const SamplerState& state);
       
       virtual std::shared_ptr<Texture> createSharedTexture(

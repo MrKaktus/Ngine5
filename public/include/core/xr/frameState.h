@@ -26,7 +26,7 @@ class FrameState
 {
     public:
     uint64 targetPresentationEvent;
-    uint64 compositorSyncValue;
+    uint64 synchronizationValue;
     uint64 renderingFrame;
     uint64 shadingRate;
 

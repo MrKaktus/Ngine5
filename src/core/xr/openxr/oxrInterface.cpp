@@ -163,7 +163,7 @@ oxrInterface::oxrInterface(std::string appName) :
     layersCount(0),
     globalExtension(nullptr),
     globalExtensionsCount(0),
-    headset(nullptr)
+    primaryHeadset(nullptr)
 {
     for (uint32 i = 0; i < MaxSupportedThreads; ++i)
     {
@@ -413,17 +413,11 @@ oxrInterface::oxrInterface(std::string appName) :
     runtimeInfo += properties.runtimeName[XR_MAX_RUNTIME_NAME_SIZE];
 
     Log << runtimeInfo;
-
-
-    // Create single Headset (runtime) object
-    //----------------------------------------
-
-    headset = new oxrHeadset(*this);
 }
 
 oxrInterface::~oxrInterface()
 {
-    delete headset;
+    delete primaryHeadset;
 
     clearInterfaceFunctionPointers();
 
@@ -530,6 +524,34 @@ void oxrInterface::clearInterfaceFunctionPointers(void)
 
     // XR_EXT_thermal_query
     xrThermalGetTemperatureTrendEXT           = nullptr;
+}
+
+uint32 oxrInterface::headsets(void)
+{
+    // Delay sub-system initialization until application actually wants to use XR
+    if (!primaryHeadset)
+    {
+        // Create single Headset (runtime) object
+        //----------------------------------------
+
+        primaryHeadset = new oxrHeadset(*this);
+    }
+
+    return 1;
+}
+
+Headset* oxrInterface::headset(const uint32 index)
+{
+    // Delay sub-system initialization until application actually wants to use XR
+    if (!primaryHeadset)
+    {
+        // Create single Headset (runtime) object
+        //----------------------------------------
+
+        primaryHeadset = new oxrHeadset(*this);
+    }
+
+    return primaryHeadset;
 }
 
 } // en::xr

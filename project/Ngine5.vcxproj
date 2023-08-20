@@ -110,6 +110,7 @@
     <ClCompile Include="..\src\core\utilities\basicAllocator.cpp" />
     <ClCompile Include="..\src\core\utilities\parser.cpp" />
     <ClCompile Include="..\src\core\xr\common\xrInterface.cpp" />
+    <ClCompile Include="..\src\core\xr\openvr\ovrInterface.cpp" />
     <ClCompile Include="..\src\core\xr\openxr\d3d12\oxrdx12Headset.cpp" />
     <ClCompile Include="..\src\core\xr\openxr\d3d12\oxrdx12PresentationSession.cpp" />
     <ClCompile Include="..\src\core\xr\openxr\oxrFrame.cpp" />
@@ -387,6 +388,7 @@
     <ClInclude Include="..\src\core\storage\storage.h" />
     <ClInclude Include="..\src\core\storage\winStorage.h" />
     <ClInclude Include="..\src\core\utilities\basicAllocator.h" />
+    <ClInclude Include="..\src\core\xr\openvr\ovrInterface.h" />
     <ClInclude Include="..\src\core\xr\openxr\d3d12\oxrdx12Headset.h" />
     <ClInclude Include="..\src\core\xr\openxr\d3d12\oxrdx12PresentationSession.h" />
     <ClInclude Include="..\src\core\xr\openxr\oxrDLL.h" />

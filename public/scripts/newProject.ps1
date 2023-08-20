@@ -66,6 +66,11 @@ function createVS2017Generator
 Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2017.bat' -destination .
 }
 
+function createVS2019Generator
+{
+Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2019.bat' -destination .
+}
+
 function createSharedScripts
 {
 (Get-Content '.\..\..\..\Engine\public\scripts\project\postBuild.bat') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'postBuild.bat'
@@ -133,6 +138,7 @@ Set-Location -Path project
 createXcodeGenerator
 createVS2015Generator
 createVS2017Generator
+createVS2019Generator
 createSharedScripts
 Set-Location -Path ..
 

@@ -427,34 +427,37 @@ namespace en
    return result;
    }
    
-   std::shared_ptr<PipelineLayout> MetalDevice::createPipelineLayout(const uint32 sets,
-                                                                const std::shared_ptr<SetLayout>* set,
-                                                                const uint32 immutableSamplers,
-                                                                const std::shared_ptr<Sampler>* sampler,
-                                                                const ShaderStages stageMask)
-   {
-   std::shared_ptr<PipelineLayoutMTL> result = nullptr;
+PipelineLayout* MetalDevice::createPipelineLayout(
+    const uint32      setsCount,
+    const SetLayout** sets,
+    const uint32      immutableSamplersCount,
+    const Sampler**   immutableSamplers,
+    const ShaderStages stagesMask)
+{
+    PipelineLayoutMTL* result = nullptr;
    
-   MTLMutability mutability = MTLMutabilityImmutable;
+    MTLMutability mutability = MTLMutabilityImmutable;
 
-   result = std::make_shared<PipelineLayoutMTL>(this, sets);
-   for(uint32 i=0; i<sets; ++i)
-      result->setLayout[i] = std::dynamic_pointer_cast<SetLayoutMTL>(set[i]);
+    result = new PipelineLayoutMTL*(this, setsCount);
+    for(uint32 i=0; i<setsCount; ++i)
+	{
+        result->setLayout[i] = std::dynamic_pointer_cast<SetLayoutMTL>(sets[i]);
+    }
+
+    // MTLArgumentBuffersTier argumentBuffersSupport
    
-   //  MTLArgumentBuffersTier argumentBuffersSupport
-   
-   // Metal has no notion of Immutable samplers
-   if (immutableSamplers)
-      {
+    // Metal has no notion of Immutable samplers
+    if (immutableSamplersCount)
+    {
        
-      }
+    }
 
       
    
-   // TODO: Finish / Emulate !
+    // TODO: Finish / Emulate !
    
-   return result;
-   }
+    return result;
+}
    
    std::shared_ptr<Descriptors> MetalDevice::createDescriptorsPool(const uint32 maxSets,
                                                        const uint32 (&count)[underlyingType(ResourceType::Count)])

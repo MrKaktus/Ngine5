@@ -188,10 +188,8 @@ bool oxrHeadset::supportsPresentationMode(const XRPresentationMode mode)
 }
 */
 
-PresentationSession* oxrHeadset::createPresentationSession(const PresentationSessionDescriptor* descriptor)
+PresentationSession* oxrHeadset::createPresentationSession(const PresentationSessionDescriptor& descriptor)
 {
-    assert( descriptor );
-
     gpu::QueueType  queueType  = gpu::QueueType::Universal;
     uint32          queueIndex = 0;
 
@@ -234,13 +232,13 @@ PresentationSession* oxrHeadset::createPresentationSession(const PresentationSes
     if (api == en::gpu::RenderingAPI::Direct3D)
     {
         // Create D3D12 based Presentation Session object
-        result = new oxrPresentationSessionD3D12(runtime, viewConfigurationType, *descriptor, gpu, queueType, queueIndex);
+        result = new oxrPresentationSessionD3D12(runtime, viewConfigurationType, descriptor, gpu, queueType, queueIndex);
     }
     else
     if (api == en::gpu::RenderingAPI::Vulkan)
     {
         // Create Vulkan based Presentation Session object
-        result = new oxrVkPresentationSession(runtime, viewConfigurationType, *descriptor, gpu, queueType, queueIndex);
+        result = new oxrPresentationSessionVK(runtime, viewConfigurationType, descriptor, gpu, queueType, queueIndex);
     }
 
     // TODO: Log critical error

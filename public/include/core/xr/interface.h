@@ -15,6 +15,8 @@
 #ifndef ENG_CORE_XR_INTERFACE
 #define ENG_CORE_XR_INTERFACE
 
+#include "core/xr/headset.h"
+
 namespace en
 {
 namespace xr
@@ -25,6 +27,9 @@ class Interface
 
     /// Creates this class instance (API specific) and assigns it to "XR"
     static bool create(void);
+
+    virtual uint32 headsets(void) = 0;
+    virtual Headset* headset(const uint32 index) = 0;
 };
 
 } // en::xr

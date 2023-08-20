@@ -253,7 +253,7 @@ TaskScheduler::TaskScheduler(const uint32 _workerThreads, const uint32 fibersPer
     //worker = allocate<Worker>(workerThreads, cacheline);
     //worker = new std::unique_ptr<Worker>[workerThreads];
     worker = new Worker*[workerThreads];
-   
+
     for(uint32 i=0; i<workerThreads; ++i)
     {
         // Init worker state
@@ -262,7 +262,7 @@ TaskScheduler::TaskScheduler(const uint32 _workerThreads, const uint32 fibersPer
        worker[i] = allocate<Worker>(1, cacheline);
        new (worker[i]) Worker(i, fibersPerWorker);
     }
-    
+
     // Spawn worker threads (they will be spinning until execution flag is not set)
     for(uint32 i=0; i<workerThreads; ++i)
     {

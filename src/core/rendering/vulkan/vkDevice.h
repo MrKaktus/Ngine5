@@ -161,7 +161,7 @@ namespace en
 
       virtual Heap* createHeap(const MemoryUsage usage, const uint32 size);
 
-      virtual std::shared_ptr<Sampler> createSampler(const SamplerState& state);
+      virtual Sampler* createSampler(const SamplerState& state);
       
       virtual std::shared_ptr<Texture> createSharedTexture(std::shared_ptr<SharedSurface> backingSurface);
 

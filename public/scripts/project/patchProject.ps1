@@ -121,6 +121,33 @@ $beforeImportRelease="project/vs2017/Release/ENGINE_PROJECT_NAME.lib</ImportLibr
 $afterImportRelease="build/win64/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
 (Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportRelease", "$afterImportRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
 
+# VS 2019
+
+$beforeBuildDebug="ENGINE_PROJECT_NAME\\project\\vs2019\\Debug\\</OutDir>"
+$afterBuildDebug="ENGINE_PROJECT_NAME\bin\win64\Debug\</OutDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildDebug", "$afterBuildDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeBuildRelease="ENGINE_PROJECT_NAME\\project\\vs2019\\Release\\</OutDir>"
+$afterBuildRelease="ENGINE_PROJECT_NAME\bin\win64\Release\</OutDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildRelease", "$afterBuildRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeDatabaseDebug="project/vs2019/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+$afterDatabaseDebug="bin/win64/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeDatabaseDebug", "$afterDatabaseDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeDatabaseRelease="project/vs2019/Release/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+$afterDatabaseRelease="bin/win64/Release/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeDatabaseRelease", "$afterDatabaseRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeImportDebug="project/vs2019/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+$afterImportDebug="build/win64/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportDebug", "$afterImportDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeImportRelease="project/vs2019/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+$afterImportRelease="build/win64/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportRelease", "$afterImportRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+
 # Common
 
 $beforeIntermediateDebug="ENGINE_PROJECT_NAME.dir\\Debug\\</IntDir>"
