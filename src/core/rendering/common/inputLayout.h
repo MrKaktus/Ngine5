@@ -20,10 +20,12 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   extern const uint8 AttributeSize[underlyingType(Attribute::Count)];
-   }
-}
+namespace gpu
+{
+
+extern const uint8 AttributeSize[underlyingType(Attribute::Count)];
+
+} // en::gpu
+} // en
 
 #endif

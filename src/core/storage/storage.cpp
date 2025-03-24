@@ -135,7 +135,7 @@ namespace en
    std::shared_ptr<File> file = open(filename);
    if (!file)
       {
-      dst.empty();
+      dst.clear();
       return 0u;
       }
       
@@ -143,7 +143,7 @@ namespace en
    if (sizeToRead == 0)
       {
       Log << std::string("File " + filename + " is empty!");
-      dst.empty();
+      dst.clear();
       return 0;
       }
 
@@ -153,7 +153,7 @@ namespace en
    if (!file->read(0u, sizeToRead, buffer, &readSize))
       {
       Log << std::string("Error when reading file, read " + stringFrom(readSize) + " from " + stringFrom(sizeToRead) + " bytes!");
-      dst.empty();
+      dst.clear();
       return 0;
       }
    file = nullptr;

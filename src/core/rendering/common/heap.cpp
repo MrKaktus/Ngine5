@@ -23,6 +23,7 @@ namespace en
 {
 namespace gpu
 {
+
 CommonHeap::CommonHeap(const MemoryUsage usage, const uint32 size) :
     _usage(usage),
     _size(size)
@@ -46,7 +47,7 @@ uint32 CommonHeap::size(void) const
 //   // TODO: General and Specified memory allocators are needed.
 //   return false;
 //   }
-   
+
 Buffer* CommonHeap::createBuffer(const uint32 elements, const Formatting& formatting, const uint32 step)
 {
     assert( elements );

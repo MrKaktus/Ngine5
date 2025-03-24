@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 class CommonTextureView;
    
 class CommonTexture : public Texture

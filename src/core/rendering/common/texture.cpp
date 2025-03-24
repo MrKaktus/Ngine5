@@ -21,6 +21,7 @@ namespace en
 {
 namespace gpu
 {
+
 TextureState::TextureState() :
     type(TextureType::Texture2D),
     format(Format::Unsupported),
@@ -102,7 +103,7 @@ uint8 TextureState::planes(void) const
 
     return 1;
 }
-      
+   
 // TODO: Metal YCbCr formats:
 //
 //   MTLPixelFormatGBGR422
@@ -140,7 +141,6 @@ uint8 TextureState::planes(void) const
 // 3 VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM
 // 2 VK_FORMAT_G16_B16R16_2PLANE_422_UNORM
 // 3 VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM
-
 
 // TODO: In future handle row size depending on plane for YCbCr formats
 uint32 TextureState::rowSize(const uint8 mipmap, const uint8 plane) const
@@ -662,9 +662,6 @@ void ImageMemoryAlignment::surfaceAlignment(const uint32 alignment)
     surfaceAlignmentPower = power;
 }
 
-
-
-
 uint16v2 texelBlockResolution(const Format format)
 {
     assert( format != Format::Unsupported );
@@ -1058,20 +1055,29 @@ uint32 TextureMipMapCount(const TextureState& state)
 {
     if (state.type == TextureType::Texture2DMultisample      ||
         state.type == TextureType::Texture2DMultisampleArray )   // also Rectangle & Buffer
+    {
         return 1;
+    }
 
     uint32 maxDimmension = state.width > state.height ? state.width : state.height;
    
     if (state.type == TextureType::Texture3D)
+    {
         if (maxDimmension < state.layers)
+        {
             maxDimmension = state.layers;
-   
+        }
+    }
+
     uint32 value = maxDimmension; //nextPowerOfTwo(maxDimmension);
     uint32 mipmaps;
     for(mipmaps = 1; ; ++mipmaps)
     {
         if (value == 1)
+        {
             break;
+        }
+
         value = value >> 1;
     }
 

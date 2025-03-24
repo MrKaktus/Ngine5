@@ -19,6 +19,7 @@ namespace en
 {
 namespace gpu
 {
+
 WindowSettings::WindowSettings() :
     mode(BorderlessWindow),
     display(nullptr),

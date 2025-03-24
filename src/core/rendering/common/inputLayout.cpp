@@ -21,6 +21,7 @@ namespace en
 {
 namespace gpu
 {
+
 // Default Constructor, all Attributes default to None
 Formatting::Formatting()
 {
@@ -92,10 +93,12 @@ InputLayout* CommonDevice::createInputLayout(const DrawableType primitiveType,
     // Compute amount of used attributes
     uint32 usedAttributes = 0;
     for(; usedAttributes<support.maxInputLayoutAttributesCount; ++usedAttributes)
+    {
         if (common.formatting.column[usedAttributes] == Attribute::None)
         {
             break;
         }
+    }
 
     // Compute amount of used buffers
     uint32 usedBuffers = 1;

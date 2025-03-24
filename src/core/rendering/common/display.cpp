@@ -17,42 +17,43 @@
 
 namespace en
 {
-   namespace gpu
-   {
-//   Display::Display() :
-//      SafeObject()
-//   {
-//   }
+namespace gpu
+{
+
+//Display::Display() :
+//    SafeObject()
+//{
+//}
    
-   CommonDisplay::CommonDisplay() :
-      _position(0, 0),
-      _resolution(0, 0),
-      observedResolution(),
-      modeResolution(nullptr),
-      modesCount(0),
-      frequency(0)
-   {
-   }
-
-   CommonDisplay::~CommonDisplay()
-   {
-   delete [] modeResolution;
-   }
-
-   uint32v2 CommonDisplay::position(void)
-   {
-   return _position;
-   }
-
-   uint32v2 CommonDisplay::resolution(void)
-   {
-   return _resolution;
-   }
-
-   uint32 CommonDisplay::refreshRate(void)
-   {
-   return frequency;
-   }
-   
-   }
+CommonDisplay::CommonDisplay() :
+    _position(0, 0),
+    _resolution(0, 0),
+    observedResolution(),
+    modeResolution(nullptr),
+    modesCount(0),
+    frequency(0)
+{
 }
+
+CommonDisplay::~CommonDisplay()
+{
+    delete [] modeResolution;
+}
+
+uint32v2 CommonDisplay::position(void)
+{
+    return _position;
+}
+
+uint32v2 CommonDisplay::resolution(void)
+{
+    return _resolution;
+}
+
+uint32 CommonDisplay::refreshRate(void)
+{
+    return frequency;
+}
+   
+} // en::gpu
+} // en

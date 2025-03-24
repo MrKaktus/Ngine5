@@ -20,26 +20,28 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class CommonDisplay : public Display
-      {
-      public:
-      uint32v2  _position;          // Upper-Left corner position on virtual desktop
-      uint32v2  _resolution;        // Native resolution
-      uint32v2  observedResolution; // Display resolution when app started
-      uint32v2* modeResolution;     // Resolutions of display modes supported by this display
-      uint32    modesCount;         // Count of display modes supported by this display (from the list of modes supported by the driver)
-      uint32    frequency;          // Display refresh rate in Hz
-      
-      CommonDisplay();
+namespace gpu
+{
 
-      virtual uint32v2 position(void);    // Position on Virtual Desktop
-      virtual uint32v2 resolution(void);  // Native resolution
-      virtual uint32   refreshRate(void); // Display refresh rate
+class CommonDisplay : public Display
+{
+    public:
+    uint32v2  _position;          // Upper-Left corner position on virtual desktop
+    uint32v2  _resolution;        // Native resolution
+    uint32v2  observedResolution; // Display resolution when app started
+    uint32v2* modeResolution;     // Resolutions of display modes supported by this display
+    uint32    modesCount;         // Count of display modes supported by this display (from the list of modes supported by the driver)
+    uint32    frequency;          // Display refresh rate in Hz
       
-      virtual ~CommonDisplay();
-      };
-   }
-}
+    CommonDisplay();
+
+    virtual uint32v2 position(void);    // Position on Virtual Desktop
+    virtual uint32v2 resolution(void);  // Native resolution
+    virtual uint32   refreshRate(void); // Display refresh rate
+    
+    virtual ~CommonDisplay();
+};
+
+} // en::gpu
+} // en
 #endif

@@ -19,6 +19,7 @@ namespace en
 {
 namespace gpu
 {
+
 ViewportStateInfo::ViewportStateInfo() :
     rect(0.0f, 0.0f, 1.0f, 1.0f),
     depthRange(0.0f, 1.0f)

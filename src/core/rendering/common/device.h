@@ -34,7 +34,8 @@
 namespace en
 {
 namespace gpu
-{      
+{   
+   
 class CommonDevice : public GpuDevice
 {
     public:
@@ -155,7 +156,6 @@ class CommonDevice : public GpuDevice
 
 // CompileTimeSizeReporting( CommonDevice );
 static_assert(sizeof(CommonDevice) == 152, "en::gpu::CommonDevice size mismatch!"); // 144 + padding
-
 
 class CommonGraphicAPI : public GraphicAPI
 {

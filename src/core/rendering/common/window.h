@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Aligned to cache line due to use of Mutex
 class cachealign CommonWindow : public Window
 {

@@ -15,6 +15,8 @@
 
 #include "core/rendering/blend.h"
 
+// TODO: Rename to blend.cpp (or add com prefix to all common rendering files)
+
 // Default blend states:
 //
 // Direct3D12:
@@ -53,27 +55,28 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   BlendStateInfo::BlendStateInfo() :
-      blendColor(0.0f, 0.0f, 0.0f, 0.0f),
-      enabledSamples(0xFFFFFFFF)
-   {
-   }
+namespace gpu
+{
 
-   // TODO: Compare with OpenGL, Vulkan, Metal default states
-   BlendAttachmentInfo::BlendAttachmentInfo() :
-      mode(BlendMode::Off),
-      srcRGB(BlendFactor::One),
-      dstRGB(BlendFactor::Zero),
-      rgb(BlendOperation::Add),
-      srcAlpha(BlendFactor::One),
-      dstAlpha(BlendFactor::Zero),
-      alpha(BlendOperation::Add),
-      logic(LogicOperation::NoOperation),
-      writeMask(ColorMask::All)
-   {
-   }
-
-   }
+BlendStateInfo::BlendStateInfo() :
+    blendColor(0.0f, 0.0f, 0.0f, 0.0f),
+    enabledSamples(0xFFFFFFFF)
+{
 }
+
+// TODO: Compare with OpenGL, Vulkan, Metal default states
+BlendAttachmentInfo::BlendAttachmentInfo() :
+    mode(BlendMode::Off),
+    srcRGB(BlendFactor::One),
+    dstRGB(BlendFactor::Zero),
+    rgb(BlendOperation::Add),
+    srcAlpha(BlendFactor::One),
+    dstAlpha(BlendFactor::Zero),
+    alpha(BlendOperation::Add),
+    logic(LogicOperation::NoOperation),
+    writeMask(ColorMask::All)
+{
+}
+
+} // en::gpu
+} // en
