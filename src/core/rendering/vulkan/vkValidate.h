@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 extern bool IsError(const VkResult result);
 extern bool IsWarning(const VkResult result);
 

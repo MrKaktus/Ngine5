@@ -28,33 +28,32 @@ namespace en
 {
 namespace gpu
 {
+
 //enum ProvokingVertex
-//   {
-//   ProvokingVertexFirst     = 0,
-//   ProvokingVertexLast         ,
-//   ProvokingVertexesCount
-//   };
+//{
+//    ProvokingVertexFirst     = 0,
+//    ProvokingVertexLast         ,
+//    ProvokingVertexesCount
+//};
 //
 //enum CoordinateOrigin
-//   {
-//   OriginUpperLeft          = 0,
-//   OriginLowerLeft             ,
-//   CoordinateOriginsCount
-//   };
-
-
+//{
+//    OriginUpperLeft          = 0,
+//    OriginLowerLeft             ,
+//    CoordinateOriginsCount
+//};
 
 //static const VkProvokingVertex TranslateProvokingVertex[ProvokingVertexesCount] = 
-//   {
-//   VK_PROVOKING_VERTEX_FIRST,
-//   VK_PROVOKING_VERTEX_LAST  
-//   };
+//{
+//    VK_PROVOKING_VERTEX_FIRST,
+//    VK_PROVOKING_VERTEX_LAST  
+//};
 //
 //static const VkCoordinateOrigin TranslateCoordinateOrigin[CoordinateOriginsCount] = 
-//   {
-//   VK_COORDINATE_ORIGIN_UPPER_LEFT,
-//   VK_COORDINATE_ORIGIN_LOWER_LEFT
-//   };
+//{
+//    VK_COORDINATE_ORIGIN_UPPER_LEFT,
+//    VK_COORDINATE_ORIGIN_LOWER_LEFT
+//};
 
 
 

@@ -24,19 +24,21 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MultisamplingStateVK : public MultisamplingState
-      {
-      public:
-      VkPipelineMultisampleStateCreateInfo state;
+namespace gpu
+{
 
-      MultisamplingStateVK(const uint32 samples,              // 1 - multisampling is disabled
-                           const bool enableAplhaToCoverage,
-                           const bool enableAlphaToOne);
-      };
-   }
-}
+class MultisamplingStateVK : public MultisamplingState
+{
+    public:
+    VkPipelineMultisampleStateCreateInfo state;
+
+    MultisamplingStateVK(const uint32 samples,              // 1 - multisampling is disabled
+                         const bool enableAplhaToCoverage,
+                         const bool enableAlphaToOne);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

@@ -27,9 +27,9 @@
 
 namespace en
 {
-
 namespace gpu
 {
+
 class VulkanDevice;
 
 class HeapVK : public CommonHeap
@@ -42,7 +42,6 @@ class HeapVK : public CommonHeap
     uint32         memoryType;         
     uint32         mappingsCount;      
     void*          mappedPtr;          
-
 
     HeapVK(std::shared_ptr<VulkanDevice> gpu,
            const VkDeviceMemory handle, 

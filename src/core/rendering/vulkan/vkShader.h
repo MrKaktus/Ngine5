@@ -24,23 +24,24 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class VulkanDevice;
+namespace gpu
+{
 
-   class ShaderVK : public Shader
-      {
-      public:
-      VulkanDevice*  gpu;
-      VkShaderModule handle;
-      ShaderStage    stage;
+class VulkanDevice;
 
-      ShaderVK(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
-      virtual ~ShaderVK();
-      };
+class ShaderVK : public Shader
+{
+    public:
+    VulkanDevice*  gpu;
+    VkShaderModule handle;
+    ShaderStage    stage;
 
-   }
-}
+    ShaderVK(VulkanDevice* gpu, const VkShaderModule handle, const ShaderStage stage);
+    virtual ~ShaderVK();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

@@ -35,6 +35,7 @@ namespace en
 {
 namespace gpu
 {
+
 class VulkanDevice;
 class Texture;
 

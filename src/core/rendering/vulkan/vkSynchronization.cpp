@@ -26,595 +26,620 @@
 
 namespace en
 {
-   namespace gpu
-   {
+namespace gpu
+{
 
 
-   // BARRIERS
-   //////////////////////////////////////////////////////////////////////////
+// BARRIERS
+//////////////////////////////////////////////////////////////////////////
 
 
-   void TranslateBufferAccess(BufferAccess usage, BufferType type, VkAccessFlags& access)
-   {
-   access = static_cast<VkAccessFlags>(0u);
+void TranslateBufferAccess(BufferAccess usage, BufferType type, VkAccessFlags& access)
+{
+    access = static_cast<VkAccessFlags>(0u);
 
-   bool canBeWritten = false;
+    bool canBeWritten = false;
 
-   uint32 usageMask = underlyingType(usage);
+    uint32 usageMask = underlyingType(usage);
 
-   if (checkBitmask(usageMask, underlyingType(BufferAccess::Read)))
-      {
-      // Allows buffer to be read as Vertex Buffer during Draw
-      if (type == BufferType::Vertex)
-         setBitmask(access, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
-      else
-      // Allows buffer to be read as Index Buffer during Indexed Draw
-      if (type == BufferType::Index)
-         setBitmask(access, VK_ACCESS_INDEX_READ_BIT);
-      else
-      // Allows buffer to be read as Uniform Buffer
-      if (type == BufferType::Uniform)
-         setBitmask(access, VK_ACCESS_UNIFORM_READ_BIT);
-      else
-      // Allows buffer to be used as Indirect Command Buffer during Draw and Dispatch Indirect commands
-      if (type == BufferType::Indirect)
-         setBitmask(access, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-      else
-      // Allows general Buffer read access by Shaders (Storage)
-         setBitmask(access, VK_ACCESS_SHADER_READ_BIT);
-      }
+    if (checkBitmask(usageMask, underlyingType(BufferAccess::Read)))
+    {
+        // Allows buffer to be read as Vertex Buffer during Draw
+        if (type == BufferType::Vertex)
+        {
+            setBitmask(access, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+        }
+        else
+        // Allows buffer to be read as Index Buffer during Indexed Draw
+        if (type == BufferType::Index)
+        {
+            setBitmask(access, VK_ACCESS_INDEX_READ_BIT);
+        }
+        else
+        // Allows buffer to be read as Uniform Buffer
+        if (type == BufferType::Uniform)
+        {
+            setBitmask(access, VK_ACCESS_UNIFORM_READ_BIT);
+        }
+        else
+        // Allows buffer to be used as Indirect Command Buffer during Draw and Dispatch Indirect commands
+        if (type == BufferType::Indirect)
+        {
+            setBitmask(access, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+        }
+        else
+        // Allows general Buffer read access by Shaders (Storage)
+        {
+            setBitmask(access, VK_ACCESS_SHADER_READ_BIT);
+        }
+    }
 
-   // Allows Writing to Buffers (by Compute Shaders)
-   if (checkBitmask(usageMask, underlyingType(BufferAccess::Write)))
-      {
-      setBitmask(access, VK_ACCESS_SHADER_WRITE_BIT);
-      canBeWritten = true;
-      }
+    // Allows Writing to Buffers (by Compute Shaders)
+    if (checkBitmask(usageMask, underlyingType(BufferAccess::Write)))
+    {
+        setBitmask(access, VK_ACCESS_SHADER_WRITE_BIT);
+        canBeWritten = true;
+    }
 
-   // Transfer between System Memory and Dedicated Memory
-   if (checkBitmask(usageMask, underlyingType(BufferAccess::TransferSource)))
-      setBitmask(access, VK_ACCESS_HOST_READ_BIT);
+    // Transfer between System Memory and Dedicated Memory
+    if (checkBitmask(usageMask, underlyingType(BufferAccess::TransferSource)))
+    {
+        setBitmask(access, VK_ACCESS_HOST_READ_BIT);
+    }
 
-   if (checkBitmask(usageMask, underlyingType(BufferAccess::TransferDestination)))
-      setBitmask(access, VK_ACCESS_HOST_WRITE_BIT);
+    if (checkBitmask(usageMask, underlyingType(BufferAccess::TransferDestination)))
+    {
+        setBitmask(access, VK_ACCESS_HOST_WRITE_BIT);
+    }
 
-   // Copy and Blit operations
-   if (checkBitmask(usageMask, underlyingType(BufferAccess::CopySource)))
-      setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
+    // Copy and Blit operations
+    if (checkBitmask(usageMask, underlyingType(BufferAccess::CopySource)))
+    {
+        setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
+    }
 
-   if (checkBitmask(usageMask, underlyingType(BufferAccess::CopyDestination)))
-      setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
-   }
+    if (checkBitmask(usageMask, underlyingType(BufferAccess::CopyDestination)))
+    {
+        setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
+    }
+}
 
-   void TranslateTextureAccess(TextureAccess usage, Format format, VkAccessFlags& access, VkImageLayout& layout, VkPipelineStageFlagBits& stage)
-   {
-   access = static_cast<VkAccessFlags>(0u);
-   layout = static_cast<VkImageLayout>(0u);
-   stage  = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+void TranslateTextureAccess(TextureAccess usage, Format format, VkAccessFlags& access, VkImageLayout& layout, VkPipelineStageFlagBits& stage)
+{
+    access = static_cast<VkAccessFlags>(0u);
+    layout = static_cast<VkImageLayout>(0u);
+    stage  = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
-   // VK_ACCESS_SHADER_READ_BIT: 
-   // VK_ACCESS_SHADER_WRITE_BIT:
-   // 
-   // VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV, 
-   // VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV, 
-   // VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, 
-   // VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT, 
-   // VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT, 
-   // VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT, 
-   // VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 
-   // or
-   // VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+    // VK_ACCESS_SHADER_READ_BIT: 
+    // VK_ACCESS_SHADER_WRITE_BIT:
+    // 
+    // VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV, 
+    // VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV, 
+    // VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, 
+    // VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT, 
+    // VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT, 
+    // VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT, 
+    // VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 
+    // or
+    // VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
    
-   // VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT:
-   // VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT:
-   //
-   // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
-   // or 
-   // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
+    // VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT:
+    // VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT:
+    //
+    // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+    // or 
+    // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
    
 
-   bool canBeWritten = false;
+    bool canBeWritten = false;
 
-   uint32 usageMask = underlyingType(usage);
+    uint32 usageMask = underlyingType(usage);
 
-   // Allows Reading and Sampling Textures by Shaders (if format is Depth-Stencil, allows Depth comparison test read)
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::Read)))
-      {
-      setBitmask(access, VK_ACCESS_SHADER_READ_BIT);
-      layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-      if ( isDepth(format) ||
-           isStencil(format) ||
-           isDepthStencil(format) )
-         layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-      }
-
-   // Allows Writing to Textures (by Compute Shaders)
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::Write)))
-      {
-      setBitmask(access, VK_ACCESS_SHADER_WRITE_BIT);
-      layout = VK_IMAGE_LAYOUT_GENERAL;
-      canBeWritten = true;
-      }
-
-   // Texture can be one of Color, Depth, Stencil read sources during rendering operations
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetRead)))
-      {
-      if ( isDepth(format) ||
-           isStencil(format) ||
-           isDepthStencil(format) )                               // Read via HiZ, Early-Z and Depth Test
-         {
-         setBitmask(access, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT);
-         if (canBeWritten)
-            layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; 
-         else
+    // Allows Reading and Sampling Textures by Shaders (if format is Depth-Stencil, allows Depth comparison test read)
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::Read)))
+    {
+        setBitmask(access, VK_ACCESS_SHADER_READ_BIT);
+        layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        if ( isDepth(format) ||
+             isStencil(format) ||
+             isDepthStencil(format) )
+        {
             layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        }
+    }
 
-         // TODO: Needs to know context in which it will be used!
-         //
-         // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
-         // or 
-         // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
-         stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-         }
-      else
-         {
-         setBitmask(access, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT); // Read via Blending / LogicOp or Subpass load
-         layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-         stage  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-         }
-      }
+    // Allows Writing to Textures (by Compute Shaders)
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::Write)))
+    {
+        setBitmask(access, VK_ACCESS_SHADER_WRITE_BIT);
+        layout = VK_IMAGE_LAYOUT_GENERAL;
+        canBeWritten = true;
+    }
 
-   // Texture can be one of Color, Depth, Stencil destination for Rendering operations
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetWrite)))
-      {
-      if ( isDepth(format) ||
-           isStencil(format) ||
-           isDepthStencil(format) )                               // Written via Depth Write
-         {
-         setBitmask(access, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
-         layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;         // Overrides Read-Only Depth-Stencil mode
+    // Texture can be one of Color, Depth, Stencil read sources during rendering operations
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetRead)))
+    {
+        if ( isDepth(format) ||
+             isStencil(format) ||
+             isDepthStencil(format) )                               // Read via HiZ, Early-Z and Depth Test
+        {
+            setBitmask(access, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT);
+            if (canBeWritten)
+            {
+                layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            }
+            else
+            {
+                layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            }
 
-         // TODO: Needs to know context in which it will be used!
-         //
-         // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
-         // or 
-         // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
-         stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-         }
-      else
-         {
-         setBitmask(access, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT); // Written via Output write or Blending / LogicOp
-         layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-         stage  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-         }
-      }
+            // TODO: Needs to know context in which it will be used!
+            //
+            // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+            // or 
+            // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
+            stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        }
+        else
+        {
+            setBitmask(access, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT); // Read via Blending / LogicOp or Subpass load
+            layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            stage  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
+    }
 
-   // Any kind of transfer or present operation overrides previously selected layout
+    // Texture can be one of Color, Depth, Stencil destination for Rendering operations
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::RenderTargetWrite)))
+    {
+        if ( isDepth(format) ||
+             isStencil(format) ||
+             isDepthStencil(format) )                               // Written via Depth Write
+        {
+            setBitmask(access, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+            layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;         // Overrides Read-Only Depth-Stencil mode
 
-   // Resolving MSAA surfaces
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::ResolveSource)))
-      {
-      setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
-      layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-      stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
-      }
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::ResolveDestination)))
-      {
-      setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
-      layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-      stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
-      }
+            // TODO: Needs to know context in which it will be used!
+            //
+            // VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+            // or 
+            // VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
+            stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        }
+        else
+        {
+            setBitmask(access, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT); // Written via Output write or Blending / LogicOp
+            layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            stage  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
+    }
 
-   // Transfer between System Memory and Dedicated Memory
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferSource)))
-      {
-      setBitmask(access, VK_ACCESS_HOST_READ_BIT);
-      layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-      stage  = VK_PIPELINE_STAGE_HOST_BIT;
-      }
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferDestination)))
-      {
-      setBitmask(access, VK_ACCESS_HOST_WRITE_BIT);
-      layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-      stage  = VK_PIPELINE_STAGE_HOST_BIT;
-      }
+    // Any kind of transfer or present operation overrides previously selected layout
 
-   // Copy and Blit operations
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::CopySource)))
-      {
-      setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
-      layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-      stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
-      }
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::CopyDestination)))
-      {
-      setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
-      layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-      stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
-      }
+    // Resolving MSAA surfaces
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::ResolveSource)))
+    {
+        setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
+        layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::ResolveDestination)))
+    {
+        setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
+        layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
 
-   // Present
-   if (checkBitmask(usageMask, underlyingType(TextureAccess::Present)))
-      {
-      access = 0u;
-      layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-      }
-   }
+    // Transfer between System Memory and Dedicated Memory
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferSource)))
+    {
+        setBitmask(access, VK_ACCESS_HOST_READ_BIT);
+        layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        stage  = VK_PIPELINE_STAGE_HOST_BIT;
+    }
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::TransferDestination)))
+    {
+        setBitmask(access, VK_ACCESS_HOST_WRITE_BIT);
+        layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        stage  = VK_PIPELINE_STAGE_HOST_BIT;
+    }
 
-   // TODO: Analyze below access types:
-   //
-   //  VK_ACCESS_MEMORY_READ_BIT
-   //  VK_ACCESS_MEMORY_WRITE_BIT
-   //  VK_ACCESS_COMMAND_PROCESS_READ_BIT_NVX
-   //  VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX
+    // Copy and Blit operations
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::CopySource)))
+    {
+        setBitmask(access, VK_ACCESS_TRANSFER_READ_BIT);
+        layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::CopyDestination)))
+    {
+        setBitmask(access, VK_ACCESS_TRANSFER_WRITE_BIT);
+        layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        stage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
 
-   // TODO: Figure out how to expose barrier place in pipeline
-   //
-   //  VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT = 0x00000001,
-   //  VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT = 0x00000002,
-   //  VK_PIPELINE_STAGE_VERTEX_INPUT_BIT = 0x00000004,
-   //  VK_PIPELINE_STAGE_VERTEX_SHADER_BIT = 0x00000008,
-   //  VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT = 0x00000010,
-   //  VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT = 0x00000020,
-   //  VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT = 0x00000040,
-   //  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT = 0x00000080,
-   //  VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT = 0x00000100,
-   //  VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT = 0x00000200,
-   //  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400,
-   //  VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT = 0x00000800,
-   //  VK_PIPELINE_STAGE_TRANSFER_BIT = 0x00001000,
-   //  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT = 0x00002000,
-   //  VK_PIPELINE_STAGE_HOST_BIT = 0x00004000,
-   //  VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT = 0x00008000,
-   //  VK_PIPELINE_STAGE_ALL_COMMANDS_BIT = 0x00010000,
+    // Present
+    if (checkBitmask(usageMask, underlyingType(TextureAccess::Present)))
+    {
+        access = 0u;
+        layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    }
+}
 
+// TODO: Analyze below access types:
+//
+//  VK_ACCESS_MEMORY_READ_BIT
+//  VK_ACCESS_MEMORY_WRITE_BIT
+//  VK_ACCESS_COMMAND_PROCESS_READ_BIT_NVX
+//  VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX
 
-
-   // Buffer barrier
-   void CommandBufferVK::barrier(const Buffer& _buffer,
-                                 const BufferAccess initAccess)
-   {
-   const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
-
-   // Determine buffer initial access
-   VkAccessFlags vNewAccess;
-   TranslateBufferAccess(initAccess, buffer.apiType, vNewAccess);
-
-   VkBufferMemoryBarrier barrier;
-   barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-   barrier.pNext               = nullptr;
-   barrier.srcAccessMask       = 0;
-   barrier.dstAccessMask       = vNewAccess;
-   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
-   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
-   barrier.buffer              = buffer.handle;
-   barrier.offset              = 0;
-   barrier.size                = buffer.size;
-
-   ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
-                                           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                                           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,    
-                                           0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
-                                           0u, nullptr,   // Memory barriers
-                                           1u, &barrier,  // Buffer memory barriers
-                                           0u, nullptr) ) // Image memory barriers
-   }
-
-   void CommandBufferVK::barrier(const Buffer& _buffer,
-                                 const uint64 offset,
-                                 const uint64 size,
-                                 const BufferAccess currentAccess,
-                                 const BufferAccess newAccess)
-   {
-   const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
-
-   // Determine current buffer access bitmask
-   VkAccessFlags vOldAccess;
-   TranslateBufferAccess(currentAccess, buffer.apiType, vOldAccess);
-
-   // Determine buffer new access
-   VkAccessFlags vNewAccess;
-   TranslateBufferAccess(newAccess, buffer.apiType, vNewAccess);
-
-   barrier(_buffer,
-           offset, 
-           size,
-           vOldAccess,
-           vNewAccess,
-           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  
-           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
-   }
-
-   // Texture barrier
-   void CommandBufferVK::barrier(const Texture& _texture,
-                                 const TextureAccess initAccess)
-   {
-   const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
-
-   // Determine texture inital access and layout
-   VkAccessFlags vNewAccess;
-   VkImageLayout vNewLayout;
-   VkPipelineStageFlagBits vNewStage;
-   TranslateTextureAccess(initAccess, texture.state.format, vNewAccess, vNewLayout, vNewStage);
-
-   barrier(_texture, 
-           uint32v2(0, _texture.mipmaps()),
-           uint32v2(0, _texture.layers()),
-           0,
-           vNewAccess,
-           VK_IMAGE_LAYOUT_UNDEFINED,
-           vNewLayout,
-           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  
-           vNewStage);
-   }
-
-   void CommandBufferVK::barrier(const Texture& _texture,
-                                 const TextureAccess currentAccess,
-                                 const TextureAccess newAccess)
-   {
-   // Vulkan is not gaining anything from this specialized call,
-   // as it's already transitioning all subresources in one call.
-   barrier(_texture, 
-           uint32v2(0, _texture.mipmaps()),
-           uint32v2(0, _texture.layers()),
-           currentAccess,
-           newAccess);
-   }
-
-   void CommandBufferVK::barrier(const Texture& _texture,
-                                 const uint32v2 mipmaps,
-                                 const uint32v2 layers,
-                                 const TextureAccess currentAccess,
-                                 const TextureAccess newAccess) 
-   {
-   const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
-
-   // Determine current texture access, layout and stage after which resource transition is allowed
-   VkAccessFlags vOldAccess;
-   VkImageLayout vOldLayout;
-   VkPipelineStageFlagBits vOldStage;
-   TranslateTextureAccess(currentAccess, texture.state.format, vOldAccess, vOldLayout, vOldStage);
-
-   // Determine texture new access, layout and stage before which resource transition is allowed
-   VkAccessFlags vNewAccess;
-   VkImageLayout vNewLayout;
-   VkPipelineStageFlagBits vNewStage;
-   TranslateTextureAccess(newAccess, texture.state.format, vNewAccess, vNewLayout, vNewStage);
-
-   barrier(_texture,
-           mipmaps, 
-           layers,
-           vOldAccess,
-           vNewAccess,
-           vOldLayout,
-           vNewLayout,
-           vOldStage,  
-           vNewStage);
-   }
+// TODO: Figure out how to expose barrier place in pipeline
+//
+//  VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT = 0x00000001,
+//  VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT = 0x00000002,
+//  VK_PIPELINE_STAGE_VERTEX_INPUT_BIT = 0x00000004,
+//  VK_PIPELINE_STAGE_VERTEX_SHADER_BIT = 0x00000008,
+//  VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT = 0x00000010,
+//  VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT = 0x00000020,
+//  VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT = 0x00000040,
+//  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT = 0x00000080,
+//  VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT = 0x00000100,
+//  VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT = 0x00000200,
+//  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 0x00000400,
+//  VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT = 0x00000800,
+//  VK_PIPELINE_STAGE_TRANSFER_BIT = 0x00001000,
+//  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT = 0x00002000,
+//  VK_PIPELINE_STAGE_HOST_BIT = 0x00004000,
+//  VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT = 0x00008000,
+//  VK_PIPELINE_STAGE_ALL_COMMANDS_BIT = 0x00010000,
 
 
-   // Buffer barrier
-   void CommandBufferVK::barrier(const Buffer& _buffer,
-                                 const uint64 offset,
-                                 const uint64 size,
-                                 const VkAccessFlags currentAccess,
-                                 const VkAccessFlags newAccess,
-                                 const VkPipelineStageFlags afterStage,  // Transition after this stage
-                                 const VkPipelineStageFlags beforeStage) // Transition before this stage
-   {
-   const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
 
-   VkBufferMemoryBarrier barrier;
-   barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-   barrier.pNext               = nullptr;
-   barrier.srcAccessMask       = currentAccess;
-   barrier.dstAccessMask       = newAccess;
-   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
-   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
-   barrier.buffer              = buffer.handle;
-   barrier.offset              = offset;
-   barrier.size                = size;
+// Buffer barrier
+void CommandBufferVK::barrier(const Buffer& _buffer,
+                              const BufferAccess initAccess)
+{
+    const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
 
-   ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
-                                            afterStage,
-                                            beforeStage,
-                                            0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ???
+    // Determine buffer initial access
+    VkAccessFlags vNewAccess;
+    TranslateBufferAccess(initAccess, buffer.apiType, vNewAccess);
+
+    VkBufferMemoryBarrier barrier;
+    barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    barrier.pNext               = nullptr;
+    barrier.srcAccessMask       = 0;
+    barrier.dstAccessMask       = vNewAccess;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
+    barrier.buffer              = buffer.handle;
+    barrier.offset              = 0;
+    barrier.size                = buffer.size;
+
+    ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
+                                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,    
+                                            0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
                                             0u, nullptr,   // Memory barriers
                                             1u, &barrier,  // Buffer memory barriers
                                             0u, nullptr) ) // Image memory barriers
-   }
+}
 
-   // Texture barrier
-   void CommandBufferVK::barrier(const Texture& _texture,
-                                 const uint32v2 mipmaps, 
-                                 const uint32v2 layers,
-                                 const VkAccessFlags currentAccess,
-                                 const VkAccessFlags newAccess,
-                                 const VkImageLayout currentLayout,
-                                 const VkImageLayout newLayout,
-                                 const VkPipelineStageFlags afterStage,  // Transition after this stage
-                                 const VkPipelineStageFlags beforeStage) // Transition before this stage
-   {
-   const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
+void CommandBufferVK::barrier(const Buffer& _buffer,
+                              const uint64 offset,
+                              const uint64 size,
+                              const BufferAccess currentAccess,
+                              const BufferAccess newAccess)
+{
+    const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
 
-   // Transition Swap-Chain surface from rendering destination to presentation layout.
-   VkImageMemoryBarrier barrier;
-   barrier.sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-   barrier.pNext               = nullptr;
-   barrier.srcAccessMask       = currentAccess;
-   barrier.dstAccessMask       = newAccess;
-   barrier.oldLayout           = currentLayout;
-   barrier.newLayout           = newLayout;
-   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
-   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
-   barrier.image               = texture.handle;
-   barrier.subresourceRange.aspectMask     = TranslateImageAspect(texture.state.format);
-   barrier.subresourceRange.baseMipLevel   = mipmaps.base;
-   barrier.subresourceRange.levelCount     = mipmaps.count;
-   barrier.subresourceRange.baseArrayLayer = layers.base;
-   barrier.subresourceRange.layerCount     = layers.count;
+    // Determine current buffer access bitmask
+    VkAccessFlags vOldAccess;
+    TranslateBufferAccess(currentAccess, buffer.apiType, vOldAccess);
 
-   ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
-                                            afterStage,
-                                            beforeStage,
-                                            0u,             // 0 or VK_DEPENDENCY_BY_REGION_BIT ???
-                                            0u, nullptr,    // Memory barriers
-                                            0u, nullptr,    // Buffer memory barriers
-                                            1u, &barrier) ) // Image memory barriers
-   }
+    // Determine buffer new access
+    VkAccessFlags vNewAccess;
+    TranslateBufferAccess(newAccess, buffer.apiType, vNewAccess);
+
+    barrier(_buffer,
+            offset, 
+            size,
+            vOldAccess,
+            vNewAccess,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+}
+
+// Texture barrier
+void CommandBufferVK::barrier(const Texture& _texture,
+                              const TextureAccess initAccess)
+{
+    const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
+
+    // Determine texture inital access and layout
+    VkAccessFlags vNewAccess;
+    VkImageLayout vNewLayout;
+    VkPipelineStageFlagBits vNewStage;
+    TranslateTextureAccess(initAccess, texture.state.format, vNewAccess, vNewLayout, vNewStage);
+
+    barrier(_texture, 
+            uint32v2(0, _texture.mipmaps()),
+            uint32v2(0, _texture.layers()),
+            0,
+            vNewAccess,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            vNewLayout,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  
+            vNewStage);
+}
+
+void CommandBufferVK::barrier(const Texture& _texture,
+                              const TextureAccess currentAccess,
+                              const TextureAccess newAccess)
+{
+    // Vulkan is not gaining anything from this specialized call,
+    // as it's already transitioning all subresources in one call.
+    barrier(_texture, 
+            uint32v2(0, _texture.mipmaps()),
+            uint32v2(0, _texture.layers()),
+            currentAccess,
+            newAccess);
+}
+
+void CommandBufferVK::barrier(const Texture& _texture,
+                              const uint32v2 mipmaps,
+                              const uint32v2 layers,
+                              const TextureAccess currentAccess,
+                              const TextureAccess newAccess) 
+{
+    const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
+
+    // Determine current texture access, layout and stage after which resource transition is allowed
+    VkAccessFlags vOldAccess;
+    VkImageLayout vOldLayout;
+    VkPipelineStageFlagBits vOldStage;
+    TranslateTextureAccess(currentAccess, texture.state.format, vOldAccess, vOldLayout, vOldStage);
+
+    // Determine texture new access, layout and stage before which resource transition is allowed
+    VkAccessFlags vNewAccess;
+    VkImageLayout vNewLayout;
+    VkPipelineStageFlagBits vNewStage;
+    TranslateTextureAccess(newAccess, texture.state.format, vNewAccess, vNewLayout, vNewStage);
+
+    barrier(_texture,
+            mipmaps, 
+            layers,
+            vOldAccess,
+            vNewAccess,
+            vOldLayout,
+            vNewLayout,
+            vOldStage,  
+            vNewStage);
+}
+
+// Buffer barrier
+void CommandBufferVK::barrier(const Buffer& _buffer,
+                              const uint64 offset,
+                              const uint64 size,
+                              const VkAccessFlags currentAccess,
+                              const VkAccessFlags newAccess,
+                              const VkPipelineStageFlags afterStage,  // Transition after this stage
+                              const VkPipelineStageFlags beforeStage) // Transition before this stage
+{
+    const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
+
+    VkBufferMemoryBarrier barrier;
+    barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    barrier.pNext               = nullptr;
+    barrier.srcAccessMask       = currentAccess;
+    barrier.dstAccessMask       = newAccess;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
+    barrier.buffer              = buffer.handle;
+    barrier.offset              = offset;
+    barrier.size                = size;
+
+    ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
+                                             afterStage,
+                                             beforeStage,
+                                             0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ???
+                                             0u, nullptr,   // Memory barriers
+                                             1u, &barrier,  // Buffer memory barriers
+                                             0u, nullptr) ) // Image memory barriers
+}
+
+// Texture barrier
+void CommandBufferVK::barrier(const Texture& _texture,
+                              const uint32v2 mipmaps, 
+                              const uint32v2 layers,
+                              const VkAccessFlags currentAccess,
+                              const VkAccessFlags newAccess,
+                              const VkImageLayout currentLayout,
+                              const VkImageLayout newLayout,
+                              const VkPipelineStageFlags afterStage,  // Transition after this stage
+                              const VkPipelineStageFlags beforeStage) // Transition before this stage
+{
+    const TextureVK& texture = reinterpret_cast<const TextureVK&>(_texture);
+
+    // Transition Swap-Chain surface from rendering destination to presentation layout.
+    VkImageMemoryBarrier barrier;
+    barrier.sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.pNext               = nullptr;
+    barrier.srcAccessMask       = currentAccess;
+    barrier.dstAccessMask       = newAccess;
+    barrier.oldLayout           = currentLayout;
+    barrier.newLayout           = newLayout;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
+    barrier.image               = texture.handle;
+    barrier.subresourceRange.aspectMask     = TranslateImageAspect(texture.state.format);
+    barrier.subresourceRange.baseMipLevel   = mipmaps.base;
+    barrier.subresourceRange.levelCount     = mipmaps.count;
+    barrier.subresourceRange.baseArrayLayer = layers.base;
+    barrier.subresourceRange.layerCount     = layers.count;
+
+    ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
+                                             afterStage,
+                                             beforeStage,
+                                             0u,             // 0 or VK_DEPENDENCY_BY_REGION_BIT ???
+                                             0u, nullptr,    // Memory barriers
+                                             0u, nullptr,    // Buffer memory barriers
+                                             1u, &barrier) ) // Image memory barriers
+}
 
 
-   // SEMAPHORES
-   //////////////////////////////////////////////////////////////////////////
+// SEMAPHORES
+//////////////////////////////////////////////////////////////////////////
 
 
-   SemaphoreVK::SemaphoreVK(VulkanDevice* _gpu) :
-      gpu(_gpu),
-      handle(VK_NULL_HANDLE)
-   {
-   VkSemaphoreCreateInfo info;
-   info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-   info.pNext = nullptr;
-   info.flags = 0u;       // VkSemaphoreCreateFlags - reserved.
+SemaphoreVK::SemaphoreVK(VulkanDevice* _gpu) :
+    gpu(_gpu),
+    handle(VK_NULL_HANDLE)
+{
+    VkSemaphoreCreateInfo info;
+    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0u;       // VkSemaphoreCreateFlags - reserved.
 
-   Validate( gpu, vkCreateSemaphore(gpu->device, &info, nullptr, &handle) )
-   }
+    Validate( gpu, vkCreateSemaphore(gpu->device, &info, nullptr, &handle) )
+}
 
-   SemaphoreVK::~SemaphoreVK()
-   {
-   ValidateNoRet( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
-   }
+SemaphoreVK::~SemaphoreVK()
+{
+    ValidateNoRet( gpu, vkDestroySemaphore(gpu->device, handle, nullptr) )
+}
 
-   std::shared_ptr<Semaphore> VulkanDevice::createSemaphore(void)
-   {
-   return std::make_shared<SemaphoreVK>(this);
-   }
-
-
-
-   // Vulkan:
-   // 
-   // Fences     - can be used to communicate to the host that execution of some task on the device has completed.
-   //              (GPU -> CPU notification, CPU - GPU synchronization)
-   //
-   // Semaphores - can be used to control resource access across multiple queues.
-   //              Command Buffers synchronization on the queue.
-   // 
-   //              D3D12 Fences - used to synchronize queues.
-   //                             An object used for synchronization of the CPU and one or more GPUs.
-   //              CommandQueue::Signal(ID3D12Fence *pFence, UINT64 Value) - signals execution reaching given fence
-   //              CommandQueue::Wait(ID3D12Fence *pFence, UINT64 Value) - waits for given fence to be signaled
-   //
-   // Events     - provide a fine-grained synchronization primitive which can be signaled either within a command 
-   //              buffer or by the host, and can be waited upon within a command buffer or queried on the host.
-   //
-   //              Metal Fences - are equivalent, but have no CPU access.
-   //
-   // Barriers   - Pipeline barriers also provide synchronization control within a command buffer, but at a single 
-   //              point, rather than with separate signal and wait operations.
-   //
-   //              D3D12 Barriers - have ability to signal beginning and end of transition.
+std::shared_ptr<Semaphore> VulkanDevice::createSemaphore(void)
+{
+    return std::make_shared<SemaphoreVK>(this);
+}
 
 
 
+// Vulkan:
+// 
+// Fences     - can be used to communicate to the host that execution of some task on the device has completed.
+//              (GPU -> CPU notification, CPU - GPU synchronization)
+//
+// Semaphores - can be used to control resource access across multiple queues.
+//              Command Buffers synchronization on the queue.
+// 
+//              D3D12 Fences - used to synchronize queues.
+//                             An object used for synchronization of the CPU and one or more GPUs.
+//              CommandQueue::Signal(ID3D12Fence *pFence, UINT64 Value) - signals execution reaching given fence
+//              CommandQueue::Wait(ID3D12Fence *pFence, UINT64 Value) - waits for given fence to be signaled
+//
+// Events     - provide a fine-grained synchronization primitive which can be signaled either within a command 
+//              buffer or by the host, and can be waited upon within a command buffer or queried on the host.
+//
+//              Metal Fences - are equivalent, but have no CPU access.
+//
+// Barriers   - Pipeline barriers also provide synchronization control within a command buffer, but at a single 
+//              point, rather than with separate signal and wait operations.
+//
+//              D3D12 Barriers - have ability to signal beginning and end of transition.
 
 
-   // EVENTS
-   //////////////////////////////////////////////////////////////////////////
 
 
-   EventVK::EventVK(VulkanDevice* _gpu) :
-      gpu(_gpu),
-      handle(VK_NULL_HANDLE)
-   {
-   VkEventCreateInfo info;
-   info.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
-   info.pNext = nullptr;
-   info.flags = 0; // Reserved for future
 
-   Validate( gpu, vkCreateEvent(gpu->device, &info, nullptr, &handle) )
-   }
+// EVENTS
+//////////////////////////////////////////////////////////////////////////
 
-   EventVK::~EventVK()
-   {
-   ValidateNoRet( gpu, vkDestroyEvent(gpu->device, handle, nullptr) )
-   }
+
+EventVK::EventVK(VulkanDevice* _gpu) :
+    gpu(_gpu),
+    handle(VK_NULL_HANDLE)
+{
+    VkEventCreateInfo info;
+    info.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0; // Reserved for future
+
+    Validate( gpu, vkCreateEvent(gpu->device, &info, nullptr, &handle) )
+}
+
+EventVK::~EventVK()
+{
+    ValidateNoRet( gpu, vkDestroyEvent(gpu->device, handle, nullptr) )
+}
    
-   bool EventVK::signaled(void)
-   {
-   Validate( gpu, vkGetEventStatus(gpu->device, handle) )
-   if (gpu->lastResult[currentThreadId()] == VK_EVENT_SET)
-      return true;
+bool EventVK::signaled(void)
+{
+    Validate( gpu, vkGetEventStatus(gpu->device, handle) )
+    if (gpu->lastResult[currentThreadId()] == VK_EVENT_SET)
+    {
+        return true;
+    }
 
-   return false;
-   }
+    return false;
+}
 
-   void EventVK::signal(void)
-   {
-   Validate( gpu, vkSetEvent(gpu->device, handle) )
-   }
+void EventVK::signal(void)
+{
+    Validate( gpu, vkSetEvent(gpu->device, handle) )
+}
 
-   void EventVK::unsignal(void)
-   {
-   Validate( gpu, vkResetEvent(gpu->device, handle) )
-   }
+void EventVK::unsignal(void)
+{
+    Validate( gpu, vkResetEvent(gpu->device, handle) )
+}
 
-   std::shared_ptr<Event> CommandBufferVK::signal(void)
-   {
-   std::shared_ptr<EventVK> result = std::make_shared<EventVK>(gpu);
+std::shared_ptr<Event> CommandBufferVK::signal(void)
+{
+    std::shared_ptr<EventVK> result = std::make_shared<EventVK>(gpu);
 
-   // All stages work, before this moment in time, needs to be finished.
-   // TODO: Expose way to specify only sub-set of pipeline stages.
-   VkPipelineStageFlags flags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-   ValidateNoRet( gpu, vkCmdSetEvent(handle, result->handle, flags) )
+    // All stages work, before this moment in time, needs to be finished.
+    // TODO: Expose way to specify only sub-set of pipeline stages.
+    VkPipelineStageFlags flags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+    ValidateNoRet( gpu, vkCmdSetEvent(handle, result->handle, flags) )
 
-   return result;
-   }
+    return result;
+}
 
-   void CommandBufferVK::wait(std::shared_ptr<Event> eventToWaitFor)
-   {
-   EventVK* _event = reinterpret_cast<EventVK*>(eventToWaitFor.get());
+void CommandBufferVK::wait(std::shared_ptr<Event> eventToWaitFor)
+{
+    EventVK* _event = reinterpret_cast<EventVK*>(eventToWaitFor.get());
 
-   ValidateNoRet( gpu, vkCmdWaitEvents(handle,
-                                       1,       // events count
-                                       &_event->handle,
-                                       VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, // TODO: Expose event sync place in currently executed Pipeline Stage
-                                       VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, //       This will avoid unnecessary Cache flushes, etc.
-                                       0,       // Memory barriers
-                                       nullptr,
-                                       0,       // Buffer memory barriers
-                                       nullptr,
-                                       0,       // Image memory barriers
-                                       nullptr) )
-   }
+    ValidateNoRet( gpu, vkCmdWaitEvents(handle,
+                                        1,       // events count
+                                        &_event->handle,
+                                        VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, // TODO: Expose event sync place in currently executed Pipeline Stage
+                                        VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, //       This will avoid unnecessary Cache flushes, etc.
+                                        0,       // Memory barriers
+                                        nullptr,
+                                        0,       // Buffer memory barriers
+                                        nullptr,
+                                        0,       // Image memory barriers
+                                        nullptr) )
+}
 
 
-   //enum class PipelineStage : uint32
-   //   {
-   //   // TODO: Do we mimic Vulkan Pipeline Stages granularity ?
-   //   Count
-   //   };
-   //
-   //static const VkPipelineStageFlagBits TranslatePipelineStage[underlyingType(PipelineStage::Count)] =
-   //   {
-   //   VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT                    ,
-   //   VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT                  ,
-   //   VK_PIPELINE_STAGE_VERTEX_INPUT_BIT                   ,
-   //   VK_PIPELINE_STAGE_VERTEX_SHADER_BIT                  ,
-   //   VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT    ,
-   //   VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT ,
-   //   VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT                ,
-   //   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT                ,
-   //   VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT           ,
-   //   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT            ,
-   //   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT        ,
-   //   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT                 ,
-   //   VK_PIPELINE_STAGE_TRANSFER_BIT                       ,
-   //   VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT                 ,
-   //   VK_PIPELINE_STAGE_HOST_BIT                           ,
-   //   VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT                   ,
-   //   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT                   ,
-   //   };
+//enum class PipelineStage : uint32
+//   {
+//   // TODO: Do we mimic Vulkan Pipeline Stages granularity ?
+//   Count
+//   };
+//
+//static const VkPipelineStageFlagBits TranslatePipelineStage[underlyingType(PipelineStage::Count)] =
+//   {
+//   VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT                    ,
+//   VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT                  ,
+//   VK_PIPELINE_STAGE_VERTEX_INPUT_BIT                   ,
+//   VK_PIPELINE_STAGE_VERTEX_SHADER_BIT                  ,
+//   VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT    ,
+//   VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT ,
+//   VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT                ,
+//   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT                ,
+//   VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT           ,
+//   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT            ,
+//   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT        ,
+//   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT                 ,
+//   VK_PIPELINE_STAGE_TRANSFER_BIT                       ,
+//   VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT                 ,
+//   VK_PIPELINE_STAGE_HOST_BIT                           ,
+//   VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT                   ,
+//   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT                   ,
+//   };
    
 
 
@@ -623,9 +648,9 @@ namespace en
 
 
 
-   //enum class BufferUsage : uint32
-   //   {
-   //   }
+//enum class BufferUsage : uint32
+//   {
+//   }
 
 
 
@@ -1028,7 +1053,6 @@ namespace en
 //
 //
 
-
-   }
-}
+} // en::gpu
+} // en
 #endif

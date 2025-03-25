@@ -24,23 +24,24 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class VulkanDevice;
+namespace gpu
+{
 
-   class PipelineVK : public Pipeline
-      {
-      public:
-      VulkanDevice* gpu;
-      VkPipeline    handle;
-      bool          graphics; // Graphics or Compute?
+class VulkanDevice;
 
-      PipelineVK(VulkanDevice* gpu, VkPipeline handle, bool _graphics);
-      virtual ~PipelineVK();
-      };
+class PipelineVK : public Pipeline
+{
+    public:
+    VulkanDevice* gpu;
+    VkPipeline    handle;
+    bool          graphics; // Graphics or Compute?
 
-   }
-}
+    PipelineVK(VulkanDevice* gpu, VkPipeline handle, bool _graphics);
+    virtual ~PipelineVK();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

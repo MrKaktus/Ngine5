@@ -317,34 +317,40 @@ WindowVK::WindowVK(
         swapChainPresentationMode = VK_PRESENT_MODE_IMMEDIATE_KHR; //VK_PRESENT_MODE_MAILBOX_KHR;
     }
     for(uint32 i=0; i<modes; ++i)
+    {
         if (presentationMode[i] == swapChainPresentationMode)
         {
             selectedMode = true;
             break;
         }
+    }
 
     // If Immediate mode is not supported, try to fallback to Mailbox one when VSync is disabled
     if (!selectedMode && !settings.verticalSync)
     {
         swapChainPresentationMode = VK_PRESENT_MODE_MAILBOX_KHR;
         for(uint32 i=0; i<modes; ++i)
+        {
             if (presentationMode[i] == swapChainPresentationMode)
             {
                 selectedMode = true;
                 break;
             }
+        }
     }
 
     if (!selectedMode)
     {
         // This is the only mode that is required to be supported, so it's a fallback mode
         for(uint32 i=0; i<modes; ++i)
+        {
             if (presentationMode[i] == VK_PRESENT_MODE_FIFO_KHR)
             {
                 swapChainPresentationMode = VK_PRESENT_MODE_FIFO_KHR;
                 selectedMode = true;
                 break;
             }
+        }
 
         if (!selectedMode)
         {
@@ -657,20 +663,28 @@ Window* VulkanDevice::createWindow(const WindowSettings& settings, const std::st
     // Select destination display
     std::shared_ptr<CommonDisplay> display = nullptr;
     if (settings.display)
+    {
         display = std::dynamic_pointer_cast<CommonDisplay>(settings.display);
+    }
     else
+    {
         display = std::dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay());
+    }
       
     // Checking if app wants to use default resolution
     bool useNativeResolution = false;
     if (settings.size.width  == 0 ||
         settings.size.height == 0)
+    {
         useNativeResolution = true;
+    }
 
     // Select resolution to use (to which display should switch in Fullscreen mode)
     uint32v2 selectedResolution = settings.size;
     if (useNativeResolution)
+    {
         selectedResolution = display->_resolution;
+    }
 
     // Verify apps custom size in Fullscreen mode is supported, and that app is not using
     // size and resolution at once in this mode.
@@ -681,8 +695,12 @@ Window* VulkanDevice::createWindow(const WindowSettings& settings, const std::st
             // Verify that requested resolution is supported by display
             bool validResolution = false;
             for(uint32 i=0; i<display->modesCount; ++i)
+            {
                 if (selectedResolution == display->modeResolution[i])
+                {
                     validResolution = true;
+                }
+            }
 
             if (!validResolution)
             {

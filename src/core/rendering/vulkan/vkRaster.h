@@ -24,17 +24,19 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class RasterStateVK : public RasterState
-      {
-      public:
-      VkPipelineRasterizationStateCreateInfo state;
+namespace gpu
+{
 
-      RasterStateVK(const RasterStateInfo& desc);
-      };
-   }
-}
+class RasterStateVK : public RasterState
+{
+    public:
+    VkPipelineRasterizationStateCreateInfo state;
+
+    RasterStateVK(const RasterStateInfo& desc);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

@@ -26,20 +26,22 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class BlendStateVK : public BlendState
-      {
-      public:
-      VkPipelineColorBlendAttachmentState blendInfo[MaxColorAttachmentsCount];
-      VkPipelineColorBlendStateCreateInfo state;
+namespace gpu
+{
 
-      BlendStateVK(const BlendStateInfo& desc,
-                   const uint32 attachments, 
-                   const BlendAttachmentInfo* color);
-      };
-   }
-}
+class BlendStateVK : public BlendState
+{
+    public:
+    VkPipelineColorBlendAttachmentState blendInfo[MaxColorAttachmentsCount];
+    VkPipelineColorBlendStateCreateInfo state;
+
+    BlendStateVK(const BlendStateInfo& desc,
+                 const uint32 attachments, 
+                 const BlendAttachmentInfo* color);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

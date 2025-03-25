@@ -28,6 +28,7 @@ namespace en
 {
 namespace gpu
 {
+
 static const VkDescriptorType TranslateResourceType[underlyingType(ResourceType::Count)] =
 {
     VK_DESCRIPTOR_TYPE_SAMPLER,          // Sampler
@@ -598,7 +599,7 @@ Descriptors* VulkanDevice::createDescriptorsPool(
 {
     DescriptorsVK* result = nullptr;
    
-    uint32 resourceTypesCount = underlyingType(ResourceType::Count);
+    constexpr uint32 resourceTypesCount = underlyingType(ResourceType::Count);
    
     VkDescriptorPoolSize ranges[underlyingType(ResourceType::Count)];
     for(uint32 i=0; i<resourceTypesCount; ++i)

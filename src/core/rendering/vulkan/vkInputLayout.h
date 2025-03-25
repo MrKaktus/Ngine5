@@ -25,28 +25,29 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class InputLayoutVK : public InputLayout
-      {
-      public:
-      VkPipelineVertexInputStateCreateInfo   state;
-      VkPipelineInputAssemblyStateCreateInfo statePrimitive;
-      VkPipelineTessellationStateCreateInfo  stateTessellator;
+namespace gpu
+{
 
-      InputLayoutVK(const DrawableType primitiveType,
-                    const bool primitiveRestart,
-                    const uint32 controlPoints, 
-                    const uint32 usedAttributes, 
-                    const uint32 usedBuffers, 
-                    const AttributeDesc* attributes,  
-                    const BufferDesc* buffers);
+class InputLayoutVK : public InputLayout
+{
+    public:
+    VkPipelineVertexInputStateCreateInfo   state;
+    VkPipelineInputAssemblyStateCreateInfo statePrimitive;
+    VkPipelineTessellationStateCreateInfo  stateTessellator;
 
-      virtual ~InputLayoutVK() {};
-      };
+    InputLayoutVK(const DrawableType primitiveType,
+                  const bool primitiveRestart,
+                  const uint32 controlPoints, 
+                  const uint32 usedAttributes, 
+                  const uint32 usedBuffers, 
+                  const AttributeDesc* attributes,  
+                  const BufferDesc* buffers);
 
-   }
-}
+    virtual ~InputLayoutVK() {};
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

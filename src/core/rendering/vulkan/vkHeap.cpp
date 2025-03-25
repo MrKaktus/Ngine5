@@ -26,7 +26,8 @@
 namespace en
 {
 namespace gpu
-{ 
+{
+
 // Memory organization:
 //
 // Discreete GPU:
@@ -271,7 +272,9 @@ HeapVK::HeapVK(std::shared_ptr<VulkanDevice> _gpu,
 HeapVK::~HeapVK()
 {
     if (mappingsCount)
+    {
         ValidateNoRet( gpu, vkUnmapMemory(gpu->device, handle) )
+    }
 
     ValidateNoRet( gpu, vkFreeMemory(gpu->device, handle, nullptr) )
    
@@ -292,7 +295,9 @@ Buffer* HeapVK::createBuffer(const BufferType type, const uint32 size)
     // Create buffer descriptor
     BufferVK* buffer = gpu::createBuffer(*this, type, size);
     if (!buffer)
+    {
         return nullptr;
+    }
 
     // Check if created buffer can be backed by this Heap memory
     if (!checkBit(buffer->memoryRequirements.memoryTypeBits, memoryType))
@@ -330,7 +335,9 @@ Texture* HeapVK::createTexture(const TextureState state)
     // Create texture descriptor
     TextureVK* texture = gpu::createTexture(gpu.get(), state);
     if (!texture)
+    {
         return nullptr;
+    }
 
     // Check if created texture can be backed by this Heap memory
     if (!checkBit(texture->memoryRequirements.memoryTypeBits, memoryType))
@@ -429,13 +436,17 @@ void VulkanDevice::initMemoryManager()
     {
         uint32 index = 0;
         for(uint32 i=0; i<memoryTypePerUsageCount[usage]; ++i)
+        {
             for(uint32 j=0; j<memory.memoryTypeCount; ++j)
+            {
                 if (memory.memoryTypes[j].propertyFlags == prefferedMemoryTypePerUsage[usage][i])
                 {
                     memoryTypePerUsage[usage][index] = j;
                     index++;
                     break;
                 }
+            }
+        }
     
         // For each memory usage there need to be at least one memory type.
         assert( index > 0u );

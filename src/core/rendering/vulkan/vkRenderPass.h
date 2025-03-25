@@ -28,6 +28,7 @@ namespace en
 {
 namespace gpu
 {
+
 class ColorAttachmentVK : public ColorAttachment
 {
     public:

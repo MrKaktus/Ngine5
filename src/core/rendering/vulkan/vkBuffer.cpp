@@ -25,6 +25,7 @@ namespace en
 {
 namespace gpu
 {
+
 BufferVK::BufferVK(VulkanDevice* _gpu, HeapVK& _heap, const VkBuffer _handle, const BufferType type, const uint32 size) :
     gpu(_gpu),
     handle(_handle),
@@ -94,10 +95,14 @@ void BufferVK::unmap(void)
     heap.mutex.lock();
    
     if (heap.mappingsCount)
+    {
         heap.mappingsCount--;
+    }
     
     if (heap.mappingsCount == 0)
+    {
         ValidateNoRet( heap.gpu, vkUnmapMemory(heap.gpu->device, heap.handle) )
+    }
 
     heap.mutex.unlock();
 }
@@ -108,33 +113,37 @@ void BufferVK::unmap(void)
 #if 0
 BufferView* BufferVK::view(const Format format, const uint64 offset, const uint64 length)
 {
-   std::shared_ptr<BufferViewVK> result = nullptr;
+    std::shared_ptr<BufferViewVK> result = nullptr;
 
-   uint64 finalOffset = roundUp( offset, gpu->properties.limits.minTexelBufferOffsetAlignment );
-   uint64 finalLength = roundUp( length, gpu->properties.limits.minTexelBufferOffsetAlignment );
-   if (finalOffset + finalLength > size)
-      finalLength = VK_WHOLE_SIZE;  // TODO: Round up to Texel Format size, then to limits, then calculate adjusted length
+    uint64 finalOffset = roundUp( offset, gpu->properties.limits.minTexelBufferOffsetAlignment );
+    uint64 finalLength = roundUp( length, gpu->properties.limits.minTexelBufferOffsetAlignment );
+    if (finalOffset + finalLength > size)
+    {
+        finalLength = VK_WHOLE_SIZE;  // TODO: Round up to Texel Format size, then to limits, then calculate adjusted length
+    }
 
-   VkBufferViewCreateInfo viewInfo = {};
-   viewInfo.sType  = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
-   viewInfo.pNext  = nullptr;
-   viewInfo.flags  = 0; // Reserved
-   viewInfo.buffer = handle;
-   viewInfo.format = TranslateTextureFormat[underlyingType(format)];
-   viewInfo.offset = finalOffset;
-   viewInfo.range  = finalLength;
+    VkBufferViewCreateInfo viewInfo = {};
+    viewInfo.sType  = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+    viewInfo.pNext  = nullptr;
+    viewInfo.flags  = 0; // Reserved
+    viewInfo.buffer = handle;
+    viewInfo.format = TranslateTextureFormat[underlyingType(format)];
+    viewInfo.offset = finalOffset;
+    viewInfo.range  = finalLength;
    
-   VkBufferView viewHandle = VK_NULL_HANDLE;
+    VkBufferView viewHandle = VK_NULL_HANDLE;
 
-   Validate( gpu, vkCreateBufferView(gpu->device, &viewInfo, nullptr, &viewHandle) )
-   if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
-      result = std::make_shared<BufferViewVK>(dynamic_pointer_cast<BufferVK>(shared_from_this()),
-                                         viewHandle,
-                                         format,
-                                         finalOffset,
-                                         finalLength);
+    Validate( gpu, vkCreateBufferView(gpu->device, &viewInfo, nullptr, &viewHandle) )
+    if (gpu->lastResult[currentThreadId()] == VK_SUCCESS)
+    {
+        result = std::make_shared<BufferViewVK>(dynamic_pointer_cast<BufferVK>(shared_from_this()),
+                                                viewHandle,
+                                                format,
+                                                finalOffset,
+                                                finalLength);
+    }
 
-   return result;
+    return result;
 }
 
 BufferViewVK::BufferViewVK(std::shared_ptr<BufferVK> parent,
@@ -173,49 +182,71 @@ BufferVK* createBuffer(HeapVK& heap, const BufferType type, const uint32 size)
     VkBufferUsageFlags bufferUsage = 0;
     switch(type)
     {
-    case BufferType::Vertex:
-        bufferUsage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        break;
-
-    case BufferType::Index:
-        bufferUsage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-        break;
-         
-    case BufferType::Uniform:
-        bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-        break;
-
-    case BufferType::Storage:
-        bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-        break;
-       
-    case BufferType::Indirect:
-        bufferUsage = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-        break;
-
-    case BufferType::Transfer:
-        break;
+        case BufferType::Vertex:
+        {
+            bufferUsage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+            break;
+        }
+        
+        case BufferType::Index:
+        {
+            bufferUsage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+            break;
+        }
+             
+        case BufferType::Uniform:
+        {
+            bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+            break;
+        }
+        
+        case BufferType::Storage:
+        {
+            bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+            break;
+        }
+           
+        case BufferType::Indirect:
+        {
+            bufferUsage = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+            break;
+        }
+        
+        case BufferType::Transfer:
+        {
+            break;
+        }
           
-    default:
-        assert( 0 );
-        break;
+        default:
+        {
+            assert( 0 );
+            break;
+        }
     };
       
     // Buffers in VRAM needs to be populated first
     if (heap._usage == MemoryUsage::Linear)
+    {
         bufferUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    }
     else
     // Source for transfer to Linear, Tiled, Renderable (VRAM on NUMA)
     if (heap._usage == MemoryUsage::Upload)
+    {
         bufferUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    }
     else
     // Destination for transfers from Renderable (VRAM on NUMA)
     if (heap._usage == MemoryUsage::Download)
+    {
         bufferUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    }
     else
     // Buffers created on Immediate Heaps should be used only to upload data to GPU VRAM
     if (heap._usage == MemoryUsage::Immediate)
+    {
         bufferUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    }
 
     // Need to be set to enable buffer views (linear textures?):
     //

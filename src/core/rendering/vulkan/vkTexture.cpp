@@ -25,6 +25,7 @@ namespace en
 {
 namespace gpu
 {
+
 //BGR_16                 ,  // - Special swizzled format for PNG used on Windows-based systems: http://www.libpng.org/pub/png/book/chapter08.html section 8.5.6
 
 // Last Verified during Vulkan 1.0 Release
@@ -340,7 +341,9 @@ TextureVK* createTexture(VulkanDevice* gpu, const TextureState& state)
     // Cube-Maps
     if (state.type == TextureType::TextureCubeMap ||
         state.type == TextureType::TextureCubeMapArray)
+    {
        textureInfo.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+    }
 
     // Multiple Views
     if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::MultipleViews)))
@@ -353,7 +356,9 @@ TextureVK* createTexture(VulkanDevice* gpu, const TextureState& state)
         // it's 2DArray, it's possible that app will want to create
         // CubeMap or CubeMapArray Views.
         if (state.type == TextureType::Texture2DArray)
+        {
             textureInfo.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+        }
     }
 
     // Sparse Textures
@@ -372,7 +377,9 @@ TextureVK* createTexture(VulkanDevice* gpu, const TextureState& state)
     textureInfo.format      = TranslateTextureFormat[underlyingType(state.format)];
     textureInfo.extent      = { state.width, state.height, 1 };
     if (state.type == TextureType::Texture3D)
+    {
         textureInfo.extent.depth = state.layers;
+    }
     textureInfo.mipLevels   = state.mipmaps;    // Starting from mipmap 0 (original image)
     textureInfo.arrayLayers = state.layers;
     textureInfo.samples     = static_cast<VkSampleCountFlagBits>(min(nextPowerOfTwo(state.samples), 64u));   // Optional: TranslateSamplesCount(state.samples);
@@ -401,7 +408,9 @@ TextureVK* createTexture(VulkanDevice* gpu, const TextureState& state)
     {
         // Read only textures need to be populated first using blit
         if (checkBitmask(underlyingType(state.usage), underlyingType(TextureUsage::Read)))
+        {
             textureInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        }
 
         properties |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     }
@@ -517,6 +526,7 @@ TextureVK* createTexture(VulkanDevice* gpu, const TextureState& state)
 TextureVK::TextureVK(VulkanDevice* _gpu, const TextureState& state) :
     gpu(_gpu),
     handle(VK_NULL_HANDLE),
+    memoryRequirements{},
     heap(nullptr),
     offset(0u),
     CommonTexture(state)

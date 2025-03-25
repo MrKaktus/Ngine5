@@ -28,6 +28,7 @@ namespace en
 {
 namespace gpu
 {
+
 //extern static const VkImageType TranslateType[];
 
 extern const VkFormat TranslateTextureFormat[underlyingType(Format::Count)];

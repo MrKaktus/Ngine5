@@ -24,17 +24,19 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class DepthStencilStateVK : public DepthStencilState
-      {
-      public:
-      VkPipelineDepthStencilStateCreateInfo state;
+namespace gpu
+{
 
-      DepthStencilStateVK(const DepthStencilStateInfo& desc);
-      };
-   }
-}
+class DepthStencilStateVK : public DepthStencilState
+{
+    public:
+    VkPipelineDepthStencilStateCreateInfo state;
+
+    DepthStencilStateVK(const DepthStencilStateInfo& desc);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

@@ -24,21 +24,23 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class ViewportStateVK : public ViewportState
-      {
-      public:
-      VkPipelineViewportStateCreateInfo state;
-      VkViewport viewport[16];
-      VkRect2D   scissor[16];
+namespace gpu
+{
 
-      ViewportStateVK(const uint32 count, 
-                      const ViewportStateInfo* viewports,
-                      const ScissorStateInfo* scissors);
-      };
-   }
-}
+class ViewportStateVK : public ViewportState
+{
+    public:
+    VkPipelineViewportStateCreateInfo state;
+    VkViewport viewport[16];
+    VkRect2D   scissor[16];
+
+    ViewportStateVK(const uint32 count, 
+                    const ViewportStateInfo* viewports,
+                    const ScissorStateInfo* scissors);
+};
+
+} // en::gpu
+} // en
 
 #endif
 

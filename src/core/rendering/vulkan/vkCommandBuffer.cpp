@@ -26,8 +26,8 @@
 
 namespace en
 {
-   namespace gpu
-   {
+namespace gpu
+{
 
 CommandBufferVK::CommandBufferVK(
         VulkanDevice* _gpu, 
@@ -87,351 +87,361 @@ CommandBufferVK::~CommandBufferVK()
 
 
 
-   // Each Thread:
-   // - acquire handles to all queues from all families
-   // - create CP for each family
-   // - create CB's from that CP's based on Family type
-   // - begin CB's and encode operations to them
-   // - end CB's and commit them to CP
+// Each Thread:
+// - acquire handles to all queues from all families
+// - create CP for each family
+// - create CB's from that CP's based on Family type
+// - begin CB's and encode operations to them
+// - end CB's and commit them to CP
+
+// Expose above Metal CB's:
+// - secondary CB's as optional feature
+// - CB's reuse as optional feature
+// - specialized command buffers (Metal get only Universal)
+
+
+
+// Command Buffer type depends from Queue Family type.
+
+// Application can query how many Queues of given type it has.
+// It can then create on each thread CB's from that queues.
+// CB's are automatically commited to their parent queues when done.
+
+
+
+
+// RENDER PASS
+//////////////////////////////////////////////////////////////////////////
+
+
+void CommandBufferVK::start(const Semaphore* waitForSemaphore)
+{
+    assert( !started );
+
+    if (waitForSemaphore)
+    {
+        semaphore = reinterpret_cast<const SemaphoreVK*>(waitForSemaphore);
+    }
+
+    // In Metal API we need to create Render Command Encoder.
+    // In Vulkan API CommandBuffer needs to be started first,
+    // before encoding content to it. It only needs to be done
+    // once, and multiple RenderPasses can be encoded afterwards.
+    VkCommandBufferBeginInfo info;
+    info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    info.pNext            = nullptr;
+    info.flags            = 0;
+    info.pInheritanceInfo = nullptr; // We don't support secondary Command Buffers for now
+
+    Validate( gpu, vkBeginCommandBuffer(handle, &info) )
+
+    started = true;
+}
    
-   // Expose above Metal CB's:
-   // - secondary CB's as optional feature
-   // - CB's reuse as optional feature
-   // - specialized command buffers (Metal get only Universal)
+void CommandBufferVK::startRenderPass(const RenderPass& pass, const Framebuffer& _framebuffer)
+{
+    assert( started );
+    assert( !encoding );
+
+    const RenderPassVK*  renderPass  = reinterpret_cast<const RenderPassVK*>(&pass);
+    const FramebufferVK* framebuffer = reinterpret_cast<const FramebufferVK*>(&_framebuffer);
+
+    // Begin encoding commands for this Render Pass
+    VkRenderPassBeginInfo beginInfo;
+    beginInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    beginInfo.pNext           = nullptr;
+    beginInfo.renderPass      = renderPass->handle;
+    beginInfo.framebuffer     = framebuffer->handle;
+    beginInfo.renderArea      = { 0, 0, framebuffer->resolution.width, framebuffer->resolution.height };
+    beginInfo.clearValueCount = renderPass->surfaces;
+    beginInfo.pClearValues    = renderPass->clearValues;
+
+    ValidateNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )
    
-
-
-   // Command Buffer type depends from Queue Family type.
-
-   // Application can query how many Queues of given type it has.
-   // It can then create on each thread CB's from that queues.
-   // CB's are automatically commited to their parent queues when done.
-
-
-
-
-   // RENDER PASS
-   //////////////////////////////////////////////////////////////////////////
+    encoding = true;
+}
    
+void CommandBufferVK::endRenderPass(void)
+{
+    assert( started );
+    assert( encoding );
 
-   void CommandBufferVK::start(const Semaphore* waitForSemaphore)
-   {
-   assert( !started );
-
-   if (waitForSemaphore)
-      semaphore = reinterpret_cast<const SemaphoreVK*>(waitForSemaphore);
-
-   // In Metal API we need to create Render Command Encoder.
-   // In Vulkan API CommandBuffer needs to be started first,
-   // before encoding content to it. It only needs to be done
-   // once, and multiple RenderPasses can be encoded afterwards.
-   VkCommandBufferBeginInfo info;
-   info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-   info.pNext            = nullptr;
-   info.flags            = 0;
-   info.pInheritanceInfo = nullptr; // We don't support secondary Command Buffers for now
-
-   Validate( gpu, vkBeginCommandBuffer(handle, &info) )
-   
-   started = true;
-   }
-   
-   void CommandBufferVK::startRenderPass(const RenderPass& pass, const Framebuffer& _framebuffer)
-   {
-   assert( started );
-   assert( !encoding );
-
-   const RenderPassVK*  renderPass  = reinterpret_cast<const RenderPassVK*>(&pass);
-   const FramebufferVK* framebuffer = reinterpret_cast<const FramebufferVK*>(&_framebuffer);
-
-   // Begin encoding commands for this Render Pass
-   VkRenderPassBeginInfo beginInfo;
-   beginInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-   beginInfo.pNext           = nullptr;
-   beginInfo.renderPass      = renderPass->handle;
-   beginInfo.framebuffer     = framebuffer->handle;
-   beginInfo.renderArea      = { 0, 0, framebuffer->resolution.width, framebuffer->resolution.height };
-   beginInfo.clearValueCount = renderPass->surfaces;
-   beginInfo.pClearValues    = renderPass->clearValues;
-
-   ValidateNoRet( gpu, vkCmdBeginRenderPass(handle, &beginInfo, VK_SUBPASS_CONTENTS_INLINE) )
-   
-   encoding = true;
-   }
-   
-   void CommandBufferVK::endRenderPass(void)
-   {
-   assert( started );
-   assert( encoding );
-
-   // End encoding commands for this Render Pass
-   ValidateNoRet( gpu, vkCmdEndRenderPass(handle) )
+    // End encoding commands for this Render Pass
+    ValidateNoRet( gpu, vkCmdEndRenderPass(handle) )
     
-   encoding = false;
-   }
+    encoding = false;
+}
    
 
-   // SETTING INPUT ASSEMBLER VERTEX BUFFERS
-   //////////////////////////////////////////////////////////////////////////
+// SETTING INPUT ASSEMBLER VERTEX BUFFERS
+//////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::setVertexBuffers(const uint32 firstSlot,
-                                          const uint32 count,
-                                          const std::shared_ptr<Buffer>(&buffers)[],
-                                          const uint64* offsets) const
-   {
-   assert( started );
-   assert( count );
-   assert( (firstSlot + count) <= gpu->support.maxInputLayoutBuffersCount );
+void CommandBufferVK::setVertexBuffers(const uint32 firstSlot,
+                                       const uint32 count,
+                                       const std::shared_ptr<Buffer>(&buffers)[],
+                                       const uint64* offsets) const
+{
+    assert( started );
+    assert( count );
+    assert( (firstSlot + count) <= gpu->support.maxInputLayoutBuffersCount );
 
-   // Extract Vulkan buffer handles
-   VkBuffer* handles = new VkBuffer[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
-   for(uint32 i=0; i<count; ++i)
-      {
-      assert( buffers[i] );
-      handles[i] = reinterpret_cast<BufferVK*>(buffers[i].get())->handle;
-      }
+    // Extract Vulkan buffer handles
+    VkBuffer* handles = new VkBuffer[count];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+    for(uint32 i=0; i<count; ++i)
+    {
+        assert( buffers[i] );
+        handles[i] = reinterpret_cast<BufferVK*>(buffers[i].get())->handle;
+    }
 
-   // Generate default zero offsets array if none is passed
-   uint64* finalOffsets = (uint64*)(offsets);
-   if (!offsets)
-      {
-	  finalOffsets = new uint64[count];
-	  memset(finalOffsets, 0, sizeof(uint64)*count);
-	  }
+    // Generate default zero offsets array if none is passed
+    uint64* finalOffsets = (uint64*)(offsets);
+    if (!offsets)
+    {
+	    finalOffsets = new uint64[count];
+	    memset(finalOffsets, 0, sizeof(uint64)*count);
+	}
 
-   ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
-                                              firstSlot,
-                                              count,
-                                              handles,
-                                              static_cast<const VkDeviceSize*>(finalOffsets)) )
-   delete [] handles;
-   if (!offsets)
-      delete [] finalOffsets;
-   }
+    ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
+                                               firstSlot,
+                                               count,
+                                               handles,
+                                               static_cast<const VkDeviceSize*>(finalOffsets)) )
+    delete [] handles;
+    if (!offsets)
+    {
+        delete [] finalOffsets;
+    }
+}
 
-   void CommandBufferVK::setInputBuffer(const uint32  firstSlot,
-                                        const uint32  slots,
-                                        const Buffer& _buffer,
-                                        const uint64* offsets) const
-   {
-   assert( started );
-   assert( slots );
-   assert( (firstSlot + slots) <= gpu->support.maxInputLayoutBuffersCount );
+void CommandBufferVK::setInputBuffer(const uint32  firstSlot,
+                                     const uint32  slots,
+                                     const Buffer& _buffer,
+                                     const uint64* offsets) const
+{
+    assert( started );
+    assert( slots );
+    assert( (firstSlot + slots) <= gpu->support.maxInputLayoutBuffersCount );
 
-   const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
+    const BufferVK& buffer = reinterpret_cast<const BufferVK&>(_buffer);
 
-   // Extract Vulkan buffer handles
-   VkBuffer* handles = new VkBuffer[slots];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
-   for(uint32 i=0; i<slots; ++i)
-      handles[i] = buffer.handle;
+    // Extract Vulkan buffer handles
+    VkBuffer* handles = new VkBuffer[slots];   // TODO: Optimize by allocating on the stack maxBuffersCount sized fixed array.
+    for(uint32 i=0; i<slots; ++i)
+    {
+        handles[i] = buffer.handle;
+    }
 
-   // Generate default zero offsets array if none is passed
-   uint64* finalOffsets = (uint64*)(offsets);
-   if (!offsets)
-      {
-	  finalOffsets = new uint64[slots];
-	  memset(finalOffsets, 0, slots * sizeof(uint64));
-	  }
+    // Generate default zero offsets array if none is passed
+    uint64* finalOffsets = (uint64*)(offsets);
+    if (!offsets)
+    {
+	    finalOffsets = new uint64[slots];
+	    memset(finalOffsets, 0, slots * sizeof(uint64));
+	}
 
-   ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
-                                              firstSlot,
-                                              slots,
-                                              handles,
-                                              static_cast<const VkDeviceSize*>(finalOffsets)) )
-   delete [] handles;
-   if (!offsets)
-      delete [] finalOffsets;
-   }
+    ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
+                                               firstSlot,
+                                               slots,
+                                               handles,
+                                               static_cast<const VkDeviceSize*>(finalOffsets)) )
+    delete [] handles;
+    if (!offsets)
+    {
+        delete [] finalOffsets;
+    }
+}
 
-   void CommandBufferVK::setVertexBuffer(const uint32 slot,
-                                         const Buffer& buffer,
-                                         const uint64 offset) const
-   {
-   assert( started );
-   assert( slot < gpu->support.maxInputLayoutBuffersCount );
+void CommandBufferVK::setVertexBuffer(const uint32 slot,
+                                      const Buffer& buffer,
+                                      const uint64 offset) const
+{
+    assert( started );
+    assert( slot < gpu->support.maxInputLayoutBuffersCount );
 
-   ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
-                                              slot, 1,
-                                              &reinterpret_cast<const BufferVK&>(buffer).handle,
-                                              static_cast<const VkDeviceSize*>(&offset)) )
-   }
+    ValidateNoRet( gpu, vkCmdBindVertexBuffers(handle, 
+                                               slot, 1,
+                                               &reinterpret_cast<const BufferVK&>(buffer).handle,
+                                               static_cast<const VkDeviceSize*>(&offset)) )
+}
 
-   void CommandBufferVK::setIndexBuffer(
-      const Buffer& buffer,
-      const Attribute type,
-      const uint32 offset)
-   {
-   assert( started );
-   assert( encoding );
-   assert( type == Attribute::u16 ||
-           type == Attribute::u32 );
+void CommandBufferVK::setIndexBuffer(
+   const Buffer& buffer,
+   const Attribute type,
+   const uint32 offset)
+{
+    assert( started );
+    assert( encoding );
+    assert( type == Attribute::u16 ||
+            type == Attribute::u32 );
 
-   // Elements are assembled into Primitives.
-   const BufferVK& index = reinterpret_cast<const BufferVK&>(buffer);
+    // Elements are assembled into Primitives.
+    const BufferVK& index = reinterpret_cast<const BufferVK&>(buffer);
    
-   assert( index.apiType == BufferType::Index );
+    assert( index.apiType == BufferType::Index );
    
-   VkIndexType indexType = VK_INDEX_TYPE_UINT16;
-   if (type == Attribute::u32)
-      indexType = VK_INDEX_TYPE_UINT32;
+    VkIndexType indexType = VK_INDEX_TYPE_UINT16;
+    if (type == Attribute::u32)
+    {
+        indexType = VK_INDEX_TYPE_UINT32;
+    }
    
-   // Index Buffer remains bound to Command Buffer after this call,
-   // but because there is no other way to do indexed draw than to
-   // go through this API, it's safe to leave it bounded.
-   ValidateNoRet( gpu, vkCmdBindIndexBuffer(handle,
-                                            index.handle,
-                                            offset,             // Offset In Index Buffer is calculated at draw call.
-                                            indexType) )
-   }
+    // Index Buffer remains bound to Command Buffer after this call,
+    // but because there is no other way to do indexed draw than to
+    // go through this API, it's safe to leave it bounded.
+    ValidateNoRet( gpu, vkCmdBindIndexBuffer(handle,
+                                             index.handle,
+                                             offset,             // Offset In Index Buffer is calculated at draw call.
+                                             indexType) )
+}
 
 
-   // TRANSFER COMMANDS
-   //////////////////////////////////////////////////////////////////////////
+// TRANSFER COMMANDS
+//////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::copy(const Buffer& source, const Buffer& destination)
-   {
-   assert( started );
-   assert( source.length() <= destination.length() );
+void CommandBufferVK::copy(const Buffer& source, const Buffer& destination)
+{
+    assert( started );
+    assert( source.length() <= destination.length() );
 
-   copy(source, destination, source.length());
-   }
+    copy(source, destination, source.length());
+}
    
-   void CommandBufferVK::copy(
-      const Buffer& source,
-      const Buffer& destination,
-      const uint64 size,
-      const uint64 srcOffset,
-      const uint64 dstOffset)
-   {
-   assert( started );
-   assert( source.type() == BufferType::Transfer );
-   assert( (srcOffset + size) <= source.length() );
-   assert( (dstOffset + size) <= destination.length() );
+void CommandBufferVK::copy(
+    const Buffer& source,
+    const Buffer& destination,
+    const uint64 size,
+    const uint64 srcOffset,
+    const uint64 dstOffset)
+{
+    assert( started );
+    assert( source.type() == BufferType::Transfer );
+    assert( (srcOffset + size) <= source.length() );
+    assert( (dstOffset + size) <= destination.length() );
    
-   const BufferVK& src = reinterpret_cast<const BufferVK&>(source);
-   const BufferVK& dst = reinterpret_cast<const BufferVK&>(destination);
+    const BufferVK& src = reinterpret_cast<const BufferVK&>(source);
+    const BufferVK& dst = reinterpret_cast<const BufferVK&>(destination);
 
-   VkBufferCopy region;
-   region.srcOffset = srcOffset;
-   region.dstOffset = dstOffset;
-   region.size      = size;
+    VkBufferCopy region;
+    region.srcOffset = srcOffset;
+    region.dstOffset = dstOffset;
+    region.size      = size;
 
-   ValidateNoRet( gpu, vkCmdCopyBuffer(handle,
-                                      src.handle,
-                                      dst.handle,
-                                      1u,
-                                      &region) )
-   }
+    ValidateNoRet( gpu, vkCmdCopyBuffer(handle,
+                                       src.handle,
+                                       dst.handle,
+                                       1u,
+                                       &region) )
+}
 
-   void CommandBufferVK::copy(
-       const Buffer&  transfer,
-       const uint64   srcOffset,
-       const uint32   srcRowPitch,
-       const Texture& texture,
-       const uint32   mipmap,
-       const uint32   layer)
-   {
-   assert( started );
-   assert( transfer.type() == BufferType::Transfer );
-   assert( texture.mipmaps() > mipmap );
-   assert( texture.layers() > layer );
+void CommandBufferVK::copy(
+    const Buffer&  transfer,
+    const uint64   srcOffset,
+    const uint32   srcRowPitch,
+    const Texture& texture,
+    const uint32   mipmap,
+    const uint32   layer)
+{
+    assert( started );
+    assert( transfer.type() == BufferType::Transfer );
+    assert( texture.mipmaps() > mipmap );
+    assert( texture.layers() > layer );
    
-   const BufferVK&  source      = reinterpret_cast<const BufferVK&>(transfer);
-   const TextureVK& destination = reinterpret_cast<const TextureVK&>(texture);
+    const BufferVK&  source      = reinterpret_cast<const BufferVK&>(transfer);
+    const TextureVK& destination = reinterpret_cast<const TextureVK&>(texture);
 
-   assert( source.size >= srcOffset + destination.size(mipmap) );
+    assert( source.size >= srcOffset + destination.size(mipmap) );
    
-   VkImageSubresourceLayers layersInfo;
-   layersInfo.aspectMask     = TranslateImageAspect(destination.state.format);
-   layersInfo.mipLevel       = mipmap;
-   layersInfo.baseArrayLayer = layer;
-   layersInfo.layerCount     = 1u;
+    VkImageSubresourceLayers layersInfo;
+    layersInfo.aspectMask     = TranslateImageAspect(destination.state.format);
+    layersInfo.mipLevel       = mipmap;
+    layersInfo.baseArrayLayer = layer;
+    layersInfo.layerCount     = 1u;
    
-   assert( source.size < 0xFFFFFFFF );
+    assert( source.size < 0xFFFFFFFF );
 
-   // Vulkan spec 1.1.85 breaking change WA:
-   // 
-   // "bufferRowLength" was interpreted as row length in bytes (including padding),
-   // but this behavior is now changed to represent this value in "texels" instead.
-   // This is in opposite to D3D12, Metal and previous behavior. See more details
-   // here: https://github.com/KhronosGroup/Vulkan-Docs/issues/752
-   //
-   // Assuming source and destination texel sizes match, WA is introduced that 
-   // calculates row length in texels from provided row lenght in bytes.
+    // Vulkan spec 1.1.85 breaking change WA:
+    // 
+    // "bufferRowLength" was interpreted as row length in bytes (including padding),
+    // but this behavior is now changed to represent this value in "texels" instead.
+    // This is in opposite to D3D12, Metal and previous behavior. See more details
+    // here: https://github.com/KhronosGroup/Vulkan-Docs/issues/752
+    //
+    // Assuming source and destination texel sizes match, WA is introduced that 
+    // calculates row length in texels from provided row lenght in bytes.
 
-   VkBufferImageCopy regionInfo;
-   regionInfo.bufferOffset      = srcOffset;
-   regionInfo.bufferRowLength   = srcRowPitch / TextureCompressionInfo[underlyingType(destination.format())].blockSize;
-   regionInfo.bufferImageHeight = 0u;
-   regionInfo.imageSubresource  = layersInfo;
-   regionInfo.imageOffset       = { 0u, 0u, 0u };
-   regionInfo.imageExtent       = { destination.width(mipmap), destination.height(mipmap), 1 };
+    VkBufferImageCopy regionInfo;
+    regionInfo.bufferOffset      = srcOffset;
+    regionInfo.bufferRowLength   = srcRowPitch / TextureCompressionInfo[underlyingType(destination.format())].blockSize;
+    regionInfo.bufferImageHeight = 0u;
+    regionInfo.imageSubresource  = layersInfo;
+    regionInfo.imageOffset       = { 0u, 0u, 0u };
+    regionInfo.imageExtent       = { destination.width(mipmap), destination.height(mipmap), 1 };
    
-   ValidateNoRet( gpu, vkCmdCopyBufferToImage(handle,
-                                              source.handle,
-                                              destination.handle,
-                                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                              1, &regionInfo) )
+    ValidateNoRet( gpu, vkCmdCopyBufferToImage(handle,
+                                               source.handle,
+                                               destination.handle,
+                                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                               1, &regionInfo) )
+}
 
-   }
+void CommandBufferVK::copyRegion2D(
+    const Buffer&  _source,
+    const uint64   srcOffset,
+    const uint32   srcRowPitch,
+    const Texture& texture,
+    const uint32   mipmap,
+    const uint32   layer,
+    const uint32v2 origin,
+    const uint32v2 region,
+    const uint8    plane)
+{
+    const BufferVK&  source      = reinterpret_cast<const BufferVK&>(_source);
+    const TextureVK& destination = reinterpret_cast<const TextureVK&>(texture);
 
-   void CommandBufferVK::copyRegion2D(
-      const Buffer&  _source,
-      const uint64   srcOffset,
-      const uint32   srcRowPitch,
-      const Texture& texture,
-      const uint32   mipmap,
-      const uint32   layer,
-      const uint32v2 origin,
-      const uint32v2 region,
-      const uint8    plane)
-   {
-   const BufferVK&  source      = reinterpret_cast<const BufferVK&>(_source);
-   const TextureVK& destination = reinterpret_cast<const TextureVK&>(texture);
+    assert( started );
+    assert( source.type() == BufferType::Transfer );
+    assert( mipmap < destination.state.mipmaps );
+    assert( layer < destination.state.layers );
+    assert( origin.x + region.width  <= destination.width(mipmap) );
+    assert( origin.y + region.height <= destination.height(mipmap) );
+    //assert( source.size >= srcOffset + layout.size );
 
-   assert( started );
-   assert( source.type() == BufferType::Transfer );
-   assert( mipmap < destination.state.mipmaps );
-   assert( layer < destination.state.layers );
-   assert( origin.x + region.width  <= destination.width(mipmap) );
-   assert( origin.y + region.height <= destination.height(mipmap) );
-   //assert( source.size >= srcOffset + layout.size );
-
-   VkImageSubresourceLayers layersInfo;
-   layersInfo.aspectMask     = TranslateImageAspect(destination.state.format);
-   layersInfo.mipLevel       = mipmap;
-   layersInfo.baseArrayLayer = layer;
-   layersInfo.layerCount     = 1u;
+    VkImageSubresourceLayers layersInfo;
+    layersInfo.aspectMask     = TranslateImageAspect(destination.state.format);
+    layersInfo.mipLevel       = mipmap;
+    layersInfo.baseArrayLayer = layer;
+    layersInfo.layerCount     = 1u;
    
-   // Specify planes to blit
-   if (isDepthStencil(destination.state.format))
-      {
-      layersInfo.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-      if (plane == 1)
-         layersInfo.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-      }
+    // Specify planes to blit
+    if (isDepthStencil(destination.state.format))
+    {
+        layersInfo.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        if (plane == 1)
+        {
+            layersInfo.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+        }
+    }
 
-   assert( source.size < 0xFFFFFFFF );
+    assert( source.size < 0xFFFFFFFF );
 
-   // TODO: What about plane selection?
+    // TODO: What about plane selection?
    
-   VkBufferImageCopy regionInfo;
-   regionInfo.bufferOffset      = srcOffset;
-   regionInfo.bufferRowLength   = srcRowPitch;
-   regionInfo.bufferImageHeight = 0;               // Tightly packed, see spec: 18.4. Copying Data Between Buffers and Images
-   regionInfo.imageSubresource  = layersInfo;
-   regionInfo.imageOffset       = { static_cast<sint32>(origin.x), static_cast<sint32>(origin.y), 0 };
-   regionInfo.imageExtent       = { region.width, region.height, 1 };
+    VkBufferImageCopy regionInfo;
+    regionInfo.bufferOffset      = srcOffset;
+    regionInfo.bufferRowLength   = srcRowPitch;
+    regionInfo.bufferImageHeight = 0;               // Tightly packed, see spec: 18.4. Copying Data Between Buffers and Images
+    regionInfo.imageSubresource  = layersInfo;
+    regionInfo.imageOffset       = { static_cast<sint32>(origin.x), static_cast<sint32>(origin.y), 0 };
+    regionInfo.imageExtent       = { region.width, region.height, 1 };
    
-   ValidateNoRet( gpu, vkCmdCopyBufferToImage(handle,
-                                              source.handle,
-                                              destination.handle,
-                                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                              1, &regionInfo) )
-   }
-   
+    ValidateNoRet( gpu, vkCmdCopyBufferToImage(handle,
+                                               source.handle,
+                                               destination.handle,
+                                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                               1, &regionInfo) )
+}
       
 //   // CPU data -> Buffer (max 64KB, recorded on CommandBuffer itself, for UBO's ?)
 //   void vkCmdUpdateBuffer(
@@ -497,173 +507,175 @@ CommandBufferVK::~CommandBufferVK()
 //    VkFilter                                    filter);
    
 
-   // PIPELINE COMMANDS
-   //////////////////////////////////////////////////////////////////////////
+// PIPELINE COMMANDS
+//////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::setPipeline(const Pipeline& _pipeline)
-   {
-   assert( started );
+void CommandBufferVK::setPipeline(const Pipeline& _pipeline)
+{
+    assert( started );
    
-   const PipelineVK& pipeline = reinterpret_cast<const PipelineVK&>(_pipeline);
+    const PipelineVK& pipeline = reinterpret_cast<const PipelineVK&>(_pipeline);
 
-   VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-   if (!pipeline.graphics)
-      bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+    VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    if (!pipeline.graphics)
+    {
+        bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+    }
 
-   ValidateNoRet( gpu, vkCmdBindPipeline(handle, bindPoint, pipeline.handle) )
-   }
+    ValidateNoRet( gpu, vkCmdBindPipeline(handle, bindPoint, pipeline.handle) )
+}
 
 
-   // DRAW COMMANDS
-   //////////////////////////////////////////////////////////////////////////
+// DRAW COMMANDS
+//////////////////////////////////////////////////////////////////////////
 
-   void CommandBufferVK::draw(const uint32  elements,
-                              const uint32  instances,
-                              const uint32  firstVertex,
-                              const uint32  firstInstance) const
-   {
-   assert( started );
-   assert( encoding );
-   assert( elements );
+void CommandBufferVK::draw(const uint32  elements,
+                           const uint32  instances,
+                           const uint32  firstVertex,
+                           const uint32  firstInstance) const
+{
+    assert( started );
+    assert( encoding );
+    assert( elements );
 
-   ValidateNoRet( gpu, vkCmdDraw(handle,
-                                 elements,
-                                 max(1U, instances),
-                                 firstVertex,       // Index of first vertex to draw (offset in buffer, VertexID == 0)
-                                 firstInstance) )
-   }
+    ValidateNoRet( gpu, vkCmdDraw(handle,
+                                  elements,
+                                  max(1U, instances),
+                                  firstVertex,       // Index of first vertex to draw (offset in buffer, VertexID == 0)
+                                  firstInstance) )
+}
 
-   void CommandBufferVK::drawIndexed(const uint32  elements,
-                                     const uint32  instances,
-                                     const uint32  firstIndex,
-                                     const sint32  firstVertex,
-                                     const uint32  firstInstance) const
-   {
-   assert( started );
-   assert( encoding );
-   assert( elements );
+void CommandBufferVK::drawIndexed(const uint32  elements,
+                                  const uint32  instances,
+                                  const uint32  firstIndex,
+                                  const sint32  firstVertex,
+                                  const uint32  firstInstance) const
+{
+    assert( started );
+    assert( encoding );
+    assert( elements );
 
-   ValidateNoRet( gpu, vkCmdDrawIndexed(handle,
-                                        elements,
-                                        max(1U, instances),
-                                        firstIndex,    // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
-                                        firstVertex,     // VertexID of first processed vertex
-                                        firstInstance) ) // InstanceID of first processed instance
-   }
+    ValidateNoRet( gpu, vkCmdDrawIndexed(handle,
+                                         elements,
+                                         max(1U, instances),
+                                         firstIndex,    // Index of first index to start (multiplied by elementSize will give starting offset in IBO). There can be several buffers with separate indexes groups in one GPU Buffer.
+                                         firstVertex,     // VertexID of first processed vertex
+                                         firstInstance) ) // InstanceID of first processed instance
+}
 
-   void CommandBufferVK::drawIndirect(
-      const Buffer& indirectBuffer,
-      const uint32  firstEntry) const
-   {
-   assert( started );
-   assert( encoding );
+void CommandBufferVK::drawIndirect(
+   const Buffer& indirectBuffer,
+   const uint32  firstEntry) const
+{
+    assert( started );
+    assert( encoding );
 
-   const BufferVK& indirect = reinterpret_cast<const BufferVK&>(indirectBuffer);
-   assert( indirect.apiType == BufferType::Indirect );
+    const BufferVK& indirect = reinterpret_cast<const BufferVK&>(indirectBuffer);
+    assert( indirect.apiType == BufferType::Indirect );
    
-   // IndirectDrawArgument can be directly cast to VkDrawIndirectCommand.
+    // IndirectDrawArgument can be directly cast to VkDrawIndirectCommand.
    
-   // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-   ValidateNoRet( gpu, vkCmdDrawIndirect(handle,
-                                         indirect.handle,
-                                         (firstEntry * sizeof(VkDrawIndirectCommand)),
-                                         (indirect.size / sizeof(VkDrawIndirectCommand)) - firstEntry,
-                                         sizeof(VkDrawIndirectCommand)) )
-   }
+    // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
+    ValidateNoRet( gpu, vkCmdDrawIndirect(handle,
+                                          indirect.handle,
+                                          (firstEntry * sizeof(VkDrawIndirectCommand)),
+                                          (indirect.size / sizeof(VkDrawIndirectCommand)) - firstEntry,
+                                          sizeof(VkDrawIndirectCommand)) )
+}
 
-   void CommandBufferVK::drawIndirectIndexed(
-      const Buffer& indirectBuffer,
-      const uint32  firstEntry,
-      const uint32  firstIndex) const
-   {
-   assert( started );
-   assert( encoding );
+void CommandBufferVK::drawIndirectIndexed(
+   const Buffer& indirectBuffer,
+   const uint32  firstEntry,
+   const uint32  firstIndex) const
+{
+    assert( started );
+    assert( encoding );
 
-   const BufferVK& indirect = reinterpret_cast<const BufferVK&>(indirectBuffer);
-   assert( indirect.apiType == BufferType::Indirect );
+    const BufferVK& indirect = reinterpret_cast<const BufferVK&>(indirectBuffer);
+    assert( indirect.apiType == BufferType::Indirect );
    
-   // IndirectIndexedDrawArgument can be directly cast to VkDrawIndexedIndirectCommand.
+    // IndirectIndexedDrawArgument can be directly cast to VkDrawIndexedIndirectCommand.
 
-   // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
-   ValidateNoRet( gpu, vkCmdDrawIndexedIndirect(handle,
-                                                indirect.handle,
-                                                (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
-                                                (indirect.size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
-                                                sizeof(VkDrawIndexedIndirectCommand)) )
-   }
+    // TODO: Currently draw count is equal to amount of entries from first entry to the end of the indirect buffer.
+    ValidateNoRet( gpu, vkCmdDrawIndexedIndirect(handle,
+                                                 indirect.handle,
+                                                 (firstEntry * sizeof(VkDrawIndexedIndirectCommand)),
+                                                 (indirect.size / sizeof(VkDrawIndexedIndirectCommand)) - firstEntry,
+                                                 sizeof(VkDrawIndexedIndirectCommand)) )
+}
    
 
-   // FINISHING
-   //////////////////////////////////////////////////////////////////////////
+// FINISHING
+//////////////////////////////////////////////////////////////////////////
 
 
-   void CommandBufferVK::commit(Semaphore* signalSemaphore)
-   {
-   assert( started );
-   assert( !encoding );
-   assert( !commited );
+void CommandBufferVK::commit(Semaphore* signalSemaphore)
+{
+    assert( started );
+    assert( !encoding );
+    assert( !commited );
    
-   // Finish Command Buffer encoding.
-   Validate( gpu, vkEndCommandBuffer(handle) )
+    // Finish Command Buffer encoding.
+    Validate( gpu, vkEndCommandBuffer(handle) )
    
-   VkSubmitInfo submitInfo;
-   submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-   submitInfo.pNext                = nullptr;
-   submitInfo.waitSemaphoreCount   = 0u;      
-   submitInfo.pWaitSemaphores      = nullptr;   // Which semaphores we wait for. One Semaphore for one Pipeline Stage of other queue executing CommandBuffer.
-   submitInfo.pWaitDstStageMask    = nullptr;   // Pipeline stages at which each corresponding semaphore wait will occur (until pointed stage is done).
-   submitInfo.commandBufferCount   = 1u;
-   submitInfo.pCommandBuffers      = &handle;
-   submitInfo.signalSemaphoreCount = 0u;        // Amount of Semaphores we want to signal when this batch of job is done (more than one so we can unblock several queues at the same time).
-   submitInfo.pSignalSemaphores    = nullptr;   
+    VkSubmitInfo submitInfo;
+    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.pNext                = nullptr;
+    submitInfo.waitSemaphoreCount   = 0u;      
+    submitInfo.pWaitSemaphores      = nullptr;   // Which semaphores we wait for. One Semaphore for one Pipeline Stage of other queue executing CommandBuffer.
+    submitInfo.pWaitDstStageMask    = nullptr;   // Pipeline stages at which each corresponding semaphore wait will occur (until pointed stage is done).
+    submitInfo.commandBufferCount   = 1u;
+    submitInfo.pCommandBuffers      = &handle;
+    submitInfo.signalSemaphoreCount = 0u;        // Amount of Semaphores we want to signal when this batch of job is done (more than one so we can unblock several queues at the same time).
+    submitInfo.pSignalSemaphores    = nullptr;   
 
-   // Example:
-   //
-   // Execute everything except of final drawing to render targets, until previous frame is presented.
-   // (assumes direct write to framebuffer, reuse of the same surface).
-   // waitEvents   = 1;
-   // waitFlags[0] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    // Example:
+    //
+    // Execute everything except of final drawing to render targets, until previous frame is presented.
+    // (assumes direct write to framebuffer, reuse of the same surface).
+    // waitEvents   = 1;
+    // waitFlags[0] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-   // Common case:
-   //
-   // Wait for previous job to finish before starting this one.
-   // waitEvents   = 1;
-   // waitFlags[0] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    // Common case:
+    //
+    // Wait for previous job to finish before starting this one.
+    // waitEvents   = 1;
+    // waitFlags[0] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
-   // Wait for completion of previous Command Buffer synced with starting semaphore.
-   VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-   if (semaphore)
-      {
-      submitInfo.waitSemaphoreCount = 1u;
-      submitInfo.pWaitSemaphores    = &semaphore->handle;
-      submitInfo.pWaitDstStageMask  = &waitFlags;
-      }
+    // Wait for completion of previous Command Buffer synced with starting semaphore.
+    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    if (semaphore)
+    {
+        submitInfo.waitSemaphoreCount = 1u;
+        submitInfo.pWaitSemaphores    = &semaphore->handle;
+        submitInfo.pWaitDstStageMask  = &waitFlags;
+    }
 
-   // Signal semaphore for future synchronization.
-   if (signalSemaphore)
-      {
-      SemaphoreVK* signal = reinterpret_cast<SemaphoreVK*>(signalSemaphore);
+    // Signal semaphore for future synchronization.
+    if (signalSemaphore)
+    {
+        SemaphoreVK* signal = reinterpret_cast<SemaphoreVK*>(signalSemaphore);
 
-      submitInfo.signalSemaphoreCount = 1u;   
-      submitInfo.pSignalSemaphores    = &signal->handle;        
-      }
+        submitInfo.signalSemaphoreCount = 1u;   
+        submitInfo.pSignalSemaphores    = &signal->handle;        
+    }
 
-   // Submit single batch of work to the queue.
-   // Each batch can consist of multiple command buffers.
-   // Internal fence will be signaled when this work is done.
-   Validate( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) ) 
+    // Submit single batch of work to the queue.
+    // Each batch can consist of multiple command buffers.
+    // Internal fence will be signaled when this work is done.
+    Validate( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) ) 
 
-   // Try to clear any CommandBuffers that are no longer executing.
-   gpu->clearCommandBuffersQueue();
+    // Try to clear any CommandBuffers that are no longer executing.
+    gpu->clearCommandBuffersQueue();
 
-   // Add this CommandBuffer to device's array of CB's in flight.
-   // This will ensure that CommandBuffer won't be destroyed until
-   // fence is not signaled.
-   gpu->addCommandBufferToQueue(shared_from_this());
+    // Add this CommandBuffer to device's array of CB's in flight.
+    // This will ensure that CommandBuffer won't be destroyed until
+    // fence is not signaled.
+    gpu->addCommandBufferToQueue(shared_from_this());
 
-   commited = true;
-   }
+    commited = true;
+}
 
 bool CommandBufferVK::isCompleted(void)
 {
@@ -770,41 +782,41 @@ std::shared_ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType
     return std::make_shared<CommandBufferVK>(this, queue, type, workerId, handle, fence);
 }
 
-   void VulkanDevice::addCommandBufferToQueue(std::shared_ptr<CommandBuffer> command)
-   {
-   uint32 thread    = currentThreadId();
-   uint32 executing = commandBuffersExecuting[thread];
+void VulkanDevice::addCommandBufferToQueue(std::shared_ptr<CommandBuffer> command)
+{
+    uint32 thread    = currentThreadId();
+    uint32 executing = commandBuffersExecuting[thread];
 
-   assert( executing < MaxCommandBuffersExecuting );
+    assert( executing < MaxCommandBuffersExecuting );
 
-   commandBuffers[thread][executing] = command;
-   commandBuffersExecuting[thread]++;
-   }
+    commandBuffers[thread][executing] = command;
+    commandBuffersExecuting[thread]++;
+}
 
-   void VulkanDevice::clearCommandBuffersQueue(void)
-   {
-   // Iterate over list of Command Buffers submitted for execution by this thread.
-   uint32 thread    = currentThreadId();
-   uint32 executing = commandBuffersExecuting[thread];
-   for(uint32 i=0; i<executing; ++i)
-      {
-      CommandBufferVK* command = reinterpret_cast<CommandBufferVK*>(commandBuffers[thread][i].get());
-      if (command->isCompleted())
-         {
-         // Safely release Command Buffer object
-         commandBuffers[thread][i] = nullptr;
-         if (i < (executing - 1))
+void VulkanDevice::clearCommandBuffersQueue(void)
+{
+    // Iterate over list of Command Buffers submitted for execution by this thread.
+    uint32 thread    = currentThreadId();
+    uint32 executing = commandBuffersExecuting[thread];
+    for(uint32 i=0; i<executing; ++i)
+    {
+        CommandBufferVK* command = reinterpret_cast<CommandBufferVK*>(commandBuffers[thread][i].get());
+        if (command->isCompleted())
+        {
+            // Safely release Command Buffer object
+            commandBuffers[thread][i] = nullptr;
+            if (i < (executing - 1))
             {
-            commandBuffers[thread][i] = commandBuffers[thread][executing - 1];
-            commandBuffers[thread][executing - 1] = nullptr;
+                commandBuffers[thread][i] = commandBuffers[thread][executing - 1];
+                commandBuffers[thread][executing - 1] = nullptr;
             }
 
-         executing--;
-         commandBuffersExecuting[thread]--;
-         }
-      }
-   }
-
-   }
+            executing--;
+            commandBuffersExecuting[thread]--;
+        }
+    }
 }
+
+} // en::gpu
+} // en
 #endif
