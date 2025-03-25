@@ -492,8 +492,8 @@ namespace en
 //	}
 //
 //	// read each component
-//	for (i = 0; i < 4; i++) {
-//	    for (j = 0; j < len; ) {
+//	for(i = 0; i < 4; i++) {
+//	    for(j = 0; j < len; ) {
 //			unsigned char code = fgetc(file);
 //			if (code > 128) { // run
 //			    code &= 127;
@@ -527,7 +527,7 @@ namespace en
 //		if (scanline[0][R] == 1 &&
 //			scanline[0][G] == 1 &&
 //			scanline[0][B] == 1) {
-//			for (i = scanline[0][E] << rshift; i > 0; i--) {
+//			for(i = scanline[0][E] << rshift; i > 0; i--) {
 //				memcpy(&scanline[0][0], &scanline[-1][0], 4);
 //				scanline++;
 //				len--;

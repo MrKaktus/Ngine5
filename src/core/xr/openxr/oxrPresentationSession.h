@@ -132,7 +132,7 @@ class oxrPresentationSession : public PresentationSession
 
     // Public API's
 
-    virtual void   queryNextEvent(void);
+    virtual Event* queryNextEvent(void);
 
     virtual uint64 startFrame(void);
     virtual FrameState* waitForOptimalPrediction(void);

@@ -235,7 +235,7 @@ namespace en
       std::string name = stringFromWchar(PXCCapture::StreamTypeToString(type), 1024);
 
       // Go through all available profiles for this stream type
-      for (int p=0; p<device->QueryStreamProfileSetNum(type); ++p) 
+      for(int p=0; p<device->QueryStreamProfileSetNum(type); ++p) 
           {
           PXCCapture::Device::StreamProfileSet profiles = {};
           status = device->QueryStreamProfileSet(type, p, &profiles);
@@ -719,7 +719,7 @@ namespace en
          event.bodies   = 6;
          event.skeleton = new Skeleton[6];
 
-         for (uint8 j=0; j<6; ++j)
+         for(uint8 j=0; j<6; ++j)
              {
              NUI_SKELETON_TRACKING_STATE tracking = skeleton.SkeletonData[j].eTrackingState;
    

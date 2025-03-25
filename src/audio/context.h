@@ -36,6 +36,19 @@
 
 #if defined(EN_PLATFORM_WINDOWS)
 // OpenAL
+//  
+// OpenAL SDK needs to be installed as part of Ngine 
+// development environment setup (not to be confused
+// with development of applications using Ngine).
+// 
+// This is separate step from installing OpenAL 
+// runtime, which needs to be redistributed with
+// final application built using Ngine.
+// It can be installed from:
+// 
+// Both can be installed from:
+// https://www.openal.org/downloads/
+//
 #include "C:/Program Files (x86)/OpenAL 1.1 SDK/include/al.h"
 #include "C:/Program Files (x86)/OpenAL 1.1 SDK/include/alc.h"
 #endif

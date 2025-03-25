@@ -182,6 +182,14 @@ oxrInterface::oxrInterface(std::string appName) :
     if (globalExtensionsCount > 0)
     {
         globalExtension = new XrExtensionProperties[globalExtensionsCount];
+        for(uint32 i=0; i<globalExtensionsCount; ++i)
+        {
+            globalExtension[i].type             = XR_TYPE_EXTENSION_PROPERTIES;
+            globalExtension[i].next             = nullptr;
+            globalExtension[i].extensionName[0] = 0;
+            globalExtension[i].specVersion      = 0;
+        }
+
         Validate(this, xrEnumerateInstanceExtensionProperties(nullptr, globalExtensionsCount, &globalExtensionsCount, globalExtension))
     }
 
@@ -272,10 +280,10 @@ oxrInterface::oxrInterface(std::string appName) :
     //        used by the app).
 
     // Verify selected extensions are available
-    for (uint32 i = 0; i < enabledExtensionsCount; ++i)
+    for(uint32 i=0; i<enabledExtensionsCount; ++i)
     {
         bool found = false;
-        for (uint32 j = 0; j < globalExtensionsCount; ++j)
+        for(uint32 j=0; j<globalExtensionsCount; ++j)
         {
             if (strcmp(extensionPtrs[i], globalExtension[j].extensionName) == 0)
             {
@@ -287,8 +295,10 @@ oxrInterface::oxrInterface(std::string appName) :
         {
             Log << "ERROR: Requested OpenXR extension " << extensionPtrs[i] << " is not supported on this system!\n";
             Log << "       Supported extensions:\n";
-            for (uint32 j = 0; j < globalExtensionsCount; ++j)
+            for(uint32 j=0; j<globalExtensionsCount; ++j)
+            {
                 Log << "       - " << globalExtension[j].extensionName << std::endl;
+            }
 
             assert( 0 );
         }

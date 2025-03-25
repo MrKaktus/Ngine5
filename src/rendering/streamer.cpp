@@ -2597,7 +2597,7 @@ namespace en
       // Upload from smallest mipmap to most detailed one
       for(sint32 i=(desc.state.mipmaps-1); i>=0; --i)
          for(uint32 j=0; j<desc.state.layers; ++j)
-            for (uint32 k=0; k<desc.state.planes(); ++k)
+            for(uint32 k=0; k<desc.state.planes(); ++k)
                 {
                 if (!transferSurface(desc, i, j, k, direction))
                    {

@@ -279,7 +279,7 @@ namespace en
               {
               // Prevent from adding the same library more than once
               bool found = false;
-              for (uint32 i=0; i<libraries.size(); ++i)
+              for(uint32 i=0; i<libraries.size(); ++i)
                   if (libraries[i] == word)
                      {
                      found = true;
@@ -301,7 +301,7 @@ namespace en
    
               // Prevent from adding the same material more than once
               bool found = false;
-              for (uint32 i=0; i<materials.size(); ++i)
+              for(uint32 i=0; i<materials.size(); ++i)
                   if (materials[i].name == word)
                      {
                      found = true;

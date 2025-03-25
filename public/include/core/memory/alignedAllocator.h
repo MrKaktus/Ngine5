@@ -29,9 +29,13 @@ T* allocate(uint32 count = 1)
 #else
     sint32 ret = posix_memalign((void **)(&temp), cacheline, count * sizeof(T));
     if (ret == ENOMEM)
+    {
         return nullptr;
+    }
     if (ret == EINVAL)
+    {
         return nullptr;
+    }
 #endif
 
     return temp;

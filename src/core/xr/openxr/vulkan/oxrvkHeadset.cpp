@@ -81,7 +81,7 @@ oxrHeadsetVK::oxrHeadsetVK(oxrInterface& _session) :
     Validate(session, xrGetVulkanGraphicsDeviceKHR(session->instance, runtime, vulkanRuntime->instance, &physicalDevice))
 
     // Use physicalDevice to find VulkanDevice abstracting given GPU
-    for (uint32 i=0; i<vulkanRuntime->devicesCount; ++i)
+    for(uint32 i=0; i<vulkanRuntime->devicesCount; ++i)
     {
         gpu::VulkanDevice* gpuDevice = &*vulkanRuntime->_device[i];
         if (gpuDevice->handle == physicalDevice)

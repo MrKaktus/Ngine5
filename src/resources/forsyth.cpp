@@ -238,7 +238,7 @@
 //         // vertex has information only about triangles that haven't been processed
 //         // yet.
 //         assert(vertex.count > 0);
-//         for (uint32 j=0; j<vertex.count; ++j)
+//         for(uint32 j=0; j<vertex.count; ++j)
 //             if (triangles[vertex.triangles + j] == bestFace)
 //                {
 //                uint32 end = vertex.triangles + vertex.count - 1;

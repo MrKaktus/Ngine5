@@ -16,8 +16,9 @@
 #define ENG_CORE_XR_PRESENTATION_SESSION
 
 #include "core/rendering/texture.h"
-#include "core/xr/pose.h"
+#include "core/xr/event.h"
 #include "core/xr/frameState.h"
+#include "core/xr/pose.h"
 #include "core/xr/frame.h"
 
 namespace en
@@ -72,7 +73,7 @@ struct PresentationSessionDescriptor
 class PresentationSession
 {
     public:
-    virtual void queryNextEvent(void) = 0;
+    virtual Event* queryNextEvent(void) = 0;
 
     virtual uint64 startFrame(void) = 0;
     virtual FrameState* waitForOptimalPrediction(void) = 0;

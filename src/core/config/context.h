@@ -25,25 +25,27 @@
 
 namespace en
 {
-   namespace config
-   {
-   struct Context
-          {
-          // Parsed variables of different types
-          std::vector<std::string>           keys;
-          std::map<std::string, bool>        bools;
-          std::map<std::string, sint64>      ints;
-          std::map<std::string, double>      doubles;
-          std::map<std::string, std::string> strings;
-          std::map<std::string, Nversion>    versions;
+namespace config
+{
 
-          Context();
-         ~Context();
+struct Context
+{
+    // Parsed variables of different types
+    std::vector<std::string>           keys;
+    std::map<std::string, bool>        bools;
+    std::map<std::string, sint64>      ints;
+    std::map<std::string, double>      doubles;
+    std::map<std::string, std::string> strings;
+    std::map<std::string, Nversion>    versions;
+    
+    Context();
+   ~Context();
 
-          bool create(int argc, const char **argv);
-          void destroy(void);
-          };
-   }
+    bool create(int argc, const char **argv);
+    void destroy(void);
+};
+
+} // en::config
 
 extern config::Context ConfigContext;
 }

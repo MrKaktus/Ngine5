@@ -66,7 +66,7 @@ namespace en
               sint32 visible = 0;
 
               // Set all registered advertisements visible
-              //for (uint8 i=0; i<MonetizationContext.banners.size(); ++i)
+              //for(uint8 i=0; i<MonetizationContext.banners.size(); ++i)
                  // TODO: Finish it, declare ad_banner
                  // {
                  // if (bbads_banner_is_visible(ad_banner, &visible) != BBADS_EOK)

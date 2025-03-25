@@ -233,7 +233,7 @@ bool load(
                 srcOffset += texelSize;
 
                 // Repeat given texel N times
-                for (uint8 i=0; i<counter; ++i)
+                for(uint8 i=0; i<counter; ++i)
                 {
                     memcpy(destination + dstOffset, texel, texelSize);
                     dstOffset += texelSize;
@@ -243,7 +243,7 @@ bool load(
             else
             {
                 counter++;
-                for (uint8 i=0; i<counter; ++i)
+                for(uint8 i=0; i<counter; ++i)
                 {
                     memcpy(destination + dstOffset, content + srcOffset, texelSize);
                     dstOffset += texelSize;

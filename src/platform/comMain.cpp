@@ -73,7 +73,7 @@ void init(int argc, const char **argv)
     en::parallel::Interface::create(workers, fibers, en::MaxTasksPerWorker);
 
     en::gpu::GraphicAPI::create();
-    en::xr::Interface::create();
+  //en::xr::Interface::create();    <-- TODO: Disabled until rest of engine is cleaned up, brought back to function and this component is completed.
     en::AudioContext.create();
     en::input::Interface::create();
   //en::ResourcesContext.create();  <-- TODO: FIXME: Creation before Window causes Vulkan to crash on NV :/

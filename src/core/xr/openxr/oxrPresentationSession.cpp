@@ -626,7 +626,7 @@ oxrPresentationSession::~oxrPresentationSession()
 
 
 // TODO: How events are returned?
-void oxrPresentationSession::queryNextEvent(void)
+Event* oxrPresentationSession::queryNextEvent(void)
 {
     XrEventDataBuffer eventBase;
     eventBase.type = XR_TYPE_EVENT_DATA_BUFFER;
@@ -637,96 +637,98 @@ void oxrPresentationSession::queryNextEvent(void)
     XrResult result = session->lastResult[currentThreadId()];
     if (result == XR_EVENT_UNAVAILABLE)
     {
-        return;
+        return nullptr;
     }
 
     if (result == XR_SUCCESS)
     {
         switch (eventBase.type)
         {
-        case XR_TYPE_EVENT_DATA_BUFFER:
+            case XR_TYPE_EVENT_DATA_BUFFER:
 
-        case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
+            case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
             {
-            const XrEventDataInstanceLossPending& xrEvent = *reinterpret_cast<XrEventDataInstanceLossPending*>(&eventBase);
-            // ...
-            break;
+                const XrEventDataInstanceLossPending& xrEvent = *reinterpret_cast<XrEventDataInstanceLossPending*>(&eventBase);
+                // ...
+                break;
             }
 
-        case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED: 
+            case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED: 
             {
-            const XrEventDataSessionStateChanged& xrEvent = *reinterpret_cast<XrEventDataSessionStateChanged*>(&eventBase);
+                const XrEventDataSessionStateChanged& xrEvent = *reinterpret_cast<XrEventDataSessionStateChanged*>(&eventBase);
 
-            // Actual presentation session state transitions:
-            //
-            // XR_SESSION_STATE_UNKNOWN = 0,
-            // XR_SESSION_STATE_IDLE = 1,
-            // XR_SESSION_STATE_READY = 2,
-            // XR_SESSION_STATE_RUNNING = 3,
-            // XR_SESSION_STATE_VISIBLE = 4,      // ActivePause
-            // XR_SESSION_STATE_FOCUSED = 5,      // Active
-            // XR_SESSION_STATE_STOPPING = 6,     // transitioning to Paused
-            // XR_SESSION_STATE_LOSS_PENDING = 7, // Runtime crashed
-            // XR_SESSION_STATE_EXITING = 8,      // transitioning to Shutdown
+                // Actual presentation session state transitions:
+                //
+                // XR_SESSION_STATE_UNKNOWN = 0,
+                // XR_SESSION_STATE_IDLE = 1,
+                // XR_SESSION_STATE_READY = 2,
+                // XR_SESSION_STATE_RUNNING = 3,
+                // XR_SESSION_STATE_VISIBLE = 4,      // ActivePause
+                // XR_SESSION_STATE_FOCUSED = 5,      // Active
+                // XR_SESSION_STATE_STOPPING = 6,     // transitioning to Paused
+                // XR_SESSION_STATE_LOSS_PENDING = 7, // Runtime crashed
+                // XR_SESSION_STATE_EXITING = 8,      // transitioning to Shutdown
 
-            // ...
-            break;
+                // ...
+                break;
             }
 
-        // Reference space origin (and possible bounds) changed
-        // In most cases this happens when user recenters its pose
-        case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
+            // Reference space origin (and possible bounds) changed
+            // In most cases this happens when user recenters its pose
+            case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
             {
-            const XrEventDataReferenceSpaceChangePending& xrEvent = *reinterpret_cast<XrEventDataReferenceSpaceChangePending*>(&eventBase);
+                const XrEventDataReferenceSpaceChangePending& xrEvent = *reinterpret_cast<XrEventDataReferenceSpaceChangePending*>(&eventBase);
 
-            // TODO:
+                // TODO:
 
-            break;
+                break;
             }
 
-        // Events queue overflowed
-        case XR_TYPE_EVENT_DATA_EVENTS_LOST:
+            // Events queue overflowed
+            case XR_TYPE_EVENT_DATA_EVENTS_LOST:
             {
-            const XrEventDataEventsLost& xrEvent = *reinterpret_cast<XrEventDataEventsLost*>(&eventBase);
+                const XrEventDataEventsLost& xrEvent = *reinterpret_cast<XrEventDataEventsLost*>(&eventBase);
 
-            // There is nothing that can be done about it so log warning message
-            Log << "WARNING!: XR Events queue overflowed! Lost " << xrEvent.lostEventCount << "events!\n";
-            break;
+                // There is nothing that can be done about it so log warning message
+                Log << "WARNING!: XR Events queue overflowed! Lost " << xrEvent.lostEventCount << "events!\n";
+                break;
             }
 
-        // Input to action binding changed
-        case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
+            // Input to action binding changed
+            case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
             {
-            // TODO: Try to rebind input
-            // xrGetCurrentInteractionProfile
-            break;
+                // TODO: Try to rebind input
+                // xrGetCurrentInteractionProfile
+                break;
             }
 
-        // Performance degradation notification
-        case XR_TYPE_EVENT_DATA_PERF_SETTINGS_EXT:
+            // Performance degradation notification
+            case XR_TYPE_EVENT_DATA_PERF_SETTINGS_EXT:
             {
-            const XrEventDataPerfSettingsEXT& xrEvent = *reinterpret_cast<XrEventDataPerfSettingsEXT*>(&eventBase);
+                const XrEventDataPerfSettingsEXT& xrEvent = *reinterpret_cast<XrEventDataPerfSettingsEXT*>(&eventBase);
 
-            // TODO:
+                // TODO:
 
-            break;
+                break;
             }
 
-        // Stencil mesh (view visibility mask) has changed
-        case XR_TYPE_EVENT_DATA_VISIBILITY_MASK_CHANGED_KHR:
+            // Stencil mesh (view visibility mask) has changed
+            case XR_TYPE_EVENT_DATA_VISIBILITY_MASK_CHANGED_KHR:
             {
-            const XrEventDataVisibilityMaskChangedKHR& xrEvent = *reinterpret_cast<XrEventDataVisibilityMaskChangedKHR*>(&eventBase);
+                const XrEventDataVisibilityMaskChangedKHR& xrEvent = *reinterpret_cast<XrEventDataVisibilityMaskChangedKHR*>(&eventBase);
 
-            // TODO: xrGetVisibilityMaskKHR
+                // TODO: xrGetVisibilityMaskKHR
 
-            break;
+                break;
             }
 
-        default:
-            // TODO:
-            break;
+            default:
+                // TODO:
+                break;
         }
     }
+
+    return nullptr;
 }
 
 

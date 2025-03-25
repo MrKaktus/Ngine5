@@ -24,15 +24,20 @@
 
 namespace en
 {
+
 #if UseBigHash
-   // Hash is defined as separate type to allow easy change of underlying type for fine tuning (64 vs 128 bit)
-   typedef uint128 hash; 
+// Hash is defined as separate type to allow easy change of underlying type for fine tuning (64 vs 128 bit)
+typedef uint128 hash; 
 #else
-   typedef uint64 hash;  
+typedef uint64 hash;  
 #endif
 
-   hash hashData(const void* data, const uint32 size, const uint32 seed = PerfectHashSeed); // Generates hash from any data
-   hash hashString(const std::string name, const uint32 seed = PerfectHashSeed); // Generates hash from string
-}
+// Generates hash from any data
+hash hashData(const void* data, const uint32 size, const uint32 seed = PerfectHashSeed);
+
+// Generates hash from string
+hash hashString(const std::string name, const uint32 seed = PerfectHashSeed);
+
+} // en
 
 #endif
