@@ -23,6 +23,7 @@ namespace en
 {
 namespace gpu
 {
+
 // D3D12_FILTER_MIN_MAG_MIP_POINT                           = 0,
 // D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR                    = 0x1,
 // D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT              = 0x4,

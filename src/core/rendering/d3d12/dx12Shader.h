@@ -25,22 +25,23 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class Direct3D12Device;
+namespace gpu
+{
 
-   class ShaderD3D12 : public Shader
-      {
-      public:
-      D3D12_SHADER_BYTECODE state;
-      ShaderStage           stage;
+class Direct3D12Device;
 
-      ShaderD3D12(const ShaderStage _stage, const uint8* binary, const uint32 length);
-      virtual ~ShaderD3D12();
-      };
+class ShaderD3D12 : public Shader
+{
+    public:
+    D3D12_SHADER_BYTECODE state;
+    ShaderStage           stage;
 
-   }
-}
+    ShaderD3D12(const ShaderStage _stage, const uint8* binary, const uint32 length);
+    virtual ~ShaderD3D12();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

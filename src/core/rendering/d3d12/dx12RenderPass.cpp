@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 // COLOR ATTACHMENT
 //////////////////////////////////////////////////////////////////////////
 
@@ -203,6 +204,11 @@ void DepthStencilAttachmentD3D12::onStencilStore(const StoreOperation storeStenc
 
 
 FramebufferD3D12::FramebufferD3D12(const uint32v2 _resolution, const uint32 _layers) :
+    colorHandle{},
+    resolveHandle{},
+    depthHandle(nullptr),
+    colorDesc{},
+    depthDesc{},
     resolution(_resolution),
     layers(_layers)
 {
@@ -244,45 +250,61 @@ void fillRTV(const TextureType viewType,
 {
     switch(viewType)
     {
-    case TextureType::Texture1D:
-        desc.Texture1D.MipSlice               = viewMipmaps.base;
-        break;
+        case TextureType::Texture1D:
+        {
+            desc.Texture1D.MipSlice               = viewMipmaps.base;
+            break;
+        }
 
-    case TextureType::Texture1DArray:
-        desc.Texture1DArray.MipSlice          = viewMipmaps.base;
-        desc.Texture1DArray.FirstArraySlice   = viewLayers.base;
-        desc.Texture1DArray.ArraySize         = viewLayers.count;
-        break;
+        case TextureType::Texture1DArray:
+        {
+            desc.Texture1DArray.MipSlice          = viewMipmaps.base;
+            desc.Texture1DArray.FirstArraySlice   = viewLayers.base;
+            desc.Texture1DArray.ArraySize         = viewLayers.count;
+            break;
+        }
 
-    case TextureType::Texture2D:
-        desc.Texture2D.MipSlice               = viewMipmaps.base;
-        desc.Texture2D.PlaneSlice             = 0u;
-        break;
-            
-    case TextureType::Texture2DArray:
-        desc.Texture2DArray.MipSlice          = viewMipmaps.base;
-        desc.Texture2DArray.FirstArraySlice   = viewLayers.base;
-        desc.Texture2DArray.ArraySize         = viewLayers.count;
-        desc.Texture2DArray.PlaneSlice        = 0u;
-        break;
-         
-    case TextureType::Texture2DMultisample:
-        break;
-         
-    case TextureType::Texture2DMultisampleArray:
-        desc.Texture2DMSArray.FirstArraySlice = viewLayers.base;
-        desc.Texture2DMSArray.ArraySize       = viewLayers.count;
-        break;
-         
-    case TextureType::Texture3D:
-        desc.Texture3D.MipSlice               = viewMipmaps.base;
-        desc.Texture3D.FirstWSlice            = viewLayers.base;
-        desc.Texture3D.WSize                  = viewLayers.count;
-        break;
-            
-    default:
-        assert( 0 );
-        break;
+        case TextureType::Texture2D:
+        {
+            desc.Texture2D.MipSlice               = viewMipmaps.base;
+            desc.Texture2D.PlaneSlice             = 0u;
+            break;
+        }
+
+        case TextureType::Texture2DArray:
+        {
+            desc.Texture2DArray.MipSlice          = viewMipmaps.base;
+            desc.Texture2DArray.FirstArraySlice   = viewLayers.base;
+            desc.Texture2DArray.ArraySize         = viewLayers.count;
+            desc.Texture2DArray.PlaneSlice        = 0u;
+            break;
+        }
+
+        case TextureType::Texture2DMultisample:
+        {
+            break;
+        }
+
+        case TextureType::Texture2DMultisampleArray:
+        {
+            desc.Texture2DMSArray.FirstArraySlice = viewLayers.base;
+            desc.Texture2DMSArray.ArraySize       = viewLayers.count;
+            break;
+        }
+
+        case TextureType::Texture3D:
+        {
+            desc.Texture3D.MipSlice               = viewMipmaps.base;
+            desc.Texture3D.FirstWSlice            = viewLayers.base;
+            desc.Texture3D.WSize                  = viewLayers.count;
+            break;
+        }
+
+        default:
+        {
+            assert( 0 );
+            break;
+        }
     }
 }
    
@@ -293,37 +315,51 @@ void fillDSV(const TextureType viewType,
 {
     switch(viewType)
     {
-    case TextureType::Texture1D:
-        desc.Texture1D.MipSlice               = viewMipmaps.base;
-        break;
+        case TextureType::Texture1D:
+        {
+            desc.Texture1D.MipSlice               = viewMipmaps.base;
+            break;
+        }
 
-    case TextureType::Texture1DArray:
-        desc.Texture1DArray.MipSlice          = viewMipmaps.base;
-        desc.Texture1DArray.FirstArraySlice   = viewLayers.base;
-        desc.Texture1DArray.ArraySize         = viewLayers.count;
-        break;
+        case TextureType::Texture1DArray:
+        {
+            desc.Texture1DArray.MipSlice          = viewMipmaps.base;
+            desc.Texture1DArray.FirstArraySlice   = viewLayers.base;
+            desc.Texture1DArray.ArraySize         = viewLayers.count;
+            break;
+        }
 
-    case TextureType::Texture2D:
-        desc.Texture2D.MipSlice               = viewMipmaps.base;
-        break;
-               
-    case TextureType::Texture2DArray:
-        desc.Texture2DArray.MipSlice          = viewMipmaps.base;
-        desc.Texture2DArray.FirstArraySlice   = viewLayers.base;
-        desc.Texture2DArray.ArraySize         = viewLayers.count;
-        break;
-            
-    case TextureType::Texture2DMultisample:
-        break;
-            
-    case TextureType::Texture2DMultisampleArray:
-        desc.Texture2DMSArray.FirstArraySlice = viewLayers.base;
-        desc.Texture2DMSArray.ArraySize       = viewLayers.count;
-        break;
-               
-    default:
-        assert( 0 );
-        break;
+        case TextureType::Texture2D:
+        {
+            desc.Texture2D.MipSlice               = viewMipmaps.base;
+            break;
+        }
+
+        case TextureType::Texture2DArray:
+        {
+            desc.Texture2DArray.MipSlice          = viewMipmaps.base;
+            desc.Texture2DArray.FirstArraySlice   = viewLayers.base;
+            desc.Texture2DArray.ArraySize         = viewLayers.count;
+            break;
+        }
+
+        case TextureType::Texture2DMultisample:
+        {
+            break;
+        }
+
+        case TextureType::Texture2DMultisampleArray:
+        {
+            desc.Texture2DMSArray.FirstArraySlice = viewLayers.base;
+            desc.Texture2DMSArray.ArraySize       = viewLayers.count;
+            break;
+        }
+
+        default:
+        {
+            assert( 0 );
+            break;
+        }
     }
 }
 
@@ -345,7 +381,9 @@ std::shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(
 
     // Create Framebuffer object only if render pass usues any destination surfaces
     if (bitsCount(usedAttachments) == 0u && depthStencil == false)
+    {
         return std::shared_ptr<Framebuffer>(nullptr);
+    }
 
     result = std::make_shared<FramebufferD3D12>(resolution, layers);
    
@@ -383,14 +421,18 @@ std::shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(
 
     // Keep references to resolve destinations
     if (resolve)
+    {
         for(uint32 i=0; i<8; ++i)
+        {
             if (checkBit(usedAttachments, i))
             {
                 const TextureViewD3D12* view = reinterpret_cast<const TextureViewD3D12*>(attachment[index]);
                 result->resolveHandle[i] = view;
                 ++index;
             }
-      
+        }
+    }
+
     if (depthStencil)
     {
         const TextureViewD3D12* view = _depthStencil ? reinterpret_cast<const TextureViewD3D12*>(_depthStencil)
@@ -635,7 +677,7 @@ std::shared_ptr<Framebuffer> RenderPassD3D12::createFramebuffer(
     return result;
 }
 
-   
+
 // DEVICE
 //////////////////////////////////////////////////////////////////////////
 

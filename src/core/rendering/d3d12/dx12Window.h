@@ -29,6 +29,7 @@ namespace en
 {
 namespace gpu
 {
+
 class Direct3D12Device;
 class Texture;
 

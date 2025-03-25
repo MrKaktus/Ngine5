@@ -37,6 +37,7 @@ namespace en
 {
 namespace gpu
 {
+
 // TODO: Direct3D12 Compute queue is not supporting transfer operations!
 //       Correct the description in public headers, and asserts in all 3 API's!
 
@@ -154,9 +155,6 @@ class Direct3D12Device : public CommonDevice
 
     virtual std::shared_ptr<Semaphore> createSemaphore(void);
 
-
-         
-
     virtual SetLayout* createSetLayout(
         const uint32 count, 
         const ResourceGroup* group,
@@ -215,7 +213,6 @@ class Direct3D12Device : public CommonDevice
 };
 
 // CompileTimeOffsetReporting( Direct3D12Device, queueAcquire[1] );
-
 
 // Direct3D API Interface
 class Direct3DAPI : public CommonGraphicAPI

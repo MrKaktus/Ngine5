@@ -30,6 +30,7 @@ namespace en
 {
 namespace gpu
 {
+
 class Direct3D12Device;
 
 class CommandBufferD3D12 : public CommandBuffer
@@ -113,14 +114,12 @@ class CommandBufferD3D12 : public CommandBuffer
 
     virtual void setPipeline(
         const Pipeline& pipeline);
-      
 
-
-
-      virtual void setVertexBuffers(const uint32 firstSlot,
-                                    const uint32 count,
-                                    const std::shared_ptr<Buffer>(&buffers)[],
-                                    const uint64* offsets = nullptr) const;
+    virtual void setVertexBuffers(
+        const uint32 firstSlot,
+        const uint32 count,
+        const std::shared_ptr<Buffer>(&buffers)[],
+        const uint64* offsets = nullptr) const;
 
     virtual void setInputBuffer(
         const uint32  firstSlot,

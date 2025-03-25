@@ -30,6 +30,7 @@ namespace en
 {
 namespace gpu
 {
+
 // Topology of primitives to draw
 const D3D12_PRIMITIVE_TOPOLOGY_TYPE TranslateDrawableTopology[DrawableTypesCount]
 {
@@ -63,8 +64,15 @@ PipelineD3D12::PipelineD3D12(
     gpu(_gpu),
     handle(_handle),
     layout(_layout),
+    // Dynamic - Set on CommandBuffer
+    blendColor{}, 
+    viewport{},
+    scissor{},
+    viewportsCount(0),
     topology(D3D_PRIMITIVE_TOPOLOGY_UNDEFINED),
-    stencilRef(0)
+    stencilRef(0),
+    bufferStride{},
+    buffersCount(0)
 {
 }
 
@@ -196,8 +204,7 @@ Pipeline* Direct3D12Device::createPipeline(const PipelineState& pipelineState)
         desc.DepthStencilState.StencilEnable = FALSE;
         // TODO: What about Depth Write?
     }
-   
-   
+
     // TODO: Use PSO cache/library
     //       https://msdn.microsoft.com/en-us/library/windows/desktop/mt709145(v=vs.85).aspx
     // ID3D12PipelineLibrary* lib;

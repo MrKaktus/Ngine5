@@ -37,15 +37,17 @@ namespace en
 {
 namespace gpu
 {
+
 extern bool IsError(ID3D12Device* device, const HRESULT result);
 extern bool IsWarning(const HRESULT result);
-}
-}
+
+} // en::gpu
+} // en
 
 //
 // gpu     - pointer to class storing pointer to called function.
-//           Should be VulkanDevice*, or VulkanGPU*.
-// command - Vulkan API function call to execute.
+//           Should be Direct3D12Device*.
+// command - Direct3D12 API function call to execute.
 //
 // Result of function call is stored per GPU, per Thread.
 // threading/scheduler.h needs to be included.

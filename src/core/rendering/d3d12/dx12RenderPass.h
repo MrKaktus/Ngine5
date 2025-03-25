@@ -28,6 +28,7 @@ namespace en
 {
 namespace gpu
 {
+
 struct ColorState
 {
     float4         clearValue;

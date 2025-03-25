@@ -100,7 +100,6 @@
 #define DXGI_FORMAT_ASTC_12X12_UNORM            (DXGI_FORMAT)186
 #define DXGI_FORMAT_ASTC_12X12_UNORM_SRGB       (DXGI_FORMAT)187
 
-
 #endif
 
 #endif

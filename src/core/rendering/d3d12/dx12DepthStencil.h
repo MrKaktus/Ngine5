@@ -25,19 +25,20 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class DepthStencilStateD3D12 : public DepthStencilState
-      {
-      public:
-      D3D12_DEPTH_STENCIL_DESC state;
-      UINT reference;
+namespace gpu
+{
 
-      DepthStencilStateD3D12(const DepthStencilStateInfo& desc);
-      };
+class DepthStencilStateD3D12 : public DepthStencilState
+{
+    public:
+    D3D12_DEPTH_STENCIL_DESC state;
+    UINT reference;
 
-   }
-}
+    DepthStencilStateD3D12(const DepthStencilStateInfo& desc);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

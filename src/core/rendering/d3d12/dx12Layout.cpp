@@ -30,6 +30,7 @@ namespace en
 {
 namespace gpu
 { 
+
 static const D3D12_DESCRIPTOR_RANGE_TYPE TranslateResourceType[underlyingType(ResourceType::Count)] =
 {
     D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, // Sampler
@@ -45,8 +46,13 @@ static const D3D12_DESCRIPTOR_RANGE_TYPE TranslateResourceType[underlyingType(Re
 
 
 SetLayoutD3D12::SetLayoutD3D12() :
+    table{ {0, nullptr}, {0, nullptr} },
+    visibility(D3D12_SHADER_VISIBILITY_ALL),
+    descriptors{0, 0},
     type(nullptr),
-    tablesCount(0)
+    tablesCount(0),
+    mappings(nullptr),
+    mappingsCount(0)
 {
 }
 
@@ -194,13 +200,15 @@ void DescriptorSetD3D12::setTextureView(const uint32 slot, const TextureView& _v
 
 
 DescriptorsD3D12::DescriptorsD3D12(Direct3D12Device* _gpu) :
-    gpu(_gpu)
+    gpu(_gpu),
+    handle{nullptr, nullptr},
+    allocator{nullptr, nullptr}
 {
     assert( gpu );
     descriptorSize        = gpu->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     samplerDescriptorSize = gpu->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 }
-   
+
 DescriptorsD3D12::~DescriptorsD3D12()
 {
     assert( handle[0] || handle[1] );
@@ -466,7 +474,10 @@ const D3D12_SHADER_VISIBILITY TranslateShaderStage[underlyingType(ShaderStage::C
     D3D12_SHADER_VISIBILITY_DOMAIN              ,  // Evaluation
     D3D12_SHADER_VISIBILITY_GEOMETRY            ,  // Geometry
     D3D12_SHADER_VISIBILITY_PIXEL                  // Fragment
+  //D3D12_SHADER_VISIBILITY_AMPLIFICATION       ,  // Amplification (Object?)
+  //D3D12_SHADER_VISIBILITY_MESH                   // Mesh
 };
+
 //  D3D12_SHADER_VISIBILITY_ALL                 ,  // All
      
 SetLayout* Direct3D12Device::createSetLayout(
@@ -747,27 +758,39 @@ SetLayout* Direct3D12Device::createSetLayout(
     switch(stageMask)
     {
         case ShaderStages::Vertex:
+        {
             result->visibility = D3D12_SHADER_VISIBILITY_VERTEX;
             break;
+        }
 
         case ShaderStages::Control:
+        {
             result->visibility = D3D12_SHADER_VISIBILITY_HULL;
             break;
+        }
          
         case ShaderStages::Evaluation:
+        {
             result->visibility = D3D12_SHADER_VISIBILITY_DOMAIN;
             break;
-         
+        }
+
         case ShaderStages::Geometry:
+        {
             result->visibility = D3D12_SHADER_VISIBILITY_GEOMETRY;
             break;
-         
+        }
+
         case ShaderStages::Fragment:
+        {
             result->visibility = D3D12_SHADER_VISIBILITY_PIXEL;
             break;
-         
+        }
+
         default:
+        {
             break;
+        }
     };
       
     return result;
@@ -801,33 +824,45 @@ PipelineLayout* Direct3D12Device::createPipelineLayout(
         switch(stageMask)
         {
             case ShaderStages::Vertex:
+            {
                 visibility = D3D12_SHADER_VISIBILITY_VERTEX;
                 stageUsesDescriptors[0] = true;
                 break;
+            }
 
             case ShaderStages::Control:
+            {
                 visibility = D3D12_SHADER_VISIBILITY_HULL;
                 stageUsesDescriptors[1] = true;
                 break;
-            
+            }
+
             case ShaderStages::Evaluation:
+            {
                 visibility = D3D12_SHADER_VISIBILITY_DOMAIN;
                 stageUsesDescriptors[2] = true;
                 break;
-            
+            }
+
             case ShaderStages::Geometry:
+            {
                 visibility = D3D12_SHADER_VISIBILITY_GEOMETRY;
                 stageUsesDescriptors[3] = true;
                 break;
-            
+            }
+
             case ShaderStages::Fragment:
+            {
                 visibility = D3D12_SHADER_VISIBILITY_PIXEL;
                 stageUsesDescriptors[4] = true;
                 break;
-            
+            }
+
             default:
+            {
                 allStages = true;
                 break;
+            }
         };
          
         samplers = allocate<D3D12_STATIC_SAMPLER_DESC>(immutableSamplersCount);
@@ -1040,7 +1075,7 @@ Descriptors* Direct3D12Device::createDescriptorsPool(
         }
     }
       
-    uint32 resourceTypesCount = underlyingType(ResourceType::Count);
+    constexpr uint32 resourceTypesCount = underlyingType(ResourceType::Count);
    
     // Calculate amount of slots required for Textures, Images, Uniforms and Storage Buffers
     uint32 slots = 0;

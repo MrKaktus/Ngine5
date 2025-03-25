@@ -25,23 +25,23 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class BlendStateD3D12 : public BlendState
-      {
-      public:
-      float4 blendColor;     // Dynamic - Set on CommandBuffer
-      uint32 enabledSamples; // Static  - Set in PSO
-      D3D12_BLEND_DESC desc;
+namespace gpu
+{
 
-      BlendStateD3D12(const BlendStateInfo& state,
-                      const uint32 attachments, 
-                      const BlendAttachmentInfo* color);
-      };
+class BlendStateD3D12 : public BlendState
+{
+    public:
+    float4 blendColor;     // Dynamic - Set on CommandBuffer
+    uint32 enabledSamples; // Static  - Set in PSO
+    D3D12_BLEND_DESC desc;
+    
+    BlendStateD3D12(const BlendStateInfo& state,
+                    const uint32 attachments, 
+                    const BlendAttachmentInfo* color);
+};
 
-   }
-}
-
+} // en::gpu
+} // en
 #endif
 
 #endif

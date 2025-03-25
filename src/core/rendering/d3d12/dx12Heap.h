@@ -26,38 +26,39 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class Direct3D12Device;
+namespace gpu
+{
 
-   class HeapD3D12 : public CommonHeap
-      {
-      public:
-      std::shared_ptr<Direct3D12Device> gpu;
-      ID3D12Heap* handle;
-      Allocator* allocator;    // Allocation algorithm used to place resources on the Heap
+class Direct3D12Device;
 
-      HeapD3D12(std::shared_ptr<Direct3D12Device> gpu,
-                ID3D12Heap* handle,
-                const MemoryUsage usage,
-                const uint32 size);
-
-      // Return parent device
-      virtual std::shared_ptr<GpuDevice> device(void) const;
-
-      // Create unformatted generic buffer of given type and size.
-      // This method can still be used to create Vertex or Index buffers,
-      // but it's adviced to use ones with explicit formatting.
-      virtual Buffer* createBuffer(const BufferType type,
-                                   const uint32 size);
+class HeapD3D12 : public CommonHeap
+{
+    public:
+    std::shared_ptr<Direct3D12Device> gpu;
+    ID3D12Heap* handle;
+    Allocator* allocator;    // Allocation algorithm used to place resources on the Heap
+    
+    HeapD3D12(std::shared_ptr<Direct3D12Device> gpu,
+              ID3D12Heap* handle,
+              const MemoryUsage usage,
+              const uint32 size);
+    
+    // Return parent device
+    virtual std::shared_ptr<GpuDevice> device(void) const;
+    
+    // Create unformatted generic buffer of given type and size.
+    // This method can still be used to create Vertex or Index buffers,
+    // but it's adviced to use ones with explicit formatting.
+    virtual Buffer* createBuffer(const BufferType type,
+                                 const uint32 size);
+    
+    virtual Texture* createTexture(const TextureState state);
+    
+    virtual ~HeapD3D12();
+};
       
-      virtual Texture* createTexture(const TextureState state);
-
-      virtual ~HeapD3D12();
-      };
-      
-   }
-}
+} // en::gpu
+} // en
 #endif
 
 #endif

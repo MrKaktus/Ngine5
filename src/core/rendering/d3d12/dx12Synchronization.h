@@ -25,27 +25,28 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class Direct3D12Device;
+namespace gpu
+{
 
-   // TODO: Is there a way for D3D12 equivalent of Vulkan functionality? 
+class Direct3D12Device;
+
+// TODO: Is there a way for D3D12 equivalent of Vulkan functionality? 
  
-   // It's currently just a handle to synchronize command buffers execution.
-   // Similar to MTLFence in Metal, but works between CB's submissions.
-   class SemaphoreD3D12 : public Semaphore
-      {
-      public:
-      Direct3D12Device* gpu;
-      ID3D12Fence*      fence;        // Direct pointer to one of queue's fences
-      uint64            waitForValue; // Moment in time represented by unique value
+// It's currently just a handle to synchronize command buffers execution.
+// Similar to MTLFence in Metal, but works between CB's submissions.
+class SemaphoreD3D12 : public Semaphore
+{
+    public:
+    Direct3D12Device* gpu;
+    ID3D12Fence*      fence;        // Direct pointer to one of queue's fences
+    uint64            waitForValue; // Moment in time represented by unique value
 
-      SemaphoreD3D12(Direct3D12Device* _gpu);
-     ~SemaphoreD3D12();
-      };
+    SemaphoreD3D12(Direct3D12Device* _gpu);
+   ~SemaphoreD3D12();
+};
 
-   }
-}
+} // en::gpu
+} // en
 #endif
 
 #endif

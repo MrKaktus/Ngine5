@@ -29,6 +29,7 @@ namespace en
 {
 namespace gpu
 { 
+
 WindowD3D12::WindowD3D12(
         Direct3D12Device* _gpu,
         const std::shared_ptr<CommonDisplay> selectedDisplay,
@@ -280,20 +281,28 @@ Window* Direct3D12Device::createWindow(const WindowSettings& settings, const std
     // Select destination display
     std::shared_ptr<CommonDisplay> display;
     if (settings.display)
+    {
         display = std::dynamic_pointer_cast<CommonDisplay>(settings.display);
+    }
     else
+    {
         display = std::dynamic_pointer_cast<CommonDisplay>(Graphics->primaryDisplay());
+    }
       
     // Checking if app wants to use default resolution
     bool useNativeResolution = false;
     if (settings.size.width  == 0 ||
         settings.size.height == 0)
+    {
         useNativeResolution = true;
+    }
 
     // Select resolution to use (to which display should switch in Fullscreen mode)
     uint32v2 selectedResolution = settings.size;
     if (useNativeResolution)
+    {
         selectedResolution = display->_resolution;
+    }
 
     // Verify apps custom size in Fullscreen mode is supported, and that app is not using
     // size and resolution at once in this mode.
@@ -304,8 +313,12 @@ Window* Direct3D12Device::createWindow(const WindowSettings& settings, const std
             // Verify that requested resolution is supported by display
             bool validResolution = false;
             for(uint32 i=0; i<display->modesCount; ++i)
-            if (selectedResolution == display->modeResolution[i])
-                validResolution = true;
+            {
+                if (selectedResolution == display->modeResolution[i])
+                {
+                    validResolution = true;
+                }
+            }
 
             if (!validResolution)
             {

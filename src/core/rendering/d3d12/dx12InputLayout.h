@@ -26,31 +26,32 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class InputLayoutD3D12 : public InputLayout
-      {
-      public:
-      uint32 bufferStride[MaxInputLayoutAttributesCount]; // Element size per bound buffer (passed to Pipeline, and cached on CommandBuffer when Pipeline is bound)
-      D3D12_INPUT_LAYOUT_DESC state;
-      uint32 buffersCount;
-      DrawableType primitive;
-      uint32 points;  // Control Points count
-      bool restart;
-      
-      InputLayoutD3D12(const DrawableType primitiveType,
-                       const bool primitiveRestart,
-                       const uint32 controlPoints,
-                       const uint32 usedAttributes,
-                       const uint32 usedBuffers,
-                       const AttributeDesc* attributes,
-                       const BufferDesc* buffers);
+namespace gpu
+{
 
-      virtual ~InputLayoutD3D12();
-      };
+class InputLayoutD3D12 : public InputLayout
+{
+    public:
+    uint32 bufferStride[MaxInputLayoutAttributesCount]; // Element size per bound buffer (passed to Pipeline, and cached on CommandBuffer when Pipeline is bound)
+    D3D12_INPUT_LAYOUT_DESC state;
+    uint32 buffersCount;
+    DrawableType primitive;
+    uint32 points;  // Control Points count
+    bool restart;
+    
+    InputLayoutD3D12(const DrawableType primitiveType,
+                     const bool primitiveRestart,
+                     const uint32 controlPoints,
+                     const uint32 usedAttributes,
+                     const uint32 usedBuffers,
+                     const AttributeDesc* attributes,
+                     const BufferDesc* buffers);
+    
+    virtual ~InputLayoutD3D12();
+};
 
-   }
-}
+} // en::gpu
+} // en
 #endif
 
 #endif

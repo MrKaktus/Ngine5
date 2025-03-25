@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 HeapD3D12::HeapD3D12(
         std::shared_ptr<Direct3D12Device> _gpu,
         ID3D12Heap* _handle,
@@ -79,10 +80,14 @@ Heap* Direct3D12Device::createHeap(const MemoryUsage usage, const uint32 size)
     //       To differentiate NUMA from UMA adapters, see D3D12_FEATURE_ARCHITECTURE and D3D12_FEATURE_DATA_ARCHITECTURE.
 
     if (usage == MemoryUsage::Linear)
+    {
         desc.Flags |= D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+    }
     else
     if (usage == MemoryUsage::Tiled)
+    {
         desc.Flags |= D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
+    }
     else
     if (usage == MemoryUsage::Renderable)
     {

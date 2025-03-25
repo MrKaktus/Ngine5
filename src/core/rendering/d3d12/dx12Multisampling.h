@@ -25,23 +25,25 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MultisamplingStateD3D12 : public MultisamplingState
-      {
-      public:
-      DXGI_SAMPLE_DESC state;
-      bool alphaToCoverage;
-      bool alphaToOne;
-      
-      MultisamplingStateD3D12(const uint32 samples,
-                              const bool enableAlphaToCoverage,
-                              const bool enableAlphaToOne);
-         
-      virtual ~MultisamplingStateD3D12() {};
-      };
-   }
-}
+namespace gpu
+{
+
+class MultisamplingStateD3D12 : public MultisamplingState
+{
+    public:
+    DXGI_SAMPLE_DESC state;
+    bool alphaToCoverage;
+    bool alphaToOne;
+
+    MultisamplingStateD3D12(const uint32 samples,
+                            const bool enableAlphaToCoverage,
+                            const bool enableAlphaToOne);
+
+    virtual ~MultisamplingStateD3D12() {};
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

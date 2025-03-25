@@ -25,18 +25,20 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class RasterStateD3D12 : public RasterState
-      {
-      public:
-      D3D12_RASTERIZER_DESC state;
-      bool disableRasterizer;
+namespace gpu
+{
 
-      RasterStateD3D12(const RasterStateInfo& desc);
-      };
-   }
-}
+class RasterStateD3D12 : public RasterState
+{
+    public:
+    D3D12_RASTERIZER_DESC state;
+    bool disableRasterizer;
+
+    RasterStateD3D12(const RasterStateInfo& desc);
+};
+
+} // en::hpu
+} // en
 #endif
 
 #endif

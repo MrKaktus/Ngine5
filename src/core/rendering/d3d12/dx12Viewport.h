@@ -25,27 +25,29 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   // In D3D12 this state is dynamic and allows setting up to 16 different viewports and scissor rects.
-   // Used calls:
-   //
-   // ID3D12GraphicsCommandList::RSSetViewports
-   // ID3D12GraphicsCommandList::RSSetScissorRects
-   //
-   class ViewportStateD3D12 : public ViewportState
-      {
-      public:
-      D3D12_VIEWPORT viewport[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-      D3D12_RECT     scissor[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-      uint32 count;  // Count of enabled states from the beginning of the array
-      
-      ViewportStateD3D12(const uint32 count, 
-                         const ViewportStateInfo* viewports,
-                         const ScissorStateInfo* scissors);
-      };
-   }
-}
+namespace gpu
+{
+
+// In D3D12 this state is dynamic and allows setting up to 16 different viewports and scissor rects.
+// Used calls:
+//
+// ID3D12GraphicsCommandList::RSSetViewports
+// ID3D12GraphicsCommandList::RSSetScissorRects
+//
+class ViewportStateD3D12 : public ViewportState
+{
+    public:
+    D3D12_VIEWPORT viewport[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+    D3D12_RECT     scissor[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+    uint32 count;  // Count of enabled states from the beginning of the array
+
+    ViewportStateD3D12(const uint32 count, 
+                       const ViewportStateInfo* viewports,
+                       const ScissorStateInfo* scissors);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

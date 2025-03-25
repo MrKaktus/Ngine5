@@ -22,37 +22,39 @@
 
 namespace en
 {
-   namespace gpu
-   { 
-   ViewportStateD3D12::ViewportStateD3D12(const uint32 _count,
-                                          const ViewportStateInfo* viewports,
-                                          const ScissorStateInfo* scissors) :
-      count(_count)
-   {
-   // TopLeftX = viewports[0].rect.x;
-   // TopLeftY = viewports[0].rect.y;
-   // Width    = viewports[0].rect.width;
-   // Height   = viewports[0].rect.height;
-   // MinDepth = viewports[0].depthRange.x;
-   // MaxDepth = viewports[0].depthRange.y;
+namespace gpu
+{ 
 
-   assert( count <= 16 );
-   memset(&viewport[0], 0, 16 * sizeof(D3D12_VIEWPORT));
-   memset(&scissor[0],  0, 16 * sizeof(D3D12_RECT));
+ViewportStateD3D12::ViewportStateD3D12(
+        const uint32 _count,
+        const ViewportStateInfo* viewports,
+        const ScissorStateInfo* scissors) :
+    count(_count)
+{
+    // TopLeftX = viewports[0].rect.x;
+    // TopLeftY = viewports[0].rect.y;
+    // Width    = viewports[0].rect.width;
+    // Height   = viewports[0].rect.height;
+    // MinDepth = viewports[0].depthRange.x;
+    // MaxDepth = viewports[0].depthRange.y;
 
-   memcpy(&viewport[0], &viewports[0], count * sizeof(ViewportStateInfo));
-   memcpy(&scissor[0],  &scissors[0],  count * sizeof(ScissorStateInfo));
-   }
-   
-   ViewportState* Direct3D12Device::createViewportState(const uint32 count,
-                                                        const ViewportStateInfo* viewports,
-                                                        const ScissorStateInfo* scissors)
-   {
-   return new ViewportStateD3D12(count, viewports, scissors);
-   }
+    assert( count <= 16 );
+    memset(&viewport[0], 0, 16 * sizeof(D3D12_VIEWPORT));
+    memset(&scissor[0],  0, 16 * sizeof(D3D12_RECT));
 
-   }
+    memcpy(&viewport[0], &viewports[0], count * sizeof(ViewportStateInfo));
+    memcpy(&scissor[0],  &scissors[0],  count * sizeof(ScissorStateInfo));
 }
+   
+ViewportState* Direct3D12Device::createViewportState(const uint32 count,
+                                                     const ViewportStateInfo* viewports,
+                                                     const ScissorStateInfo* scissors)
+{
+    return new ViewportStateD3D12(count, viewports, scissors);
+}
+
+} // en::gpu
+} // en
 #endif
 
 

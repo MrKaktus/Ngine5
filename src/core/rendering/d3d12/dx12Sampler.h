@@ -25,19 +25,21 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class SamplerD3D12 : public Sampler
-      {
-      public:
-      D3D12_SAMPLER_DESC state;
-      D3D12_STATIC_BORDER_COLOR border;
+namespace gpu
+{
+
+class SamplerD3D12 : public Sampler
+{
+    public:
+    D3D12_SAMPLER_DESC state;
+    D3D12_STATIC_BORDER_COLOR border;
    
-      SamplerD3D12(D3D12_SAMPLER_DESC state, D3D12_STATIC_BORDER_COLOR border);
-     ~SamplerD3D12();
-      };
-   }
-}
+    SamplerD3D12(D3D12_SAMPLER_DESC state, D3D12_STATIC_BORDER_COLOR border);
+   ~SamplerD3D12();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

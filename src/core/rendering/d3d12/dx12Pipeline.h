@@ -28,6 +28,7 @@ namespace en
 {
 namespace gpu
 {
+
 class Direct3D12Device;
 
 class PipelineD3D12 : public Pipeline
