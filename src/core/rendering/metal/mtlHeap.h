@@ -26,42 +26,44 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MetalDevice;
+namespace gpu
+{
+
+class MetalDevice;
    
-   class HeapMTL : public CommonHeap
-      {
-      public:
-      std::shared_ptr<MetalDevice> gpu;
+class HeapMTL : public CommonHeap
+{
+    public:
+    std::shared_ptr<MetalDevice> gpu;
 #if defined(EN_PLATFORM_IOS)
-      id <MTLHeap> handle;
+    id <MTLHeap> handle;
 #else
-      // On macOS Upload/Download/Immediate heaps are emulated with
-      // MTLBuffer directly allocated on MTLDevice, as MTLHeaps with
-      // MTLStorageModeShared are not allowed (as Textures can have
-      // only Private backing, such Heaps would need to disallow
-      // Texture allocation).
-      id         handle;    // id<MTLHeap> or id<MTLBuffer>
-      Allocator* allocator; // Allocation algorithm used to place resources on the backing buffer
+    // On macOS Upload/Download/Immediate heaps are emulated with
+    // MTLBuffer directly allocated on MTLDevice, as MTLHeaps with
+    // MTLStorageModeShared are not allowed (as Textures can have
+    // only Private backing, such Heaps would need to disallow
+    // Texture allocation).
+    id         handle;    // id<MTLHeap> or id<MTLBuffer>
+    Allocator* allocator; // Allocation algorithm used to place resources on the backing buffer
 #endif
 
-      HeapMTL(std::shared_ptr<MetalDevice> gpu, id handle, const MemoryUsage _usage, const uint32 _size);
-      virtual ~HeapMTL();
+    HeapMTL(std::shared_ptr<MetalDevice> gpu, id handle, const MemoryUsage _usage, const uint32 _size);
+    virtual ~HeapMTL();
 
-      // Return parent device
-      virtual std::shared_ptr<GpuDevice> device(void) const;
+    // Return parent device
+    virtual std::shared_ptr<GpuDevice> device(void) const;
+    
+    // Create unformatted generic buffer of given type and size.
+    // This method can still be used to create Vertex or Index buffers,
+    // but it's adviced to use ones with explicit formatting.
+    virtual std::unique_ptr<Buffer> createBuffer(const BufferType type,
+                                                 const uint32 size);
       
-      // Create unformatted generic buffer of given type and size.
-      // This method can still be used to create Vertex or Index buffers,
-      // but it's adviced to use ones with explicit formatting.
-      virtual std::unique_ptr<Buffer> createBuffer(const BufferType type,
-                                                   const uint32 size);
-      
-      virtual std::shared_ptr<Texture> createTexture(const TextureState state);
-      };
-   }
-}
+    virtual std::shared_ptr<Texture> createTexture(const TextureState state);
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

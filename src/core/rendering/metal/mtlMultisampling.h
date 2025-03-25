@@ -25,23 +25,25 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MultisamplingStateMTL : public MultisamplingState
-      {
-      public:
-      NSUInteger samples;
-      BOOL alphaToCoverage;
-      BOOL alphaToOne;
-      
-      MultisamplingStateMTL(const uint32 samples,
-                            const bool enableAlphaToCoverage,
-                            const bool enableAlphaToOne);
-         
-      virtual ~MultisamplingStateMTL() {};
-      };
-   }
-}
+namespace gpu
+{
+
+class MultisamplingStateMTL : public MultisamplingState
+{
+    public:
+    NSUInteger samples;
+    BOOL alphaToCoverage;
+    BOOL alphaToOne;
+    
+    MultisamplingStateMTL(const uint32 samples,
+                          const bool enableAlphaToCoverage,
+                          const bool enableAlphaToOne);
+       
+    virtual ~MultisamplingStateMTL() {};
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

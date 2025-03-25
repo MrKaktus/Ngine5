@@ -18,24 +18,25 @@
 #if defined(EN_PLATFORM_WINDOWS)
 namespace en
 {
-   namespace gpu
-   {
-   winDisplay::winDisplay() :
-      index(0),
-      resolutionChanged(false),
-      CommonDisplay()
-   {
-   }
+namespace gpu
+{
 
-   winDisplay::~winDisplay()
-   {
-   // Restore original resolution
-   if (resolutionChanged)
-      {
-      // TODO: Check if that's not happening by default when window is destroyed
-      }
-   }
- 
-   }
+winDisplay::winDisplay() :
+    index(0),
+    resolutionChanged(false),
+    CommonDisplay()
+{
+}
+
+winDisplay::~winDisplay()
+{
+    // Restore original resolution
+    if (resolutionChanged)
+    {
+        // TODO: Check if that's not happening by default when window is destroyed
+    }
+}
+
+}
 }
 #endif

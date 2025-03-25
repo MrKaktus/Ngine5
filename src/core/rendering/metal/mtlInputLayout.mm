@@ -22,7 +22,8 @@
 namespace en
 {
 namespace gpu
-{   
+{
+
 // Metal will add double types in the future to support compute kernels
 // porting from OpenCL to Metal API. sint64 and uint64 can be added but
 // it is not verified yet. Other missing types could be added as well but

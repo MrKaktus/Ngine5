@@ -29,24 +29,26 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class PipelineMTL : public Pipeline
-      {
-      public:
-      id <MTLRenderPipelineState> handle;
+namespace gpu
+{
 
-      // Metal Dynamic State (Static in Vulkan)
-      DepthStencilStateMTL* depthStencil;
-      RasterStateMTL   raster;
-      ViewportStateMTL viewport;
-      MTLPrimitiveType primitive;
-      
-      PipelineMTL(const id<MTLDevice> device, MTLRenderPipelineDescriptor* desc, NSError** result);
-      virtual ~PipelineMTL();
-      };
-   }
-}
+class PipelineMTL : public Pipeline
+{
+    public:
+    id <MTLRenderPipelineState> handle;
+    
+    // Metal Dynamic State (Static in Vulkan)
+    DepthStencilStateMTL* depthStencil;
+    RasterStateMTL   raster;
+    ViewportStateMTL viewport;
+    MTLPrimitiveType primitive;
+    
+    PipelineMTL(const id<MTLDevice> device, MTLRenderPipelineDescriptor* desc, NSError** result);
+    virtual ~PipelineMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

@@ -25,23 +25,24 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class BlendStateMTL : public BlendState
-      {
-      public:
-      float4 blendColor;
-      uint32 attachments;
-      MTLRenderPipelineColorAttachmentDescriptorArray* blendInfo;
+namespace gpu
+{
 
-      BlendStateMTL(const BlendStateInfo& state,
-                    const uint32 attachments, 
-                    const BlendAttachmentInfo* color);
-      virtual ~BlendStateMTL();
-      };
+class BlendStateMTL : public BlendState
+{
+    public:
+    float4 blendColor;
+    uint32 attachments;
+    MTLRenderPipelineColorAttachmentDescriptorArray* blendInfo;
 
-   }
-}
+    BlendStateMTL(const BlendStateInfo& state,
+                  const uint32 attachments, 
+                  const BlendAttachmentInfo* color);
+    virtual ~BlendStateMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

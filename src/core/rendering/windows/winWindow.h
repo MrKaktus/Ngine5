@@ -23,28 +23,30 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class winWindow : public CommonWindow
-      {
-      public:
-      static HINSTANCE AppInstance; // Application handle (helper handle)
-      HWND hWnd;                    // Window handle
+namespace gpu
+{
 
-      winWindow(const std::shared_ptr<winDisplay> selectedDisplay,
-                const uint32v2 selectedResolution,
-                const WindowSettings& settings,
-                const std::string title);
+class winWindow : public CommonWindow
+{
+    public:
+    static HINSTANCE AppInstance; // Application handle (helper handle)
+    HWND hWnd;                    // Window handle
 
-      virtual bool movable(void);
-      virtual void move(const uint32v2 position);
-      virtual void resize(const uint32v2 size);
-      virtual void active(void);
-      virtual void transparent(const float opacity);
-      virtual void opaque(void);
+    winWindow(const std::shared_ptr<winDisplay> selectedDisplay,
+              const uint32v2 selectedResolution,
+              const WindowSettings& settings,
+              const std::string title);
 
-      virtual ~winWindow();
-      };
-   }
-}
+    virtual bool movable(void);
+    virtual void move(const uint32v2 position);
+    virtual void resize(const uint32v2 size);
+    virtual void active(void);
+    virtual void transparent(const float opacity);
+    virtual void opaque(void);
+
+    virtual ~winWindow();
+};
+
+} // en::gpu
+} // en
 #endif

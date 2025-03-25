@@ -26,35 +26,36 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class BufferMTL : public CommonBuffer
-      {
-      public:
-      id<MTLBuffer> handle;
-      HeapMTL&      heap;   // Memory backing heap
-      uint32        offset; // Offset in parent MTLBuffer
-      
-      BufferMTL(HeapMTL& heap, id<MTLBuffer> handle, const BufferType type, const uint32 size, const uint32 offset);
+namespace gpu
+{
 
-      virtual volatile void* map(void);
-      virtual volatile void* map(const uint64 offset, const uint64 size);
-      virtual void  unmap(void);
+class BufferMTL : public CommonBuffer
+{
+    public:
+    id<MTLBuffer> handle;
+    HeapMTL&      heap;   // Memory backing heap
+    uint32        offset; // Offset in parent MTLBuffer
       
-      virtual ~BufferMTL();
-      };
-      
-   class BufferViewMTL : public BufferView
-      {
-      public:
-      Buffer& parent;  // Buffer from which this View is created
-      
-      BufferViewMTL();
-      virtual ~BufferViewMTL();
-      };
+    BufferMTL(HeapMTL& heap, id<MTLBuffer> handle, const BufferType type, const uint32 size, const uint32 offset);
 
-   }
-}
+    virtual volatile void* map(void);
+    virtual volatile void* map(const uint64 offset, const uint64 size);
+    virtual void  unmap(void);
+
+    virtual ~BufferMTL();
+};
+      
+class BufferViewMTL : public BufferView
+{
+    public:
+    Buffer& parent;  // Buffer from which this View is created
+
+    BufferViewMTL();
+    virtual ~BufferViewMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

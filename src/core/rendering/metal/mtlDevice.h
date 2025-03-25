@@ -40,64 +40,65 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MetalDevice : public CommonDevice
-      {
-      public:
-      id<MTLDevice> device;
-      id<MTLCommandQueue> queue;
-      
-      MetalDevice(id<MTLDevice> handle);
-     ~MetalDevice();
+namespace gpu
+{
 
-      // Internal
-      
-      void init(void);
-      
-      // Interface
+class MetalDevice : public CommonDevice
+{
+    public:
+    id<MTLDevice> device;
+    id<MTLCommandQueue> queue;
+    
+    MetalDevice(id<MTLDevice> handle);
+   ~MetalDevice();
 
-      uint32 displays(void) const;            // Screens count the device can render to
-      std::shared_ptr<Display> display(const uint32 id) const;  // Return N'th screen handle
-      
-      virtual Window* createWindow(
-         const WindowSettings& settings,
-         const std::string title); // Create window
-      
-      virtual Heap* createHeap(
-         const MemoryUsage usage, 
-         const uint32 size);
+    // Internal
+    
+    void init(void);
+    
+    // Interface
 
-      virtual Sampler* createSampler(
-         const SamplerState& state);
-      
-      virtual std::shared_ptr<Texture> createSharedTexture(
-         std::shared_ptr<SharedSurface> backingSurface);
-      
-      virtual std::shared_ptr<Shader>  createShader(
-         const ShaderStage stage,
-         const std::string& source);
+    uint32 displays(void) const;            // Screens count the device can render to
+    std::shared_ptr<Display> display(const uint32 id) const;  // Return N'th screen handle
+    
+    virtual Window* createWindow(
+        const WindowSettings& settings,
+        const std::string title); // Create window
+    
+    virtual Heap* createHeap(
+        const MemoryUsage usage, 
+        const uint32 size);
 
-      virtual std::shared_ptr<Shader>  createShader(
-         const ShaderStage stage,
-         const uint8* data,
-         const uint64 size);
-         
-      virtual uint32 queues(const QueueType type) const;
-      
-      virtual std::shared_ptr<CommandBuffer> createCommandBuffer(
-         const QueueType type = QueueType::Universal,
-         const uint32 parentQueue = 0u);
+    virtual Sampler* createSampler(
+        const SamplerState& state);
+    
+    virtual std::shared_ptr<Texture> createSharedTexture(
+        std::shared_ptr<SharedSurface> backingSurface);
+    
+    virtual std::shared_ptr<Shader>  createShader(
+        const ShaderStage stage,
+        const std::string& source);
 
-      virtual InputLayout* createInputLayout(
-         const DrawableType primitiveType,
-         const bool primitiveRestart,
-         const uint32 controlPoints,
-         const uint32 usedAttributes,
-         const uint32 usedBuffers,
-         const AttributeDesc* attributes,
-         const BufferDesc* buffers);
- 
+    virtual std::shared_ptr<Shader>  createShader(
+        const ShaderStage stage,
+        const uint8* data,
+        const uint64 size);
+        
+    virtual uint32 queues(const QueueType type) const;
+    
+    virtual std::shared_ptr<CommandBuffer> createCommandBuffer(
+        const QueueType type = QueueType::Universal,
+        const uint32 parentQueue = 0u);
+
+    virtual InputLayout* createInputLayout(
+        const DrawableType primitiveType,
+        const bool primitiveRestart,
+        const uint32 controlPoints,
+        const uint32 usedAttributes,
+        const uint32 usedBuffers,
+        const AttributeDesc* attributes,
+        const BufferDesc* buffers);
+
     virtual SetLayout* createSetLayout(
         const uint32 count, 
         const ResourceGroup* group,
@@ -113,7 +114,7 @@ namespace en
     virtual Descriptors* createDescriptorsPool(
         const uint32 maxSets,
         const uint32 (&count)[underlyingType(ResourceType::Count)]);
-         
+        
 
 
     virtual ColorAttachment* createColorAttachment(
@@ -135,14 +136,14 @@ namespace en
         const DepthStencilAttachment* depthStencil = nullptr);
 
 
-      virtual std::shared_ptr<Semaphore> createSemaphore(void);
+    virtual std::shared_ptr<Semaphore> createSemaphore(void);
 
-      
+     
 
 
 
-   // When binding 3D texture, pass it's plane "depth" through "layer" parameter,
-   // similarly when binding CubeMap texture, pass it's "face" through "layer".
+// When binding 3D texture, pass it's plane "depth" through "layer" parameter,
+// similarly when binding CubeMap texture, pass it's "face" through "layer".
 
 
 
@@ -158,17 +159,17 @@ namespace en
 
     virtual DepthStencilState* createDepthStencilState(
         const DepthStencilStateInfo& desc);
-      
+     
     virtual BlendState* createBlendState(
         const BlendStateInfo& state,
         const uint32 attachments,
         const BlendAttachmentInfo* color);
-      
+     
     virtual ViewportState* createViewportState(
         const uint32 count,
         const ViewportStateInfo* viewports,
         const ScissorStateInfo* scissors);
-         
+        
     virtual Pipeline* createPipeline(
         const PipelineState& pipelineState);
 

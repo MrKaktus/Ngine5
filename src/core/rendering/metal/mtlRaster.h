@@ -25,25 +25,27 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class RasterStateMTL : public RasterState
-      {
-      public:
-      MTLCullMode culling;
-      MTLWinding frontFace;
-      MTLTriangleFillMode fillMode;
-      MTLDepthClipMode depthClamp;
-      float depthBiasConstantFactor;
-      float depthBiasClamp;
-      float depthBiasSlopeFactor;
-      bool  enableRasterization;
-      
-      RasterStateMTL(const RasterStateInfo& desc);
-      virtual ~RasterStateMTL();
-      };
-   }
-}
+namespace gpu
+{
+
+class RasterStateMTL : public RasterState
+{
+    public:
+    MTLCullMode culling;
+    MTLWinding frontFace;
+    MTLTriangleFillMode fillMode;
+    MTLDepthClipMode depthClamp;
+    float depthBiasConstantFactor;
+    float depthBiasClamp;
+    float depthBiasSlopeFactor;
+    bool  enableRasterization;
+    
+    RasterStateMTL(const RasterStateInfo& desc);
+    virtual ~RasterStateMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

@@ -25,34 +25,36 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MetalDevice;
-   
-   // Aligned to cacheline due to use of Mutex
-   class cachealign WindowMTL : public CommonWindow
-      {
-      public:
-      NSWindow*     window;
-      NSView*       view;
-      CAMetalLayer* layer;
-      id <CAMetalDrawable> drawable;
-      TextureMTL*   framebuffer;
-      
-      virtual bool movable(void);
-      virtual void move(const uint32v2 position);
-      virtual void resize(const uint32v2 size);
-      virtual void active(void);
-      virtual void transparent(const float opacity);
-      virtual void opaque(void);
-      virtual Texture* surface(const Semaphore* signalSemaphore = nullptr);
-      virtual void present(const Semaphore* waitForSemaphore = nullptr);
-      
-      WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const std::string title); //id<MTLDevice> device
-      virtual ~WindowMTL();
-      };
-   }
-}
+namespace gpu
+{
+
+class MetalDevice;
+
+// Aligned to cacheline due to use of Mutex
+class cachealign WindowMTL : public CommonWindow
+{
+    public:
+    NSWindow*     window;
+    NSView*       view;
+    CAMetalLayer* layer;
+    id <CAMetalDrawable> drawable;
+    TextureMTL*   framebuffer;
+    
+    virtual bool movable(void);
+    virtual void move(const uint32v2 position);
+    virtual void resize(const uint32v2 size);
+    virtual void active(void);
+    virtual void transparent(const float opacity);
+    virtual void opaque(void);
+    virtual Texture* surface(const Semaphore* signalSemaphore = nullptr);
+    virtual void present(const Semaphore* waitForSemaphore = nullptr);
+    
+    WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const std::string title); //id<MTLDevice> device
+    virtual ~WindowMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

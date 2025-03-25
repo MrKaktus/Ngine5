@@ -28,33 +28,34 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   SharedSurfaceOSX::SharedSurfaceOSX(const IOSurfaceRef _surface, const uint32v2 _resolution) :
-      surface(_surface),
-      resolution(_resolution)
-   {
-   }
-   
-   SharedSurfaceOSX::~SharedSurfaceOSX()
-   {
-   CFRelease(surface);
-   }
+namespace gpu
+{
 
-   std::shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolution)
-   {
-   assert( resolution.width );
-   assert( resolution.height );
+SharedSurfaceOSX::SharedSurfaceOSX(const IOSurfaceRef _surface, const uint32v2 _resolution) :
+    surface(_surface),
+    resolution(_resolution)
+{
+}
+
+SharedSurfaceOSX::~SharedSurfaceOSX()
+{
+    CFRelease(surface);
+}
+
+std::shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolution)
+{
+    assert( resolution.width );
+    assert( resolution.height );
    
-   // Create backing IOSurface
-   NSDictionary *surfaceDict = @{ (id)kIOSurfaceWidth           : @((int)resolution.width),
-                                  (id)kIOSurfaceHeight          : @((int)resolution.height),
-                                  (id)kIOSurfacePixelFormat     : @(kCVPixelFormatType_32BGRA),
-                                  (id)kIOSurfaceBytesPerElement : @(4)
-                                };
+    // Create backing IOSurface
+    NSDictionary *surfaceDict = @{ (id)kIOSurfaceWidth           : @((int)resolution.width),
+                                   (id)kIOSurfaceHeight          : @((int)resolution.height),
+                                   (id)kIOSurfacePixelFormat     : @(kCVPixelFormatType_32BGRA),
+                                   (id)kIOSurfaceBytesPerElement : @(4)
+                                 };
       
-   return std::make_shared<SharedSurfaceOSX>(IOSurfaceCreate((CFDictionaryRef)surfaceDict), resolution);
-   }
+    return std::make_shared<SharedSurfaceOSX>(IOSurfaceCreate((CFDictionaryRef)surfaceDict), resolution);
+}
       
       
    // DUMMY OPENGL CONTEXT FOR SHARED TEXTURE HANDLE CREATON
@@ -137,5 +138,6 @@ namespace en
    return reinterpret_cast<OpenGLContext*>(new osxOpenGLContext());
    }
 */
-   }
-}
+
+} // en::gpu
+} // en

@@ -22,35 +22,37 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   HeapMTL::HeapMTL(std::shared_ptr<MetalDevice> _gpu,
-                    id handle,
-                    const MemoryUsage _usage,
-                    const uint32 _size) :
-      gpu(_gpu),
-      handle(handle),
+namespace gpu
+{
+
+HeapMTL::HeapMTL(
+        std::shared_ptr<MetalDevice> _gpu,
+        id handle,
+        const MemoryUsage _usage,
+        const uint32 _size) :
+    gpu(_gpu),
+    handle(handle),
 #if defined(EN_PLATFORM_OSX)
-      allocator(new BasicAllocator(_size)),
+    allocator(new BasicAllocator(_size)),
 #endif
-      CommonHeap(_usage, _size)
-   {
-   }
+    CommonHeap(_usage, _size)
+{
+}
       
-   HeapMTL::~HeapMTL()
-   {
+HeapMTL::~HeapMTL()
+{
 #if defined(EN_PLATFORM_OSX)
-   delete allocator;
+    delete allocator;
 #endif
 
-   deallocateObjectiveC(handle);
-   }
+    deallocateObjectiveC(handle);
+}
    
-   // Return parent device
-   std::shared_ptr<GpuDevice> HeapMTL::device(void) const
-   {
-   return gpu;
-   }
+// Return parent device
+std::shared_ptr<GpuDevice> HeapMTL::device(void) const
+{
+    return gpu;
+}
       
 // Create unformatted generic buffer of given type and size.
 // This method can still be used to create Vertex or Index buffers,

@@ -32,34 +32,37 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class SharedSurfaceOSX : public SharedSurface
-      {
-      public:
-      IOSurfaceRef surface;
-      uint32v2 resolution;
-      
-      SharedSurfaceOSX(const IOSurfaceRef surface,
-                       const uint32v2 resolution);
-      virtual ~SharedSurfaceOSX();
-      };
+namespace gpu
+{
+
+class SharedSurfaceOSX : public SharedSurface
+{
+    public:
+    IOSurfaceRef surface;
+    uint32v2 resolution;
+   
+    SharedSurfaceOSX(const IOSurfaceRef surface,
+                     const uint32v2 resolution);
+    virtual ~SharedSurfaceOSX();
+};
+
 /*
-   class osxOpenGLContext : OpenGLContext
-      {
-      public:
-      NSOpenGLPixelFormat* pixelFormat;
-      NSOpenGLContext*     context;
-      
-      osxOpenGLContext();
-      virtual ~osxOpenGLContext();
-     
-      virtual uint32 createSharedTexture(std::shared_ptr<SharedSurface> backingSurface);
-      virtual void destroySharedTexture(const uint32 handle);
-      };
-*/
-   }
-}
+class osxOpenGLContext : OpenGLContext
+{
+    public:
+    NSOpenGLPixelFormat* pixelFormat;
+    NSOpenGLContext*     context;
+
+    osxOpenGLContext();
+    virtual ~osxOpenGLContext();
+
+    virtual uint32 createSharedTexture(std::shared_ptr<SharedSurface> backingSurface);
+    virtual void destroySharedTexture(const uint32 handle);
+};
+//*/
+
+} // en::gpu
+} // en
 #endif
 
 #endif

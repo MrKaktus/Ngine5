@@ -25,22 +25,23 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MetalDevice;
+namespace gpu
+{
+
+class MetalDevice;
    
-   class DepthStencilStateMTL : public DepthStencilState
-      {
-      public:
-      id<MTLDepthStencilState> state;
-      uint32v2 reference;
+class DepthStencilStateMTL : public DepthStencilState
+{
+    public:
+    id<MTLDepthStencilState> state;
+    uint32v2 reference;
 
-      DepthStencilStateMTL(const MetalDevice* gpu, const DepthStencilStateInfo& desc);
-      virtual ~DepthStencilStateMTL();
-      };
+    DepthStencilStateMTL(const MetalDevice* gpu, const DepthStencilStateInfo& desc);
+    virtual ~DepthStencilStateMTL();
+};
 
-   }
-}
+} // en::gpu
+} // en
 #endif
 
 #endif

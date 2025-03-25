@@ -29,6 +29,7 @@ namespace en
 {
 namespace gpu
 {
+
 extern const DXGI_FORMAT TranslateTextureFormat[underlyingType(Format::Count)];
 
 extern UINT D3D12CalcSubresource(UINT MipSlice, UINT ArraySlice, UINT PlaneSlice, UINT MipLevels, UINT ArraySize);

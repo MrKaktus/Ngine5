@@ -23,88 +23,89 @@
 
 namespace en
 {
-   namespace gpu
-   { 
-   #define MaxColorAttachmentsCount 8
+namespace gpu
+{
 
-   // Metal doesn't support double source blending
-   static const MTLBlendFactor TranslateBlend[underlyingType(BlendFactor::Count)] =
-      {
-      MTLBlendFactorZero                     ,  // Zero
-      MTLBlendFactorOne                      ,  // One
-      MTLBlendFactorSourceColor              ,  // Source
-      MTLBlendFactorOneMinusSourceColor      ,  // OneMinusSource
-      MTLBlendFactorDestinationColor         ,  // Destination
-      MTLBlendFactorOneMinusDestinationColor ,  // OneMinusDestination
-      MTLBlendFactorSourceAlpha              ,  // SourceAlpha
-      MTLBlendFactorOneMinusSourceAlpha      ,  // OneMinusSourceAlpha
-      MTLBlendFactorDestinationAlpha         ,  // DestinationAlpha
-      MTLBlendFactorOneMinusDestinationAlpha ,  // OneMinusDestinationAlpha
-      MTLBlendFactorBlendColor               ,  // ConstantColor
-      MTLBlendFactorOneMinusBlendColor       ,  // OneMinusConstantColor
-      MTLBlendFactorBlendAlpha               ,  // ConstantAlpha
-      MTLBlendFactorOneMinusBlendColor       ,  // OneMinusConstantAlpha
-      MTLBlendFactorOneMinusBlendAlpha       ,  // SourceAlphaSaturate
-      MTLBlendFactorZero                     ,  // SecondSource
-      MTLBlendFactorZero                     ,  // OneMinusSecondSource
-      MTLBlendFactorZero                     ,  // SecondSourceAlpha
-      MTLBlendFactorZero                        // OneMinusSecondSourceAlpha
-      };
+#define MaxColorAttachmentsCount 8
 
-   static const MTLBlendOperation TranslateBlendOp[underlyingType(BlendOperation::Count)] =
-      {
-      MTLBlendOperationAdd                   ,  // Add
-      MTLBlendOperationSubtract              ,  // Subtract
-      MTLBlendOperationReverseSubtract       ,  // DestinationMinusSource
-      MTLBlendOperationMin                   ,  // Min
-      MTLBlendOperationMax                      // Max
-      };
+// Metal doesn't support double source blending
+static const MTLBlendFactor TranslateBlend[underlyingType(BlendFactor::Count)] =
+{
+    MTLBlendFactorZero                     ,  // Zero
+    MTLBlendFactorOne                      ,  // One
+    MTLBlendFactorSourceColor              ,  // Source
+    MTLBlendFactorOneMinusSourceColor      ,  // OneMinusSource
+    MTLBlendFactorDestinationColor         ,  // Destination
+    MTLBlendFactorOneMinusDestinationColor ,  // OneMinusDestination
+    MTLBlendFactorSourceAlpha              ,  // SourceAlpha
+    MTLBlendFactorOneMinusSourceAlpha      ,  // OneMinusSourceAlpha
+    MTLBlendFactorDestinationAlpha         ,  // DestinationAlpha
+    MTLBlendFactorOneMinusDestinationAlpha ,  // OneMinusDestinationAlpha
+    MTLBlendFactorBlendColor               ,  // ConstantColor
+    MTLBlendFactorOneMinusBlendColor       ,  // OneMinusConstantColor
+    MTLBlendFactorBlendAlpha               ,  // ConstantAlpha
+    MTLBlendFactorOneMinusBlendColor       ,  // OneMinusConstantAlpha
+    MTLBlendFactorOneMinusBlendAlpha       ,  // SourceAlphaSaturate
+    MTLBlendFactorZero                     ,  // SecondSource
+    MTLBlendFactorZero                     ,  // OneMinusSecondSource
+    MTLBlendFactorZero                     ,  // SecondSourceAlpha
+    MTLBlendFactorZero                        // OneMinusSecondSourceAlpha
+};
 
-   // Metal is not supporting logical operation at all
+static const MTLBlendOperation TranslateBlendOp[underlyingType(BlendOperation::Count)] =
+{
+    MTLBlendOperationAdd                   ,  // Add
+    MTLBlendOperationSubtract              ,  // Subtract
+    MTLBlendOperationReverseSubtract       ,  // DestinationMinusSource
+    MTLBlendOperationMin                   ,  // Min
+    MTLBlendOperationMax                      // Max
+};
 
-   BlendStateMTL::BlendStateMTL(const BlendStateInfo& state,
-                                const uint32 _attachments,
-                                const BlendAttachmentInfo* color)
-   {
-   blendColor      = state.blendColor;
-   attachments     = min(_attachments, static_cast<uint32>(MaxColorAttachmentsCount));
+// Metal is not supporting logical operation at all
+
+BlendStateMTL::BlendStateMTL(const BlendStateInfo& state,
+                             const uint32 _attachments,
+                             const BlendAttachmentInfo* color)
+{
+    blendColor      = state.blendColor;
+    attachments     = min(_attachments, static_cast<uint32>(MaxColorAttachmentsCount));
    
-   blendInfo       = allocateObjectiveC(MTLRenderPipelineColorAttachmentDescriptorArray);
-   for(uint8 i=0; i<attachments; ++i)
-      {
-      //assert( !(color[0].logicOperation && color[i].blending) );
+    blendInfo       = allocateObjectiveC(MTLRenderPipelineColorAttachmentDescriptorArray);
+    for(uint8 i=0; i<attachments; ++i)
+    {
+        //assert( !(color[0].logicOperation && color[i].blending) );
 
-      MTLRenderPipelineColorAttachmentDescriptor* desc = [blendInfo objectAtIndexedSubscript:i];
+        MTLRenderPipelineColorAttachmentDescriptor* desc = [blendInfo objectAtIndexedSubscript:i];
          
-      [desc setBlendingEnabled:             color[i].mode == BlendMode::BlendOperation ? true : false ];
-    //[desc pixelFormat];                   // Pixel Format is patched at Pipeline creation time
-      [desc setSourceRGBBlendFactor:        TranslateBlend[underlyingType(color[i].srcRGB)]    ];
-      [desc setDestinationRGBBlendFactor:   TranslateBlend[underlyingType(color[i].dstRGB)]    ];
-      [desc setSourceAlphaBlendFactor:      TranslateBlend[underlyingType(color[i].srcAlpha)]  ];
-      [desc setDestinationAlphaBlendFactor: TranslateBlend[underlyingType(color[i].dstAlpha)]  ];
-      [desc setRgbBlendOperation:           TranslateBlendOp[underlyingType(color[i].rgb)]   ];
-      [desc setAlphaBlendOperation:         TranslateBlendOp[underlyingType(color[i].alpha)] ];
+        [desc setBlendingEnabled:             color[i].mode == BlendMode::BlendOperation ? true : false ];
+      //[desc pixelFormat];                   // Pixel Format is patched at Pipeline creation time
+        [desc setSourceRGBBlendFactor:        TranslateBlend[underlyingType(color[i].srcRGB)]    ];
+        [desc setDestinationRGBBlendFactor:   TranslateBlend[underlyingType(color[i].dstRGB)]    ];
+        [desc setSourceAlphaBlendFactor:      TranslateBlend[underlyingType(color[i].srcAlpha)]  ];
+        [desc setDestinationAlphaBlendFactor: TranslateBlend[underlyingType(color[i].dstAlpha)]  ];
+        [desc setRgbBlendOperation:           TranslateBlendOp[underlyingType(color[i].rgb)]   ];
+        [desc setAlphaBlendOperation:         TranslateBlendOp[underlyingType(color[i].alpha)] ];
 
-      // TODO: What about color mask ????
-      }
-   }
-
-   BlendStateMTL::~BlendStateMTL()
-   {
-   deallocateObjectiveC(blendInfo);
-   }
-   
-   BlendState* MetalDevice::createBlendState(const BlendStateInfo& state,
-                                             const uint32 attachments,
-                                             const BlendAttachmentInfo* color)
-   {
-   // We don't support Logic Operations for now
-   // for(uint32 i=0; i<attachments; ++i)
-   //    assert( !(color[0].logicOperation && color[i].blending) );
-   
-   return new BlendStateMTL(state, attachments, color);
-   }
-   
-   }
+        // TODO: What about color mask ????
+    }
 }
+
+BlendStateMTL::~BlendStateMTL()
+{
+    deallocateObjectiveC(blendInfo);
+}
+   
+BlendState* MetalDevice::createBlendState(const BlendStateInfo& state,
+                                          const uint32 attachments,
+                                          const BlendAttachmentInfo* color)
+{
+    // We don't support Logic Operations for now
+    // for(uint32 i=0; i<attachments; ++i)
+    //    assert( !(color[0].logicOperation && color[i].blending) );
+   
+    return new BlendStateMTL(state, attachments, color);
+}
+   
+} // en::gpu
+} // en
 #endif

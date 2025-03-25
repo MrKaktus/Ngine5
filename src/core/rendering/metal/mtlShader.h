@@ -25,19 +25,21 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class ShaderMTL : public Shader
-      {
-      public:
-      // TODO: In future separate library objects for reuse and batching of functions
-      id <MTLLibrary> library;
+namespace gpu
+{
 
-      ShaderMTL(id <MTLLibrary> library);
-      virtual ~ShaderMTL();
-      };
-   }
-}
+class ShaderMTL : public Shader
+{
+    public:
+    // TODO: In future separate library objects for reuse and batching of functions
+    id <MTLLibrary> library;
+
+    ShaderMTL(id <MTLLibrary> library);
+    virtual ~ShaderMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

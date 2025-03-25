@@ -20,17 +20,19 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class winDisplay : public CommonDisplay
-      {
-      public:
-      uint32    index;              // Index of this display on Windows displays list
-      bool      resolutionChanged;  // Flag if app changed display resolution (allows restoration of original resolution on exit)
-      
-      winDisplay();
-     ~winDisplay();
-      };
-   }
-}
+namespace gpu
+{
+
+class winDisplay : public CommonDisplay
+{
+    public:
+    uint32    index;              // Index of this display on Windows displays list
+    bool      resolutionChanged;  // Flag if app changed display resolution (allows restoration of original resolution on exit)
+   
+    winDisplay();
+   ~winDisplay();
+};
+
+} // en::gpu
+} // en
 #endif

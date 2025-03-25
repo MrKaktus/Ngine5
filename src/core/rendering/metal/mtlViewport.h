@@ -25,22 +25,24 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class ViewportStateMTL : public ViewportState
-      {
-      public:
-      MTLViewport viewport;
-      MTLScissorRect scissor;
+namespace gpu
+{
 
-      ViewportStateMTL();
-      ViewportStateMTL(const uint32 count,
-                       const ViewportStateInfo* viewports,
-                       const ScissorStateInfo* scissors);
-      virtual ~ViewportStateMTL();
-      };
-   }
-}
+class ViewportStateMTL : public ViewportState
+{
+    public:
+    MTLViewport viewport;
+    MTLScissorRect scissor;
+    
+    ViewportStateMTL();
+    ViewportStateMTL(const uint32 count,
+                     const ViewportStateInfo* viewports,
+                     const ScissorStateInfo* scissors);
+    virtual ~ViewportStateMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

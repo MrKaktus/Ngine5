@@ -22,27 +22,30 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   #define MaxSamples 32u
-   
-   MultisamplingStateMTL::MultisamplingStateMTL(const uint32 _samples,
-                                                const bool enableAlphaToCoverage,
-                                                const bool enableAlphaToOne) :
-      samples(min(static_cast<uint32>(nextPowerOfTwo(_samples)), static_cast<uint32>(MaxSamples))),  // TODO: Query MaxSamples from current Device in Run-Time
-      alphaToCoverage(enableAlphaToCoverage),
-      alphaToOne(enableAlphaToOne)
-   {
-   }
-   
-   MultisamplingState* MetalDevice::createMultisamplingState(const uint32 samples,
-                                                             const bool enableAlphaToCoverage,
-                                                             const bool enableAlphaToOne)
-   {
-   return new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne);
-   }
-   
-   }
+namespace gpu
+{
+
+#define MaxSamples 32u
+
+MultisamplingStateMTL::MultisamplingStateMTL(
+        const uint32 _samples,
+        const bool enableAlphaToCoverage,
+        const bool enableAlphaToOne) :
+    samples(min(static_cast<uint32>(nextPowerOfTwo(_samples)), static_cast<uint32>(MaxSamples))),  // TODO: Query MaxSamples from current Device in Run-Time
+    alphaToCoverage(enableAlphaToCoverage),
+    alphaToOne(enableAlphaToOne)
+{
 }
+
+MultisamplingState* MetalDevice::createMultisamplingState(
+    const uint32 samples,
+    const bool enableAlphaToCoverage,
+    const bool enableAlphaToOne)
+{
+    return new MultisamplingStateMTL(samples, enableAlphaToCoverage, enableAlphaToOne);
+}
+   
+} // en::gpu
+} // en
 
 #endif

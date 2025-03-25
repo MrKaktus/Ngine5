@@ -33,11 +33,13 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   extern std::shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolution);
-   }
-}
+namespace gpu
+{
+
+extern std::shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolution);
+
+} // en::gpu
+} // en
 #endif
 
 #endif

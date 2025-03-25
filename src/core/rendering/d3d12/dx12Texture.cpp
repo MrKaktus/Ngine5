@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 const DXGI_FORMAT TranslateTextureFormat[underlyingType(Format::Count)] = 
 {   // Sized Internal Format                     
     DXGI_FORMAT_UNKNOWN                 ,   // Format::Unsupported

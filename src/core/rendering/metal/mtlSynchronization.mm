@@ -25,65 +25,66 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   std::shared_ptr<Semaphore> MetalDevice::createSemaphore(void)
-   {
-   // TODO: Analyze how Metal synchronizes Command Buffers execution and Swap-Chain
-   return std::shared_ptr<Semaphore>(nullptr);
-   }
+namespace gpu
+{
 
-   void CommandBufferMTL::barrier(const Buffer& buffer,
-                                  const BufferAccess initAccess)
-   {
-   // Direct3D12 and Vulkan requires explicit transition barriers
-   // specified by the application. Metal handles internal storage
-   // management automaticly, thus this is a no-op.
-   }
-
-   void CommandBufferMTL::barrier(const Buffer& buffer,
-                                  const uint64 offset,
-                                  const uint64 size,
-                                  const BufferAccess currentAccess,
-                                  const BufferAccess newAccess)
-   {
-   // Direct3D12 and Vulkan requires explicit transition barriers
-   // specified by the application. Metal handles internal storage
-   // management automaticly, thus this is a no-op.
-   }
-
-   void CommandBufferMTL::barrier(const Texture& texture,
-                                  const TextureAccess initAccess)
-   {
-   // Direct3D12 and Vulkan requires explicit transition barriers
-   // specified by the application. Metal handles internal storage
-   // management automaticly, thus this is a no-op.
-   }
-      
-   void CommandBufferMTL::barrier(const Texture& texture,
-                                  const TextureAccess currentAccess,
-                                  const TextureAccess newAccess)
-   {
-   // Direct3D12 and Vulkan requires explicit transition barriers
-   // specified by the application. Metal handles internal storage
-   // management automaticly, thus this is a no-op.
-
-   // TODO: Check textureBarrier call.
-   }
-
-   void CommandBufferMTL::barrier(const Texture& texture,
-                                  const uint32v2 mipmaps,
-                                  const uint32v2 layers,
-                                  const TextureAccess currentAccess,
-                                  const TextureAccess newAccess)
-   {
-   // Direct3D12 and Vulkan requires explicit transition barriers
-   // specified by the application. Metal handles internal storage
-   // management automaticly, thus this is a no-op.
-
-   // TODO: Check textureBarrier call.
-   }
-
-   }
+std::shared_ptr<Semaphore> MetalDevice::createSemaphore(void)
+{
+    // TODO: Analyze how Metal synchronizes Command Buffers execution and Swap-Chain
+    return std::shared_ptr<Semaphore>(nullptr);
 }
+
+void CommandBufferMTL::barrier(const Buffer& buffer,
+                               const BufferAccess initAccess)
+{
+    // Direct3D12 and Vulkan requires explicit transition barriers
+    // specified by the application. Metal handles internal storage
+    // management automaticly, thus this is a no-op.
+}
+
+void CommandBufferMTL::barrier(const Buffer& buffer,
+                               const uint64 offset,
+                               const uint64 size,
+                               const BufferAccess currentAccess,
+                               const BufferAccess newAccess)
+{
+    // Direct3D12 and Vulkan requires explicit transition barriers
+    // specified by the application. Metal handles internal storage
+    // management automaticly, thus this is a no-op.
+}
+
+void CommandBufferMTL::barrier(const Texture& texture,
+                               const TextureAccess initAccess)
+{
+    // Direct3D12 and Vulkan requires explicit transition barriers
+    // specified by the application. Metal handles internal storage
+    // management automaticly, thus this is a no-op.
+}
+      
+void CommandBufferMTL::barrier(const Texture& texture,
+                               const TextureAccess currentAccess,
+                               const TextureAccess newAccess)
+{
+    // Direct3D12 and Vulkan requires explicit transition barriers
+    // specified by the application. Metal handles internal storage
+    // management automaticly, thus this is a no-op.
+
+    // TODO: Check textureBarrier call.
+}
+
+void CommandBufferMTL::barrier(const Texture& texture,
+                               const uint32v2 mipmaps,
+                               const uint32v2 layers,
+                               const TextureAccess currentAccess,
+                               const TextureAccess newAccess)
+{
+    // Direct3D12 and Vulkan requires explicit transition barriers
+    // specified by the application. Metal handles internal storage
+    // management automaticly, thus this is a no-op.
+
+    // TODO: Check textureBarrier call.
+}
+
+} // en::gpu
+} // en
 #endif

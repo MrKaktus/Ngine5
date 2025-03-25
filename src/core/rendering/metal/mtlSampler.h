@@ -25,20 +25,22 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class MetalDevice;
-   
-   class SamplerMTL : public Sampler
-      {
-      public:
-      id <MTLSamplerState> handle; // Metal handle
-   
-      SamplerMTL(const MetalDevice* gpu, const SamplerState& state);
-      virtual ~SamplerMTL();
-      };
-   }
+namespace gpu
+{
+
+class MetalDevice;
+
+class SamplerMTL : public Sampler
+{
+    public:
+    id <MTLSamplerState> handle; // Metal handle
+
+    SamplerMTL(const MetalDevice* gpu, const SamplerState& state);
+    virtual ~SamplerMTL();
 }
+
+} // en::gpu
+} // en
 #endif
 
 #endif

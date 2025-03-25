@@ -26,26 +26,28 @@
 
 namespace en
 {
-   namespace gpu
-   {
-   class InputLayoutMTL : public InputLayout
-      {
-      public:
-      MTLVertexDescriptor* desc;
-      DrawableType primitive;
+namespace gpu
+{
 
-      InputLayoutMTL(const DrawableType primitiveType,
-                     const bool primitiveRestart,
-                     const uint32 controlPoints,
-                     const uint32 usedAttributes,
-                     const uint32 usedBuffers,
-                     const AttributeDesc* attributes,
-                     const BufferDesc* buffers);
+class InputLayoutMTL : public InputLayout
+{
+    public:
+    MTLVertexDescriptor* desc;
+    DrawableType primitive;
 
-      virtual ~InputLayoutMTL();
-      };
-   }
-}
+    InputLayoutMTL(const DrawableType primitiveType,
+                   const bool primitiveRestart,
+                   const uint32 controlPoints,
+                   const uint32 usedAttributes,
+                   const uint32 usedBuffers,
+                   const AttributeDesc* attributes,
+                   const BufferDesc* buffers);
+
+    virtual ~InputLayoutMTL();
+};
+
+} // en::gpu
+} // en
 #endif
 
 #endif

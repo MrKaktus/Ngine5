@@ -25,6 +25,7 @@ namespace en
 {
 namespace gpu
 {
+
 // Optimisation: This table is not needed. Frontend type can be directly cast to Metal type.
 static const MTLSamplerMinMagFilter TranslateSamplerFilter[underlyingType(SamplerFilter::Count)] =
 {

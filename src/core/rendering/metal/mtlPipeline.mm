@@ -36,6 +36,7 @@ namespace en
 {
 namespace gpu
 {
+
 // Topology of primitives to draw
 const MTLPrimitiveTopologyClass TranslateDrawableTopology[DrawableTypesCount]
 {
