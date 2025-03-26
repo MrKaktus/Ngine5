@@ -705,7 +705,7 @@ void CommandBufferVK::waitUntilCompleted(void)
     uint64 gpuWatchDog = 1000000000; // TODO: This should be configurable global
    
     Validate( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
-    if (gpu->lastResult[currentThreadId()] == VK_TIMEOUT)
+    if (gpu->lastResult[currentThreadId()] == VK_TIMEOUT)  // TODO: This assumes this method is called from Worker Thread and not IO thread!
     {
         Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << std::endl;   // TODO: File / line doesn't make sense as it will always point this method!
     }
