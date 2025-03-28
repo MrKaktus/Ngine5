@@ -286,7 +286,7 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
         // TODO: Separate init from uploadResource, move to make Resident
 
         // Transition all surfaces in texture
-        command->barrier(*desc->gpuTexture, TextureAccess::CopyDestination | TextureAccess::Read);
+        command->barrier(*desc->gpuTexture, TextureAccess::CopyDestination);
     }
 
     uint32v2 mipResolution   = desc->state.mipResolution(transfer.surface.mipmap);
@@ -343,6 +343,13 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
                           *desc->gpuTexture,
                           transfer.surface.mipmap,
                           transfer.surface.layer);
+
+            // Transition selected surface to readable state
+            command->barrier(*desc->gpuTexture,
+                             uint32v2(transfer.surface.mipmap, 1),
+                             uint32v2(transfer.surface.layer, 1),
+                             TextureAccess::CopyDestination, 
+                             TextureAccess::Read);
         }
         else // Transfer sub-region of surface
         {
@@ -377,6 +384,13 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
                 texelOrigin,
                 texelRegion,
                 transfer.surface.plane);
+
+            // Transition selected surface to readable state
+            command->barrier(*desc->gpuTexture,
+                uint32v2(transfer.surface.mipmap, 1),
+                uint32v2(transfer.surface.layer, 1),
+                TextureAccess::CopyDestination,
+                TextureAccess::Read);
         }
     }
     else
@@ -761,6 +775,28 @@ void uploadResource(Streamer* streamer, const TransferResource transfer)
     // Metal: Is there perf impact from encoding each blit in separate blit encoder?
     //
 }
+
+struct taskStreamerUploadResourcesState
+{
+    Streamer& streamer;
+    const TransferResource transfer;
+
+    taskStreamerUploadResourcesState(Streamer& streamer, const TransferResource transfer);
+};
+
+taskStreamerUploadResourcesState::taskStreamerUploadResourcesState(Streamer& _streamer, const TransferResource _transfer) :
+    streamer(_streamer),
+    transfer(_transfer)
+{
+}
+
+void taskStreamerUploadResources(void* data)
+{
+    taskStreamerUploadResourcesState& state = *(taskStreamerUploadResourcesState*)(data);
+
+    uploadResource(&state.streamer, state.transfer);
+}
+
  
 // textureID - unique ID of texture resource
 // surfaceID - unique ID of surface to transfer, can be also stored as:
@@ -1173,7 +1209,15 @@ void* threadAsyncStreaming(Thread* thread)
         {
             if (transfer.direction == underlyingType(TransferDirection::DeviceUpload))
             {
-                uploadResource(streamer, transfer);
+                taskStreamerUploadResourcesState state(*streamer, transfer);
+
+                TaskState taskState;
+
+                // Process requested transfer on Thread Pool
+                Scheduler->run(taskStreamerUploadResources, (void*)&state, &taskState);
+
+                // TODO: IO thread cannot wait on Task!
+                //Scheduler->wait(&taskState);
             }
 
             // TODO: Parallel download
@@ -1301,7 +1345,7 @@ Streamer::Streamer(std::shared_ptr<GpuDevice> _gpu, const StreamerSettings* sett
     if (downloadAllocationSize)
     {
         // Create staging Heap, that can be accessed through linear Buffer.
-        Heap* heap = gpu->createHeap(MemoryUsage::Download, downloadAllocationSize);
+        std::unique_ptr<Heap> heap(gpu->createHeap(MemoryUsage::Download, downloadAllocationSize));
         assert( heap );
 
         std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Transfer, downloadAllocationSize));
@@ -1316,9 +1360,10 @@ Streamer::Streamer(std::shared_ptr<GpuDevice> _gpu, const StreamerSettings* sett
         // CPU-GPU synchronization point. 
         // Streamer shouldn't be constructed on the fly, but at application start.
         command->waitUntilCompleted();
+        command = nullptr;
    
         // Buffer is always mapped, so that several resources can be downloaded at the same time.
-        downloadHeap.swap(std::unique_ptr<Heap>(heap));
+        downloadHeap.swap(heap);
         downloadBuffer.swap(buffer);
         downloadAdress = downloadBuffer->map();
     }
@@ -1401,8 +1446,10 @@ bool Streamer::initSystemHeap(BufferCache& systemCache)
     command->barrier(*buffer, BufferAccess::TransferSource);
     command->commit();
     command->waitUntilCompleted();  // TODO: Command completion may be delayed by whole frame!!!!!
-   
+    command = nullptr;
+
     systemCache.next       = nullptr;  
+    systemCache.heap.swap(heap);
     systemCache.buffer.swap(buffer); 
     systemCache.allocator  = new BasicAllocator(systemAllocationSize);
     systemCache.sysAddress = systemCache.buffer->map(); // Buffer is always mapped, so that several resources can be uploaded at the same time.
@@ -1424,8 +1471,10 @@ bool Streamer::initBufferHeap(BufferCache& bufferCache)
     command->barrier(*buffer, BufferAccess::TransferDestination | BufferAccess::Read);
     command->commit();
     command->waitUntilCompleted();  // TODO: Command completion may be delayed by whole frame!!!!!
-   
+    command = nullptr;
+
     bufferCache.next       = nullptr;  
+    bufferCache.heap.swap(heap);
     bufferCache.buffer.swap(buffer); 
     bufferCache.allocator  = new BasicAllocator(residentAllocationSize);
     bufferCache.sysAddress = nullptr; // Not used by resident buffers

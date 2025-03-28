@@ -308,20 +308,21 @@ namespace en
    
    
    
-   struct ResourceCache
-      {
-      ResourceCache* next;       // Pointer to next Heap descriptor
-      };
-   
+struct ResourceCache
+{
+    ResourceCache* next;       // Pointer to next Heap descriptor
+};
+
 struct BufferCache : public ResourceCache // Buffer & Texture
 {
-    std::unique_ptr<gpu::Buffer> buffer; // Linear buffer covering whole heap (it keeps reference to parent Heap, so Heap pointer doesn't need to be stored)
+    std::unique_ptr<gpu::Heap>   heap;   // Backing Heap object
+    std::unique_ptr<gpu::Buffer> buffer; // Linear buffer covering whole heap 
     Allocator*     allocator;         // Algorithm used for sub-allocations in heap
     volatile void* sysAddress;        // Adress of system memory mapped, linear buffer
                                       // that spans across whole heap address range.
 };
    
-   static_assert(sizeof(BufferCache) == 32, "BufferChache size mismatch!");
+   static_assert(sizeof(BufferCache) == 40, "BufferChache size mismatch!");
    
    struct TextureCache : public ResourceCache
       {

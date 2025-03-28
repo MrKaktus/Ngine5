@@ -34,9 +34,10 @@ namespace gpu
 //////////////////////////////////////////////////////////////////////////
 
 
-void TranslateBufferAccess(BufferAccess usage, BufferType type, VkAccessFlags& access)
+void TranslateBufferAccess(BufferAccess usage, BufferType type, VkAccessFlags& access, VkPipelineStageFlags& stage)
 {
     access = static_cast<VkAccessFlags>(0u);
+    stage  = static_cast<VkPipelineStageFlags>(0u);
 
     bool canBeWritten = false;
 
@@ -47,37 +48,153 @@ void TranslateBufferAccess(BufferAccess usage, BufferType type, VkAccessFlags& a
         // Allows buffer to be read as Vertex Buffer during Draw
         if (type == BufferType::Vertex)
         {
+            // Vulkan 1.0:
             setBitmask(access, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+            setBitmask(stage,  VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+
+            // Vulkan 1.3:
+            // setBitmask(access, VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT);
+            // setBitmask(stage, VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT);
+
+            // VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT is compatible with:
+            // - VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT which is equivalent to the logical OR of:
+            //   - VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT
+            //   - VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT
+            //     So means both Index and Vertex buffers, both inputs to Vertex Stage.
+            // - VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT
+            //   Means only Vertex Buffer.
         }
         else
         // Allows buffer to be read as Index Buffer during Indexed Draw
         if (type == BufferType::Index)
         {
+            // Vulkan 1.0:
             setBitmask(access, VK_ACCESS_INDEX_READ_BIT);
+            setBitmask(stage,  VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+
+            // Vulkan 1.3:
+            // setBitmask(access, VK_ACCESS_2_INDEX_READ_BIT);
+            // setBitmask(stage, VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT);
         }
         else
         // Allows buffer to be read as Uniform Buffer
         if (type == BufferType::Uniform)
         {
+            // There is missing context here, on which shader stage
+            // this uniform buffer will be used in draw calls issued
+            // after this transition. This would require knowledge 
+            // of followup PSO used. Specifying all shader stages
+            // is disallowed by Vulkan. For e.g. if Tesselation or
+            // Geometry stages are disabled they cannot be specified
+            // in barrier. Solution is to specify 
+            // VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
+
+            // Vulkan 1.0:
             setBitmask(access, VK_ACCESS_UNIFORM_READ_BIT);
+            setBitmask(stage, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+
+            // Vulkan 1.3:
+            // setBitmask(access, VK_ACCESS_2_UNIFORM_READ_BIT);
+            // setBitmask(stage,  VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT);
+            // 
+            // VK_ACCESS_2_UNIFORM_READ_BIT is compatible with:
+            // - VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT,
+            // - VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR, 
+            // - VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT, 
+            // - VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT, 
+            // - VK_PIPELINE_STAGE_2_SUBPASS_SHADER_BIT_HUAWEI, 
+            // - VK_PIPELINE_STAGE_2_CLUSTER_CULLING_SHADER_BIT_HUAWEI
         }
         else
         // Allows buffer to be used as Indirect Command Buffer during Draw and Dispatch Indirect commands
         if (type == BufferType::Indirect)
         {
+            // Vulkan 1.0:
             setBitmask(access, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+            setBitmask(stage,  VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
+
+            // Vulkan 1.3:
+            // setBitmask(access, VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
+            // setBitmask(stage,  VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT);
+            // 
+            // VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT is compatible (both src and dst) with:
+            // - VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT, 
+            // - VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR, 
+            // - VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, or 
+            // - VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
         }
         else
         // Allows general Buffer read access by Shaders (Storage)
+        if (type == BufferType::Storage)
         {
+            // There is missing context here, on which shader stage
+            // this storage buffer will be used in draw calls issued
+            // after this transition. This would require knowledge 
+            // of followup PSO used. Specifying all shader stages
+            // is disallowed by Vulkan. For e.g. if Tesselation or
+            // Geometry stages are disabled they cannot be specified
+            // in barrier. It is also unknown if it will be read or
+            // written to by the shader.
+            //
+            // TODO: solve Read vs Write, solve stage
+            //
+            // Vulkan 1.0:
             setBitmask(access, VK_ACCESS_SHADER_READ_BIT);
+            setBitmask(stage,  VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+                               VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+                               VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+                               VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+            // Vulkan 1.3:
+            // setBitmask(access, VK_ACCESS_2_SHADER_STORAGE_READ_BIT);
+            // setBitmask(stage,  );
+            // 
+            // VK_ACCESS_2_SHADER_STORAGE_READ_BIT &
+            // VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT are compatible with:
+            //
+            // - VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT, 
+            // - VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR, 
+            // - VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT, 
+            // - VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT, 
+            // - VK_PIPELINE_STAGE_2_SUBPASS_SHADER_BIT_HUAWEI, 
+            // - VK_PIPELINE_STAGE_2_CLUSTER_CULLING_SHADER_BIT_HUAWEI
+        }
+        else
+        {
+            assert(type == BufferType::Transfer);
+
+            // Transfer buffers can be created only on Upload and Download Heaps living in system memory.
+            // Access mask will be determined below based on this buffer access type.
         }
     }
 
     // Allows Writing to Buffers (by Compute Shaders)
     if (checkBitmask(usageMask, underlyingType(BufferAccess::Write)))
     {
+        // There is missing context here, on which shader stage
+        // this storage buffer will be used. For now assumes it
+        // is universal and used by all.
+
         setBitmask(access, VK_ACCESS_SHADER_WRITE_BIT);
+        setBitmask(stage,  VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+                           VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+                           VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+                           VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
         canBeWritten = true;
     }
 
@@ -104,7 +221,7 @@ void TranslateBufferAccess(BufferAccess usage, BufferType type, VkAccessFlags& a
     }
 }
 
-void TranslateTextureAccess(TextureAccess usage, Format format, VkAccessFlags& access, VkImageLayout& layout, VkPipelineStageFlagBits& stage)
+void TranslateTextureAccess(TextureAccess usage, Format format, VkAccessFlags& access, VkImageLayout& layout, VkPipelineStageFlags& stage)
 {
     access = static_cast<VkAccessFlags>(0u);
     layout = static_cast<VkImageLayout>(0u);
@@ -302,12 +419,13 @@ void CommandBufferVK::barrier(const Buffer& _buffer,
 
     // Determine buffer initial access
     VkAccessFlags vNewAccess;
-    TranslateBufferAccess(initAccess, buffer.apiType, vNewAccess);
+    VkPipelineStageFlags vMatchingStage;
+    TranslateBufferAccess(initAccess, buffer.apiType, vNewAccess, vMatchingStage);
 
     VkBufferMemoryBarrier barrier;
     barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
     barrier.pNext               = nullptr;
-    barrier.srcAccessMask       = 0;
+    barrier.srcAccessMask       = 0;                        // There is no source access mask because its initial transition after buffer was created.
     barrier.dstAccessMask       = vNewAccess;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // No transition of ownership between Queue Families is allowed.
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;  // TODO: Fix this for Transfer Queue Families !!
@@ -316,8 +434,8 @@ void CommandBufferVK::barrier(const Buffer& _buffer,
     barrier.size                = buffer.size;
 
     ValidateNoRet( gpu, vkCmdPipelineBarrier(handle,
-                                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,    
+                                            VK_PIPELINE_STAGE_HOST_BIT,          // Once CPU finishes writing to this buffer, determine which GPU stage can read from it.
+                                            vMatchingStage,
                                             0u,            // 0 or VK_DEPENDENCY_BY_REGION_BIT ??? 
                                             0u, nullptr,   // Memory barriers
                                             1u, &barrier,  // Buffer memory barriers
@@ -334,11 +452,13 @@ void CommandBufferVK::barrier(const Buffer& _buffer,
 
     // Determine current buffer access bitmask
     VkAccessFlags vOldAccess;
-    TranslateBufferAccess(currentAccess, buffer.apiType, vOldAccess);
+    VkPipelineStageFlags vOldMatchingStage;
+    TranslateBufferAccess(currentAccess, buffer.apiType, vOldAccess, vOldMatchingStage);
 
     // Determine buffer new access
     VkAccessFlags vNewAccess;
-    TranslateBufferAccess(newAccess, buffer.apiType, vNewAccess);
+    VkPipelineStageFlags vNewMatchingStage;
+    TranslateBufferAccess(newAccess, buffer.apiType, vNewAccess, vNewMatchingStage);
 
     barrier(_buffer,
             offset, 
@@ -358,7 +478,7 @@ void CommandBufferVK::barrier(const Texture& _texture,
     // Determine texture inital access and layout
     VkAccessFlags vNewAccess;
     VkImageLayout vNewLayout;
-    VkPipelineStageFlagBits vNewStage;
+    VkPipelineStageFlags vNewStage;
     TranslateTextureAccess(initAccess, texture.state.format, vNewAccess, vNewLayout, vNewStage);
 
     barrier(_texture, 
@@ -396,13 +516,13 @@ void CommandBufferVK::barrier(const Texture& _texture,
     // Determine current texture access, layout and stage after which resource transition is allowed
     VkAccessFlags vOldAccess;
     VkImageLayout vOldLayout;
-    VkPipelineStageFlagBits vOldStage;
+    VkPipelineStageFlags vOldStage;
     TranslateTextureAccess(currentAccess, texture.state.format, vOldAccess, vOldLayout, vOldStage);
 
     // Determine texture new access, layout and stage before which resource transition is allowed
     VkAccessFlags vNewAccess;
     VkImageLayout vNewLayout;
-    VkPipelineStageFlagBits vNewStage;
+    VkPipelineStageFlags vNewStage;
     TranslateTextureAccess(newAccess, texture.state.format, vNewAccess, vNewLayout, vNewStage);
 
     barrier(_texture,
