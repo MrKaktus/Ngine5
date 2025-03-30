@@ -24,6 +24,7 @@
 #include "core/rendering/common/heap.h"
 #include "core/rendering/common/device.h"
 #include "core/utilities/basicAllocator.h"
+#include "core/parallel/mutex.h"
 
 namespace en
 {
@@ -78,7 +79,7 @@ class HeapVK : public CommonHeap
 };
 
 // CompileTimeSizeReporting( HeapVK );
-static_assert(sizeof(HeapVK) == 192, "en::gpu::CommonHeap size mismatch!"); // 144 + padding
+static_assert(sizeof(HeapVK) == 72, "en::gpu::CommonHeap size mismatch!"); // 144 + padding
 
 } // en::gpu
 } // en

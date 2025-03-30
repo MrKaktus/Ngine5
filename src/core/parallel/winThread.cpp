@@ -14,7 +14,6 @@
 
 #include <assert.h>
 
-#include "threading/mutex.h"   // TODO: Should be moved to core/parallel/
 #include "utilities/strings.h"
 
 namespace en

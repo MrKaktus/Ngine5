@@ -25,7 +25,6 @@
 #include "core/rendering/common/texture.h"
 #include "core/rendering/common/device.h"
 #include "core/rendering/metal/mtlHeap.h"
-#include "threading/mutex.h"
 
 namespace en
 {

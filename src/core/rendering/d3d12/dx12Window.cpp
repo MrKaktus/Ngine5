@@ -174,7 +174,7 @@ WindowD3D12::~WindowD3D12()
 
     delete [] swapChainTexture;
 
-    swapChain4->Release();
+    // Inherited interface of the same Swap-Chain object, thus its not released.
     swapChain4 = nullptr;
    
     swapChain->Release();

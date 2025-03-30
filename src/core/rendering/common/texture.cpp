@@ -16,6 +16,7 @@
 #include "core/rendering/common/device.h"
 #include "core/rendering/common/texture.h"
 #include <string.h> // memcmp
+#include <assert.h>
 
 namespace en
 {

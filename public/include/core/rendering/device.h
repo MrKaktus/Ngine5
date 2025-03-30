@@ -119,6 +119,10 @@ enum class QueueType : uint32
     Compute           , ///< Only Compute workloads
     Transfer          , ///< Only Transfer operations
     SparseTransfer    , ///< Only Transfer and Sparse Resource operations
+    Protected         , ///< Protected (Vulkan 1.1)
+    VideoEncode       , ///< GPU accelerated Video Encoding
+    VideoDecode       , ///< GPU accelerated Video Decoding
+    OpticalFlow       , ///< NVidia Optical Flow
     Count
 };
       

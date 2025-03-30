@@ -15,6 +15,8 @@
 
 #include "core/rendering/common/window.h"
 
+#include <assert.h>
+
 namespace en
 {
 namespace gpu

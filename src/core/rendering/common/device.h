@@ -23,10 +23,10 @@
 #include "core/rendering/common/display.h"
 #include "utilities/Nversion.h"
 #include "platform/system.h"
-#include "threading/mutex.h"
 
 // TODO: Move it to Thread Pool Scheduler
 #define MaxSupportedWorkerThreads  64
+#define MaxCommandQueuesPerType    32
 #define MaxCommandBuffersExecuting 32
 #define MaxCommandBuffersAllocated 32
 #define AllocatorCacheSize         2

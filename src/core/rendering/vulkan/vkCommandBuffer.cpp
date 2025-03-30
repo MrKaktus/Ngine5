@@ -33,12 +33,14 @@ CommandBufferVK::CommandBufferVK(
         VulkanDevice* _gpu, 
         const VkQueue _queue, 
         const QueueType type, 
+        const uint32 _queueIndex,
         const uint32 _parentWorker,
         const VkCommandBuffer _handle, 
         const VkFence _fence) :
     gpu(_gpu),
     queue(_queue),
     queueType(type),
+    queueIndex(_queueIndex),
     handle(_handle),
     semaphore(nullptr),
     fence(_fence),
@@ -374,7 +376,7 @@ void CommandBufferVK::copy(
     VkBufferImageCopy regionInfo;
     regionInfo.bufferOffset      = srcOffset;
     regionInfo.bufferRowLength   = srcRowPitch / TextureCompressionInfo[underlyingType(destination.format())].blockSize;
-    regionInfo.bufferImageHeight = 0u;
+    regionInfo.bufferImageHeight = 0u; // Specified in texels too. 0 means tightly packed.
     regionInfo.imageSubresource  = layersInfo;
     regionInfo.imageOffset       = { 0u, 0u, 0u };
     regionInfo.imageExtent       = { destination.width(mipmap), destination.height(mipmap), 1 };
@@ -664,7 +666,9 @@ void CommandBufferVK::commit(Semaphore* signalSemaphore)
     // Submit single batch of work to the queue.
     // Each batch can consist of multiple command buffers.
     // Internal fence will be signaled when this work is done.
+    gpu->lockQueue[underlyingType(queueType)][queueIndex].lock();
     Validate( gpu, vkQueueSubmit(queue, 1, &submitInfo, fence) ) 
+    gpu->lockQueue[underlyingType(queueType)][queueIndex].unlock();
 
     // Try to clear any CommandBuffers that are no longer executing.
     gpu->clearCommandBuffersQueue();
@@ -742,7 +746,7 @@ std::shared_ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType
 {
     assert( queuesCount[underlyingType(type)] > parentQueue );
    
-    // CommandBuffers can be recycled / reused (in Metal Buffers and Encoders are single time use)
+    // CommandBuffers can be recycled / reused (in Metal, Command Buffers and Encoders are single time use)
     // Multiple command buffers can be created simultaneously for one queue
     // CommandBuffers are executed in order in queue
 
@@ -772,14 +776,14 @@ std::shared_ptr<CommandBuffer> VulkanDevice::createCommandBuffer(const QueueType
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.pNext = nullptr;
     fenceInfo.flags = 0; // VK_FENCE_CREATE_SIGNALED_BIT if want to create it in signaled state from start
-   
+
     Validate( this, vkCreateFence(device, &fenceInfo, nullptr, &fence) )
 
     // Acquire queue handle (queues are created at device creation time)
     VkQueue queue;
     ValidateNoRet( this, vkGetDeviceQueue(device, queueTypeToFamily[underlyingType(type)], parentQueue, &queue) )
 
-    return std::make_shared<CommandBufferVK>(this, queue, type, workerId, handle, fence);
+    return std::make_shared<CommandBufferVK>(this, queue, type, parentQueue, workerId, handle, fence);
 }
 
 void VulkanDevice::addCommandBufferToQueue(std::shared_ptr<CommandBuffer> command)

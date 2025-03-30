@@ -30,8 +30,7 @@ namespace gpu
 
 class MetalDevice;
 
-// Aligned to cacheline due to use of Mutex
-class cachealign WindowMTL : public CommonWindow
+class WindowMTL : public CommonWindow
 {
     public:
     NSWindow*     window;

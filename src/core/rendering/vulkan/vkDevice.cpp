@@ -468,7 +468,27 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
     for(uint32_t family=0; family<queueFamiliesCount; ++family)
     {
         uint32 flags = queueFamily[family].queueFlags;
-      
+
+// Vulkan 1.1
+#ifndef VK_QUEUE_PROTECTED_BIT
+#define VK_QUEUE_PROTECTED_BIT 0x00000010
+#endif
+
+// Provided by VK_KHR_video_decode_queue
+#ifndef VK_QUEUE_VIDEO_DECODE_BIT_KHR
+#define VK_QUEUE_VIDEO_DECODE_BIT_KHR 0x00000020
+#endif
+
+// Provided by VK_KHR_video_encode_queue
+#ifndef VK_QUEUE_VIDEO_ENCODE_BIT_KHR
+#define VK_QUEUE_VIDEO_ENCODE_BIT_KHR 0x00000040
+#endif
+
+// Provided by VK_NV_optical_flow
+#ifndef VK_QUEUE_OPTICAL_FLOW_BIT_NV
+#define VK_QUEUE_OPTICAL_FLOW_BIT_NV 0x00000100
+#endif
+
         // For now, we assume that there will be always only one Queue Family matching one Queue Type.
         // If that's not true in the future, then below, each range of Queues in given Family, will need
         // to be mapped to range of Queues in given Type. If such situation will occur, assertions below
@@ -508,18 +528,42 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
             queueTypeToFamily[underlyingType(QueueType::SparseTransfer)] = family;
         }
         else
-        if (flags == (VK_QUEUE_TRANSFER_BIT))
+        if (flags == VK_QUEUE_TRANSFER_BIT)
         {
             assert( queuesCount[underlyingType(QueueType::Transfer)] == 0 );
             queuesCount[underlyingType(QueueType::Transfer)] = queueFamily[family].queueCount;
             queueTypeToFamily[underlyingType(QueueType::Transfer)] = family;
         }
         else
+        if (flags == (VK_QUEUE_VIDEO_ENCODE_BIT_KHR | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
         {
+            assert(queuesCount[underlyingType(QueueType::VideoEncode)] == 0);
+            queuesCount[underlyingType(QueueType::VideoEncode)] = queueFamily[family].queueCount;
+            queueTypeToFamily[underlyingType(QueueType::VideoEncode)] = family;
+        }
+        else
+        if (flags == (VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
+        {
+            assert(queuesCount[underlyingType(QueueType::VideoDecode)] == 0);
+            queuesCount[underlyingType(QueueType::VideoDecode)] = queueFamily[family].queueCount;
+            queueTypeToFamily[underlyingType(QueueType::VideoDecode)] = family;
+        }
+        else
+        if (flags == (VK_QUEUE_OPTICAL_FLOW_BIT_NV | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT))
+        {
+            assert(queuesCount[underlyingType(QueueType::OpticalFlow)] == 0);
+            queuesCount[underlyingType(QueueType::OpticalFlow)] = queueFamily[family].queueCount;
+            queueTypeToFamily[underlyingType(QueueType::OpticalFlow)] = family;
+        }
+        else
+        {
+            // TODO: VK_QUEUE_PROTECTED_BIT
+// 
             // It's another combination of Queue Family flags that we don't support.
             // This shouldn't happen but if it will we will report it without asserting.
          
             Log << "Unsupported type of Queue Family\n";
+            Log << "    Flags:" << flags << std::endl;
             Log << "    Queues in Family: " << queueFamily[family].queueCount << std::endl;
             Log << "    Queue Min Transfer Width : " << queueFamily[family].minImageTransferGranularity.width << std::endl;
             Log << "    Queue Min Transfer Height: " << queueFamily[family].minImageTransferGranularity.height << std::endl;
@@ -539,6 +583,18 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
             if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
             {
                 Log << "    Queue supports: SPARSE_BINDING\n";
+            }
+            if (queueFamily[family].queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+            {
+                Log << "    Queue supports: VIDEO_ENCODE\n";
+            }
+            if (queueFamily[family].queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+            {
+                Log << "    Queue supports: VIDEO_DECODE\n";
+            }
+            if (queueFamily[family].queueFlags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
+            {
+                Log << "    Queue supports: OPTICAL_FLOW\n";
             }
             Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << std::endl << std::endl;
         }
@@ -569,6 +625,18 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
         if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
         {
             Log << "    Family supports: SPARSE_BINDING\n";
+        }
+        if (queueFamily[family].queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+        {
+            Log << "    Family supports: VIDEO_ENCODE\n";
+        }
+        if (queueFamily[family].queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+        {
+            Log << "    Family supports: VIDEO_DECODE\n";
+        }
+        if (queueFamily[family].queueFlags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
+        {
+            Log << "    Family supports: OPTICAL_FLOW\n";
         }
         Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << std::endl << std::endl;
     }
@@ -969,16 +1037,7 @@ void VulkanDevice::loadDeviceFunctionPointers(void)
 
     // Vulkan 1.0 
     //
-    LoadDeviceFunction( vkDestroyInstance )
-    LoadDeviceFunction( vkGetPhysicalDeviceFeatures )
-    LoadDeviceFunction( vkGetPhysicalDeviceFormatProperties )
-    LoadDeviceFunction( vkGetPhysicalDeviceProperties )
-    LoadDeviceFunction( vkGetPhysicalDeviceQueueFamilyProperties )
-    LoadDeviceFunction( vkGetPhysicalDeviceMemoryProperties )
-    LoadDeviceFunction( vkCreateDevice )
     LoadDeviceFunction( vkDestroyDevice )
-    LoadDeviceFunction( vkEnumerateDeviceExtensionProperties )
-    LoadDeviceFunction( vkEnumerateDeviceLayerProperties )
     LoadDeviceFunction( vkGetDeviceQueue )
     LoadDeviceFunction( vkQueueSubmit )
     LoadDeviceFunction( vkQueueWaitIdle )
@@ -995,7 +1054,6 @@ void VulkanDevice::loadDeviceFunctionPointers(void)
     LoadDeviceFunction( vkGetBufferMemoryRequirements )
     LoadDeviceFunction( vkGetImageMemoryRequirements )
     LoadDeviceFunction( vkGetImageSparseMemoryRequirements )
-    LoadDeviceFunction( vkGetPhysicalDeviceSparseImageFormatProperties )
     LoadDeviceFunction( vkQueueBindSparse )
     LoadDeviceFunction( vkCreateFence )
     LoadDeviceFunction( vkDestroyFence )
@@ -1140,19 +1198,10 @@ void VulkanDevice::clearDeviceFunctionPointers(void)
     // Vulkan 1.0
     //
     vkCreateInstance                               = nullptr;
-    vkDestroyInstance                              = nullptr;
     vkEnumeratePhysicalDevices                     = nullptr;
-    vkGetPhysicalDeviceFeatures                    = nullptr;
-    vkGetPhysicalDeviceFormatProperties            = nullptr;
-    vkGetPhysicalDeviceProperties                  = nullptr;
-    vkGetPhysicalDeviceQueueFamilyProperties       = nullptr;
-    vkGetPhysicalDeviceMemoryProperties            = nullptr;
-    vkCreateDevice                                 = nullptr;
     vkDestroyDevice                                = nullptr;
     vkEnumerateInstanceExtensionProperties         = nullptr;
-    vkEnumerateDeviceExtensionProperties           = nullptr;
     vkEnumerateInstanceLayerProperties             = nullptr;
-    vkEnumerateDeviceLayerProperties               = nullptr;
     vkGetDeviceQueue                               = nullptr;
     vkQueueSubmit                                  = nullptr;
     vkQueueWaitIdle                                = nullptr;
@@ -1169,7 +1218,6 @@ void VulkanDevice::clearDeviceFunctionPointers(void)
     vkGetBufferMemoryRequirements                  = nullptr;
     vkGetImageMemoryRequirements                   = nullptr;
     vkGetImageSparseMemoryRequirements             = nullptr;
-    vkGetPhysicalDeviceSparseImageFormatProperties = nullptr;
     vkQueueBindSparse                              = nullptr;
     vkCreateFence                                  = nullptr;
     vkDestroyFence                                 = nullptr;
@@ -1934,7 +1982,9 @@ void VulkanAPI::loadInterfaceFunctionPointers(void)
     LoadInstanceFunction( vkGetPhysicalDeviceFormatProperties )
     LoadInstanceFunction( vkGetPhysicalDeviceImageFormatProperties )
     LoadInstanceFunction( vkGetPhysicalDeviceQueueFamilyProperties )
+    LoadInstanceFunction( vkGetPhysicalDeviceSparseImageFormatProperties )
     LoadInstanceFunction( vkEnumerateDeviceExtensionProperties )
+    LoadInstanceFunction( vkEnumerateDeviceLayerProperties )
     LoadInstanceFunction( vkCreateDevice )
     LoadInstanceFunction( vkGetDeviceProcAddr )
     LoadInstanceFunction( vkDestroyInstance )
@@ -1976,7 +2026,9 @@ void VulkanAPI::clearInterfaceFunctionPointers(void)
     vkGetPhysicalDeviceFormatProperties            = nullptr;
     vkGetPhysicalDeviceImageFormatProperties       = nullptr;
     vkGetPhysicalDeviceQueueFamilyProperties       = nullptr;
+    vkGetPhysicalDeviceSparseImageFormatProperties = nullptr;
     vkEnumerateDeviceExtensionProperties           = nullptr;
+    vkEnumerateDeviceLayerProperties               = nullptr;
     vkCreateDevice                                 = nullptr;
     vkGetDeviceProcAddr                            = nullptr;
     vkDestroyInstance                              = nullptr;

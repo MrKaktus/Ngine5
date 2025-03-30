@@ -14,8 +14,6 @@
 
 #include "assert.h"
 
-#include "threading/mutex.h"   // TODO: Should be moved to core/parallel/
-
 #include <cpuid.h>
 
 #if defined(EN_PLATFORM_LINUX)
@@ -114,7 +112,9 @@ psxThread::psxThread(ThreadFunction function, void* threadState) :
     ret = pthread_create(&handle, (const pthread_attr_t*)&attr, (ThreadFunctionInternal)function, (void*)this);
     assert( ret == 0 );
     if (!ret)
+    {
         valid = true;
+    }
 
     // Query this thread system ID.
     uint64 thisThreadSystemId = 0;
@@ -171,8 +171,12 @@ uint64 psxThread::coresExecutionMask(void)
     assert( psxResult == 0 );
 
     for(uint32 i=0; i<min(64, CPU_SETSIZE); ++i)
+    {
         if (CPU_ISSET(i, &coreSet))
+        {
             setBit(result, i);
+        }
+    }
       
 #elif defined(EN_PLATFORM_OSX)
     // sched_getaffinity() and pthread_setaffinity_np() are not supported on macOS
@@ -188,7 +192,9 @@ uint64 psxThread::coresExecutionMask(void)
     // there is no way to specify thread core execution mask (specifying thread
     // affinity is only a hint).
     for(uint32 i=0; i<physicalCores; ++i)
+    {
         setBit(result, i);
+    }
    
 #else
     // Should never reach this place
@@ -205,8 +211,12 @@ void psxThread::executeOn(const uint64 coresMask)
     cpu_set_t coreSet;
     CPU_ZERO(&coreSet);
     for(uint32 i=0; i<64; ++i)
+    {
         if (checkBit(coresMask, i))
+        {
             CPU_SET(i, &coreSet);
+        }
+    }
 
     int ret = pthread_setaffinity_np(handle, sizeof(cpu_set_t), &coreSet);
     assert( ret == 0 );
@@ -236,12 +246,12 @@ void psxThread::sleep(void)
     // Only target thread can put itself to sleep
     assert( handle == pthread_self() );
 
-    int ret = pthread_cond_init(&cond, nullptr);
-    assert( ret == 0 );
+    int result = pthread_cond_init(&cond, nullptr);
+    assert(result == 0);
    
     // Sleep by waiting for signal
-    ret = pthread_cond_wait(&cond, &mutex);
-    assert( ret == 0 );
+    result = pthread_cond_wait(&cond, &mutex);
+    assert(result == 0);
    
     // Alternative implementation:
     //pause();

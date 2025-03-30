@@ -9,7 +9,7 @@
 */
 
 #include "core/defines.h"
-#include "threading/mutex.h"   // TODO: Should be moved to core/parallel/
+#include "core/parallel/mutex.h"
 
 #if defined(EN_PLATFORM_OSX)
 #include "core/parallel/psxThread.h"
@@ -17,6 +17,8 @@
 #if defined(EN_PLATFORM_WINDOWS)
 #include "core/parallel/winThread.h"
 #endif
+
+#include <assert.h>
 
 constexpr uint32 MaxThreads      = 256;
 
@@ -31,6 +33,7 @@ static uint64 registeredThread[MaxThreads];    // Thread global to local ID tran
 
 namespace parallel
 {
+
 // Initialize thread global ID to local ID translation table. This also means
 // that this code is executing on main thread, and thus we can query it's
 // global ID and init table with it.
@@ -74,8 +77,12 @@ uint32 currentThreadId(void)
     uint32 threads = threadsSpawned.load(std::memory_order_acquire);
    
     for(uint32 index=0; index<threads; ++index)
+    {
         if (registeredThread[index] == threadId)
+        {
             return index;
+        }
+    }
 
     // Code execution should never reach this place
     assert( 0 );
@@ -102,10 +109,14 @@ uint32 runningThreads(void)
     // Check how many threads are still running
     uint32 running = 0;
     for(uint32 i=0; i<threads; ++i)
+    {
         if (registeredThread[i] != InvalidThreadID)
+        {
             running++;
+        }
+    }
 
     return running;
 }
 
-}
+} // en

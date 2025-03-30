@@ -56,7 +56,7 @@ namespace en
 
 
    TaskState::TaskState() :
-      SharedAtomic()
+       SharedAtomic()
    {
    }
    
@@ -440,12 +440,11 @@ void TaskScheduler::runOnMainThread(TaskFunction function,
                                     TaskState* state,
                                     bool immediately)
 {
-    // Allocator is not thread safe
-    Mutex lock;
-    lock.lock();
+    // PoolAllocator is not thread safe
+    lockAllocator.lock();
     Task* task = mainThreadTasks.allocate();
     assert( task );
-    lock.unlock();
+    lockAllocator.unlock();
     
     // Init task state
     task->function   = function;

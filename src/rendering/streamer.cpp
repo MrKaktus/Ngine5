@@ -12,6 +12,7 @@
 #include "rendering/streamer.h"
 #include "core/utilities/basicAllocator.h" // TODO: This should be moved out of core as is platform independent
 #include "utilities/timer.h"
+#include "parallel/scheduler.h"
 
 // Size of single allocation in system memory in MB
 // May be bigger than resident allocation size, as it's not voulnurable to
@@ -286,7 +287,7 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
         // TODO: Separate init from uploadResource, move to make Resident
 
         // Transition all surfaces in texture
-        command->barrier(*desc->gpuTexture, TextureAccess::CopyDestination);
+        command->barrier(*desc->gpuTexture, TextureAccess::TransferDestination);
     }
 
     uint32v2 mipResolution   = desc->state.mipResolution(transfer.surface.mipmap);
@@ -348,7 +349,7 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
             command->barrier(*desc->gpuTexture,
                              uint32v2(transfer.surface.mipmap, 1),
                              uint32v2(transfer.surface.layer, 1),
-                             TextureAccess::CopyDestination, 
+                             TextureAccess::TransferDestination, 
                              TextureAccess::Read);
         }
         else // Transfer sub-region of surface
@@ -374,23 +375,22 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
             texelRegion.height = roundUp(texelRegion.height, blockResolution.height);
 
             // Transfer region of given surface
-            command->copyRegion2D(
-                *sysCache->buffer,
-                descInternal->sysOffset + surfaceOffset + offset,
-                srcRowPitch,
-                *desc->gpuTexture,
-                transfer.surface.mipmap,
-                transfer.surface.layer,
-                texelOrigin,
-                texelRegion,
-                transfer.surface.plane);
+            command->copyRegion2D(*sysCache->buffer,
+                                  descInternal->sysOffset + surfaceOffset + offset,
+                                  srcRowPitch,
+                                  *desc->gpuTexture,
+                                  transfer.surface.mipmap,
+                                  transfer.surface.layer,
+                                  texelOrigin,
+                                  texelRegion,
+                                  transfer.surface.plane);
 
             // Transition selected surface to readable state
             command->barrier(*desc->gpuTexture,
-                uint32v2(transfer.surface.mipmap, 1),
-                uint32v2(transfer.surface.layer, 1),
-                TextureAccess::CopyDestination,
-                TextureAccess::Read);
+                             uint32v2(transfer.surface.mipmap, 1),
+                             uint32v2(transfer.surface.layer, 1),
+                             TextureAccess::TransferDestination,
+                             TextureAccess::Read);
         }
     }
     else
@@ -429,18 +429,24 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
                 uint32v2 texelRegion(tileResolution.x, tileResolution.y);
                 
                 // Copy one tile at a time
-                command->copyRegion2D(
-                    *sysCache->buffer,
-                    descInternal->sysOffset + surfaceOffset + tileOffset,
-                    srcRowPitch,
-                    *desc->gpuTexture,
-                    transfer.surface.mipmap,
-                    transfer.surface.layer,
-                    texelOrigin,
-                    texelRegion,
-                    transfer.surface.plane);
+                command->copyRegion2D(*sysCache->buffer,
+                                      descInternal->sysOffset + surfaceOffset + tileOffset,
+                                      srcRowPitch,
+                                      *desc->gpuTexture,
+                                      transfer.surface.mipmap,
+                                      transfer.surface.layer,
+                                      texelOrigin,
+                                      texelRegion,
+                                      transfer.surface.plane);
             }
         }
+
+        // Transition selected surface to readable state
+        command->barrier(*desc->gpuTexture,
+                         uint32v2(transfer.surface.mipmap, 1),
+                         uint32v2(transfer.surface.layer, 1),
+                         TextureAccess::TransferDestination,
+                         TextureAccess::Read);
     }
     else
     {

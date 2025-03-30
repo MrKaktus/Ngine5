@@ -33,8 +33,7 @@ namespace gpu
 class Direct3D12Device;
 class Texture;
 
-// Aligned to cacheline due to use of Mutex
-class cachealign WindowD3D12 : public winWindow
+class WindowD3D12 : public winWindow
 {
     public:
     Direct3D12Device* gpu;

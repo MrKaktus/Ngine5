@@ -21,6 +21,7 @@
 #if defined(EN_MODULE_RENDERER_VULKAN) 
 
 #include <string>
+#include "core/parallel/mutex.h"
 #include "core/parallel/thread.h"
 #include "core/rendering/sampler.h"
 #include "core/rendering/common/device.h"
@@ -67,6 +68,7 @@ class VulkanDevice : public CommonDevice
     uint32*                          queueFamilyIndices;
     uint32                           queuesCount[underlyingType(QueueType::Count)];
     uint32                           queueTypeToFamily[underlyingType(QueueType::Count)];
+    Mutex                            lockQueue[underlyingType(QueueType::Count)][MaxCommandQueuesPerType];
     volatile VkCommandPool           commandPool[MaxSupportedWorkerThreads][underlyingType(QueueType::Count)];
     VkExtensionProperties*           globalExtension;
     uint32                           globalExtensionsCount;
@@ -290,7 +292,9 @@ class VulkanAPI : public CommonGraphicAPI
     DeclareFunction( vkGetPhysicalDeviceFormatProperties )
     DeclareFunction( vkGetPhysicalDeviceImageFormatProperties )
     DeclareFunction( vkGetPhysicalDeviceQueueFamilyProperties )
+    DeclareFunction( vkGetPhysicalDeviceSparseImageFormatProperties )
     DeclareFunction( vkEnumerateDeviceExtensionProperties )
+    DeclareFunction( vkEnumerateDeviceLayerProperties )
     DeclareFunction( vkCreateDevice )
     DeclareFunction( vkGetDeviceProcAddr )
     DeclareFunction( vkDestroyInstance )

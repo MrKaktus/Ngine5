@@ -15,15 +15,12 @@
 
 #include "core/parallel/thread.h"
 #include "core/parallel/fiber.h"
+#include "core/parallel/mutex.h" // temp for MPSC. Also used by TaskScheduler
 
 #include "core/utilities/poolAllocator.h"
 #include "core/memory/alignedAllocator.h"
 #include "memory/circularQueue.h"
 #include "memory/workStealingDeque.h"
-
-
-// temp for MPSC
-#include "threading/mutex.h"
 
 namespace en
 {
@@ -51,7 +48,7 @@ class MPSCDeque
 };
 
 // CompileTimeSizeReporting( MPSCDeque<void*> );
-static_assert(sizeof(MPSCDeque<void*>) == 128, "en::MPSCDeque<void*> size mismatch!");
+static_assert(sizeof(MPSCDeque<void*>) == 56, "en::MPSCDeque<void*> size mismatch!");
 
 template<typename T>
 MPSCDeque<T>::MPSCDeque(const uint32 capacity,                     // In entries
@@ -156,10 +153,13 @@ struct Worker
 };
 
 // CompileTimeSizeReporting( Worker );
-static_assert(sizeof(Worker) == 384, "en::Worker size mismatch!");  // 336 padded to 384
+static_assert(sizeof(Worker) == 192, "en::Worker size mismatch!");  // 336 padded to 384
 
 class TaskScheduler : public parallel::Interface
 {
+    private:
+    Mutex lockAllocator;                 // PoolAllocator of ain thread tasks is not thread-safe
+
     public:
     uint32 workerThreads;                // Count of threads in Thread-Pool
     uint32 firstWorkerId;                // Id of first worker thread in a pool

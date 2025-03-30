@@ -522,26 +522,39 @@ Texture* WindowVK::surface(const Semaphore* signalSemaphore)
             //
             const SemaphoreVK* signal = reinterpret_cast<const SemaphoreVK*>(signalSemaphore);
 
+            VkFence surfaceReadyFence = VK_NULL_HANDLE;
+            if (verticalSync)
+            {
+                // Reset fence for reuse
+                Validate(gpu, vkResetFences(gpu->device, 1u, &presentationFence))
+
+                surfaceReadyFence = presentationFence;
+            }
+
             // Acquire one of the Swap-Chain surfaces for rendering
             Validate( gpu, vkAcquireNextImageKHR(gpu->device, 
                                                  swapChain,
                                                  UINT64_MAX,     // wait time in nanoseconds
                                                  signal->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
-                                                 VK_NULL_HANDLE, // presentationFence, <- Don't actively wait for now.
+                                                 surfaceReadyFence,
                                                  &swapChainCurrentImageIndex) )
          
             // Ensure that engine is recreating Swap-Chain on window resize
             assert( gpu->lastResult[thread] != VK_ERROR_OUT_OF_DATE_KHR );
 
-            //// Active wait for presentation engine to finish reading from Swap-Chain surface to display panel
-            //gpu->lastResult[thread] = VK_NOT_READY;
-            //while(gpu->lastResult[thread] != VK_SUCCESS)
-            //{
-            //    Validate( gpu, vkGetFenceStatus(gpu->device, presentationFence) )
-            //}
+            if (verticalSync)
+            {
+                // Wait maximum 1 second, then assume GPU hang.
+                uint64 gpuWatchDog = 1000000000u; // TODO: This should be configurable global
 
-            //// Reset fence for reuse
-            //Validate( gpu, vkResetFences(gpu->device, 1u, &presentationFence) )
+                // Waits for presentation engine to finish reading from Swap-Chain surface to display panel
+                gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &surfaceReadyFence, VK_TRUE, gpuWatchDog);
+                if (en::gpu::IsError(gpu->lastResult[thread]))
+                {
+                    assert(0);
+                }
+
+            }
 
             needNewSurface = false;
         }

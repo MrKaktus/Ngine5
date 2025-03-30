@@ -31,6 +31,7 @@
 #include "core/rendering/d3d12/dx12Viewport.h"
 #include "core/rendering/d3d12/dx12DepthStencil.h"
 
+#include "core/parallel/mutex.h"
 #include "core/parallel/thread.h" // For Validate
 
 namespace en

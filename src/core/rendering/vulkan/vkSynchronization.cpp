@@ -263,6 +263,7 @@ void TranslateTextureAccess(TextureAccess usage, Format format, VkAccessFlags& a
         {
             layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
         }
+        stage = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
     }
 
     // Allows Writing to Textures (by Compute Shaders)

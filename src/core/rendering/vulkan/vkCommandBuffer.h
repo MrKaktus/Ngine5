@@ -38,6 +38,7 @@ class CommandBufferVK : public CommandBuffer
     VulkanDevice*    gpu;       // Vulkan Device (for Device function calls)
     VkQueue          queue;
     QueueType        queueType;
+    uint32           queueIndex;
     VkCommandBuffer  handle;
     const SemaphoreVK* semaphore; // Execution order synchronization    
     VkFence          fence;     // Completion notification
@@ -56,6 +57,7 @@ class CommandBufferVK : public CommandBuffer
         VulkanDevice*         gpu,
         const VkQueue         queue,
         const QueueType       queueType,
+        const uint32          queueIndex,
         const uint32          parentWorker,
         const VkCommandBuffer handle,
         const VkFence         fence);

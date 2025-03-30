@@ -18,15 +18,14 @@
 
 #include "core/rendering/window.h"
 #include "core/rendering/common/display.h"
-#include "threading/mutex.h"
+#include "core/parallel/mutex.h"
 
 namespace en
 {
 namespace gpu
 {
 
-/// Aligned to cache line due to use of Mutex
-class cachealign CommonWindow : public Window
+class CommonWindow : public Window
 {
     public:
     Mutex    surfaceAcquire;   ///< Window instance mutex.
