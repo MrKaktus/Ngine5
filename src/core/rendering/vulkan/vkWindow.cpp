@@ -538,7 +538,7 @@ Texture* WindowVK::surface(const Semaphore* surfaceAvailableSemaphore)
                                                  vSurfaceAvailableSemaphore->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
                                                  surfaceReadyFence,
                                                  &swapChainCurrentImageIndex) )
-
+ 
             if (gpu->lastResult[thread] == VK_ERROR_OUT_OF_DATE_KHR)
             {
                 // Ensure that engine is recreating Swap-Chain on window resize

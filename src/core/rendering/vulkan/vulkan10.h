@@ -148,6 +148,7 @@
 
     // Windowing System Interface - KHRONOS extension
     
+    // VK_KHR_display - Interface extension
     // VK_KHR_surface - Interface extension
     
     // VK_KHR_swapchain 
@@ -156,15 +157,6 @@
     DeclareFunction( vkGetSwapchainImagesKHR )
     DeclareFunction( vkAcquireNextImageKHR )
     DeclareFunction( vkQueuePresentKHR )
-    
-    // VK_KHR_display
-    DeclareFunction( vkGetPhysicalDeviceDisplayPropertiesKHR )
-    DeclareFunction( vkGetPhysicalDeviceDisplayPlanePropertiesKHR )
-    DeclareFunction( vkGetDisplayPlaneSupportedDisplaysKHR )
-    DeclareFunction( vkGetDisplayModePropertiesKHR )
-    DeclareFunction( vkCreateDisplayModeKHR )
-    DeclareFunction( vkGetDisplayPlaneCapabilitiesKHR )
-    DeclareFunction( vkCreateDisplayPlaneSurfaceKHR )
     
     // VK_KHR_display_swapchain
     DeclareFunction( vkCreateSharedSwapchainsKHR )

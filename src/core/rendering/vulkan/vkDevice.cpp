@@ -1167,15 +1167,6 @@ void VulkanDevice::loadDeviceFunctionPointers(void)
     LoadDeviceFunction( vkAcquireNextImageKHR )
     LoadDeviceFunction( vkQueuePresentKHR )
 
-    // VK_KHR_display
-    LoadDeviceFunction( vkGetPhysicalDeviceDisplayPropertiesKHR )
-    LoadDeviceFunction( vkGetPhysicalDeviceDisplayPlanePropertiesKHR )
-    LoadDeviceFunction( vkGetDisplayPlaneSupportedDisplaysKHR )
-    LoadDeviceFunction( vkGetDisplayModePropertiesKHR )
-    LoadDeviceFunction( vkCreateDisplayModeKHR )
-    LoadDeviceFunction( vkGetDisplayPlaneCapabilitiesKHR )
-    LoadDeviceFunction( vkCreateDisplayPlaneSurfaceKHR )
-      
     // VK_KHR_display_swapchain
     LoadDeviceFunction( vkCreateSharedSwapchainsKHR )
     
@@ -1988,7 +1979,16 @@ void VulkanAPI::loadInterfaceFunctionPointers(void)
     LoadInstanceFunction( vkCreateDevice )
     LoadInstanceFunction( vkGetDeviceProcAddr )
     LoadInstanceFunction( vkDestroyInstance )
-   
+
+    // VK_KHR_display
+    LoadInstanceFunction( vkGetPhysicalDeviceDisplayPropertiesKHR )
+    LoadInstanceFunction( vkGetPhysicalDeviceDisplayPlanePropertiesKHR )
+    LoadInstanceFunction( vkGetDisplayPlaneSupportedDisplaysKHR )
+    LoadInstanceFunction( vkGetDisplayModePropertiesKHR )
+    LoadInstanceFunction( vkCreateDisplayModeKHR )
+    LoadInstanceFunction( vkGetDisplayPlaneCapabilitiesKHR )
+    LoadInstanceFunction( vkCreateDisplayPlaneSurfaceKHR )
+
     // VK_KHR_surface
     LoadInstanceFunction( vkGetPhysicalDeviceSurfaceSupportKHR )
     LoadInstanceFunction( vkGetPhysicalDeviceSurfaceCapabilitiesKHR )
@@ -2032,6 +2032,13 @@ void VulkanAPI::clearInterfaceFunctionPointers(void)
     vkCreateDevice                                 = nullptr;
     vkGetDeviceProcAddr                            = nullptr;
     vkDestroyInstance                              = nullptr;
+    vkGetPhysicalDeviceDisplayPropertiesKHR        = nullptr;
+    vkGetPhysicalDeviceDisplayPlanePropertiesKHR   = nullptr;
+    vkGetDisplayPlaneSupportedDisplaysKHR          = nullptr;
+    vkGetDisplayModePropertiesKHR                  = nullptr;
+    vkCreateDisplayModeKHR                         = nullptr;
+    vkGetDisplayPlaneCapabilitiesKHR               = nullptr;
+    vkCreateDisplayPlaneSurfaceKHR                 = nullptr;
     vkGetPhysicalDeviceSurfaceSupportKHR           = nullptr;
 }
    

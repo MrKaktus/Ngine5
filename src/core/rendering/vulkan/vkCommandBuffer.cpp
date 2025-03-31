@@ -690,13 +690,13 @@ bool CommandBufferVK::isCompleted(void)
     Log << "[" << setw(2) << thread << "] ";
     Log << "Vulkan GPU " << setbase(16) << gpu << ": vkGetFenceStatus(gpu->device, &fence)\n";
     #endif
-    gpu->lastResult[thread] = gpu->vkGetFenceStatus(gpu->device, &fence);
+    gpu->lastResult[thread] = gpu->vkGetFenceStatus(gpu->device, fence);
     if (en::gpu::IsError(gpu->lastResult[thread]))
     {
         assert( 0 );
     }
 #else
-    gpu->lastResult[thread] = gpu->vkGetFenceStatus(gpu->device, &fence);
+    gpu->lastResult[thread] = gpu->vkGetFenceStatus(gpu->device, fence);
 #endif
     if (gpu->lastResult[thread] == VK_NOT_READY)
     {

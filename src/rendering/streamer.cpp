@@ -798,9 +798,11 @@ taskStreamerUploadResourcesState::taskStreamerUploadResourcesState(Streamer& _st
 
 void taskStreamerUploadResources(void* data)
 {
-    taskStreamerUploadResourcesState& state = *(taskStreamerUploadResourcesState*)(data);
+    taskStreamerUploadResourcesState* state = (taskStreamerUploadResourcesState*)(data);
 
-    uploadResource(&state.streamer, state.transfer);
+    uploadResource(&state->streamer, state->transfer);
+
+    delete state;
 }
 
  
@@ -1184,7 +1186,6 @@ void copyLinearToTiled(uint8* src, uint8* dst, const Format format, const uint32
    
 
    
-   
 // Thread performing asynchronous data transfers between CPU and GPU memories
 // (uploads from CPU RAM to GPU dedicated memory, as well as data downloads).
 void* threadAsyncStreaming(Thread* thread)
@@ -1215,12 +1216,13 @@ void* threadAsyncStreaming(Thread* thread)
         {
             if (transfer.direction == underlyingType(TransferDirection::DeviceUpload))
             {
-                taskStreamerUploadResourcesState state(*streamer, transfer);
-
+                // TODO: Currently this thread can spawn multiple tasks at once and they all will reference this taskState!
                 TaskState taskState;
 
                 // Process requested transfer on Thread Pool
-                Scheduler->run(taskStreamerUploadResources, (void*)&state, &taskState);
+                Scheduler->run(taskStreamerUploadResources, 
+                               (void*)new taskStreamerUploadResourcesState(*streamer, transfer), 
+                               &taskState);
 
                 // TODO: IO thread cannot wait on Task!
                 //Scheduler->wait(&taskState);
@@ -1356,18 +1358,7 @@ Streamer::Streamer(std::shared_ptr<GpuDevice> _gpu, const StreamerSettings* sett
 
         std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Transfer, downloadAllocationSize));
         assert( buffer );
-   
-        // Buffer will be always used as source of transfers from GPU VRAM
-        std::shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
-        command->start();
-        command->barrier(*buffer, BufferAccess::TransferDestination);
-        command->commit();
-      
-        // CPU-GPU synchronization point. 
-        // Streamer shouldn't be constructed on the fly, but at application start.
-        command->waitUntilCompleted();
-        command = nullptr;
-   
+
         // Buffer is always mapped, so that several resources can be downloaded at the same time.
         downloadHeap.swap(heap);
         downloadBuffer.swap(buffer);
@@ -1446,14 +1437,6 @@ bool Streamer::initSystemHeap(BufferCache& systemCache)
     std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Transfer, systemAllocationSize));
     assert( buffer );
    
-    // Buffer will be always used as source of transfers to GPU VRAM
-    std::shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
-    command->start();
-    command->barrier(*buffer, BufferAccess::TransferSource);
-    command->commit();
-    command->waitUntilCompleted();  // TODO: Command completion may be delayed by whole frame!!!!!
-    command = nullptr;
-
     systemCache.next       = nullptr;  
     systemCache.heap.swap(heap);
     systemCache.buffer.swap(buffer); 
@@ -1471,14 +1454,6 @@ bool Streamer::initBufferHeap(BufferCache& bufferCache)
     std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Vertex, residentAllocationSize));   // TODO: Buffer bitmask! Buffer for everything!
     assert( buffer );
    
-    // Buffer will be always used as source of transfers to GPU VRAM
-    std::shared_ptr<CommandBuffer> command = gpu->createCommandBuffer(queueForTransfers);
-    command->start();
-    command->barrier(*buffer, BufferAccess::TransferDestination | BufferAccess::Read);
-    command->commit();
-    command->waitUntilCompleted();  // TODO: Command completion may be delayed by whole frame!!!!!
-    command = nullptr;
-
     bufferCache.next       = nullptr;  
     bufferCache.heap.swap(heap);
     bufferCache.buffer.swap(buffer); 
@@ -1826,6 +1801,7 @@ void Streamer::deallocateMemory(BufferAllocation& desc)
     // Evict from dedicated memory if resident
     if (desc.resident)
     {
+        descInternal->locked = false;
         evictBuffer(desc, *descInternal);
     }
    
@@ -1924,6 +1900,14 @@ MipMemoryLayout* generateTextureMemoryLayout(const gpu::TextureState& state, con
             // layout for GPU uploads (tiled), and wasting memory on unneccessary padding
             // (for e.g. when storing very long and thin textures).
             mipLayout[i].layout = underlyingType(SurfaceLayout::Linear);
+/*
+            // TODO: This logic is invalid. It assumes any layout can be chosen purely on given surface resolution!
+            //       What about block-compressed textures vs regular linear ones?
+            //       Are block compressed ones also tiled2D or are those blocks still stored linearly in file/memory?
+            //       Isn't this whole texture memory layout generation focused on optimal memory storage after resource is loaded?
+            //       We need to proove that pre-tiling texture data and sending it as bunch of 2D blits is more performant than sending it as linear and letting driver tile it up.
+            //       This will make sense when all textures will be stored on disk as tiled, and streamed in tiles like sparse textures are (maybe that was the end goal, I don't remember).
+
             if (!hasSecondaryPlane && !isRenderTarget)
             {
                 if ((mipResolution.width  >= tileResolution.width ) &&
@@ -1932,7 +1916,8 @@ MipMemoryLayout* generateTextureMemoryLayout(const gpu::TextureState& state, con
                     mipLayout[i].layout = underlyingType(SurfaceLayout::Tiled2D);
                 }
             }
-         
+//*/
+
             // TODO: Determine for 3D textures, if want to use Tiled3D layout (needs to be supported by GPU / API).
          
             if (mipLayout[i].layout == underlyingType(SurfaceLayout::Linear))

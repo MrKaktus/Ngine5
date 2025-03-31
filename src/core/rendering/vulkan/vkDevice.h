@@ -299,6 +299,15 @@ class VulkanAPI : public CommonGraphicAPI
     DeclareFunction( vkGetDeviceProcAddr )
     DeclareFunction( vkDestroyInstance )
 
+    // VK_KHR_display
+    DeclareFunction( vkGetPhysicalDeviceDisplayPropertiesKHR )
+    DeclareFunction( vkGetPhysicalDeviceDisplayPlanePropertiesKHR )
+    DeclareFunction( vkGetDisplayPlaneSupportedDisplaysKHR )
+    DeclareFunction( vkGetDisplayModePropertiesKHR )
+    DeclareFunction( vkCreateDisplayModeKHR )
+    DeclareFunction( vkGetDisplayPlaneCapabilitiesKHR )
+    DeclareFunction( vkCreateDisplayPlaneSurfaceKHR )
+
     // VK_KHR_surface
     DeclareFunction( vkGetPhysicalDeviceSurfaceSupportKHR )
     DeclareFunction( vkGetPhysicalDeviceSurfaceCapabilitiesKHR )
