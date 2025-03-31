@@ -107,13 +107,13 @@ class Window
     /// by the application. Optionally it Will signal semaphore, 
     /// once Swap-Chain surface is presented, and can be reused.
     virtual Texture* surface(
-        const Semaphore* signalSemaphore = nullptr) = 0;
+        const Semaphore* surfaceAvailableSemaphore = nullptr) = 0;
        
     /// Will optionaly delay present until passed semaphore is
     /// not signaled. This can be used to synchronize end of
     /// GPU rendering work to Swap-Chain surface with presentation.
     virtual void present(
-        const Semaphore* waitForSemaphore = nullptr) = 0;
+        const Semaphore* surfaceRenderedSemaphore = nullptr) = 0;
     
     // TODO: Redo to explicitly state Queue for presentment:
     // Presenting is currently always performed from first queue of type

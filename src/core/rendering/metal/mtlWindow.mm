@@ -291,11 +291,10 @@ void WindowMTL::opaque(void)
     [window setOpaque:YES];
 }
    
-Texture* WindowMTL::surface(const Semaphore* signalSemaphore)
+Texture* WindowMTL::surface(const Semaphore* surfaceAvailableSemaphore)
 {
-    // signalSemaphore is ignored, as Metal API waits for presentation
-    // engine to finish reading from given surface before returning it
-    // in drawable.
+    // surfaceAvailableSemaphore is ignored, as Metal API waits for presentation
+    // engine to finish reading from given surface before returning it in drawable.
    
     if (needNewSurface)
     {
@@ -318,7 +317,7 @@ Texture* WindowMTL::surface(const Semaphore* signalSemaphore)
     return framebuffer;
 }
    
-void WindowMTL::present(const Semaphore* waitForSemaphore)
+void WindowMTL::present(const Semaphore* surfaceRenderedSemaphore)
 {
     // Does Metal ensure that CommandBuffers on Queue will be executed ?
    

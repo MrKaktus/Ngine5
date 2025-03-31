@@ -473,7 +473,7 @@ void WindowVK::resize(const uint32v2 size)
     assert( 0 );
 }
 
-Texture* WindowVK::surface(const Semaphore* signalSemaphore)
+Texture* WindowVK::surface(const Semaphore* surfaceAvailableSemaphore)
 {
     if (needNewSurface)
     {
@@ -520,7 +520,7 @@ Texture* WindowVK::surface(const Semaphore* signalSemaphore)
             //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,     // Transition after this stage
             //                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);    // Transition before this stage
             //
-            const SemaphoreVK* signal = reinterpret_cast<const SemaphoreVK*>(signalSemaphore);
+            const SemaphoreVK* vSurfaceAvailableSemaphore = reinterpret_cast<const SemaphoreVK*>(surfaceAvailableSemaphore);
 
             VkFence surfaceReadyFence = VK_NULL_HANDLE;
             if (verticalSync)
@@ -535,12 +535,23 @@ Texture* WindowVK::surface(const Semaphore* signalSemaphore)
             Validate( gpu, vkAcquireNextImageKHR(gpu->device, 
                                                  swapChain,
                                                  UINT64_MAX,     // wait time in nanoseconds
-                                                 signal->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
+                                                 vSurfaceAvailableSemaphore->handle, // semaphore to signal when presentation engine finishes reading from this surface, command buffer will wait on it
                                                  surfaceReadyFence,
                                                  &swapChainCurrentImageIndex) )
-         
-            // Ensure that engine is recreating Swap-Chain on window resize
-            assert( gpu->lastResult[thread] != VK_ERROR_OUT_OF_DATE_KHR );
+
+            if (gpu->lastResult[thread] == VK_ERROR_OUT_OF_DATE_KHR)
+            {
+                // Ensure that engine is recreating Swap-Chain on window resize
+                // Once its re-created, return back new resized surface.
+                // How this works with Main Thread window resize events? (timing wise?)
+                assert( 0 );
+            }
+            else
+            if (gpu->lastResult[thread] != VK_SUCCESS &&
+                gpu->lastResult[thread] != VK_SUBOPTIMAL_KHR)
+            {
+                // TODO: runtime error? "Failed to acquire swap chain image"
+            }
 
             if (verticalSync)
             {
@@ -553,7 +564,6 @@ Texture* WindowVK::surface(const Semaphore* signalSemaphore)
                 {
                     assert(0);
                 }
-
             }
 
             needNewSurface = false;
@@ -575,7 +585,7 @@ Texture* WindowVK::surface(const Semaphore* signalSemaphore)
 // VkPipelineStageFlags beforeStage; // Transition before this stage
 
 // Presents current surface, after all work encoded on given Commnad Buffer is done
-void WindowVK::present(const Semaphore* waitForSemaphore) // const std::shared_ptr<CommandBuffer> command ? <- pass command buffer in ??
+void WindowVK::present(const Semaphore* surfaceRenderedSemaphore) // const std::shared_ptr<CommandBuffer> command ? <- pass command buffer in ??
 {
     surfaceAcquire.lock();
     if (!needNewSurface)
@@ -621,12 +631,12 @@ void WindowVK::present(const Semaphore* waitForSemaphore) // const std::shared_p
         info.pImageIndices      = &swapChainCurrentImageIndex;
         info.pResults           = nullptr;         // Results per Swap-Chain. We present only one so general function call result is enough.
         
-        if (waitForSemaphore)
+        if (surfaceRenderedSemaphore)
         {
-            const SemaphoreVK* wait = reinterpret_cast<const SemaphoreVK*>(waitForSemaphore);
+            const SemaphoreVK* vSurfaceRenderedSemaphore = reinterpret_cast<const SemaphoreVK*>(surfaceRenderedSemaphore);
          
             info.waitSemaphoreCount = 1u;
-            info.pWaitSemaphores    = &wait->handle;
+            info.pWaitSemaphores    = &vSurfaceRenderedSemaphore->handle;
         }
 
         Validate( gpu, vkQueuePresentKHR(presentQueue, &info) )

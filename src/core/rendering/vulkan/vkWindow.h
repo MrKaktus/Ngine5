@@ -66,8 +66,8 @@ class WindowVK : public winWindow
              const std::string title);
     
     virtual void resize(const uint32v2 size);
-    virtual Texture* surface(const Semaphore* signalSemaphore = nullptr);
-    virtual void present(const Semaphore* waitForSemaphore = nullptr);
+    virtual Texture* surface(const Semaphore* surfaceAvailableSemaphore = nullptr);
+    virtual void present(const Semaphore* surfaceRenderedSemaphore = nullptr);
     
     void* operator new(size_t size)
     {

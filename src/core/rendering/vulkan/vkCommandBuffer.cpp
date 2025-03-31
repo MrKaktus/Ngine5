@@ -42,7 +42,7 @@ CommandBufferVK::CommandBufferVK(
     queueType(type),
     queueIndex(_queueIndex),
     handle(_handle),
-    semaphore(nullptr),
+    vWaitForSemaphore(nullptr),
     fence(_fence),
     parentWorker(_parentWorker),
     started(false),
@@ -122,7 +122,7 @@ void CommandBufferVK::start(const Semaphore* waitForSemaphore)
 
     if (waitForSemaphore)
     {
-        semaphore = reinterpret_cast<const SemaphoreVK*>(waitForSemaphore);
+        vWaitForSemaphore = reinterpret_cast<const SemaphoreVK*>(waitForSemaphore);
     }
 
     // In Metal API we need to create Render Command Encoder.
@@ -625,8 +625,8 @@ void CommandBufferVK::commit(Semaphore* signalSemaphore)
     submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.pNext                = nullptr;
     submitInfo.waitSemaphoreCount   = 0u;      
-    submitInfo.pWaitSemaphores      = nullptr;   // Which semaphores we wait for. One Semaphore for one Pipeline Stage of other queue executing CommandBuffer.
-    submitInfo.pWaitDstStageMask    = nullptr;   // Pipeline stages at which each corresponding semaphore wait will occur (until pointed stage is done).
+    submitInfo.pWaitSemaphores      = nullptr;   // Which semaphores we wait for.
+    submitInfo.pWaitDstStageMask    = nullptr;   // Pipeline stages at which each corresponding semaphore wait will occur (until matching semaphore is signaled).
     submitInfo.commandBufferCount   = 1u;
     submitInfo.pCommandBuffers      = &handle;
     submitInfo.signalSemaphoreCount = 0u;        // Amount of Semaphores we want to signal when this batch of job is done (more than one so we can unblock several queues at the same time).
@@ -647,10 +647,10 @@ void CommandBufferVK::commit(Semaphore* signalSemaphore)
 
     // Wait for completion of previous Command Buffer synced with starting semaphore.
     VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    if (semaphore)
+    if (vWaitForSemaphore)
     {
         submitInfo.waitSemaphoreCount = 1u;
-        submitInfo.pWaitSemaphores    = &semaphore->handle;
+        submitInfo.pWaitSemaphores    = &vWaitForSemaphore->handle;
         submitInfo.pWaitDstStageMask  = &waitFlags;
     }
 
@@ -688,19 +688,25 @@ bool CommandBufferVK::isCompleted(void)
 #ifdef EN_DEBUG
     #ifdef EN_PROFILER_TRACE_GRAPHICS_API
     Log << "[" << setw(2) << thread << "] ";
-    Log << "Vulkan GPU " << setbase(16) << gpu << ": vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u)\n";
-    gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
-    if (en::gpu::IsError(gpu->lastResult[thread]))
-        assert( 0 );
-    #else 
-    gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
-    if (en::gpu::IsError(gpu->lastResult[thread]))
-        assert( 0 );
+    Log << "Vulkan GPU " << setbase(16) << gpu << ": vkGetFenceStatus(gpu->device, &fence)\n";
     #endif
-#else 
-    gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, 0u);
+    gpu->lastResult[thread] = gpu->vkGetFenceStatus(gpu->device, &fence);
+    if (en::gpu::IsError(gpu->lastResult[thread]))
+    {
+        assert( 0 );
+    }
+#else
+    gpu->lastResult[thread] = gpu->vkGetFenceStatus(gpu->device, &fence);
 #endif
-    return gpu->lastResult[thread] == VK_SUCCESS ? true : false;
+    if (gpu->lastResult[thread] == VK_NOT_READY)
+    {
+        return false;
+    }
+
+    // VK_SUCCESS or VK_ERROR_DEVICE_LOST 
+    // State that Command Buffer was completed to hopefully let code 
+    // finalize more gracefully in case of VK_ERROR_DEVICE_LOST.
+    return true;
 }
     
 void CommandBufferVK::waitUntilCompleted(void)

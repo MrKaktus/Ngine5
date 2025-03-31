@@ -40,7 +40,7 @@ class CommandBufferVK : public CommandBuffer
     QueueType        queueType;
     uint32           queueIndex;
     VkCommandBuffer  handle;
-    const SemaphoreVK* semaphore; // Execution order synchronization    
+    const SemaphoreVK* vWaitForSemaphore; // Execution order synchronization    
     VkFence          fence;     // Completion notification
     uint32           parentWorker;
     bool             started;

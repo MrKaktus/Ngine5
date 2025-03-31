@@ -45,8 +45,8 @@ class WindowMTL : public CommonWindow
     virtual void active(void);
     virtual void transparent(const float opacity);
     virtual void opaque(void);
-    virtual Texture* surface(const Semaphore* signalSemaphore = nullptr);
-    virtual void present(const Semaphore* waitForSemaphore = nullptr);
+    virtual Texture* surface(const Semaphore* surfaceAvailableSemaphore = nullptr);
+    virtual void present(const Semaphore* surfaceRenderedSemaphore = nullptr);
     
     WindowMTL(const MetalDevice* gpu, const WindowSettings& settings, const std::string title); //id<MTLDevice> device
     virtual ~WindowMTL();
