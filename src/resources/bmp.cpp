@@ -25,6 +25,7 @@ namespace en
 {
 namespace bmp
 {
+
 // BMP file format is described here:
 // https://docs.microsoft.com/en-us/windows/desktop/gdi/bitmap-header-types
 // https://www.fileformat.info/format/bmp/egff.htm
@@ -223,20 +224,30 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     {
         DIBHeaderV2Win& DIBHeader = *reinterpret_cast<DIBHeaderV2Win*>(buffer + sizeof(Header));
 
-        // 1, 4, 8 bpp formats are not supported
         if (DIBHeader.bpp == 24)
         {
             settings.format = gpu::Format::BGR_8;
+        }
+        else
+        {
+            // 1, 4, 8 bpp formats are not supported
+            Log << "ERROR: Unsupported BMP bits per pixel:" << DIBHeader.bpp  << "!\n";
+            return false;
         }
     }
     if (headerSize >= sizeof(DIBHeaderV3))
     {
         DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(buffer + sizeof(Header));
 
-        // 16bpp formats are not supported
         if (DIBHeader.bpp == 32)
         {
             settings.format = gpu::Format::BGRA_8;
+        }
+        else
+        {
+            // 16bpp formats are not supported
+            Log << "ERROR: Unsupported BMP bits per pixel:" << DIBHeader.bpp << "!\n";
+            return false;
         }
     }
 

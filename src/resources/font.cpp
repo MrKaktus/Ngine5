@@ -194,7 +194,7 @@ namespace en
    std::shared_ptr<FontImp> font = std::make_shared<FontImp>();
    
    // Create parser to quickly process text from file
-   Nparser text(buffer, size);
+   Parser text(buffer, size);
 
 
 

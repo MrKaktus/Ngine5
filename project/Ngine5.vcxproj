@@ -31,8 +31,10 @@
     <ClCompile Include="..\src\core\memory\pageAllocator.cpp" />
     <ClCompile Include="..\src\core\parallel\parallel.cpp" />
     <ClCompile Include="..\src\core\parallel\psxFiber.cpp" />
+    <ClCompile Include="..\src\core\parallel\psxMutex.cpp" />
     <ClCompile Include="..\src\core\parallel\psxThread.cpp" />
     <ClCompile Include="..\src\core\parallel\winFiber.cpp" />
+    <ClCompile Include="..\src\core\parallel\winMutex.cpp" />
     <ClCompile Include="..\src\core\parallel\winThread.cpp" />
     <ClCompile Include="..\src\core\rendering\common\comBlend.cpp" />
     <ClCompile Include="..\src\core\rendering\common\depthStencil.cpp" />
@@ -180,6 +182,7 @@
     <ClInclude Include="..\public\include\core\memory\alignedAllocator.h" />
     <ClInclude Include="..\public\include\core\memory\alignment.h" />
     <ClInclude Include="..\public\include\core\memory\pageAllocator.h" />
+    <ClInclude Include="..\public\include\core\parallel\mutex.h" />
     <ClInclude Include="..\public\include\core\parallel\thread.h" />
     <ClInclude Include="..\public\include\core\rendering\blend.h" />
     <ClInclude Include="..\public\include\core\rendering\buffer.h" />
@@ -228,6 +231,7 @@
     <ClInclude Include="..\public\include\core\utilities\TintrusivePointer.h" />
     <ClInclude Include="..\public\include\core\utilities\Tproxy.h" />
     <ClInclude Include="..\public\include\core\utilities\Tsingleton.h" />
+    <ClInclude Include="..\public\include\core\xr\event.h" />
     <ClInclude Include="..\public\include\core\xr\frame.h" />
     <ClInclude Include="..\public\include\core\xr\frameState.h" />
     <ClInclude Include="..\public\include\core\xr\headset.h" />

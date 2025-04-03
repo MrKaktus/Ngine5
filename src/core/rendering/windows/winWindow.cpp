@@ -55,9 +55,17 @@ winWindow::winWindow(const std::shared_ptr<winDisplay> selectedDisplay,
     // First time, init shared helper resources
     if (windows == 0)
     {
+        // Indicate that application is aware of DPI scaling
+        // Currently engine does not support DPI scaling, and its assumed that
+        // all positions and resolutions provided by application are per-pixel
+        // in native resolution of given display.
+        //
+        // https://learn.microsoft.com/en-us/windows/win32/hidpi/high-dpi-desktop-application-development-on-windows
+        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
         // Get this application instance
         AppInstance          = (HINSTANCE)GetWindowLongPtr(GetConsoleWindow(), GWLP_HINSTANCE);  // GWL_HINSTANCE is deprecated in x64 environment
-        
+
         // Window settings
         WNDCLASS WindowClass;
         WindowClass.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Have its own Device Context and also cannot be resized. Oculus uses CLASSDC which is not thread safe!    

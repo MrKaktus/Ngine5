@@ -61,7 +61,7 @@ namespace en
    file = nullptr;
    
    // Create parser to quickly process text from file
-   Nparser text(buffer, size);
+   Parser text(buffer, size);
 
    // Try to add new material descriptor 
    // TODO: Refactor to new Model description

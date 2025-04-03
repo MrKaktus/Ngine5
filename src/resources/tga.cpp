@@ -22,6 +22,7 @@ namespace en
 {
 namespace tga
 {
+
 enum Format
 {
     Invalid             = 0,

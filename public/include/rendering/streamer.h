@@ -382,7 +382,7 @@ struct TextureAllocation
     uint64 size     : 63;         // Max supported size of single GPU allocation
     uint64 resident : 1;          // Set by Streamer when resource is resident in GPU dedicated memory
 };
- 
+
 // TODO: Above struct should be Resource Manager / Streamer interface.
 //       Correct way would be to hide it's properties behind inlined getters.
 //       MipLayout / Alignments should be exposed as well.

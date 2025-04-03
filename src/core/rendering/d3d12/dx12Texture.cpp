@@ -610,7 +610,7 @@ ImageMemoryAlignment Direct3D12Device::textureMemoryAlignment(
     result.samplesCountPower     = power;
     result.sampleAlignmentPower  = 0; // Tightly packed sample after sample
     result.texelAlignmentPower   = 0; // Tightly packed texel after texel (block after block)
-    
+
     // layout.Footprint.RowPitch is multiple of D3D12_TEXTURE_DATA_PITCH_ALIGNMENT (256)
     whichPowerOfTwo(static_cast<uint32>(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT), power);
     result.rowAlignmentPower     = power;

@@ -41,7 +41,7 @@ void ConvertWindowPositionToScreenPosition(HWND hWnd, LPARAM lParam, uint32& x, 
     // https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-clienttoscreen
     // " All coordinates are device coordinates. "
     //
-    // TODO: Do "device coordinates" refer to current display, or virtual deskto (whole working area)?
+    // TODO: Do "device coordinates" refer to current display, or virtual desktop (whole working area)?
     //       "device coordinates" are not "physical coordinates".
     //
     ClientToScreen(hWnd, &pt);
@@ -295,8 +295,16 @@ LRESULT CALLBACK WinEvents(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return DefWindowProc(hWnd, msg, wParam, lParam);
     }
 
+    case WM_DPICHANGED:
+    {
+        // TODO: Handle case when user changed display scaling (DPI) while application window is present,
+        //       or application window gets dragged to display with different DPI.
+        
+    }
+
     case WM_DESTROY:
     {
+        // TODO: Is this on Window destroy? If so, it should post QUIT only when thats application last window! (and application didn't opt-in to running in windowless mode).
         PostQuitMessage(WM_QUIT);
         break;
     }

@@ -1822,7 +1822,15 @@ VulkanAPI::VulkanAPI(std::string appName) :
     // Deprecated:
     //layersPtrs[enabledLayersCount++] = "VK_LAYER_LUNARG_standard_validation";  // Meta-layer - Loads standard set of validation layers in optimal order (all of them in fact)
     // Use new:
-    layersPtrs[enabledLayersCount++] = "VK_LAYER_KHRONOS_validation";
+
+    for (uint32 i=0; i<layersCount; ++i)
+    {
+        if (strcmp(layer[i].properties.layerName, "VK_LAYER_KHRONOS_validation") == 0)
+        {
+            layersPtrs[enabledLayersCount++] = "VK_LAYER_KHRONOS_validation";
+            break;
+        }
+    }
 
     //// In debug mode enable additional layers for debugging,
     //// profiling and other purposes (currently all available).

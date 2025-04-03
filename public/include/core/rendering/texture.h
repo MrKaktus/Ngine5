@@ -277,6 +277,16 @@ enum TextureFace
 /// for special cases, this structure allows specifying different paddings per
 /// sample, texel, row and surface.
 ///
+/// Sample  - Collection of data channels (for e.g. R, G & B).
+/// Texel   - Collection of one or more samples (in case of MSAA texture). 
+///           In case of compressed textures, texel represents block of texels (for e.g. 4x4).
+/// Row     - Single image line (row of texels), or single line of compressed texel blocks.
+/// Surface - Single image composed of multiple lines.
+///
+/// ...Size()      - methods describe size of given element data.
+/// ...Alignment() - methods describe required address alignment in memory for given element data.
+/// ...Pitch()     - methods describe size of given element data, with followup padding bytes (till next element)
+/// 
 /// By default only sampleSize needs to be set, to describe valid surface.
 struct ImageMemoryAlignment
 {
@@ -297,6 +307,7 @@ struct ImageMemoryAlignment
     forceinline uint32 samplesCount(void) const    { return (1 << samplesCountPower); }
     forceinline uint32 sampleAlignment(void) const { return (1 << sampleAlignmentPower); }
     forceinline uint32 samplePitch(void) const     { return roundUp(sampleSize, sampleAlignment()); }
+
     forceinline uint32 texelSize(void) const       { return samplesCount() * samplePitch(); }
     forceinline uint32 texelAlignment(void) const  { return (1 << texelAlignmentPower); }
     forceinline uint32 texelPitch(void) const      { return roundUp(texelSize(), texelAlignment()); }
@@ -304,6 +315,7 @@ struct ImageMemoryAlignment
     ///< Application needs to provide width and height that is depending on
     ///< layout, image is stored in. In terms of block compressed textures,
     ///< width and height should be provided in texel blocks already.
+
     forceinline uint32 rowSize(const uint32 width) const  { return texelPitch() * width; }
     forceinline uint32 rowAlignment(void) const           { return (1 << rowAlignmentPower); }
     forceinline uint32 rowPitch(const uint32 width) const { return roundUp(rowSize(width), rowAlignment()); }
@@ -317,8 +329,6 @@ static_assert(sizeof(ImageMemoryAlignment) == 4, "en::gpu::ImageMemoryAlignment 
    
 
 // DEPRCATED START:
-
-// uint32 layout                : 2; // Linear, Tiled2D, Tiled3D
 
 // Structure defining texture data layout in linear memory,
 // for copying from staging buffer to destination texture.

@@ -80,8 +80,8 @@ bool Context::create(int argc, const char **argv)
         file = nullptr;
       
         // Create parser to quickly process text from file
-        Nparser text(buffer, size);
-      
+        Parser text(buffer, size);
+
         // TODO: Parsing config file, extracting names, types and values of variables to map's.
     }
 
