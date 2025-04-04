@@ -52,6 +52,7 @@ class CommonWindow : public Window
     virtual ~CommonWindow();
 };
 
-} // en::Gpu
+} // en::gpu
 } // en
+
 #endif

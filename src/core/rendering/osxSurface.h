@@ -63,6 +63,6 @@ class osxOpenGLContext : OpenGLContext
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

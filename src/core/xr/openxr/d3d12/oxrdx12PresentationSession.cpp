@@ -127,4 +127,5 @@ oxrPresentationSessionD3D12::~oxrPresentationSessionD3D12()
 
 } // en::xr
 } // en
+
 #endif

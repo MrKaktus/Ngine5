@@ -94,4 +94,5 @@ MultisamplingState* VulkanDevice::createMultisamplingState(const uint32 samples,
 
 } // en::gpu
 } // en
+
 #endif

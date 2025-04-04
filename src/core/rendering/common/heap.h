@@ -56,4 +56,5 @@ static_assert(sizeof(CommonHeap) == 16, "en::gpu::CommonHeap size mismatch!");
 
 } // en::gpu
 } // en
+
 #endif

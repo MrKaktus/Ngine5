@@ -48,6 +48,6 @@ class InputLayoutVK : public InputLayout
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

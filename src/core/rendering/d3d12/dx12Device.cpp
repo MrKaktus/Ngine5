@@ -896,4 +896,5 @@ std::shared_ptr<Display> Direct3DAPI::display(const uint32 index) const
 
 } // en::gpu
 } // en
+
 #endif

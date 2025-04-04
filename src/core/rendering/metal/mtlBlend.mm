@@ -108,4 +108,5 @@ BlendState* MetalDevice::createBlendState(const BlendStateInfo& state,
    
 } // en::gpu
 } // en
+
 #endif

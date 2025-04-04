@@ -646,4 +646,5 @@ void InitTextures(const CommonDevice* gpu)
    
 } // en::gpu
 } // en
+
 #endif

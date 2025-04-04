@@ -26,6 +26,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Default state:
 ///
 /// - enableCulling                   = false

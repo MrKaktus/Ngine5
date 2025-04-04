@@ -113,6 +113,6 @@ class DescriptorSetD3D12 : public DescriptorSet
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

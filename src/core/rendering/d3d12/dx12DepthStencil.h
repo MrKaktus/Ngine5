@@ -39,6 +39,6 @@ class DepthStencilStateD3D12 : public DepthStencilState
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

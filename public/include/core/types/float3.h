@@ -41,4 +41,5 @@ class float3
 };
 
 } // en
+
 #endif

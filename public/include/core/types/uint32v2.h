@@ -15,19 +15,21 @@
 
 namespace en
 {
-   class uint32v2
-      {
-      public:
-      union { uint32 x; uint32 width;  uint32 base;  };
-      union { uint32 y; uint32 height; uint32 count; };
-      
-      uint32v2(void);
-      uint32v2(const uint32 x, const uint32 y);
 
-      bool operator== (const uint32v2 b) const;
-      };
+class uint32v2
+{
+    public:
+    union { uint32 x; uint32 width;  uint32 base;  };
+    union { uint32 y; uint32 height; uint32 count; };
    
-   static_assert(sizeof(uint32v2) == 8, "en::uint32v2 size mismatch!");
-}
+    uint32v2(void);
+    uint32v2(const uint32 x, const uint32 y);
+
+    bool operator== (const uint32v2 b) const;
+};
+
+static_assert(sizeof(uint32v2) == 8, "en::uint32v2 size mismatch!");
+
+} // en
 
 #endif

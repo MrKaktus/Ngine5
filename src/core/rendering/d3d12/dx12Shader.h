@@ -42,6 +42,6 @@ class ShaderD3D12 : public Shader
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

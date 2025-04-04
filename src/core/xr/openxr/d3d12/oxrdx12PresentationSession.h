@@ -51,4 +51,5 @@ class oxrPresentationSessionD3D12 : public oxrPresentationSession
 
 } // en::xr
 } // en
+
 #endif

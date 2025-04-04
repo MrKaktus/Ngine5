@@ -422,4 +422,5 @@ void WindowMTL::present(const Semaphore* surfaceRenderedSemaphore)
 
 } // en::gpu
 } // en
+
 #endif

@@ -35,7 +35,8 @@
 namespace en
 {
 namespace gpu
-{   
+{
+
 typedef struct
 {
     uint32 elements;
@@ -52,7 +53,7 @@ typedef struct
     sint32 firstVertex;     // Starting VertexID (can be negative)
     uint32 firstInstance;   // Starting InstanceID
 } IndirectIndexedDrawArgument;
-   
+
 // Try to limit amount of Command Buffers to 15-30 per frame, and submit
 // them in batches, to limit submissions to ~5 per queue per frame (engine
 // currently is not supporting CommandBuffer batch submissions).

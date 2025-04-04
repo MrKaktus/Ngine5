@@ -28,6 +28,7 @@ namespace en
 {
 namespace gpu
 {
+
 class MultisamplingState
 {
     public:

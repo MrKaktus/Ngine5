@@ -17,10 +17,12 @@
 
 namespace en
 {
-   namespace hdr
-   {
-   std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
-   }
-}
+namespace hdr
+{
+
+std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
+
+} // en::hdr
+} // en
 
 #endif

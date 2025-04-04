@@ -829,4 +829,5 @@ void VulkanDevice::clearCommandBuffersQueue(void)
 
 } // en::gpu
 } // en
+
 #endif

@@ -168,4 +168,5 @@ Sampler* Direct3D12Device::createSampler(const SamplerState& state)
 
 } // en::gpu
 } // en
+
 #endif

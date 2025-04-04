@@ -81,6 +81,6 @@ void setConfigValue(const char* name, T& value, const T initialValue, const T ma
     }
 }
 
-}
+} // en
 
 #endif

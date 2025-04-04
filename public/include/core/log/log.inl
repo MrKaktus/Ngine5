@@ -1,8 +1,8 @@
 
 namespace en
 {
-   namespace log
-   {
+namespace log
+{
 
 //#if defined(EN_PLATFORM_WINDOWS)
 //forceinline NLogContext* NLogContext::getPointer(void)
@@ -85,5 +85,5 @@ namespace en
    // return *this;
    //}
 
-   }
-}
+} // en::log
+} // en

@@ -26,6 +26,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Stencil Buffer Modification Methods
 enum class StencilOperation : uint32
 {

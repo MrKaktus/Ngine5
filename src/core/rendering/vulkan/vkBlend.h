@@ -42,6 +42,6 @@ class BlendStateVK : public BlendState
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

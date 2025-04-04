@@ -79,4 +79,5 @@ DepthStencilState* Direct3D12Device::createDepthStencilState(const DepthStencilS
 
 } // en::gpu
 } // en
+
 #endif

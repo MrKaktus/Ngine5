@@ -23,6 +23,7 @@
 
 namespace en
 {
+
 constexpr uint32 InvalidWorkerId    = 0xFFFFFFFF;
 
 constexpr uint32 FibersPerWorker    = 128;
@@ -41,6 +42,7 @@ constexpr uint32 MaxTasksPerWorker  = 1024;
 
 namespace parallel
 {
+
 class Interface
 {
     public:
@@ -112,9 +114,11 @@ class Interface
     virtual ~Interface() {};                       /// Polymorphic deletes require a virtual base destructor
 };
 
-}
+} // en::parallel
 
 // Default instance of Task Scheduler
 extern std::unique_ptr<parallel::Interface> Scheduler;
-}
+
+} // en
+
 #endif

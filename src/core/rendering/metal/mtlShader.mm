@@ -121,4 +121,5 @@ std::shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const
 
 } // en::gpu
 } // en
+
 #endif

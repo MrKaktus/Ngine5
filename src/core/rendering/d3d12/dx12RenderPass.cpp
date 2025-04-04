@@ -802,4 +802,5 @@ RenderPass* Direct3D12Device::createRenderPass(
 
 } // en::gpu
 } // en
+
 #endif

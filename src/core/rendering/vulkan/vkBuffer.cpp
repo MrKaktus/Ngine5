@@ -301,4 +301,5 @@ BufferVK* createBuffer(HeapVK& heap, const BufferType type, const uint32 size)
    
 } // en::gpu
 } // en
+
 #endif

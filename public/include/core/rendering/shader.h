@@ -26,6 +26,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Render pipeline shader stage
 enum class ShaderStage : uint8
 {
@@ -36,7 +37,7 @@ enum class ShaderStage : uint8
     Fragment                     ,
     Count
 };
-     
+
 /// Render pipeline shader stages mask
 enum class ShaderStages : uint8
 {
@@ -48,12 +49,12 @@ enum class ShaderStages : uint8
     All                    = 0xFF,
     Count                  = 5
 };
-     
+
 inline ShaderStages operator| (ShaderStages a, ShaderStages b)
 {
     return static_cast<ShaderStages>(underlyingType(a) | underlyingType(b));
 }
-      
+
 class Shader
 {
     public:

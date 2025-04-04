@@ -70,4 +70,5 @@ RasterState* Direct3D12Device::createRasterState(const RasterStateInfo& state)
    
 } // en::gpu
 } // en
+
 #endif

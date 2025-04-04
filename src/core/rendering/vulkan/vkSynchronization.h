@@ -68,6 +68,6 @@ class EventVK : public Event
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

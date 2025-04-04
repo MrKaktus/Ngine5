@@ -42,6 +42,6 @@ class ShaderVK : public Shader
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

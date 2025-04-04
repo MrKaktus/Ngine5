@@ -23,66 +23,66 @@
 
 // Compile-Time Object Size Calculation
 #define CompileTimeSizeReporting( a )                     \
-   template<int s> struct GivenObjectSizeIs;              \
-   GivenObjectSizeIs< sizeof(a) > Info;
+    template<int s> struct GivenObjectSizeIs;              \
+    GivenObjectSizeIs< sizeof(a) > Info;
 
 // Compile-Time Member Offset Calculation
 #define CompileTimeOffsetReporting( a, b )                \
-   template<int s> struct GivenMemberIsAtOffset;          \
-   GivenMemberIsAtOffset< offsetof(a, b) > Info;
+    template<int s> struct GivenMemberIsAtOffset;          \
+    GivenMemberIsAtOffset< offsetof(a, b) > Info;
 
 // Determine target platform
 #if defined(ANDROID)
-   #define EN_PLATFORM_ANDROID
+    #define EN_PLATFORM_ANDROID
 #elif defined(__QNX__)
-   #define EN_PLATFORM_BLACKBERRY
+    #define EN_PLATFORM_BLACKBERRY
 #elif defined(TARGET_OS_IPHONE) || defined(TARGET_IPHONE_SIMULATOR)
-   #define EN_PLATFORM_IOS
+    #define EN_PLATFORM_IOS
 #elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) || defined(TARGET_OS_MAC)
-   #define EN_PLATFORM_OSX
+    #define EN_PLATFORM_OSX
 #elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
-   #define EN_PLATFORM_WINDOWS
+    #define EN_PLATFORM_WINDOWS
 #else
-   static_assert(false, "Unknown target platform!");
+    static_assert(false, "Unknown target platform!");
 #endif
 
 // Determine target platform version
 #if defined(EN_PLATFORM_OSX)
-   #if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_12
-      #define EN_PLATFORM_OSX_MINIMUM_10_12
-   #endif
+    #if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_10_12
+        #define EN_PLATFORM_OSX_MINIMUM_10_12
+    #endif
 #endif
 
 // Define platform architecture
 #if defined(_WIN64)
-   #define EN_ARCHITECTURE_X64
+    #define EN_ARCHITECTURE_X64
 #else
-   #define EN_ARCHITECTURE_X86
+    #define EN_ARCHITECTURE_X86
 #endif
 
 // Determine used compilator
 #if defined(__APPLE__)
-   #define EN_COMPILER_CLANG
+    #define EN_COMPILER_CLANG
 #elif defined(__GNUC__)
-   #define EN_COMPILER_GCC
+    #define EN_COMPILER_GCC
 #elif defined(__INTEL_COMPILER)
-   #define EN_COMPILER_INTEL
+    #define EN_COMPILER_INTEL
 #elif defined(__QNX__)
-   #define EN_COMPILER_QCC
+    #define EN_COMPILER_QCC
 #elif defined(_MSC_VER)
-   #define EN_COMPILER_VISUAL_STUDIO
+    #define EN_COMPILER_VISUAL_STUDIO
 #endif
 
 // Determine engine debugging
 #if defined(_DEBUG) || defined(DEBUG)
-   #define EN_DEBUG
+    #define EN_DEBUG
 #endif
 
 // Forcing inlining
 #if defined(EN_COMPILER_VISUAL_STUDIO)
-   #define forceinline __forceinline
+    #define forceinline __forceinline
 #else
-   #define forceinline inline
+    #define forceinline inline
 #endif
 
 // Input modules
@@ -137,36 +137,36 @@
 // Determine target renderer
 // TODO: DEPRECATED, Remove
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-   #define EN_OPENGL_DESKTOP
-   #define EN_DISCRETE_GPU
+    #define EN_OPENGL_DESKTOP
+    #define EN_DISCRETE_GPU
 #elif defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_IOS)
-   #define EN_OPENGL_MOBILE
-   #define EN_MOBILE_GPU
+    #define EN_OPENGL_MOBILE
+    #define EN_MOBILE_GPU
 #endif
 
 #if defined(EN_PLATFORM_BLACKBERRY)
-   #ifndef nullptr
-      #define nullptr 0
-   #endif
+    #ifndef nullptr
+        #define nullptr 0
+    #endif
 #endif
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   // Objective-C object allocator and reference count initialization
-   #define allocateObjectiveC(x)    \
-   [[[x alloc] init] autorelease]
+    // Objective-C object allocator and reference count initialization
+    #define allocateObjectiveC(x)    \
+    [[[x alloc] init] autorelease]
 
 #if __has_feature(objc_arc)
-   // When ARC is enabled, app shouldn't need to do anything
-   // (resources should be released when going out of scope)
-   #define deallocateObjectiveC(x)
+    // When ARC is enabled, app shouldn't need to do anything
+    // (resources should be released when going out of scope)
+    #define deallocateObjectiveC(x)
 #else
-   // Auto-release pool to ensure that Metal ARC will flush garbage collector
-   #define deallocateObjectiveC(x)  \
-   @autoreleasepool                 \
-   {                                \
-      [x release];                  \
-      x = nullptr;                  \
-   }
+    // Auto-release pool to ensure that Metal ARC will flush garbage collector
+    #define deallocateObjectiveC(x)  \
+    @autoreleasepool                 \
+    {                                \
+        [x release];                 \
+        x = nullptr;                 \
+    }
 #endif
 
 

@@ -17,66 +17,68 @@
 
 namespace en
 {
-   class Time
-      {
-      private:
-      uint64 dt;  // In nanoseconds
 
-      public:
-      Time();
-      Time(uint64 nanoseconds);
+class Time
+{
+    private:
+    uint64 dt;  // In nanoseconds
 
-      void seconds(double time);
-      void miliseconds(double time);
-      void miliseconds(uint64 time);
-      void microseconds(double time);
-      void microseconds(uint64 time);
-      void nanoseconds(double time);
-      void nanoseconds(uint64 time);
+    public:
+    Time();
+    Time(uint64 nanoseconds);
 
-      double seconds(void) const;
-      uint64 miliseconds(void) const;
-      uint64 microseconds(void) const;
-      uint64 nanoseconds(void) const;
+    void seconds(double time);
+    void miliseconds(double time);
+    void miliseconds(uint64 time);
+    void microseconds(double time);
+    void microseconds(uint64 time);
+    void nanoseconds(double time);
+    void nanoseconds(uint64 time);
 
-      bool  operator== (Time right);
-      bool  operator!= (Time right);
-      bool  operator<  (Time right);
-      bool  operator>  (Time right);
-      bool  operator<= (Time right);
-      bool  operator>= (Time right);
-      Time  operator-  (Time right);
-      Time  operator+  (Time right);
-      Time& operator+= (Time right);
-      Time& operator-= (Time right);
-      Time  operator*  (Time   right);
-      Time  operator*  (uint64 right);
-      Time& operator*= (Time   right);
-      Time& operator*= (uint64 right);
-      Time  operator/  (Time   right);
-      Time  operator/  (uint64 right);
-      Time& operator/= (Time   right);
-      Time& operator/= (uint64 right);
-      };
+    double seconds(void) const;
+    uint64 miliseconds(void) const;
+    uint64 microseconds(void) const;
+    uint64 nanoseconds(void) const;
+
+    bool  operator== (Time right);
+    bool  operator!= (Time right);
+    bool  operator<  (Time right);
+    bool  operator>  (Time right);
+    bool  operator<= (Time right);
+    bool  operator>= (Time right);
+    Time  operator-  (Time right);
+    Time  operator+  (Time right);
+    Time& operator+= (Time right);
+    Time& operator-= (Time right);
+    Time  operator*  (Time   right);
+    Time  operator*  (uint64 right);
+    Time& operator*= (Time   right);
+    Time& operator*= (uint64 right);
+    Time  operator/  (Time   right);
+    Time  operator/  (uint64 right);
+    Time& operator/= (Time   right);
+    Time& operator/= (uint64 right);
+};
     
-   static_assert(sizeof(Time) == 8, "en::Time size mismatch!");
+static_assert(sizeof(Time) == 8, "en::Time size mismatch!");
 
-   class Timer
-      {
-      private:
-      Time time;
+class Timer
+{
+    private:
+    Time time;
 
-      public:
-      void start(void);    // Starts counting time (or restarts if already running)
-      Time elapsed(void);  // Returns current elapsed time
-      };
+    public:
+    void start(void);    // Starts counting time (or restarts if already running)
+    Time elapsed(void);  // Returns current elapsed time
+};
    
-   static_assert(sizeof(Timer) == 8, "en::Timer size mismatch!");
+static_assert(sizeof(Timer) == 8, "en::Timer size mismatch!");
 
-   Time currentTime(void);
+Time currentTime(void);
    
-   void sleepFor(Time time);   ///< Sleeps for given period of time
-   void sleepUntil(Time time); ///< Slepps until given absolute moment in time
-}
+void sleepFor(Time time);   ///< Sleeps for given period of time
+void sleepUntil(Time time); ///< Slepps until given absolute moment in time
+
+} // en
 
 #endif

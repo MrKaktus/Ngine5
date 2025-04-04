@@ -41,6 +41,6 @@ class SamplerMTL : public Sampler
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

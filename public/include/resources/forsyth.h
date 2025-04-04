@@ -20,10 +20,12 @@
 
 namespace en
 {
-   namespace Forsyth
-   {
-   //void optimize(const std::vector<uint32>& input, std::vector<uint32>& output, uint32 vertexes);
-   }
-}
+namespace Forsyth
+{
+
+//void optimize(const std::vector<uint32>& input, std::vector<uint32>& output, uint32 vertexes);
+
+} // en::Forsyth
+} // en
 
 #endif

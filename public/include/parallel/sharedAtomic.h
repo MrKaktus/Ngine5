@@ -43,4 +43,5 @@ class cachealign SharedAtomic
 static_assert(sizeof(SharedAtomic) == cacheline, "en::SharedAtomic size mismatch!");
 
 } // en
+
 #endif

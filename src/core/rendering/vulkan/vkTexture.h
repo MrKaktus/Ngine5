@@ -81,6 +81,6 @@ TextureVK* createTexture(VulkanDevice* gpu, const TextureState& state);
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

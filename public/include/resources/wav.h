@@ -16,10 +16,12 @@
 
 namespace en
 {
-   namespace wav
-   {
-   std::shared_ptr<audio::Sample> load(const std::string& filename);
-   }
-}
+namespace wav
+{
+
+std::shared_ptr<audio::Sample> load(const std::string& filename);
+
+} // en::wav
+} // en
 
 #endif

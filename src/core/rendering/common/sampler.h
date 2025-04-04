@@ -49,4 +49,5 @@ static_assert(sizeof(SamplerHash) == 16, "en::gpu::SamplerHash size mismatch!");
 
 } // en::gpu
 } // en
+
 #endif

@@ -29,6 +29,7 @@ namespace en
 {
 namespace gpu
 {
+
 // 64 bytes  - Push Constants
 //
 // Direct3D12 Root Signature:
@@ -117,7 +118,7 @@ struct ResourceGroup
         textureType(_textureType)
     {};
 };
-      
+
 /// Layout of resources in Descriptors Set
 class SetLayout
 {
@@ -150,7 +151,7 @@ class DescriptorSet
 
     virtual ~DescriptorSet() {};
 };
-      
+
 // Range of Descriptors that can be used, to allocated from it set of Descriptors
 class Descriptors
 {

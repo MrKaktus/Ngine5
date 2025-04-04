@@ -771,4 +771,5 @@ Window* VulkanDevice::createWindow(const WindowSettings& settings, const std::st
 
 } // en::gpu
 } // en
+
 #endif

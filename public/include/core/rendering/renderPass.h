@@ -29,6 +29,7 @@ namespace en
 {
 namespace gpu
 {
+
 enum class LoadOperation : uint32
 {
     None               = 0,

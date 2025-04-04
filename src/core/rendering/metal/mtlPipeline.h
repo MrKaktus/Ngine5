@@ -49,6 +49,6 @@ class PipelineMTL : public Pipeline
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

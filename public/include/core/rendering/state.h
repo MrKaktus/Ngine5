@@ -22,6 +22,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Types of primitives to draw
 ///
 /// LineLoops    - are unsupported by all modern API's (D3D12, Vulkan, Metal)
@@ -36,7 +37,7 @@ enum DrawableType
     Patches                        ,
     DrawableTypesCount          
 };
-      
+
 /// Comparison method             
 enum CompareMethod               
 {                           

@@ -17,10 +17,12 @@
 
 namespace en
 {
-   namespace material
-   {
-   en::resource::Material load(const std::string& filename);
-   }
-}
+namespace material
+{
+
+en::resource::Material load(const std::string& filename);
+
+} // en::material
+} // en
 
 #endif

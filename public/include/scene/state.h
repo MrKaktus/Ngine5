@@ -24,33 +24,36 @@
 
 namespace en
 {
-   namespace state
-   {
-   class State
-      {
-      public:
-      virtual bool init(void) = 0;   
-      virtual bool input(input::Event& event) = 0;
-      virtual bool update(Time dt) = 0;  
-      virtual bool draw(void) = 0;         
-      virtual bool pause(void) = 0;        
-      virtual bool resume(void) = 0;    
-      virtual bool destroy(void) = 0;      
-      };
+namespace state
+{
 
-   struct Interface
-      {
-      void change(State* state);  // Finishes current state and starts new one (at the beginning of next update call) 
-      bool set(State* state);     // Pauses current state and switche's to pointed one (at the beginning of next update call) 
-      void finish(void);          // Finishes current state and restores previous one (at the beginning of next update call) 
-      
-      bool update(Time dt);       // Updates all managed states (current and paused) 
-      bool draw(void);            // Draws all managed states (current and paused)
-      bool close();               // Finishes execution of all states at the next update 
-      };
-   }
+class State
+{
+    public:
+    virtual bool init(void) = 0;   
+    virtual bool input(input::Event& event) = 0;
+    virtual bool update(Time dt) = 0;  
+    virtual bool draw(void) = 0;         
+    virtual bool pause(void) = 0;        
+    virtual bool resume(void) = 0;    
+    virtual bool destroy(void) = 0;      
+};
+
+struct Interface
+{
+    void change(State* state);  // Finishes current state and starts new one (at the beginning of next update call) 
+    bool set(State* state);     // Pauses current state and switche's to pointed one (at the beginning of next update call) 
+    void finish(void);          // Finishes current state and restores previous one (at the beginning of next update call) 
+
+    bool update(Time dt);       // Updates all managed states (current and paused) 
+    bool draw(void);            // Draws all managed states (current and paused)
+    bool close();               // Finishes execution of all states at the next update 
+};
+
+} // en::state
 
 extern state::Interface StateManager; // Default instance of State Manager interface
-}
+
+} // en
 
 #endif

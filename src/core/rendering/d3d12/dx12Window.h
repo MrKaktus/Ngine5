@@ -75,5 +75,4 @@ class WindowD3D12 : public winWindow
 } // en
 
 #endif
-
 #endif

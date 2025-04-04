@@ -54,122 +54,122 @@
 forceinline uint32 AtomicIncrease(volatile uint32* value)
 {
 #ifdef EN_PLATFORM_ANDROID
-// As it returns old value, we need to locally increment it again.
-return __sync_fetch_and_add(value, 1u) + 1u;
-// No memory barrier variant:
-// return __atomic_inc((volatile int*)value);
+    // As it returns old value, we need to locally increment it again.
+    return __sync_fetch_and_add(value, 1u) + 1u;
+    // No memory barrier variant:
+    // return __atomic_inc((volatile int*)value);
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
-// Memory barrier according to:
-// http://www.qnx.com/developers/docs/6.3.0SP3/neutrino/lib_ref/a/atomic_add.html
-atomic_add((volatile unsigned *)value, 1);
-return *value;
+    // Memory barrier according to:
+    // http://www.qnx.com/developers/docs/6.3.0SP3/neutrino/lib_ref/a/atomic_add.html
+    atomic_add((volatile unsigned *)value, 1);
+    return *value;
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-// As it returns old value, we need to locally increment it again.
-return static_cast<uint32>(std::atomic_fetch_add((volatile std::atomic<uint32>*)value, 1u) + 1u);
+    // As it returns old value, we need to locally increment it again.
+    return static_cast<uint32>(std::atomic_fetch_add((volatile std::atomic<uint32>*)value, 1u) + 1u);
 #elif defined(EN_PLATFORM_OSX)
-// Cast from Unsigned to Signed is safe as Mac's uses x86 CPU's
-return static_cast<uint32>(OSAtomicIncrement32Barrier((volatile int*)value));
+    // Cast from Unsigned to Signed is safe as Mac's uses x86 CPU's
+    return static_cast<uint32>(OSAtomicIncrement32Barrier((volatile int*)value));
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
-// Cast from Unsigned to Signed is safe as Windows runs on x86 CPU's
-return static_cast<uint32>(InterlockedIncrement((volatile long*)value));
+    // Cast from Unsigned to Signed is safe as Windows runs on x86 CPU's
+    return static_cast<uint32>(InterlockedIncrement((volatile long*)value));
 #endif
 
-assert(0);
-return 0;
+    assert(0);
+    return 0;
 }
 
 // Generates full memory barrier. Returns new value.
 forceinline sint32 AtomicIncrease(volatile sint32* value)
 {
 #ifdef EN_PLATFORM_ANDROID
-return __sync_fetch_and_add(value, 1) + 1;
+    return __sync_fetch_and_add(value, 1) + 1;
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
-// TODO: There is no signed version in QNX.
-//       Is BlackBerry using two's complement arithmetic?
+    // TODO: There is no signed version in QNX.
+    //       Is BlackBerry using two's complement arithmetic?
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-// As it returns old value, we need to locally increment it again.
-return std::atomic_fetch_add((volatile std::atomic<sint32>*)value, 1) + 1;
+    // As it returns old value, we need to locally increment it again.
+    return std::atomic_fetch_add((volatile std::atomic<sint32>*)value, 1) + 1;
 #elif defined(EN_PLATFORM_OSX)
-return OSAtomicIncrement32Barrier((volatile int32_t*)value);
+    return OSAtomicIncrement32Barrier((volatile int32_t*)value);
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
-return InterlockedIncrement((volatile long*)value);
+    return InterlockedIncrement((volatile long*)value);
 #endif
 
-assert(0);
-return 0;
+    assert(0);
+    return 0;
 }
 
 // Generates full memory barrier. Returns new (decremented) value.
 forceinline uint32 AtomicDecrease(volatile uint32* value)
 {
 #ifdef EN_PLATFORM_ANDROID
-// As it returns old value, we need to locally decrement it again.
-return __sync_fetch_and_sub(value, 1u) - 1u;
-// No memory barrier variant:
-//return __atomic_dec((volatile int*)value);
+    // As it returns old value, we need to locally decrement it again.
+    return __sync_fetch_and_sub(value, 1u) - 1u;
+    // No memory barrier variant:
+    //return __atomic_dec((volatile int*)value);
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
-// Memory barrier according to:
-// http://www.qnx.com/developers/docs/6.3.2/neutrino/lib_ref/a/atomic_sub.html
-atomic_sub((volatile unsigned *)value, 1);
-return *value;
+    // Memory barrier according to:
+    // http://www.qnx.com/developers/docs/6.3.2/neutrino/lib_ref/a/atomic_sub.html
+    atomic_sub((volatile unsigned *)value, 1);
+    return *value;
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-// As it returns old value, we need to locally decrement it again.
-return static_cast<uint32>(std::atomic_fetch_sub((volatile std::atomic<uint32>*)value, 1u) - 1u);
+    // As it returns old value, we need to locally decrement it again.
+    return static_cast<uint32>(std::atomic_fetch_sub((volatile std::atomic<uint32>*)value, 1u) - 1u);
 #elif defined(EN_PLATFORM_OSX)
-// Cast from Unsigned to Signed is safe as Mac's uses x86 CPU's
-return static_cast<uint32>(OSAtomicDecrement32Barrier((volatile int32_t*)value));
+    // Cast from Unsigned to Signed is safe as Mac's uses x86 CPU's
+    return static_cast<uint32>(OSAtomicDecrement32Barrier((volatile int32_t*)value));
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
-// Cast from Unsigned to Signed is safe as Windows runs on x86 CPU's
-return static_cast<uint32>(InterlockedDecrement((volatile long*)value));
+    // Cast from Unsigned to Signed is safe as Windows runs on x86 CPU's
+    return static_cast<uint32>(InterlockedDecrement((volatile long*)value));
 #endif
 
-assert(0);
-return 0;
+    assert(0);
+    return 0;
 }
 
 // Generates full memory barrier. Returns new (decremented) value.
 forceinline sint32 AtomicDecrease(volatile sint32* value)
 {
 #ifdef EN_PLATFORM_ANDROID
-return __sync_fetch_and_sub(value, 1) - 1;
+    return __sync_fetch_and_sub(value, 1) - 1;
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
-// TODO: There is no signed version in QNX.
-//       Is BlackBerry using two's complement arithmetic?
+    // TODO: There is no signed version in QNX.
+    //       Is BlackBerry using two's complement arithmetic?
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-// As it returns old value, we need to locally decrement it again.
-return std::atomic_fetch_sub((volatile std::atomic<sint32>*)value, 1) - 1;
+    // As it returns old value, we need to locally decrement it again.
+    return std::atomic_fetch_sub((volatile std::atomic<sint32>*)value, 1) - 1;
 #elif defined(EN_PLATFORM_OSX)
-return OSAtomicDecrement32Barrier((volatile int32_t*)value);
+    return OSAtomicDecrement32Barrier((volatile int32_t*)value);
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
-return InterlockedDecrement((volatile long*)value);
+    return InterlockedDecrement((volatile long*)value);
 #endif
 
-assert(0);
-return 0;
+    assert(0);
+    return 0;
 }
 
 // Swaps value of pointed memory location with new one.
@@ -177,49 +177,49 @@ return 0;
 forceinline uint32 AtomicSwap(volatile uint32* dst, uint32 value)
 {
 #ifdef EN_PLATFORM_ANDROID
-// Software implementation
-uint32 oldValue;
-do
-{
-oldValue = *dst;
-}
-while(__sync_val_compare_and_swap(dst, oldValue, value) != oldValue);
-return oldValue;
-// No memory barrier variant:
-// return __atomic_swap(value, (volatile int*)dst);
+    // Software implementation
+    uint32 oldValue;
+    do
+    {
+        oldValue = *dst;
+    }
+    while(__sync_val_compare_and_swap(dst, oldValue, value) != oldValue);
+    return oldValue;
+    // No memory barrier variant:
+    // return __atomic_swap(value, (volatile int*)dst);
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
-// It is not supported on BlackBerry.
+    // It is not supported on BlackBerry.
 #endif
 
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-// Software implementation
-uint32 oldValue;
-do
-{
-oldValue = *dst;
-}
-while(!std::atomic_compare_exchange_strong((volatile std::atomic<uint32>*)dst, &oldValue, value));
-return oldValue;
+    // Software implementation
+    uint32 oldValue;
+    do
+    {
+        oldValue = *dst;
+    }
+    while(!std::atomic_compare_exchange_strong((volatile std::atomic<uint32>*)dst, &oldValue, value));
+    return oldValue;
 #elif defined(EN_PLATFORM_OSX)
-// Software implementation
-uint32 oldValue;
-do
-{
-oldValue = *dst;
-}
-while(!OSAtomicCompareAndSwap32Barrier(oldValue, value, (volatile int32_t*)dst));
-return oldValue;
+    // Software implementation
+    uint32 oldValue;
+    do
+    {
+        oldValue = *dst;
+    }
+    while(!OSAtomicCompareAndSwap32Barrier(oldValue, value, (volatile int32_t*)dst));
+    return oldValue;
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
-return InterlockedExchange(dst, value);
+    return InterlockedExchange(dst, value);
 #endif
 
-assert(0);
-return 0;
+    assert(0);
+    return 0;
 }
 
 // Swaps value of pointed memory location with new one.
@@ -227,142 +227,142 @@ return 0;
 forceinline uint64 AtomicSwap(volatile uint64* dst, uint64 value)
 {
 #ifdef EN_PLATFORM_ANDROID
-// It is not supported on Android.
+    // It is not supported on Android.
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
-// It is not supported on BlackBerry.
+    // It is not supported on BlackBerry.
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-// Software implementation
-uint64 oldValue;
-do
-{
-oldValue = *dst;
-}
-while(!std::atomic_compare_exchange_strong((volatile std::atomic<uint64>*)dst, &oldValue, value));
-return oldValue;
+    // Software implementation
+    uint64 oldValue;
+    do
+    {
+        oldValue = *dst;
+    }
+    while(!std::atomic_compare_exchange_strong((volatile std::atomic<uint64>*)dst, &oldValue, value));
+    return oldValue;
 #elif defined(EN_PLATFORM_OSX)
-// Software implementation
-uint64 oldValue;
-do
-{
-oldValue = *dst;
-}
-while(!OSAtomicCompareAndSwap64Barrier(oldValue, value, (volatile int64_t*)dst));
-return oldValue;
+    // Software implementation
+    uint64 oldValue;
+    do
+    {
+        oldValue = *dst;
+    }
+    while(!OSAtomicCompareAndSwap64Barrier(oldValue, value, (volatile int64_t*)dst));
+    return oldValue;
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
-return InterlockedExchange64((volatile LONGLONG*)dst, value);
+    return InterlockedExchange64((volatile LONGLONG*)dst, value);
 #endif
 
-assert(0);
-return 0;
+    assert(0);
+    return 0;
 }
 
 // Generates full memory barrier. Returns true if succesfull.
 forceinline bool CompareAndSwap(volatile uint32* dst, uint32 newValue, uint32 expectedValue)
 {
 #ifdef EN_PLATFORM_ANDROID
-return __sync_val_compare_and_swap(dst, expectedValue, newValue) == expectedValue;
-// No memory barrier
-//return __atomic_cmpxchg(expectedValue, newValue, (volatile int*)dst) == expectedValue;
+    return __sync_val_compare_and_swap(dst, expectedValue, newValue) == expectedValue;
+    // No memory barrier
+    //return __atomic_cmpxchg(expectedValue, newValue, (volatile int*)dst) == expectedValue;
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
-// QNX implementation:
-//
-// /usr/include/<platform>/cmpxchg.h
-// int _smp_cmpxchg(volatile unsigned *__dst, unsigned __cmp, unsigned __new);
-//
-// Unfortunately it's not supported by BlackBerry NDK.
+    // QNX implementation:
+    //
+    // /usr/include/<platform>/cmpxchg.h
+    // int _smp_cmpxchg(volatile unsigned *__dst, unsigned __cmp, unsigned __new);
+    //
+    // Unfortunately it's not supported by BlackBerry NDK.
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-return std::atomic_compare_exchange_strong((volatile std::atomic<uint32>*)dst, &expectedValue, newValue);
+    return std::atomic_compare_exchange_strong((volatile std::atomic<uint32>*)dst, &expectedValue, newValue);
 #elif defined(EN_PLATFORM_OSX)
-return OSAtomicCompareAndSwap32Barrier(expectedValue, newValue, (volatile int32_t*)dst);
+    return OSAtomicCompareAndSwap32Barrier(expectedValue, newValue, (volatile int32_t*)dst);
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
-// Functions returns initial value from pointed memory,
-// if it is equal to expected value then exchange was successful.
-return InterlockedCompareExchange((volatile unsigned long*)dst, newValue, expectedValue) == expectedValue;
+    // Functions returns initial value from pointed memory,
+    // if it is equal to expected value then exchange was successful.
+    return InterlockedCompareExchange((volatile unsigned long*)dst, newValue, expectedValue) == expectedValue;
 #endif
 
-assert( 0 );
-return false;
+    assert( 0 );
+    return false;
 }
 
 // Generates full memory barrier. Returns true if succesfull.
 forceinline bool CompareAndSwap(volatile uint64* dst, uint64 newValue, uint64 expectedValue)
 {
 #ifdef EN_PLATFORM_ANDROID
-// It is not supported on Android.
+    // It is not supported on Android.
 #endif
 
 #if defined(EN_PLATFORM_OSX_MINIMUM_10_12)
-return std::atomic_compare_exchange_strong((volatile std::atomic<uint64>*)dst, &expectedValue, newValue);
+    return std::atomic_compare_exchange_strong((volatile std::atomic<uint64>*)dst, &expectedValue, newValue);
 #elif defined(EN_PLATFORM_OSX)
-return OSAtomicCompareAndSwap64Barrier(expectedValue, newValue, (volatile int64_t*)dst);
+    return OSAtomicCompareAndSwap64Barrier(expectedValue, newValue, (volatile int64_t*)dst);
 #endif
 
 #ifdef EN_PLATFORM_BLACKBERRY
-// It is not supported on BlackBerry.
+    // It is not supported on BlackBerry.
 #endif
 
 #ifdef EN_PLATFORM_WINDOWS
-// Functions returns initial value from pointed memory,
-// if it is equal to expected value then exchange was successful.
-return InterlockedCompareExchange64((volatile LONGLONG*)dst, newValue, expectedValue) == expectedValue;
+    // Functions returns initial value from pointed memory,
+    // if it is equal to expected value then exchange was successful.
+    return InterlockedCompareExchange64((volatile LONGLONG*)dst, newValue, expectedValue) == expectedValue;
 #endif
 
-assert( 0 );
-return false;
+    assert( 0 );
+    return false;
 }
 
 forceinline void ReadMemoryBarrier(void)
 {
 #ifdef EN_PLATFORM_WINDOWS
-   #ifdef EN_COMPILER_INTEL
-   void_mm_lfence();
-   return;
-   #endif
+    #ifdef EN_COMPILER_INTEL
+    void_mm_lfence();
+    return;
+    #endif
 #endif
 
-assert( 0 );
-return;
+    assert( 0 );
+    return;
 }
 
 forceinline void WriteMemoryBarrier(void)
 {
 #ifdef EN_PLATFORM_WINDOWS
-   #ifdef EN_COMPILER_INTEL
-   void_mm_sfence();
-   return;
-   #endif
+    #ifdef EN_COMPILER_INTEL
+    void_mm_sfence();
+    return;
+    #endif
 #endif
 
-assert( 0 );
-return;
+    assert( 0 );
+    return;
 }
 
 forceinline void FullMemoryBarrier(void)
 {
 #ifdef EN_PLATFORM_WINDOWS
-   #ifdef EN_COMPILER_INTEL
-   void_mm_mfence();
-   return;
-   #endif
-   #ifdef EN_COMPILER_VISUAL_STUDIO
-   _ReadWriteBarrier();
-   return;
-   #endif
+    #ifdef EN_COMPILER_INTEL
+    void_mm_mfence();
+    return;
+    #endif
+    #ifdef EN_COMPILER_VISUAL_STUDIO
+    _ReadWriteBarrier();
+    return;
+    #endif
 #endif
 
-assert( 0 );
-return;
+    assert( 0 );
+    return;
 }
    

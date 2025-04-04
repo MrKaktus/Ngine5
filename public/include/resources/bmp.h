@@ -35,4 +35,5 @@ bool save(const std::string& filename,
 
 } // en::bmp
 } // en
+
 #endif

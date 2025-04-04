@@ -21,6 +21,7 @@ using namespace en::resource;
 
 namespace en
 {
+
 //   class Stereoscopy
 //         {
 //         private:   
@@ -70,5 +71,7 @@ namespace en
 //         void     source(std::shared_ptr<Texture> texture);                 // Allows adjusting render target size every frame, need to be called at least once to set source for distortion
 //         bool     display(void);                           // End of frame rendering, performs distortion reprojection, VSync and buffer swap
 //         };
-}
+
+} // en
+
 #endif

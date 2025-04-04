@@ -17,10 +17,12 @@
 
 namespace en
 {
-   namespace mtl
-   {
-   bool load(const std::string& filename, const std::string& name, en::resource::Material& material);
-   }
-}
+namespace mtl
+{
+
+bool load(const std::string& filename, const std::string& name, en::resource::Material& material);
+
+} // en::mtl
+} // en
 
 #endif

@@ -680,13 +680,13 @@ class Streamer
     // Data access:
 
 
-   // Surfaces can be stored:
-   // - Linear
-   // - Tiled-Linear
-   // Volumes can be stored:
-   // - Planar-Linear
-   // - Planar-2D Tiled-Linear
-   // - 3D Tiled
+    // Surfaces can be stored as:
+    // - Linear
+    // - Tiled-Linear
+    // Volumes can be stored as:
+    // - Planar-Linear
+    // - Planar-2D Tiled-Linear
+    // - 3D Tiled
 
     // Returns pointer to system memory backing this texture resource specific surface.
     // Layer property pases specific information, for different texture types:

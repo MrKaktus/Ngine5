@@ -172,6 +172,6 @@ class CommandBufferMTL : public CommandBuffer
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

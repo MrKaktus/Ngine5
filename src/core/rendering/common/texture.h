@@ -102,4 +102,5 @@ extern uint32 TextureMipMapCount(const TextureState& state);
 
 } // en::gpu
 } // en
+
 #endif

@@ -43,5 +43,4 @@ class ViewportStateVK : public ViewportState
 } // en
 
 #endif
-
 #endif

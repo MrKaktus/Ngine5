@@ -42,6 +42,6 @@ class BlendStateD3D12 : public BlendState
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

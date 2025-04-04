@@ -245,6 +245,6 @@ class Direct3DAPI : public CommonGraphicAPI
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

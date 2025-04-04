@@ -93,6 +93,6 @@ class DescriptorSetMTL : public DescriptorSet
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

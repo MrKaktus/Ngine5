@@ -87,4 +87,5 @@ void CommandBufferMTL::barrier(const Texture& texture,
 
 } // en::gpu
 } // en
+
 #endif

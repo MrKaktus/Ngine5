@@ -19,7 +19,7 @@ namespace en
 // Interface for allocation algorithm
 class Allocator
 {
-public:
+    public:
     // Returns offset for new allocation, or false
     virtual bool allocate(const uint64 requestedSize,
                           const uint64 requestedAlignment,

@@ -39,6 +39,6 @@ class RasterStateD3D12 : public RasterState
 
 } // en::hpu
 } // en
-#endif
 
+#endif
 #endif

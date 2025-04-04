@@ -72,4 +72,5 @@ ViewportState* MetalDevice::createViewportState(const uint32 count,
    
 } // en::gpu
 } // en
+
 #endif

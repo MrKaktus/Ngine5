@@ -490,4 +490,5 @@ Heap* VulkanDevice::createHeap(const MemoryUsage usage, const uint32 size)
 
 } // en::gpu
 } // en
+
 #endif

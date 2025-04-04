@@ -58,4 +58,5 @@ class CommonBufferView : public BufferView
 
 } // en::gpu
 } // en
+
 #endif

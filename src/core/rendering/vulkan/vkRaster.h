@@ -37,6 +37,6 @@ class RasterStateVK : public RasterState
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

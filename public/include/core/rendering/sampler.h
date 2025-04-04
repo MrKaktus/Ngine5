@@ -26,6 +26,7 @@ namespace en
 {
 namespace gpu
 {
+
 enum class SamplerFilter : uint32
 {
     Nearest                   = 0, ///< Nearest texel

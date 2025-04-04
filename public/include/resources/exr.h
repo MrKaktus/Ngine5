@@ -17,10 +17,12 @@
 
 namespace en
 {
-   namespace exr
-   {
-   std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
-   }
-}
+namespace exr
+{
+
+std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
+
+} // en::exr
+} // en
 
 #endif

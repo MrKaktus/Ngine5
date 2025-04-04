@@ -19,6 +19,7 @@
 
 namespace en
 {
+
 constexpr uint32 InvalidThreadID = 0xFFFFFFFF;
 
 class Thread;
@@ -58,6 +59,7 @@ extern uint32 spawnedThreads(void);   ///< Threads created since application sta
 extern uint32 runningThreads(void);   ///< Count of threads that are still running
 extern void   wakeUpMainThread(void); ///< Wakes up main thread to process incoming events
 extern uint32 currentCoreId(void);    ///< Index of CPU core on which this thread is currently executing
-}
+
+} // en
 
 #endif

@@ -19,6 +19,7 @@ namespace en
 {
 namespace xr
 {
+
 class View
 {
     public:
@@ -28,4 +29,5 @@ class View
 
 } // en::xr
 } // en
+
 #endif

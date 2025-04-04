@@ -27,6 +27,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Operation performed by blend stage
 enum class BlendMode : uint32
 {
@@ -34,7 +35,7 @@ enum class BlendMode : uint32
     BlendOperation              = 1,
   //LogicOperation              = 2 // Currently not exposed due to lack of support in Metal API.
 };
-      
+
 /// Color Buffer blend factor
 enum class BlendFactor : uint32
 {

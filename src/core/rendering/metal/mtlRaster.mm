@@ -66,4 +66,5 @@ RasterState* MetalDevice::createRasterState(const RasterStateInfo& state)
    
 } // en::gpu
 } // en
+
 #endif

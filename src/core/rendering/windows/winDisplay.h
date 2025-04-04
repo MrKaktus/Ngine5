@@ -35,4 +35,5 @@ class winDisplay : public CommonDisplay
 
 } // en::gpu
 } // en
+
 #endif

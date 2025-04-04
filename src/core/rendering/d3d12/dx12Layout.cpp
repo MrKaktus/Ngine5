@@ -1112,4 +1112,5 @@ Descriptors* Direct3D12Device::createDescriptorsPool(
 
 } // en::gpu
 } // en
+
 #endif

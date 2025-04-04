@@ -202,4 +202,5 @@ oxrPresentationSessionVK::~oxrPresentationSessionVK()
 
 } // en::xr
 } // en
+
 #endif

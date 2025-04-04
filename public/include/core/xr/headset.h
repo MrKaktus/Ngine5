@@ -23,6 +23,7 @@ namespace en
 {
 namespace xr
 {
+
 class Headset
 {
     public:
@@ -32,9 +33,11 @@ class Headset
     virtual ~Headset() {};
 };
 
-}
+} // en::xr
 
 // Subsystem main entry:
 //extern xr::Interface* XR;
-}
+
+} // en
+
 #endif

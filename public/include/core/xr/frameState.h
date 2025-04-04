@@ -22,6 +22,7 @@ namespace en
 {
 namespace xr
 {
+
 class FrameState
 {
     public:
@@ -38,4 +39,5 @@ class FrameState
 
 } // en::xr
 } // en
+
 #endif

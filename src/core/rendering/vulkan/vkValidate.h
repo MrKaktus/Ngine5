@@ -30,6 +30,7 @@ extern bool IsWarning(const VkResult result);
 
 } // en::gpu
 } // en
+
 #endif
 
 // gpu     - pointer to class storing pointer to called function.

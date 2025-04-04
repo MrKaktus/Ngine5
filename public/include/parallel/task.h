@@ -17,6 +17,7 @@
 
 namespace en
 {
+
 // Task execution state is tracked by atomic counter, that represents amount
 // of worker threads that are processing this task (or have it in it's queue).
 // Counter is increased to 1, when task is passed for execution, and finally
@@ -39,6 +40,7 @@ static_assert(sizeof(TaskState) == 64, "en::TaskState size mismatch!");
 // processed, or pass data ownership to task itself (preffered method).
 // Task is responsible for releasing data passed to it.
 typedef void(*TaskFunction)(void* taskData);
-}
+
+} // en
 
 #endif

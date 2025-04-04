@@ -633,6 +633,7 @@ MetalAPI::~MetalAPI()
 
 } // en::gpu
 } // en
+
 #endif
 
 /*

@@ -19,34 +19,40 @@
 #include "core/defines.h"
 #include "core/types.h"
 
+// TODO: DEPRECATE & REMOVE
+
 namespace en
 {
-   namespace monetization
-   {
-   class Banner
-         {
-         public:
-         virtual ~Banner();              // Polymorphic deletes require a virtual base destructor
-         };
+namespace monetization
+{
 
-   struct Interface
-          {
-          struct Banner
-                 {
+class Banner
+{
+    public:
+    virtual ~Banner();              // Polymorphic deletes require a virtual base destructor
+};
+
+struct Interface
+{
+    struct Banner
+    {
 #ifdef EN_PLATFORM_BLACKBERRY
-                 std::shared_ptr<monetization::Banner> create(const uint32 x,            // Banners upper left corner x position on the screen 
-                                                  const uint32 y,            // Banners upper left corner y position on the screen 
-                                                  const uint32 width,        // Width in pixels
-                                                  const uint32 height,       // Height in pixels
-                                                  const uint32 seconds,      // Refresh rate in seconds (60 is default and minimum)
-                                                  const uint32 zoneID,       // Banners unique ID in Advertising Service, trial zone is 117145 or 31848 or 16741
-                                                  const std::string placeholder); // Name of placeholder image (must be in resources/textures path)
+        std::shared_ptr<monetization::Banner> create(
+            const uint32 x,                 // Banners upper left corner x position on the screen 
+            const uint32 y,                 // Banners upper left corner y position on the screen 
+            const uint32 width,             // Width in pixels
+            const uint32 height,            // Height in pixels
+            const uint32 seconds,           // Refresh rate in seconds (60 is default and minimum)
+            const uint32 zoneID,            // Banners unique ID in Advertising Service, trial zone is 117145 or 31848 or 16741
+            const std::string placeholder); // Name of placeholder image (must be in resources/textures path)
 #endif               
-                 } banner;
-          };
-   }
+    } banner;
+};
+
+} // en::monetization
 
 extern monetization::Interface Monetization;
-}
+
+} // en
 
 #endif

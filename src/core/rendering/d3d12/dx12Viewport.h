@@ -48,6 +48,6 @@ class ViewportStateD3D12 : public ViewportState
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

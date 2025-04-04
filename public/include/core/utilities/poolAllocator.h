@@ -213,4 +213,5 @@ void PoolAllocator<T>::deallocate(T& resource)
 }
 
 } // en
+
 #endif

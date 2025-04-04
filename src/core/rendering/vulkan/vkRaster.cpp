@@ -75,4 +75,5 @@ RasterState* VulkanDevice::createRasterState(const RasterStateInfo& state)
 
 } // en::gpu
 } // en
+
 #endif

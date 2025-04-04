@@ -208,6 +208,6 @@ class CommandBufferVK : public CommandBuffer
 
 } // en:: gpu
 } // en
-#endif
 
+#endif
 #endif

@@ -25,6 +25,7 @@ namespace en
 {
 namespace gpu
 {
+
 struct AttributeDesc
 {
     Attribute format;   ///< Format in which input data are represented

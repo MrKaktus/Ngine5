@@ -539,4 +539,5 @@ std::shared_ptr<CommandBuffer> MetalDevice::createCommandBuffer(const QueueType 
    
 } // en::gpu
 } // en
+
 #endif

@@ -181,6 +181,6 @@ class MetalDevice : public CommonDevice
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

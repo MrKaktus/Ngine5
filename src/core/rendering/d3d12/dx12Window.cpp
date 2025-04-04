@@ -365,4 +365,5 @@ Window* Direct3D12Device::createWindow(const WindowSettings& settings, const std
 
 } // en::gpu
 } // en
+
 #endif

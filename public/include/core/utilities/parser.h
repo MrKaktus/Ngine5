@@ -46,4 +46,5 @@ bool isInteger(const char* text, const uint32 length);
 bool isFloat(const char* text, const uint32 length);
 
 } // en
+
 #endif

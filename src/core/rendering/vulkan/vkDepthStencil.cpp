@@ -84,4 +84,5 @@ DepthStencilState* VulkanDevice::createDepthStencilState(const DepthStencilState
 
 } // en::gpu
 } // en
+
 #endif

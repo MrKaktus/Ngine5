@@ -38,4 +38,5 @@ class oxrFrameState : public FrameState
 
 } // en::xr
 } // en
+
 #endif

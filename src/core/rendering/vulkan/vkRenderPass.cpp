@@ -1359,4 +1359,5 @@ RenderPass* VulkanDevice::createRenderPass(
 
 } // en::gpu
 } // en
+
 #endif

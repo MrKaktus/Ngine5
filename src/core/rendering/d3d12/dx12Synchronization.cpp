@@ -482,4 +482,5 @@ std::shared_ptr<Semaphore> Direct3D12Device::createSemaphore(void)
 
 } // en::gpu
 } // en
+
 #endif

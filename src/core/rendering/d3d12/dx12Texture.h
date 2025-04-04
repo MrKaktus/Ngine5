@@ -80,6 +80,6 @@ class TextureViewD3D12 : public CommonTextureView
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

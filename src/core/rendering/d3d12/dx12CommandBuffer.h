@@ -196,6 +196,6 @@ class CommandBufferD3D12 : public CommandBuffer
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

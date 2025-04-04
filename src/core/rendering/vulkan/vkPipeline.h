@@ -42,6 +42,7 @@ class PipelineVK : public Pipeline
 
 } // en::gpu
 } // en
+
 #endif
 
 #endif

@@ -265,4 +265,5 @@ Buffer* HeapD3D12::createBuffer(const BufferType type, const uint32 size)
    
 } // en::gpu
 } // en
+
 #endif

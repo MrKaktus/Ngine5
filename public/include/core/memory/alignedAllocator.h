@@ -51,9 +51,13 @@ T* allocate(const uint32 count, const uint32 alignment)
 #else
     int ret = posix_memalign((void **)(&temp), alignment, size);
     if (ret == ENOMEM)
+    {
         return nullptr;
+    }
     if (ret == EINVAL)
+    {
         return nullptr;
+    }
 #endif
     return temp;
 }
@@ -92,4 +96,5 @@ T* reallocate(T* memory, const uint32 alignment, const uint32 oldCount, const ui
 }
 
 } // en
+
 #endif

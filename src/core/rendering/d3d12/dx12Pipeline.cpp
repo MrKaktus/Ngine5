@@ -261,4 +261,5 @@ Pipeline* Direct3D12Device::createPipeline(const PipelineState& pipelineState)
 
 } // en::gpu
 } // en
+
 #endif

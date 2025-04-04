@@ -704,6 +704,7 @@ ImageMemoryAlignment VulkanDevice::textureMemoryAlignment(const TextureState& st
 
 } // en::gpu
 } // en
+
 #endif
 
 

@@ -83,6 +83,6 @@ static_assert(sizeof(HeapVK) == 72, "en::gpu::CommonHeap size mismatch!"); // 14
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

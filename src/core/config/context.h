@@ -48,6 +48,7 @@ struct Context
 } // en::config
 
 extern config::Context ConfigContext;
-}
+
+} // en
 
 #endif

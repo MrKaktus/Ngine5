@@ -25,6 +25,7 @@ namespace en
 {
 namespace xr
 {
+
 enum class PresentationMode : uint8
 {
     Direct          = 0,
@@ -89,4 +90,5 @@ class PresentationSession
 
 } // en::xr
 } // en
+
 #endif

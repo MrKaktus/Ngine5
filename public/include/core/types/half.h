@@ -13,21 +13,25 @@
 
 namespace en
 {
-   class half
-      {
-      public:
-      //union {
-      //      struct {
-      //             uint16 mantista : 10;
-      //             uint16 exponent : 5;
-      //             uint16 sign     : 1; 
-      //             };
-            uint16 value;
-      //      };
-      
-      half(void);                         
-      half(const float src); 
-      };
-}
+
+class half
+{
+    public:
+    //union 
+    //{
+    //    struct 
+    //    {
+    //    uint16 mantista : 10;
+    //    uint16 exponent : 5;
+    //    uint16 sign     : 1; 
+    //    };
+          uint16 value;
+    //};
+   
+    half(void);                         
+    half(const float src); 
+};
+
+} // en
 
 #endif

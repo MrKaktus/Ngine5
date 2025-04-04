@@ -38,4 +38,5 @@ class SamplerVK : public Sampler
 
 } // en::gpu
 } // en
+
 #endif

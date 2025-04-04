@@ -40,6 +40,6 @@ extern std::shared_ptr<SharedSurface> createSharedSurface(const uint32v2 resolut
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

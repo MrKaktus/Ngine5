@@ -30,4 +30,5 @@ bool load(const std::string& filename,
 
 } // en::tga
 } // en
+
 #endif

@@ -45,6 +45,6 @@ class DisplayMTL : public CommonDisplay
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

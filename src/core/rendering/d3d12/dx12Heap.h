@@ -59,6 +59,6 @@ class HeapD3D12 : public CommonHeap
       
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

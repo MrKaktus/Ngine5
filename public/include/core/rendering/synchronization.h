@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Bitmask
 enum class BufferAccess : uint32
 {

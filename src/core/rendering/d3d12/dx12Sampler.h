@@ -40,6 +40,6 @@ class SamplerD3D12 : public Sampler
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

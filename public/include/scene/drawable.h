@@ -18,17 +18,19 @@
 #include "core/rendering/device.h"
 namespace en
 {
-   namespace scene
-   {
-   class Drawable : public Entity
-         {
-         public:
-         //en::gpu::Block enScene; // Constant Buffer with per Scene/Frame constants
+namespace scene
+{
 
-         virtual void draw(const en::gpu::Buffer& sceneParameters, const uint32 instances = 1U) = 0;
-   
-         Drawable();
-         };
-   }
-}
+class Drawable : public Entity
+{
+    public:
+    //en::gpu::Block enScene; // Constant Buffer with per Scene/Frame constants
+
+    virtual void draw(const en::gpu::Buffer& sceneParameters, const uint32 instances = 1U) = 0;
+
+    Drawable();
+};
+
+} // en::scene
+} // en
 #endif

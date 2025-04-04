@@ -294,4 +294,5 @@ void winWindow::opaque(void)
 
 } // en::gpu
 } // en
+
 #endif

@@ -15,19 +15,21 @@
 
 namespace en
 {
-   class uint32v4
-      {
-      public:
-      union { uint32 x; uint32 left;  };
-      union { uint32 y; uint32 rigth; };
-      union { uint32 z; uint32 top;    uint32 width;  };
-      union { uint32 w; uint32 bottom; uint32 height; };
-      
-      uint32v4(void);
-      uint32v4(const uint32 x, const uint32 y, const uint32 z, const uint32 w);
-      };
+
+class uint32v4
+{
+    public:
+    union { uint32 x; uint32 left;  };
+    union { uint32 y; uint32 rigth; };
+    union { uint32 z; uint32 top;    uint32 width;  };
+    union { uint32 w; uint32 bottom; uint32 height; };
    
-   static_assert(sizeof(uint32v4) == 16, "en::uint32v4 size mismatch!");
-}
+    uint32v4(void);
+    uint32v4(const uint32 x, const uint32 y, const uint32 z, const uint32 w);
+};
+
+static_assert(sizeof(uint32v4) == 16, "en::uint32v4 size mismatch!");
+
+} // en
 
 #endif

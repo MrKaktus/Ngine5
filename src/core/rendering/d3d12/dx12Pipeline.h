@@ -54,6 +54,6 @@ class PipelineD3D12 : public Pipeline
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

@@ -27,4 +27,5 @@ bool  virtualReallocate(void* address, const uint64 currentSize, const uint64 ne
 void  virtualDeallocate(void* address, const uint64 maximumSize);
 
 } // en
+
 #endif

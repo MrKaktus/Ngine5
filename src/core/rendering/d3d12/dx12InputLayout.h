@@ -52,6 +52,6 @@ class InputLayoutD3D12 : public InputLayout
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

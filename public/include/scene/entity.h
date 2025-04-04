@@ -74,78 +74,80 @@ LHS (z as Up, y as DEPTH)
 
 namespace en
 {
-   namespace scene
-   {
-   class Scene;
+namespace scene
+{
 
-   class Entity : private NonCopyable
-/* 8  */ {
-         protected:
-         // When attached to scene, these parameters are stored in arrays 
-         // for data locality. Otherwise they are freely alocated.
+class Scene;
 
-         double3*  pPosition;
-         float4x4* pRotation;
-         float3*   pScale;             
-/* 4  */ float4x4* pWorldMatrix; 
-/* 4  */ float4*   pBoundingSphere;
-/* 4  */ float4*   pWorldBoundingSphere;
+class Entity : private NonCopyable
+{
+    protected: /*  8  */ 
+    // When attached to scene, these parameters are stored in arrays 
+    // for data locality. Otherwise they are freely alocated.
+
+    double3*  pPosition;
+    float4x4* pRotation;
+    float3*   pScale;             
+    float4x4* pWorldMatrix;           /*  4  */ 
+    float4*   pBoundingSphere;        /*  4  */ 
+    float4*   pWorldBoundingSphere;   /*  4  */ 
  
-         // DIRTY:
-         Scene*    pScene;   // Scene this entity belongs to
-         uint32    handle;   // Handle in scene
+    // DIRTY:
+    Scene*    pScene;   // Scene this entity belongs to
+    uint32    handle;   // Handle in scene
 
-/* 4  */ std::shared_ptr<Entity> parent; // Parent entity
+    std::shared_ptr<Entity> parent; // Parent entity/* 4  */ 
 
-         // Scene that owns it, can manipulate with all data of entity
-         friend class Scene; 
+    // Scene that owns it, can manipulate with all data of entity
+    friend class Scene; 
 
-         public:
-         Entity(void);                             // Create object 
-         Entity(Scene& scene);                     // Create object on Scene
-         Entity(Entity& parent);                   // Create child object 
-        ~Entity();                                 // Destroy object
+    public:
+    Entity(void);                             // Create object 
+    Entity(Scene& scene);                     // Create object on Scene
+    Entity(Entity& parent);                   // Create child object 
+   ~Entity();                                 // Destroy object
 
-         void    position(const double3 pos);      // Set position 
-         void    position(const double x,          
-                          const double y,          
-                          const double z);            
-         void    position(const float3 pos);       
-         void    position(const float x,           
-                          const float y,           
-                          const float z);                    
-         double3 position(void) const;             // Get position
-         void    scale(const float3 s);            // Set global scale
-         void    scale(const float x,              
-                       const float y,              
-                       const float z);                  
-         void    scaleX(const float x);            
-         void    scaleY(const float y);            
-         void    scaleZ(const float z);            
-         float3  scale(void) const;                // Get global scale
-         void    direct(const float3 look,         
-                        const float3 up);          // Set orientation
-         //void    direct(float4x4& orientation);
-         float3  direction(void) const;            // Get direction
-         float3  top(void) const;                  // Get top
-         float3  side(void) const;                 // Get side vector (right vector)
-                                                   
-         void    yaw(const float deg);             // Rotates around axis UP   (positive left) 
-         void    turn(const float deg);            
-         void    roll(const float deg);            // Rotates around axis LOOK (positive right) 
-         void    pitch(const float deg);           // Rotates around axis SIDE (positive up)
-   
-         void    move(const double units);         // Moves forwar/backward (positive forward)
-         void    strafe(const double units);       // Moves horizontally (positive right)
-         void    moveVertical(const double units); // Moves vertically (positive up)
-         void    ascend(const double units);
-         void    descend(const double units);
+    void    position(const double3 pos);      // Set position 
+    void    position(const double x,          
+                     const double y,          
+                     const double z);            
+    void    position(const float3 pos);       
+    void    position(const float x,           
+                     const float y,           
+                     const float z);                    
+    double3 position(void) const;             // Get position
+    void    scale(const float3 s);            // Set global scale
+    void    scale(const float x,              
+                  const float y,              
+                  const float z);                  
+    void    scaleX(const float x);            
+    void    scaleY(const float y);            
+    void    scaleZ(const float z);            
+    float3  scale(void) const;                // Get global scale
+    void    direct(const float3 look,         
+                   const float3 up);          // Set orientation
+    //void    direct(float4x4& orientation);
+    float3  direction(void) const;            // Get direction
+    float3  top(void) const;                  // Get top
+    float3  side(void) const;                 // Get side vector (right vector)
+                                              
+    void    yaw(const float deg);             // Rotates around axis UP   (positive left) 
+    void    turn(const float deg);            
+    void    roll(const float deg);            // Rotates around axis LOOK (positive right) 
+    void    pitch(const float deg);           // Rotates around axis SIDE (positive up)
+    
+    void    move(const double units);         // Moves forwar/backward (positive forward)
+    void    strafe(const double units);       // Moves horizontally (positive right)
+    void    moveVertical(const double units); // Moves vertically (positive up)
+    void    ascend(const double units);
+    void    descend(const double units);
+    
+    float4x4 matrix(void);                    // Returns Object Space -> World Space matrix
+    float4x4 rotationMatrix(void);            // Returns Object Space -> World Space rotation matrix
+    float4x4 translationMatrix(void);         // Returns Object Space -> World Space translations matrix
+};
 
-         float4x4 matrix(void);                    // Returns Object Space -> World Space matrix
-         float4x4 rotationMatrix(void);            // Returns Object Space -> World Space rotation matrix
-         float4x4 translationMatrix(void);         // Returns Object Space -> World Space translations matrix
-         };
-   }
-}
+} // en::scene
+} // en
 
 #endif

@@ -15,25 +15,27 @@
 
 namespace en
 {
-   class double4
-      {
-      public:
-      union { double x; double r; };
-      union { double y; double g; };
-      union { double z; double b; };
-      union { double w; double a; };
-      
-      double4(void);                                   
-      double4(const float3 f3);
-      double4(const double3 d3, const double w = 1.0f);                   
-      double4(const double x, const double y, const double z, const double w); 
-      
-      void operator-= (const double4 b);      
-      void operator+= (const double4 b);         
-      
-      double3 xyz(void) const;
-      void normalize(void);                       
-      };
-}
+
+class double4
+{
+    public:
+    union { double x; double r; };
+    union { double y; double g; };
+    union { double z; double b; };
+    union { double w; double a; };
+   
+    double4(void);                                   
+    double4(const float3 f3);
+    double4(const double3 d3, const double w = 1.0f);                   
+    double4(const double x, const double y, const double z, const double w); 
+   
+    void operator-= (const double4 b);      
+    void operator+= (const double4 b);         
+   
+    double3 xyz(void) const;
+    void normalize(void);                       
+};
+
+} // en
 
 #endif

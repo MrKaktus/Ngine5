@@ -35,7 +35,7 @@ void wakeUpMainThread(void)
 void setThreadName(std::string threadName)
 {
     // Sets name of current thread
-    HRESULT result = SetThreadDescription(GetCurrentThread(), stringToWchar(threadName.c_str(), threadName.length()));
+    HRESULT result = SetThreadDescription(GetCurrentThread(), stringToWchar(threadName.c_str(), (uint32)threadName.length()));
 
     // Info: Available since Windows 10 Creators Update 2018 (version 1607)
     //       Requires matching Windows SDK, which in turn requires Visual Studio 2017
@@ -111,7 +111,7 @@ void* winThread::state(void)
 void winThread::name(std::string threadName)
 {
     // Sets name of current thread
-    HRESULT result = SetThreadDescription(handle, stringToWchar(threadName.c_str(), threadName.length()));
+    HRESULT result = SetThreadDescription(handle, stringToWchar(threadName.c_str(), (uint32)threadName.length()));
 
     // Info: Available since Windows 10 Creators Update 2018 (version 1607)
     //       Requires matching Windows SDK, which in turn requires Visual Studio 2017

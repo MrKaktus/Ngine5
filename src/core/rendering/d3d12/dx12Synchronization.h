@@ -47,6 +47,6 @@ class SemaphoreD3D12 : public Semaphore
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

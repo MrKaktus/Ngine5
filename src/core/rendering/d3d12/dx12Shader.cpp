@@ -150,4 +150,5 @@ std::shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, 
 
 } // en::gpu
 } // en
+
 #endif

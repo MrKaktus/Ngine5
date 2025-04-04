@@ -162,6 +162,6 @@ class RenderPassD3D12 : public RenderPass
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

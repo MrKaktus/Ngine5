@@ -22,6 +22,7 @@ namespace en
 {
 namespace gpu
 {
+
 class Display
 {
     public:

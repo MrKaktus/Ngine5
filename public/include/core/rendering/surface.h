@@ -26,6 +26,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Surface that can be shared between processes and API's
 /// (by using it as backing surface for API specific Textures).
 class SharedSurface
@@ -46,7 +47,7 @@ class OpenGLContext
     
     virtual ~OpenGLContext() {};
 };
-      
+
 OpenGLContext* createDummyOpenGLContext(void);
 
 } // en::gpu

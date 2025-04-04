@@ -628,4 +628,5 @@ Descriptors* VulkanDevice::createDescriptorsPool(
 
 } // en::gpu
 } // en
+
 #endif

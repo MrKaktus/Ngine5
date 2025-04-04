@@ -55,6 +55,7 @@ ViewportState* Direct3D12Device::createViewportState(const uint32 count,
 
 } // en::gpu
 } // en
+
 #endif
 
 

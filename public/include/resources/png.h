@@ -31,4 +31,5 @@ bool load(const std::string& filename,
 
 } // en::png
 } // en
+
 #endif

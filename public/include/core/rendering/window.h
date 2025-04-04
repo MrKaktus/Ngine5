@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 class Display;
 class Semaphore;
 
@@ -33,7 +34,7 @@ enum WindowMode
     BorderlessWindow     ,   ///< Create borderless Window
     Fullscreen               ///< Switch given display to full screen mode
 };
-   
+
 /// Window settings:
 ///
 /// mode       - Mode in which we create surface (BorderlessWindow by default)
@@ -128,4 +129,5 @@ uint32v4 windowBorders(void);
 
 } // en::gpu
 } // en
+
 #endif

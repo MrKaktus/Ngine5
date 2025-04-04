@@ -15,19 +15,21 @@
 
 namespace en
 {
-   class uint16v2
-      {
-      public:
-      union { uint16 x; uint16 width;  uint16 base;  uint16 first; };
-      union { uint16 y; uint16 height; uint16 count; };
-      
-      uint16v2(void);
-      uint16v2(const uint16 x, const uint16 y);
 
-      bool operator== (const uint16v2 b) const;
-      };
+class uint16v2
+{
+    public:
+    union { uint16 x; uint16 width;  uint16 base;  uint16 first; };
+    union { uint16 y; uint16 height; uint16 count; };
    
-   static_assert(sizeof(uint16v2) == 4, "en::uint16v2 size mismatch!");
-}
+    uint16v2(void);
+    uint16v2(const uint16 x, const uint16 y);
+
+    bool operator== (const uint16v2 b) const;
+};
+
+static_assert(sizeof(uint16v2) == 4, "en::uint16v2 size mismatch!");
+
+} // en
 
 #endif

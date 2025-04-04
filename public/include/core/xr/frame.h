@@ -21,6 +21,7 @@ namespace en
 {
 namespace xr
 {
+
 class Frame
 {
     public:
@@ -35,4 +36,5 @@ class Frame
 
 } // en::xr
 } // en
+
 #endif

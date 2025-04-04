@@ -25,10 +25,10 @@
 extern "C" int ApplicationMainC(int argc, const char* argv[]);
 
 // Handle of user windows application main
-extern "C" int WINAPI ApplicationMainW( HINSTANCE hInstance,     // Instance
-                                        HINSTANCE hPrevInstance, // Previous Instance
-                                        LPSTR lpCmdLine,         // Command Line Parameters
-                                        int nCmdShow);           // Window Show State
+extern "C" int WINAPI ApplicationMainW(HINSTANCE hInstance,     // Instance
+                                       HINSTANCE hPrevInstance, // Previous Instance
+                                       LPSTR lpCmdLine,         // Command Line Parameters
+                                       int nCmdShow);           // Window Show State
 #endif
 
 #endif

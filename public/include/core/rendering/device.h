@@ -102,6 +102,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// For use of API specific features (shouldn't be used if not really needed).
 enum class RenderingAPI : uint32
 {
@@ -125,7 +126,7 @@ enum class QueueType : uint32
     OpticalFlow       , ///< NVidia Optical Flow
     Count
 };
-      
+
 /// Per device context that can be used to perform operations on GPU
 class GpuDevice : public std::enable_shared_from_this<GpuDevice>
 {
@@ -399,6 +400,7 @@ class GraphicAPI
 } // en::gpu
 
 extern std::shared_ptr<gpu::GraphicAPI> Graphics;
+
 } // en
 
 #endif

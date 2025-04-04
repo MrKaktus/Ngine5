@@ -71,4 +71,5 @@ std::shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, cons
 
 } // en::gpu
 } // en
+
 #endif

@@ -23,11 +23,13 @@ constexpr uint32 MaxSupportedThreads = 256; /// Max count of threads supported b
 namespace en
 {
 namespace system
-{ 
+{
+
 enum Platform
 {
     Unknown             = 0,
     PC                     ,
+    Mac                    ,
     iPhone                 ,
     iPad                   ,        
 };
@@ -35,10 +37,10 @@ enum Platform
 enum OperatingSystem
 {
     Windows             = 0,
+    macOS                  ,
+    iOS                    ,
     Android                ,
     BlackBerry             ,
-    iOS                    ,
-    macOS                  ,
 };
 
 enum Name
@@ -57,6 +59,7 @@ enum Name
     WindowsServer2012r2    ,
     Windows8_1             ,
     Windows10              ,
+    Windows11              ,
 };
 
 struct Interface
@@ -72,6 +75,7 @@ struct Interface
 } // en::system
 
 extern system::Interface System;
+
 } // en
 
 #endif

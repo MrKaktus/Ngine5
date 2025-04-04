@@ -44,6 +44,6 @@ class MultisamplingStateMTL : public MultisamplingState
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

@@ -146,4 +146,5 @@ class oxrPresentationSession : public PresentationSession
 
 } // en::xr
 } // en
+
 #endif

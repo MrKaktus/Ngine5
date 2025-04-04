@@ -2247,4 +2247,5 @@ std::shared_ptr<Display> VulkanAPI::display(const uint32 index) const
 
 } // en::gpu
 } // en
+
 #endif

@@ -39,6 +39,6 @@ class MultisamplingStateVK : public MultisamplingState
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

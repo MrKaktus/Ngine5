@@ -621,4 +621,5 @@ ImageMemoryAlignment Direct3D12Device::textureMemoryAlignment(
 
 } // en::gpu
 } // en
+
 #endif

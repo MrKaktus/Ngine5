@@ -26,61 +26,64 @@
 
 namespace en
 {
-   namespace scene
-   {
-   // Handle of entity in scene
-   struct Handle
-          {
-          uint32 childs;
-          uint32 layer;
-          uint32 index; 
-          };
+namespace scene
+{
 
-   // Structure of Arrays
-   struct Layer
-          {
-          // Source
-          array<double3>  position;
-          array<float4x4> rotation;
-          array<float3>   scale;
-          array<float4>   boundingSphere;
-          array< std::shared_ptr<Entity> > entity;
-       
-          // Destination      
-          array<float4x4> worldMatrix; 
-          array<float4>   worldBoundingSphere;
-   
-          // Data management 
-          uint32 count; 
-        
-          Layer();
-         ~Layer();
-          };
+// Handle of entity in scene
+struct Handle
+{
+    uint32 childs;
+    uint32 layer;
+    uint32 index; 
+};
 
-   // Scene
-   class Scene
-         {
-         private:
-         // Data Oriented Design, Nodes are stored as
-         // Structure of Arrays to align data in memory
-         // and prevent cache misses.
-         array<Handle> entities;
-         array<Layer>  layers;
-         uint32        depth;   // Layers count
-         uint32        count;   // Total entities count
+// Structure of Arrays
+struct Layer
+{
+    // Source
+    array<double3>  position;
+    array<float4x4> rotation;
+    array<float3>   scale;
+    array<float4>   boundingSphere;
+    array< std::shared_ptr<Entity> > entity;
+ 
+    // Destination      
+    array<float4x4> worldMatrix; 
+    array<float4>   worldBoundingSphere;
 
-         void resizeLayer(uint8 i);
+    // Data management 
+    uint32 count; 
+  
+    Layer();
+   ~Layer();
+};
 
-         public:
-         Scene(uint32 entities = 16384);
-        ~Scene();
+// Scene
+class Scene
+{
+    private:
+    // Data Oriented Design, Nodes are stored as
+    // Structure of Arrays to align data in memory
+    // and prevent cache misses.
+    array<Handle> entities;
+    array<Layer>  layers;
+    uint32        depth;   // Layers count
+    uint32        count;   // Total entities count
 
-         bool add(std::shared_ptr<Entity> object);                     // Add new entity to the scene
-         bool add(std::shared_ptr<Entity> object, std::shared_ptr<Entity> parent); // Add new entity to the scene as child object
-         bool remove(uint32 handle);                       // Remove entity from scene
-         void update(void);                                // Update scene
-         };
-   }
-}
+    void resizeLayer(uint8 i);
+
+    public:
+    Scene(uint32 entities = 16384);
+   ~Scene();
+
+    bool add(std::shared_ptr<Entity> object); // Add new entity to the scene
+    bool add(std::shared_ptr<Entity> object, 
+             std::shared_ptr<Entity> parent); // Add new entity to the scene as child object
+    bool remove(uint32 handle);               // Remove entity from scene
+    void update(void);                        // Update scene
+};
+
+} // en::scene
+} // en
 
 #endif

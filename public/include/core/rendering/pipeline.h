@@ -37,6 +37,7 @@ namespace en
 {
 namespace gpu
 {
+
 // Cross API issues:
 //
 // Logic Operation:

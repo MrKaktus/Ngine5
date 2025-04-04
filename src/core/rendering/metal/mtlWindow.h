@@ -54,6 +54,6 @@ class WindowMTL : public CommonWindow
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

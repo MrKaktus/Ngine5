@@ -349,6 +349,6 @@ class VulkanAPI : public CommonGraphicAPI
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

@@ -26,6 +26,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Buffer Type
 enum class BufferType : uint32
 {
@@ -176,37 +177,37 @@ enum class Attribute : uint32
 /// in API for any kind of operation is not guaranteed nor expected.
 
 #define MaxInputLayoutAttributesCount 32
-   
+
 /// Layout of attributes in Input Assembler. 
 /// Can be also used to specify Buffer formatting.
 class Formatting
 {
     public:
     Attribute column[MaxInputLayoutAttributesCount]; ///< Format of each column
-    
+
     /// Create formatting layout by passing at least one data column format.
     /// If more than eight input attributes need to be specified, they can be
     /// directly set on column variable.
     Formatting();
     Formatting(
-       const Attribute col0,
-       const Attribute col1  = Attribute::None,
-       const Attribute col2  = Attribute::None,
-       const Attribute col3  = Attribute::None,
-       const Attribute col4  = Attribute::None,
-       const Attribute col5  = Attribute::None,
-       const Attribute col6  = Attribute::None,
-       const Attribute col7  = Attribute::None);
-       
+        const Attribute col0,
+        const Attribute col1  = Attribute::None,
+        const Attribute col2  = Attribute::None,
+        const Attribute col3  = Attribute::None,
+        const Attribute col4  = Attribute::None,
+        const Attribute col5  = Attribute::None,
+        const Attribute col6  = Attribute::None,
+        const Attribute col7  = Attribute::None);
+
     /// Size of all attributes combined together, with platform specific
     /// padding. Holes between attributes are not allowed.
     uint32 elementSize(void) const;
-    
+
    ~Formatting();
 };
-      
+
 class BufferView;
-   
+
 class Buffer
 {
     public:
@@ -229,10 +230,10 @@ class Buffer
  
     /// New buffer view with specified formatting
     virtual BufferView* view(
-       const uint32 elements,
-       const Formatting& formatting,
-       const uint32 step = 0,
-       const uint32 offset = 0) = 0;
+        const uint32 elements,
+        const Formatting& formatting,
+        const uint32 step = 0,
+        const uint32 offset = 0) = 0;
 */
 
     virtual ~Buffer() {};

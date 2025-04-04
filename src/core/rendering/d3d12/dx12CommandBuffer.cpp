@@ -979,4 +979,5 @@ void Direct3D12Device::clearCommandBuffersQueue(void)
 
 } // en::gpu
 } // en
+
 #endif

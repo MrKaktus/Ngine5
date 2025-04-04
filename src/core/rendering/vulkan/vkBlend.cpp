@@ -129,4 +129,5 @@ BlendState* VulkanDevice::createBlendState(const BlendStateInfo& state,
 
 } // en::gpu
 } // en
+
 #endif

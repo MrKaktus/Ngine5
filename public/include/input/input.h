@@ -32,182 +32,183 @@
 
 namespace en
 {
-   namespace input
-   {
-   enum class MouseButton : uint8
-        {
-        Left                 = 0,
-        Right                   ,
-        Middle                  ,
-        Count
-        };
+namespace input
+{
 
-   enum class JoystickAxis : uint8
-        {
-        X                    = 0,
-        Y                       ,
-        Z                       ,
-        AxisCount
-        };
+enum class MouseButton : uint8
+{
+    Left                 = 0,
+    Right                   ,
+    Middle                  ,
+    Count
+};
 
-   enum CameraType
-        {
-        Default              = 0,
-        CreativeSenz3D          ,
-        CreativeRealSense       ,
-        KinectForXbox360        ,
-        //KinectForWindows        ,
-        //KinectForXboxOne        ,
-        //KinectForWindowsV2      ,
-        CameraTypesCount
-        };
+enum class JoystickAxis : uint8
+{
+    X                    = 0,
+    Y                       ,
+    Z                       ,
+    AxisCount
+};
 
-   enum CameraStream
-        {
-        Color                = 0,
-        Depth                   ,
-        IR                      ,
-        IntensityLeft           ,
-        IntensityRight          ,
-        Skeletons               ,
-        CameraStreamsCount
-        };
+enum CameraType
+{
+    Default              = 0,
+    CreativeSenz3D          ,
+    CreativeRealSense       ,
+    KinectForXbox360        ,
+  //KinectForWindows        ,
+  //KinectForXboxOne        ,
+  //KinectForWindowsV2      ,
+    CameraTypesCount
+};
 
-   enum CameraState
-        {
-        Disconnected         = 0,
-        Initializing            ,
-        NoBandwith              ,
-        NoPower                 ,
-        Ready                   ,
-        Used                    ,
-        CameraStateCount
-        };
+enum CameraStream
+{
+    Color                = 0,
+    Depth                   ,
+    IR                      ,
+    IntensityLeft           ,
+    IntensityRight          ,
+    Skeletons               ,
+    CameraStreamsCount
+};
 
-   enum KinectTrackingState
-        {
-        Unknown                  = 0,
-        Predicted                   ,
-        Tracked                 
-        };
+enum CameraState
+{
+    Disconnected         = 0,
+    Initializing            ,
+    NoBandwith              ,
+    NoPower                 ,
+    Ready                   ,
+    Used                    ,
+    CameraStateCount
+};
 
-   enum EventType
-        {
-        None                     = 0,
-        KeyPressed                  , // Keyboard    in: enum Key
-        KeyReleased                 , //             in: enum Key
-        MouseMoved                  , // Mouse       in: 
-        MouseButtonPressed          , //             in: enum MouseButton
-        MouseButtonReleased         , //             in: enum MouseButton
-        JoystickPlugged             , // Joystick    in:
-        JoystickUnplugged           , //             in:
-        JoystickMoved               , //             in:
-        JoystickButtonPressed       , //             in: uint8 buttonNumber
-        JoystickButtonReleased      , //             in: uint8 buttonNumber
-        ControllerActivated         , // VR Haptic Controller
-        ControllerDeactivated       , //
-        ControllerButtonPressed     , //
-        ControllerButtonReleased    , //
-        ControllerButtonTouched     , //
-        ControllerButtonUntouched   , //
-        VRInputFocusAvailable       , // Controllers are available for capturing their input (other application released them).
-        VRInputFocusLost            , // Controllers input capture was taken from us (by other app or SteamVR).
-        VRSceneFocusLost            , // VR Process Environment
-        VRSceneFocusGained          , //
-        VRSceneApplicationChanged   , //
+enum KinectTrackingState
+{
+    Unknown                  = 0,
+    Predicted                   ,
+    Tracked                 
+};
 
-        CameraColorData             , // Camera
-        CameraDepthData             , //
-        CameraInfraredData          , //
-        CameraUVMapData             , //
-        CameraSkeletonData          , //
-        TouchscreenMoved            , // Touchscreen 
-        TouchscreenTouched          , //             
-        TouchscreenReleased         , //             
-        AppClose                    , // System
-        AppWindowHidden             , //
-        AppWindowInBackground       , //
-        AppWindowActive             , //
-        InputEventsCount
-        };
+enum EventType
+{
+    None                     = 0,
+    KeyPressed                  , // Keyboard    in: enum Key
+    KeyReleased                 , //             in: enum Key
+    MouseMoved                  , // Mouse       in: 
+    MouseButtonPressed          , //             in: enum MouseButton
+    MouseButtonReleased         , //             in: enum MouseButton
+    JoystickPlugged             , // Joystick    in:
+    JoystickUnplugged           , //             in:
+    JoystickMoved               , //             in:
+    JoystickButtonPressed       , //             in: uint8 buttonNumber
+    JoystickButtonReleased      , //             in: uint8 buttonNumber
+    ControllerActivated         , // VR Haptic Controller
+    ControllerDeactivated       , //
+    ControllerButtonPressed     , //
+    ControllerButtonReleased    , //
+    ControllerButtonTouched     , //
+    ControllerButtonUntouched   , //
+    VRInputFocusAvailable       , // Controllers are available for capturing their input (other application released them).
+    VRInputFocusLost            , // Controllers input capture was taken from us (by other app or SteamVR).
+    VRSceneFocusLost            , // VR Process Environment
+    VRSceneFocusGained          , //
+    VRSceneApplicationChanged   , //
 
-   // Body Skeleton description (20 bones for KinectForXbox360)
-   struct Skeleton
-          {
-          float4*              bone;
-          KinectTrackingState* boneState;
-          float4               position;
-          KinectTrackingState  state;
-          };
+    CameraColorData             , // Camera
+    CameraDepthData             , //
+    CameraInfraredData          , //
+    CameraUVMapData             , //
+    CameraSkeletonData          , //
+    TouchscreenMoved            , // Touchscreen 
+    TouchscreenTouched          , //             
+    TouchscreenReleased         , //             
+    AppClose                    , // System
+    AppWindowHidden             , //
+    AppWindowInBackground       , //
+    AppWindowActive             , //
+    InputEventsCount
+};
 
-   alignTo(1)
-   struct Event
-      {
-      EventType type; // 32 bits
-      
-      Event(EventType type);
-      };
+// Body Skeleton description (20 bones for KinectForXbox360)
+struct Skeleton
+{
+    float4*              bone;
+    KinectTrackingState* boneState;
+    float4               position;
+    KinectTrackingState  state;
+};
 
-   static_assert(sizeof(Event) == 4, "Event size mismatch!");
-       
-   struct KeyboardEvent : public Event
-          {
-          Key key;
-          
-          KeyboardEvent(Key key);
-          };
-      
-   struct MouseEvent : public Event
-          {
-          MouseButton button;
-          uint16 x;
-          uint16 y;
-          
-          MouseEvent(EventType type);
-          };
-      
-   struct JoystickButtonEvent : public Event
-          {
-          uint8 id;
-          uint8 button;
+alignTo(1)
+struct Event
+{
+    EventType type; // 32 bits
 
-          JoystickButtonEvent(const uint8 id, const uint8 button);
-          };
+    Event(EventType type);
+};
 
-   struct JoystickMoveEvent : public Event
-          {
-          uint8        id;
-          JoystickAxis axis;
-          float        position;   // Position normalised to [-1.0 .. 1.0] range
+static_assert(sizeof(Event) == 4, "Event size mismatch!");
 
-          JoystickMoveEvent(const uint8 id, const JoystickAxis axis, const float position);
-          };
-      
-   struct ControllerEvent : public Event
-          {
-          std::shared_ptr<Controller> pointer;
-          
-          ControllerEvent(EventType type);
-          };
+struct KeyboardEvent : public Event
+{
+    Key key;
 
-   struct CameraEvent : public Event
-          {
-          uint32 id;
-          uint32 size;
-          void*  ptr;
-          };
-      
-   struct SkeletonEvent : public Event
-          {
-          uint32 id;
-          uint32 bodies;
-          Skeleton* skeleton;
-          };
-      
-   alignToDefault
+    KeyboardEvent(Key key);
+};
 
-  
-       
+struct MouseEvent : public Event
+{
+    MouseButton button;
+    uint16 x;
+    uint16 y;
+
+    MouseEvent(EventType type);
+};
+
+struct JoystickButtonEvent : public Event
+{
+    uint8 id;
+    uint8 button;
+
+    JoystickButtonEvent(const uint8 id, const uint8 button);
+};
+
+struct JoystickMoveEvent : public Event
+{
+    uint8        id;
+    JoystickAxis axis;
+    float        position;   // Position normalised to [-1.0 .. 1.0] range
+
+    JoystickMoveEvent(const uint8 id, const JoystickAxis axis, const float position);
+};
+
+struct ControllerEvent : public Event
+{
+    std::shared_ptr<Controller> pointer;
+
+    ControllerEvent(EventType type);
+};
+
+struct CameraEvent : public Event
+{
+    uint32 id;
+    uint32 size;
+    void*  ptr;
+};
+
+struct SkeletonEvent : public Event
+{
+    uint32 id;
+    uint32 bodies;
+    Skeleton* skeleton;
+};
+   
+alignToDefault
+
+
+
    // Event is a 128 bit structure
    // ( -fpermissive under GCC and QCC )
 //   alignTo(1)
@@ -264,22 +265,22 @@ namespace en
        
 
 
-   struct Touch
-          {
-          float2 position;  // Position with subpixel precision. 
-                            // Returned in classic screenspace 
-                            // coordinate system with point 0,0 
-                            // in upper left corner and Y axis
-                            // raising down.
-          float  pressure;  // Pressure 0-lightest 1-normal
-          float  size;      // Size of touch in pixels
-          sint64 time;      // Time when touch occured
-          };
+struct Touch
+{
+    float2 position;  // Position with subpixel precision. 
+                      // Returned in classic screenspace 
+                      // coordinate system with point 0,0 
+                      // in upper left corner and Y axis
+                      // raising down.
+    float  pressure;  // Pressure 0-lightest 1-normal
+    float  size;      // Size of touch in pixels
+    sint64 time;      // Time when touch occured
+};
 
-   struct Gesture
-          {
-          std::vector<Touch> touches;
-          };
+struct Gesture
+{
+    std::vector<Touch> touches;
+};
 
 
 
@@ -289,45 +290,47 @@ namespace en
       
 
 
-   struct CameraInfo
-          {
-          CameraType type;             // Type of camera
-          uint32     streams;          // Bitfield of supported streams (use CameraStream enum's as bit's positions)
-          struct Color                 
-                 {                     
-                 uint32 width;         // Sensor width in pixels
-                 uint32 height;        // Sensor height in pixels
-                 uint32 fps;           // Sensor capture rate in Frames Per Second
-                 float  hFOV;          // Horizontal Field Of View
-                 float  vFOV;          // Vertical Field Of View
-                 } color;
-          struct Depth
-                 {
-                 uint32 width;         // Sensor width in pixels
-                 uint32 height;        // Sensor height in pixels
-                 uint32 fps;           // Sensor capture rate in Frames Per Second
-                 float  hFOV;          // Horizontal Field Of View
-                 float  vFOV;          // Vertical Field Of View
-                 float  minDistance;   // Minimum depth sensor range
-                 float  maxDistance;   // Maximum depth sensor range
-                 float  scale;         // Scale for which depth need to be multiplied, to acquire depth in meters
-                 uint16 saturate;
-                 uint16 lowConfidence;
-                 } depth;
-          struct Skeleton
-                 {
-                 uint32 bodies;        // Maximum number of tracked bodies
-                 uint32 bones;         // Maximum number of bones per skeleton
-                 } skeleton;
-          };
+struct CameraInfo
+{
+    CameraType type;          // Type of camera
+    uint32     streams;       // Bitfield of supported streams (use CameraStream enum's as bit's positions)
+    struct Color                 
+    {                     
+        uint32 width;         // Sensor width in pixels
+        uint32 height;        // Sensor height in pixels
+        uint32 fps;           // Sensor capture rate in Frames Per Second
+        float  hFOV;          // Horizontal Field Of View
+        float  vFOV;          // Vertical Field Of View
+    } color;
 
-   struct StreamSettings
-          {
-          gpu::Format format;
-          uint32 width;
-          uint32 height;
-          uint32 hz;
-          };
+    struct Depth
+    {
+        uint32 width;         // Sensor width in pixels
+        uint32 height;        // Sensor height in pixels
+        uint32 fps;           // Sensor capture rate in Frames Per Second
+        float  hFOV;          // Horizontal Field Of View
+        float  vFOV;          // Vertical Field Of View
+        float  minDistance;   // Minimum depth sensor range
+        float  maxDistance;   // Maximum depth sensor range
+        float  scale;         // Scale for which depth need to be multiplied, to acquire depth in meters
+        uint16 saturate;
+        uint16 lowConfidence;
+    } depth;
+
+    struct Skeleton
+    {
+        uint32 bodies;        // Maximum number of tracked bodies
+        uint32 bones;         // Maximum number of bones per skeleton
+    } skeleton;
+};
+
+struct StreamSettings
+{
+    gpu::Format format;
+    uint32 width;
+    uint32 height;
+    uint32 hz;
+};
 
 
 
@@ -335,75 +338,75 @@ namespace en
 
 // New dynamic Interface
 
-   // Type of peripherial
-   enum class IO : uint8
-      {
-      Keyboard         = 0,
-      Mouse               ,
-      Joystick            ,
-      GamePad             ,
-      TouchPad            ,
-      HMD                 ,
-      Controller          ,
-      Camera              ,
-      Accelerometr        ,
-      Compass             ,
-      Gyroscope           ,
-      LightSensor         ,
-      ProximitySensor     ,
-      Termometr           ,
-      Count
-      };
+// Type of peripherial
+enum class IO : uint8
+{
+    Keyboard         = 0,
+    Mouse               ,
+    Joystick            ,
+    GamePad             ,
+    TouchPad            ,
+    HMD                 ,
+    Controller          , // SpatialController?
+    Camera              ,
+    Accelerometr        ,
+    Compass             ,
+    Gyroscope           ,
+    LightSensor         ,
+    ProximitySensor     ,
+    Termometr           ,
+    Count
+};
 
-   class Mouse
-      {
-      public:
-      virtual std::shared_ptr<gpu::Display> display(void) const = 0; // Current screen on which mouse is located
-      virtual float2       position(void) const = 0;            // Mouse normalized position on current screen (coordinate origin at upper-left corner)
-      virtual uint32       position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
-      virtual bool         position(const uint32 x, 
-                                    const uint32 y) = 0;        // Sets mouse position on current screen (coordinate origin at upper-left corner)
-      virtual bool         position(const std::shared_ptr<gpu::Display> display, // Sets mouse position on given screen
-                                    const uint32 x, 
-                                    const uint32 y) = 0;
+class Mouse
+{
+    public:
+    virtual std::shared_ptr<gpu::Display> display(void) const = 0; // Current screen on which mouse is located
+    virtual float2       position(void) const = 0;            // Mouse normalized position on current screen (coordinate origin at upper-left corner)
+    virtual uint32       position(const Axis axis) const = 0; // Mouse position on current screen (coordinate origin at upper-left corner)
+    virtual bool         position(const uint32 x, 
+                                  const uint32 y) = 0;        // Sets mouse position on current screen (coordinate origin at upper-left corner)
+    virtual bool         position(const std::shared_ptr<gpu::Display> display, // Sets mouse position on given screen
+                                  const uint32 x, 
+                                  const uint32 y) = 0;
 
-      virtual uint32v2     virtualPosition(void) const = 0;     // Get global position on Virtual Desktop
-      virtual bool         virtualPosition(const uint32 x,      // Set global position on Virtual Desktop
-                                           const uint32 y) = 0;
+    virtual uint32v2     virtualPosition(void) const = 0;     // Get global position on Virtual Desktop
+    virtual bool         virtualPosition(const uint32 x,      // Set global position on Virtual Desktop
+                                         const uint32 y) = 0;
 
-      virtual bool         pressed(const MouseButton button) const = 0;
-      virtual void         show(void) = 0;                      // Show cursor
-      virtual void         hide(void) = 0;                      // Hide cursor
+    virtual bool         pressed(const MouseButton button) const = 0;
+    virtual void         show(void) = 0;                      // Show cursor
+    virtual void         hide(void) = 0;                      // Hide cursor
+
+    virtual ~Mouse() {};                             // Polymorphic deletes require a virtual base destructor
+};
       
-      virtual ~Mouse() {};                             // Polymorphic deletes require a virtual base destructor
-      };
-      
-   class Joystick
-      {
-      public:
-      virtual bool        on(void) = 0;                // Turns joystick on
-      virtual bool        off(void) = 0;               // Turns joystick off
-      virtual CameraState state(void) const = 0;       // Returns joystick state (on/off/initializing...)
-      virtual bool        pressed(const uint8 button) const = 0; // Button state
-      virtual float       position(const JoystickAxis axis) const = 0; // Joystick state
-      virtual void        update(void) = 0;            // Update joystick events
+class Joystick
+{
+    public:
+    virtual bool        on(void) = 0;                // Turns joystick on
+    virtual bool        off(void) = 0;               // Turns joystick off
+    virtual CameraState state(void) const = 0;       // Returns joystick state (on/off/initializing...)
+    virtual bool        pressed(const uint8 button) const = 0; // Button state
+    virtual float       position(const JoystickAxis axis) const = 0; // Joystick state
+    virtual void        update(void) = 0;            // Update joystick events
 
-      virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
-      };
+    virtual ~Joystick() {};                          // Polymorphic deletes require a virtual base destructor
+};
       
-   class Camera
-      {
-      public:
-      virtual bool        on(void) = 0;                // Turns camera on
-      virtual bool        off(void) = 0;               // Turns camera off
-      virtual CameraState state(void) const = 0;       // Returns camera state (on/off/initializing...)
-      virtual CameraType  type(void) const = 0;        // Returns camera type
-      virtual bool        support(CameraStream type) const = 0; // Returns true if camera supports given stream type
-      virtual CameraInfo  info(void) const = 0;        // Returns all camera properties
-      virtual void        update(void) = 0;            // Update camera stream events
-
-      virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
-      };
+class Camera
+{
+    public:
+    virtual bool        on(void) = 0;                // Turns camera on
+    virtual bool        off(void) = 0;               // Turns camera off
+    virtual CameraState state(void) const = 0;       // Returns camera state (on/off/initializing...)
+    virtual CameraType  type(void) const = 0;        // Returns camera type
+    virtual bool        support(CameraStream type) const = 0; // Returns true if camera supports given stream type
+    virtual CameraInfo  info(void) const = 0;        // Returns all camera properties
+    virtual void        update(void) = 0;            // Update camera stream events
+    
+    virtual ~Camera() = 0;                           // Polymorphic deletes require a virtual base destructor
+};
       
 enum class Execution : uint32
 {
@@ -411,24 +414,24 @@ enum class Execution : uint32
     Synchronous  
 };
 
-   class Interface
-      {
-      public:
-      static bool create(void);                      // Creates instance of this class (OS specific) and assigns it to "Input".
-
-      virtual uint8                       available(IO type) const = 0;          // Count of available peripherials of given type
-      virtual std::shared_ptr<Keyboard>   keyboard(uint8 index = 0) const = 0;   // N'th Keyboard
-      virtual std::shared_ptr<Mouse>      mouse(uint8 index = 0) const = 0;      // N'th Mouse
-      virtual std::shared_ptr<Joystick>   joystick(uint8 index = 0) const = 0;   // N'th Joystick
-      virtual std::shared_ptr<HMD>        hmd(uint8 index = 0) const = 0;        // N'th Head Mounted Display (VR/AR)
-      virtual std::shared_ptr<Controller> controller(uint8 index = 0) const = 0; // N'th Motion Controller
-      virtual std::shared_ptr<Camera>     camera(uint8 index = 0) const = 0;     // N'th Camera (Color, Depth, IR, or other)
-
-      virtual void update(Execution run = Execution::Synchronous) = 0;           // Updates all input state, can be executed async (without waiting)
-      virtual bool pullEvent(Event*& event) = 0;    // Pulls queued event for processing
-
-      virtual ~Interface() {};                       // Polymorphic deletes require a virtual base destructor
-      };
+class Interface
+{
+    public:
+    static bool create(void);                      // Creates instance of this class (OS specific) and assigns it to "Input".
+    
+    virtual uint8                       available(IO type) const = 0;          // Count of available peripherials of given type
+    virtual std::shared_ptr<Keyboard>   keyboard(uint8 index = 0) const = 0;   // N'th Keyboard
+    virtual std::shared_ptr<Mouse>      mouse(uint8 index = 0) const = 0;      // N'th Mouse
+    virtual std::shared_ptr<Joystick>   joystick(uint8 index = 0) const = 0;   // N'th Joystick
+    virtual std::shared_ptr<HMD>        hmd(uint8 index = 0) const = 0;        // N'th Head Mounted Display (VR/AR)
+    virtual std::shared_ptr<Controller> controller(uint8 index = 0) const = 0; // N'th Motion Controller
+    virtual std::shared_ptr<Camera>     camera(uint8 index = 0) const = 0;     // N'th Camera (Color, Depth, IR, or other)
+    
+    virtual void update(Execution run = Execution::Synchronous) = 0;           // Updates all input state, can be executed async (without waiting)
+    virtual bool pullEvent(Event*& event) = 0;    // Pulls queued event for processing
+    
+    virtual ~Interface() {};                       // Polymorphic deletes require a virtual base destructor
+};
 
 
 
@@ -436,184 +439,184 @@ enum class Execution : uint32
 
 #if 0
 
-   struct Interface
-          {
-          // Keyboard - text input device
-          struct Keyboard
-                 {
-                 bool on(void);        // Turns sensor on
-                 bool off(void);       // Turns sensor off
-                 bool state(void);     // Returns actual sensor state (on/off)
-                 bool available(void); // Returns if sensor is available in HW
-                 bool pressed(const en::input::Key key);
-                 } keyboard;
+struct Interface
+{
+    // Keyboard - text input device
+    struct Keyboard
+    {
+        bool on(void);        // Turns sensor on
+        bool off(void);       // Turns sensor off
+        bool state(void);     // Returns actual sensor state (on/off)
+        bool available(void); // Returns if sensor is available in HW
+        bool pressed(const en::input::Key key);
+    } keyboard;
 
-          // Mouse - pointing device
-          struct Mouse
-                 {
-                 bool   on(void);        // Turns sensor on
-                 bool   off(void);       // Turns sensor off
-                 bool   state(void);     // Returns actual sensor state (on/off)
-                 bool   available(void); // Returns if sensor is available in HW
-                 float2 position(void);  // Mouse position
-                 uint32 position(const en::input::Axis axis);
-                 bool   position(const uint32 x, const uint32 y);
-                 bool   pressed(const en::input::MouseButton button);
-                 void   show(void);      // Show cursor
-                 void   hide(void);      // Hide cursor
-                 } mouse;
+    // Mouse - pointing device
+    struct Mouse
+    {
+        bool   on(void);        // Turns sensor on
+        bool   off(void);       // Turns sensor off
+        bool   state(void);     // Returns actual sensor state (on/off)
+        bool   available(void); // Returns if sensor is available in HW
+        float2 position(void);  // Mouse position
+        uint32 position(const en::input::Axis axis);
+        bool   position(const uint32 x, const uint32 y);
+        bool   pressed(const en::input::MouseButton button);
+        void   show(void);      // Show cursor
+        void   hide(void);      // Hide cursor
+    } mouse;
 
-          // Joystick - direction
-          struct Joystick
-                 {
-                 uint8           available(void) const;       // Returns count of available joysticks's
-                 std::shared_ptr<input::Joystick> get(uint8 index = 0) const;  // Get pointer to N'th available joystick interface
-                 } joystick;
+    // Joystick - direction
+    struct Joystick
+    {
+        uint8           available(void) const;       // Returns count of available joysticks's
+        std::shared_ptr<input::Joystick> get(uint8 index = 0) const;  // Get pointer to N'th available joystick interface
+    } joystick;
 
-          //struct Joystick
-          //       {
-          //       bool   on(const uint8 id = 0);        // Turns sensor on
-          //       bool   off(const uint8 id = 0);       // Turns sensor off
-          //       bool   state(const uint8 id = 0);     // Returns actual sensor state (on/off)
-          //       bool   available(const uint8 id = 0); // Returns if sensor is available in HW
-          //       uint8  count(void);                   // Returns joysticks count
+    //struct Joystick
+    //{
+    //    bool   on(const uint8 id = 0);        // Turns sensor on
+    //    bool   off(const uint8 id = 0);       // Turns sensor off
+    //    bool   state(const uint8 id = 0);     // Returns actual sensor state (on/off)
+    //    bool   available(const uint8 id = 0); // Returns if sensor is available in HW
+    //    uint8  count(void);                   // Returns joysticks count
 
-          //       bool   pressed(const uint8 button);
-          //       bool   pressed(const uint8 joystick, const uint8 button);
-          //       float  position(const en::input::JoystickAxis axis);
-          //       float  position(const uint8 joystick, const en::input::JoystickAxis axis);
-          //       } joystick;
+    //    bool   pressed(const uint8 button);
+    //    bool   pressed(const uint8 joystick, const uint8 button);
+    //    float  position(const en::input::JoystickAxis axis);
+    //    float  position(const uint8 joystick, const en::input::JoystickAxis axis);
+    //} joystick;
 
-          // Touchscreen - touches and gestures
-          struct Touchscreen
-                 {
-                 bool on(void);              // Turns sensor on
-                 bool off(void);             // Turns sensor off
-                 bool state(void);           // Returns actual sensor state (on/off)
-                 bool available(void);       // Returns if sensor is available in HW
+    // Touchscreen - touches and gestures
+    struct Touchscreen
+    {
+        bool on(void);              // Turns sensor on
+        bool off(void);             // Turns sensor off
+        bool state(void);           // Returns actual sensor state (on/off)
+        bool available(void);       // Returns if sensor is available in HW
+        
+        uint8   gestures(void);                       // Returns actual number of gestures
+        sint32  gestureId(uint8 gesture);             // Returns gesture id
+        Gesture gesture(uint8 gesture);               // Returns N'th gesture from the queue of active ones
+        Gesture gesture(sint32 gestureId);            // Returns gesture by its id
+        bool    gesturePresent(sint32 gestureId);     // Returns true if gesture with given id is still active
+        
+        bool    touched(float4 rect);                 // Returns true if screen is touched in mentioned rectangle by any gesture
+    } touchscreen;
 
-                 uint8   gestures(void);                       // Returns actual number of gestures
-                 sint32  gestureId(uint8 gesture);             // Returns gesture id
-                 Gesture gesture(uint8 gesture);               // Returns N'th gesture from the queue of active ones
-                 Gesture gesture(sint32 gestureId);            // Returns gesture by its id
-                 bool    gesturePresent(sint32 gestureId);     // Returns true if gesture with given id is still active
+    // Acceleration sensor - device movement acceleration
+    struct Accelerometer
+    {
+        bool on(void);              // Turns sensor on
+        bool on(const float noise); // Turns sensor on and sets it noise range
+        bool off(void);             // Turns sensor off
+        bool state(void);           // Returns actual sensor state (on/off)
+        bool available(void);       // Returns if sensor is available in HW
+        
+        void   noise(const float noise); // Sets sensors noise range
+        float3 deltas(void);             // Delta of last two sensor readings - m/s^2
+        float3 vector(void);             // Acceleration in three axes - m/s^2
+    } accelerometer;
 
-                 bool    touched(float4 rect);                 // Returns true if screen is touched in mentioned rectangle by any gesture
-                 } touchscreen;
+    // Magnetic field sensor - orientation on globe
+    struct Compass
+    {
+        bool on(void);        // Turns sensor on
+        bool off(void);       // Turns sensor off
+        bool state(void);     // Returns actual sensor state (on/off)
+        bool available(void); // Returns if sensor is available in HW
+    } compass;
 
-          // Acceleration sensor - device movement acceleration
-          struct Accelerometer
-                 {
-                 bool on(void);              // Turns sensor on
-                 bool on(const float noise); // Turns sensor on and sets it noise range
-                 bool off(void);             // Turns sensor off
-                 bool state(void);           // Returns actual sensor state (on/off)
-                 bool available(void);       // Returns if sensor is available in HW
+    // Gyroscope sensor - device orientation in space
+    struct Gyroscope
+    {
+        bool on(void);                   // Turns sensor on
+        bool on(const float noise);      // Turns sensor on and sets it noise range
+        bool off(void);                  // Turns sensor off
+        bool state(void);                // Returns actual sensor state (on/off)
+        bool available(void);            // Returns if sensor is available in HW
 
-                 void   noise(const float noise); // Sets sensors noise range
-                 float3 deltas(void);             // Delta of last two sensor readings - m/s^2
-                 float3 vector(void);             // Acceleration in three axes - m/s^2
-                 } accelerometer;
+        void   noise(const float noise); // Sets sensors noise range
+        float  azimuth(void);  // TODO: Rename to YAW, what about axis orientation?
+        float  pitch(void);
+        float  roll(void);
+    } gyroscope;
 
-          // Magnetic field sensor - orientation on globe
-          struct Compass
-                 {
-                 bool on(void);        // Turns sensor on
-                 bool off(void);       // Turns sensor off
-                 bool state(void);     // Returns actual sensor state (on/off)
-                 bool available(void); // Returns if sensor is available in HW
-                 } compass;
+    // Light sensor - light exposure
+    struct Light
+    {
+        bool on(void);        // Turns sensor on
+        bool off(void);       // Turns sensor off
+        bool state(void);     // Returns actual sensor state (on/off)
+        bool available(void); // Returns if sensor is available in HW
 
-          // Gyroscope sensor - device orientation in space
-          struct Gyroscope
-                 {
-                 bool on(void);                   // Turns sensor on
-                 bool on(const float noise);      // Turns sensor on and sets it noise range
-                 bool off(void);                  // Turns sensor off
-                 bool state(void);                // Returns actual sensor state (on/off)
-                 bool available(void);            // Returns if sensor is available in HW
+        float lux(void);      // Returns ambient light level in SI lux:
+                              // Max Sun light 120000.0
+                              // Sun light     110000.0
+                              // Shade         20000.0
+                              // Overcast      10000.0 (cloudy)
+                              // Sunrise       400.0
+                              // Cloudy        100
+                              // Full moon     0.25
+                              // No moon       0.001
+    } light;
 
-                 void   noise(const float noise); // Sets sensors noise range
-                 float  azimuth(void);  // TODO: Rename to YAW, what about axis orientation?
-                 float  pitch(void);
-                 float  roll(void);
-                 } gyroscope;
+    // Proximity sensor - distance from device
+    struct Proximity
+    {
+        bool on(void);        // Turns sensor on
+        bool off(void);       // Turns sensor off
+        bool state(void);     // Returns actual sensor state (on/off)
+        bool available(void); // Returns if sensor is available in HW
 
-          // Light sensor - light exposure
-          struct Light
-                 {
-                 bool on(void);        // Turns sensor on
-                 bool off(void);       // Turns sensor off
-                 bool state(void);     // Returns actual sensor state (on/off)
-                 bool available(void); // Returns if sensor is available in HW
+        float distance(void); // Distance in cm (or binary near/far)
+    } proximity;
 
-                 float lux(void);      // Returns ambient light level in SI lux:
-                                       // Max Sun light 120000.0
-                                       // Sun light     110000.0
-                                       // Shade         20000.0
-                                       // Overcast      10000.0 (cloudy)
-                                       // Sunrise       400.0
-                                       // Cloudy        100
-                                       // Full moon     0.25
-                                       // No moon       0.001
-                 } light;
+    // Temperature sensor - ambient temperature or temperature of device
+    struct Temperature
+    {
+        bool on(void);        // Turns sensor on
+        bool off(void);       // Turns sensor off
+        bool state(void);     // Returns actual sensor state (on/off)
+        bool available(void); // Returns if sensor is available in HW
 
-          // Proximity sensor - distance from device
-          struct Proximity
-                 {
-                 bool on(void);        // Turns sensor on
-                 bool off(void);       // Turns sensor off
-                 bool state(void);     // Returns actual sensor state (on/off)
-                 bool available(void); // Returns if sensor is available in HW
+        float celcius(void);  // Temperature in celcius degrees
+    } temperature;
 
-                 float distance(void); // Distance in cm (or binary near/far)
-                 } proximity;
+    // Camera - color, depth, ir and skeleton detection sensors
+    struct Camera
+    {
+        uint8           available(void) const;       // Returns count of available camera's
+        std::shared_ptr<input::Camera> get(uint8 index = 0) const;  // Get pointer to N'th available camera interface
+    } camera;
 
-          // Temperature sensor - ambient temperature or temperature of device
-          struct Temperature
-                 {
-                 bool on(void);        // Turns sensor on
-                 bool off(void);       // Turns sensor off
-                 bool state(void);     // Returns actual sensor state (on/off)
-                 bool available(void); // Returns if sensor is available in HW
+    // Head Mounted Display
+    struct HMD
+    {
+        uint8           available(void) const;       // Returns count of available HMD's
+        std::shared_ptr<input::HMD> get(uint8 index = 0) const;  // Get pointer to N'th available HMD interface
+    } hmd;
 
-                 float celcius(void);  // Temperature in celcius degrees
-                 } temperature;
+    // VR Haptic Controller
+    struct Controller
+    {
+        uint8                  available(void) const;       // Returns count of available Controllers at given moment
+        std::shared_ptr<input::Controller> get(uint8 index = 0) const;  // Get pointer to N'th available Controller interface
+    };
 
-          // Camera - color, depth, ir and skeleton detection sensors
-          struct Camera
-                 {
-                 uint8           available(void) const;       // Returns count of available camera's
-                 std::shared_ptr<input::Camera> get(uint8 index = 0) const;  // Get pointer to N'th available camera interface
-                 } camera;
+    // Events handling function callbacks
+    struct Events
+    {
+        void set(EventHandlingFuncPtr ptr); // Registers function that will handle events
+        void clear(void);                   // Unregisters function assigned to handling events.
+                                            // By default events are passed to State Manager
+    } events;
 
-          // Head Mounted Display
-          struct HMD
-                 {
-                 uint8           available(void) const;       // Returns count of available HMD's
-                 std::shared_ptr<input::HMD> get(uint8 index = 0) const;  // Get pointer to N'th available HMD interface
-                 } hmd;
-
-          // VR Haptic Controller
-          struct Controller
-                 {
-                 uint8                  available(void) const;       // Returns count of available Controllers at given moment
-                 std::shared_ptr<input::Controller> get(uint8 index = 0) const;  // Get pointer to N'th available Controller interface
-                 };
-
-          // Events handling function callbacks
-          struct Events
-                 {
-                 void set(EventHandlingFuncPtr ptr); // Registers function that will handle events
-                 void clear(void);                   // Unregisters function assigned to handling events.
-                                                     // By default events are passed to State Manager
-                 } events;
-
-          void update(void); // Gets actual input state, call function handling cached events
-          };
+    void update(void); // Gets actual input state, call function handling cached events
+};
 #endif
-   }
 
+} // en::input
 
 extern std::shared_ptr<input::Interface> Input;   // New dynamic Interface allowing inherited implementation
 
@@ -621,8 +624,6 @@ extern std::shared_ptr<input::Interface> Input;   // New dynamic Interface allow
 extern input::Interface Input;
 #endif
 
-}
+} // en
 
 #endif
-
-

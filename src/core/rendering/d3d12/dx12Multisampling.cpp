@@ -62,4 +62,5 @@ MultisamplingState* Direct3D12Device::createMultisamplingState(
 
 } // en::gpu
 } // en
+
 #endif

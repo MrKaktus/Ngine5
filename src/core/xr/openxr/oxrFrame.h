@@ -45,4 +45,5 @@ class oxrFrame : public Frame
 
 } // en::xr
 } // en
+
 #endif

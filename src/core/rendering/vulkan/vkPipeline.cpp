@@ -255,6 +255,7 @@ Pipeline* VulkanDevice::createPipeline(const PipelineState& pipelineState)
 
 } // en::gpu
 } // en
+
 #endif
 
 // clipOrigin          = VK_COORDINATE_ORIGIN_LOWER_LEFT;   // optional (GL45) - Can specify Direct3D way: VK_COORDINATE_ORIGIN_UPPER_LEFT 

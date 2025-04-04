@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// Type of texture
 enum class TextureType : uint8
 {
@@ -326,7 +327,7 @@ struct ImageMemoryAlignment
 };
 
 static_assert(sizeof(ImageMemoryAlignment) == 4, "en::gpu::ImageMemoryAlignment size mismatch!");
-   
+
 
 // DEPRCATED START:
 
@@ -407,10 +408,10 @@ struct TextureState
 };
 
 static_assert(sizeof(TextureState) == 16, "en::gpu::TextureState size mismatch!");
-  
+
 class Heap;
 class TextureView;
-   
+
 class Texture
 {
     public:
@@ -497,4 +498,5 @@ extern bool isDepthStencil(const Format format);
 
 } // en::gpu
 } // en
+
 #endif

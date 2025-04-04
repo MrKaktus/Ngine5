@@ -44,4 +44,5 @@ class CommonDisplay : public Display
 
 } // en::gpu
 } // en
+
 #endif

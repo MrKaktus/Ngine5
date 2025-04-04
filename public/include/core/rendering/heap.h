@@ -25,6 +25,7 @@ namespace en
 {
 namespace gpu
 {
+
 /// MemoryUsage:
 ///
 /// Linear     - Fastest possible GPU read and write. There is no CPU access

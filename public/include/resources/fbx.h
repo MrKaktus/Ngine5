@@ -17,13 +17,15 @@
 
 namespace en
 {
-   namespace fbx
-   {
+namespace fbx
+{
+
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-   // Compatible with Autodesk FBX SDK 2014.1
-   std::shared_ptr<en::resource::Model> load(const std::string& filename, const std::string& name);
+// Compatible with Autodesk FBX SDK 2014.1
+std::shared_ptr<en::resource::Model> load(const std::string& filename, const std::string& name);
 #endif
-   }
-}
+
+} // en::fbx
+} // en
 
 #endif

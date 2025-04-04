@@ -151,6 +151,6 @@ class RenderPassMTL : public RenderPass
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

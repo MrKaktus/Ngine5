@@ -16,14 +16,17 @@
 #include "core/defines.h"
 #include "core/types.h"
 
+// TODO: This file is a draft.
+
 namespace en
 {
-   /*namespace resources
-   {
+/*
+namespace resources
+{
 
-
-   std::shared_ptr<Font> load(const std::string& filename);
-   }*/
+std::shared_ptr<Font> load(const std::string& filename);
+}
+//*/
 }
 
 #endif

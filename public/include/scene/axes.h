@@ -17,20 +17,22 @@
 
 namespace en
 {
-   namespace scene
-   {
-   class Axes : public Drawable
-      {
-      public:
-      gpu::Buffer* buffer;  // Weak pointer to global shared mesh (TODO: Replace with higher level concept)
-      std::shared_ptr<gpu::Pipeline> pipeline;
-      
-      //Parameter enModelMatrix;
-      
-      Axes();
-      void draw(const std::shared_ptr<gpu::Buffer> sceneParameters, const uint32 instances = 1U);
-      };
-   }
-}
+namespace scene
+{
+
+class Axes : public Drawable
+{
+    public:
+    gpu::Buffer* buffer;  // Weak pointer to global shared mesh (TODO: Replace with higher level concept)
+    std::shared_ptr<gpu::Pipeline> pipeline;
+   
+  //Parameter enModelMatrix;
+   
+    Axes();
+    void draw(const std::shared_ptr<gpu::Buffer> sceneParameters, const uint32 instances = 1U);
+};
+
+} // en::scene
+} // en
 
 #endif

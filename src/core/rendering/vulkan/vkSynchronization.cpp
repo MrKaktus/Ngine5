@@ -1176,4 +1176,5 @@ void CommandBufferVK::wait(std::shared_ptr<Event> eventToWaitFor)
 
 } // en::gpu
 } // en
+
 #endif

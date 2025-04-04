@@ -20,6 +20,8 @@
 #include "core/threading/atomics.h"
 #include "core/utilities/NonCopyable.h"
 
+// TODO: This file is a draft
+
 namespace en
 {
    // TODO: See: https://stackoverflow.com/questions/4792449/c0x-has-no-semaphores-how-to-synchronize-threads

@@ -49,4 +49,5 @@ class winWindow : public CommonWindow
 
 } // en::gpu
 } // en
+
 #endif

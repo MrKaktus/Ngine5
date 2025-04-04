@@ -493,4 +493,5 @@ std::shared_ptr<Descriptors> MetalDevice::createDescriptorsPool(const uint32 max
 
 } // en::gpu
 } // en
+
 #endif

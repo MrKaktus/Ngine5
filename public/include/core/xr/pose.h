@@ -22,6 +22,7 @@ namespace en
 {
 namespace xr
 {
+
 class Orienatation
 {
     public:
@@ -50,4 +51,5 @@ class Pose
 
 } // en::xr
 } // en
+
 #endif

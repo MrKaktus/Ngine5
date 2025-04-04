@@ -116,4 +116,5 @@ Sampler* MetalDevice::createSampler(const SamplerState& state)
 
 } // en::gpu
 } // en
+
 #endif

@@ -155,4 +155,5 @@ Heap* Direct3D12Device::createHeap(const MemoryUsage usage, const uint32 size)
 
 } // en::gpu
 } // en
+
 #endif

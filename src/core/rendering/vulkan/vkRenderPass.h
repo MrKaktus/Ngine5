@@ -147,6 +147,7 @@ class RenderPassVK : public RenderPass
 
 } // en::gpu
 } // en
+
 #endif
 
 #endif

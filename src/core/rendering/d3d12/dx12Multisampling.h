@@ -44,6 +44,6 @@ class MultisamplingStateD3D12 : public MultisamplingState
 
 } // en::gpu
 } // en
-#endif
 
+#endif
 #endif

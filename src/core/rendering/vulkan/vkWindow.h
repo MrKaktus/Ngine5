@@ -90,5 +90,4 @@ class WindowVK : public winWindow
 } // en
 
 #endif
-
 #endif

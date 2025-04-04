@@ -37,5 +37,7 @@ class cachealign Spinlock : private SharedAtomic, NonCopyable
 };
 
 static_assert(sizeof(Spinlock) == cacheline, "en::Spinlock size mismatch!");
-}
+
+} // en
+
 #endif

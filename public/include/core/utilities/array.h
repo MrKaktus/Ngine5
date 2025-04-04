@@ -101,4 +101,5 @@ T& array<T>::operator[](size_t index)
 }
 
 } // en
+
 #endif

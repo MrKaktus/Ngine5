@@ -120,4 +120,5 @@ Sampler* VulkanDevice::createSampler(const SamplerState& state)
 
 } // en::gpu
 } // en
+
 #endif

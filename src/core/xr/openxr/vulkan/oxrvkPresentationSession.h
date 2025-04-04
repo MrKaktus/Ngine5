@@ -48,4 +48,5 @@ class oxrPresentationSessionVK : public oxrPresentationSession
 
 } // en::xr
 } // en
+
 #endif
