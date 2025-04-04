@@ -756,22 +756,19 @@ Event* oxrPresentationSession::queryNextEvent(void)
                        &waitInfo);
 */
 
-FrameState* oxrPresentationSession::startFrame(void)
+uint64 oxrPresentationSession::startFrame(void)
+{
+    // In OpenXR there is no ability to start frame before calling xrWaitFrame.
+
+    // TODO: Do coarse estimate of frame target presentation event!
+    assert( 0 );
+    return 0;
+}
+
+FrameState* oxrPresentationSession::waitForOptimalPrediction(void)
 {
     // Wait to pace frame
     ///////////////////////
-
-    // In OpenXR there is no ability to start frame before calling xrWaitFrame.
-    // This means that application is unable to start pose independent workloads
-    // ahead of time. To start those, minimum information about the frame is
-    // needed. In case of OpenXR this information is provided on exit from
-    // xrWaitFrame. 
-    // To provide consistent API abstraction, xrWaitFrame is called inside 
-    // startFrame() call. This means that pose independent workload encoding
-    // and execution is moved after wait, but at the same time startFrame()
-    // can provide FrameStart as expected, which in turn, will allow executing
-    // pose independent workloads before wait synchronization point on other
-    // backends.
 
     // For use in the future, if some additional extensions are defined:
     //
@@ -850,7 +847,7 @@ FrameState* oxrPresentationSession::startFrame(void)
         frameTopology.viewsTopology[i].tangent[3]     = tan(fabs(viewPose[i].fov.angleDown));
 
         // TODO: Compare to previous frame topology! Need to spawn events if topology changed!
-        //       But we're already at startFrame() after querying events! 
+        //       But we're already at waitForOptimalPrediction() after querying events! 
 
         // Patch view FOV in default layer description
         defaultLayerViews[i].fov = viewPose[i].fov;
@@ -865,21 +862,11 @@ FrameState* oxrPresentationSession::startFrame(void)
     // XR_VIEW_STATE_ORIENTATION_TRACKED_BIT = 0x00000004;
     // XR_VIEW_STATE_POSITION_TRACKED_BIT    = 0x00000008;
 
-
-
     return frameState;
 }
 
-void oxrPresentationSession::waitForOptimalPrediction(void)
+void oxrPresentationSession::startEncoding(void)
 {
-    // For OpenXR wait was already performed in startFrame() to be able to
-    // create FrameState object. Currently engine calls xrBeginFrame() here 
-    // to hint to runtime, that all work before this point was pose independent.
-    // It is unclear at this point if this brings any gain to application or
-    // increases quality of runtime frame pacing. It's also possible that
-    // xrBeginFrame() should be called immediately after Wait. More OpenXR
-    // analysis needs to be done to select best API usage.
-
     // Begin frame
     ////////////////
 
@@ -1244,6 +1231,11 @@ void oxrPresentationSession::presentWithPose(const Pose& _headPose)
     endInfo.layers               = layersArray;
 
     Validate( session, xrEndFrame(presentationSession, &endInfo) )
+}
+
+void oxrPresentationSession::endEncoding(void)
+{
+    // TODO:
 }
 
 } // en::xr
