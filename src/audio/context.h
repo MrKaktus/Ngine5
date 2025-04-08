@@ -60,96 +60,99 @@
 
 namespace en
 {
-   namespace audio
-   {
-   class alSample : public Sample
-         {
-         public:                             // Engine internal
-         uint32 id;                          // OpenAL sample Id
+namespace audio
+{
 
-         alSample(const uint32 id);
-         ~alSample();                        // Polymorphic deletes require a virtual base destructor
-         };
+class alSample : public Sample
+{
+    public:                             // Engine internal
+    uint32 id;                          // OpenAL sample Id
 
-   class alSource : public Source
-         {
-         public:
-         bool play(void);                    // Start playing the sound
-         void pause(void);                   // Pause playing the sound
-         void stop(void);                    // Stop playing the sound
-         void volume(const float volume);    // Sets the volume of the source
-         void loop(const bool loop);         // Define if sound should be looped
-         bool set(const std::shared_ptr<Sample> sample); // Attach sound sample to be played by source
+    alSample(const uint32 id);
+   ~alSample();                         // Polymorphic deletes require a virtual base destructor
+};
 
-         public:                             // Engine internal
-         uint32   id;                        // OpenAL source Id
-         std::shared_ptr<alSample> sample;   // OpenAL sample interface pointer 
+class alSource : public Source
+{
+    public:
+    bool play(void);                    // Start playing the sound
+    void pause(void);                   // Pause playing the sound
+    void stop(void);                    // Stop playing the sound
+    void volume(const float volume);    // Sets the volume of the source
+    void loop(const bool loop);         // Define if sound should be looped
+    bool set(const std::shared_ptr<Sample> sample); // Attach sound sample to be played by source
 
-         alSource();
-         ~alSource();                        // Polymorphic deletes require a virtual base destructor
-         };
+    public:                             // Engine internal
+    uint32   id;                        // OpenAL source Id
+    std::shared_ptr<alSample> sample;   // OpenAL sample interface pointer 
 
-
-
+    alSource();
+   ~alSource();                         // Polymorphic deletes require a virtual base destructor
+};
 
 
 
 
 
-   //class cachealign SampleDescriptor : public ProxyObject
-   //       {
-   //       public:
-   //       uint32 id;            // OpenAL id
 
-   //       SampleDescriptor();
-   //      ~SampleDescriptor();
-   //       };
 
-   //class cachealign SourceDescriptor : public ProxyObject
-   //       {
-   //       public:
-   //       uint32 id;            // OpenAL id
-   //       bool   attached;      // Is audio sample attached
 
-   //       SourceDescriptor();
-   //      ~SourceDescriptor();
-   //       };
+//class cachealign SampleDescriptor : public ProxyObject
+//       {
+//       public:
+//       uint32 id;            // OpenAL id
 
-   struct Context
-          {
-          #if defined(EN_PLATFORM_ANDROID)
-          SLObjectItf engine;   // Audio engine
+//       SampleDescriptor();
+//      ~SampleDescriptor();
+//       };
 
-          #endif
-          #if defined(EN_PLATFORM_BLACKBERRY)
-          //snd_mixer_t* mixer;   // Analog audio mixer
-          //snd_pcm_t*   pcm;     // 
-          #endif
-          #if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-          ALCdevice*  device;   // Audio device
-          ALCcontext* context;  // Audio context on device
-          #endif
+//class cachealign SourceDescriptor : public ProxyObject
+//       {
+//       public:
+//       uint32 id;            // OpenAL id
+//       bool   attached;      // Is audio sample attached
 
-          //TarrayAdvanced<SampleDescriptor, EN_MAX_ARRAY_SIZE> samples;
+//       SourceDescriptor();
+//      ~SourceDescriptor();
+//       };
 
-          Context();
-         ~Context();
+struct Context
+       {
+       #if defined(EN_PLATFORM_ANDROID)
+       SLObjectItf engine;   // Audio engine
 
-          bool create(void);
+       #endif
+       #if defined(EN_PLATFORM_BLACKBERRY)
+       //snd_mixer_t* mixer;   // Analog audio mixer
+       //snd_pcm_t*   pcm;     // 
+       #endif
+       #if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+       ALCdevice*  device;   // Audio device
+       ALCcontext* context;  // Audio context on device
+       #endif
+
+       //TarrayAdvanced<SampleDescriptor, EN_MAX_ARRAY_SIZE> samples;
+
+       Context();
+      ~Context();
+
+       bool create(void);
 #ifdef EN_PLATFORM_BLACKBERRY
-          //bool recreate(const char* device);   // Recreates audio resources after changing of audio device
+  //bool recreate(const char* device);   // Recreates audio resources after changing of audio device
 #endif
-          void destroy(void);
+    void destroy(void);
+    
+    //SampleDescriptor* create(const uint32 channels, // Audio channels
+    //                         const uint32 freq,     // Frequency in Hz
+    //                         const uint32 bps,      // Bits Per Sample
+    //                         const uint32 size,     // Size
+    //                         const void*  data);    // Data
+};
 
-          //SampleDescriptor* create(const uint32 channels, // Audio channels
-          //                         const uint32 freq,     // Frequency in Hz
-          //                         const uint32 bps,      // Bits Per Sample
-          //                         const uint32 size,     // Size
-          //                         const void*  data);    // Data
-          };
-   }
+} // en::audio
 
 extern audio::Context AudioContext;
-}
+
+} // en
 
 #endif

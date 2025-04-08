@@ -25,17 +25,17 @@
 // Generates random number in range [0,max-1]
 uint32 random(uint32 max)
 {
-uint32 result = 0;
+    uint32 result = 0;
 
 #if defined(EN_PLATFORM_ANDROID)
-struct timespec now;
-clock_gettime(CLOCK_MONOTONIC, &now);
-result = ((uint32)now.tv_sec * 1000000000LL + now.tv_nsec) % max;
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    result = ((uint32)now.tv_sec * 1000000000LL + now.tv_nsec) % max;
 #endif
 
 #if defined(EN_PLATFORM_WINDOWS)
-result = GetTickCount() % max;
+    result = GetTickCount() % max;
 #endif
 
-return result;
+    return result;
 }

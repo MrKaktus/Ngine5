@@ -16,28 +16,27 @@
 
 namespace en
 {
-   namespace scene
-   {
+namespace scene
+{
 
-   Frustum::Frustum(const FrustumSettings settings) :
-      buffer(settings.wireframe(*en::ResourcesContext.defaults.enHeapBuffers)),
-      //program(nullptr),
-      //enModelMatrix(nullptr),
-      Drawable()
-   {
-   //Effect effect(eGLSL_1_10, "red");
-   //program = effect.program();
-   //enModelMatrix = program.parameter("enModelMatrix");
-   //enScene = program.block("enScene");
-   }
+Frustum::Frustum(const FrustumSettings settings) :
+    buffer(settings.wireframe(*en::ResourcesContext.defaults.enHeapBuffers)),
+    //program(nullptr),
+    //enModelMatrix(nullptr),
+    Drawable()
+{
+    //Effect effect(eGLSL_1_10, "red");
+    //program = effect.program();
+    //enModelMatrix = program.parameter("enModelMatrix");
+    //enScene = program.block("enScene");
+}
    
-   void Frustum::draw(const std::shared_ptr<gpu::Buffer> sceneParameters)
-   {
-   //enModelMatrix.set(*pWorldMatrix);
-   //enScene.set(sceneParameters);
-   //program.draw(buffer, LineStripes);
-   }
-
-   }
+void Frustum::draw(const std::shared_ptr<gpu::Buffer> sceneParameters)
+{
+    //enModelMatrix.set(*pWorldMatrix);
+    //enScene.set(sceneParameters);
+    //program.draw(buffer, LineStripes);
 }
 
+} // en::scene
+} // en

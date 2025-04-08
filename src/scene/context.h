@@ -21,41 +21,46 @@
 
 namespace en
 {
-   namespace scene
-   {
-   //struct Context
-   //       {
-   //       Context();
-   //      ~Context();
+namespace scene
+{
 
-   //       void create(void);
-   //       void destroy(void);
-   //       };
-   }
+//struct Context
+//{
+//    Context();
+//   ~Context();
+//
+//    void create(void);
+//    void destroy(void);
+//};
 
-   namespace state
-   {
-   struct Context
-      {
-      std::vector<State*> states;
-      bool   finish;
-      bool   action;
-      State* stateChange;
-      State* stateSet;
-      bool   stateFinish;
-      
-      Context();
-     ~Context();
-      
-      void create(void);
-      void destroy(void);
-      };
+} // en::scene
 
-   void HandleEventByState(en::input::Event& event);
-   }
+namespace state
+{
+
+struct Context
+{
+    std::vector<State*> states;
+    bool   finish;
+    bool   action;
+    State* stateChange;
+    State* stateSet;
+    bool   stateFinish;
+    
+    Context();
+   ~Context();
+    
+    void create(void);
+    void destroy(void);
+};
+
+void HandleEventByState(en::input::Event& event);
+
+} // en::state
 
 //extern scene::Context SceneContext;
 extern state::Context StateContext;
-}
+
+} // en
 
 #endif

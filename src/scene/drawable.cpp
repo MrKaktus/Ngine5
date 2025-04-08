@@ -14,13 +14,14 @@
 
 namespace en
 {
-   namespace scene
-   {
-   Drawable::Drawable() :
-      //enScene(nullptr),
-      Entity()
-   {
-   }
+namespace scene
+{
 
-   }
+Drawable::Drawable() :
+    //enScene(nullptr),
+    Entity()
+{
 }
+
+} // en::scene
+} // en

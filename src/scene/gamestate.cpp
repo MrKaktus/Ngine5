@@ -22,175 +22,190 @@
 
 namespace en
 {
-   namespace state
-   {   
-   Context::Context() :
-      finish(false),
-      action(false),
-      stateChange(nullptr),
-      stateSet(nullptr),
-      stateFinish(false)
-   {
-   }
+namespace state
+{
 
-   Context::~Context()
-   {
-   }
+Context::Context() :
+    finish(false),
+    action(false),
+    stateChange(nullptr),
+    stateSet(nullptr),
+    stateFinish(false)
+{
+}
 
-   void Context::create(void)
-   {
-   Log << "Starting module: State Manager.\n";
-   states.clear();
-   }
+Context::~Context()
+{
+}
 
-   void Context::destroy(void)
-   {
-   Log << "Closing module: State Manager.\n";
-   }
+void Context::create(void)
+{
+    Log << "Starting module: State Manager.\n";
+    states.clear();
+}
 
-   
-   void Interface::change(State* state) 
-   {
-   if (!StateContext.action)  // TODO: Atomic CmpAndSwap
-      {
-      StateContext.action      = true;
-      StateContext.stateChange = state;
-      }
-   }
+void Context::destroy(void)
+{
+    Log << "Closing module: State Manager.\n";
+}
 
-   bool Interface::set(State* state)    
-   {
-   if (!StateContext.action)  // TODO: Atomic CmpAndSwap
-      {
-      StateContext.action   = true;
-      StateContext.stateSet = state;
-      }
-   return true;
-   }
+void Interface::change(State* state) 
+{
+    if (!StateContext.action)  // TODO: Atomic CmpAndSwap
+    {
+        StateContext.action      = true;
+        StateContext.stateChange = state;
+    }
+}
 
-   void Interface::finish(void) 
-   {
-   if (!StateContext.action)  // TODO: Atomic CmpAndSwap
-      {
-      StateContext.action      = true;
-      StateContext.stateFinish = true;
-      }
-   }
+bool Interface::set(State* state)    
+{
+    if (!StateContext.action)  // TODO: Atomic CmpAndSwap
+    {
+        StateContext.action   = true;
+        StateContext.stateSet = state;
+    }
 
+    return true;
+}
 
-   // Marks current state for destruction.
-   // Actual action will take place before next update.
+void Interface::finish(void) 
+{
+    if (!StateContext.action)  // TODO: Atomic CmpAndSwap
+    {
+        StateContext.action      = true;
+        StateContext.stateFinish = true;
+    }
+}
 
-   // State Manager will close during next update call.
-   bool Interface::close()                   
-   {
-   StateContext.finish = true;
-   return true;
-   }
+// Marks current state for destruction.
+// Actual action will take place before next update.
 
+// State Manager will close during next update call.
+bool Interface::close()                   
+{
+    StateContext.finish = true;
+    return true;
+}
 
+// Internal function. Propagates given event 
+// through all managed states from current, to
+// the oldest one. Each state can decide if it
+// want paused states after him to receive this
+// event as well.
+void HandleEventByState(en::input::Event& event)
+{
+    for(sint8 i=(StateContext.states.size() - 1); i>=0; --i)
+    {
+        if (!StateContext.states[i]->input(event))
+        {
+            break;
+        }
+    }
+}
 
-
-
-   // Internal function. Propagates given event 
-   // through all managed states from current, to
-   // the oldest one. Each state can decide if it
-   // want paused states after him to receive this
-   // event as well.
-   void HandleEventByState(en::input::Event& event)
-   {
-   for(sint8 i=(StateContext.states.size() - 1); i>=0; --i)
-      if (!StateContext.states[i]->input(event))
-         break;
-   }
-
-   // Updates all managed states from current, to
-   // the oldest one. Each state can decide if it
-   // want paused states after him to be updated.
-   bool Interface::update(Time dt)
-   {
-   // Finishes state manager execution
-   if (StateContext.finish)
-      {
-      while(!StateContext.states.empty())
-           {
-           StateContext.states.back()->destroy();
-           StateContext.states.pop_back();
-           }
-      StateContext.finish = false;
-      return false;
-      }
-   else
-   if (StateContext.action)
-      {
-      // Finishes current state and starts new one
-      if (StateContext.stateChange)
-         {
-         if (!StateContext.states.empty()) 
-            {
+// Updates all managed states from current, to
+// the oldest one. Each state can decide if it
+// want paused states after him to be updated.
+bool Interface::update(Time dt)
+{
+    // Finishes state manager execution
+    if (StateContext.finish)
+    {
+        while(!StateContext.states.empty())
+        {
             StateContext.states.back()->destroy();
             StateContext.states.pop_back();
-            }
-         
-         StateContext.states.push_back(StateContext.stateChange);
-         StateContext.states.back()->init();
+        }
 
-         StateContext.action      = false;
-         StateContext.stateChange = nullptr;
-         }
-      else
-      // Pauses current state and switche's to pointed one
-      if (StateContext.stateSet)
-         {
-         if (!StateContext.states.empty())
-            StateContext.states.back()->pause();
-         
-         StateContext.states.push_back(StateContext.stateSet);
-         StateContext.states.back()->init();
-
-         StateContext.action   = false;
-         StateContext.stateSet = nullptr;
-         }
-      else
-      if (StateContext.stateFinish)
-         {
-         if (!StateContext.states.empty()) 
+        StateContext.finish = false;
+        return false;
+    }
+    else
+    if (StateContext.action)
+    {
+        // Finishes current state and starts new one
+        if (StateContext.stateChange)
+        {
+            if (!StateContext.states.empty()) 
             {
-            StateContext.states.back()->destroy();
-            StateContext.states.pop_back();
+                StateContext.states.back()->destroy();
+                StateContext.states.pop_back();
+            }
+         
+            StateContext.states.push_back(StateContext.stateChange);
+            StateContext.states.back()->init();
+
+            StateContext.action      = false;
+            StateContext.stateChange = nullptr;
+        }
+        else
+        // Pauses current state and switche's to pointed one
+        if (StateContext.stateSet)
+        {
+            if (!StateContext.states.empty())
+            {
+                StateContext.states.back()->pause();
             }
 
-         StateContext.action      = false;
-         StateContext.stateFinish = false;
-         }
-      }
+            StateContext.states.push_back(StateContext.stateSet);
+            StateContext.states.back()->init();
 
-   if (StateContext.states.empty()) 
-      return false;
+            StateContext.action   = false;
+            StateContext.stateSet = nullptr;
+        }
+        else
+        if (StateContext.stateFinish)
+        {
+            if (!StateContext.states.empty()) 
+            {
+                StateContext.states.back()->destroy();
+                StateContext.states.pop_back();
+            }
 
+            StateContext.action      = false;
+            StateContext.stateFinish = false;
+        }
+    }
 
-   Input->update();
+    if (StateContext.states.empty()) 
+    {
+        return false;
+    }
 
-   for(sint8 i=(StateContext.states.size() - 1); i>=0; --i)
-      if (!StateContext.states[i]->update(dt))
-         break;
-   return true;
-   }
+    Input->update();
+
+    for(sint8 i=(StateContext.states.size() - 1); i>=0; --i)
+    {
+        if (!StateContext.states[i]->update(dt))
+        {
+            break;
+        }
+    }
+
+    return true;
+}
     
-   // Draws all managed states from back, oldest
-   // paused one, to the front, current active one.
-   bool Interface::draw(void)
-   {
-   if (StateContext.states.empty()) 
-      return false;
+// Draws all managed states from back, oldest
+// paused one, to the front, current active one.
+bool Interface::draw(void)
+{
+    if (StateContext.states.empty()) 
+    {
+        return false;
+    }
 
-   for(uint8 i=0; i<StateContext.states.size(); ++i)
-      StateContext.states[i]->draw();
-   return true;
-   }
+    for(uint8 i=0; i<StateContext.states.size(); ++i)
+    {
+        StateContext.states[i]->draw();
+    }
 
-   }
+    return true;
+}
+
+} // en::state
 
 state::Context   StateContext;
 state::Interface StateManager;
-}
+
+} // en

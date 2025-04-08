@@ -15,8 +15,9 @@
 
 namespace en
 {
-    Ncam::Ncam()
-    {
+
+Ncam::Ncam()
+{
     this->p = double3(0.0,  0.0,  0.0 );
     this->a = float3( 0.0f, 0.0f,-1.0f); 
     this->b = float3( 0.0f, 1.0f, 0.0f); 
@@ -26,10 +27,10 @@ namespace en
     m_angle  = 60.0f;
     m_zmin   = 0.001f;
     m_zmax   = 100.0f;
-    }
+}
     
-    Ncam::Ncam(double3& pos)
-    {
+Ncam::Ncam(double3& pos)
+{
     this->p = pos;
     this->a = float3( 0.0f, 0.0f,-1.0f);
     this->b = float3( 0.0f, 1.0f, 0.0f);
@@ -39,18 +40,18 @@ namespace en
     m_angle  = 60.0f;
     m_zmin   = 0.001f;
     m_zmax   = 100.0f;
-    }
-    
-    Ncam::Ncam(double3& pos, float3& look, float3& up): Noriented(pos,look,up)
-    {
+}
+
+Ncam::Ncam(double3& pos, float3& look, float3& up): Noriented(pos,look,up)
+{
     m_aspect = 4.0f/3.0f;
     m_angle  = 60.0f;
     m_zmin   = 0.001f;
     m_zmax   = 100.0f;
-    }
-    
-    void Ncam::setOrientation(float4x4& orientation)
-    {
+}
+
+void Ncam::setOrientation(float4x4& orientation)
+{
     a.x = -orientation.m[2]; 
     a.y = -orientation.m[6];
     a.z = -orientation.m[10];
@@ -62,44 +63,43 @@ namespace en
     c.x = -orientation.m[0]; 
     c.y = -orientation.m[4]; 
     c.z = -orientation.m[8]; 
-    }
-    
-    void Ncam::setViewport(float angle, float aspect)
-    {
+}
+
+void Ncam::setViewport(float angle, float aspect)
+{
     m_aspect = aspect;
     m_angle  = angle;
-    }
-    
-    
-    void Ncam::setClipping(float znear, float zfar)
-    {
+}
+
+void Ncam::setClipping(float znear, float zfar)
+{
     m_zmin   = znear;
     m_zmax   = zfar;
-    }
-    
-    float Ncam::nearClip(void)
-    {
+}
+
+float Ncam::nearClip(void)
+{
     return m_zmin;
-    }
-    
-    float Ncam::farClip(void)
-    {
+}
+
+float Ncam::farClip(void)
+{
     return m_zmax;
-    }
-    
-    void Ncam::aspect(float a)
-    {
+}
+
+void Ncam::aspect(float a)
+{
     m_aspect = a;
-    }
-    
-    float Ncam::aspect(void)
-    {
+}
+
+float Ncam::aspect(void)
+{
     return m_aspect;
-    }
-    
-    // Positioning Matrix (Object Space -> World Space)
-    float4x4 Ncam::modelMatrix(void)
-    {
+}
+
+// Positioning Matrix (Object Space -> World Space)
+float4x4 Ncam::modelMatrix(void)
+{
     float4x4 m;
     
     m.m[0] = this->c.x;   m.m[4] = this->b.x;   m.m[8]  = this->a.x;   m.m[12] = (float)this->p.x;
@@ -108,11 +108,11 @@ namespace en
     m.m[3] = 0.0f;        m.m[7] = 0.0f;        m.m[11] = 0.0f;        m.m[15] = 1.0f;
     
     return m;  
-    } 
-    
-    // Positioning Matrix (World Space -> Eye Space)
-    float4x4 Ncam::matrix(void)
-    {
+} 
+
+// Positioning Matrix (World Space -> Eye Space)
+float4x4 Ncam::matrix(void)
+{
     float4x4 m;
     
     m.m[0] = -this->c.x;  m.m[4] = -this->c.y;  m.m[8]  = -this->c.z;  m.m[12] = (float)dot(-this->c,-this->p); 
@@ -121,11 +121,11 @@ namespace en
     m.m[3] = 0.0f;        m.m[7] = 0.0f;        m.m[11] = 0.0f;        m.m[15] = 1.0f;
     
     return m;
-    }
-    
-    // Rotation Matrix (World Space -> Eye Space)
-    float4x4 Ncam::rotationMatrix(void)
-    {
+}
+
+// Rotation Matrix (World Space -> Eye Space)
+float4x4 Ncam::rotationMatrix(void)
+{
     float4x4 m;
     
     m.m[0] = -this->c.x;  m.m[4] = -this->c.y;  m.m[8]  = -this->c.z;  m.m[12] = 0.0f;
@@ -134,11 +134,11 @@ namespace en
     m.m[3] = 0.0f;        m.m[7] = 0.0f;        m.m[11] = 0.0f;        m.m[15] = 1.0f;
     
     return m;
-    }
-    
-    // Translation Matrix (World Space -> Eye Space)
-    float4x4 Ncam::translationMatrix(void)
-    {
+}
+
+// Translation Matrix (World Space -> Eye Space)
+float4x4 Ncam::translationMatrix(void)
+{
     float4x4 m;
     
     m.m[0] = 1.0f;        m.m[4] = 0.0f;        m.m[8]  = 0.0f;        m.m[12] = (float)-this->p.x; 
@@ -147,11 +147,11 @@ namespace en
     m.m[3] = 0.0f;        m.m[7] = 0.0f;        m.m[11] = 0.0f;        m.m[15] = 1.0f;
     
     return m;
-    }
-    
-    // Projection matrix (Eye Space -> Clipping Space [NDC])
-    float4x4 Ncam::projectionMatrix(void)
-    {
+}
+
+// Projection matrix (Eye Space -> Clipping Space [NDC])
+float4x4 Ncam::projectionMatrix(void)
+{
     float4x4 m;
     float    ea = 1.0f / tan(radians(m_angle) * 0.5f);
     float    e  = (1.0f / m_aspect) * ea;
@@ -164,11 +164,11 @@ namespace en
     m.m[3] = 0.0f;        m.m[7] = 0.0f;        m.m[11] =-1.0f;        m.m[15] = 0.0f;
     
     return m;
-    }
-    
-    // View-Projection matrix for stereoscopic rendering 
-    float4x4 Ncam::vp(uint8 eye, float eyeDistance, float projectionCenterOffset)
-    {
+}
+
+// View-Projection matrix for stereoscopic rendering 
+float4x4 Ncam::vp(uint8 eye, float eyeDistance, float projectionCenterOffset)
+{
     float4x4 mc;
     mc.m[12] = eye ? -projectionCenterOffset : projectionCenterOffset;
     
@@ -196,5 +196,6 @@ namespace en
     mv.m[3] = 0.0f;        mv.m[7] = 0.0f;        mv.m[11] = 0.0f;        mv.m[15] = 1.0f;
      
     return mul(mul(mc,mp),mv);
-    }
 }
+
+} // en
