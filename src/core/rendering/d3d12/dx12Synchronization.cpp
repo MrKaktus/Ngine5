@@ -246,7 +246,7 @@ D3D12_RESOURCE_STATES TranslateTextureAccess(TextureAccess usage, Format format)
     // Present
     if (checkBitmask(usageMask, underlyingType(TextureAccess::Present)))
     {
-      access = D3D12_RESOURCE_STATE_PRESENT;
+        access = D3D12_RESOURCE_STATE_PRESENT;
     }
 
     return access;

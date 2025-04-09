@@ -37,6 +37,7 @@ namespace en
 {
 namespace xr
 {
+
 class ovrInterface : public Interface
 {
 public:

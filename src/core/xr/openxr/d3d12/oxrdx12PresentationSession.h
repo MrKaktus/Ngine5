@@ -25,6 +25,7 @@ namespace en
 {
 namespace xr
 {
+
 class oxrPresentationSessionD3D12 : public oxrPresentationSession
 {
     public:

@@ -9,34 +9,38 @@
 */
 
 #include "core/algorithm/hash.h"
+
+// TODO: Consider switching to xxHash in the future. Find perf comparison and document it here.
 #include "core/algorithm/MurmurHash2.h"
 #include "core/algorithm/MurmurHash3.h"
 
 namespace en
 {
-   hash hashData(const void* data, const uint32 size, const uint32 seed)
-   {
-   hash result = 0;
+
+hash hashData(const void* data, const uint32 size, const uint32 seed)
+{
+    hash result = 0;
 
 #if UseBigHash
-   MurmurHash3_x64_128(data, size, seed, &result);
+    MurmurHash3_x64_128(data, size, seed, &result);
 #else
-   result = MurmurHash64A(data, size, seed);
+    result = MurmurHash64A(data, size, seed);
 #endif
 
-   return result;
-   }
-
-   hash hashString(const std::string name, const uint32 seed)
-   {
-   hash result = 0;
-
-#if UseBigHash
-   MurmurHash3_x64_128((const void *)name.c_str(), static_cast<sint32>(name.length()), seed, &result);
-#else
-   result = MurmurHash64A((const void *)name.c_str(), static_cast<sint32>(name.length()), seed);
-#endif
-
-   return result;
-   }
+    return result;
 }
+
+hash hashString(const std::string name, const uint32 seed)
+{
+    hash result = 0;
+
+#if UseBigHash
+    MurmurHash3_x64_128((const void *)name.c_str(), static_cast<sint32>(name.length()), seed, &result);
+#else
+    result = MurmurHash64A((const void *)name.c_str(), static_cast<sint32>(name.length()), seed);
+#endif
+
+    return result;
+}
+
+} // en

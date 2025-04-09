@@ -35,7 +35,8 @@
 namespace en
 {
 namespace resource
-{   
+{
+
 // Phong Material
 // - RGB - Ambient
 // - RGB - Diffuse
@@ -148,96 +149,116 @@ namespace resource
 
 
 enum SurfaceChannel
-   {
-   ChannelR             = 0,
-   ChannelG                ,
-   ChannelB                ,
-   ChannelA                ,
-   SurfaceChannelsCount
-   };
+{
+    ChannelR             = 0,
+    ChannelG                ,
+    ChannelB                ,
+    ChannelA                ,
+    SurfaceChannelsCount
+};
 
-enum MaterialType
-   {
-   Material_PhysicallyBased = 0,
-   Material_Phong              
-   };
+enum class MaterialType : uint8
+{
+    PhysicallyBased = 0,
+    Phong              ,
+    Lambert
+};
 
-enum DisplacementType
-   {
-   DisplacementHeight = 0,
-   DisplacementVector    ,
-   };
+// Lambert: (diffuse term)
+// - Simulates matte, non-shiny surfaces like chalk, matte paint, or unpolished materials. 
+// - Often used as a default shader for objects that don't require specular highlights. 
+// 
+// Phong: (specular term)
+// - Takes into account surface curvature, amount of light, and camera angle to get accurate shading and highlights.
+// - Results in tight highlights that are excellent for polished shiny surfaces, such as plastic, porcelain, and glazed ceramic.
+// 
+// Blinn-Phong: (specular term)
+// - A modification to the Phong model, using a "halfway vector" to calculate specular highlights, resulting in a smoother, more realistic specular reflectance shading model. 
+// - Good for simulating metallic surfaces with soft highlights, such as brass or aluminum. 
+// 
+// Specular-Glosiness:
+// "MetalRoughness"
+//
+// Good comparison of the models:
+// https://www.jordanstevenstechart.com/lighting-models
+
+
+enum class DisplacementType : uint8
+{
+    Height = 0,
+    Vector    ,
+};
 
 // Material interface
 class IMaterial
-   {
-   std::string name;
-   MaterialType type;
-   };
+{
+    std::string name;
+    MaterialType type;
+};
 
 // Editor Material, each surface can be bound separately or can share texture with other 
 
 // Editor Material
 // Flexible description that allows any combination of surface layers as well as their packing in shared textures.
 class EMaterial : public IMaterial
-   {
-   std::shared_ptr<en::gpu::Texture> layer[9];
+{
+    std::shared_ptr<en::gpu::Texture> layer[9];
 
-   struct Albedo
-      {
-      uint32         map;      // Texture layer and channel ID
-      SurfaceChannel channel;
-      } albedo;  
+    struct Albedo
+    {
+        uint32         map;      // Texture layer and channel ID
+        SurfaceChannel channel;
+    } albedo;  
 
-   struct Opacity
-      {
-      uint32         map;      // Texture layer and channel ID
-      SurfaceChannel channel;
-      } opacity;  
+    struct Opacity
+    {
+        uint32         map;      // Texture layer and channel ID
+        SurfaceChannel channel;
+    } opacity;  
 
-   struct Metallic
-      {
-      uint32         map;      // Texture layer and channel ID
-      SurfaceChannel channel;
-      } metallic; 
+    struct Metallic
+    {
+        uint32         map;      // Texture layer and channel ID
+        SurfaceChannel channel;
+    } metallic; 
 
-   struct Roughness
-      {
-      uint32         map;      // Texture layer and channel ID
-      SurfaceChannel channel;
-      } roughness; 
+    struct Roughness
+    {
+        uint32         map;      // Texture layer and channel ID
+        SurfaceChannel channel;
+    } roughness; 
 
-   struct Cavity
-      {
-      uint32         map;      // Texture layer and channel ID
-      SurfaceChannel channel;
-      } cavity; 
+    struct Cavity
+    {
+        uint32         map;      // Texture layer and channel ID
+        SurfaceChannel channel;
+    } cavity; 
 
-   struct AO
-      {
-      uint32         map;      // Texture layer and channel ID
-      SurfaceChannel channel;
-      } ao; 
+    struct AO
+    {
+        uint32         map;      // Texture layer and channel ID
+        SurfaceChannel channel;
+    } ao; 
 
-   struct Normal
-      {
-      uint32         map;      // Texture layer and channel ID
-      SurfaceChannel channel;
-      } normal; 
+    struct Normal
+    {
+        uint32         map;      // Texture layer and channel ID
+        SurfaceChannel channel;
+    } normal; 
 
-   struct Displacement
-      {
-      uint32           map;      // Texture layer and channel ID
-      SurfaceChannel   channel;
-      DisplacementType type;
-      } displacement; 
+    struct Displacement
+    {
+        uint32           map;      // Texture layer and channel ID
+        SurfaceChannel   channel;
+        DisplacementType type;
+    } displacement; 
 
-   struct Emissive
-      {
-      uint32         map;      // Texture layer and channel ID
-      SurfaceChannel channel;
-      } emissive;  
-   };
+    struct Emissive
+    {
+        uint32         map;      // Texture layer and channel ID
+        SurfaceChannel channel;
+    } emissive;  
+};
 
 //// Release Material
 //class Material : public IMaterial
@@ -269,22 +290,22 @@ class EMaterial : public IMaterial
 // - R   - Opacity (Linear) [ 0=fully transparent/translucent 1=fully opaque]
 //
 struct Material
-   { 
-   std::string name;                       // Material name
+{ 
+    std::string name;                       // Material name
 
-   std::shared_ptr<en::gpu::Texture> albedo;       // Leaving irradiance coefficients for each point of surface 
-   std::shared_ptr<en::gpu::Texture> metallic;     // 
-   std::shared_ptr<en::gpu::Texture> cavity;       // 
-   std::shared_ptr<en::gpu::Texture> roughness;    // 
-   std::shared_ptr<en::gpu::Texture> AO;           // 
-   std::shared_ptr<en::gpu::Texture> normal;       // 
-   std::shared_ptr<en::gpu::Texture> displacement; // 
-   std::shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
-   std::shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
-   std::shared_ptr<en::gpu::Texture> opacity;      //
+    std::shared_ptr<en::gpu::Texture> albedo;       // Leaving irradiance coefficients for each point of surface 
+    std::shared_ptr<en::gpu::Texture> metallic;     // 
+    std::shared_ptr<en::gpu::Texture> cavity;       // 
+    std::shared_ptr<en::gpu::Texture> roughness;    // 
+    std::shared_ptr<en::gpu::Texture> AO;           // 
+    std::shared_ptr<en::gpu::Texture> normal;       // 
+    std::shared_ptr<en::gpu::Texture> displacement; // 
+    std::shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
+    std::shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
+    std::shared_ptr<en::gpu::Texture> opacity;      //
    
-   Material();                        // Inits material with default resources provided by engine
-   };
+    Material();                        // Inits material with default resources provided by engine
+};
 
 
 
@@ -419,6 +440,7 @@ struct CommandState
 
 
 
+// CLEAN START:
 
 // Mesh can have any number of input attributes up to MaxInputLayoutAttributesCount,
 // but they will always be stored in no more than 4 separate input buffers, to 
@@ -440,7 +462,7 @@ struct CommandState
 // Buffer 2, Attribute 5 - (v4u8)  BoneWeight
 //
 // Fourth buffer stores all other mesh specific attributes together (like decal UV):
-// Buffer 3, Attribute 6+  - All remaining attributes composed together.
+// Buffer 3, Attribute 6+ - All remaining attributes composed together.
 //
 // Then mesh can be drawn using any subset of existing buffers, by passing bitmask
 // of ones to use. Index buffer, if present is automatically taken into notice.
@@ -484,12 +506,18 @@ struct Mesh
                                         // Each offset is aligned to given input elementSize.
     // 32 bytes
 
+    // TODO: Material reference (material can be single or array of variants for instanced draws).
+
     Mesh();
     Mesh& operator=(const Mesh& src); // Copy Assigment operator
 };
 
 static_assert(sizeof(Mesh) == 32, "en::renderer::Mesh size mismatch.");
    
+// CLEAN END:
+
+
+
 // Mesh currently is not storing it's detailed description:
 //
 // Max element size is 512bytes (32 Attributes, max 4 channels each, max 32bits 
@@ -564,6 +592,8 @@ struct Model
     hash   name;            // Name
 
     uint64 meshCount  : 16; // Total count of meshes this model has (max 64K meshes for all LOD's).
+
+    // TODO: "levelsOfDetailCount" , "lodCount" , "levelsCount" ?
     uint64 levelCount : 4;  // Count of LOD's this model has (max 16 unique LOD's)
                             // Stored as U4 + 1
                             // LOD count:
@@ -599,11 +629,11 @@ struct Model
     
     // 128 bytes
  
-    void drawLevel(CommandState& state,
-                   const uint32 level,  
-                         uint32 bufferMask    = 0xF, // All available buffers by default
-                   const uint32 firstInstance = 0,   // Single instance
-                   const uint32 instanceCount = 1);
+    void drawLOD(CommandState& state,
+                 const uint32 levelOfDetail,  
+                       uint32 bufferMask    = 0xF, // All available buffers by default
+                 const uint32 firstInstance = 0,   // Single instance
+                 const uint32 instanceCount = 1);
 };
 
 static_assert(sizeof(Model) == 128, "en::renderer::Model size mismatch.");

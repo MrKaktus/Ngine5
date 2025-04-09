@@ -17,44 +17,45 @@
 
 namespace en
 {
-   void WINAPI functionExecutingTask(LPVOID lpFiberParameter)
-   {
-   // Reconstruct pointer to Fiber object, on which this function is running,
-   // and for which, task should be executed.
-   Fiber* fiber = (Fiber*)(lpFiberParameter);
 
-   assert( fiber->function );
+void WINAPI functionExecutingTask(LPVOID lpFiberParameter)
+{
+    // Reconstruct pointer to Fiber object, on which this function is running,
+    // and for which, task should be executed.
+    Fiber* fiber = (Fiber*)(lpFiberParameter);
 
-   // Executer provided function
-   fiber->function(fiber->state);
-   }
+    assert( fiber->function );
 
-   winFiber::winFiber(const uint32 stackSize, const uint32 maximumStackSize) :
-      maximumStackSize(0)
-   {
-   function       = nullptr;
-   state          = nullptr;
-   waitingForTask = nullptr;
+    // Executer provided function
+    fiber->function(fiber->state);
+}
 
-   // As thread is converted to fiber and reuses its stack, stackSize and
-   // maximumStackSize are ignored.
-   handle = ConvertThreadToFiberEx(nullptr, FIBER_FLAG_FLOAT_SWITCH);
-   assert( handle != nullptr );
-   }
+winFiber::winFiber(const uint32 stackSize, const uint32 maximumStackSize) :
+    maximumStackSize(0)
+{
+    function       = nullptr;
+    state          = nullptr;
+    waitingForTask = nullptr;
 
-   winFiber::winFiber(const FiberFunction _function, void* fiberState, const uint32 stackSize, const uint32 _maximumStackSize) :
-      maximumStackSize(_maximumStackSize)
-   {
-   function       = _function;
-   state          = fiberState;
-   waitingForTask = nullptr;
+    // As thread is converted to fiber and reuses its stack, stackSize and
+    // maximumStackSize are ignored.
+    handle = ConvertThreadToFiberEx(nullptr, FIBER_FLAG_FLOAT_SWITCH);
+    assert( handle != nullptr );
+}
 
-   handle = CreateFiberEx(stackSize,
-                          maximumStackSize,
-                          FIBER_FLAG_FLOAT_SWITCH,
-                          functionExecutingTask,  // (LPFIBER_START_ROUTINE)
-                          this);
-   }
+winFiber::winFiber(const FiberFunction _function, void* fiberState, const uint32 stackSize, const uint32 _maximumStackSize) :
+    maximumStackSize(_maximumStackSize)
+{
+    function       = _function;
+    state          = fiberState;
+    waitingForTask = nullptr;
+
+    handle = CreateFiberEx(stackSize,
+                           maximumStackSize,
+                           FIBER_FLAG_FLOAT_SWITCH,
+                           functionExecutingTask,  // (LPFIBER_START_ROUTINE)
+                           this);
+}
 
 winFiber::~winFiber()
 {
@@ -84,19 +85,21 @@ Fiber* createFiber(const FiberFunction function, void* fiberState, const uint32 
   //return std::make_unique<winFiber>(function, fiberState, stackSize, maximumStackSize);
 }
 
-   void switchToFiber(Fiber& _current, Fiber& _fiber)
-   {
-   // Current state is tracked by Windows in automatic way
-   winFiber& fiber = reinterpret_cast<winFiber&>(_fiber);
-   SwitchToFiber(fiber.handle);
-   }
+void switchToFiber(Fiber& _current, Fiber& _fiber)
+{
+    // Current state is tracked by Windows in automatic way
+    winFiber& fiber = reinterpret_cast<winFiber&>(_fiber);
+    SwitchToFiber(fiber.handle);
+}
 
 /*
-   uint32 winFiber::id(void)
-   {
-   // TODO: Find handle in global table and convert to index!
-   PVOID handle = GetCurrentFiber();
-   }
-*/
+uint32 winFiber::id(void)
+{
+    // TODO: Find handle in global table and convert to index!
+    PVOID handle = GetCurrentFiber();
 }
+*/
+
+} // en
+
 #endif

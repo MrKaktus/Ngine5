@@ -27,7 +27,9 @@
 
 namespace en
 {
+
 extern void initHalfs(void);
+
 }
 
 #include "core/storage/storage.h"
@@ -48,11 +50,11 @@ extern void initHalfs(void);
 
 namespace en
 {
-   namespace input
-   {
+namespace input
+{
 #if defined(EN_PLATFORM_OSX)
 #endif
-   }
+}
 }
 
 // Protects Ngine entry points from renaming
@@ -72,9 +74,9 @@ sint32 mainResult = 0;
 
 void taskMain(void* taskData)
 {
-   Arguments& arguments = *(Arguments*)(taskData);
+    Arguments& arguments = *(Arguments*)(taskData);
 
-   mainResult = ApplicationMainC(arguments.argc, arguments.argv);
+    mainResult = ApplicationMainC(arguments.argc, arguments.argv);
 }
 
 #include "core/parallel/parallel.h" // Core - Parallel

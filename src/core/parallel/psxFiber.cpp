@@ -169,6 +169,6 @@ void switchToFiber(Fiber& _current, Fiber& _fiber)
     int result = swapcontext(&current.context, &fiber.context);
 }
 
-}
+} // en
 
 #endif

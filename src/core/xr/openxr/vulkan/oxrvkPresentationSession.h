@@ -22,6 +22,7 @@ namespace en
 {
 namespace xr
 {
+
 class oxrPresentationSessionVK : public oxrPresentationSession
 {
     public:

@@ -23,172 +23,186 @@
 #include "core/storage/winStorage.h"
 namespace en
 {
-   namespace storage
-   {
-   CommonFile::CommonFile() :
-      fileSize(0u),
-      File()
-   {
-   }
+namespace storage
+{
+
+CommonFile::CommonFile() :
+    fileSize(0u),
+    File()
+{
+}
+
+uint64 CommonFile::size(void)
+{
+    return fileSize;
+}
+
+bool CommonFile::read(volatile void* buffer)
+{
+    return read(0u, fileSize, buffer, nullptr);
+}
+
+// Need to be declared so that above method has something to call?
+bool CommonFile::read(const uint64 offset, const uint64 size, volatile void* buffer, uint64* readBytes)
+{
+    // Should be implemented by specialization class
+    assert( 0 );
+    return false;
+}
    
-   uint64 CommonFile::size(void)
-   {
-   return fileSize;
-   }
+// This is super inefficient! Neet to remove it and replace with parser!
+uint32 CommonFile::read(const uint64 offset, const uint32 maxSize, std::string& word)
+{
+    word.clear();
+    uint64 fileOffset = offset;
+    uint32 counter=0;
+    uint8 letter;
+    for(; counter<maxSize; ++counter)
+    {
+        if (!read(fileOffset, 1, &letter))
+        {
+            return counter;
+        }
 
-   bool CommonFile::read(volatile void* buffer)
-   {
-   return read(0u, fileSize, buffer, nullptr);
-   }
+        if (!letter)
+        {
+            return counter;
+        }
 
-   // Need to be declared so that above method has something to call?
-   bool CommonFile::read(const uint64 offset, const uint64 size, volatile void* buffer, uint64* readBytes)
-   {
-   // Should be implemented by specialization class
-   assert( 0 );
-   return false;
-   }
-   
-   // This is super inefficient! Neet to remove it and replace with parser!
-   uint32 CommonFile::read(const uint64 offset, const uint32 maxSize, std::string& word)
-   {
-   word.clear();
-   uint64 fileOffset = offset;
-   uint32 counter=0;
-   uint8 letter;
-   for(; counter<maxSize; ++counter)
-      {
-      if (!read(fileOffset, 1, &letter))
-         return counter;
+        fileOffset++;
+        word.push_back(letter);
+    }
 
-      if (!letter)
-         return counter;
+    return counter;
+}
 
-      fileOffset++;
-      word.push_back(letter);
-      }
+// This is super inefficient! Neet to remove it and replace with parser!
+uint32 CommonFile::readWord(const uint64 offset, const uint32 maxSize, std::string& word)
+{
+    word.clear();
+    uint64 fileOffset = offset;
+    uint32 counter=0;
+    uint8 letter;
+    for(; counter<maxSize; ++counter)
+    {
+        if (!read(fileOffset, 1, &letter))
+        {
+            return counter;
+        }
 
-   return counter;
-   }
+        if (isWhitespace(letter))
+        {
+            return counter;
+        }
 
-   // This is super inefficient! Neet to remove it and replace with parser!
-   uint32 CommonFile::readWord(const uint64 offset, const uint32 maxSize, std::string& word)
-   {
-   word.clear();
-   uint64 fileOffset = offset;
-   uint32 counter=0;
-   uint8 letter;
-   for(; counter<maxSize; ++counter)
-      {
-      if (!read(fileOffset, 1, &letter))
-         return counter;
+        fileOffset++;
+        word.push_back(letter);
+    }
 
-      if (isWhitespace(letter))
-         return counter;
+    return counter;
+}
 
-      fileOffset++;
-      word.push_back(letter);
-      }
+// This is super inefficient! Neet to remove it and replace with parser!
+uint32 CommonFile::readLine(const uint64 offset, const uint32 maxSize, std::string& line)
+{
+    line.clear();
+    uint64 fileOffset = offset;
+    uint32 counter=0;
+    uint8 letter;
+    for(; counter<maxSize; ++counter)
+    {
+        if (!read(fileOffset, 1, &letter))
+        {
+            return counter;
+        }
 
-   return counter;
-   }
+        if (isEol(letter))
+        {
+            return counter;
+        }
 
-   // This is super inefficient! Neet to remove it and replace with parser!
-   uint32 CommonFile::readLine(const uint64 offset, const uint32 maxSize, std::string& line)
-   {
-   line.clear();
-   uint64 fileOffset = offset;
-   uint32 counter=0;
-   uint8 letter;
-   for(; counter<maxSize; ++counter)
-      {
-      if (!read(fileOffset, 1, &letter))
-         return counter;
+        fileOffset++;
+        line.push_back(letter);
+    }
 
-      if (isEol(letter))
-         return counter;
-
-      fileOffset++;
-      line.push_back(letter);
-      }
-
-   return counter;
-   }
+    return counter;
+}
 
 
 
 
 
 
-   CommonStorage::CommonStorage() :
-      Interface()
-   {
-   processPath.clear();
-   }
-   
-   CommonStorage::~CommonStorage()
-   {
-   }
-   
-   uint64 CommonStorage::read(const std::string& filename, std::string& dst)
-   {
-   std::shared_ptr<File> file = open(filename);
-   if (!file)
-      {
-      dst.clear();
-      return 0u;
-      }
+CommonStorage::CommonStorage() :
+    Interface()
+{
+    processPath.clear();
+}
+
+CommonStorage::~CommonStorage()
+{
+}
+
+uint64 CommonStorage::read(const std::string& filename, std::string& dst)
+{
+    std::shared_ptr<File> file = open(filename);
+    if (!file)
+    {
+        dst.clear();
+        return 0u;
+    }
       
-   uint64 sizeToRead = file->size();
-   if (sizeToRead == 0)
-      {
-      Log << std::string("File " + filename + " is empty!");
-      dst.clear();
-      return 0;
-      }
+    uint64 sizeToRead = file->size();
+    if (sizeToRead == 0)
+    {
+        Log << std::string("File " + filename + " is empty!");
+        dst.clear();
+        return 0;
+    }
 
-   // Creating destination buffer and reading file
-   uint8* buffer = new uint8[sizeToRead+1];
-   uint64 readSize;
-   if (!file->read(0u, sizeToRead, buffer, &readSize))
-      {
-      Log << std::string("Error when reading file, read " + stringFrom(readSize) + " from " + stringFrom(sizeToRead) + " bytes!");
-      dst.clear();
-      return 0;
-      }
-   file = nullptr;
+    // Creating destination buffer and reading file
+    uint8* buffer = new uint8[sizeToRead+1];
+    uint64 readSize;
+    if (!file->read(0u, sizeToRead, buffer, &readSize))
+    {
+        Log << std::string("Error when reading file, read " + stringFrom(readSize) + " from " + stringFrom(sizeToRead) + " bytes!");
+        dst.clear();
+        return 0;
+    }
+    file = nullptr;
 
-   // Converts file content to string
-   buffer[readSize] = 0;
-   dst = std::string((const char *)buffer);
-   delete [] buffer;
+    // Converts file content to string
+    buffer[readSize] = 0;
+    dst = std::string((const char *)buffer);
+    delete [] buffer;
    
-   // Return results
-   return readSize+1;
-   }
+    // Return results
+    return readSize+1;
+}
    
-   // This static function should be in .mm file if we include iOS/OSX headers !!!
-   bool Interface::create(void)
-   {
-   //Log << "Starting module: Storage.\n";
+// This static function should be in .mm file if we include iOS/OSX headers !!!
+bool Interface::create(void)
+{
+    //Log << "Starting module: Storage.\n";
 
 #if defined(EN_PLATFORM_ANDROID)
-   Storage = std::make_shared<AndInterface>();
+    Storage = std::make_shared<AndInterface>();
 #endif
 #if defined(EN_PLATFORM_BLACKBERRY)
-   Storage = std::make_shared<BBInterface>();
+    Storage = std::make_shared<BBInterface>();
 #endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-   Storage = std::make_shared<OSXInterface>();
+    Storage = std::make_shared<OSXInterface>();
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
-   Storage = std::make_shared<WinInterface>();
+    Storage = std::make_shared<WinInterface>();
 #endif
 
-   return (Storage == nullptr) ? false : true;
-   }
+    return (Storage == nullptr) ? false : true;
+}
 
-   }
+} // en::storage
    
 std::shared_ptr<storage::Interface> Storage = nullptr;
-}
+
+} // en

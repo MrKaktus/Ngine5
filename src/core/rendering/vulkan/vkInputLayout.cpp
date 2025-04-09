@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 // Vulkan Formats HW support:
 //
 // Feature Survey/Proposal  (Bug 14574)

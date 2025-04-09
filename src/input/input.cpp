@@ -41,35 +41,36 @@ extern void en::state::HandleEventByState(en::input::Event& event);
 
 namespace en
 {
-   namespace input
-   {
+namespace input
+{
+
 #if 0
-   Context::Context(void)
-   {
-   // Clear state
-   memset(&keyboard, 0, sizeof(Context::Keyboard));
-   memset(&mouse, 0, sizeof(Context::Mouse));
-   memset(&joystick, 0, sizeof(Context::Joystick));
-   memset(&touchscreen, 0, sizeof(Context::Touchscreen));
-   memset(&accelerometer, 0, sizeof(Context::Accelerometer));
-   memset(&compass, 0, sizeof(Context::Compass));
-   memset(&gyroscope, 0, sizeof(Context::Gyroscope));
-   memset(&light, 0, sizeof(Context::Light));
-   memset(&proximity, 0, sizeof(Context::Proximity));
-   memset(&temperature, 0, sizeof(Context::Temperature));
-   memset(&events, 0, sizeof(Context::Events));
+Context::Context(void)
+{
+    // Clear state
+    memset(&keyboard, 0, sizeof(Context::Keyboard));
+    memset(&mouse, 0, sizeof(Context::Mouse));
+    memset(&joystick, 0, sizeof(Context::Joystick));
+    memset(&touchscreen, 0, sizeof(Context::Touchscreen));
+    memset(&accelerometer, 0, sizeof(Context::Accelerometer));
+    memset(&compass, 0, sizeof(Context::Compass));
+    memset(&gyroscope, 0, sizeof(Context::Gyroscope));
+    memset(&light, 0, sizeof(Context::Light));
+    memset(&proximity, 0, sizeof(Context::Proximity));
+    memset(&temperature, 0, sizeof(Context::Temperature));
+    memset(&events, 0, sizeof(Context::Events));
 
 
-   joystick.device.clear();
+    joystick.device.clear();
 
 #ifdef EN_PLATFORM_WINDOWS
 #if INTEL_PERCEPTUAL_COMPUTING_2014
-   camera.session = nullptr;
+    camera.session = nullptr;
 #endif
 #endif
-   camera.device.clear();
-   hmd.device.clear();
-   }
+    camera.device.clear();
+    hmd.device.clear();
+}
 
 //#ifdef EN_PLATFORM_WINDOWS
 //#if !INTEL_PERCEPTUAL_COMPUTING_2014
@@ -81,28 +82,28 @@ namespace en
 //#endif
 //#endif
 
-   bool Context::create(void)
-   {
-   Log << "Starting module: Input.\n";
+bool Context::create(void)
+{
+    Log << "Starting module: Input.\n";
 
-   // Clear callbacks array
-   events.callback = &en::state::HandleEventByState;
+    // Clear callbacks array
+    events.callback = &en::state::HandleEventByState;
 
-   //joystick.init();
-   camera.init();
-   hmd.init();
+    //joystick.init();
+    camera.init();
+    hmd.init();
 
-   return true;
-   }
+    return true;
+}
 
-   void Context::destroy(void)
-   {
-   Log << "Closing module: Input.\n";
+void Context::destroy(void)
+{
+    Log << "Closing module: Input.\n";
 
-   //joystick.destroy();
-   camera.destroy();
-   hmd.destroy();
-   }
+    //joystick.destroy();
+    camera.destroy();
+    hmd.destroy();
+}
 #endif
 
 
@@ -110,248 +111,262 @@ namespace en
 
 #if 1  // New dynamic Interface
 
-   Event::Event(EventType _type) :
-      type(_type)
-   {
-   }
-   
-   KeyboardEvent::KeyboardEvent(Key _key) :
-      key(_key),
-      Event(None)
-   {
-   }
-   
-   MouseEvent::MouseEvent(EventType _type) :
-      button(MouseButton::Left),
-      x(0u),
-      y(0u),
-      Event(_type)
-   {
-   }
+Event::Event(EventType _type) :
+    type(_type)
+{
+}
 
-   JoystickButtonEvent::JoystickButtonEvent(const uint8 _id, const uint8 _button) :
-      id(_id),
-      button(_button),
-      Event(None)
-   {
-   }
+KeyboardEvent::KeyboardEvent(Key _key) :
+    key(_key),
+    Event(None)
+{
+}
 
-   JoystickMoveEvent::JoystickMoveEvent(const uint8 _id, const JoystickAxis _axis, const float _position) :
-      id(_id),
-      axis(_axis),
-      position(_position),
-      Event(JoystickMoved)
-   {
-   }
+MouseEvent::MouseEvent(EventType _type) :
+    button(MouseButton::Left),
+    x(0u),
+    y(0u),
+    Event(_type)
+{
+}
 
-   ControllerEvent::ControllerEvent(EventType _type) :
-      pointer(nullptr),
-      Event(_type)
-   {
-   }
+JoystickButtonEvent::JoystickButtonEvent(const uint8 _id, const uint8 _button) :
+    id(_id),
+    button(_button),
+    Event(None)
+{
+}
 
+JoystickMoveEvent::JoystickMoveEvent(const uint8 _id, const JoystickAxis _axis, const float _position) :
+    id(_id),
+    axis(_axis),
+    position(_position),
+    Event(JoystickMoved)
+{
+}
 
-   bool Interface::create(void)
-   {
-   #if defined(EN_PLATFORM_ANDROID)
-   Input = std::make_shared<AndInterface>();
-   return true;
-   #elif defined(EN_PLATFORM_BLACKBERRY)
-   Input = std::make_shared<BBInterface>();
-   return true;
-   #elif defined(EN_PLATFORM_IOS)
-   Input = std::make_shared<IOSInterface>();
-   return true;
-   #elif defined(EN_PLATFORM_OSX)
-   Input = std::make_shared<macInput>();
-   return true;
-   #elif defined(EN_PLATFORM_WINDOWS)
-   Input = std::make_shared<WinInput>();
-   
-   // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
-   reinterpret_cast<CommonInput*>(Input.get())->init();
-   
-   return true;
-   #else
-   // How did we ended up here?
-   Input = std::make_shared<CommonInput>();
-   return false;
-   #endif
-   }
+ControllerEvent::ControllerEvent(EventType _type) :
+    pointer(nullptr),
+    Event(_type)
+{
+}
 
 
-
-   // COMMON KEYBOARD
-   ////////////////////////////////////////////////////////////////////////////////
-
-   CommonKeyboard::CommonKeyboard() :
-      Keyboard()
-   {
-   // Set all keys to "Released" & "TurnedOff" state
-   memset(&keys, 0, sizeof(KeyState) * underlyingType(Key::KeysCount));
-   memset(&keyLock, 0, sizeof(KeyLock) * KeyLockStatesCount);
-   }
+bool Interface::create(void)
+{
+#if defined(EN_PLATFORM_ANDROID)
+    Input = std::make_shared<AndInterface>();
+    return true;
+#elif defined(EN_PLATFORM_BLACKBERRY)
+    Input = std::make_shared<BBInterface>();
+    return true;
+#elif defined(EN_PLATFORM_IOS)
+    Input = std::make_shared<IOSInterface>();
+    return true;
+#elif defined(EN_PLATFORM_OSX)
+    Input = std::make_shared<macInput>();
+    return true;
+#elif defined(EN_PLATFORM_WINDOWS)
+    Input = std::make_shared<WinInput>();
    
-   CommonKeyboard::~CommonKeyboard()
-   {
-   }
+    // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
+    reinterpret_cast<CommonInput*>(Input.get())->init();
    
-   bool CommonKeyboard::pressed(const Key key) const
-   {
-   assert( key != Key::KeysCount );
-   return keys[underlyingType(key)] == KeyState::Pressed ? true : false;
-   }
-   
-   // COMMON MOUSE
-   ////////////////////////////////////////////////////////////////////////////////
-
-   CommonMouse::CommonMouse() :
-      _display(nullptr),
-      x(0u),
-      y(0u),
-      Mouse()
-   {
-   // Set all buttons to "Released"
-   memset(&buttons, 0, sizeof(KeyState) * underlyingType(MouseButton::Count));
-   }
-   
-   CommonMouse::~CommonMouse()
-   {
-   }
- 
-   std::shared_ptr<Display> CommonMouse::display(void) const
-   {
-   return _display;
-   }
-   
-   float2 CommonMouse::position(void) const
-   {
-   assert( _display );
-   return float2( static_cast<float>(x) / static_cast<float>(_display->_resolution.x),
-                  static_cast<float>(y) / static_cast<float>(_display->_resolution.y) );
-   }
-   
-   uint32 CommonMouse::position(const Axis axis) const
-   {
-   return axis == AxisX ? x : y;
-   }
-   
-   bool CommonMouse::pressed(const MouseButton button) const
-   {
-   assert( button != MouseButton::Count );
-   return buttons[underlyingType(button)] == KeyState::Pressed ? true : false;
-   }
+    return true;
+#else
+    // How did we ended up here?
+    Input = std::make_shared<CommonInput>();
+    return false;
+#endif
+}
 
 
-   // COMMON INTERFACE
-   ////////////////////////////////////////////////////////////////////////////////
-   
-   
-   CommonInput::CommonInput() :
-      updateInProgress(false),
-      eventQueue(1024),
-      Interface()
-   {
-   // General
-   memset(&count, 0, sizeof(uint32) * underlyingType(IO::Count));
-   keyboards.clear();
-   mouses.clear();
-   joysticks.clear();
-   hmds.clear();
-   controllers.clear();
-   cameras.clear();
-   
-   // Clear callbacks array
-   for(uint32 i=0; i<InputEventsCount; ++i)
-      task[i] = nullptr;
-   }
 
-   void CommonInput::init(void)
-   {
-   // Init all engine input modules
+// COMMON KEYBOARD
+////////////////////////////////////////////////////////////////////////////////
+
+CommonKeyboard::CommonKeyboard() :
+    Keyboard()
+{
+    // Set all keys to "Released" & "TurnedOff" state
+    memset(&keys, 0, sizeof(KeyState) * underlyingType(Key::KeysCount));
+    memset(&keyLock, 0, sizeof(KeyLock) * KeyLockStatesCount);
+}
+   
+CommonKeyboard::~CommonKeyboard()
+{
+}
+
+bool CommonKeyboard::pressed(const Key key) const
+{
+    assert( key != Key::KeysCount );
+    return keys[underlyingType(key)] == KeyState::Pressed ? true : false;
+}
+   
+// COMMON MOUSE
+////////////////////////////////////////////////////////////////////////////////
+
+CommonMouse::CommonMouse() :
+    _display(nullptr),
+    x(0u),
+    y(0u),
+    Mouse()
+{
+    // Set all buttons to "Released"
+    memset(&buttons, 0, sizeof(KeyState) * underlyingType(MouseButton::Count));
+}
+   
+CommonMouse::~CommonMouse()
+{
+}
+
+std::shared_ptr<Display> CommonMouse::display(void) const
+{
+    return _display;
+}
+   
+float2 CommonMouse::position(void) const
+{
+    assert( _display );
+    return float2( static_cast<float>(x) / static_cast<float>(_display->_resolution.x),
+                   static_cast<float>(y) / static_cast<float>(_display->_resolution.y) );
+}
+   
+uint32 CommonMouse::position(const Axis axis) const
+{
+    return axis == AxisX ? x : y;
+}
+   
+bool CommonMouse::pressed(const MouseButton button) const
+{
+    assert( button != MouseButton::Count );
+    return buttons[underlyingType(button)] == KeyState::Pressed ? true : false;
+}
+
+
+// COMMON INTERFACE
+////////////////////////////////////////////////////////////////////////////////
+
+
+CommonInput::CommonInput() :
+    updateInProgress(false),
+    eventQueue(1024),
+    Interface()
+{
+    // General
+    memset(&count, 0, sizeof(uint32) * underlyingType(IO::Count));
+    keyboards.clear();
+    mouses.clear();
+    joysticks.clear();
+    hmds.clear();
+    controllers.clear();
+    cameras.clear();
+   
+    // Clear callbacks array
+    for(uint32 i=0; i<InputEventsCount; ++i)
+    {
+        task[i] = nullptr;
+    }
+}
+
+void CommonInput::init(void)
+{
+    // Init all engine input modules
 #if defined(EN_MODULE_OCULUS)
-   InitOculusSDK();
+    InitOculusSDK();
 #endif
 
 #if defined(EN_MODULE_OPENVR)
-   InitOpenVR();
+    InitOpenVR();
 #endif
  
-   // TODO: Other modules like Kinect, etc.
-   }
+    // TODO: Other modules like Kinect, etc.
+}
 
-   CommonInput::~CommonInput()
-   {
-   Log << "Closing module: Input.\n";
+CommonInput::~CommonInput()
+{
+    Log << "Closing module: Input.\n";
 
 #if defined(EN_MODULE_OCULUS)
-   CloseOculusSDK();
+    CloseOculusSDK();
 #endif
 
 #if defined(EN_MODULE_OPENVR)
-   CloseOpenVR();
+    CloseOpenVR();
 #endif
 
-   // TODO: Unregister all remaining common devices
-   }
+    // TODO: Unregister all remaining common devices
+}
 
-   uint8 CommonInput::available(IO type) const
-   {
-   assert( type != IO::Count );
-   return count[underlyingType(type)];
-   }
+uint8 CommonInput::available(IO type) const
+{
+    assert( type != IO::Count );
+    return count[underlyingType(type)];
+}
    
-   std::shared_ptr<Keyboard> CommonInput::keyboard(uint8 index) const
-   {
-   if (index >= count[underlyingType(IO::Keyboard)])
-      return std::shared_ptr<Keyboard>(nullptr);
-      
-   return keyboards[index];
-   }
+std::shared_ptr<Keyboard> CommonInput::keyboard(uint8 index) const
+{
+    if (index >= count[underlyingType(IO::Keyboard)])
+    {
+        return std::shared_ptr<Keyboard>(nullptr);
+    }
 
-   std::shared_ptr<Mouse> CommonInput::mouse(uint8 index) const
-   {
-   if (index >= count[underlyingType(IO::Mouse)])
-      return std::shared_ptr<Mouse>(nullptr);
-      
-   return mouses[index];
-   }
+    return keyboards[index];
+}
+
+std::shared_ptr<Mouse> CommonInput::mouse(uint8 index) const
+{
+    if (index >= count[underlyingType(IO::Mouse)])
+    {
+        return std::shared_ptr<Mouse>(nullptr);
+    }
+
+    return mouses[index];
+}
    
-   std::shared_ptr<Joystick> CommonInput::joystick(uint8 index) const
-   {
-   if (index >= count[underlyingType(IO::Joystick)])
-      return std::shared_ptr<Joystick>(nullptr);
-      
-   return joysticks[index];
-   }
+std::shared_ptr<Joystick> CommonInput::joystick(uint8 index) const
+{
+    if (index >= count[underlyingType(IO::Joystick)])
+    {
+        return std::shared_ptr<Joystick>(nullptr);
+    }
 
-   std::shared_ptr<HMD> CommonInput::hmd(uint8 index) const
-   {
-   if (index >= count[underlyingType(IO::HMD)])
-      return std::shared_ptr<HMD>(nullptr);
-      
-   return hmds[index];
-   }
+    return joysticks[index];
+}
 
-   std::shared_ptr<Controller> CommonInput::controller(uint8 index) const
-   {
-   if (index >= count[underlyingType(IO::Controller)])
-      return std::shared_ptr<Controller>(nullptr);
+std::shared_ptr<HMD> CommonInput::hmd(uint8 index) const
+{
+    if (index >= count[underlyingType(IO::HMD)])
+    {
+        return std::shared_ptr<HMD>(nullptr);
+    }
       
-   return controllers[index];
-   }
+    return hmds[index];
+}
+
+std::shared_ptr<Controller> CommonInput::controller(uint8 index) const
+{
+    if (index >= count[underlyingType(IO::Controller)])
+    {
+        return std::shared_ptr<Controller>(nullptr);
+    }
+      
+    return controllers[index];
+}
    
-   std::shared_ptr<Camera> CommonInput::camera(uint8 index) const
-   {
-   if (index >= count[underlyingType(IO::Camera)])
-      return std::shared_ptr<Camera>(nullptr);
-      
-   return cameras[index];
-   }
+std::shared_ptr<Camera> CommonInput::camera(uint8 index) const
+{
+    if (index >= count[underlyingType(IO::Camera)])
+    {
+        return std::shared_ptr<Camera>(nullptr);
+    }
+
+    return cameras[index];
+}
 
 void CommonInput::update(Execution run)
 {
-   updateInProgress.store(true, std::memory_order_release);
+    updateInProgress.store(true, std::memory_order_release);
 
     // Wake up main thread, so that it can process latest 
     // state in OS and plugin queues.
@@ -371,15 +386,21 @@ void CommonInput::updateIO(void)
 {
     // Joystick events
     for(uint8 i=0; i<count[underlyingType(IO::Joystick)]; ++i)
+    {
         joysticks[i]->update();
-    
+    }
+
     // VR/AR HMD's update
     for(uint8 i=0; i<count[underlyingType(IO::HMD)]; ++i)
+    {
         hmds[i]->update();
-       
+    }
+
     // Camera stream events
     for(uint8 i=0; i<count[underlyingType(IO::Camera)]; ++i)
+    {
         cameras[i]->update();
+    }
 }
 
 void CommonInput::forwardEvent(Event* event)
@@ -957,15 +978,13 @@ bool CommonInput::pullEvent(Event*& event)
    }
 #endif
 
-   }
+} // en::input
 
 #if 1
-
 std::shared_ptr<input::Interface> Input;
-
 #else
 input::Context   InputContext;
 input::Interface Input;
 #endif
 
-}
+} / en

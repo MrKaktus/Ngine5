@@ -24,66 +24,69 @@
 
 namespace en
 {
-   // Other implementations of fiber based task managers:
-   //
-   // NaughtyDog simple system:
-   // https://www.gdcvault.com/play/1022186/Parallelizing-the-Naughty-Dog-Engine
-   //
-   // Google "Filament" 
-   // https://github.com/google/filament/blob/master/libs/utils/src/JobSystem.cpp
-   //
-   // Facebook "Folly" 
-   // https://github.com/facebook/folly/tree/master/folly/fibers
-   //
-   // General rules for Task schedulers:
-   //
-   // 1) IO Threads need to have ability to push Task to Scheduler, even though
-   //    they are not part of Thread-Pool themselves. The same refers to Main thread.
-   // 2) Only IO threads are allowed to block/sleep. Tasks executed in Thread
-   //    Pool are forbidden from any kind of blocking, and should pass such work
-   //    to IO threads (that will spawn new task to handle results once they are
-   //    available).
+
+// Other implementations of fiber based task managers:
+//
+// NaughtyDog simple system:
+// https://www.gdcvault.com/play/1022186/Parallelizing-the-Naughty-Dog-Engine
+//
+// Google "Filament" 
+// https://github.com/google/filament/blob/master/libs/utils/src/JobSystem.cpp
+//
+// Facebook "Folly" 
+// https://github.com/facebook/folly/tree/master/folly/fibers
+//
+// General rules for Task schedulers:
+//
+// 1) IO Threads need to have ability to push Task to Scheduler, even though
+//    they are not part of Thread-Pool themselves. The same refers to Main thread.
+// 2) Only IO threads are allowed to block/sleep. Tasks executed in Thread
+//    Pool are forbidden from any kind of blocking, and should pass such work
+//    to IO threads (that will spawn new task to handle results once they are
+//    available).
 
 
-   // For fiber-task sync points:
-   //
-   // - start execution
-   // - run other task
-   // - wait for other task
-   // - end execution
+// For fiber-task sync points:
+//
+// - start execution
+// - run other task
+// - wait for other task
+// - end execution
 
-   // TODO: Check if task local state is needed, or can it be completly skipped.
-
-
-   TaskState::TaskState() :
-       SharedAtomic()
-   {
-   }
-   
-   void TaskState::acquire(void)
-   {
-   // Performs atomic pre-increment. Equivalent to fetch_add(1) + 1
-   value++;
-   }
-
-   void TaskState::release(void)
-   {
-   //  Performs atomic pre-decrement. Equivalent to fetch_sub(1) - 1
-   value--;
-   }
-
-   bool TaskState::finished(void)
-   {
-   uint32 currentValue = std::atomic_load_explicit(&value, std::memory_order_relaxed);
-   if (currentValue == 0)
-      return true;
-
-   return false;
-   }
+// TODO: Check if task local state is needed, or can it be completly skipped.
 
 
-    // Select 
-    //switchToFiber(*workerState.currentFiber, workerState.localFibers[fiberIndex]);
+TaskState::TaskState() :
+    SharedAtomic()
+{
+}
+
+void TaskState::acquire(void)
+{
+    // Performs atomic pre-increment. Equivalent to fetch_add(1) + 1
+    value++;
+}
+
+void TaskState::release(void)
+{
+    //  Performs atomic pre-decrement. Equivalent to fetch_sub(1) - 1
+    value--;
+}
+
+bool TaskState::finished(void)
+{
+    uint32 currentValue = std::atomic_load_explicit(&value, std::memory_order_relaxed);
+    if (currentValue == 0)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
+// Select 
+//switchToFiber(*workerState.currentFiber, workerState.localFibers[fiberIndex]);
 
 // Scheduler can be entered in two cases:
 // A - current fiber calls wait
@@ -259,8 +262,8 @@ TaskScheduler::TaskScheduler(const uint32 _workerThreads, const uint32 fibersPer
         // Init worker state
         //new (&worker[i]) Worker(i, fibersPerWorker);
         //worker[i] = std::unique_ptr<Worker>(new Worker(i, fibersPerWorker));
-       worker[i] = allocate<Worker>(1, cacheline);
-       new (worker[i]) Worker(i, fibersPerWorker);
+        worker[i] = allocate<Worker>(1, cacheline);
+        new (worker[i]) Worker(i, fibersPerWorker);
     }
 
     // Spawn worker threads (they will be spinning until execution flag is not set)
@@ -311,12 +314,16 @@ TaskScheduler::~TaskScheduler()
 
     /* Release worker states
     for(uint32 i=0; i<workerThreads; ++i)
+    {
         worker[i].~Worker();
-   
+    }
+
     deallocate<Worker>(worker);
     //*/
     for(uint32 i=0; i<workerThreads; ++i)
+    {
         worker[i] = nullptr;
+    }
     delete worker;
 }
 
@@ -354,16 +361,16 @@ uint32 TaskScheduler::currentWorkerId(void) const
 
 /* TODO:
 
-   // Task is executed on worker thread assigned to given CPU core (cannot migrate between CPU cores)
-   void TaskScheduler::runOnCore(const uint16 core,
-                                 TaskFunction function,
-                                 void* data,
-                                 TaskState* state)
-   {
-   // TODO: Multiple-Producers Single Consumer queue implementation is required,
-   //       or simple queue protected with mutex. Those calls should be rare,
-   //       and only main thread processes pushed tasks which cannot be stolen.
-   }
+// Task is executed on worker thread assigned to given CPU core (cannot migrate between CPU cores)
+void TaskScheduler::runOnCore(const uint16 core,
+                              TaskFunction function,
+                              void* data,
+                              TaskState* state)
+{
+    // TODO: Multiple-Producers Single Consumer queue implementation is required,
+    //       or simple queue protected with mutex. Those calls should be rare,
+    //       and only main thread processes pushed tasks which cannot be stolen.
+}
 
 //*/
 
@@ -930,23 +937,23 @@ void* schedulingFunction(TaskScheduler& scheduler, uint32 thisWorker)
 
 
 
-    // Select fiber to switch to (if one of wating ones can be resumed) or pick
-    // other task from the queue of waiting ones. If there are no other fibers, 
-    // nor tasks to switch to, go to sleep. 
-    // After each task is finished, it's worker thread will check if there are 
-    // threads that are sleeping. If those threads have currentFiber->waitingForTask
-    // pointer set to task state of just finished task, that they can be woken up.
+// Select fiber to switch to (if one of wating ones can be resumed) or pick
+// other task from the queue of waiting ones. If there are no other fibers, 
+// nor tasks to switch to, go to sleep. 
+// After each task is finished, it's worker thread will check if there are 
+// threads that are sleeping. If those threads have currentFiber->waitingForTask
+// pointer set to task state of just finished task, that they can be woken up.
 
 
 
-    // TODO: In future, add separate queue, on which core-locked tasks will be 
-    //       stored for execution. Those tasks can be added by any thread, and 
-    //       thus, such queue need to be of type MPSC.
-    //       Worker thread owning given queue, needs to then be able to check 
-    //       if there are tasks on it, in lock-free manner, so that whole task
-    //       selection process is lock-free when that queue is empty. If there 
-    //       are tasks on MPSC queue, then worker may lock when pooling them
-    //       as it will be a rare case.
+// TODO: In future, add separate queue, on which core-locked tasks will be 
+//       stored for execution. Those tasks can be added by any thread, and 
+//       thus, such queue need to be of type MPSC.
+//       Worker thread owning given queue, needs to then be able to check 
+//       if there are tasks on it, in lock-free manner, so that whole task
+//       selection process is lock-free when that queue is empty. If there 
+//       are tasks on MPSC queue, then worker may lock when pooling them
+//       as it will be a rare case.
 
 
 
@@ -996,50 +1003,53 @@ void TaskScheduler::processMainThreadTasks(void)
 
 
 
-   /* Determining if this is worker thread and which: 
+/* Determining if this is worker thread and which: 
 
-   uint32 threadId = currentThreadId();
+uint32 threadId = currentThreadId();
 
-   bool workerThread = false;
-   if ((threadId >= firstWorkerId) && (threadId < firstWorkerId + workerThreads))
-      workerThread = true;
+bool workerThread = false;
+if ((threadId >= firstWorkerId) && (threadId < firstWorkerId + workerThreads))
+   workerThread = true;
 
-   uint32 workerIndex = threadId - firstWorkerId;
-   */
-
-
+uint32 workerIndex = threadId - firstWorkerId;
+*/
 
 
 
 
 
 
-   namespace parallel
-   {
 
-   bool Interface::create(const uint32 workers, const uint32 workerFibers, const uint32 maxWorkerTasks)
-   {
-   if (Scheduler)
-      return true;
 
-   Log << "Starting module: Thread-Pool Scheduler.\n";
+namespace parallel
+{
 
-   TaskScheduler* scheduler = new TaskScheduler(workers, workerFibers);
-   std::unique_ptr<parallel::Interface> ptr(scheduler);
+bool Interface::create(const uint32 workers, const uint32 workerFibers, const uint32 maxWorkerTasks)
+{
+    if (Scheduler)
+    {
+        return true;
+    }
 
-   //std::unique_ptr<parallel::Interface> ptr(new TaskScheduler(workers, workerFibers));
+    Log << "Starting module: Thread-Pool Scheduler.\n";
+
+    TaskScheduler* scheduler = new TaskScheduler(workers, workerFibers);
+    std::unique_ptr<parallel::Interface> ptr(scheduler);
+
+    //std::unique_ptr<parallel::Interface> ptr(new TaskScheduler(workers, workerFibers));
    
-   Scheduler.swap(ptr);
+    Scheduler.swap(ptr);
    
-   //Scheduler = std::make_unique<TaskScheduler>(workers, workerFibers);
+    //Scheduler = std::make_unique<TaskScheduler>(workers, workerFibers);
 
-   return (Scheduler == nullptr) ? false : true;
-   }
-
-   }
-
-   std::unique_ptr<parallel::Interface> Scheduler;
+    return (Scheduler == nullptr) ? false : true;
 }
+
+} // en::parallel
+
+std::unique_ptr<parallel::Interface> Scheduler;
+
+} // en
 
 
 

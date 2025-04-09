@@ -27,166 +27,187 @@ Description : Captures and holds signals from
 
 namespace en
 {
-   namespace input
-   {
+namespace input
+{
+
 #if 0 // Old Interface
 
-   //# INTERFACE
-   //##########################################################################
+//# INTERFACE
+//##########################################################################
 
-   uint8 Interface::Camera::available(void) const
-   {
-   return InputContext.camera.device.size();
-   }
+uint8 Interface::Camera::available(void) const
+{
+    return InputContext.camera.device.size();
+}
 
-   std::shared_ptr<input::Camera> Interface::Camera::get(uint8 index) const
-   {
-   if (index < InputContext.camera.device.size())
-      return InputContext.camera.device[index];
-   return std::shared_ptr<input::Camera>(nullptr);
-   }
+std::shared_ptr<input::Camera> Interface::Camera::get(uint8 index) const
+{
+    if (index < InputContext.camera.device.size())
+    {
+        return InputContext.camera.device[index];
+    }
 
+    return std::shared_ptr<input::Camera>(nullptr);
+}
 
-   //# IMPLEMENTATION
-   //##########################################################################
+//# IMPLEMENTATION
+//##########################################################################
 
 #ifdef EN_PLATFORM_WINDOWS
 #if INTEL_PERCEPTUAL_COMPUTING_2014
-   class CreativeDepthCamera : public Camera
-         {
-         public:
-         virtual bool        on(void);           // Turns camera on
-         virtual bool        off(void);          // Turns camera off
-         virtual CameraState state(void) const;  // Returns camera state (on/off)
-         virtual CameraType  type(void) const;   // Returns camera type
-         virtual bool        support(CameraStream type) const; // Returns true if camera supports given stream type
-         virtual CameraInfo  info(void) const;   // Returns all camera properties
-         virtual void        update(void);       // Update camera stream events
+class CreativeDepthCamera : public Camera
+{
+    public:
+    virtual bool        on(void);           // Turns camera on
+    virtual bool        off(void);          // Turns camera off
+    virtual CameraState state(void) const;  // Returns camera state (on/off)
+    virtual CameraType  type(void) const;   // Returns camera type
+    virtual bool        support(CameraStream type) const; // Returns true if camera supports given stream type
+    virtual CameraInfo  info(void) const;   // Returns all camera properties
+    virtual void        update(void);       // Update camera stream events
 
-         CreativeDepthCamera(uint32 id,
-                             PXCCapture::Device* ptr,
-                             PXCCapture::DeviceInfo info);
-         virtual ~CreativeDepthCamera();        
+    CreativeDepthCamera(uint32 id,
+                        PXCCapture::Device* ptr,
+                        PXCCapture::DeviceInfo info);
+    virtual ~CreativeDepthCamera();        
 
-         private: 
-         uint32                 id;           // Camera id on the devices list
-         CameraState            currentState; // Is it turned on
-         std::string            name;         // Device name
-         CameraInfo             settings;     // Camera properties
-         PXCCapture::DeviceInfo deviceInfo;   // Device properties
-         PXCCapture::Device*    device;       // Device handle
- 
-         uint32                 active;       // Bitfield of active streams
-         StreamSettings         stream[8];    // Configuration of initiated stream
+    private: 
+    uint32                 id;           // Camera id on the devices list
+    CameraState            currentState; // Is it turned on
+    std::string            name;         // Device name
+    CameraInfo             settings;     // Camera properties
+    PXCCapture::DeviceInfo deviceInfo;   // Device properties
+    PXCCapture::Device*    device;       // Device handle
 
-         // API specyfic streams description
-         PXCCapture::Device::StreamProfileSet set; // Configuration of initiated streams 
-         PXCCapture::Sample     sample[8];         // Sample from streams
-         PXCSyncPoint*          sync[8];           // Sync points for streams
-         };
+    uint32                 active;       // Bitfield of active streams
+    StreamSettings         stream[8];    // Configuration of initiated stream
 
-   CreativeDepthCamera::CreativeDepthCamera(uint32 _id, PXCCapture::Device* ptr, PXCCapture::DeviceInfo _info) :
-      id(_id),
-      currentState(Initializing),
-      name(stringFromWchar((wchar_t*)&_info.name, 1024)),
-      deviceInfo(_info),
-      device(ptr),
-      active(0)
-   {
-   memset(&settings, 0, sizeof(settings));
-   memset(&stream[0], 0, sizeof(StreamSettings) * 8);
-   //memset(&set, 0, sizeof(PXCCapture::Device::StreamProfileSet));
-   for(uint8 i=0; i<8; ++i)
-      sync[i] = nullptr;
+    // API specyfic streams description
+    PXCCapture::Device::StreamProfileSet set; // Configuration of initiated streams 
+    PXCCapture::Sample     sample[8];         // Sample from streams
+    PXCSyncPoint*          sync[8];           // Sync points for streams
+};
 
-   // Determine device type
-   if (_info.model == PXCCapture::DEVICE_MODEL_IVCAM)
-      settings.type = CreativeRealSense;
-   else
-   if ( (_info.model == PXCCapture::DEVICE_MODEL_GENERIC) &&
-        (device->QueryDepthSensorRange().min == 152.4f) &&
-        (device->QueryDepthSensorRange().max == 990.6f) )
-      settings.type = CreativeSenz3D;
-   else
-      {
-      settings.type = Default;
-      currentState  = Disconnected;
-      Log << "Error: Device type unknown!\n"; 
-      return;
-      }
+CreativeDepthCamera::CreativeDepthCamera(uint32 _id, PXCCapture::Device* ptr, PXCCapture::DeviceInfo _info) :
+    id(_id),
+    currentState(Initializing),
+    name(stringFromWchar((wchar_t*)&_info.name, 1024)),
+    deviceInfo(_info),
+    device(ptr),
+    active(0)
+{
+    memset(&settings, 0, sizeof(settings));
+    memset(&stream[0], 0, sizeof(StreamSettings) * 8);
+    //memset(&set, 0, sizeof(PXCCapture::Device::StreamProfileSet));
+    for(uint8 i=0; i<8; ++i)
+    {
+        sync[i] = nullptr;
+    }
 
-   // Check which streams are supported by the device
-   if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_COLOR))
-      setBit(settings.streams, Color);
-   if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_DEPTH))
-      setBit(settings.streams, Depth);
-   if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_IR))
-      setBit(settings.streams, IR);
-   if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_LEFT))
-      setBit(settings.streams, IntensityLeft);
-   if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_RIGHT))
-      setBit(settings.streams, IntensityRight);
+    // Determine device type
+    if (_info.model == PXCCapture::DEVICE_MODEL_IVCAM)
+    {
+        settings.type = CreativeRealSense;
+    }
+    else
+    if ( (_info.model == PXCCapture::DEVICE_MODEL_GENERIC) &&
+         (device->QueryDepthSensorRange().min == 152.4f) &&
+         (device->QueryDepthSensorRange().max == 990.6f) )
+    {
+        settings.type = CreativeSenz3D;
+    }
+    else
+    {
+        settings.type = Default;
+        currentState  = Disconnected;
+        Log << "Error: Device type unknown!\n"; 
+        return;
+    }
 
-   stream[Color].width  = 1920;
-   stream[Color].height = 1080;
-   stream[Color].format = gpu::FormatBGR_8;
-   stream[Color].hz     = 30;
+    // Check which streams are supported by the device
+    if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_COLOR))
+    {
+        setBit(settings.streams, Color);
+    }
+    if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_DEPTH))
+    {
+        setBit(settings.streams, Depth);
+    }
+    if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_IR))
+    {
+        setBit(settings.streams, IR);
+    }
+    if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_LEFT))
+    {
+        setBit(settings.streams, IntensityLeft);
+    }
+    if (checkBit(_info.streams, PXCCapture::STREAM_TYPE_RIGHT))
+    {
+        setBit(settings.streams, IntensityRight);
+    }
 
-   stream[Depth].width  = 640;
-   stream[Depth].height = 480;
-   stream[Depth].format = gpu::FormatR_16_u;
-   stream[Depth].hz     = 60;
+    stream[Color].width  = 1920;
+    stream[Color].height = 1080;
+    stream[Color].format = gpu::FormatBGR_8;
+    stream[Color].hz     = 30;
+
+    stream[Depth].width  = 640;
+    stream[Depth].height = 480;
+    stream[Depth].format = gpu::FormatR_16_u;
+    stream[Depth].hz     = 60;
 
 
-   // Save device information
-   PXCPointF32 vec2;
-   PXCRangeF32 vec3;
-   PXCCapture::Device::PowerLineFrequency hz = device->QueryColorPowerLineFrequency();
-   settings.color.fps           = (hz == PXCCapture::Device::PowerLineFrequency::POWER_LINE_FREQUENCY_60HZ) ? 60 : ( (hz == PXCCapture::Device::PowerLineFrequency::POWER_LINE_FREQUENCY_50HZ) ? 50 : 0);
-   vec2 = device->QueryColorFieldOfView();
-   settings.color.hFOV          = vec2.x;
-   settings.color.vFOV          = vec2.y;
-   vec2 = device->QueryDepthFieldOfView();
-   settings.depth.hFOV          = vec2.x;
-   settings.depth.vFOV          = vec2.y;
-   vec3 = device->QueryDepthSensorRange();
-   settings.depth.minDistance   = vec3.min / 1000.0f; //0.1524f;  0.2f;
-   settings.depth.maxDistance   = vec3.max / 1000.0f; //0.9906f;  1.2f;
-   settings.depth.scale         = device->QueryDepthUnit() / 1000000.0f;
-   settings.depth.lowConfidence = uint16(device->QueryDepthLowConfidenceValue());
-
-   if (settings.type == CreativeSenz3D)
-      {
-      settings.color.width         = 1280;
-      settings.color.height        = 720;
-      settings.depth.width         = 320;
-      settings.depth.height        = 240;
-      settings.depth.fps           = 60;
-      }
-   if (settings.type == CreativeRealSense)
-      {
-      settings.color.width         = stream[Color].width;
-      settings.color.height        = stream[Color].height;
-      settings.color.fps           = stream[Color].hz;
-      settings.depth.width         = stream[Depth].width;
-      settings.depth.height        = stream[Depth].height;
-      settings.depth.fps           = stream[Depth].hz;
-      }
+    // Save device information
+    PXCPointF32 vec2;
+    PXCRangeF32 vec3;
+    PXCCapture::Device::PowerLineFrequency hz = device->QueryColorPowerLineFrequency();
+    settings.color.fps           = (hz == PXCCapture::Device::PowerLineFrequency::POWER_LINE_FREQUENCY_60HZ) ? 60 : ( (hz == PXCCapture::Device::PowerLineFrequency::POWER_LINE_FREQUENCY_50HZ) ? 50 : 0);
+    vec2 = device->QueryColorFieldOfView();
+    settings.color.hFOV          = vec2.x;
+    settings.color.vFOV          = vec2.y;
+    vec2 = device->QueryDepthFieldOfView();
+    settings.depth.hFOV          = vec2.x;
+    settings.depth.vFOV          = vec2.y;
+    vec3 = device->QueryDepthSensorRange();
+    settings.depth.minDistance   = vec3.min / 1000.0f; //0.1524f;  0.2f;
+    settings.depth.maxDistance   = vec3.max / 1000.0f; //0.9906f;  1.2f;
+    settings.depth.scale         = device->QueryDepthUnit() / 1000000.0f;
+    settings.depth.lowConfidence = uint16(device->QueryDepthLowConfidenceValue());
+    
+    if (settings.type == CreativeSenz3D)
+    {
+        settings.color.width         = 1280;
+        settings.color.height        = 720;
+        settings.depth.width         = 320;
+        settings.depth.height        = 240;
+        settings.depth.fps           = 60;
+    }
+    if (settings.type == CreativeRealSense)
+    {
+        settings.color.width         = stream[Color].width;
+        settings.color.height        = stream[Color].height;
+        settings.color.fps           = stream[Color].hz;
+        settings.depth.width         = stream[Depth].width;
+        settings.depth.height        = stream[Depth].height;
+        settings.depth.fps           = stream[Depth].hz;
+    }
 
   /* ! */   settings.depth.saturate      = 0; 
 
 
 
 
-   currentState = Ready;
-   }
+    currentState = Ready;
+}
 
-   CreativeDepthCamera::~CreativeDepthCamera()
-   {
-   off();
-   device->Release();
-   device = nullptr;
-   }
+CreativeDepthCamera::~CreativeDepthCamera()
+{
+    off();
+    device->Release();
+    device = nullptr;
+}
+
+// TODO: Clean formatting from here down
 
    gpu::TextureFormat textureFormat(PXCImage::PixelFormat format)
    {

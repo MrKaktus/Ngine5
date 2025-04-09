@@ -226,5 +226,6 @@ std::unique_ptr<Thread> startThread(ThreadFunction function, void* threadState)
     return std::make_unique<winThread>(function, threadState);
 }
 
-}
+} // en
+
 #endif

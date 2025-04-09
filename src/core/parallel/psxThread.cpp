@@ -28,6 +28,7 @@
 
 namespace en
 {
+
 // There is several ways to get current thread ID:
 //
 // 1) Linux:
@@ -314,6 +315,7 @@ std::unique_ptr<Thread> startThread(ThreadFunction function, void* threadState)
     return std::unique_ptr<Thread>( new psxThread(function, threadState) );
 }
 
-}
+} // en
+
 #endif
 

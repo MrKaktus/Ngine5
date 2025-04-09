@@ -268,10 +268,10 @@ void DescriptorSetMTL::setTextureView(const uint32 slot, const TextureView& view
 // TODO: Consider in future exposing API that allows binding N resources at the same time
 //void DescriptorSetMTL::setTextureViews(const uint32 slot, const uint32 count, const std::shared_ptr<TextureView> views[])
 //{
-//assert( views );
-//[layout->handle setBuffers:(const id <MTLBuffer> __nullable [__nonnull])buffers offsets:(const NSUInteger [__nonnull])offsets withRange:NSMakeRange(slot, count)];
-//[layout->handle setTextures:(const id <MTLTexture> __nullable [__nonnull])textures withRange:NSMakeRange(slot, count)];
-//[layout->handle setSamplerStates:(const id <MTLSamplerState> __nullable [__nonnull])samplers withRange:NSMakeRange(slot, count)];
+//    assert( views );
+//    [layout->handle setBuffers:(const id <MTLBuffer> __nullable [__nonnull])buffers offsets:(const NSUInteger [__nonnull])offsets withRange:NSMakeRange(slot, count)];
+//    [layout->handle setTextures:(const id <MTLTexture> __nullable [__nonnull])textures withRange:NSMakeRange(slot, count)];
+//    [layout->handle setSamplerStates:(const id <MTLSamplerState> __nullable [__nonnull])samplers withRange:NSMakeRange(slot, count)];
 //}
 
 

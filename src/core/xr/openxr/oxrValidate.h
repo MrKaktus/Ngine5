@@ -25,6 +25,7 @@ namespace en
 {
 namespace xr
 {
+
 extern bool IsError(const XrResult result);
 extern bool IsWarning(const XrResult result);
 

@@ -24,40 +24,43 @@
 
 namespace en
 {
-   namespace monetization
-   {
+namespace monetization
+{
 #ifdef EN_PLATFORM_BLACKBERRY
-   class bbBanner : public Banner
-         {
-         public:                         
-         bbads_banner_t* advertisement;      // Advertisement banner handle
-
-         bbBanner( const uint32 x,
-            const uint32 y,
-            const uint32 width,
-            const uint32 height,
-            const uint32 seconds,
-            const uint32 zoneID,          
-            const std::string placeholder ); 
-         ~bbBanner();                        // Polymorphic deletes require a virtual base destructor
-         };
+class bbBanner : public Banner
+{
+    public:                         
+    bbads_banner_t* advertisement;      // Advertisement banner handle
+    
+    bbBanner(
+        const uint32 x,
+        const uint32 y,
+        const uint32 width,
+        const uint32 height,
+        const uint32 seconds,
+        const uint32 zoneID,          
+        const std::string placeholder ); 
+    ~bbBanner();                        // Polymorphic deletes require a virtual base destructor
+};
 #endif
 
-   struct Context
-          {
+struct Context
+{
 #ifdef EN_PLATFORM_BLACKBERRY
-          vector< std::shared_ptr<Banner> > banners;
+    vector< std::shared_ptr<Banner> > banners;
 #endif
 
-          Context();
-         ~Context();
+    Context();
+   ~Context();
+   
+    bool create(void);
+    void destroy(void);
+};
 
-          bool create(void);
-          void destroy(void);
-          };
-   }
+} // en::monetization
 
 extern monetization::Context MonetizationContext;
-}
+
+} // en
 
 #endif

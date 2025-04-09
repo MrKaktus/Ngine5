@@ -39,27 +39,27 @@
 #define ConsoleMain   main
 #define WindowsMain   WinMain
 
-   // Entry point for console applications
-   int ConsoleMain(int argc, char **argv)
-   {
-   using namespace en;
+// Entry point for console applications
+int ConsoleMain(int argc, char **argv)
+{
+    using namespace en;
 
-   // Init modules in proper order
-   en::storage::Interface::create();
-   ConfigContext.create(argc, argv);
-   LogContext.create();
-   SystemContext.create();
-   GpuContext.create();
-   AudioContext.create();
-   InputContext.create();
-   StateContext.create();
-   MonetizationContext.create();
-
-
+    // Init modules in proper order
+    en::storage::Interface::create();
+    ConfigContext.create(argc, argv);
+    LogContext.create();
+    SystemContext.create();
+    GpuContext.create();
+    AudioContext.create();
+    InputContext.create();
+    StateContext.create();
+    MonetizationContext.create();
 
 
-   // Run user application
-   sint32 result = ApplicationMainC(argc, argv);
+
+
+    // Run user application
+    sint32 result = ApplicationMainC(argc, argv);
 
 //en::StateContext.create();
 //
@@ -73,26 +73,26 @@
 // // destructor to close rest of worker threads.
 // enScheduler.start(new MainTask(argc,argv));
 //
-   // Close modules in order
-   MonetizationContext.destroy();
-   StateContext.destroy();
-   InputContext.destroy();
-   AudioContext.destroy();
-   GpuContext.destroy();
-   SystemContext.destroy();
-   LogContext.destroy();
-   ConfigContext.destroy();
-   Storage = nullptr;
+    // Close modules in order
+    MonetizationContext.destroy();
+    StateContext.destroy();
+    InputContext.destroy();
+    AudioContext.destroy();
+    GpuContext.destroy();
+    SystemContext.destroy();
+    LogContext.destroy();
+    ConfigContext.destroy();
+    Storage = nullptr;
 
-   return result;
-   }
+    return result;
+}
 
 namespace en
 {
-   namespace blackberry
-   {
+namespace blackberry
+{
 
-   }
+}
 }
 
 #endif

@@ -18,38 +18,43 @@
 
 namespace en
 {
-   struct MemoryChunk
-      {
-      uint64       offset;
-      uint64       size;
-      MemoryChunk* prev;
-      MemoryChunk* next;
 
-      MemoryChunk();
-      };
+// TODO: Move it to algorithms section as its generic describes any memory region / data range, while not managing it itself
 
-   // Simple allocator algorithm (used for example by GPU Heaps)
-   class BasicAllocator : public Allocator
-      {
-      public:
-      uint64       size;
-      uint64       available;
-      MemoryChunk* freeHead;
-      
-      BasicAllocator(uint64 size);
+struct MemoryChunk
+{
+    uint64       offset;
+    uint64       size;
+    MemoryChunk* prev;
+    MemoryChunk* next;
 
-      virtual bool allocate(const uint64 requestedSize,
-                            const uint64 requestedAlignment,
-                                  uint64& offset);
-      virtual bool deallocate(const uint64 offset,
-                              const uint64 size);
+    MemoryChunk();
+};
 
-      // Helper methods
-      void insertBefore(MemoryChunk* ptr, uint64 offset, uint64 size);
-      void insertAfter(MemoryChunk* ptr, uint64 offset, uint64 size);
-      void remove(MemoryChunk* ptr);
+// Simple allocator algorithm (used for example by GPU Heaps)
+class BasicAllocator : public Allocator
+{
+    public:
+    uint64       size;
+    uint64       available;
+    MemoryChunk* freeHead;
 
-      virtual ~BasicAllocator();
-      };
-}
+    BasicAllocator(uint64 size);
+
+    virtual bool allocate(const uint64 requestedSize,
+                          const uint64 requestedAlignment,
+                                uint64& offset);
+    virtual bool deallocate(const uint64 offset,
+                            const uint64 size);
+
+    // Helper methods
+    void insertBefore(MemoryChunk* ptr, uint64 offset, uint64 size);
+    void insertAfter(MemoryChunk* ptr, uint64 offset, uint64 size);
+    void remove(MemoryChunk* ptr);
+
+    virtual ~BasicAllocator();
+};
+
+} // en
+
 #endif

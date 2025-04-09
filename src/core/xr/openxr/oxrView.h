@@ -21,6 +21,7 @@ namespace en
 {
 namespace xr
 {
+
 class oxrView : public View
 {
     public:

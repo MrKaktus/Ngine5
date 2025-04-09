@@ -20,21 +20,23 @@
 
 namespace en
 {
-   class winFiber : public Fiber
-      {
-      public:
-      LPVOID handle;           // Pointer to fiber object
-      uint32 maximumStackSize;
-         
-      winFiber(const uint32 stackSize,
-               const uint32 maximumStackSize);
-      winFiber(const FiberFunction function, 
-               void* fiberState,
-               const uint32 stackSize,
-               const uint32 maximumStackSize);
-     ~winFiber();
-      };
-}
-#endif
 
+class winFiber : public Fiber
+{
+    public:
+    LPVOID handle;           // Pointer to fiber object
+    uint32 maximumStackSize;
+       
+    winFiber(const uint32 stackSize,
+             const uint32 maximumStackSize);
+    winFiber(const FiberFunction function, 
+             void* fiberState,
+             const uint32 stackSize,
+             const uint32 maximumStackSize);
+   ~winFiber();
+};
+
+} // en
+
+#endif
 #endif

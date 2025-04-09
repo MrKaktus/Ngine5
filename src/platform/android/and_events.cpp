@@ -27,22 +27,26 @@
 //
 //
 //
-//return 0;
+//    return 0;
 //}
 
 // Main commands, related to whole application behavior.
 //void AndCommands(struct android_app* app, int32_t cmd) 
 //{
-//switch (cmd) 
-//       {
-//       case APP_CMD_SAVE_STATE:
+//    switch (cmd) 
+//    {
+//        case APP_CMD_SAVE_STATE:
+//        {
 //            // The system has asked us to save our current state.  Do so.
 //
 //            //engine->app->savedState = malloc(sizeof(struct saved_state));
 //            //*((struct saved_state*)engine->app->savedState) = engine->state;
 //            //engine->app->savedStateSize = sizeof(struct saved_state);
 //            break;
-//       case APP_CMD_INIT_WINDOW:
+//        }
+// 
+//        case APP_CMD_INIT_WINDOW:
+//        {
 //            // The window is being shown. OpenGL ES context and all
 //            // resources need to be restored now.
 //
@@ -51,20 +55,30 @@
 //            //en::GpuContext.screen.
 //            en::SystemContext.sleep = false;
 //            break;
-//       case APP_CMD_TERM_WINDOW:
+//        }
+// 
+//        case APP_CMD_TERM_WINDOW:
+//        {
 //            // The window is being hidden or closed, OpenGL ES context
 //            // needs to be destroyed together with all resources.
 //            en::Gpu.screen.destroy();
 //            break;
-//       case APP_CMD_GAINED_FOCUS:
+//        }
+// 
+//        case APP_CMD_GAINED_FOCUS:
+//        {
 //
 //            en::SystemContext.sleep = false;
 //            break;
-//       case APP_CMD_LOST_FOCUS:
+//        }
+// 
+//        case APP_CMD_LOST_FOCUS:
+//        {
 //
 //            en::SystemContext.sleep = true;
 //            break;
-//       }
+//        }
+//    }
 //}
 
 #endif

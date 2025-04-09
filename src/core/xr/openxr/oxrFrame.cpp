@@ -8,6 +8,7 @@ namespace en
 {
 namespace xr
 {
+
 oxrFrame::oxrFrame() :
     texturesCount(0),
     colorTextures(nullptr),

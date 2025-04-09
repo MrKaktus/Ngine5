@@ -46,6 +46,6 @@ extern Fiber* createFiber(const FiberFunction function,
 /// Actual fiber state will be saved in "current" fiber object
 extern void switchToFiber(Fiber& current, Fiber& fiber);
 
-}
+} // en
 
 #endif

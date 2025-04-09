@@ -21,48 +21,50 @@
 #if defined(EN_PLATFORM_WINDOWS)
 namespace en
 {
-   namespace storage
-   {
-   class WinFile : public CommonFile
-      {
-      public:
+namespace storage
+{
+
+class WinFile : public CommonFile
+{
+    public:
 #if UseFStreamOverWinAPI
-      std::fstream* handle;
+    std::fstream* handle;
 #else
-      HANDLE handle;
+    HANDLE handle;
 #endif
 
-      virtual bool   read(const uint64 offset,
-                          const uint64 size,
-                          volatile void* buffer,
-                          uint64* readBytes = nullptr); // Reads part of file
-         
-      virtual bool   write(const uint64 size,
-                           void* buffer);            // Writes block of data to file
-      virtual bool   write(const uint64 offset,
-                           const uint64 size,
-                           void* buffer);            // Writes to file at specified location
+    virtual bool read(const uint64 offset,
+                      const uint64 size,
+                      volatile void* buffer,
+                      uint64* readBytes = nullptr); // Reads part of file
+
+    virtual bool write(const uint64 size,
+                       void* buffer);            // Writes block of data to file
+    virtual bool write(const uint64 offset,
+                       const uint64 size,
+                       void* buffer);            // Writes to file at specified location
 
 #if UseFStreamOverWinAPI
-      WinFile(std::fstream* handle);
+    WinFile(std::fstream* handle);
 #else
-      WinFile(HANDLE handle);
+    WinFile(HANDLE handle);
 #endif
-      virtual ~WinFile();
-      };
+    virtual ~WinFile();
+};
       
-   class WinInterface : public CommonStorage
-      {
-      public:
-      virtual bool exist(const std::string& filename); // Check if file exist
-      virtual std::shared_ptr<File> open(const std::string& filename,
-                                         const FileAccess mode = Read);  // Opens file
+class WinInterface : public CommonStorage
+{
+    public:
+    virtual bool exist(const std::string& filename); // Check if file exist
+    virtual std::shared_ptr<File> open(const std::string& filename,
+                                       const FileAccess mode = Read);  // Opens file
+    
+    WinInterface();
+    virtual ~WinInterface();
+};
 
-      WinInterface();
-      virtual ~WinInterface();
-      };
-   }
-}
+} // en::storage
+} // en
+
 #endif
-
 #endif

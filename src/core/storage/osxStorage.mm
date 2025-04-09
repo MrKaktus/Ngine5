@@ -21,122 +21,135 @@
 
 namespace en
 {
-   namespace storage
-   {
+namespace storage
+{
+
 #ifdef APPLE_WAY
-   OSXFile::OSXFile(NSData* _handle) :
-      handle(_handle),
-      CommonFile()
-   {
-   assert( handle );
-   fileSize = [handle length];
-   }
+OSXFile::OSXFile(NSData* _handle) :
+    handle(_handle),
+    CommonFile()
+{
+    assert( handle );
+    fileSize = [handle length];
+}
 
-   OSXFile::~OSXFile()
-   {
-   assert( handle );
-   deallocateObjectiveC(handle);
-   }
+OSXFile::~OSXFile()
+{
+    assert( handle );
+    deallocateObjectiveC(handle);
+}
 
-   bool OSXFile::read(const uint64 offset, const uint64 _size, volatile void* buffer, uint64* readBytes)
-   {
-   assert( handle );
-   assert( offset + _size <= fileSize );
+bool OSXFile::read(const uint64 offset, const uint64 _size, volatile void* buffer, uint64* readBytes)
+{
+    assert( handle );
+    assert( offset + _size <= fileSize );
    
-   [handle getBytes:(void*)buffer range:NSMakeRange(offset, _size)];
+    [handle getBytes:(void*)buffer range:NSMakeRange(offset, _size)];
 
-   return true;
-   }
+    return true;
+}
   
-   // You should not write into your app bundle, and instead use one of the following folders to store files, which can be obtained using NSSearchPathForDirectoriesInDomains:
-   //
-   // - Document folder (NSDocumentDirectory).
-   // - Application Support folder (NSApplicationSupportDirectory).
-   // - Caches folder (NSCachesDirectory).
+// You should not write into your app bundle, and instead use one of the following folders to store files, which can be obtained using NSSearchPathForDirectoriesInDomains:
+//
+// - Document folder (NSDocumentDirectory).
+// - Application Support folder (NSApplicationSupportDirectory).
+// - Caches folder (NSCachesDirectory).
 
-   bool OSXFile::write(const uint64 _size, void* buffer)
-   {
-   assert( handle );
+bool OSXFile::write(const uint64 _size, void* buffer)
+{
+    assert( handle );
 
-   return true;
-   }
+    return true;
+}
    
-   bool OSXFile::write(const uint64 offset, const uint64 _size, void* buffer)
-   {
-   assert( handle );
+bool OSXFile::write(const uint64 offset, const uint64 _size, void* buffer)
+{
+    assert( handle );
 
-   return true;
-   }
+    return true;
+}
    
 #else
 
-   OSXFile::OSXFile(fstream* _handle) :
-      handle(_handle),
-      CommonFile()
-   {
-   assert( handle );
-   handle->seekg(0u, ios::end);
-   fileSize = handle->tellg();
-   handle->seekg(0u, ios::beg);
-   }
+OSXFile::OSXFile(fstream* _handle) :
+    handle(_handle),
+    CommonFile()
+{
+    assert( handle );
+    handle->seekg(0u, ios::end);
+    fileSize = handle->tellg();
+    handle->seekg(0u, ios::beg);
+}
    
-   OSXFile::~OSXFile()
-   {
-   assert( handle );
-   handle->close();
-   delete handle;
-   }
+OSXFile::~OSXFile()
+{
+    assert( handle );
+    handle->close();
+    delete handle;
+}
       
-   bool OSXFile::read(const uint64 offset, const uint64 _size, void* buffer, uint64* readBytes)
-   {
-   assert( handle );
-   assert( offset + _size <= fileSize );
+bool OSXFile::read(const uint64 offset, const uint64 _size, void* buffer, uint64* readBytes)
+{
+    assert( handle );
+    assert( offset + _size <= fileSize );
    
-   handle->clear();
-   handle->seekg(offset, ios::beg);
-   handle->read((char*)buffer, _size);
-   uint64 read = handle->gcount();
-   if (readBytes != nullptr)
-      *readBytes = read;
+    handle->clear();
+    handle->seekg(offset, ios::beg);
+    handle->read((char*)buffer, _size);
+    uint64 read = handle->gcount();
+    if (readBytes != nullptr)
+    {
+        *readBytes = read;
+    }
 
-   if (read != _size)
-      return false;
+    if (read != _size)
+    {
+        return false;
+    }
       
-   if (handle->bad() || handle->eof())
-      return false;
+    if (handle->bad() || handle->eof())
+    {
+        return false;
+    }
       
-   return true;
-   }
+    return true;
+}
   
-   // You should not write into your app bundle, and instead use one of the following folders to store files, which can be obtained using NSSearchPathForDirectoriesInDomains:
-   //
-   // - Document folder (NSDocumentDirectory).
-   // - Application Support folder (NSApplicationSupportDirectory).
-   // - Caches folder (NSCachesDirectory).
+// You should not write into your app bundle, and instead use one of the following folders to store files, which can be obtained using NSSearchPathForDirectoriesInDomains:
+//
+// - Document folder (NSDocumentDirectory).
+// - Application Support folder (NSApplicationSupportDirectory).
+// - Caches folder (NSCachesDirectory).
 
-   bool OSXFile::write(const uint64 _size, void* buffer)
-   {
-   assert( handle );
+bool OSXFile::write(const uint64 _size, void* buffer)
+{
+    assert( handle );
 
-   handle->clear();
-   handle->seekg(0, ios::beg);
-   handle->write((char*)buffer, _size);
-   if (handle->bad() || handle->eof())
-      return false;
-   return true;
-   }
+    handle->clear();
+    handle->seekg(0, ios::beg);
+    handle->write((char*)buffer, _size);
+    if (handle->bad() || handle->eof())
+    {
+        return false;
+    }
+
+    return true;
+}
    
-   bool OSXFile::write(const uint64 offset, const uint64 _size, void* buffer)
-   {
-   assert( handle );
+bool OSXFile::write(const uint64 offset, const uint64 _size, void* buffer)
+{
+    assert( handle );
 
-   handle->clear();
-   handle->seekg(offset, ios::beg);
-   handle->write((char*)buffer, _size);
-   if (handle->bad() || handle->eof())
-      return false;
-   return true;
-   }
+    handle->clear();
+    handle->seekg(offset, ios::beg);
+    handle->write((char*)buffer, _size);
+    if (handle->bad() || handle->eof())
+    {
+        return false;
+    }
+
+    return true;
+}
 #endif
     
     
@@ -146,28 +159,30 @@ namespace en
 
 #define MaxPathLength 16384
 
-   NSString* fileInBundleByName(const std::string& filename)
-   {
-   std::string name;
-   std::string ext;
+NSString* fileInBundleByName(const std::string& filename)
+{
+    std::string name;
+    std::string ext;
    
-   // Divide filename to name and extension
-   sint64 pos = filename.rfind(".");
-   if (pos == std::string::npos)
-      name = filename;
-   else
-      {
-      name = filename.substr(0, pos);
-      ext  = filename.substr(pos + 1, filename.length() - pos - 1);
-      }
+    // Divide filename to name and extension
+    sint64 pos = filename.rfind(".");
+    if (pos == std::string::npos)
+    {
+        name = filename;
+    }
+    else
+    {
+        name = filename.substr(0, pos);
+        ext  = filename.substr(pos + 1, filename.length() - pos - 1);
+    }
   
-   // Find final path to resource in bundle
-   NSString* NSname = [NSString stringWithUTF8String: name.c_str()];
-   NSString* NSext  = [NSString stringWithUTF8String: ext.c_str()];
-   return [[NSBundle mainBundle] pathForResource:NSname ofType:NSext];
+    // Find final path to resource in bundle
+    NSString* NSname = [NSString stringWithUTF8String: name.c_str()];
+    NSString* NSext  = [NSString stringWithUTF8String: ext.c_str()];
+    return [[NSBundle mainBundle] pathForResource:NSname ofType:NSext];
  
-   //NSURL* url = [[NSBundle mainBundle] URLForResource:stringTo_NSString(filename) withExtension:@"obj"];
-   }
+    //NSURL* url = [[NSBundle mainBundle] URLForResource:stringTo_NSString(filename) withExtension:@"obj"];
+}
 
 
 #if 0
@@ -204,75 +219,78 @@ namespace en
 
 
 
-   OSXInterface::OSXInterface() :
-      CommonStorage()
-   {
-   // Query executable path length
-   uint32_t pathSize = 0;
-   _NSGetExecutablePath(nullptr, &pathSize);
-   assert( pathSize < MaxPathLength );
+OSXInterface::OSXInterface() :
+    CommonStorage()
+{
+    // Query executable path length
+    uint32_t pathSize = 0;
+    _NSGetExecutablePath(nullptr, &pathSize);
+    assert( pathSize < MaxPathLength );
    
-   // Obtain symbolic path of process executable
-   char* symbolicPath = new char[pathSize];
-   assert( _NSGetExecutablePath(symbolicPath, &pathSize) == 0 );
+    // Obtain symbolic path of process executable
+    char* symbolicPath = new char[pathSize];
+    assert( _NSGetExecutablePath(symbolicPath, &pathSize) == 0 );
    
-   // Convert to real path
-   char* path = new char[pathSize];
-   assert( realpath(symbolicPath, path) != NULL );
-   delete [] symbolicPath;
+    // Convert to real path
+    char* path = new char[pathSize];
+    assert( realpath(symbolicPath, path) != NULL );
+    delete [] symbolicPath;
 
-   processPath = std::string(path);
-   delete [] path;
+    processPath = std::string(path);
+    delete [] path;
 
-   // TODO: Finish
+    // TODO: Finish
    
-   // Alternative way of obtaining process path:
-   // const char* appPath = getenv("HOME");
-   }
-
-   OSXInterface::~OSXInterface()
-   {
-   }
-   
-   bool OSXInterface::exist(const std::string& filename)
-   {
-   // TODO: Finish!
-   return false;
-   }
-   
-   std::shared_ptr<File> OSXInterface::open(const std::string& filename, const FileAccess mode)
-   {
-   std::shared_ptr<OSXFile> result = nullptr;
-   
-   NSString* path = fileInBundleByName(filename);
-
-   if (path)
-      {
-      // Maps file content to virtual adress space
-      NSError* error = nil;
-      NSData* data = [NSData dataWithContentsOfFile:path
-                                            options:NSMappedRead
-                                              error:&error];
-
-      // Alternative approach #1:
-      //
-      // Gets actual handle to file
-      // NSFileHandle *handle = [NSFileHandle fileHandleForReadingAtPath:path];
-      // NSData *fileData = [handle readDataOfLength:];
-      // [handle closeFile];
-      //
-      // Alternative approach #2:
-      //
-      // Read file from sandbox to memory
-      //NSData* data = [NSData dataWithContentsOfFile:path];
-   
-      if ([data length] > 0)
-         result = std::make_shared<OSXFile>(data);
-      }
-      
-   return result;
-   }
-
-   }
+    // Alternative way of obtaining process path:
+    // const char* appPath = getenv("HOME");
 }
+
+OSXInterface::~OSXInterface()
+{
+}
+
+bool OSXInterface::exist(const std::string& filename)
+{
+    // TODO: Finish!
+    return false;
+}
+   
+std::shared_ptr<File> OSXInterface::open(const std::string& filename, const FileAccess mode)
+{
+    std::shared_ptr<OSXFile> result = nullptr;
+   
+    NSString* path = fileInBundleByName(filename);
+
+    if (path)
+    {
+        // Maps file content to virtual adress space
+        NSError* error = nil;
+        NSData* data = [NSData dataWithContentsOfFile:path
+                                              options:NSMappedRead
+                                                error:&error];
+
+        // Alternative approach #1:
+        //
+        // Gets actual handle to file
+        // NSFileHandle *handle = [NSFileHandle fileHandleForReadingAtPath:path];
+        // NSData *fileData = [handle readDataOfLength:];
+        // [handle closeFile];
+        //
+        // Alternative approach #2:
+        //
+        // Read file from sandbox to memory
+        //NSData* data = [NSData dataWithContentsOfFile:path];
+   
+        if ([data length] > 0)
+        {
+            result = std::make_shared<OSXFile>(data);
+        }
+    }
+      
+    return result;
+}
+
+} // en::storage
+} // en
+
 #endif

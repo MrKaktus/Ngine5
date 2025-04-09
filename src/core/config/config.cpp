@@ -366,4 +366,4 @@ bool Interface::get(const char* name, Nversion& destination)
 config::Context   ConfigContext;
 config::Interface Config;
 
-}
+} // en

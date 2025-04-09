@@ -43,45 +43,47 @@
 
 namespace en
 {
-   namespace input
-   {    
-   extern const Key TranslateKey[256];
+namespace input
+{    
+
+extern const Key TranslateKey[256];
   
-   class WinMouse : public CommonMouse
-      {
-      public:
-      bool   position(const uint32 x, const uint32 y);
-      bool   position(const std::shared_ptr<Display> screen, const uint32 x, const uint32 y);
-      uint32v2 virtualPosition(void) const;     
-      bool     virtualPosition(const uint32 x, const uint32 y);
-      void   show(void);
-      void   hide(void);
+class WinMouse : public CommonMouse
+{
+    public:
+    bool   position(const uint32 x, const uint32 y);
+    bool   position(const std::shared_ptr<Display> screen, const uint32 x, const uint32 y);
+    uint32v2 virtualPosition(void) const;     
+    bool     virtualPosition(const uint32 x, const uint32 y);
+    void   show(void);
+    void   hide(void);
+    
+    void updateDisplay(uint32v2 pos);
+    
+    WinMouse();
+    virtual ~WinMouse();                           // Polymorphic deletes require a virtual base destructor
+};
 
-      void updateDisplay(uint32v2 pos);
+class WinInput : public CommonInput
+{
+    public:
+    MSG msg;                    // Message handle
+    LPDIRECTINPUT8 directInput; // DirectInput device context
+    
+    // Internal 
+    
+    void decodeMessage(MSG& msg); // Decodes incoming message
+    virtual void updateIO(void);                             // Gets actual input state, call function handling cached events
+    
+    // Interface
+    
+    WinInput();
+    virtual void init(void);
+    virtual ~WinInput();                       // Polymorphic deletes require a virtual base destructor
+};
 
-      WinMouse();
-      virtual ~WinMouse();                           // Polymorphic deletes require a virtual base destructor
-      };
+} // en::input
+} // en
 
-   class WinInput : public CommonInput
-      {
-      public:
-      MSG msg;                    // Message handle
-      LPDIRECTINPUT8 directInput; // DirectInput device context
-
-      // Internal 
-
-      void decodeMessage(MSG& msg); // Decodes incoming message
-      virtual void updateIO(void);                             // Gets actual input state, call function handling cached events
-
-      // Interface
-
-      WinInput();
-      virtual void init(void);
-      virtual ~WinInput();                       // Polymorphic deletes require a virtual base destructor
-      };
-   }
-}
 #endif
-
 #endif

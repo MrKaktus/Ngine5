@@ -17,34 +17,36 @@
 
 namespace en
 {
-   namespace input
-   {
-   class OSXMouse : public CommonMouse
-      {
-      public:
-      bool   position(const uint32 x, const uint32 y);
-      bool   position(const std::shared_ptr<Display> display, const uint32 x, const uint32 y);
-      uint32v2 virtualPosition(void) const;     
-      bool     virtualPosition(const uint32 x, const uint32 y);
-      void   show(void);
-      void   hide(void);
+namespace input
+{
 
-      OSXMouse();
-      virtual ~OSXMouse();                           // Polymorphic deletes require a virtual base destructor
-      };
+class OSXMouse : public CommonMouse
+{
+    public:
+    bool   position(const uint32 x, const uint32 y);
+    bool   position(const std::shared_ptr<Display> display, const uint32 x, const uint32 y);
+    uint32v2 virtualPosition(void) const;     
+    bool     virtualPosition(const uint32 x, const uint32 y);
+    void   show(void);
+    void   hide(void);
+    
+    OSXMouse();
+    virtual ~OSXMouse();                           // Polymorphic deletes require a virtual base destructor
+};
       
-   class macInput : public CommonInput
-      {
-      public:
-      uint32 stateFlags; // Keys lock state
+class macInput : public CommonInput
+{
+    public:
+    uint32 stateFlags; // Keys lock state
+    
+    virtual void updateIO(void);                   
+    
+    macInput();
+    virtual ~macInput();                           // Polymorphic deletes require a virtual base destructor
+};
 
-      virtual void updateIO(void);                   
-      
-      macInput();
-      virtual ~macInput();                           // Polymorphic deletes require a virtual base destructor
-      };
-   }
-}
+} // en::input
+} // en
 #endif
 
 #endif

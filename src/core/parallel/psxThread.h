@@ -54,7 +54,8 @@ extern uint64 currentThreadSystemId(void);
 
 extern uint32 registerThread(uint64 threadSystemId); ///< Registers thread with given systemId, and returns assigned localId
 extern void releaseThread(uint32 threadId);          ///< Releases thread pointed by local threadId
-}
-#endif
 
+} // en
+
+#endif
 #endif

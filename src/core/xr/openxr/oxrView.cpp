@@ -4,6 +4,7 @@ namespace en
 {
 namespace xr
 {
+
 oxrView::oxrView()
 {
 }

@@ -1,3 +1,6 @@
+
+// TODO: Consider removing this file.
+
 //#include "Ngine4/core/defines.h"
 //#include "Ngine4/core/types.h"
 //#include "Ngine4/core/utilities/TintrusivePointer.h"

@@ -24,6 +24,7 @@ namespace en
 {
 namespace gpu
 {
+
 // Optimisation: This table is not needed. Backend type can be directly cast to Vulkan type.
 static const VkFilter TranslateSamplerFilter[underlyingType(SamplerFilter::Count)] = 
 {

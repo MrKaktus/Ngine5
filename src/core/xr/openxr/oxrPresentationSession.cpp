@@ -15,6 +15,7 @@ namespace en
 {
 namespace xr
 {
+
 XrSwapchainUsageFlags oxrTranslateTextureUsage(const gpu::TextureUsage usage)
 {
     XrSwapchainUsageFlags usageFlags = 0;

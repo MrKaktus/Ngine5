@@ -82,18 +82,18 @@ using namespace en::input;
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
-   //  Send to main app thread info about request to quit.
-   // App should register this event and return control to this thread, then on it's thread close itself and return.
-   Event event(AppClose);
-   //shared_ptr<en::input::macInput> ptr = en::ptr_reinterpret_cast<en::input::macInput>(&Input);
-   //ptr->callback(event);
+    //  Send to main app thread info about request to quit.
+    // App should register this event and return control to this thread, then on it's thread close itself and return.
+    Event event(AppClose);
+    //shared_ptr<en::input::macInput> ptr = en::ptr_reinterpret_cast<en::input::macInput>(&Input);
+    //ptr->callback(event);
 
-   // TODO: There should be 2 types of events.
-   // Events that are stacked on producer-consumer queue. Thread 0 (this thread) pushes them, then Thread X (app main)
-   // consumes them when it processes input.
-   // Events that need immediate response. These events need to have registered handling function that is called on Thread 0.
-   // Such function processe input event in custom way and stores result of that processing for Thread X (app main) to use in future.
-   // Should such event handling functions just packaged into Tasks and pushed to Thread/Task Pool for execution ?
+    // TODO: There should be 2 types of events.
+    // Events that are stacked on producer-consumer queue. Thread 0 (this thread) pushes them, then Thread X (app main)
+    // consumes them when it processes input.
+    // Events that need immediate response. These events need to have registered handling function that is called on Thread 0.
+    // Such function processe input event in custom way and stores result of that processing for Thread X (app main) to use in future.
+    // Should such event handling functions just packaged into Tasks and pushed to Thread/Task Pool for execution ?
 
 
 
@@ -122,10 +122,10 @@ using namespace en::input;
 // Dock Menu quit event
 - (void)handleQuitEvent:(NSAppleEventDescriptor*)inputEvent withReplyEvent:(NSAppleEventDescriptor*)ReplyEvent
 {
-   //  Send to main app thread info about request to quit.
-   // App should register this event and return control to this thread, then on it's thread close itself and return.
-   Event event(AppClose);
-   //en::InputContext.events.callback(event);
+    //  Send to main app thread info about request to quit.
+    // App should register this event and return control to this thread, then on it's thread close itself and return.
+    Event event(AppClose);
+    //en::InputContext.events.callback(event);
 }
 
 //@end
@@ -133,42 +133,42 @@ using namespace en::input;
 
 - (NSSize)window:(NSWindow *)window willUseFullScreenContentSize:(NSSize)proposedSize
 {
-   NSLog(@"\n\nwindow:willUseFullScreenContentSize:");
-return proposedSize;
+    NSLog(@"\n\nwindow:willUseFullScreenContentSize:");
+    return proposedSize;
 }
 
 - (NSApplicationPresentationOptions)window:(NSWindow *)window
       willUseFullScreenPresentationOptions:(NSApplicationPresentationOptions)proposedOptions
 {
-   NSLog(@"\n\nwindow:willUseFullScreenPresentationOptions:");
+    NSLog(@"\n\nwindow:willUseFullScreenPresentationOptions:");
 
-   // Allow application to enter Fullscreen mode
-   NSApplicationPresentationOptions presentationOptions; // = [application currentSystemPresentationOptions];
-   presentationOptions  = NSApplicationPresentationHideDock;
-   presentationOptions |= NSApplicationPresentationHideMenuBar;
-   presentationOptions |= NSApplicationPresentationFullScreen;
-   return presentationOptions; //[application setPresentationOptions:presentationOptions]; // NSFullScreenWindowMask
+    // Allow application to enter Fullscreen mode
+    NSApplicationPresentationOptions presentationOptions; // = [application currentSystemPresentationOptions];
+    presentationOptions  = NSApplicationPresentationHideDock;
+    presentationOptions |= NSApplicationPresentationHideMenuBar;
+    presentationOptions |= NSApplicationPresentationFullScreen;
+    return presentationOptions; //[application setPresentationOptions:presentationOptions]; // NSFullScreenWindowMask
 }
 
 - (void)windowWillEnterFullScreen:(NSNotification *)notification
 {
-   NSLog(@"\n\nwindowWillEnterFullScreen:");
-   NSWindow* window = (NSWindow*)[notification object];
+    NSLog(@"\n\nwindowWillEnterFullScreen:");
+    NSWindow* window = (NSWindow*)[notification object];
 }
 
 - (void)windowDidEnterFullScreen:(NSNotification *)notification
 {
-   NSLog(@"\n\nwindowDidEnterFullScreen:");
+    NSLog(@"\n\nwindowDidEnterFullScreen:");
 }
 
 - (void)windowWillExitFullScreen:(NSNotification *)notification
 {
-   NSLog(@"\n\nwindowWillExitFullScreen:");
+    NSLog(@"\n\nwindowWillExitFullScreen:");
 }
 
 - (void)windowDidExitFullScreen:(NSNotification *)notification
 {
-   NSLog(@"\n\nwindowDidExitFullScreen:");
+    NSLog(@"\n\nwindowDidExitFullScreen:");
 }
 
 @end

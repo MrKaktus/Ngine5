@@ -8,6 +8,7 @@ namespace en
 {
 namespace xr
 {
+
 oxrFrameState::oxrFrameState() :
     viewsArray(nullptr),
     viewsCount(0)

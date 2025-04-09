@@ -21,6 +21,7 @@ namespace en
 {
 namespace xr
 {
+
 class oxrHeadsetVK : public oxrHeadset
 {
 public:

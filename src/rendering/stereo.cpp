@@ -18,6 +18,7 @@ using namespace en::system;
 
 namespace en
 {
+
 //   Stereoscopy::Stereoscopy(std::shared_ptr<HMD> hmd) : 
 //      device(dynamic_pointer_cast<OculusX>(hmd)),
 //      program(nullptr),
@@ -237,4 +238,5 @@ namespace en
 // 
 //   return true;
 //   }
-}
+
+} // en

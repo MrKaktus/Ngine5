@@ -25,6 +25,7 @@ extern DWORD mainThreadId;
 
 namespace en
 {
+
 /// Windows has different entry point for threads, thus passed function and
 /// it's parameters need to be wrapped into container and passed in such way
 /// to interface function.
@@ -68,7 +69,8 @@ extern uint64 currentThreadSystemId(void);
 
 extern uint32 registerThread(uint64 threadSystemId); ///< Registers thread with given systemId, and returns assigned localId
 extern void releaseThread(uint32 threadId);          ///< Releases thread pointed by local threadId
-}
-#endif
 
+} // en
+
+#endif
 #endif

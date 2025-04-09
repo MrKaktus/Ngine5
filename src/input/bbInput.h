@@ -16,19 +16,21 @@
 #if defined(EN_PLATFORM_BLACKBERRY)
 namespace en
 {
-   namespace input
-   {      
-   class BBInterface : public CommonInput
-      {
-      public:
+namespace input
+{      
 
-      void update(void);                             // Gets actual input state, call function handling cached events
-      
-      BBInterface();
-      virtual ~BBInterface();                       // Polymorphic deletes require a virtual base destructor
-      };
-   }
-}
+class BBInterface : public CommonInput
+{
+    public:
+    
+    void update(void);                             // Gets actual input state, call function handling cached events
+    
+    BBInterface();
+    virtual ~BBInterface();                       // Polymorphic deletes require a virtual base destructor
+};
+
+} // en::input
+} // en
+
 #endif
-
 #endif

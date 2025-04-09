@@ -22,7 +22,6 @@ namespace en
 namespace xr
 {
 
-
 oxrPresentationSessionD3D12::oxrPresentationSessionD3D12(
         const XrSystemId runtime,
         const XrViewConfigurationType viewConfigurationType, 

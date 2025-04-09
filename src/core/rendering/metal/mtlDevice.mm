@@ -692,7 +692,7 @@ MetalAPI::~MetalAPI()
 // it's called when app starts, we call our drawing function to cleat the screen
 - (void)didMoveToWindow
 {
-[self redraw];
+    [self redraw];
 }
 
 

@@ -21,6 +21,7 @@ namespace en
 {
 namespace xr
 {
+
 class oxrHeadsetD3D12 : public oxrHeadset
 {
 public:

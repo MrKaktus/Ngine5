@@ -30,31 +30,32 @@
 
 namespace en
 {
-   namespace system
-   {
-   // TODO: Refactor this whole subsystem to per OS implementation and move to CORE
+namespace system
+{
+
+// TODO: Refactor this whole subsystem to per OS implementation and move to CORE
    
-   Context::Context() :
-      physicalCores(1),
-      logicalCores(1),
-      platform(Unknown),
+Context::Context() :
+    physicalCores(1),
+    logicalCores(1),
+    platform(Unknown),
 #if   defined( EN_PLATFORM_ANDROID )
-      system(Android),
+    system(Android),
 #elif defined( EN_PLATFORM_BLACKBERRY )
-      system(BlackBerry),
+    system(BlackBerry),
 #elif defined( EN_PLATFORM_IOS )
-      system(iOS),
+    system(iOS),
 #elif defined( EN_PLATFORM_OSX )
-      system(OSX),
+    system(OSX),
 #elif defined( EN_PLATFORM_WINDOWS )
-      system(Windows),
+    system(Windows),
 #else
-      system(Unknown)   // Compile time assert !
+    system(Unknown)   // Compile time assert !
 #endif
-      name(Unsupported)
-   {
-   // Determine CPU cores count
-   /////////////////////////////////////////////////////////////////////////////
+    name(Unsupported)
+{
+    // Determine CPU cores count
+    /////////////////////////////////////////////////////////////////////////////
    
 #if defined(EN_PLATFORM_OSX)
     // Query count of physical cores
@@ -105,17 +106,17 @@ namespace en
 
 #endif
 
-   // Determine Platform type
-   /////////////////////////////////////////////////////////////////////////////
+    // Determine Platform type
+    /////////////////////////////////////////////////////////////////////////////
    
-   // TODO: Separate concepts of:
-   //       - CPU Architecture (ARM/x64)
-   //       - device type (PC/iPad/iPhone)
-   //       - and OS (Android, iOS, tvOS, macOS, Windows)
+    // TODO: Separate concepts of:
+    //       - CPU Architecture (ARM/x64)
+    //       - device type (PC/iPad/iPhone)
+    //       - and OS (Android, iOS, tvOS, macOS, Windows)
    
 #if defined(EN_PLATFORM_ANDROID)
-   platform = ARM;
-   // TODO: Check if platform is not x86/x64 for rare Intel cases and Chromebooks? !!!
+    platform = ARM;
+    // TODO: Check if platform is not x86/x64 for rare Intel cases and Chromebooks? !!!
    
 #elif defined(EN_PLATFORM_BLACKBERRY)
     platform = ARM;
@@ -124,7 +125,9 @@ namespace en
     platform = iPhone;
     #if (__IPHONE_OS_VERSION_MAX_ALLOWED >= 30200)
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    {
         platform = iPad;
+    }
     #endif
    
 #elif defined(EN_PLATFORM_OSX)
@@ -134,117 +137,146 @@ namespace en
     platform = PC;
     
 #else
-   assert(0);
+    assert(0);
    
 #endif
 
-   // Determine major version of OS
+    // Determine major version of OS
 #ifdef EN_PLATFORM_WINDOWS
-   OSVERSIONINFOEX os;
-   memset(&os, 0, sizeof(OSVERSIONINFOEX));
-   os.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    OSVERSIONINFOEX os;
+    memset(&os, 0, sizeof(OSVERSIONINFOEX));
+    os.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 
-   GetVersionEx((OSVERSIONINFO*)&os);
+    GetVersionEx((OSVERSIONINFO*)&os);
 
-   // Windows 10 
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 4) )
-      name = Windows10;
+    // TODO: Re-do below to use en::Version instead, and put it in a table.
 
-   // Windows 8.1
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 3) && (os.wProductType == VER_NT_WORKSTATION) )
-      name = Windows8_1;
+    // Windows 10 
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 4) )
+    {
+        name = Windows10;
+    }
 
-   // Windows Server 2012 R2
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 3) && (os.wProductType != VER_NT_WORKSTATION) )
-      name = WindowsServer2012r2;
+    // Windows 8.1
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 3) && (os.wProductType == VER_NT_WORKSTATION) )
+    {
+        name = Windows8_1;
+    }
 
-   // Windows 8
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 2) && (os.wProductType == VER_NT_WORKSTATION) )
-      name = Windows8;
+    // Windows Server 2012 R2
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 3) && (os.wProductType != VER_NT_WORKSTATION) )
+    {
+        name = WindowsServer2012r2;
+    }
 
-   // Windows Server 2012 
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 2) && (os.wProductType != VER_NT_WORKSTATION) )
-      name = WindowsServer2012;
+    // Windows 8
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 2) && (os.wProductType == VER_NT_WORKSTATION) )
+    {
+        name = Windows8;
+    }
 
-   // Windows 7
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 1) && (os.wProductType == VER_NT_WORKSTATION) )
-      name = Windows7;
+    // Windows Server 2012 
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 2) && (os.wProductType != VER_NT_WORKSTATION) )
+    {
+        name = WindowsServer2012;
+    }
 
-   // Windows Server 2008 R2 
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 1) && (os.wProductType != VER_NT_WORKSTATION) )
-      name = WindowsServer2008r2;
+    // Windows 7
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 1) && (os.wProductType == VER_NT_WORKSTATION) )
+    {
+        name = Windows7;
+    }
 
-   // Windows Server 2008
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 0) && (os.wProductType != VER_NT_WORKSTATION) )
-      name = WindowsServer2008;
+    // Windows Server 2008 R2 
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 1) && (os.wProductType != VER_NT_WORKSTATION) )
+    {
+        name = WindowsServer2008r2;
+    }
 
-   // Windows Vista
-   if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 0) && (os.wProductType == VER_NT_WORKSTATION) )
-      name = WindowsVista;
+    // Windows Server 2008
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 0) && (os.wProductType != VER_NT_WORKSTATION) )
+    {
+        name = WindowsServer2008;
+    }
 
-   // Windows Server 2003 R2 
-   if ( (name == Unsupported) && (os.dwMajorVersion == 5) && (os.dwMinorVersion == 2) && (GetSystemMetrics(SM_SERVERR2) != 0) )
-      name = WindowsServer2003r2;
+    // Windows Vista
+    if ( (name == Unsupported) && (os.dwMajorVersion == 6) && (os.dwMinorVersion == 0) && (os.wProductType == VER_NT_WORKSTATION) )
+    {
+        name = WindowsVista;
+    }
 
-   // Windows Server 2003
-   if ( (name == Unsupported) && (os.dwMajorVersion == 5) && (os.dwMinorVersion == 2) && (GetSystemMetrics(SM_SERVERR2) == 0) )
-      name = WindowsServer2003;
+    // Windows Server 2003 R2 
+    if ( (name == Unsupported) && (os.dwMajorVersion == 5) && (os.dwMinorVersion == 2) && (GetSystemMetrics(SM_SERVERR2) != 0) )
+    {
+        name = WindowsServer2003r2;
+    }
 
-   // Windows XP
-   if ( (name == Unsupported) && (os.dwMajorVersion == 5) && (os.dwMinorVersion == 1) )
-      name = WindowsXP;
+    // Windows Server 2003
+    if ( (name == Unsupported) && (os.dwMajorVersion == 5) && (os.dwMinorVersion == 2) && (GetSystemMetrics(SM_SERVERR2) == 0) )
+    {
+        name = WindowsServer2003;
+    }
 
-   // Windows 2000
-   if ( (name == Unsupported) && (os.dwMajorVersion == 5) && (os.dwMinorVersion == 0) )
-      name = Windows2000;
+    // Windows XP
+    if ( (name == Unsupported) && (os.dwMajorVersion == 5) && (os.dwMinorVersion == 1) )
+    {
+        name = WindowsXP;
+    }
+
+    // Windows 2000
+    if ( (name == Unsupported) && (os.dwMajorVersion == 5) && (os.dwMinorVersion == 0) )
+    {
+        name = Windows2000;
+    }
 #endif
-   }
+}
 
-   Context::~Context()
-   {
-   }
+Context::~Context()
+{
+}
 
-   bool Context::create(void)
-   {
-   Log << "Starting module: System.\n";
-   return true;
-   }
+bool Context::create(void)
+{
+    Log << "Starting module: System.\n";
+    return true;
+}
 
-   void Context::destroy(void)
-   {
-   Log << "Closing module: System.\n";
-   }
+void Context::destroy(void)
+{
+    Log << "Closing module: System.\n";
+}
 
-   uint32 Interface::physicalCores(void)
-   {
-   return SystemContext.physicalCores;
-   }
+uint32 Interface::physicalCores(void)
+{
+    return SystemContext.physicalCores;
+}
 
-   uint32 Interface::logicalCores(void)
-   {
-   return SystemContext.logicalCores;
-   }
-   
-   Platform Interface::platform(void)
-   {
-   return SystemContext.platform;
-   }
+uint32 Interface::logicalCores(void)
+{
+    return SystemContext.logicalCores;
+}
 
-   OperatingSystem Interface::os(void)
-   {
-   return SystemContext.system;
-   }
+Platform Interface::platform(void)
+{
+    return SystemContext.platform;
+}
 
-   Name Interface::name(void)
-   {
-   return SystemContext.name;
-   }
+OperatingSystem Interface::os(void)
+{
+    return SystemContext.system;
+}
 
-   }
+Name Interface::name(void)
+{
+    return SystemContext.name;
+}
+
+} // en::system
 
 system::Context   SystemContext;
 system::Interface System;
-}
+
+} // en
 
 
 

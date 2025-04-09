@@ -29,8 +29,6 @@ namespace en
 namespace xr
 {
 
-
-
 struct TextureTopology
 {
     gpu::TextureType textureType;
@@ -141,8 +139,6 @@ class oxrPresentationSession : public PresentationSession
     virtual void   presentWithPose(const Pose& pose);
     virtual void   endEncoding(void);
 };
-
-
 
 } // en::xr
 } // en

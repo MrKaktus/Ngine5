@@ -52,6 +52,7 @@ namespace en
 {
 namespace xr
 {
+
 extern void unbindedOpenXRFunctionHandler(...);
 
 // OpenXR API Layer description

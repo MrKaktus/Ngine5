@@ -15,10 +15,10 @@
 
 namespace en
 {
-   namespace input
-   {
+namespace input
+{
   
 
 
-   }
+}
 }

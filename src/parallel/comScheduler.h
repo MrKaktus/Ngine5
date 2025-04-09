@@ -25,7 +25,6 @@
 namespace en
 {
 
-
 // TEMP Implementation !!!! DIRTY SHIT FIXME!!!
 template<typename T>
 class MPSCDeque
@@ -230,5 +229,6 @@ class TaskScheduler : public parallel::Interface
     virtual ~TaskScheduler();
 };
 
-}
+} // en
+
 #endif

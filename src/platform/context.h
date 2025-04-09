@@ -20,24 +20,28 @@
 
 namespace en
 {
-   namespace system
-   { 
-   struct Context
-          {
-          uint32          physicalCores;
-          uint32          logicalCores;
-          Platform        platform;
-          OperatingSystem system;
-          Name            name;
+namespace system
+{
 
-          Context();
-         ~Context();
+struct Context
+{
+    uint32          physicalCores;
+    uint32          logicalCores;
+    Platform        platform;
+    OperatingSystem system;
+    Name            name;
 
-          bool create(void);
-          void destroy(void);
-          };
-   }
+    Context();
+    ~Context();
+
+    bool create(void);
+    void destroy(void);
+};
+
+} // en::system
 
 extern system::Context SystemContext;
-}
+
+} // en
+
 #endif

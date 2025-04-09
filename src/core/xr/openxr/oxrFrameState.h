@@ -22,6 +22,7 @@ namespace en
 {
 namespace xr
 {
+
 class oxrFrameState : public FrameState
 {
     public:

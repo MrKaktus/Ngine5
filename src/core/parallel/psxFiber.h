@@ -20,22 +20,24 @@
 
 namespace en
 {
-   class psxFiber : public Fiber
-      {
-      public:
-      ucontext_t context;
-      void*      stack;
-      uint32     maximumStackSize;
-          
-      psxFiber(const uint32 stackSize,
-               const uint32 _maximumStackSize);
-      psxFiber(const FiberFunction function,
-               void* fiberState,
-               const uint32 stackSize,
-               const uint32 maximumStackSize);
-     ~psxFiber();
-      };
-}
-#endif
 
+class psxFiber : public Fiber
+{
+    public:
+    ucontext_t context;
+    void*      stack;
+    uint32     maximumStackSize;
+        
+    psxFiber(const uint32 stackSize,
+             const uint32 _maximumStackSize);
+    psxFiber(const FiberFunction function,
+             void* fiberState,
+             const uint32 stackSize,
+             const uint32 maximumStackSize);
+   ~psxFiber();
+};
+
+} // en
+
+#endif
 #endif

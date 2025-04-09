@@ -22,8 +22,10 @@
 
 namespace en
 {
+
 extern void initHalfs(void);
-}
+
+} // en
 
 #include "core/storage/storage.h"
 #include "core/config/context.h"
@@ -273,9 +275,9 @@ int WINAPI WindowsMain( HINSTANCE hInstance,
                         LPSTR     lpCmdLine,
                         int       nCmdShow )
 {
-uint32 ret = ApplicationMainC(0, nullptr);
- //int ret = ApplicationMainW(hInstance,NULL,lpCmdLine,SW_SHOWNORMAL);
+    uint32 ret = ApplicationMainC(0, nullptr);
+    //int ret = ApplicationMainW(hInstance,NULL,lpCmdLine,SW_SHOWNORMAL);
 
-return ret;
+    return ret;
 }
 #endif

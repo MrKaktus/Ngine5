@@ -12,6 +12,7 @@ namespace en
 {
 namespace xr
 {
+
 void unbindedOpenXRFunctionHandler(...)
 {
     Log << "ERROR: Called unbinded OpenXR function.\n";

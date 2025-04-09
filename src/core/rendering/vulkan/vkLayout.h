@@ -26,6 +26,7 @@ namespace en
 {
 namespace gpu
 {
+
 class VulkanDevice;
 
 class SetLayoutVK : public SetLayout

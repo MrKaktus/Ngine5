@@ -27,20 +27,22 @@
 
 namespace en
 {
-   namespace storage
-   {      
-   class OSXInterface : public CommonStorage
-      {
-      public:
-      virtual bool exist(const std::string& filename); // Check if file exist
-      virtual std::shared_ptr<File> open(const std::string& filename,
-                             const FileAccess mode = Read);  // Opens file
+namespace storage
+{      
 
-      OSXInterface();
-      virtual ~OSXInterface();
-      };
-   }
-}
+class OSXInterface : public CommonStorage
+{
+    public:
+    virtual bool exist(const std::string& filename); // Check if file exist
+    virtual std::shared_ptr<File> open(const std::string& filename,
+                           const FileAccess mode = Read);  // Opens file
+
+    OSXInterface();
+    virtual ~OSXInterface();
+};
+
+} // en::storage
+} // en
+
 #endif
-
 #endif

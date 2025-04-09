@@ -9,6 +9,7 @@ namespace en
 {
 namespace xr
 {
+
 bool ovrInterface::isPresent(void)
 {
     return false;

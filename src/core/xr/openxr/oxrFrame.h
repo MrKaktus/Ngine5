@@ -21,6 +21,7 @@ namespace en
 {
 namespace xr
 {
+
 class oxrFrame : public Frame
 {
     public:

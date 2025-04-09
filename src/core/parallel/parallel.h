@@ -13,12 +13,12 @@
 
 namespace en
 {
-
 namespace parallel
 {
-    void init(void);
-}
 
-}
+void init(void);
+
+} // en::parallel
+} // en
 
 #endif

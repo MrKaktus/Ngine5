@@ -24,6 +24,7 @@ namespace en
 {
 namespace xr
 {
+
 class oxrInterface;
 
 class HeadsetProperties;
