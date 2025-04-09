@@ -95,6 +95,7 @@ Context::Defaults::~Defaults()
 {
 }
 
+// TODO: Should be EN_SUPPORTS_FBX (and best solution would be plugin system for different formats support through DLLs).
 #if defined(EN_PLATFORM_WINDOWS)
 Context::Context() :
     fbxManager(nullptr),
@@ -104,13 +105,16 @@ Context::Context() :
 Context::Context()
 #endif
 {
-    //storage.fonts.create(128);
-    //storage.models.create(4096);
-    //storage.materials.create(4096);
+/*
+    storage.fonts.create(128);
+    storage.models.create(4096);
+    storage.materials.create(4096);
 
-    //fonts.clear();
+    fonts.clear();
     models.clear();
     materials.clear();
+//*/
+
     textures.clear();
 
     path.fonts       = std::string("resources/fonts/");
@@ -269,48 +273,50 @@ void Context::destroy(void)
 #endif
 }
 
-//MaterialParameter::MaterialParameter() :
-//   handle(NULL),
-//   value(NULL),
-//   name(NULL)
-//{
-//}
+ //MaterialParameter::MaterialParameter() :
+ //    handle(NULL),
+ //    value(NULL),
+ //    name(NULL)
+ //{
+ //}
 
-//MaterialParameter::~MaterialParameter()
-//{
-//// Don't delete "value" as it points to shared buffer
-//// Don't delete "name" as it points to shared string
-//}
+ //MaterialParameter::~MaterialParameter()
+ //{
+ //    // Don't delete "value" as it points to shared buffer
+ //    // Don't delete "name" as it points to shared string
+ //}
 
-//MaterialSampler::MaterialSampler() :
-//   handle(NULL),
-//   texture(NULL),
-//   name(NULL)
-//{
-//}
+ //MaterialSampler::MaterialSampler() :
+ //    handle(NULL),
+ //    texture(NULL),
+ //    name(NULL)
+ //{
+ //}
 
-//MaterialSampler::~MaterialSampler()
-//{
-//// Don't delete "name" as it points to shared string
-//}
+ //MaterialSampler::~MaterialSampler()
+ //{
+ //    // Don't delete "name" as it points to shared string
+ //}
 
 MaterialDescriptor::MaterialDescriptor() /*:*/
- /*     program(NULL)*/
+//    program(nullptr)
 {
-    //parameters.list.clear();
-    //parameters.buffer = NULL;
-    //parameters.size   = 0;
-
-    //samplers.clear();
-
-    //state.texture.ambient      = false;
-    //state.texture.diffuse      = false;
-    //state.texture.specular     = false;
-    //state.texture.displacement = false;
-    //state.texture.normal       = false;
-    //state.texture.alpha        = false;
-
-    //state.transparent          = false;
+/*
+    parameters.list.clear();
+    parameters.buffer = NULL;
+    parameters.size   = 0;
+    
+    samplers.clear();
+    
+    state.texture.ambient      = false;
+    state.texture.diffuse      = false;
+    state.texture.specular     = false;
+    state.texture.displacement = false;
+    state.texture.normal       = false;
+    state.texture.alpha        = false;
+    
+    state.transparent          = false;
+//*/
 }
 
 MaterialDescriptor::~MaterialDescriptor()

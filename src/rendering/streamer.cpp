@@ -42,6 +42,7 @@ using namespace en::gpu;
 
 namespace en
 {
+
 //
 //// Allocates RAM for populating resource
 //volatile void* allocateBuffer(const hash resource, const uint64 size);
