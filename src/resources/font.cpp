@@ -19,343 +19,384 @@
 
 namespace en
 {
-   namespace resource
-   {
-   //# IMPLEMENTATION
-   //##########################################################################
+namespace resource
+{
 
-   Font::~Font()
-   {
-   }
+//# IMPLEMENTATION
+//##########################################################################
 
-   FontImp::FontImp() :
-      height(0.0f),
-      resource(nullptr)
-   {
-   memset(&table[0], 0, 256 * sizeof(Character));
-   }
+Font::~Font()
+{
+}
 
-   FontImp::~FontImp()
-   {
-   resource = nullptr;
-   }
+FontImp::FontImp() :
+    height(0.0f),
+    resource(nullptr)
+{
+    memset(&table[0], 0, 256 * sizeof(Character));
+}
 
-   std::shared_ptr<en::gpu::Texture> FontImp::texture(void) const
-   {
-   return resource;
-   }
+FontImp::~FontImp()
+{
+    resource = nullptr;
+}
 
-   std::shared_ptr<Mesh> FontImp::text(const std::string text, const bool screenspace) const
-   {
-   using namespace gpu;
+std::shared_ptr<en::gpu::Texture> FontImp::texture(void) const
+{
+    return resource;
+}
 
-   // Be sure there is anything to render
-   assert( text.size() > 0 );
+std::shared_ptr<Mesh> FontImp::text(const std::string text, const bool screenspace) const
+{
+    using namespace gpu;
 
-   // Create buffer with text geometry
-   struct CharacterVertex
-          {
-          float2 pos;
-          float2 uv;
-          };
-   uint32 vertices = static_cast<uint32>(text.size()) * 2 * 3;
-   CharacterVertex* data = new CharacterVertex[vertices];
+    // Be sure there is anything to render
+    assert( text.size() > 0 );
 
-   float2 offset;
-   for(uint16 i=0; i<text.size(); ++i)
-      {
-      uint8 id = (unsigned char)text[i];
+    // Create buffer with text geometry
+    struct CharacterVertex
+    {
+        float2 pos;
+        float2 uv;
+    };
+
+    uint32 vertices = static_cast<uint32>(text.size()) * 2 * 3;
+    CharacterVertex* data = new CharacterVertex[vertices];
+
+    float2 offset;
+    for(uint16 i=0; i<text.size(); ++i)
+    {
+        uint8 id = (unsigned char)text[i];
  
-      if (text[i] == '\n')
-         {
-         offset.x = 0.0f;
-         if (screenspace)
-            offset.y += height;
-         else
-            offset.y -= height;
-         continue;
-         }
-          
-      // Default CCW oriented faces.
-      //    
-      //    offset.xy
-      //    |
-      //    |
-      //           4
-      //  5 +------+ 2
-      //    |     /|
-      //    | 1  / |
-      //    |   /  |
-      //    |  /   |
-      //    | /  0 |  
-      //    |/     |
-      //  3 +------+ 1  -------- text base  
-      //    0      
-      //                -------- line height (for "j" "q" etc.)
-      //
-      float left   = offset.x + table[id].offset.x;
-      float right  = left + table[id].width;
-      float top    = offset.y - table[id].offset.y;
-      float bottom = top - table[id].height;
-      if (screenspace)
-         {
-         top    = offset.y + table[id].offset.y;
-         bottom = offset.y + table[id].offset.y + table[id].height;
-         }
-
-      // Position in object space, coordinates in OpenGL ST space
-      data[i*6+0].pos = float2(left,  bottom);
-      data[i*6+1].pos = float2(right, bottom);
-      data[i*6+2].pos = float2(right, top);
-      data[i*6+0].uv  = float2(table[id].position.u,                   table[id].position.v - table[id].height);
-      data[i*6+1].uv  = float2(table[id].position.u + table[id].width, table[id].position.v - table[id].height);
-      data[i*6+2].uv  = float2(table[id].position.u + table[id].width, table[id].position.v);
-
-      data[i*6+3].pos = float2(left,  bottom);
-      data[i*6+4].pos = float2(right, top);
-      data[i*6+5].pos = float2(left,  top);
-      data[i*6+3].uv  = float2(table[id].position.u,                   table[id].position.v - table[id].height);
-      data[i*6+4].uv  = float2(table[id].position.u + table[id].width, table[id].position.v);
-      data[i*6+5].uv  = float2(table[id].position.u,                   table[id].position.v);
-
-      // Update position for next character
-      offset.x += table[id].advance;
-      }
-
-   // Create buffer in GPU (CCW Triangles)
-   Formatting formatting(Attribute::v2f32, Attribute::v2f32); // inPosition, inTexCoord0
-   std::unique_ptr<Buffer> vertex(en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting));
-   
-   // TODO: !!! populate vertex with data
-   
-   delete [] data;
-
-   // Create mesh with text geometry
-   std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
-
-   // TODO: Refactor to new Model description
-   //mesh->name = "text";
-   //mesh->material.albedo = resource;
-   //mesh->geometry.buffer = vertex;
-   //mesh->geometry.begin  = 0;
-   //mesh->geometry.end    = 0;
-   //mesh->elements.type   = Triangles;
-
-   return mesh;
-   }
-
-   //# CONTEXT
-   //##########################################################################
-
-   // uint8 id;
-   // uint16 x;
-   // uint16 y;
-   // uint16 width;
-   // uint16 height;
-   // sint16 offsetX;
-   // sint16 offsetY;
-   // uint16 advance;
-
-   std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
-   {
-   using namespace en::storage;
-
-   // Open .fnt file
-   std::shared_ptr<File> file = Storage->open(filename);
-   if (!file)
-      {
-      file = Storage->open(en::ResourcesContext.path.fonts + filename);
-      if (!file)
-         {
-         Log << std::string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
-         return std::shared_ptr<en::resource::Font>(nullptr);
-         }
-      }
-
-   // Allocate temporary buffer for file content
-   uint64 size = file->size();
-   uint8* buffer = NULL;
-   buffer = new uint8[static_cast<uint32>(size)];
-   if (!buffer)
-      {
-      Log << "ERROR: Not enough memory!\n";
-      return std::shared_ptr<en::resource::Font>(nullptr);
-      }
-   
-   // Read file to buffer and close file
-   if (!file->read(buffer))
-      {
-      Log << "ERROR: Cannot read whole font file!\n";
-      return std::shared_ptr<en::resource::Font>(nullptr);
-      }    
-   file = nullptr;
-
-   // Create new font
-   std::shared_ptr<FontImp> font = std::make_shared<FontImp>();
-   
-   // Create parser to quickly process text from file
-   Parser text(buffer, size);
-
-
-
-   float  texWidth = 1.0f;
-   float  texHeight = 1.0f;
-   std::string texName;
-   uint32 lineHeight;
-   uint32 characters;
-   uint32 id = 0;
-   
-   std::string line, word, command, value;
-   bool eol = false;
-   while(!text.end())
+        if (text[i] == '\n')
         {
+            offset.x = 0.0f;
+            if (screenspace)
+            {
+                offset.y += height;
+            }
+            else
+            {
+                offset.y -= height;
+            }
+
+            continue;
+        }
+          
+        // Default CCW oriented faces.
+        //    
+        //    offset.xy
+        //    |
+        //    |
+        //           4
+        //  5 +------+ 2
+        //    |     /|
+        //    | 1  / |
+        //    |   /  |
+        //    |  /   |
+        //    | /  0 |  
+        //    |/     |
+        //  3 +------+ 1  -------- text base  
+        //    0      
+        //                -------- line height (for "j" "q" etc.)
+        //
+        float left   = offset.x + table[id].offset.x;
+        float right  = left + table[id].width;
+        float top    = offset.y - table[id].offset.y;
+        float bottom = top - table[id].height;
+        if (screenspace)
+        {
+            top    = offset.y + table[id].offset.y;
+            bottom = offset.y + table[id].offset.y + table[id].height;
+        }
+
+        // Position in object space, coordinates in OpenGL ST space
+        data[i*6+0].pos = float2(left,  bottom);
+        data[i*6+1].pos = float2(right, bottom);
+        data[i*6+2].pos = float2(right, top);
+        data[i*6+0].uv  = float2(table[id].position.u,                   table[id].position.v - table[id].height);
+        data[i*6+1].uv  = float2(table[id].position.u + table[id].width, table[id].position.v - table[id].height);
+        data[i*6+2].uv  = float2(table[id].position.u + table[id].width, table[id].position.v);
+
+        data[i*6+3].pos = float2(left,  bottom);
+        data[i*6+4].pos = float2(right, top);
+        data[i*6+5].pos = float2(left,  top);
+        data[i*6+3].uv  = float2(table[id].position.u,                   table[id].position.v - table[id].height);
+        data[i*6+4].uv  = float2(table[id].position.u + table[id].width, table[id].position.v);
+        data[i*6+5].uv  = float2(table[id].position.u,                   table[id].position.v);
+
+        // Update position for next character
+        offset.x += table[id].advance;
+    }
+
+    // Create buffer in GPU (CCW Triangles)
+    Formatting formatting(Attribute::v2f32, Attribute::v2f32); // inPosition, inTexCoord0
+    std::unique_ptr<Buffer> vertex(en::ResourcesContext.defaults.enHeapBuffers->createBuffer(vertices, formatting));
+   
+    // TODO: !!! populate vertex with data
+   
+    delete [] data;
+
+    // Create mesh with text geometry
+    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+
+    // TODO: Refactor to new Model description
+    //mesh->name = "text";
+    //mesh->material.albedo = resource;
+    //mesh->geometry.buffer = vertex;
+    //mesh->geometry.begin  = 0;
+    //mesh->geometry.end    = 0;
+    //mesh->elements.type   = Triangles;
+
+    return mesh;
+}
+
+//# CONTEXT
+//##########################################################################
+
+// uint8 id;
+// uint16 x;
+// uint16 y;
+// uint16 width;
+// uint16 height;
+// sint16 offsetX;
+// sint16 offsetY;
+// uint16 advance;
+
+std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
+{
+    using namespace en::storage;
+
+    // Open .fnt file
+    std::shared_ptr<File> file = Storage->open(filename);
+    if (!file)
+    {
+        file = Storage->open(en::ResourcesContext.path.fonts + filename);
+        if (!file)
+        {
+            Log << std::string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
+            return std::shared_ptr<en::resource::Font>(nullptr);
+        }
+    }
+
+    // Allocate temporary buffer for file content
+    uint64 size = file->size();
+    uint8* buffer = NULL;
+    buffer = new uint8[static_cast<uint32>(size)];
+    if (!buffer)
+    {
+        Log << "ERROR: Not enough memory!\n";
+        return std::shared_ptr<en::resource::Font>(nullptr);
+    }
+   
+    // Read file to buffer and close file
+    if (!file->read(buffer))
+    {
+        Log << "ERROR: Cannot read whole font file!\n";
+        return std::shared_ptr<en::resource::Font>(nullptr);
+    }    
+    file = nullptr;
+
+    // Create new font
+    std::shared_ptr<FontImp> font = std::make_shared<FontImp>();
+   
+    // Create parser to quickly process text from file
+    Parser text(buffer, size);
+
+
+
+    float  texWidth = 1.0f;
+    float  texHeight = 1.0f;
+    std::string texName;
+    uint32 lineHeight;
+    uint32 characters;
+    uint32 id = 0;
+   
+    std::string line, word, command, value;
+    bool eol = false;
+    while(!text.end())
+    {
         if (!text.read(word, eol))
-           continue;
+        {
+            continue;
+        }
 
         if (word == "common")
-           {
-           while(text.read(word, eol))
-              {
-              std::size_t found = word.find("=");
-              if (found != std::string::npos)
-                 {
-                 command = word.substr(0, found);
-                 value   = word.substr(found+1);
+        {
+            while(text.read(word, eol))
+            {
+                std::size_t found = word.find("=");
+                if (found != std::string::npos)
+                {
+                    command = word.substr(0, found);
+                    value   = word.substr(found+1);
 
-                 if (command == "lineHeight")
-                    font->height = static_cast<float>(stringTo<uint32>(value));
-                 else
-                 if (command == "scaleW")
-                    texWidth  = static_cast<float>(stringTo<uint32>(value));
-                 else
-                 if (command == "scaleH")
+                    if (command == "lineHeight")
                     {
-                    texHeight = static_cast<float>(stringTo<uint32>(value));
-                    font->height /= texHeight;
+                        font->height = static_cast<float>(stringTo<uint32>(value));
                     }
-                 else
-                 if (command == "pages")
-                    assert(stringTo<uint32>(value) == 1);
+                    else
+                    if (command == "scaleW")
+                    {
+                        texWidth  = static_cast<float>(stringTo<uint32>(value));
+                    }
+                    else
+                    if (command == "scaleH")
+                    {
+                        texHeight = static_cast<float>(stringTo<uint32>(value));
+                        font->height /= texHeight;
+                    }
+                    else
+                    if (command == "pages")
+                    {
+                        assert(stringTo<uint32>(value) == 1);
+                    }
 
-                 // if (command == "packed")
-                 // if (command == "alphaChnl")
-                 // if (command == "redChnl")
-                 // if (command == "greenChnl")
-                 // if (command == "blueChnl")
-                 // if (command == "base")
-                 }
+                    // if (command == "packed")
+                    // if (command == "alphaChnl")
+                    // if (command == "redChnl")
+                    // if (command == "greenChnl")
+                    // if (command == "blueChnl")
+                    // if (command == "base")
+                }
 
-              if (eol) break;
-              }
-           }
+                if (eol)
+                {
+                    break;
+                }
+            }
+        }
 
         // Load used texture
         if (word == "page")
-           {
-           while(text.read(word, eol))
-              {
-              std::size_t found = word.find("=");
-              if (found != std::string::npos)
-                 {
-                 command = word.substr(0, found);
-                 value   = word.substr(found+1);
+        {
+            while(text.read(word, eol))
+            {
+                std::size_t found = word.find("=");
+                if (found != std::string::npos)
+                {
+                    command = word.substr(0, found);
+                    value   = word.substr(found+1);
 
-                 if (command == "id")
-                    assert(stringTo<uint32>(value) == 0);
-                 else
-                 if (command == "file")
+                    if (command == "id")
                     {
-                    std::string name = value.substr(1, value.length()-2);
-                    font->resource = Resources.load.texture(name);
-                    if (!font->resource)
-                       {
-                       font = nullptr;
-                       Log << "ERROR: Cannot load Font texture!\n";
-                       return std::shared_ptr<Font>(nullptr);
-                       }
+                        assert(stringTo<uint32>(value) == 0);
                     }
-                 }
+                    else
+                    if (command == "file")
+                    {
+                        std::string name = value.substr(1, value.length()-2);
+                        font->resource = Resources.load.texture(name);
+                        if (!font->resource)
+                        {
+                            font = nullptr;
+                            Log << "ERROR: Cannot load Font texture!\n";
+                            return std::shared_ptr<Font>(nullptr);
+                        }
+                    }
+                }
 
-              if (eol) break;
-              }
-           }
+                if (eol)
+                {
+                    break;
+                }
+            }
+        }
 
         // Check described characters count
         if (word == "chars")
-           {
-           while(text.read(word, eol))
-              {
-              std::size_t found = word.find("=");
-              if (found != std::string::npos)
-                 {
-                 command = word.substr(0, found);
-                 value   = word.substr(found+1);
+        {
+            while(text.read(word, eol))
+            {
+                std::size_t found = word.find("=");
+                if (found != std::string::npos)
+                {
+                    command = word.substr(0, found);
+                    value   = word.substr(found+1);
 
-                 if (command == "count")
-                    characters = stringTo<uint32>(value);
-                 }
+                    if (command == "count")
+                    {
+                        characters = stringTo<uint32>(value);
+                    }
+                }
 
-              if (eol) break;
-              }
-           }
+                if (eol)
+                {
+                    break;
+                }
+            }
+        }
    
         // Decode characters
         if (word == "char")
-           {
-           while(text.read(word, eol))
-              {
-              std::size_t found = word.find("=");
-              if (found != std::string::npos)
-                 {
-                 command = word.substr(0, found);
-                 value   = word.substr(found+1);
+        {
+            while(text.read(word, eol))
+            {
+                std::size_t found = word.find("=");
+                if (found != std::string::npos)
+                {
+                    command = word.substr(0, found);
+                    value   = word.substr(found+1);
 
-                 if (command == "id")
-                    id = stringTo<uint32>(value);
-                 else
-                 if (command == "x")
-                    font->table[id].position.x = static_cast<float>(stringTo<uint32>(value)) / texWidth;
-                 else
-                 if (command == "y")
-                    font->table[id].position.y = (1.0f - static_cast<float>(stringTo<uint32>(value))) / texHeight;
-                 else
-                 if (command == "width")
-                    font->table[id].width      = static_cast<float>(stringTo<uint32>(value)) / texWidth;
-                 else
-                 if (command == "height")
-                    font->table[id].height     = static_cast<float>(stringTo<uint32>(value)) / texHeight;
-                 else
-                 if (command == "xoffset")
-                    font->table[id].offset.x   = static_cast<float>(stringTo<sint32>(value)) / texWidth;
-                 else
-                 if (command == "yoffset")
-                    font->table[id].offset.y   = static_cast<float>(stringTo<sint32>(value)) / texHeight;
-                 else
-                 if (command == "xadvance")
-                    font->table[id].advance    = static_cast<float>(stringTo<uint32>(value)) / texWidth;
-                 else
-                 if (command == "page")
-                    assert(stringTo<uint32>(value) == 0);
+                    if (command == "id")
+                    {
+                        id = stringTo<uint32>(value);
+                    }
+                    else
+                    if (command == "x")
+                    {
+                        font->table[id].position.x = static_cast<float>(stringTo<uint32>(value)) / texWidth;
+                    }
+                    else
+                    if (command == "y")
+                    {
+                        font->table[id].position.y = (1.0f - static_cast<float>(stringTo<uint32>(value))) / texHeight;
+                    }
+                    else
+                    if (command == "width")
+                    {
+                        font->table[id].width      = static_cast<float>(stringTo<uint32>(value)) / texWidth;
+                    }
+                    else
+                    if (command == "height")
+                    {
+                        font->table[id].height     = static_cast<float>(stringTo<uint32>(value)) / texHeight;
+                    }
+                    else
+                    if (command == "xoffset")
+                    {
+                        font->table[id].offset.x   = static_cast<float>(stringTo<sint32>(value)) / texWidth;
+                    }
+                    else
+                    if (command == "yoffset")
+                    {
+                        font->table[id].offset.y   = static_cast<float>(stringTo<sint32>(value)) / texHeight;
+                    }
+                    else
+                    if (command == "xadvance")
+                    {
+                        font->table[id].advance    = static_cast<float>(stringTo<uint32>(value)) / texWidth;
+                    }
+                    else
+                    if (command == "page")
+                    {
+                        assert(stringTo<uint32>(value) == 0);
+                    }
 
-                 // if (command == "chnl")
-                 }
+                    // if (command == "chnl")
+                }
 
-              if (eol) break;
-              }
-           }
-
-        text.skipToNextLine();
+                if (eol)
+                {
+                    break;
+                }
+            }
         }
 
-   return font;
+        text.skipToNextLine();
+    }
 
-
-
-
-
-
-
-
+    return font;
 
 
 
@@ -500,42 +541,52 @@ namespace en
 
    //// Return font interface
    //return en::resource::Font(font);
-   }
-
-   std::shared_ptr<Font> Interface::Load::font(const std::string& filename)
-   {
-   sint64 found;
-   uint64 length = filename.length();
-
-   // Try to reuse already loaded models
-   if (ResourcesContext.fonts.find(filename) != ResourcesContext.fonts.end())
-      return ResourcesContext.fonts[filename];
-
-   found = filename.rfind(".fnt");
-   if ( found != std::string::npos &&
-        found == (length - 4) )
-      return loadFont(filename);
-
-   found = filename.rfind(".FNT");
-   if ( found != std::string::npos &&
-        found == (length - 4) )
-      return loadFont(filename);
-
-   return std::shared_ptr<Font>(nullptr);
-   }
-
-   void Interface::Free::font(const std::string& name)
-   {
-   // Find specified font and check if it is used
-   // by other part of code. If it isn't it can be
-   // safely deleted (assigment operator will perform
-   // automatic resource deletion).
-   std::map<std::string, std::shared_ptr<FontImp> >::iterator it = ResourcesContext.fonts.find(name);
-   if (it != ResourcesContext.fonts.end())
-      if (it->second.unique())
-         it->second = nullptr;
-   }
-
-   }
 }
+
+std::shared_ptr<Font> Interface::Load::font(const std::string& filename)
+{
+    sint64 found;
+    uint64 length = filename.length();
+
+    // Try to reuse already loaded models
+    if (ResourcesContext.fonts.find(filename) != ResourcesContext.fonts.end())
+    {
+        return ResourcesContext.fonts[filename];
+    }
+
+    found = filename.rfind(".fnt");
+    if ( found != std::string::npos &&
+         found == (length - 4) )
+    {
+        return loadFont(filename);
+    }
+
+    found = filename.rfind(".FNT");
+    if ( found != std::string::npos &&
+         found == (length - 4) )
+    {
+        return loadFont(filename);
+    }
+
+    return std::shared_ptr<Font>(nullptr);
+}
+
+void Interface::Free::font(const std::string& name)
+{
+    // Find specified font and check if it is used
+    // by other part of code. If it isn't it can be
+    // safely deleted (assigment operator will perform
+    // automatic resource deletion).
+    std::map<std::string, std::shared_ptr<FontImp> >::iterator it = ResourcesContext.fonts.find(name);
+    if (it != ResourcesContext.fonts.end())
+    {
+        if (it->second.unique())
+        {
+            it->second = nullptr;
+        }
+    }
+}
+
+} // en::resource
+} // en
 

@@ -45,10 +45,10 @@ struct Face
 };
 
 //struct Material
-//       {
-//       std::string                 name;   // Material name
-//       en::resource::Material handle; // Material handle
-//       };
+//{
+//    std::string                 name;   // Material name
+//    en::resource::Material handle; // Material handle
+//};
 
 struct Mesh
 {
