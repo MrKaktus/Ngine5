@@ -22,6 +22,7 @@
 #include "core/xr/openxr/oxrValidate.h"
 #include "core/xr/openxr/oxrInterface.h"
 
+#include "utilities/strings.h"
 
 // oxrvkInterface.h
 
@@ -54,21 +55,21 @@ oxrHeadsetVK::oxrHeadsetVK(oxrInterface& _session) :
         XR_VERSION_MINOR(requirements.minApiVersionSupported) == XR_VERSION_MINOR(requirements.maxApiVersionSupported))
     {
         vulkanVersionInfo += "OpenXR Runtime is compatible with Vulkan API version ";
-        vulkanVersionInfo += XR_VERSION_MAJOR(requirements.minApiVersionSupported);
+        vulkanVersionInfo += stringFrom(XR_VERSION_MAJOR(requirements.minApiVersionSupported));
         vulkanVersionInfo += ".";
-        vulkanVersionInfo += XR_VERSION_MINOR(requirements.minApiVersionSupported);
+        vulkanVersionInfo += stringFrom(XR_VERSION_MINOR(requirements.minApiVersionSupported));
         vulkanVersionInfo += "\n";
     }
     else
     {
         vulkanVersionInfo += "OpenXR Runtime is compatible with Vulkan API versions ";
-        vulkanVersionInfo += XR_VERSION_MAJOR(requirements.minApiVersionSupported);
+        vulkanVersionInfo += stringFrom(XR_VERSION_MAJOR(requirements.minApiVersionSupported));
         vulkanVersionInfo += ".";
-        vulkanVersionInfo += XR_VERSION_MINOR(requirements.minApiVersionSupported);
+        vulkanVersionInfo += stringFrom(XR_VERSION_MINOR(requirements.minApiVersionSupported));
         vulkanVersionInfo += " to ";
-        vulkanVersionInfo += XR_VERSION_MAJOR(requirements.maxApiVersionSupported);
+        vulkanVersionInfo += stringFrom(XR_VERSION_MAJOR(requirements.maxApiVersionSupported));
         vulkanVersionInfo += ".";
-        vulkanVersionInfo += XR_VERSION_MINOR(requirements.maxApiVersionSupported);
+        vulkanVersionInfo += stringFrom(XR_VERSION_MINOR(requirements.maxApiVersionSupported));
         vulkanVersionInfo += "\n";
     }
     Log << vulkanVersionInfo;

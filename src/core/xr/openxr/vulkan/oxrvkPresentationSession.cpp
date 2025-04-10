@@ -43,7 +43,7 @@ typedef XrResult (XRAPI_PTR *PFN_xrEnumerateReferenceSpaces)(XrSession session, 
 typedef XrResult (XRAPI_PTR *PFN_xrCreateReferenceSpace)(XrSession session, const XrReferenceSpaceCreateInfo* createInfo, XrSpace* space);
 typedef XrResult (XRAPI_PTR *PFN_xrGetReferenceSpaceBoundsRect)(XrSession session, XrReferenceSpaceType referenceSpaceType, XrExtent2Df* bounds);
 typedef XrResult (XRAPI_PTR *PFN_xrCreateActionSpace)(XrAction action, const XrActionSpaceCreateInfo* createInfo, XrSpace* space);
-typedef XrResult (XRAPI_PTR *PFN_xrLocateSpace)(XrSpace space, XrSpace baseSpace, XrTime   time, XrSpaceRelation* relation);
+typedef XrResult (XRAPI_PTR *PFN_xrLocateSpace)(XrSpace space, XrSpace baseSpace, XrTime time, XrSpaceLocation* location);
 typedef XrResult (XRAPI_PTR *PFN_xrDestroySpace)(XrSpace space);
 
 
@@ -57,9 +57,9 @@ typedef XrResult (XRAPI_PTR *PFN_xrDestroyActionSet)(XrActionSet actionSet);
 typedef XrResult (XRAPI_PTR *PFN_xrCreateAction)(XrActionSet actionSet, const XrActionCreateInfo* createInfo, XrAction* action);
 typedef XrResult (XRAPI_PTR *PFN_xrDestroyAction)(XrAction action);
 typedef XrResult (XRAPI_PTR *PFN_xrSetInteractionProfileSuggestedBindings)(XrSession session, const XrInteractionProfileSuggestedBinding* suggestedBindings);
-typedef XrResult (XRAPI_PTR *PFN_xrGetCurrentInteractionProfile)(XrSession session, XrPath topLevelUserPath, XrInteractionProfileInfo* interactionProfile);
+typedef XrResult (XRAPI_PTR *PFN_xrGetCurrentInteractionProfile)(XrSession session, XrPath topLevelUserPath, XrInteractionProfileState* interactionProfile);
 typedef XrResult (XRAPI_PTR *PFN_xrGetActionStateBoolean)(XrAction action, uint32_t countSubactionPaths, const XrPath* subactionPaths, XrActionStateBoolean* data);
-typedef XrResult (XRAPI_PTR *PFN_xrGetActionStateVector1f)(XrAction action, uint32_t countSubactionPaths, const XrPath* subactionPaths, XrActionStateVector1f* data);
+//typedef XrResult (XRAPI_PTR *PFN_xrGetActionStateVector1f)(XrAction action, uint32_t countSubactionPaths, const XrPath* subactionPaths, XrActionStateVector1f* data);
 typedef XrResult (XRAPI_PTR *PFN_xrGetActionStateVector2f)(XrAction action, uint32_t countSubactionPaths, const XrPath* subactionPaths, XrActionStateVector2f* data);
 typedef XrResult (XRAPI_PTR *PFN_xrGetActionStatePose)(XrAction action, XrPath subactionPath, XrActionStatePose* data);
 typedef XrResult (XRAPI_PTR *PFN_xrSyncActionData)(XrSession session, uint32_t countActionSets, const XrActiveActionSet* actionSets);
