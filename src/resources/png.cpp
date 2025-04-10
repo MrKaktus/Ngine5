@@ -810,27 +810,27 @@ bool load(const std::string& filename,
             case Signature::cHRM:
             {
                 // Read white base of chrominance 
-                colorSpaceInfo.primaries.whitePoint.x = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.primaries.whitePoint.x = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
-                colorSpaceInfo.primaries.whitePoint.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.primaries.whitePoint.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
             
                 // Read red chrominance
-                colorSpaceInfo.primaries.red.x = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.primaries.red.x = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
-                colorSpaceInfo.primaries.red.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.primaries.red.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
             
                 // Read green chrominance
-                colorSpaceInfo.primaries.green.x = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.primaries.green.x = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
-                colorSpaceInfo.primaries.green.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.primaries.green.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
             
                 // Read blue chrominance
-                colorSpaceInfo.primaries.blue.x = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.primaries.blue.x = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
-                colorSpaceInfo.primaries.blue.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.primaries.blue.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
             
                 Log << "cHRM chunk info:\n";

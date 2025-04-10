@@ -14,7 +14,7 @@
 #include "utilities/strings.h"
 #include "assert.h"
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY)
+#if defined(EN_PLATFORM_ANDROID)
 #define sprintf_s sprintf
 #endif
 

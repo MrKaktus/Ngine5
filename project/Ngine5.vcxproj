@@ -89,7 +89,6 @@
     <ClCompile Include="..\src\core\rendering\windows\winDisplay.cpp" />
     <ClCompile Include="..\src\core\rendering\windows\winWindow.cpp" />
     <ClCompile Include="..\src\core\storage\andStorage.cpp" />
-    <ClCompile Include="..\src\core\storage\bbStorage.cpp" />
     <ClCompile Include="..\src\core\storage\storage.cpp" />
     <ClCompile Include="..\src\core\storage\winStorage.cpp" />
     <ClCompile Include="..\src\core\types\double3.cpp" />
@@ -124,17 +123,14 @@
     <ClCompile Include="..\src\core\xr\openxr\vulkan\oxrvkHeadset.cpp" />
     <ClCompile Include="..\src\core\xr\openxr\vulkan\oxrvkPresentationSession.cpp" />
     <ClCompile Include="..\src\input\andInput.cpp" />
-    <ClCompile Include="..\src\input\bbInput.cpp" />
     <ClCompile Include="..\src\input\camera.cpp" />
     <ClCompile Include="..\src\input\hmd.cpp" />
     <ClCompile Include="..\src\input\input.cpp" />
     <ClCompile Include="..\src\input\oculus.cpp" />
     <ClCompile Include="..\src\input\vive.cpp" />
-    <ClCompile Include="..\src\monetization\monetization.cpp" />
     <ClCompile Include="..\src\parallel\scheduler.cpp" />
     <ClCompile Include="..\src\platform\android\and_events.cpp" />
     <ClCompile Include="..\src\platform\android\and_main.cpp" />
-    <ClCompile Include="..\src\platform\blackberry\bb_main.cpp" />
     <ClCompile Include="..\src\platform\comMain.cpp" />
     <ClCompile Include="..\src\platform\system.cpp" />
     <ClCompile Include="..\src\platform\windows\winMain.cpp" />
@@ -244,7 +240,6 @@
     <ClInclude Include="..\public\include\input\keyboard.h" />
     <ClInclude Include="..\public\include\memory\circularQueue.h" />
     <ClInclude Include="..\public\include\memory\workStealingDeque.h" />
-    <ClInclude Include="..\public\include\monetization\monetization.h" />
     <ClInclude Include="..\public\include\Ngine.h" />
     <ClInclude Include="..\public\include\parallel\scheduler.h" />
     <ClInclude Include="..\public\include\parallel\sharedAtomic.h" />
@@ -252,8 +247,6 @@
     <ClInclude Include="..\public\include\platform\android\and_events.h" />
     <ClInclude Include="..\public\include\platform\android\and_init.h" />
     <ClInclude Include="..\public\include\platform\android\and_main.h" />
-    <ClInclude Include="..\public\include\platform\blackberry\bb_init.h" />
-    <ClInclude Include="..\public\include\platform\blackberry\bb_main.h" />
     <ClInclude Include="..\public\include\platform\osx\mac_callbacks.h" />
     <ClInclude Include="..\public\include\platform\osx\mac_init.h" />
     <ClInclude Include="..\public\include\platform\osx\mac_main.h" />
@@ -386,7 +379,6 @@
     <ClInclude Include="..\src\core\rendering\windows\winDisplay.h" />
     <ClInclude Include="..\src\core\rendering\windows\winWindow.h" />
     <ClInclude Include="..\src\core\storage\andStorage.h" />
-    <ClInclude Include="..\src\core\storage\bbStorage.h" />
     <ClInclude Include="..\src\core\storage\context.h" />
     <ClInclude Include="..\src\core\storage\osxStorage.h" />
     <ClInclude Include="..\src\core\storage\storage.h" />
@@ -406,13 +398,11 @@
     <ClInclude Include="..\src\core\xr\openxr\vulkan\oxrvkHeadset.h" />
     <ClInclude Include="..\src\core\xr\openxr\vulkan\oxrvkPresentationSession.h" />
     <ClInclude Include="..\src\input\andInput.h" />
-    <ClInclude Include="..\src\input\bbInput.h" />
     <ClInclude Include="..\src\input\common.h" />
     <ClInclude Include="..\src\input\context.h" />
     <ClInclude Include="..\src\input\oculus.h" />
     <ClInclude Include="..\src\input\osxInput.h" />
     <ClInclude Include="..\src\input\vive.h" />
-    <ClInclude Include="..\src\monetization\context.h" />
     <ClInclude Include="..\src\parallel\comScheduler.h" />
     <ClInclude Include="..\src\platform\comMain.h" />
     <ClInclude Include="..\src\platform\context.h" />

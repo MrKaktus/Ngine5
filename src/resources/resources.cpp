@@ -142,6 +142,7 @@ void Context::create(void)
 
     // Create default program for materials
     std::string vsCode, fsCode;
+/*
 #ifdef EN_OPENGL_DESKTOP
     en::Storage->read(std::string("resources/engine/shaders/default.glsl.1.10.vs"), vsCode);
     en::Storage->read(std::string("resources/engine/shaders/default.glsl.1.10.fs"), fsCode);
@@ -150,7 +151,7 @@ void Context::create(void)
     en::Storage->read(std::string("resources/engine/shaders/default.essl.1.00.vs"), vsCode);
     en::Storage->read(std::string("resources/engine/shaders/default.essl.1.00.fs"), fsCode);
 #endif
-
+//*/
     //vector<gpu::Shader> shaders(2, Shader(nullptr));
     //shaders[0] = Gpu.shader.create(Vertex, vsCode);
     //shaders[1] = Gpu.shader.create(Fragment, fsCode);

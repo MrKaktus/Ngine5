@@ -52,17 +52,11 @@
     <Filter Include="Source Files\input">
       <UniqueIdentifier>{f2d8bcd7-3a70-449b-8085-54c44f417cde}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\monetization">
-      <UniqueIdentifier>{0492cea2-3bf8-418a-83fc-e867a9347a15}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\platform">
       <UniqueIdentifier>{89145717-1407-4aeb-84eb-f900c482d32f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\platform\android">
       <UniqueIdentifier>{24858306-c59b-4fb4-a1ad-c1f6061913f6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\platform\blackberry">
-      <UniqueIdentifier>{cb3aef7e-3678-443c-92c7-019bc94aeef0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\platform\windows">
       <UniqueIdentifier>{f63083e0-24c1-4a7b-834f-817757c7a4c5}</UniqueIdentifier>
@@ -94,9 +88,6 @@
     <Filter Include="Header Files\input">
       <UniqueIdentifier>{1c119a27-acb6-4f2c-8a65-23e60914c9cb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\monetization">
-      <UniqueIdentifier>{81a10e93-d358-41b6-9eeb-6693b1b9bb90}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\platform">
       <UniqueIdentifier>{f9dad671-8214-4d0b-be79-1a5a9b0918ba}</UniqueIdentifier>
     </Filter>
@@ -126,9 +117,6 @@
     </Filter>
     <Filter Include="Header Files\platform\android">
       <UniqueIdentifier>{15a640dc-a4ab-4741-8d9b-18a71851ef44}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\platform\blackberry">
-      <UniqueIdentifier>{f89e4216-8eec-41fd-96d1-5724c24964fc}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\platform\windows">
       <UniqueIdentifier>{0bda27fa-1842-4027-b21b-198e42b3f40d}</UniqueIdentifier>
@@ -321,9 +309,6 @@
     <ClCompile Include="..\src\input\vive.cpp">
       <Filter>Source Files\input</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\monetization\monetization.cpp">
-      <Filter>Source Files\monetization</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\platform\system.cpp">
       <Filter>Source Files\platform</Filter>
     </ClCompile>
@@ -332,9 +317,6 @@
     </ClCompile>
     <ClCompile Include="..\src\platform\android\and_main.cpp">
       <Filter>Source Files\platform\android</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\platform\blackberry\bb_main.cpp">
-      <Filter>Source Files\platform\blackberry</Filter>
     </ClCompile>
     <ClCompile Include="..\src\rendering\stereo.cpp">
       <Filter>Source Files\rendering</Filter>
@@ -438,9 +420,6 @@
     <ClCompile Include="..\src\input\andInput.cpp">
       <Filter>Source Files\input</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\input\bbInput.cpp">
-      <Filter>Source Files\input</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\rendering\common\buffer.cpp">
       <Filter>Source Files\core\rendering\common</Filter>
     </ClCompile>
@@ -517,9 +496,6 @@
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\storage\andStorage.cpp">
-      <Filter>Source Files\core\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\storage\bbStorage.cpp">
       <Filter>Source Files\core\storage</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\storage\winStorage.cpp">
@@ -657,11 +633,11 @@
     <ClCompile Include="..\src\core\xr\openvr\ovrInterface.cpp">
       <Filter>Source Files\core\xr\openvr</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\core\parallel\psxMutex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\parallel\winMutex.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\core\parallel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\parallel\psxMutex.cpp">
+      <Filter>Source Files\core\parallel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -881,12 +857,6 @@
     <ClInclude Include="..\src\input\vive.h">
       <Filter>Source Files\input</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\monetization\context.h">
-      <Filter>Source Files\monetization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\monetization\monetization.h">
-      <Filter>Header Files\monetization</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\platform\android\and_events.h">
       <Filter>Header Files\platform\android</Filter>
     </ClInclude>
@@ -895,12 +865,6 @@
     </ClInclude>
     <ClInclude Include="..\public\include\platform\android\and_main.h">
       <Filter>Header Files\platform\android</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\platform\blackberry\bb_init.h">
-      <Filter>Header Files\platform\blackberry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\include\platform\blackberry\bb_main.h">
-      <Filter>Header Files\platform\blackberry</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\platform\windows\win_events.h">
       <Filter>Header Files\platform\windows</Filter>
@@ -1070,9 +1034,6 @@
     <ClInclude Include="..\src\input\andInput.h">
       <Filter>Source Files\input</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\input\bbInput.h">
-      <Filter>Source Files\input</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\input\common.h">
       <Filter>Source Files\input</Filter>
     </ClInclude>
@@ -1200,9 +1161,6 @@
       <Filter>Source Files\core\rendering\d3d12</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\storage\andStorage.h">
-      <Filter>Source Files\core\storage</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\storage\bbStorage.h">
       <Filter>Source Files\core\storage</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\storage\osxStorage.h">
@@ -1398,10 +1356,10 @@
       <Filter>Source Files\core\xr\openvr</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\parallel\mutex.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\core\parallel</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\core\xr\event.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\core\xr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

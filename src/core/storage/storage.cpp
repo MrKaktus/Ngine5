@@ -18,7 +18,6 @@
 #include "utilities/strings.h"
 
 #include "core/storage/andStorage.h"
-#include "core/storage/bbStorage.h"
 #include "core/storage/osxStorage.h"
 #include "core/storage/winStorage.h"
 namespace en
@@ -187,9 +186,6 @@ bool Interface::create(void)
 
 #if defined(EN_PLATFORM_ANDROID)
     Storage = std::make_shared<AndInterface>();
-#endif
-#if defined(EN_PLATFORM_BLACKBERRY)
-    Storage = std::make_shared<BBInterface>();
 #endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
     Storage = std::make_shared<OSXInterface>();

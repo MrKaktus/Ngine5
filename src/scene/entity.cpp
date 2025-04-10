@@ -181,8 +181,8 @@ void Entity::yaw(const float deg)
 {
     float3 look = *reinterpret_cast<float3*>(&pRotation->m[4]);
     float3 side = *reinterpret_cast<float3*>(&pRotation->m[0]);
-    float  fcos = cos(radians(deg));
-    float  fsin = sin(radians(deg));
+    float  fcos = cosf(radians(deg));
+    float  fsin = sinf(radians(deg));
 
     *reinterpret_cast<float3*>(&pRotation->m[4]) = normalize(look*fcos + side*fsin);  
     *reinterpret_cast<float3*>(&pRotation->m[0]) = normalize(side*fcos - look*fsin); 
@@ -192,8 +192,8 @@ void Entity::turn(const float deg)
 {
     float3 look = *reinterpret_cast<float3*>(&pRotation->m[4]);
     float3 side = *reinterpret_cast<float3*>(&pRotation->m[0]);
-    float  fcos = cos(radians(deg));
-    float  fsin = sin(radians(deg));
+    float  fcos = cosf(radians(deg));
+    float  fsin = sinf(radians(deg));
 
     *reinterpret_cast<float3*>(&pRotation->m[4]) = normalize(look*fcos + side*fsin);  
     *reinterpret_cast<float3*>(&pRotation->m[0]) = normalize(side*fcos - look*fsin); 
@@ -203,8 +203,8 @@ void Entity::roll(const float deg)
 {
     float3 up   = *reinterpret_cast<float3*>(&pRotation->m[8]);
     float3 side = *reinterpret_cast<float3*>(&pRotation->m[0]);
-    float  fcos = cos(radians(deg));
-    float  fsin = sin(radians(deg));
+    float  fcos = cosf(radians(deg));
+    float  fsin = sinf(radians(deg));
 
     *reinterpret_cast<float3*>(&pRotation->m[0]) = normalize(side*fcos + up*fsin);   
     *reinterpret_cast<float3*>(&pRotation->m[8]) = normalize(up*fcos - side*fsin);   
@@ -214,8 +214,8 @@ void Entity::pitch(const float deg)
 {
     float3 look = *reinterpret_cast<float3*>(&pRotation->m[4]);
     float3 up   = *reinterpret_cast<float3*>(&pRotation->m[8]);
-    float  fcos = cos(radians(deg));
-    float  fsin = sin(radians(deg));
+    float  fcos = cosf(radians(deg));
+    float  fsin = sinf(radians(deg));
 
     *reinterpret_cast<float3*>(&pRotation->m[8]) = normalize(up*fcos + look*fsin);
     *reinterpret_cast<float3*>(&pRotation->m[4]) = normalize(look*fcos - up*fsin);

@@ -58,7 +58,7 @@ namespace log
 //{
 // if (m_loging)
 //    {
-//#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_WINDOWS)
+//#if defined(EN_PLATFORM_WINDOWS)
 //    if (m_tofile && m_initialized)
 //       *m_output << content;
 //    else

@@ -73,7 +73,7 @@ Interface& Interface::operator << (const T& content)
 
 #endif
 
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 
 // In Debug mode logging is enabled by default to console window.
 // In Release mode logging is disabled by default.

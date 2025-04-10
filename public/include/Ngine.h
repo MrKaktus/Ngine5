@@ -47,9 +47,6 @@
 #include "platform/system.h"
 #include "platform/android/and_init.h"
 
-#include "platform/blackberry/bb_init.h"
-#include "platform/blackberry/bb_main.h"
-
 #include "platform/windows/win_init.h"
 #include "platform/windows/win_main.h"
 

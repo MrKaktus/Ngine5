@@ -27,7 +27,7 @@ namespace audio
 {
 
 // Sample
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 alSample::alSample(const uint32 id) :
     id(id)
 {
@@ -45,7 +45,7 @@ Sample::~Sample()
 
 // Source
 
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 bool alSource::play(void)
 {
     if (!sample)
@@ -116,7 +116,7 @@ Context::Context()
 
 }
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 Context::Context() :
     device(nullptr),
     context(nullptr)
@@ -170,7 +170,7 @@ bool Context::create(void)
     //   }
     //// ignore unsuccessful result codes for environmental reverb, as it is optional for this example
 #endif
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
     // Find default device
     device = alcOpenDevice(nullptr);
     if (!device)
@@ -188,7 +188,7 @@ bool Context::create(void)
 void Context::destroy(void)
 {
     Log << "Closing module: Audio.\n";
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
     if (!context)
     {
         return;
@@ -282,7 +282,7 @@ std::shared_ptr<audio::Sample> Interface::Sample::create(
 
     // Generate buffer for data
     uint32 id = 0;
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
     uint32 error;
     alGetError();
     alGenBuffers(1, &id);
@@ -331,7 +331,7 @@ std::shared_ptr<audio::Sample> Interface::Sample::create(
 
 std::shared_ptr<audio::Source> Interface::Source::create(void)
 {
-#if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
     return std::make_shared<alSource>(); 
 #else
     return std::shared_ptr<audio::Source>(nullptr);

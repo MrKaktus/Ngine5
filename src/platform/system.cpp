@@ -39,15 +39,13 @@ Context::Context() :
     physicalCores(1),
     logicalCores(1),
     platform(Unknown),
-#if   defined( EN_PLATFORM_ANDROID )
+#if defined(EN_PLATFORM_ANDROID)
     system(Android),
-#elif defined( EN_PLATFORM_BLACKBERRY )
-    system(BlackBerry),
-#elif defined( EN_PLATFORM_IOS )
+#elif defined(EN_PLATFORM_IOS)
     system(iOS),
-#elif defined( EN_PLATFORM_OSX )
+#elif defined(EN_PLATFORM_OSX)
     system(OSX),
-#elif defined( EN_PLATFORM_WINDOWS )
+#elif defined(EN_PLATFORM_WINDOWS)
     system(Windows),
 #else
     system(Unknown)   // Compile time assert !
@@ -117,10 +115,7 @@ Context::Context() :
 #if defined(EN_PLATFORM_ANDROID)
     platform = ARM;
     // TODO: Check if platform is not x86/x64 for rare Intel cases and Chromebooks? !!!
-   
-#elif defined(EN_PLATFORM_BLACKBERRY)
-    platform = ARM;
-   
+
 #elif defined(EN_PLATFORM_IOS)
     platform = iPhone;
     #if (__IPHONE_OS_VERSION_MAX_ALLOWED >= 30200)

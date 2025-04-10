@@ -13,11 +13,7 @@
 
 #include "utilities/timer.h"
 
-#ifdef EN_PLATFORM_BLACKBERRY
-#include <time.h>
-#endif
-
-#ifdef EN_PLATFORM_IOS
+#if defined(EN_PLATFORM_IOS)
 #import <QuartzCore/QuartzCore.h>
 #endif
 
@@ -219,7 +215,7 @@ Time currentTime(void)
 {
     Time current;
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY)
+#if defined(EN_PLATFORM_ANDROID)
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     current.nanoseconds( (static_cast<uint64>(now.tv_sec) * 1000000000LL) + static_cast<uint64>(now.tv_nsec) );
@@ -408,9 +404,6 @@ void Time::seconds(double time)
 // clock_gettime(CLOCK_MONOTONIC, &now);
 // start.microseconds( (static_cast<uint64>(now.tv_sec) * 1000000000LL) + static_cast<uint64>(now.tv_nsec) );
 // #endif
-// #ifdef EN_PLATFORM_BLACKBERRY
-// gettimeofday(&t1count, NULL);
-// #endif
 // #ifdef EN_PLATFORM_IOS
 // t1 = [NSDate timeIntervalSinceReferenceDate] * 1000000.0;
 // #endif
@@ -426,12 +419,7 @@ void Time::seconds(double time)
 // double Ntimer::elapsed(uint8 type = EN_SECONDS)
 // {
 //  double diff;
-// 
-// #ifdef EN_PLATFORM_BLACKBERRY
-// gettimeofday(&t2count, NULL);
-// t1 = (t1count.tv_sec * 1000000.0) + t1count.tv_usec;
-// t2 = (t2count.tv_sec * 1000000.0) + t2count.tv_usec;
-// #endif
+//
 // #ifdef EN_PLATFORM_WINDOWS
 //  QueryPerformanceCounter(&this->t2count);
 //  t1 = this->t1count.QuadPart * (1000000.0 / freq.QuadPart);

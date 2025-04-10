@@ -95,8 +95,8 @@ void Noriented::yaw(float deg)
 {
     float3 a    = this->a;
     float3 c    = this->c;
-    float  fcos = cos(radians(deg));
-    float  fsin = sin(radians(deg));
+    float  fcos = cosf(radians(deg));
+    float  fsin = sinf(radians(deg));
    
     this->a = a*fcos + c*fsin;  
     this->c = c*fcos - a*fsin; 
@@ -109,8 +109,8 @@ void Noriented::roll(float deg)
 {
     float3 b    = this->b;
     float3 c    = this->c;
-    float  fcos = cos(radians(deg));
-    float  fsin = sin(radians(deg));
+    float  fcos = cosf(radians(deg));
+    float  fsin = sinf(radians(deg));
    
     this->c = c*fcos + b*fsin;   
     this->b = b*fcos - c*fsin;   
@@ -123,8 +123,8 @@ void Noriented::pitch(float deg)
 {
     float3 a    = this->a;
     float3 b    = this->b;
-    float  fcos = cos(radians(deg));
-    float  fsin = sin(radians(deg));
+    float  fcos = cosf(radians(deg));
+    float  fsin = sinf(radians(deg));
    
     this->b = b*fcos + a*fsin;
     this->a = a*fcos - b*fsin;

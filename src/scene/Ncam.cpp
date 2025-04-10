@@ -153,7 +153,7 @@ float4x4 Ncam::translationMatrix(void)
 float4x4 Ncam::projectionMatrix(void)
 {
     float4x4 m;
-    float    ea = 1.0f / tan(radians(m_angle) * 0.5f);
+    float    ea = 1.0f / tanf(radians(m_angle) * 0.5f);
     float    e  = (1.0f / m_aspect) * ea;
     float    t1 = -(m_zmax + m_zmin)/(m_zmax - m_zmin);
     float    t2 = -(2.0f * m_zmax * m_zmin)/(m_zmax - m_zmin);
@@ -173,7 +173,7 @@ float4x4 Ncam::vp(uint8 eye, float eyeDistance, float projectionCenterOffset)
     mc.m[12] = eye ? -projectionCenterOffset : projectionCenterOffset;
     
     float4x4 mp;
-    float    ea = 1.0f / tan(radians(m_angle) * 0.5f);
+    float    ea = 1.0f / tanf(radians(m_angle) * 0.5f);
     float    e  = (1.0f / m_aspect) * ea;
     float    t1 = -(m_zmax + m_zmin)/(m_zmax - m_zmin);
     float    t2 = -(2.0f * m_zmax * m_zmin)/(m_zmax - m_zmin);

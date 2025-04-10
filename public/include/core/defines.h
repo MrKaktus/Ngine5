@@ -34,8 +34,6 @@
 // Determine target platform
 #if defined(ANDROID)
     #define EN_PLATFORM_ANDROID
-#elif defined(__QNX__)
-    #define EN_PLATFORM_BLACKBERRY
 #elif defined(TARGET_OS_IPHONE) || defined(TARGET_IPHONE_SIMULATOR)
     #define EN_PLATFORM_IOS
 #elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) || defined(TARGET_OS_MAC)
@@ -118,7 +116,8 @@
 #endif
 */
 
-#if defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY)
+#if defined(EN_PLATFORM_ANDROID)
+// TODO: Migrate Android to Vulkan
 #define EN_MODULE_RENDERER_OPENGLES
 #endif
 
@@ -135,19 +134,10 @@
 #endif
 
 // Determine target renderer
-// TODO: DEPRECATED, Remove
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-    #define EN_OPENGL_DESKTOP
     #define EN_DISCRETE_GPU
-#elif defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_IOS)
-    #define EN_OPENGL_MOBILE
+#elif defined(EN_PLATFORM_ANDROID) || defined(EN_PLATFORM_IOS)
     #define EN_MOBILE_GPU
-#endif
-
-#if defined(EN_PLATFORM_BLACKBERRY)
-    #ifndef nullptr
-        #define nullptr 0
-    #endif
 #endif
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)

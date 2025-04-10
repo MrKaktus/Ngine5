@@ -40,7 +40,6 @@ enum OperatingSystem
     macOS                  ,
     iOS                    ,
     Android                ,
-    BlackBerry             ,
 };
 
 enum Name

@@ -71,8 +71,6 @@ bool WinFile::read(const uint64 offset, const uint64 _size, volatile void* buffe
 
 // You should not write into your app bundle, and instead
 // use one of the specific folders to store files.
-//
-// TODO: Which folders are those on BlackBerryOS 10?
 
 bool WinFile::write(const uint64 _size, void* buffer)
 {
@@ -194,8 +192,6 @@ bool WinFile::read(const uint64 offset, const uint64 _size, void* buffer, uint64
 
 // You should not write into your app bundle, and instead
 // use one of the specific folders to store files.
-//
-// TODO: Which folders are those on BlackBerryOS 10?
 
 bool WinFile::write(const uint64 _size, void* buffer)
 {

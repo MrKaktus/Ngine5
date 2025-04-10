@@ -21,13 +21,6 @@
 #include <SLES/OpenSLES_AndroidConfiguration.h>
 #endif
 
-#if defined(EN_PLATFORM_BLACKBERRY)
-//#include <sys/asound.h>
-//#include <sys/asoundlib.h>
-#include <AL/al.h>
-#include <AL/alc.h>
-#endif
-
 #if defined(EN_PLATFORM_OSX)
 // OpenAL
 #import <OpenAL/al.h>
@@ -117,31 +110,23 @@ class alSource : public Source
 //       };
 
 struct Context
-       {
-       #if defined(EN_PLATFORM_ANDROID)
-       SLObjectItf engine;   // Audio engine
-
-       #endif
-       #if defined(EN_PLATFORM_BLACKBERRY)
-       //snd_mixer_t* mixer;   // Analog audio mixer
-       //snd_pcm_t*   pcm;     // 
-       #endif
-       #if defined(EN_PLATFORM_BLACKBERRY) || defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-       ALCdevice*  device;   // Audio device
-       ALCcontext* context;  // Audio context on device
-       #endif
-
-       //TarrayAdvanced<SampleDescriptor, EN_MAX_ARRAY_SIZE> samples;
-
-       Context();
-      ~Context();
-
-       bool create(void);
-#ifdef EN_PLATFORM_BLACKBERRY
-  //bool recreate(const char* device);   // Recreates audio resources after changing of audio device
+{
+#if defined(EN_PLATFORM_ANDROID)
+    SLObjectItf engine;   // Audio engine
 #endif
+#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
+    ALCdevice*  device;   // Audio device
+    ALCcontext* context;  // Audio context on device
+#endif
+
+    //TarrayAdvanced<SampleDescriptor, EN_MAX_ARRAY_SIZE> samples;
+
+    Context();
+   ~Context();
+
+    bool create(void);
     void destroy(void);
-    
+
     //SampleDescriptor* create(const uint32 channels, // Audio channels
     //                         const uint32 freq,     // Frequency in Hz
     //                         const uint32 bps,      // Bits Per Sample

@@ -60,7 +60,7 @@ FrustumSettings::FrustumSettings() :
     // 
     // tg( vFOV / 2 ) = a / b
     // 
-    tangents.x = tan( radians(vFov / 2.0f) );
+    tangents.x = tanf( radians(vFov / 2.0f) );
     tangents.y = tangents.x;
     //
     // tg( hFOV / 2 ) = a' / b
@@ -77,7 +77,7 @@ FrustumSettings::FrustumSettings(const float nearPlane, const float farPlane, co
     nearPlane(nearPlane),
     farPlane(farPlane)
 {
-    tangents.x = tan( radians(vFov / 2.0f) );
+    tangents.x = tanf( radians(vFov / 2.0f) );
     tangents.y = tangents.x;
     tangents.z = aspect * tangents.x;
     tangents.w = tangents.z;
@@ -112,7 +112,7 @@ FrustumSettings::FrustumSettings(const float nearPlane, const float farPlane, co
     //           vFOVb = arctg( ab / b )
     //            vFOV = arctg( at / b ) + arctg( ab / b )
     //
-    vFov = atan(tangents.x) + atan(tangents.y);
+    vFov = atanf(tangents.x) + atanf(tangents.y);
 }
 
 FrustumSettings& FrustumSettings::operator= (const FrustumSettings& src)
@@ -125,12 +125,12 @@ void FrustumSettings::set(const float4 _tangents)
 {
     tangents = _tangents;
     aspect   = (tangents.z + tangents.w) / (tangents.x + tangents.y);
-    vFov     = atan(tangents.x) + atan(tangents.y);
+    vFov     = atanf(tangents.x) + atanf(tangents.y);
 }
 
 void FrustumSettings::set(const float _vFov, const float _aspect)
 {
-    tangents.x = tan( radians(_vFov / 2.0f) );
+    tangents.x = tanf( radians(_vFov / 2.0f) );
     tangents.y = tangents.x;
     tangents.z = _aspect * tangents.x;
     tangents.w = tangents.z;

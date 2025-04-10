@@ -157,9 +157,6 @@ bool Interface::create(void)
 #if defined(EN_PLATFORM_ANDROID)
     Input = std::make_shared<AndInterface>();
     return true;
-#elif defined(EN_PLATFORM_BLACKBERRY)
-    Input = std::make_shared<BBInterface>();
-    return true;
 #elif defined(EN_PLATFORM_IOS)
     Input = std::make_shared<IOSInterface>();
     return true;
