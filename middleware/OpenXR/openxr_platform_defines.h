@@ -1,17 +1,7 @@
 /*
-** Copyright (c) 2017-2019 The Khronos Group Inc.
+** Copyright (c) 2017-2025 The Khronos Group Inc.
 **
-** Licensed under the Apache License, Version 2.0 (the "License");
-** you may not use this file except in compliance with the License.
-** You may obtain a copy of the License at
-**
-**     http://www.apache.org/licenses/LICENSE-2.0
-**
-** Unless required by applicable law or agreed to in writing, software
-** distributed under the License is distributed on an "AS IS" BASIS,
-** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-** See the License for the specific language governing permissions and
-** limitations under the License.
+** SPDX-License-Identifier: Apache-2.0 OR MIT
 */
 
 #ifndef OPENXR_PLATFORM_DEFINES_H_
@@ -36,8 +26,8 @@ extern "C" {
  * Function pointer type: typedef void (XRAPI_PTR *PFN_xrFunction)(void);
  */
 #if defined(_WIN32)
-// On Windows, functions use the stdcall convention
 #define XRAPI_ATTR
+// On Windows, functions use the stdcall convention
 #define XRAPI_CALL __stdcall
 #define XRAPI_PTR XRAPI_CALL
 #elif defined(__ANDROID__) && defined(__ARM_ARCH) && __ARM_ARCH < 7
@@ -75,7 +65,7 @@ typedef unsigned __int64 uint64_t;
 #endif  // !defined( XR_NO_STDINT_H )
 
 // XR_PTR_SIZE (in bytes)
-#if (defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__))
+#if (defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined(_M_IA64) || defined(__aarch64__) || defined(__powerpc64__))
 #define XR_PTR_SIZE 8
 #else
 #define XR_PTR_SIZE 4
@@ -90,7 +80,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 #endif
 
-// Identifies if the current compiler has C++11 support enabled. 
+// Identifies if the current compiler has C++11 support enabled.
 // Does not by itself identify if any given C++11 feature is present.
 #if !defined(XR_CPP11_ENABLED) && defined(__cplusplus)
 #if defined(__GNUC__) && defined(__GXX_EXPERIMENTAL_CXX0X__)
@@ -112,6 +102,10 @@ typedef unsigned __int64 uint64_t;
 #define XR_CPP_NULLPTR_SUPPORTED 1
 #endif
 #endif
+
+#if !defined(XR_CPP_NULLPTR_SUPPORTED)
+#define XR_CPP_NULLPTR_SUPPORTED 0
+#endif  // !defined(XR_CPP_NULLPTR_SUPPORTED)
 
 #ifdef __cplusplus
 }

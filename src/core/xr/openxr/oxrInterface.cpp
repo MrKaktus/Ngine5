@@ -7,11 +7,15 @@
 #include "core/xr/openxr/oxrHeadset.h"
 
 #include "utilities/utilities.h"
+#include "utilities/strings.h"
 
 namespace en
 {
 namespace xr
 {
+
+#define EN_MAKE_VERSION(major, minor, patch) \
+    ((((major) & 0xFFU) << 24) | (((minor) & 0xFFU) << 16) | ((patch) & 0xFFFFU))
 
 void unbindedOpenXRFunctionHandler(...)
 {
@@ -40,8 +44,9 @@ bool IsError(const XrResult result)
         CaseToString(XR_ERROR_VALIDATION_FAILURE)
         CaseToString(XR_ERROR_RUNTIME_FAILURE)
         CaseToString(XR_ERROR_OUT_OF_MEMORY)
-        CaseToString(XR_ERROR_RUNTIME_VERSION_INCOMPATIBLE)
-        CaseToString(XR_ERROR_DRIVER_INCOMPATIBLE)
+        //Renamed: CaseToString(XR_ERROR_RUNTIME_VERSION_INCOMPATIBLE)
+        CaseToString(XR_ERROR_API_VERSION_UNSUPPORTED)
+        //Removed: CaseToString(XR_ERROR_DRIVER_INCOMPATIBLE)
         CaseToString(XR_ERROR_INITIALIZATION_FAILED)
         CaseToString(XR_ERROR_FUNCTION_UNSUPPORTED)
         CaseToString(XR_ERROR_FEATURE_UNSUPPORTED)
@@ -57,11 +62,15 @@ bool IsError(const XrResult result)
         CaseToString(XR_ERROR_PATH_INVALID)
         CaseToString(XR_ERROR_PATH_COUNT_EXCEEDED)
         CaseToString(XR_ERROR_PATH_FORMAT_INVALID)
+        CaseToString(XR_ERROR_PATH_UNSUPPORTED)
         CaseToString(XR_ERROR_LAYER_INVALID)
         CaseToString(XR_ERROR_LAYER_LIMIT_EXCEEDED)
         CaseToString(XR_ERROR_SWAPCHAIN_RECT_INVALID)
         CaseToString(XR_ERROR_SWAPCHAIN_FORMAT_UNSUPPORTED)
         CaseToString(XR_ERROR_ACTION_TYPE_MISMATCH)
+        CaseToString(XR_ERROR_SESSION_NOT_READY)
+        CaseToString(XR_ERROR_SESSION_NOT_STOPPING)
+        CaseToString(XR_ERROR_TIME_INVALID)
         CaseToString(XR_ERROR_REFERENCE_SPACE_UNSUPPORTED)
         CaseToString(XR_ERROR_FILE_ACCESS_ERROR)
         CaseToString(XR_ERROR_FILE_CONTENTS_INVALID)
@@ -74,12 +83,18 @@ bool IsError(const XrResult result)
         CaseToString(XR_ERROR_INDEX_OUT_OF_RANGE)
         CaseToString(XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED)
         CaseToString(XR_ERROR_ENVIRONMENT_BLEND_MODE_UNSUPPORTED)
-        CaseToString(XR_ERROR_BINDINGS_DUPLICATED)
+        //Removed: CaseToString(XR_ERROR_BINDINGS_DUPLICATED)
         CaseToString(XR_ERROR_NAME_DUPLICATED)
         CaseToString(XR_ERROR_NAME_INVALID)
+        CaseToString(XR_ERROR_ACTIONSET_NOT_ATTACHED)
+        CaseToString(XR_ERROR_ACTIONSETS_ALREADY_ATTACHED)
+        CaseToString(XR_ERROR_LOCALIZED_NAME_DUPLICATED)
+        CaseToString(XR_ERROR_LOCALIZED_NAME_INVALID)
+        CaseToString(XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING)
+        CaseToString(XR_ERROR_RUNTIME_UNAVAILABLE)
         CaseToString(XR_ERROR_ANDROID_THREAD_SETTINGS_ID_INVALID_KHR)
         CaseToString(XR_ERROR_ANDROID_THREAD_SETTINGS_FAILURE_KHR)
-        CaseToString(XR_ERROR_DEBUG_UTILS_MESSENGER_INVALID_EXT)
+        // Removed: CaseToString(XR_ERROR_DEBUG_UTILS_MESSENGER_INVALID_EXT)
 
     default:
         info += "Unknown error code!";
@@ -104,11 +119,11 @@ bool IsWarning(const XrResult result)
     switch (result)
     {
         CaseToString(XR_TIMEOUT_EXPIRED)
-        CaseToString(XR_SESSION_VISIBILITY_UNAVAILABLE)
+        // Removed: CaseToString(XR_SESSION_VISIBILITY_UNAVAILABLE)
         CaseToString(XR_SESSION_LOSS_PENDING)
         CaseToString(XR_EVENT_UNAVAILABLE)
-        CaseToString(XR_STATE_UNAVAILABLE)
-        CaseToString(XR_STATE_TYPE_UNAVAILABLE)
+        // Removed: CaseToString(XR_STATE_UNAVAILABLE)
+        // Removed: CaseToString(XR_STATE_TYPE_UNAVAILABLE)
         CaseToString(XR_SPACE_BOUNDS_UNAVAILABLE)
         CaseToString(XR_SESSION_NOT_FOCUSED)
         CaseToString(XR_FRAME_DISCARDED)
@@ -188,7 +203,7 @@ oxrInterface::oxrInterface(std::string appName) :
             globalExtension[i].type             = XR_TYPE_EXTENSION_PROPERTIES;
             globalExtension[i].next             = nullptr;
             globalExtension[i].extensionName[0] = 0;
-            globalExtension[i].specVersion      = 0;
+            globalExtension[i].extensionVersion = 0; // Formerly: "specVersion"
         }
 
         Validate(this, xrEnumerateInstanceExtensionProperties(nullptr, globalExtensionsCount, &globalExtensionsCount, globalExtension))
@@ -383,11 +398,13 @@ oxrInterface::oxrInterface(std::string appName) :
 
     std::string engineName("Ngine");  // TODO: Move out of constructor
 
+    // TODO: Application and engine versions should come from config.
+
     XrApplicationInfo appInfo;
     memcpy(&appInfo.applicationName, appName.c_str(), min(appName.size(), (size_t)XR_MAX_APPLICATION_NAME_SIZE));
-    appInfo.applicationVersion = XR_MAKE_VERSION(1, 0, 0);
+    appInfo.applicationVersion = EN_MAKE_VERSION(1, 0, 0);
     memcpy(&appInfo.engineName, engineName.c_str(), min(engineName.size(), (size_t)XR_MAX_ENGINE_NAME_SIZE));
-    appInfo.engineVersion      = XR_MAKE_VERSION(5, 0, 0);
+    appInfo.engineVersion      = EN_MAKE_VERSION(5, 0, 0);
     appInfo.apiVersion         = XR_CURRENT_API_VERSION;
 
     XrInstanceCreateInfo instInfo;
@@ -414,11 +431,11 @@ oxrInterface::oxrInterface(std::string appName) :
 
     std::string runtimeInfo;
     runtimeInfo += "OpenXR Runtime v";
-    runtimeInfo += XR_VERSION_MAJOR(properties.runtimeVersion);
+    runtimeInfo += stringFrom(XR_VERSION_MAJOR(properties.runtimeVersion));
     runtimeInfo += ".";
-    runtimeInfo += XR_VERSION_MINOR(properties.runtimeVersion);
+    runtimeInfo += stringFrom(XR_VERSION_MINOR(properties.runtimeVersion));
     runtimeInfo += ".";
-    runtimeInfo += XR_VERSION_PATCH(properties.runtimeVersion);
+    runtimeInfo += stringFrom(XR_VERSION_PATCH(properties.runtimeVersion));
     runtimeInfo += "\n";
     runtimeInfo += "       ";
     runtimeInfo += properties.runtimeName[XR_MAX_RUNTIME_NAME_SIZE];

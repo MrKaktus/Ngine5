@@ -657,6 +657,12 @@
     <ClCompile Include="..\src\core\xr\openvr\ovrInterface.cpp">
       <Filter>Source Files\core\xr\openvr</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\parallel\psxMutex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\parallel\winMutex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1390,6 +1396,12 @@
     </ClInclude>
     <ClInclude Include="..\src\core\xr\openvr\ovrInterface.h">
       <Filter>Source Files\core\xr\openvr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\parallel\mutex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\xr\event.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

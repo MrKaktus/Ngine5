@@ -2,6 +2,11 @@
 
 
 
+namespace en
+{
+namespace xr
+{
+
 // MACROS: Safe OpenXR function binding with fallback
 //         Both Macros should be used only inside oxrInterface class methods.
 
@@ -59,3 +64,6 @@
         Log << "Error: Cannot bind instance function " << #function << std::endl;             \
     }                                                                                         \
 }
+
+} // en::xr
+} // en

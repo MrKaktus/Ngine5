@@ -87,14 +87,36 @@ oxrHeadset::oxrHeadset(oxrInterface& _session) :
 	// Headset properties are exposed as Runtime properties (as there is no headset abstraction at all).
 	// There is no headset plug & play detection, as API is designed around standalone model (like Oculus Quest).
 
-    Validate( session, xrEnumerateEnvironmentBlendModes(session->instance, runtime, 0, &blendModesCount, nullptr) )
+    // OpenXR is trully terrible API. We need to separately specify 
+    // different view configurations to query their properties. So we have:
+    //
+    // - XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO
+    //   - For AR look-through devices (Phones, Tables).
+    //
+    // - XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
+    //   - For standard VR HMDs with two lens boxes (one per each eye).
+    //
+    // - XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO_WITH_FOVEATED_INSET
+    // - XR_VIEW_CONFIGURATION_TYPE_PRIMARY_QUAD_VARJO
+    //   - For headsets with eye-tracking or physical extra focus displays like Varjo.
+    //
+    // Notice none of above is standardized into single query of N views app should simply render to.
+
+    // TODO: Add auto-detection and automatic support for:
+    //       XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO_WITH_FOVEATED_INSET
+    //
+    Validate( session, xrEnumerateEnvironmentBlendModes(session->instance, runtime, 
+                                                        XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 
+                                                        0, &blendModesCount, nullptr) )
     if (blendModesCount)
     {
         blendModes = new XrEnvironmentBlendMode[blendModesCount];
         assert( blendModes );
 
         uint32 blendModesWritten = 0;    
-        Validate( session, xrEnumerateEnvironmentBlendModes(session->instance, runtime, blendModesCount, &blendModesWritten, blendModes) )
+        Validate( session, xrEnumerateEnvironmentBlendModes(session->instance, runtime,
+                                                            XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+                                                            blendModesCount, &blendModesWritten, blendModes) )
         blendModesCount = blendModesWritten;
 
         for(uint32 i=0; i<blendModesCount; ++i)

@@ -60,7 +60,7 @@ namespace gpu
 // Each feature has assigned bit:
 // SupportMultisampling = 1   <- bit 1
 //
-// Supported features create a bitfield , iof feature is supported bit is 1, else its 0
+// Supported features create a bitfield , if feature is supported bit is 1, else its 0
 //
 // We check given feature support by pasing bit number in vector to API.
 // This way in future we can add and rearrange enums and they are still valid!

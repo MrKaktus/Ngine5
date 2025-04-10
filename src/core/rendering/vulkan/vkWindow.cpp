@@ -560,9 +560,19 @@ Texture* WindowVK::surface(const Semaphore* surfaceAvailableSemaphore)
 
                 // Waits for presentation engine to finish reading from Swap-Chain surface to display panel
                 gpu->lastResult[thread] = gpu->vkWaitForFences(gpu->device, 1, &surfaceReadyFence, VK_TRUE, gpuWatchDog);
-                if (en::gpu::IsError(gpu->lastResult[thread]))
+                if (gpu->lastResult[thread] != VK_SUCCESS)
                 {
-                    assert(0);
+                    // TODO: runtime error? All below cases are critical failures:
+                    // - VK_TIMEOUT
+                    // - VK_ERROR_OUT_OF_HOST_MEMORY
+                    // - VK_ERROR_OUT_OF_DEVICE_MEMORY
+                    // - VK_ERROR_DEVICE_LOST
+#ifdef EN_DEBUG
+                    if (en::gpu::IsError(gpu->lastResult[thread]))
+                    {
+                        assert(0);
+                    }
+#endif
                 }
             }
 

@@ -20,7 +20,6 @@
 
 #include "OpenXR/openxr.h"
 
-#ifdef EN_DEBUG
 namespace en
 {
 namespace xr
@@ -31,6 +30,8 @@ extern bool IsWarning(const XrResult result);
 
 } // en::gpu
 } // en
+
+#ifdef EN_DEBUG
 
 #ifdef EN_PROFILER_TRACE_XR_API
 
