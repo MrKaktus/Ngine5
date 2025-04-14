@@ -19,9 +19,17 @@ namespace en
 class float3
 {
     public:
-    union { float x; float r; float u; };
-    union { float y; float g; float v; };
-    union { float z; float b; float w; };
+    union
+    {
+        struct
+        {
+            union { float x; float r; float u; };
+            union { float y; float g; float v; };
+            union { float z; float b; float w; };
+        };
+
+        float value[3];
+    };
 
     float3(void);                       
     float3(const float* src); 

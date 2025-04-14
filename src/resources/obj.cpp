@@ -29,7 +29,8 @@ bool optimizeIndexSize  = true;   // Reduces index size UInt -> UShort -> UByte
 
 bool optimizeIndexOrder = true;   // Optimizes indexes order for Post-Transform Vertex Cache Size
 
-struct Vertex
+// Internal, custom OBJ vertex representation.
+static struct Vertex
 {
     uint32 position; // Position
     uint32 uv;       // Texture Coordinate
@@ -38,7 +39,8 @@ struct Vertex
     bool operator ==(const Vertex& b);
 };
 
-struct Face
+// Internal, custom OBJ face representation.
+static struct Face
 {
     Vertex vertex[3]; // Vertex
     uint32 material;  // Material
@@ -50,7 +52,9 @@ struct Face
 //    en::resource::Material handle; // Material handle
 //};
 
-struct Mesh
+// Internal, custom OBJ mesh representation.
+// Stores unoptimized contents after parsing.
+static struct Mesh
 {
     std::string         name;      // Mesh name
     std::string         material;  // Material name (only one per group allowed)
@@ -62,9 +66,63 @@ struct Mesh
     bool                normals;   // Does mesh contain normal vectors
 };
 
+// Internal, custom OBJ model representation.
+// Stores unoptimized contents after parsing.
+static struct Model
+{
+    std::vector<float3> vertices;                  // Vertices (uncompressed)
+    std::vector<float3> normals;                   // Normals (uncompressed)
+    std::vector<float3> coordinates;               // Texture coordinates (uncompressed)
+    std::vector<std::string> libraries;            // Material libraries
+    std::vector<en::obj::Mesh> meshes;             // Meshes
+    std::vector<en::resource::Material> materials; // Materials <- TODO: This should be OBJ internal temp material?
+
+    Model();
+
+    obj::Mesh* addMesh(void);
+    obj::Mesh* currentMesh(void);
+};
+
 bool Vertex::operator ==(const Vertex& b)
 {
     return !memcmp(this, &b, 12); // 12 = sizeof(obj::Vertex)
+}
+
+Model::Model()
+{
+    // Reserve memory for incoming data, to minimise
+    // occurences of possible relocations during 
+    // vectors growth
+    vertices.reserve(16384);
+    normals.reserve(16384);
+    coordinates.reserve(16384);
+    libraries.reserve(16);
+    meshes.reserve(16);
+    materials.reserve(32);
+
+    // Model always has minimum one mesh
+    obj::Mesh* mesh = addMesh();
+
+    // Fill first mesh descriptor with default data
+    mesh->name = "default";
+    mesh->material = "default";
+    mesh->vertices.reserve(8192);
+    mesh->indexes.reserve(8192);
+    mesh->optimized.reserve(8192);
+    mesh->coords = false;
+    mesh->coordW = false;
+    mesh->normals = false;
+}
+
+obj::Mesh* Model::addMesh(void)
+{
+    meshes.push_back(en::obj::Mesh());  // TODO: Shouldn't it be: new Mesh() ???
+    return &meshes[meshes.size() - 1];
+}
+
+obj::Mesh* Model::currentMesh(void)
+{
+    return &meshes[meshes.size() - 1];
 }
 
 Vertex parseVertex(std::string& word)
@@ -112,6 +170,442 @@ Vertex parseVertex(std::string& word)
     }
 
     return vertex;
+}
+
+// TODO: Re-do it as Parser method to avoid creating temporary strings
+bool parseVector3f(Parser& parser, float3& vector)
+{
+    std::string word;
+    bool eol = false;
+
+    char component = 'X';
+    for(uint32 i=0; i<3; ++i)
+    {
+        if (i == 1) component = 'Y';
+        if (i == 2) component = 'Z';
+
+        if (!parser.read(word, eol))
+        {
+            // TODO: logError("Failed to parse vector. Expected component %c value.", component);
+            return false;
+        }
+
+        if (!isFloat(word.c_str(), word.length()))
+        {
+            // TODO: logError("Failed to parse vector. Expected component %c value, but got non-float representation: %s", component, word.c_str());
+            return false;
+        }
+
+        if (i == 0) vector.x = stringTo<float>(word);
+        if (i == 1) vector.y = stringTo<float>(word);
+        if (i == 2) vector.z = stringTo<float>(word);
+
+        if (i<2 && eol)
+        {
+            // TODO: logError("Failed to parse vector. Expected component %c value, but reached end of line.");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// TODO: Re-do it as Parser method to avoid creating temporary strings
+bool parseVector2or3f(Parser& parser, float3& vector, bool& thirdComponentPresent)
+{
+    std::string word;
+    bool eol = false;
+
+    char component = 'X';
+    for (uint32 i=0; i<2; ++i)
+    {
+        if (i == 1)
+        {
+            component = 'Y';
+        }
+
+        if (!parser.read(word, eol))
+        {
+            // TODO: logError("Failed to parse vector. Expected component %c value.", component);
+            return false;
+        }
+
+        if (!isFloat(word.c_str(), word.length()))
+        {
+            // TODO: logError("Failed to parse vector. Expected component %c value, but got non-float representation: %s", component, word.c_str());
+            return false;
+        }
+
+        if (i == 0) vector.x = stringTo<float>(word);
+        if (i == 1) vector.y = stringTo<float>(word);
+
+        if (i == 0 && eol)
+        {
+            // TODO: logError("Failed to parse vector. Expected component %c value, but reached end of line.");
+            return false;
+        }
+    }
+
+    // Optional third component
+    if (!eol)
+    {
+        if (!parser.read(word, eol))
+        {
+            // TODO: logError("Failed to parse vector. Expected 3rd component value.");
+            return false;
+        }
+
+        if (!isFloat(word.c_str(), word.length()))
+        {
+            // TODO: logError("Failed to parse vector. Expected 3rd component value, but got non-float representation: %s", word.c_str());
+            return false;
+        }
+
+        vector.z = stringTo<float>(word);
+        if (vector.z != 0.0f)
+        {
+            thirdComponentPresent = true;
+        }
+    }
+
+    return true;
+}
+
+
+
+
+
+
+// OBJ File format specification:
+// https://paulbourke.net/dataformats/obj/
+// https://paulbourke.net/dataformats/obj/obj_spec.pdf
+
+bool parseGroupName(Parser& parser, const char* name, uint32& length)
+{
+    ParserType type = ParserType::None;
+    uint32 namesCount = 0;
+    do
+    {
+        type = parser.findNextElement();
+        if (type == ParserType::String)
+        {
+            if (namesCount == 0)
+            {
+                name   = parser.string();
+                length = parser.stringLength();
+            }
+            else
+            {
+                // TODO: logDebug("Multiple group names detected. Group name %u: %s.", namesCount, parser.string());
+            }
+
+            namesCount++;
+        }
+    }
+    while(type != ParserType::EndOfLine);
+
+    if (namesCount == 0)
+    {
+        // logError("OBJ file corrupted. Group name not found.");
+        return false;
+    }
+
+    if (namesCount > 1)
+    {
+        // logError("Unsupported OBJ file. Multiple group names are not supported.");
+        return false;
+    }
+
+    return true;
+}
+
+bool parseMaterialLibraryNames(Parser& parser, obj::Model& model)
+{
+    ParserType type = ParserType::None;
+    uint32 namesCount = 0;
+    do
+    {
+        type = parser.findNextElement();
+        if (type == ParserType::String)
+        {
+            std::string libraryName = std::string(parser.string(), parser.stringLength());
+
+            // Prevent from adding the same library more than once
+            bool found = false;
+            for(uint32 i=0; i<model.libraries.size(); ++i)
+            {
+                if (model.libraries[i] == libraryName)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            // Add new library to the list
+            if (!found)
+            {
+                model.libraries.push_back(libraryName);
+            }
+
+            namesCount++;
+        }
+    } 
+    while(type != ParserType::EndOfLine);
+
+    if (namesCount == 0)
+    {
+        // logError("OBJ file corrupted. Library name not found.");
+        return false;
+    }
+
+    return true;
+}
+
+bool parseFace(Parser& parser, obj::Model& model)
+{
+    ParserType type = ParserType::None;
+    uint32 namesCount = 0;
+    do
+    {
+        type = parser.findNextElement();
+
+
+
+
+    uint32 counter = 0;
+    while (!eol)
+    {
+        if (parser.read(word, eol))
+        {
+            obj::Vertex vertex = obj::parseVertex(word);
+
+            // Check presence of texture coordinates
+            if (mesh->coords == false)
+            {
+                if (vertex.uv) // TODO: What about 0 indexes?
+                {
+                    mesh->coords = true;
+                }
+            }
+
+            // Check presence of normals
+            if (mesh->normals == false)
+            {
+                if (vertex.normal) // TODO: What about 0 indexes?
+                {
+                    mesh->normals = true;
+                }
+            }
+
+            // First triangle is generated from first three
+            // vertices of the face. If there is more of them,
+            // face is divided into triangles on a basis of
+            // triangle fan.
+            if (counter == 3)
+            {
+                uint64 size = mesh->indexes.size();
+                uint32 indexA = mesh->indexes[size - 3];
+                uint32 indexB = mesh->indexes[size - 1];
+                mesh->indexes.push_back(indexA);
+                mesh->indexes.push_back(indexB);
+                counter = 2;
+            }
+
+            // Try to reuse vertex if it already exist
+            bool found = false;
+            for (uint32 i = 0; i < mesh->vertices.size(); ++i)
+            {
+                if (mesh->vertices[i] == vertex)
+                {
+                    mesh->indexes.push_back(i);
+                    found = true;
+                    break;
+                }
+            }
+
+            // If vertex is new, add it to vertex array
+            if (!found)
+            {
+                mesh->indexes.push_back(static_cast<uint32>(mesh->vertices.size()));
+                mesh->vertices.push_back(vertex);
+            }
+
+            counter++;
+        }
+    }
+}
+
+
+Model* parseOBJ(const uint8* buffer, const uint32 size)
+{
+    // Create parser to quickly process text from file
+    Parser parser(buffer, size);
+
+    // Resulting unoptimized OBJ model
+    Model* result = new obj::Model();
+    if (!result)
+    {
+        return nullptr;
+    }
+
+    // Current mesh and material handles
+    obj::Mesh* mesh = result->currentMesh();
+    std::string material = "default";
+
+    // Collects geometry primitives data that will
+    // be used to generate final meshes and perform
+    // primitives assembly into unoptimized meshes
+    std::string command;
+    std::string word;
+    bool eol = false;
+
+    ParserType type = ParserType::None;
+    while (!parser.end())
+    {
+        type = parser.findNextElement();
+        if (type == ParserType::String)
+        {
+            // Vertex
+            if (parser.isStringMatching("v"))
+            {
+                float3 vertex(0.0f, 0.0f, 0.0f);
+                if (!parser.readVector3f(vertex.value))
+                {
+                    // TODO: logError("OBJ file corrupted. Failed to parse vertex vector.");
+                    delete result;
+                    return nullptr;
+                }
+
+                result->vertices.push_back(vertex);
+            }
+            else // Normal vector
+            if (parser.isStringMatching("vn"))
+            {
+                float3 normal(0.0f, 0.0f, 0.0f);
+                if (!parser.readVector3f(normal.value))
+                {
+                    // TODO: logError("OBJ file corrupted. Failed to parse normal vector.");
+                    delete result;
+                    return nullptr;
+                }
+
+                result->normals.push_back(normal);
+            }
+            else // Texture coordinates
+            if (parser.isStringMatching("vt"))
+            {
+                float3 coord(0.0f, 0.0f, 0.0f);
+                if (!parser.readVector2or3f(coord.value, mesh->coordW))
+                {
+                    // TODO: logError("OBJ file corrupted. Failed to parse texture coordinates.");
+                    delete result;
+                    return nullptr;
+                }
+
+                result->coordinates.push_back(coord);
+            }
+            else // Group (expected grouping by material - mesh)
+            if (parser.isStringMatching("g"))
+            {
+                const char* groupName = nullptr;
+                uint32 groupLength = 0;
+                if (!parseGroupName(parser, groupName, groupLength))
+                {
+                    delete result;
+                    return nullptr;
+                }
+
+                // If model specifies mesh before any face
+                // occurence, default mesh is not needed and
+                // it can be reused.
+                if (mesh->indexes.size() == 0)
+                {
+                    mesh->name = std::string(groupName, groupLength);
+                }
+                else
+                {
+                    // Push new mesh description on the stack
+                    mesh = result->addMesh();
+
+                    // Fill mesh descriptor with default data
+                    mesh->name = std::string(groupName, groupLength);
+                    mesh->material = material;
+                    mesh->vertices.reserve(8192);
+                    mesh->indexes.reserve(8192);
+                    mesh->optimized.reserve(8192);
+                    mesh->coords = false;
+                    mesh->coordW = false;
+                    mesh->normals = false;
+                }
+            }
+            else // Add materials library to the list
+            if (parser.isStringMatching("mtllib"))
+            {
+                const char* groupName = nullptr;
+                uint32 groupLength = 0;
+                if (!parseMaterialLibraryNames(parser, *result))
+                {
+                    delete result;
+                    return nullptr;
+                }
+            }
+            else // Set current material
+            if (parser.isStringMatching("usemtl"))
+            {
+                ParserType type = parser.findNextElement();
+                if (type != ParserType::String)
+                {
+                    // logError("OBJ file corrupted. Expected name of material to use.");
+                    delete result;
+                    return nullptr;
+                }
+                
+                material = std::string(parser.string(), parser.stringLength());
+
+                // Prevent from adding the same material more than once
+                bool found = false;
+                for(uint32 i=0; i<result->materials.size(); ++i)
+                {
+                    if (result->materials[i].name == material)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                // Add new material to the list
+                if (!found)
+                {
+                    //obj::Material material;
+                    en::resource::Material enMaterial;
+                    enMaterial.name = material;
+                    //material.handle = NULL;
+                    result->materials.push_back(enMaterial);
+                }
+
+                // Mesh should specify material before any 
+                // face will occur or use previous material
+                // for whole mesh.
+                if (mesh->indexes.size() == 0)
+                {
+                    mesh->material = material;
+                }
+
+            }
+            else // Primitive Assembly
+            if (parser.isStringMatching("f"))
+            {
+                parseFace(parser);
+            }
+
+
+        }
+
+        // Skip not relevant part of the line
+        parser.skipToNextLine();
+    }
+
+    return result;
 }
 
 // Creates scene model
@@ -165,303 +659,24 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     // Step 1 - Parsing the file
 
 
-    // Create parser to quickly process text from file
-    Parser parser(buffer, size);
-   
-    // Temporary data
-    std::vector<float3> vertices;             // Vertices
-    std::vector<float3> normals;              // Normals
-    std::vector<float3> coordinates;          // Texture coordinates
-    std::vector<std::string> libraries;       // Material libraries
-    std::vector<en::obj::Mesh> meshes;        // Meshes
-    std::vector<en::resource::Material> materials; // Materials
-
-    // Reserve memory for incoming data, to minimise
-    // occurences of possible relocations during 
-    // vectors growth
-    vertices.reserve(16384);
-    normals.reserve(16384);
-    coordinates.reserve(16384);
-    meshes.reserve(16);
-    materials.reserve(32);
-
-    // Model always has minimum one mesh
-    meshes.push_back(en::obj::Mesh());
-
-    // Current mesh and material handles
-    en::obj::Mesh* mesh = &meshes[meshes.size() - 1];
-    std::string material = "default";
-
-    // Fill first mesh descriptor with default data
-    mesh->name     = "default";
-    mesh->material = material;
-    mesh->vertices.reserve(8192);
-    mesh->indexes.reserve(8192);
-    mesh->optimized.reserve(8192);
-    mesh->coords   = false;
-    mesh->coordW   = false;
-    mesh->normals  = false;
-
-    // Collects geometry primitives data that will
-    // be used to generate final meshes and perform
-    // primitives assembly into unoptimized meshes
-    std::string command;
-    std::string word;
-    bool eol = false;
-    while(!parser.end())
+    obj::Model* objModel = parseOBJ(buffer, size);
+    if (!objModel)
     {
-        // Read commands until it is end of file
-        if (!parser.read(command, eol))
-        {
-            continue;
-        }
-   
-        // Handle vertices
-        if (command == "v")
-        {
-            float3 vertex(0.0f, 0.0f, 0.0f);
-            if (!eol && parser.read(word, eol))
-            {
-                // TODO: Verify that "word" contains string representation of float. Otherwise fail file parsing. Do it for all 3 components.
-                vertex.x = stringTo<float>(word);
-            }
-            if (!eol && parser.read(word, eol))
-            {
-                vertex.y = stringTo<float>(word);
-            }
-            if (!eol && parser.read(word, eol))
-            {
-                vertex.z = stringTo<float>(word);
-            }
-            vertices.push_back(vertex);
-        }
-        else
-        // Handle normals
-        if (command == "vn")
-        {
-            float3 normal(0.0f, 0.0f, 0.0f);
-            if (!eol && parser.read(word, eol))
-            {
-                // TODO: Verify that "word" contains string representation of float. Otherwise fail file parsing. Do it for all 3 components.
-                normal.x = stringTo<float>(word);
-            }
-            if (!eol && parser.read(word, eol))
-            {
-                normal.y = stringTo<float>(word);
-            }
-            if (!eol && parser.read(word, eol))
-            {
-                normal.z = stringTo<float>(word);
-            }
-            normals.push_back(normal);
-        }
-        else
-        // Handle texture coordinates
-        if (command == "vt")
-        {
-            float3 coord(0.0f, 0.0f, 0.0f);
-            if (!eol && parser.read(word, eol))
-            {
-                // TODO: Verify that "word" contains string representation of float. Otherwise fail file parsing. Do it for all 3 components.
-                coord.u = stringTo<float>(word);
-            }
-            if (!eol && parser.read(word, eol))
-            {
-                coord.v = stringTo<float>(word);
-            }
-            if (!eol && parser.read(word, eol))
-            {
-                coord.w = stringTo<float>(word);
-                if (mesh->coordW == false)
-                {
-                    if (coord.w != 0.0)
-                    {
-                        mesh->coordW = true;
-                    }
-                }
-            }
-            coordinates.push_back(coord);
-        }
-        else
-        // Create next mesh description
-        if (command == "g")
-        {
-            // If model specifies mesh before any face
-            // occurence, default mesh is not needed and
-            // it can be reused.
-            if (mesh->indexes.size() == 0)
-            {
-                if (!eol && parser.read(word, eol))
-                {
-                    mesh->name = word;
-                }
-            }
-            else
-            {
-                // Push new mesh description on the stack
-                meshes.push_back(en::obj::Mesh());  // TODO: Shouldn't it be: new Mesh() ???
-                mesh = &meshes[meshes.size() - 1];
-
-                // Fill mesh descriptor with default data
-                if (!eol && parser.read(word, eol))
-                {
-                    mesh->name = word;
-                }
-                mesh->material = material;
-                mesh->vertices.reserve(8192);
-                mesh->indexes.reserve(8192);
-                mesh->optimized.reserve(8192);
-                mesh->coords   = false;
-                mesh->coordW   = false;
-                mesh->normals  = false;
-            }
-        }
-        else
-        // Add materials library to the list
-        if (command == "mtllib")
-        {
-            if (!eol && parser.read(word, eol))
-            {
-                // Prevent from adding the same library more than once
-                bool found = false;
-                for(uint32 i=0; i<libraries.size(); ++i)
-                {
-                    if (libraries[i] == word)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-   
-                // Add new library to the list
-                if (!found)
-                {
-                    libraries.push_back(word);
-                }
-            }
-        }
-        else
-        // Set current material
-        if (command == "usemtl")
-        {
-            if (!eol && parser.read(word, eol))
-            {
-                material = word;
-   
-                // Prevent from adding the same material more than once
-                bool found = false;
-                for(uint32 i=0; i<materials.size(); ++i)
-                {
-                    if (materials[i].name == word)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-   
-                // Add new material to the list
-                if (!found)
-                {
-                    //obj::Material material;
-                    en::resource::Material material;
-                    material.name   = word;
-                    //material.handle = NULL;
-                    materials.push_back(material);
-                }
-   
-                // Mesh should specify material before any 
-                // face will occur or use previous material
-                // for whole mesh.
-                if (mesh->indexes.size() == 0)
-                {
-                    mesh->material = material;
-                }
-            }
-        }
-        else
-        // Primitive Assembly
-        if (command == "f")
-        {
-            uint32 counter = 0;
-            while(!eol)
-            {
-                if (parser.read(word, eol))
-                {
-                    en::obj::Vertex vertex = en::obj::parseVertex(word);
-                   
-                    // Check presence of texture coordinates
-                    if (mesh->coords == false)
-                    {
-                        if (vertex.uv) // TODO: What about 0 indexes?
-                        {
-                            mesh->coords = true;
-                        }
-                    }
-
-                    // Check presence of normals
-                    if (mesh->normals == false)
-                    {
-                        if (vertex.normal) // TODO: What about 0 indexes?
-                        {
-                            mesh->normals = true;
-                        }
-                    }
-                   
-                    // First triangle is generated from first three
-                    // vertices of the face. If there is more of them,
-                    // face is divided into triangles on a basis of
-                    // triangle fan.
-                    if (counter == 3)
-                    {
-                        uint64 size   = mesh->indexes.size();
-                        uint32 indexA = mesh->indexes[size-3];
-                        uint32 indexB = mesh->indexes[size-1];
-                        mesh->indexes.push_back(indexA);
-                        mesh->indexes.push_back(indexB);
-                        counter = 2;
-                    }
-   
-                    // Try to reuse vertex if it already exist
-                    bool found = false;
-                    for(uint32 i=0; i<mesh->vertices.size(); ++i)
-                    {
-                        if (mesh->vertices[i] == vertex)
-                        {
-                            mesh->indexes.push_back(i);
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    // If vertex is new, add it to vertex array
-                    if (!found)
-                    {
-                        mesh->indexes.push_back(static_cast<uint32>(mesh->vertices.size()));
-                        mesh->vertices.push_back(vertex);
-                    }
-   
-                    counter++;
-                }
-            }
-        }
-   
-        // Skip not relevant part of the line
-        parser.skipToNextLine();       
+        return nullptr;
     }
- 
  
     // Step 2 - Generating final model
 
 
     // Load materials used by model
-    for(uint8 i=0; i<materials.size(); ++i)
+    for(uint8 i=0; i< objModel->materials.size(); ++i)
     {
         bool loaded = false;
 
         // Search for material in used MTL files and load it
-        for(uint8 j=0; j<libraries.size(); ++j)
+        for(uint8 j=0; j< objModel->libraries.size(); ++j)
         {
-            loaded = mtl::load(libraries[j], materials[i].name, materials[i]);
+            loaded = mtl::load(objModel->libraries[j], objModel->materials[i].name, objModel->materials[i]);
             if (loaded)
             {
                 break;
@@ -471,7 +686,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         // Check if material was found and properly loaded
         if (!loaded)
         {
-            Log << "ERROR! Cannot find material: " << materials[i].name.c_str() << " !\n";
+            Log << "ERROR! Cannot find material: " << objModel->materials[i].name.c_str() << " !\n";
         }
     }  
 
@@ -486,22 +701,28 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     //model->meshes = meshes.size();
     
     std::shared_ptr<en::resource::Model> model = std::make_shared<en::resource::Model>();
-    assert(model);
+    if (!model)
+    {
+        assert(0);
+
+        delete objModel;
+        return nullptr;
+    }
 
     // Generate meshes
-    for(uint8 i=0; i<meshes.size(); ++i)
+    for(uint8 i=0; i<objModel->meshes.size(); ++i)
     {
         using namespace en::resource;
 
         // Search source mesh and material
-        en::obj::Mesh& srcMesh = meshes[i];
+        obj::Mesh& srcMesh = objModel->meshes[i];
         en::resource::Material srcMaterial;
 
-        for(uint8 j=0; j<materials.size(); ++j)
+        for(uint8 j=0; j<objModel->materials.size(); ++j)
         {
-            if (srcMesh.material == materials[j].name)
+            if (srcMesh.material == objModel->materials[j].name)
             {
-                srcMaterial = materials[j];
+                srcMaterial = objModel->materials[j];
             }
         }
 
@@ -552,8 +773,8 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         }
    
         // Calculate tangent space vectors
-        float3* tangents   = NULL;
-        float3* bitangents = NULL;   
+        float3* tangents   = nullptr;
+        float3* bitangents = nullptr;   
         //if (srcMaterial.normal.map ||
         //    srcMaterial.displacement.map)
         if (srcMaterial.normal ||

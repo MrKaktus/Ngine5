@@ -206,6 +206,9 @@ class Formatting
    ~Formatting();
 };
 
+// TODO: Attribute could be compressed on 6 bits, and thus Formatting size could be optimized to 24 bytes.
+static_assert(sizeof(Formatting) == 128, "en::gpu::Formatting size mismatch.");
+
 class BufferView;
 
 class Buffer

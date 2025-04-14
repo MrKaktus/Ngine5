@@ -319,7 +319,7 @@ InputLayoutVK::InputLayoutVK(
         VkVertexInputBindingDescription* desc = (VkVertexInputBindingDescription*)(&state.pVertexBindingDescriptions[i]);
 
         //BufferVK* buffer = reinterpret_cast<BufferVK*>(buffers[i].get());
-        //buffer->id;    // THis should be buffer binding slot to decouple buffers!
+        //buffer->id;    // This should be buffer binding slot to decouple buffers!
       
         desc->binding   = i;                      // Described binding slot.  [0 .. VkPhysicalDeviceLimits::maxVertexInputBindings)
         desc->stride    = buffers[i].elementSize; // Stride between elements. [0 .. VkPhysicalDeviceLimits::maxVertexInputBindingStride)

@@ -409,3 +409,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+middleware/zlib-1.2.10/contrib/vstudio/vc14/

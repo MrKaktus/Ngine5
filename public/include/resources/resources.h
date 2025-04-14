@@ -29,6 +29,7 @@
 
 #include "core/algorithm/hash.h"
 #include "core/rendering/commandBuffer.h" // For CommandState
+#include "core/rendering/state.h"         // For Mesh (DrawableType)
 
 #include "rendering/streamer.h"
 
@@ -445,7 +446,10 @@ struct CommandState
 // Mesh can have any number of input attributes up to MaxInputLayoutAttributesCount,
 // but they will always be stored in no more than 4 separate input buffers, to 
 // optimize cache usage. Those input buffers always share backing sub-allocation
-// as attributes cannot be partially resident.
+// as attributes cannot be partially resident. Idea here is not to keep resident
+// only needed sub-set of input buffers, but to bind and load to GPU cache only
+// those that are needed for current pass (for e.g. only position one for shadow
+// maps generation).
 #define MaxMeshInputBuffers 4
 
 // Mesh represents unique geometry, using single material. Mesh is not carrying 
@@ -457,7 +461,7 @@ struct CommandState
 // Buffer 0, Attribute 0 - (v3f32) Position 
 // Buffer 0, Attribute 1 - (v2f16) UV 
 // Buffer 1, Attribute 2 - (v2f16) Normal (Oct32P compressed)
-// Buffer 1, Attribute 3 - (v2f16) BiTangent (Oct32P compressed)
+// Buffer 1, Attribute 3 - (v2f16) Tangent (Oct32P compressed)
 // Buffer 2, Attribute 4 - (v4u8)  BoneIndex
 // Buffer 2, Attribute 5 - (v4u8)  BoneWeight
 //
@@ -467,25 +471,55 @@ struct CommandState
 // Then mesh can be drawn using any subset of existing buffers, by passing bitmask
 // of ones to use. Index buffer, if present is automatically taken into notice.
 //
+// Index Offset and Index Shift optimization:
+//
+// Optional index buffer may be sub-allocated in the same backing buffer that
+// backs input buffers. In such case "indexOffset" specifies offset to start 
+// of index buffer data. When backing buffer is bound as index buffer, it is
+// treated as such in full. This means that to properly process only index 
+// buffer data sub-allocated in it, first element in index buffer needs to be 
+// pointed at by using "firstIndex" (or "firstElement") property of indexed 
+// draw call.
+// "indexShift" declares by how many bits, "indexOffset" should be r-shifted
+// to convert it into index buffer elements count (depending on the type of
+// element used in index buffer - u16 or u32), and thus, to specify "firstIndex".
+//
+// Mesh currently is not storing it's detailed description:
+//
+// Max element size is 512bytes (32 Attributes, max 4 channels each, max 32bits 
+// per channel). If 64bit attributes would be supported that would be 1024bytes. 
+// This means that element size can be stored on 10 bits (U10+1). Assuming each 
+// element size would be padded to power of two, that could be reduced to r-shift 
+// mask size of 4 bits. Element size could be calculated on the flight if whole
+// Input Layout would be stored (which would also allow to query per-attribute 
+// and per input-buffer element sizes):
+//
+// There is currently 41 distinct Attribute types. Rounding it up to 63 means
+// 6 bits per attribute are needed. This means whole Input Layout can be packed
+// on 24bytes (32x6 -> 192 bits), or excluding first 6 predefined attributes, 
+// 26x6 -> 156bits, 19.5 bytes.
+//
 struct Mesh
 {
     uint32 vertexCount;            // It's the same for all input buffers.
-    uint32 indexCount;
+    uint32 indexCount;             // Count of indices in optional Index buffer.
 
     union
     {
         struct
         {
             uint32 bufferMask         : 4;  // Bitmask of available buffers, that can be bound to Input Assembler (1..4)
-            uint32 indexShift         : 2;  // Amount of bits by which final offset needs to be r-shifted
-                                            // to calculate "firstElement", assuming offset is padded to 
-                                            // element size. (uint16 - >> 1 - /2, uint32 - >> 2 - /4)
+            uint32 indexShift         : 2;  // Amount of bits by which final offset needs to be r-shifted to calculate 
+                                            // "firstIndex" / "firstElement" from which indexed draw call should start 
+                                            // interpreting backing buffer data as Index Buffer.
+                                            // It is assuming offset is padded to element size. (uint16 - >> 1 = /2, uint32 - >> 2 = /4)
             uint32 hasUV              : 1;  // There may be only Position stored in first buffer.
-            uint32 hasBiTangent       : 1;  // If BiTangent is stored, Tangent is reconstructed with Normal
-            uint32 primitiveType      : 3;  // Type of geometry primitives stored (DrawableType cast)
-            uint32 controlPointsCount : 5;  // Count of elements composing single primitive (1..32)
-                                            // [U5, packed on 5 bits, and decoded by adding 1]
-            uint32 materialIndex      : 16; // One of 65536 materials
+            uint32 hasTangent         : 1;  // If Tangent is stored, BiTangent (aligned with normal map V direction) is reconstructed with Normal
+
+            uint32 packedType         : 6;  // Combined DrawableType and ControlPointsCount - count of elements composing single primitive (1..32).
+                                            // Values in range [0 to DrawableTypesCount-1] represent DrawableType
+                                            // Values bigger than 4 represent Patches with controlPointsCount + 4.
+            uint32 materialIndex      : 18; // Index of one of 262144 materials in global materials array.
         };
 
         // 'hasPosition' bit is overlapping with 1st bit of bufferMask (Position is mandatory)
@@ -495,7 +529,7 @@ struct Mesh
         {
             uint32 hasPosition        : 1;  // If there is no position, UV needs to be stored in 4th buffer, as this indicates special case.
             uint32 hasNormal          : 1;  // May store only Normal (without Tangent & BiTangent)
-            uint32 hasSkin            : 1;  // 4 bone indexes, and 4 bone weights
+            uint32 hasSkin            : 1;  // Up to 4 contributing bones on each vertex, and their weights
             uint32                    : 29; 
         };
     };
@@ -503,52 +537,66 @@ struct Mesh
     uint32 indexOffset;                 // Offset to optional Index buffer in shared sub-allocation 
     // 16 bytes
     uint32 offset[MaxMeshInputBuffers]; // Offset of each separate input buffer, in shared sub-allocation.
+                                        // Mesh is not keeping reference to backing allocation itself, it
+                                        // is expected that parent Model class stores such reference.
                                         // Each offset is aligned to given input elementSize.
     // 32 bytes
 
-    // TODO: Material reference (material can be single or array of variants for instanced draws).
+    // TODO: Consider additional 24 bytes of cold data storing detailed Input Layout description.
 
     Mesh();
     Mesh& operator=(const Mesh& src); // Copy Assigment operator
+
+    forceinline void init(const gpu::DrawableType primitiveType, 
+                          const uint8 controlPointsCount);
+
+    forceinline gpu::DrawableType primitiveType(void) const;
+
+    // Control points count, if stores Patches, otherwise 0
+    forceinline uint32 controlPointsCount(void) const;
 };
 
 static_assert(sizeof(Mesh) == 32, "en::renderer::Mesh size mismatch.");
-   
+
+
+forceinline void Mesh::init(const gpu::DrawableType primitiveType, const uint8 controlPointsCount) 
+{
+    assert(primitiveType != gpu::DrawableType::DrawableTypesCount);
+    assert(controlPointsCount > 0 && controlPointsCount <= 32);
+
+    if (primitiveType < gpu::DrawableType::Patches)
+    {
+        packedType = primitiveType;
+    }
+    else
+    {
+        // This is equivalent to DrawableType::PatchesN where N is in [1..32] range.
+        packedType = 4u + controlPointsCount;
+    }
+}
+
+forceinline gpu::DrawableType Mesh::primitiveType(void) const
+{
+    if (packedType < gpu::DrawableType::Patches)
+    {
+        return static_cast<gpu::DrawableType>(packedType);
+    }
+
+    return gpu::DrawableType::Patches;
+}
+
+forceinline uint32 Mesh::controlPointsCount(void) const
+{
+    if (packedType < gpu::DrawableType::Patches)
+    {
+        return 0u;
+    }
+
+    return packedType - 4u;
+}
+
 // CLEAN END:
 
-
-
-// Mesh currently is not storing it's detailed description:
-//
-// Max element size is 512bytes (32 Attributes, max 4 channels each, max 32bits 
-// per channel). If 64bit attributes would be supported that would be 1024bytes. 
-// This means that element size can be stored on 10 bits (U10+1). Assuming each 
-// element size would be padded to power of two, that could be reduced to r-shift 
-// mask size of 4 bits. 
-//
-// There is currently 41 possible Attributes count. Rounding it up to 63 means
-// 6 bits per attribute are needed. This means whole Input Layout can be packed
-// on 24bytes (32x6 -> 192 bits), or excluding first 6 predefined attributes, 
-// 26x6 -> 156bits, 19.5 bytes.
-
-/* We can pack mesh representation even more if needed:
-
-         uint32 packedType         : 6; // Packed DrawableType and ControlPointsCount.
-                                        // Values in range [0 to DrawableTypesCount-1] represent DrawableType
-                                        // Values bigger than 4 represent Patches with controlPointsCount + 4.
-
-DrawableType Mesh::primitiveType(void)
-{
-return packedType < Patches ? packedType : Patches; 
-}
-
-// Control points count, if stores Patches, otherwise 0
-uint32 Mesh::controlPointsCount(void)
-{
-return packedType >= Patches ? packedType - 4 : 0;
-}
-
-*/
 
 
 
