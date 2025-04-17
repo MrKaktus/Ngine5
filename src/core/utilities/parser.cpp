@@ -86,7 +86,10 @@ ParserType Parser::findNextElement(void)
             }
             else // Some kind of string
             {
-                isString(offset, foundStringLength);
+                if (!isString(offset, foundStringLength))
+                {
+                    assert( 0 );
+                }
 
                 foundStringOffset = offset;
                 type = ParserType::String;
@@ -147,12 +150,12 @@ bool Parser::isFloat(const uint64 startOffset, sint32& length)
         integerPart = true;
         for(++currentOffset; currentOffset<size; ++currentOffset)
         {
-            if (isCypher(buffer[startOffset]))
+            if (isCypher(buffer[currentOffset]))
             {
                 continue;
             }
 
-            if (buffer[startOffset] == '.')
+            if (buffer[currentOffset] == '.')
             {
                 break;
             }
@@ -628,11 +631,13 @@ bool isCharacter(uint8 input)
 bool isWhitespace(uint8 input)
 {
     if ( input == ' '  || 
-         input == '\t' || 
+         input == '\t' ) 
+/* || 
          input == '\r' || 
          input == '\n' || 
          input == '\v' || 
          input == '\f' ) 
+//*/
     {
         return true;
     }
@@ -642,10 +647,10 @@ bool isWhitespace(uint8 input)
 
 bool isEol(uint8 input)
 {
-    if ( input == '\r' || 
-         input == '\n' || 
-         input == '\v' || 
-         input == '\f' )
+    if ( input == '\r' || // Carriage return
+         input == '\n' || // Line feed
+         input == '\v' || // Vertical Tab
+         input == '\f' )  // Form Feed
     {
         return true;
     }

@@ -30,7 +30,7 @@ bool optimizeIndexSize  = true;   // Reduces index size UInt -> UShort -> UByte
 bool optimizeIndexOrder = true;   // Optimizes indexes order for Post-Transform Vertex Cache Size
 
 // Internal, custom OBJ vertex representation.
-static struct Vertex
+struct Vertex
 {
     // Index 0 means that given component is not used by vertex.
 
@@ -42,7 +42,7 @@ static struct Vertex
 };
 
 // Internal, custom OBJ face representation.
-static struct Face
+struct Face
 {
     Vertex vertex[3]; // Vertex
     uint32 material;  // Material
@@ -56,7 +56,7 @@ static struct Face
 
 // Internal, custom OBJ mesh representation.
 // Stores unoptimized contents after parsing.
-static struct Mesh
+struct Mesh
 {
     std::string         name;             // Mesh name
     std::string         material;         // Material name (only one per group allowed)
@@ -71,7 +71,7 @@ static struct Mesh
 
 // Internal, custom OBJ model representation.
 // Stores unoptimized contents after parsing.
-static struct Model
+struct Model
 {
     std::vector<float3> vertices;                  // Vertices (uncompressed)
     std::vector<float3> normals;                   // Normals (uncompressed)
@@ -159,18 +159,32 @@ ParserOBJ::ParserOBJ(const uint8* buffer, const uint64 size) :
 
 bool ParserOBJ::readVector3f(float(&vector)[3])
 {
-    for (uint32 i = 0; i < 3; ++i)
+    for(uint32 i=0; i<3; ++i)
     {
         ParserType type = findNextElement();
-        if (type != ParserType::Float)
+        if (type == ParserType::Float)
+        {
+            if (!readF32(vector[i]))
+            {
+                // TODO: logError("Vector parsing failed. Failed to read float value for %i component.", i);
+                return false;
+            }
+        }
+        else // Its possible that float value is represented with integer (for e.g. simply "0").
+        if (type == ParserType::Integer)
+        {
+            sint64 temp = 0;
+            if (!readS64(temp))
+            {
+                // TODO: logError("Vector parsing failed. Failed to read integer value for %i component.", i);
+                return false;
+            }
+
+            vector[i] = (float)temp;
+        }
+        else
         {
             // TODO: logError("Vector parsing failed. Expected float value for %i component.", i);
-            return false;
-        }
-
-        if (!readF32(vector[i]))
-        {
-            // TODO: logError("Vector parsing failed. Failed to read float value for %i component.", i);
             return false;
         }
     }
@@ -183,15 +197,29 @@ bool ParserOBJ::readTextureCoordinates(float(&vector)[3])
     // Component U (mandatory):
 
     ParserType type = findNextElement();
-    if (type != ParserType::Float)
+    if (type == ParserType::Float)
+    {
+        if (!readF32(vector[0]))
+        {
+            // TODO: logError("Vector parsing failed. Failed to read float value for U component.", i);
+            return false;
+        }
+    }
+    else // Its possible that float value is represented with integer (for e.g. simply "0").
+    if (type == ParserType::Integer)
+    {
+        sint64 temp = 0;
+        if (!readS64(temp))
+        {
+            // TODO: logError("Vector parsing failed. Failed to read integer value for U component.", i);
+            return false;
+        }
+
+        vector[0] = (float)temp;
+    }
+    else
     {
         // TODO: logError("Vector parsing failed. Expected float value for U component.", i);
-        return false;
-    }
-
-    if (!readF32(vector[0]))
-    {
-        // TODO: logError("Vector parsing failed. Failed to read float value for U component.", i);
         return false;
     }
 
@@ -204,10 +232,25 @@ bool ParserOBJ::readTextureCoordinates(float(&vector)[3])
     {
         if (!readF32(vector[1]))
         {
-            // TODO: logError("Vector parsing failed. Failed to read float value for V component.");
+            // TODO: logError("Vector parsing failed. Failed to read float value for V component.", i);
+            return false;
+        }
+    }
+    else // Its possible that float value is represented with integer (for e.g. simply "0").
+    if (type == ParserType::Integer)
+    {
+        sint64 temp = 0;
+        if (!readS64(temp))
+        {
+            // TODO: logError("Vector parsing failed. Failed to read integer value for V component.", i);
             return false;
         }
 
+        vector[1] = (float)temp;
+    }
+
+    if (vector[1] != NAN)
+    {
         // Component W (optional):
 
         type = findNextElement();
@@ -215,9 +258,21 @@ bool ParserOBJ::readTextureCoordinates(float(&vector)[3])
         {
             if (!readF32(vector[2]))
             {
-                // TODO: logError("Vector parsing failed. Failed to read float value for W component.");
+                // TODO: logError("Vector parsing failed. Failed to read float value for W component.", i);
                 return false;
             }
+        }
+        else // Its possible that float value is represented with integer (for e.g. simply "0").
+        if (type == ParserType::Integer)
+        {
+            sint64 temp = 0;
+            if (!readS64(temp))
+            {
+                // TODO: logError("Vector parsing failed. Failed to read integer value for W component.", i);
+                return false;
+            }
+
+            vector[2] = (float)temp;
         }
     }
 
@@ -245,13 +300,19 @@ bool ParserOBJ::parseGroupName(const char*& name, uint32& length)
 
             namesCount++;
         }
-    } 
-    while(type != ParserType::EndOfLine);
+    } // WA for OBJ files storing "g" without name as last element in the file. This is not conforming to OBJ specification. We will prune such empty mesh in final model gemeration.
+    while(type != ParserType::None &&
+          type != ParserType::EndOfLine);
 
     if (namesCount == 0)
     {
+        // At least one group need needs to be specified.
+        // See specification page B1-41: https://paulbourke.net/dataformats/obj/obj_spec.pdf
         // logError("OBJ file corrupted. Group name not found.");
-        return false;
+
+        // Parser returns true, as OBJ loader has relaxed this requirement.
+        // For each unnamed group, "unnamedN" name is assigned in automatic way.
+        return true;
     }
 
     if (namesCount > 1)
@@ -307,7 +368,6 @@ bool ParserOBJ::parseMaterialLibraryNames(obj::Model& model)
 
 bool ParserOBJ::parseVertex(obj::Vertex& vertex, bool& hasTextureCoords, bool& hasNormals)
 {
-    ParserType type = findNextElement();
     if (type != ParserType::Integer)
     {
         // Expected vertex index (mandatory).
@@ -445,7 +505,7 @@ bool ParserOBJ::parseFace(obj::Mesh& mesh)
     bool faceHasTextureCoordinates = false;
     bool faceHasNormals            = false;
     uint32 vertexCount = 0;
-    do
+    while(findNextElement() != ParserType::EndOfLine)
     {
         bool vertexHasTextureCoords = false;
         bool vertexHasNormals       = false;
@@ -526,7 +586,6 @@ bool ParserOBJ::parseFace(obj::Mesh& mesh)
 
         vertexCount++;
     }
-    while(type != ParserType::EndOfLine);
 
     return true;
 }
@@ -556,6 +615,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
     // primitives assembly into unoptimized meshes
     std::string command;
     std::string word;
+    uint32 unnamedMeshes = 0;
     bool eol = false;
 
     // Parses input file line by line
@@ -623,7 +683,17 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
                 // it can be reused.
                 if (mesh->indexes.size() == 0)
                 {
-                    mesh->name = std::string(groupName, groupLength);
+                    if (!groupName)
+                    {
+                        // If group is not named, substitute name with "unnamedN" where N is the index.
+                        mesh->name = std::string("unnamed");
+                        mesh->name += stringFrom(unnamedMeshes);
+                        unnamedMeshes++;
+                    }
+                    else
+                    {
+                        mesh->name = std::string(groupName, groupLength);
+                    }
                 }
                 else
                 {
@@ -631,7 +701,17 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
                     mesh = result->addMesh();
 
                     // Fill mesh descriptor with default data
-                    mesh->name = std::string(groupName, groupLength);
+                    if (!groupName)
+                    {
+                        // If group is not named, substitute name with "unnamedN" where N is the index.
+                        mesh->name = std::string("unnamed");
+                        mesh->name += stringFrom(unnamedMeshes);
+                        unnamedMeshes++;
+                    }
+                    else
+                    {
+                        mesh->name = std::string(groupName, groupLength);
+                    }
                     mesh->material = material;
                     mesh->vertices.reserve(8192);
                     mesh->indexes.reserve(8192);
@@ -712,6 +792,21 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
         parser.skipToNextLine();
     }
 
+    // Removes meshes that are empty
+    // This is WA for case when OBJ file is ended with empty group "g"
+    std::vector<obj::Mesh>::iterator it = result->meshes.begin();
+    while(it != result->meshes.end())
+    {
+        if (it->vertices.empty())
+        {
+            it = result->meshes.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
     return result;
 }
 
@@ -774,7 +869,6 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
  
     // Step 2 - Generating final model
 
-
     // Load materials used by model
     for(uint8 i=0; i< objModel->materials.size(); ++i)
     {
@@ -815,6 +909,10 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         delete objModel;
         return nullptr;
     }
+
+    // TODO: Coalesce meshes with the same material.
+
+    // Count unique meshes
 
     // Generate meshes
     for(uint8 i=0; i<objModel->meshes.size(); ++i)
