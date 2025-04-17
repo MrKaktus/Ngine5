@@ -231,16 +231,16 @@ bool ParserOBJ::parseGroupName(const char*& name, uint32& length)
     do
     {
         type = findNextElement();
-        if (type == ParserType::Word)
+        if (type == ParserType::String)
         {
             if (namesCount == 0)
             {
-                name   = word();
-                length = wordLength();
+                name   = string();
+                length = stringLength();
             }
             else
             {
-                // TODO: logDebug("Multiple group names detected. Group name %u: %s.", namesCount, word());
+                // TODO: logDebug("Multiple group names detected. Group name %u: %s.", namesCount, string());
             }
 
             namesCount++;
@@ -270,9 +270,9 @@ bool ParserOBJ::parseMaterialLibraryNames(obj::Model& model)
     do
     {
         type = findNextElement();
-        if (type == ParserType::Word)
+        if (type == ParserType::String)
         {
-            std::string libraryName = std::string(word(), wordLength());
+            std::string libraryName = std::string(string(), stringLength());
 
             // Prevent from adding the same library more than once
             bool found = false;
@@ -563,10 +563,10 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
     while (!parser.end())
     {
         type = parser.findNextElement();
-        if (type == ParserType::Word)
+        if (type == ParserType::String)
         {
             // Vertex
-            if (parser.isWordMatching("v"))
+            if (parser.isStringMatching("v"))
             {
                 // TODO: Ignores optional W component.
                 float3 vertex(0.0f, 0.0f, 0.0f);
@@ -580,7 +580,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
                 result->vertices.push_back(vertex);
             }
             else // Normal vector
-            if (parser.isWordMatching("vn"))
+            if (parser.isStringMatching("vn"))
             {
                 // All three components are mandatory
                 float3 normal(0.0f, 0.0f, 0.0f);
@@ -594,7 +594,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
                 result->normals.push_back(normal);
             }
             else // Texture coordinates
-            if (parser.isWordMatching("vt"))
+            if (parser.isStringMatching("vt"))
             {
                 // NAN indicates that given component is not used
                 float3 coord(0.0f, NAN, NAN);
@@ -608,7 +608,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
                 result->coordinates.push_back(coord);
             }
             else // Group (expected grouping by material - mesh)
-            if (parser.isWordMatching("g"))
+            if (parser.isStringMatching("g"))
             {
                 const char* groupName = nullptr;
                 uint32 groupLength = 0;
@@ -642,7 +642,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
                 }
             }
             else // Add materials library to the list
-            if (parser.isWordMatching("mtllib"))
+            if (parser.isStringMatching("mtllib"))
             {
                 const char* groupName = nullptr;
                 uint32 groupLength = 0;
@@ -653,17 +653,17 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
                 }
             }
             else // Set current material
-            if (parser.isWordMatching("usemtl"))
+            if (parser.isStringMatching("usemtl"))
             {
                 ParserType type = parser.findNextElement();
-                if (type != ParserType::Word)
+                if (type != ParserType::String)
                 {
                     // logError("OBJ file corrupted. Expected name of material to use.");
                     delete result;
                     return nullptr;
                 }
                 
-                material = std::string(parser.word(), parser.wordLength());
+                material = std::string(parser.string(), parser.stringLength());
 
                 // Prevent from adding the same material more than once
                 bool found = false;
@@ -697,7 +697,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
 
             }
             else // Primitive Assembly (faces)
-            if (parser.isWordMatching("f"))
+            if (parser.isStringMatching("f"))
             {
                 if (!parser.parseFace(*mesh))
                 {

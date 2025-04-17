@@ -90,7 +90,7 @@ ParserType Parser::findNextElement(void)
 
                 foundStringOffset = offset;
                 type = ParserType::String;
-                offset += foundWordLength;
+                offset += foundStringLength;
                 return type;
             }
         }
@@ -426,12 +426,12 @@ bool Parser::readF64(double& value)
 
 const char* Parser::string(void)
 {
-    if (foundWordOffset < 0)
+    if (foundStringOffset < 0)
     {
         return nullptr;
     }
 
-    return (const char*)&buffer[foundWordOffset];
+    return (const char*)&buffer[foundStringOffset];
 }
 
 uint32 Parser::stringLength(void)
