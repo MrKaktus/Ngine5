@@ -72,6 +72,7 @@ ParserType Parser::findNextElement(void)
             if (isFloat(offset, numberLength))
             {                
                 numberOffset = offset;
+                offset += numberLength;
                 type = ParserType::Float;
                 return type;
             }
@@ -79,6 +80,7 @@ ParserType Parser::findNextElement(void)
             if (isInteger(offset, numberLength))
             {
                 numberOffset = offset;
+                offset += numberLength;
                 type = ParserType::Integer;
                 return type;
             }
@@ -88,6 +90,7 @@ ParserType Parser::findNextElement(void)
 
                 foundStringOffset = offset;
                 type = ParserType::String;
+                offset += foundWordLength;
                 return type;
             }
         }
@@ -210,7 +213,7 @@ bool Parser::isFloat(const uint64 startOffset, sint32& length)
 
     if (currentOffset == size)
     {
-        length = currentOffset - startOffset;
+        length = sint32(currentOffset - startOffset);
         return true;
     }
 
@@ -262,7 +265,7 @@ bool Parser::isFloat(const uint64 startOffset, sint32& length)
 
         if (currentOffset == size)
         {
-            length = currentOffset - startOffset;
+            length = sint32(currentOffset - startOffset);
             return true;
         }
     }
@@ -273,7 +276,7 @@ bool Parser::isFloat(const uint64 startOffset, sint32& length)
         ++currentOffset;
     }
 
-    length = currentOffset - startOffset;
+    length = sint32(currentOffset - startOffset);
     return true;
 }
 
@@ -323,7 +326,7 @@ bool Parser::isInteger(const uint64 startOffset, sint32& length)
 
     if (integerPart)
     {
-        length = currentOffset - startOffset;
+        length = sint32(currentOffset - startOffset);
         return true;
     }
 
@@ -355,7 +358,7 @@ bool Parser::isString(const uint64 startOffset, sint32& length)
         }
     }
 
-    length = currentOffset - startOffset;
+    length = sint32(currentOffset - startOffset);
     return true;
 }
 
@@ -423,6 +426,12 @@ bool Parser::readF64(double& value)
 
 const char* Parser::string(void)
 {
+    if (foundWordOffset < 0)
+    {
+        return nullptr;
+    }
+
+    return (const char*)&buffer[foundWordOffset];
 }
 
 uint32 Parser::stringLength(void)
@@ -459,67 +468,6 @@ bool Parser::isStringMatching(const char* string)
 
     return false;
 }
-
-// TODO: This is OBJ file format specific. Should be moved to child class ParserOBJ.
-bool Parser::readVector3f(float(&vector)[3])
-{
-    for(uint32 i=0; i<3; ++i)
-    {
-        ParserType type = findNextElement();
-        if (type != ParserType::Float)
-        {
-            // TODO: logError("Vector parsing failed. Expected float value for %i component.", i);
-            return false;
-        }
-
-        if (!readF32(vector[i]))
-        {
-            // TODO: logError("Vector parsing failed. Failed to read float value for %i component.", i);
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// TODO: This is OBJ file format specific. Should be moved to child class ParserOBJ.
-bool Parser::readVector2or3f(float(&vector)[3], bool& thirdComponentPresent)
-{
-    for (uint32 i=0; i<2; ++i)
-    {
-        ParserType type = findNextElement();
-        if (type != ParserType::Float)
-        {
-            // TODO: logError("Vector parsing failed. Expected float value for %i component.", i);
-            return false;
-        }
-
-        if (!readF32(vector[i]))
-        {
-            // TODO: logError("Vector parsing failed. Failed to read float value for %i component.", i);
-            return false;
-        }
-    }
-
-    ParserType type = findNextElement();
-    if (type == ParserType::Float)
-    {
-        if (!readF32(vector[2]))
-        {
-            // TODO: logError("Vector parsing failed. Failed to read float value for 2 component.");
-            return false;
-        }
-
-        if (vector[2] != 0.0f)
-        {
-            thirdComponentPresent = true;
-        }
-    }
-
-    return true;
-}
-
-
 
 
 
@@ -654,6 +602,22 @@ bool Parser::end(void)
 bool isCypher(uint8 input)
 {
     return ((input > 47) && (input < 58));
+}
+
+bool isUpperCaseLetter(uint8 input)
+{
+    return ((input > 64) && (input < 91));
+}
+
+bool isLowerCaseLetter(uint8 input)
+{
+    return ((input > 96) && (input < 123));
+}
+
+bool isLetter(uint8 input)
+{
+    return ((input > 64) && (input < 91)) ||
+           ((input > 96) && (input < 123));
 }
 
 bool isCharacter(uint8 input)

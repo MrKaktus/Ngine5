@@ -32,6 +32,8 @@ bool optimizeIndexOrder = true;   // Optimizes indexes order for Post-Transform 
 // Internal, custom OBJ vertex representation.
 static struct Vertex
 {
+    // Index 0 means that given component is not used by vertex.
+
     uint32 position; // Position
     uint32 uv;       // Texture Coordinate
     uint32 normal;   // Normal vector
@@ -56,14 +58,15 @@ static struct Face
 // Stores unoptimized contents after parsing.
 static struct Mesh
 {
-    std::string         name;      // Mesh name
-    std::string         material;  // Material name (only one per group allowed)
-    std::vector<Vertex> vertices;  // Array of vertices composition data
-    std::vector<uint32> indexes;   // Array of indexes
-    std::vector<uint32> optimized; // Array of indexes after Forsyth optimization
-    bool                coords;    // Does mesh contain texture coordinates 
-    bool                coordW;    // Does mesh uses 3 component texture coordinates
-    bool                normals;   // Does mesh contain normal vectors
+    std::string         name;             // Mesh name
+    std::string         material;         // Material name (only one per group allowed)
+    std::vector<Vertex> vertices;         // Array of vertices composition data
+    std::vector<uint32> indexes;          // Array of indexes
+    std::vector<uint32> optimized;        // Array of indexes after Forsyth optimization
+    bool                hasTextureCoords; // Does mesh contain texture coordinates 
+    bool                hasTextureCoordV; // Does mesh uses 2 component texture coordinates
+    bool                hasTextureCoordW; // Does mesh uses 3 component texture coordinates
+    bool                hasNormals;       // Does mesh contain normal vectors
 };
 
 // Internal, custom OBJ model representation.
@@ -109,9 +112,9 @@ Model::Model()
     mesh->vertices.reserve(8192);
     mesh->indexes.reserve(8192);
     mesh->optimized.reserve(8192);
-    mesh->coords = false;
-    mesh->coordW = false;
-    mesh->normals = false;
+    mesh->hasTextureCoords = false;
+    mesh->hasTextureCoordW = false;
+    mesh->hasNormals = false;
 }
 
 obj::Mesh* Model::addMesh(void)
@@ -125,183 +128,124 @@ obj::Mesh* Model::currentMesh(void)
     return &meshes[meshes.size() - 1];
 }
 
-Vertex parseVertex(std::string& word)
-{
-    Vertex vertex;
-    size_t s1 = word.find('/');
-    size_t s2 = word.find('/',s1+1);
-   
-    // There is always vertex id
-    if (s1 != std::string::npos)
-    {
-        vertex.position = stringTo<uint32>(word.substr(0,s1));
-    }
-    else
-    {
-        vertex.position = stringTo<uint32>(word);
-    }
 
-    // First slash needs to be present, and there need to be 
-    // number just after it, otherwise there is no Tex Coord
-    vertex.uv = 0;
-    // (case: v/t)
-    if ( (s1 != std::string::npos) &&
-         (s2 == std::string::npos) &&
-         ((s1+1) < word.length()) )
-    {
-        vertex.uv = stringTo<uint32>(word.substr(s1+1));
-    }
-    // (case: v/t/n)
-    if ( (s1 != std::string::npos) &&
-         (s2 != std::string::npos) &&
-         ((s1+1) < s2) )
-    {
-        vertex.uv = stringTo<uint32>(word.substr(s1+1,s2-s1-1));
-    }
-
-    // Case v//n is allowed and is implicitly handled above.
-
-    // If there is no second slash there is no Normal
-    // (cases: v and v/t)
-    vertex.normal = 0;
-    if (s2 != std::string::npos)
-    {
-        vertex.normal = stringTo<uint32>(word.substr(s2+1));
-    }
-
-    return vertex;
-}
-
-// TODO: Re-do it as Parser method to avoid creating temporary strings
-bool parseVector3f(Parser& parser, float3& vector)
-{
-    std::string word;
-    bool eol = false;
-
-    char component = 'X';
-    for(uint32 i=0; i<3; ++i)
-    {
-        if (i == 1) component = 'Y';
-        if (i == 2) component = 'Z';
-
-        if (!parser.read(word, eol))
-        {
-            // TODO: logError("Failed to parse vector. Expected component %c value.", component);
-            return false;
-        }
-
-        if (!isFloat(word.c_str(), word.length()))
-        {
-            // TODO: logError("Failed to parse vector. Expected component %c value, but got non-float representation: %s", component, word.c_str());
-            return false;
-        }
-
-        if (i == 0) vector.x = stringTo<float>(word);
-        if (i == 1) vector.y = stringTo<float>(word);
-        if (i == 2) vector.z = stringTo<float>(word);
-
-        if (i<2 && eol)
-        {
-            // TODO: logError("Failed to parse vector. Expected component %c value, but reached end of line.");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// TODO: Re-do it as Parser method to avoid creating temporary strings
-bool parseVector2or3f(Parser& parser, float3& vector, bool& thirdComponentPresent)
-{
-    std::string word;
-    bool eol = false;
-
-    char component = 'X';
-    for (uint32 i=0; i<2; ++i)
-    {
-        if (i == 1)
-        {
-            component = 'Y';
-        }
-
-        if (!parser.read(word, eol))
-        {
-            // TODO: logError("Failed to parse vector. Expected component %c value.", component);
-            return false;
-        }
-
-        if (!isFloat(word.c_str(), word.length()))
-        {
-            // TODO: logError("Failed to parse vector. Expected component %c value, but got non-float representation: %s", component, word.c_str());
-            return false;
-        }
-
-        if (i == 0) vector.x = stringTo<float>(word);
-        if (i == 1) vector.y = stringTo<float>(word);
-
-        if (i == 0 && eol)
-        {
-            // TODO: logError("Failed to parse vector. Expected component %c value, but reached end of line.");
-            return false;
-        }
-    }
-
-    // Optional third component
-    if (!eol)
-    {
-        if (!parser.read(word, eol))
-        {
-            // TODO: logError("Failed to parse vector. Expected 3rd component value.");
-            return false;
-        }
-
-        if (!isFloat(word.c_str(), word.length()))
-        {
-            // TODO: logError("Failed to parse vector. Expected 3rd component value, but got non-float representation: %s", word.c_str());
-            return false;
-        }
-
-        vector.z = stringTo<float>(word);
-        if (vector.z != 0.0f)
-        {
-            thirdComponentPresent = true;
-        }
-    }
-
-    return true;
-}
-
-
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // OBJ File format specification:
 // https://paulbourke.net/dataformats/obj/
 // https://paulbourke.net/dataformats/obj/obj_spec.pdf
+//
+class ParserOBJ : public Parser
+{
 
-bool parseGroupName(Parser& parser, const char* name, uint32& length)
+    public:
+
+    // Passes ownership of buffer to parser
+    ParserOBJ(const uint8* buffer, const uint64 size);
+
+    bool readVector3f(float(&vector)[3]);
+    bool readTextureCoordinates(float(&vector)[3]);
+    bool parseGroupName(const char*& name, uint32& length);
+    bool parseMaterialLibraryNames(obj::Model& model);
+    bool parseVertex(obj::Vertex& vertex, bool& hasTextureCoords, bool& hasNormals);
+    bool parseFace(obj::Mesh& mesh);
+};
+
+ParserOBJ::ParserOBJ(const uint8* buffer, const uint64 size) :
+    Parser(buffer, size)
+{
+}
+
+bool ParserOBJ::readVector3f(float(&vector)[3])
+{
+    for (uint32 i = 0; i < 3; ++i)
+    {
+        ParserType type = findNextElement();
+        if (type != ParserType::Float)
+        {
+            // TODO: logError("Vector parsing failed. Expected float value for %i component.", i);
+            return false;
+        }
+
+        if (!readF32(vector[i]))
+        {
+            // TODO: logError("Vector parsing failed. Failed to read float value for %i component.", i);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool ParserOBJ::readTextureCoordinates(float(&vector)[3])
+{
+    // Component U (mandatory):
+
+    ParserType type = findNextElement();
+    if (type != ParserType::Float)
+    {
+        // TODO: logError("Vector parsing failed. Expected float value for U component.", i);
+        return false;
+    }
+
+    if (!readF32(vector[0]))
+    {
+        // TODO: logError("Vector parsing failed. Failed to read float value for U component.", i);
+        return false;
+    }
+
+    // Component V (optional):
+
+    vector[1] = NAN;
+    vector[2] = NAN;
+    type = findNextElement();
+    if (type == ParserType::Float)
+    {
+        if (!readF32(vector[1]))
+        {
+            // TODO: logError("Vector parsing failed. Failed to read float value for V component.");
+            return false;
+        }
+
+        // Component W (optional):
+
+        type = findNextElement();
+        if (type == ParserType::Float)
+        {
+            if (!readF32(vector[2]))
+            {
+                // TODO: logError("Vector parsing failed. Failed to read float value for W component.");
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool ParserOBJ::parseGroupName(const char*& name, uint32& length)
 {
     ParserType type = ParserType::None;
     uint32 namesCount = 0;
     do
     {
-        type = parser.findNextElement();
-        if (type == ParserType::String)
+        type = findNextElement();
+        if (type == ParserType::Word)
         {
             if (namesCount == 0)
             {
-                name   = parser.string();
-                length = parser.stringLength();
+                name   = word();
+                length = wordLength();
             }
             else
             {
-                // TODO: logDebug("Multiple group names detected. Group name %u: %s.", namesCount, parser.string());
+                // TODO: logDebug("Multiple group names detected. Group name %u: %s.", namesCount, word());
             }
 
             namesCount++;
         }
-    }
+    } 
     while(type != ParserType::EndOfLine);
 
     if (namesCount == 0)
@@ -319,20 +263,20 @@ bool parseGroupName(Parser& parser, const char* name, uint32& length)
     return true;
 }
 
-bool parseMaterialLibraryNames(Parser& parser, obj::Model& model)
+bool ParserOBJ::parseMaterialLibraryNames(obj::Model& model)
 {
     ParserType type = ParserType::None;
     uint32 namesCount = 0;
     do
     {
-        type = parser.findNextElement();
-        if (type == ParserType::String)
+        type = findNextElement();
+        if (type == ParserType::Word)
         {
-            std::string libraryName = std::string(parser.string(), parser.stringLength());
+            std::string libraryName = std::string(word(), wordLength());
 
             // Prevent from adding the same library more than once
             bool found = false;
-            for(uint32 i=0; i<model.libraries.size(); ++i)
+            for (uint32 i = 0; i < model.libraries.size(); ++i)
             {
                 if (model.libraries[i] == libraryName)
                 {
@@ -361,88 +305,243 @@ bool parseMaterialLibraryNames(Parser& parser, obj::Model& model)
     return true;
 }
 
-bool parseFace(Parser& parser, obj::Model& model)
+bool ParserOBJ::parseVertex(obj::Vertex& vertex, bool& hasTextureCoords, bool& hasNormals)
 {
-    ParserType type = ParserType::None;
-    uint32 namesCount = 0;
-    do
+    ParserType type = findNextElement();
+    if (type != ParserType::Integer)
     {
-        type = parser.findNextElement();
+        // Expected vertex index (mandatory).
+        return false;
+    }
 
-
-
-
-    uint32 counter = 0;
-    while (!eol)
+    sint64 temp = 0;
+    if (!readS64(temp))
     {
-        if (parser.read(word, eol))
+        // Failed to read vertex index.
+        return false;
+    }
+
+    if (temp < 0)
+    {
+        // Relative vertex indices are not supported.
+        return false;
+    }
+
+    if (temp > 0xFFFFFFFF)
+    {
+        // Vertex index too big.
+        return false;
+    }
+
+    vertex.position = (uint32)temp;
+
+    if (buffer[offset] != '/')
+    {
+        hasTextureCoords = false;
+        hasNormals       = false;
+
+        if (buffer[offset] == ' ')
         {
-            obj::Vertex vertex = obj::parseVertex(word);
-
-            // Check presence of texture coordinates
-            if (mesh->coords == false)
-            {
-                if (vertex.uv) // TODO: What about 0 indexes?
-                {
-                    mesh->coords = true;
-                }
-            }
-
-            // Check presence of normals
-            if (mesh->normals == false)
-            {
-                if (vertex.normal) // TODO: What about 0 indexes?
-                {
-                    mesh->normals = true;
-                }
-            }
-
-            // First triangle is generated from first three
-            // vertices of the face. If there is more of them,
-            // face is divided into triangles on a basis of
-            // triangle fan.
-            if (counter == 3)
-            {
-                uint64 size = mesh->indexes.size();
-                uint32 indexA = mesh->indexes[size - 3];
-                uint32 indexB = mesh->indexes[size - 1];
-                mesh->indexes.push_back(indexA);
-                mesh->indexes.push_back(indexB);
-                counter = 2;
-            }
-
-            // Try to reuse vertex if it already exist
-            bool found = false;
-            for (uint32 i = 0; i < mesh->vertices.size(); ++i)
-            {
-                if (mesh->vertices[i] == vertex)
-                {
-                    mesh->indexes.push_back(i);
-                    found = true;
-                    break;
-                }
-            }
-
-            // If vertex is new, add it to vertex array
-            if (!found)
-            {
-                mesh->indexes.push_back(static_cast<uint32>(mesh->vertices.size()));
-                mesh->vertices.push_back(vertex);
-            }
-
-            counter++;
+            return true;
+        }
+        else
+        {
+            // Corrupted OBJ file. Exptected whitespace after vertex index.
+            return false;
         }
     }
+
+    // Case v/...
+    offset++;
+
+    // Case: v/-.... OR v/c...
+    if (buffer[offset] == '-' || isCypher(buffer[offset]))
+    {
+        type = findNextElement();
+        if (type != ParserType::Integer)
+        {
+            // Expected texture coordinates index
+            return false;
+        }
+
+        if (!readS64(temp))
+        {
+            // Failed to read texture coordinates index.
+            return false;
+        }
+
+        if (temp < 0)
+        {
+            // Relative texture coordinates indices are not supported.
+            return false;
+        }
+
+        if (temp > 0xFFFFFFFF)
+        {
+            // Texture coordinates index too big.
+            return false;
+        }
+
+        vertex.uv = (uint32)temp;
+        hasTextureCoords = true;
+    }
+    else 
+    {
+        hasTextureCoords = false;
+
+        if (buffer[offset] != '/')
+        {
+            // OBJ file is corrupted. Expected integer index of texture coordinates while parsing face vertex.
+            return false;
+        }
+    }
+
+    // Case: v//... OR v/t/....
+    offset++;
+
+    // Case: v//-... OR v/t/c...
+    if (buffer[offset] == '-' || isCypher(buffer[offset]))
+    {
+        type = findNextElement();
+        if (type != ParserType::Integer)
+        {
+            // Expected normal index
+            return false;
+        }
+
+        if (!readS64(temp))
+        {
+            // Failed to read normal index.
+            return false;
+        }
+
+        if (temp < 0)
+        {
+            // Relative normal indices are not supported.
+            return false;
+        }
+
+        if (temp > 0xFFFFFFFF)
+        {
+            // Normal index too big.
+            return false;
+        }
+
+        vertex.normal = (uint32)temp;
+        hasNormals = true;
+        return true;
+    }
+
+    hasNormals = false;
+
+    // OBJ file is corrupted. Expected integer index of normal while parsing face vertex.
+    return false;
+}
+
+bool ParserOBJ::parseFace(obj::Mesh& mesh)
+{
+    obj::Vertex vertex;
+
+    bool faceHasTextureCoordinates = false;
+    bool faceHasNormals            = false;
+    uint32 vertexCount = 0;
+    do
+    {
+        bool vertexHasTextureCoords = false;
+        bool vertexHasNormals       = false;
+        if (!parseVertex(vertex, vertexHasTextureCoords, vertexHasNormals))
+        {
+            return false;
+        }
+
+        if (vertexCount == 0)
+        {
+            // First vertex determines if face uses texture coordinates 
+            // (without specifying if those are U, UV or UVW) and normals
+            faceHasTextureCoordinates = vertexHasTextureCoords;
+            faceHasNormals            = vertexHasNormals;
+        }
+        else // This is N-th vertex of this face
+        {
+            if (faceHasTextureCoordinates != vertexHasTextureCoords ||
+                faceHasNormals != vertexHasNormals)
+            {
+                // All vertices in given face needs to have the same sub-components.
+                return false;
+            }
+        }
+
+        // This is first face in a mesh
+        if (mesh.vertices.empty())
+        {
+            mesh.hasTextureCoords = faceHasTextureCoordinates;
+            mesh.hasNormals       = faceHasNormals;
+        }
+        else // This is first vertex of N-th face
+        if (vertexCount == 0)
+        {
+            if (mesh.hasTextureCoords != faceHasTextureCoordinates ||
+                mesh.hasNormals != faceHasNormals)
+            {
+                // All faces in given mesh needs to have the same sub-components.
+                return false;
+            }
+
+            // TODO: Verify that all vertices of all faces have the same TC components count (U, UV or UVW).
+            //       This needs to be done on obj::Model level.
+        }
+
+        // First triangle is generated from first three
+        // vertices of the face. If there is more of them,
+        // face is divided into triangles on a basis of
+        // triangle fan.
+        if (vertexCount == 3)
+        {
+            uint64 size   = mesh.indexes.size();
+            uint32 indexA = mesh.indexes[size - 3];
+            uint32 indexB = mesh.indexes[size - 1];
+            mesh.indexes.push_back(indexA);
+            mesh.indexes.push_back(indexB);
+            vertexCount = 2;
+        }
+
+        // Try to reuse vertex if it already exist
+        bool found = false;
+        for(uint32 i = 0; i < mesh.vertices.size(); ++i)
+        {
+            if (mesh.vertices[i] == vertex)
+            {
+                mesh.indexes.push_back(i);
+                found = true;
+                break;
+            }
+        }
+
+        // If vertex is new, add it to vertex array
+        if (!found)
+        {
+            mesh.indexes.push_back(static_cast<uint32>(mesh.vertices.size()));
+            mesh.vertices.push_back(vertex);
+        }
+
+        vertexCount++;
+    }
+    while(type != ParserType::EndOfLine);
+
+    return true;
 }
 
 
-Model* parseOBJ(const uint8* buffer, const uint32 size)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+obj::Model* parseOBJ(const uint8* buffer, const uint32 size)
 {
     // Create parser to quickly process text from file
-    Parser parser(buffer, size);
+    ParserOBJ parser(buffer, size);
 
     // Resulting unoptimized OBJ model
-    Model* result = new obj::Model();
+    obj::Model* result = new obj::Model();
     if (!result)
     {
         return nullptr;
@@ -459,15 +558,17 @@ Model* parseOBJ(const uint8* buffer, const uint32 size)
     std::string word;
     bool eol = false;
 
+    // Parses input file line by line
     ParserType type = ParserType::None;
     while (!parser.end())
     {
         type = parser.findNextElement();
-        if (type == ParserType::String)
+        if (type == ParserType::Word)
         {
             // Vertex
-            if (parser.isStringMatching("v"))
+            if (parser.isWordMatching("v"))
             {
+                // TODO: Ignores optional W component.
                 float3 vertex(0.0f, 0.0f, 0.0f);
                 if (!parser.readVector3f(vertex.value))
                 {
@@ -479,8 +580,9 @@ Model* parseOBJ(const uint8* buffer, const uint32 size)
                 result->vertices.push_back(vertex);
             }
             else // Normal vector
-            if (parser.isStringMatching("vn"))
+            if (parser.isWordMatching("vn"))
             {
+                // All three components are mandatory
                 float3 normal(0.0f, 0.0f, 0.0f);
                 if (!parser.readVector3f(normal.value))
                 {
@@ -492,10 +594,11 @@ Model* parseOBJ(const uint8* buffer, const uint32 size)
                 result->normals.push_back(normal);
             }
             else // Texture coordinates
-            if (parser.isStringMatching("vt"))
+            if (parser.isWordMatching("vt"))
             {
-                float3 coord(0.0f, 0.0f, 0.0f);
-                if (!parser.readVector2or3f(coord.value, mesh->coordW))
+                // NAN indicates that given component is not used
+                float3 coord(0.0f, NAN, NAN);
+                if (!parser.readTextureCoordinates(coord.value))
                 {
                     // TODO: logError("OBJ file corrupted. Failed to parse texture coordinates.");
                     delete result;
@@ -505,11 +608,11 @@ Model* parseOBJ(const uint8* buffer, const uint32 size)
                 result->coordinates.push_back(coord);
             }
             else // Group (expected grouping by material - mesh)
-            if (parser.isStringMatching("g"))
+            if (parser.isWordMatching("g"))
             {
                 const char* groupName = nullptr;
                 uint32 groupLength = 0;
-                if (!parseGroupName(parser, groupName, groupLength))
+                if (!parser.parseGroupName(groupName, groupLength))
                 {
                     delete result;
                     return nullptr;
@@ -533,34 +636,34 @@ Model* parseOBJ(const uint8* buffer, const uint32 size)
                     mesh->vertices.reserve(8192);
                     mesh->indexes.reserve(8192);
                     mesh->optimized.reserve(8192);
-                    mesh->coords = false;
-                    mesh->coordW = false;
-                    mesh->normals = false;
+                    mesh->hasTextureCoords = false;
+                    mesh->hasTextureCoordW = false;
+                    mesh->hasNormals = false;
                 }
             }
             else // Add materials library to the list
-            if (parser.isStringMatching("mtllib"))
+            if (parser.isWordMatching("mtllib"))
             {
                 const char* groupName = nullptr;
                 uint32 groupLength = 0;
-                if (!parseMaterialLibraryNames(parser, *result))
+                if (!parser.parseMaterialLibraryNames(*result))
                 {
                     delete result;
                     return nullptr;
                 }
             }
             else // Set current material
-            if (parser.isStringMatching("usemtl"))
+            if (parser.isWordMatching("usemtl"))
             {
                 ParserType type = parser.findNextElement();
-                if (type != ParserType::String)
+                if (type != ParserType::Word)
                 {
                     // logError("OBJ file corrupted. Expected name of material to use.");
                     delete result;
                     return nullptr;
                 }
                 
-                material = std::string(parser.string(), parser.stringLength());
+                material = std::string(parser.word(), parser.wordLength());
 
                 // Prevent from adding the same material more than once
                 bool found = false;
@@ -580,6 +683,7 @@ Model* parseOBJ(const uint8* buffer, const uint32 size)
                     en::resource::Material enMaterial;
                     enMaterial.name = material;
                     //material.handle = NULL;
+
                     result->materials.push_back(enMaterial);
                 }
 
@@ -592,13 +696,16 @@ Model* parseOBJ(const uint8* buffer, const uint32 size)
                 }
 
             }
-            else // Primitive Assembly
-            if (parser.isStringMatching("f"))
+            else // Primitive Assembly (faces)
+            if (parser.isWordMatching("f"))
             {
-                parseFace(parser);
+                if (!parser.parseFace(*mesh))
+                {
+                    // TODO: logError("OBJ file corrupted. Failed to parse face.");
+                    delete result;
+                    return nullptr;
+                }
             }
-
-
         }
 
         // Skip not relevant part of the line
@@ -741,7 +848,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         uint32 rowSize = 12;
    
         // Normals
-        if (srcMesh.normals)
+        if (srcMesh.hasNormals)
         {
             rowSize += 12;
             formatting.column[columns] = gpu::Attribute::v3f32; // inNormal
@@ -760,11 +867,11 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         }
            
         // Texture Coordinates
-        if (srcMesh.coords)
+        if (srcMesh.hasTextureCoords)
         {
             rowSize += 8;
             formatting.column[columns] = gpu::Attribute::v2f32; // inTexCoord0
-            if (srcMesh.coordW)
+            if (srcMesh.hasTextureCoordW)
             {
                 rowSize += 4;
                 formatting.column[columns] = gpu::Attribute::v3f32;
@@ -795,13 +902,13 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
                 const en::obj::Vertex& v1ids = srcMesh.vertices[ srcMesh.indexes[j+1] ];
                 const en::obj::Vertex& v2ids = srcMesh.vertices[ srcMesh.indexes[j+2] ];
 
-                const float3& v0 = vertices[ v0ids.position ];
-                const float3& v1 = vertices[ v1ids.position ];
-                const float3& v2 = vertices[ v2ids.position ];
+                const float3& v0 = objModel->vertices[ v0ids.position ];
+                const float3& v1 = objModel->vertices[ v1ids.position ];
+                const float3& v2 = objModel->vertices[ v2ids.position ];
 
-                const float3& c0 = coordinates[ v0ids.uv ];
-                const float3& c1 = coordinates[ v1ids.uv ];
-                const float3& c2 = coordinates[ v2ids.uv ];
+                const float3& c0 = objModel->coordinates[ v0ids.uv ];
+                const float3& c1 = objModel->coordinates[ v1ids.uv ];
+                const float3& c2 = objModel->coordinates[ v2ids.uv ];
 
                 float3 vec0 = v1 - v0;
                 float3 vec1 = v2 - v0;
@@ -831,9 +938,9 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
                 const en::obj::Vertex& v0ids = srcMesh.vertices[j];
  
                 // Orthogonalize with preserving normal direction
-                float3 t = normalize( tangents[j] );               // T - normalized tangent
-                float3 b = normalize( bitangents[j] );             // B - normalized bitangent
-                float3 n = normalize( normals[ v0ids.normal ] );   // N - normalized normal
+                float3 t = normalize( tangents[j] );                       // T - normalized tangent
+                float3 b = normalize( bitangents[j] );                     // B - normalized bitangent
+                float3 n = normalize( objModel->normals[ v0ids.normal ] ); // N - normalized normal
 
                 float3 tangent   = normalize(t - n * dot(n, t));   // Tangent in normal plane
                 float3 bitangent = normalize(b - n * dot(n, b));   // Bitangent in normal plane
@@ -864,13 +971,13 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
             en::obj::Vertex& vertex = srcMesh.vertices[j];
 
             // Position
-            *((float3*)(geometry + offset))    = vertices[vertex.position - 1];
+            *((float3*)(geometry + offset))    = objModel->vertices[vertex.position - 1];
             offset += 12;
 
             // Normals
-            if (srcMesh.normals)
+            if (srcMesh.hasNormals)
             {
-                *((float3*)(geometry + offset)) = normals[vertex.normal - 1];
+                *((float3*)(geometry + offset)) = objModel->normals[vertex.normal - 1];
                 offset += 12;
             }
 
@@ -885,15 +992,15 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
             }
 
             // Texture Coordinates
-            if (srcMesh.coords)
+            if (srcMesh.hasTextureCoords)
             {
-                *((float*)(geometry + offset))  = coordinates[vertex.uv - 1].u;
+                *((float*)(geometry + offset))  = objModel->coordinates[vertex.uv - 1].u;
                 offset += 4;
-                *((float*)(geometry + offset))  = coordinates[vertex.uv - 1].v;
+                *((float*)(geometry + offset))  = objModel->coordinates[vertex.uv - 1].v;
                 offset += 4;
-                if (srcMesh.coordW)
+                if (srcMesh.hasTextureCoordW)
                 {
-                    *((float*)(geometry + offset)) = coordinates[vertex.uv - 1].w;
+                    *((float*)(geometry + offset)) = objModel->coordinates[vertex.uv - 1].w;
                     offset += 4;
                 }
             }

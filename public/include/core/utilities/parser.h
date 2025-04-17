@@ -30,7 +30,7 @@ enum ParserType
 
 class Parser
 {
-    private:
+    protected:
     const uint8* buffer; // Pointer to text that need to be parsed
     uint64 offset;       // Current offset in text
     const uint64 size;   // Text size
@@ -44,6 +44,7 @@ class Parser
     sint32 numberLength;
 
     public:
+    // Passes ownership of buffer to parser
     Parser(const uint8* buffer, const uint64 size); 
    ~Parser();
 
@@ -84,10 +85,6 @@ class Parser
     uint32 stringLength(void);
 
 
-    bool readVector3f(float (&vector)[3]);
-    bool readVector2or3f(float(&vector)[3], bool& thirdComponentPresent);
-
-
 
     bool position(uint64 offset);            // Sets current position in buffer
     bool read(std::string& word, bool& eol); // Reads single word, character sequence ended with whitespace. Sets EOL to true if reached EOL.
@@ -97,6 +94,9 @@ class Parser
 };
 
 bool isCypher(uint8 input);
+bool isUpperCaseLetter(uint8 input);
+bool isLowerCaseLetter(uint8 input);
+bool isLetter(uint8 input);
 bool isCharacter(uint8 input);
 bool isWhitespace(uint8 input);
 bool isEol(uint8 input);
