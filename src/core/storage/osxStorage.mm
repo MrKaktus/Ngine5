@@ -255,9 +255,9 @@ bool OSXInterface::exist(const std::string& filename)
     return false;
 }
    
-std::shared_ptr<File> OSXInterface::open(const std::string& filename, const FileAccess mode)
+File* OSXInterface::open(const std::string& filename, const FileAccess mode)
 {
-    std::shared_ptr<OSXFile> result = nullptr;
+    OSXFile* result = nullptr;
    
     NSString* path = fileInBundleByName(filename);
 
@@ -283,7 +283,7 @@ std::shared_ptr<File> OSXInterface::open(const std::string& filename, const File
    
         if ([data length] > 0)
         {
-            result = std::make_shared<OSXFile>(data);
+            result = new OSXFile(data);
         }
     }
       

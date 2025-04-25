@@ -134,7 +134,7 @@ bool load(
     using namespace en::gpu;
 
     // Open file 
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -165,7 +165,7 @@ bool load(
 
     if (!success)
     {
-        file = nullptr;
+        delete file;
         return false;
     }
 
@@ -174,7 +174,7 @@ bool load(
         (settings.height != height) ||
         (settings.format != format))
     {
-        file = nullptr;
+        delete file;
         return false;
     }
 
@@ -191,12 +191,12 @@ bool load(
     {
         Log << "ERROR: Couldn't read file to memory.\n";
         deallocate<uint8>(content);
-        file = nullptr;
+        delete file;
         return false;
     }
 
     // Release file handle and work on copy in memory
-    file = nullptr;
+    delete file;
 
 
     // ### Parse and decompress file 

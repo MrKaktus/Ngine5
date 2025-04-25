@@ -85,7 +85,7 @@ std::unique_ptr<gpu::Texture>* load(const std::string& filename)
     using namespace en::gpu;
 
     // Open image file 
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -103,19 +103,19 @@ std::unique_ptr<gpu::Texture>* load(const std::string& filename)
     if ( header.signature != 0x58455445 )
     {
         Log << "ERROR: TEX file header signature is incorrect!\n";
-        file = nullptr;
+        delete file;
         return nullptr;
     }
     if ( header.version != 1 )
     {
         Log << "ERROR: TEX file header version is not supported!\n";
-        file = nullptr;
+        delete file;
         return nullptr;
     }
     if ( header.filesize != file->size() )
     {
         Log << "ERROR: TEX file size mismatch!\n";
-        file = nullptr;
+        delete file;
         return nullptr;
     }
     assert( header.textures );
@@ -160,7 +160,7 @@ std::unique_ptr<gpu::Texture>* load(const std::string& filename)
             if (!staging)
             {
                 Log << "ERROR: Cannot create staging buffer!\n";
-                file = nullptr;
+                delete file;
                 return nullptr;
             }
 
@@ -200,6 +200,7 @@ std::unique_ptr<gpu::Texture>* load(const std::string& filename)
     delete [] textures;
 
     // TODO: Add support for more than one texture
+    delete file;
     return out;
 }
 

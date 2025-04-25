@@ -824,7 +824,7 @@ void* VulkanDevice::loadPipelineCache(uint64& size)
     // Try to reuse pipeline cache from disk. 
     // It is assumed that devices are always enumerated in the same order.
     std::string filename = std::string("gpu") + stringFrom(index) + std::string("pipelineCache.data");
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         return nullptr;
@@ -834,14 +834,14 @@ void* VulkanDevice::loadPipelineCache(uint64& size)
     uint64 diskCacheSize = file->size();
     if (diskCacheSize < sizeof(PipelineCacheHeader))
     {
-        file = nullptr;
+        delete file;
         return nullptr;
     }
 
     // Size of cache copy on disk shouldn't exceed the limit
     if (diskCacheSize > PipelineCacheMaximumSize)
     {
-        file = nullptr;
+        delete file;
         return nullptr;
     }
 
@@ -853,21 +853,21 @@ void* VulkanDevice::loadPipelineCache(uint64& size)
     if (diskHeader.vendorID != properties.vendorID ||
         diskHeader.deviceID != properties.deviceID) 
     {
-        file = nullptr;
+        delete file;
         return nullptr;
     }
 
     // Check if cache needs to be rebuild due to changed UUID (it won't match after drivers update, GPU change, etc.).
     if (memcmp(&diskHeader.cacheUUID[0], &properties.pipelineCacheUUID[0], 16) != 0)
     {
-        file = nullptr;
+        delete file;
         return nullptr;
     }
 
     // Load previously cached pipeline state objects from disk
     uint8* cacheData = new uint8[diskCacheSize];
     file->read((volatile void*)cacheData);
-    file = nullptr;
+    delete file;
 
     size = diskCacheSize;
     rebuildCache = false;
@@ -958,12 +958,12 @@ VulkanDevice::~VulkanDevice()
             Validate( this, vkGetPipelineCacheData(device, pipelineCache, (size_t*)(&cacheSize), cacheData) )
 
             std::string filename = std::string("gpu") + stringFrom(index) + std::string("pipelineCache.data");
-            std::shared_ptr<File> file = Storage->open(filename, FileAccess::Write);
+            File* file = Storage->open(filename, FileAccess::Write);
             if (file)
             {
                 file->write(cacheSize, cacheData);
-                file = nullptr;
             }
+            delete file;
 
             delete [] cacheData;
         }

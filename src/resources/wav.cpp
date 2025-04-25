@@ -60,7 +60,7 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
     }
 
     // Open audio file 
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.sounds + filename);
@@ -68,7 +68,6 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
         {
             Log << en::ResourcesContext.path.sounds + filename << std::endl;
             Log << "ERROR: There is no such file!\n";
-            file = nullptr;
             return std::shared_ptr<audio::Sample>(NULL);
         }
     }
@@ -81,7 +80,7 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
          (header.format != 0x45564157) )        // 'WAVE' in Big Endian
     {
         Log << "ERROR: Incorrect WAV file header!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }
 
@@ -92,29 +91,29 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
          (fmt.byteRate != (fmt.sampleRate * fmt.channels * fmt.bps/8)) )
     {
         Log << "ERROR: WAV file has corrupted FMT chunk!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }  
     if ( (fmt.size != 16) ||
          (fmt.format != 1) )
     {
         Log << "ERROR: Not supported WAV compression format!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<audio::Sample>(NULL);
-    }  
+    }
 
     // Audio Context specific functionality checks (made for speed-up)
     if ( (fmt.bps != 8) &&
          (fmt.bps != 16) )
     {
         Log << "ERROR: Unsupported Bits Per Sample ratio!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }
     if (fmt.channels > 2)
     {
         Log << "ERROR: Unsupported audio channells count!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }
 
@@ -147,7 +146,7 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
     }
 
     delete [] buffer;
-    file = nullptr;
+    delete file;
     return sample;
 }
 

@@ -47,8 +47,10 @@ class AndInterface : public CommonStorage
     AAssetManager* manager;
     
     virtual bool exist(const std::string& filename); // Check if file exist
-    virtual std::shared_ptr<File> open(const std::string& filename,
-                                       const FileAccess mode = Read);  // Opens file
+
+    // Creates file object and returns its ownership to the caller
+    virtual File* open(const std::string& filename,
+                       const FileAccess mode = Read);
     
     AndInterface();
     virtual ~AndInterface();

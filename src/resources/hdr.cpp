@@ -59,7 +59,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     using namespace en::gpu;
 
     // Open image file
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -78,13 +78,13 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     if (!file->read(0, 10, &header))
     {
         Log << "ERROR: Not HDR file!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<gpu::Texture>();
     }
     if (strcmp(radiance, header) != 0)
     {
         Log << "ERROR: HDR file header signature incorrect!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<gpu::Texture>();
     }
 
@@ -192,7 +192,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     {
         Log << "ERROR: Cannot read HDR file to memory!\n";
         deallocate<uint8>(raw);
-        file = nullptr;
+        delete file;
         return std::shared_ptr<gpu::Texture>();
     }
 
@@ -371,6 +371,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     if (!texture)
     {
         Log << "ERROR: Cannot create texture in GPU!\n";
+        delete file;
         return std::shared_ptr<Texture>(nullptr);
     }
    
@@ -380,6 +381,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     if (!staging)
     {
         Log << "ERROR: Cannot create staging buffer!\n";
+        delete file;
         return std::shared_ptr<Texture>(nullptr);
     }
 
@@ -488,6 +490,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     staging = nullptr;
    
     deallocate<uint8>(data);
+    delete file;
     return texture;
 }
 

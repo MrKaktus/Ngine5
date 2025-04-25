@@ -52,13 +52,13 @@ bool Context::create(int argc, const char **argv)
     std::string filename = EN_CFG_CONFIGURATION_FILE;
 
     // Open config file 
-    std::shared_ptr<File> file = Storage->open(filepath + filename);
+    File* file = Storage->open(filepath + filename);
     if (file)
     {
         // Config file should have max 1MB size
         if (file->size() > 1*MB)
         {
-            file = nullptr;
+            delete file;
             return false;
         }
 
@@ -67,17 +67,17 @@ bool Context::create(int argc, const char **argv)
         uint8* buffer = new uint8[size];
         if (!buffer)
         {
-            file = nullptr;
+            delete file;
             return false;
         }
 
         // Read file to buffer and close file
         if (!file->read(buffer))
         {
-            file = nullptr;
+            delete file;
             return false;  
         } 
-        file = nullptr;
+        delete file;
       
         // Create parser to quickly process text from file
         Parser text(buffer, size);
