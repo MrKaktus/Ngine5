@@ -32,7 +32,7 @@ en::resource::Material load(const std::string& filename)
     }
 
     // Open MATERIAL file
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.materials + filename);
@@ -46,11 +46,12 @@ en::resource::Material load(const std::string& filename)
 
     // Allocate temporary buffer for file content
     uint64 size = file->size();
-    uint8* buffer = NULL;
+    uint8* buffer = nullptr;
     buffer = new uint8[static_cast<uint32>(size)];
     if (!buffer)
     {
         Log << "ERROR: Not enough memory!\n";
+        delete file;
         return en::resource::Material();
     }
    
@@ -58,9 +59,10 @@ en::resource::Material load(const std::string& filename)
     if (!file->read(buffer))
     {
         Log << "ERROR: Cannot read whole material file!\n";
+        delete file;
         return en::resource::Material();
     }    
-    file = nullptr;
+    delete file;
    
     // Create parser to quickly process text from file
     Parser text(buffer, size);

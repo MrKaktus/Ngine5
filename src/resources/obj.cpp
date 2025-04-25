@@ -827,7 +827,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     }
 
     // Open model file
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.models + filename);
@@ -846,6 +846,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     if (!buffer)
     {
         Log << "ERROR: Not enough memory!\n";
+        delete file;
         return std::shared_ptr<en::resource::Model>(nullptr);
     }
    
@@ -853,9 +854,10 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     if (!file->read(buffer))
     {
         Log << "ERROR: Cannot read whole obj file!\n";
+        delete file;
         return std::shared_ptr<en::resource::Model>(nullptr);
     }    
-    file = nullptr;
+    delete file;
 
 
     // Step 1 - Parsing the file

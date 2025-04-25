@@ -127,9 +127,10 @@ bool WinInterface::exist(const std::string& filename)
     return true;
 }
    
-std::shared_ptr<File> WinInterface::open(const std::string& filename, const FileAccess mode)
+// TODO: This is not "Win" interface but "Std" interface that should work on all platforms.
+File* WinInterface::open(const std::string& filename, const FileAccess mode)
 {
-    std::shared_ptr<WinFile> result = nullptr;
+    WinFile* result = nullptr;
    
     std::fstream* handle = nullptr;
 
@@ -149,7 +150,7 @@ std::shared_ptr<File> WinInterface::open(const std::string& filename, const File
 
     if (handle->good())
     {
-        result = std::make_shared<WinFile>(handle);
+        result = new WinFile(handle);
     }
     else
     {
@@ -231,9 +232,9 @@ bool WinInterface::exist(const std::string& filename)
           !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-std::shared_ptr<File> WinInterface::open(const std::string& filename, const FileAccess mode)
+File* WinInterface::open(const std::string& filename, const FileAccess mode)
 {
-    std::shared_ptr<WinFile> result = nullptr;
+    WinFile* result = nullptr;
    
     HANDLE handle = nullptr;
 
@@ -271,7 +272,7 @@ std::shared_ptr<File> WinInterface::open(const std::string& filename, const File
 
     if (handle != INVALID_HANDLE_VALUE)
     {
-        result = std::make_shared<WinFile>(handle);
+        result = WinFile(handle);
     }
     else
     {

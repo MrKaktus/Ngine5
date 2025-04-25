@@ -144,7 +144,7 @@ CommonStorage::~CommonStorage()
 
 uint64 CommonStorage::read(const std::string& filename, std::string& dst)
 {
-    std::shared_ptr<File> file = open(filename);
+    File* file = open(filename);
     if (!file)
     {
         dst.clear();
@@ -156,6 +156,7 @@ uint64 CommonStorage::read(const std::string& filename, std::string& dst)
     {
         Log << std::string("File " + filename + " is empty!");
         dst.clear();
+        delete file;
         return 0;
     }
 
@@ -166,9 +167,10 @@ uint64 CommonStorage::read(const std::string& filename, std::string& dst)
     {
         Log << std::string("Error when reading file, read " + stringFrom(readSize) + " from " + stringFrom(sizeToRead) + " bytes!");
         dst.clear();
+        delete file;
         return 0;
     }
-    file = nullptr;
+    delete file;
 
     // Converts file content to string
     buffer[readSize] = 0;

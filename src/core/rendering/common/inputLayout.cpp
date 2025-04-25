@@ -23,10 +23,11 @@ namespace gpu
 {
 
 // Default Constructor, all Attributes default to None
-Formatting::Formatting()
+Formatting::Formatting() :
+    column{}
 {
 }
-   
+
 // Create data formatting layout by passing at least one data column format
 Formatting::Formatting(
     const Attribute col0,

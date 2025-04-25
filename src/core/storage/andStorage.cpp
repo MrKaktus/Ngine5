@@ -110,9 +110,9 @@ bool AndInterface::exist(const std::string& filename)
     return false;
 }
    
-std::shared_ptr<File> AndInterface::open(const std::string& filename, const FileAccess mode)
+File* AndInterface::open(const std::string& filename, const FileAccess mode)
 {
-    std::shared_ptr<AndFile> result = nullptr;
+    AndFile* result = nullptr;
       
     // TODO: Open for writing
     assert( mode == Read );
@@ -120,7 +120,7 @@ std::shared_ptr<File> AndInterface::open(const std::string& filename, const File
     AAsset* asset = AAssetManager_open(manager, filename.c_str(), AASSET_MODE_STREAMING);
     if (asset)
     {
-        result = std::make_shared<AndFile>(asset);
+        result = new AndFile(asset);
     }
     else
     {

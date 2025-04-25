@@ -67,9 +67,11 @@ class Interface
     static bool create(void);                       // Creates instance of this class (OS specific) and assigns it to "Storage".
 
     virtual bool exist(const std::string& filename) = 0; // Check if file exist
-    virtual std::shared_ptr<File> open(const std::string& filename,
-                                  const FileAccess mode = Read) = 0;  // Opens file
-       
+
+    // Creates file object and returns its ownership to the caller
+    virtual File* open(const std::string& filename,
+                       const FileAccess mode = Read) = 0;
+
     virtual uint64 read(const std::string& filename,
                         std::string& dst) = 0;          // Convenience method for reading whole file as string
 

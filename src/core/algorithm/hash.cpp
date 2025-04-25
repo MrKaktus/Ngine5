@@ -30,7 +30,7 @@ hash hashData(const void* data, const uint32 size, const uint32 seed)
     return result;
 }
 
-hash hashString(const std::string name, const uint32 seed)
+hash hashString(const std::string& name, const uint32 seed)
 {
     hash result = 0;
 

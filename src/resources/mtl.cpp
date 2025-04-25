@@ -30,7 +30,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
     //   return ResourcesContext.materials[name];
 
     // Open MTL file 
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.materials + filename);
@@ -44,11 +44,12 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 
     // Allocate temporary buffer for file content ( 4GB max size! )
     uint64 size = file->size();
-    uint8* buffer = NULL;
+    uint8* buffer = nullptr;
     buffer = new uint8[static_cast<uint32>(size)];
     if (!buffer)
     {
         Log << "ERROR: Not enough memory!\n";
+        delete file;
         return false; //en::resource::Material();
     }
    
@@ -56,9 +57,10 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
     if (!file->read(buffer))
     {
         Log << "ERROR: Cannot read whole mtl file!\n";
+        delete file;
         return false; //en::resource::Material();
     }    
-    file = nullptr;
+    delete file;
    
     // Create parser to quickly process text from file
     Parser text(buffer, size);

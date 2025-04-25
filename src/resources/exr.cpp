@@ -198,7 +198,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     using namespace en::storage;
 
     // Open image file
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.textures + filename);
@@ -216,7 +216,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     if (header.signature != 0x01312F76)
     {
         Log << "ERROR: EXR file header signature incorrect!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<gpu::Texture>();
     }
    
@@ -224,7 +224,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     if (header.multiPart)
     {
         Log << "ERROR: EXR multi-part files are not supported!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<gpu::Texture>();
     }
 
@@ -254,7 +254,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     if (singlePartType != ScanLineImage)
     {
         Log << "ERROR: Engine supports only scan lined EXR images!\n";
-        file = nullptr;
+        delete file;
         return std::shared_ptr<gpu::Texture>();
     }
 
@@ -675,6 +675,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
                 if (CheckError(inflateInit(&stream)))
                 {
                     Log << "Error: Cannot initialize Zlib decompressor!\n";
+                    delete file;
                     delete [] input;
                     delete [] output;
                     return std::shared_ptr<gpu::Texture>(nullptr);
@@ -686,6 +687,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
                 {
                     CheckError(ret);
                     Log << "Error: Cannot decompress using ZLIB!\n";
+                    delete file;
                     delete [] input;
                     delete [] output;
                     return std::shared_ptr<gpu::Texture>(nullptr);
@@ -725,7 +727,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         if (!staging)
         {
             Log << "ERROR: Cannot create staging buffer!\n";
-            file = nullptr;
+            delete file;
             return texture;
         }
 
@@ -764,9 +766,11 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         command = nullptr;
         staging = nullptr;
 
+        delete file;
         return texture;   // TODO: Rework for multipart files!
     }
 
+    delete file;
     return std::shared_ptr<gpu::Texture>(nullptr);
 }
 

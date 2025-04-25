@@ -168,7 +168,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
     using namespace en::storage;
 
     // Open .fnt file
-    std::shared_ptr<File> file = Storage->open(filename);
+    File* file = Storage->open(filename);
     if (!file)
     {
         file = Storage->open(en::ResourcesContext.path.fonts + filename);
@@ -181,11 +181,12 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
 
     // Allocate temporary buffer for file content
     uint64 size = file->size();
-    uint8* buffer = NULL;
+    uint8* buffer = nullptr;
     buffer = new uint8[static_cast<uint32>(size)];
     if (!buffer)
     {
         Log << "ERROR: Not enough memory!\n";
+        delete file;
         return std::shared_ptr<en::resource::Font>(nullptr);
     }
    
@@ -193,9 +194,10 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
     if (!file->read(buffer))
     {
         Log << "ERROR: Cannot read whole font file!\n";
+        delete file;
         return std::shared_ptr<en::resource::Font>(nullptr);
     }    
-    file = nullptr;
+    delete file;
 
     // Create new font
     std::shared_ptr<FontImp> font = std::make_shared<FontImp>();
