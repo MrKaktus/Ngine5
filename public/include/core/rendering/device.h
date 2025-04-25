@@ -180,7 +180,7 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
     virtual std::shared_ptr<Shader> createShader(
         const ShaderStage stage,
         const uint8* data,
-        const uint64 size) = 0;
+        const uint32 size) = 0;
 
 
     /// Returns count of available Command Queues of given type

@@ -82,7 +82,7 @@ class MetalDevice : public CommonDevice
     virtual std::shared_ptr<Shader>  createShader(
         const ShaderStage stage,
         const uint8* data,
-        const uint64 size);
+        const uint32 size);
         
     virtual uint32 queues(const QueueType type) const;
     

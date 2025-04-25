@@ -49,7 +49,7 @@ struct Interface
     bool get(const std::string& name, std::string& destination);
     bool get(const std::string  name, std::string& destination);
     bool get(const char*        name, std::string& destination);
-    
+
     bool get(const std::string& name, Nversion& destination);
     bool get(const std::string  name, Nversion& destination);
     bool get(const char*        name, Nversion& destination);

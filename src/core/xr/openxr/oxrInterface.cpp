@@ -246,8 +246,8 @@ oxrInterface::oxrInterface(std::string appName) :
     //-----------------------------------------
 
     uint32 enabledExtensionsCount = 0;
-    char** extensionPtrs = nullptr;
-    extensionPtrs = new char*[globalExtensionsCount];
+    const char** extensionPtrs = nullptr;
+    extensionPtrs = new const char*[globalExtensionsCount];
 
 
     // Adding Debug specific extensions to the list

@@ -43,10 +43,10 @@ std::shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, cons
     // VK_NV_glsl_shader - allows passing in GLSL instead of SPIR-V
     //                     (we can compile GLSL to SPIRV offline)
 
-    return createShader(stage,(const uint8*)source.c_str(), source.size());
+    return createShader(stage,(const uint8*)source.c_str(), static_cast<uint32>(source.size()));
 }
 
-std::shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+std::shared_ptr<Shader> VulkanDevice::createShader(const ShaderStage stage, const uint8* data, const uint32 size)
 {
     std::shared_ptr<ShaderVK> shader = nullptr;
 

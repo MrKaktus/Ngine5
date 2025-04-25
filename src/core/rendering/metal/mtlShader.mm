@@ -103,7 +103,7 @@ std::shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const
     return std::make_shared<ShaderMTL>(library);
 }
 
-std::shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+std::shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const uint8* data, const uint32 size)
 {
     // Unsupported on Metal
     assert( 0 );
