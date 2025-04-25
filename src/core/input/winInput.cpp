@@ -371,7 +371,7 @@ BOOL CALLBACK initJoystick(const DIDEVICEINSTANCE* instance, VOID* _context)
     //}
 
     // Register Joystick
-    input->joysticks.push_back(std::make_shared<WinJoystick>(input->joysticks.size(), handle));
+    input->joysticks.push_back(std::make_shared<WinJoystick>(static_cast<uint32>(input->joysticks.size()), handle));
     return DIENUM_CONTINUE;
 }
 

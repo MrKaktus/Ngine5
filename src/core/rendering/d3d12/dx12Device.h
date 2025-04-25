@@ -134,7 +134,7 @@ class Direct3D12Device : public CommonDevice
     virtual std::shared_ptr<Shader> createShader(
         const ShaderStage stage,
         const uint8* data,
-        const uint64 size);
+        const uint32 size);
 
     virtual ColorAttachment* createColorAttachment(
         const Format format, 

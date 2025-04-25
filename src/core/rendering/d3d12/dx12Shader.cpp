@@ -135,15 +135,30 @@ std::shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, 
     else
     if (binary)
     {
-        result = std::make_shared<ShaderD3D12>(stage,
-                                               reinterpret_cast<const uint8*>(binary->GetBufferPointer()),
-                                               binary->GetBufferSize());
+        uint64 size = binary->GetBufferSize();
+        if (size <= 0xFFFFFFFF)
+        {
+            // TODO: Consider avoiding internal memcpy() by passing in iD3DBlob of binary into created ShaderD3D12 and letting it own it (and later release).
+            result = std::make_shared<ShaderD3D12>(stage,
+                reinterpret_cast<const uint8*>(binary->GetBufferPointer()),
+                static_cast<uint32>(size));
+        }
+    }
+
+    if (binary)
+    {
+        binary->Release();
+    }
+
+    if (errors)
+    {
+        errors->Release();
     }
 
     return result;
 }
 
-std::shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const uint8* data, const uint64 size)
+std::shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, const uint8* data, const uint32 size)
 {
     return std::make_shared<ShaderD3D12>(stage, data, size);
 }

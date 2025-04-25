@@ -444,12 +444,16 @@ bool GraphicAPI::create(void)
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
     // API Selection based on config file / terminal parameters
-    if (Config.get("g.api", std::string("d3d12")))
+    std::string apiType;
+    if (Config.get("g.api", apiType) &&
+        apiType == std::string("d3d12"))
     {
+        // Direct3D12 is secondary graphics API (only if explicitly selected)
         Graphics = std::make_shared<Direct3DAPI>("Ngine5.0");
     }
     else
     {
+        // Vulkan is primary graphics API
         Graphics = std::make_shared<VulkanAPI>("Ngine5.0");      // TODO: Propagate application name !
     }
 #endif

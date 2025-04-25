@@ -686,8 +686,8 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
     //-----------------------------------------
 
     uint32 enabledExtensionsCount = 0;
-    char** extensionPtrs = nullptr;
-    extensionPtrs = new char*[globalExtensionsCount];
+    const char** extensionPtrs = nullptr;
+    extensionPtrs = new const char*[globalExtensionsCount];
 
     // Adding Windowing System Interface extensions to the list
     extensionPtrs[enabledExtensionsCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
@@ -1512,7 +1512,7 @@ std::shared_ptr<Texture> VulkanDevice::createSharedTexture(std::shared_ptr<Share
 #define CaseString( x ) case x: return #x;
 
 // Checks Vulkan error state
-char* ObjectTypeString(const VkDebugReportObjectTypeEXT objectType)
+const char* ObjectTypeString(const VkDebugReportObjectTypeEXT objectType)
 {
     switch(objectType)
     {
@@ -1725,8 +1725,8 @@ VulkanAPI::VulkanAPI(std::string appName) :
     //-----------------------------------------
 
     uint32 enabledExtensionsCount = 0;
-    char** extensionPtrs = nullptr;
-    extensionPtrs = new char*[globalExtensionsCount];
+    const char** extensionPtrs = nullptr;
+    extensionPtrs = new const char*[globalExtensionsCount];
    
     // Adding Debug specific extensions to the list
 #if defined(EN_DEBUG)
@@ -1782,7 +1782,7 @@ VulkanAPI::VulkanAPI(std::string appName) :
     //----------------------------------------------------------
 
     uint32 enabledLayersCount = 0;
-    char** layersPtrs = nullptr;
+    const char** layersPtrs = nullptr;
    
 #if defined(EN_DEBUG)
     if (layersCount > 0)
@@ -1797,7 +1797,7 @@ VulkanAPI::VulkanAPI(std::string appName) :
     // TODO: Read list of requested layers to enable from config file
 
     // Cannot enable more layers than all currently available
-    layersPtrs = new char*[layersCount];
+    layersPtrs = new const char*[layersCount];
 
     // Layers available on machine with raw graphic driver
     // VK_LAYER_NV_optimus

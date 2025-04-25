@@ -36,7 +36,7 @@ typedef uint64 hash;
 hash hashData(const void* data, const uint32 size, const uint32 seed = PerfectHashSeed);
 
 // Generates hash from string
-hash hashString(const std::string name, const uint32 seed = PerfectHashSeed);
+hash hashString(const std::string& name, const uint32 seed = PerfectHashSeed);
 
 } // en
 
