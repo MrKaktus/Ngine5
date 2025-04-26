@@ -582,6 +582,7 @@ void Interface::Free::font(const std::string& name)
     std::map<std::string, std::shared_ptr<FontImp> >::iterator it = ResourcesContext.fonts.find(name);
     if (it != ResourcesContext.fonts.end())
     {
+        // TODO: Refactor objects ownership by container
         if (it->second.unique())
         {
             it->second = nullptr;

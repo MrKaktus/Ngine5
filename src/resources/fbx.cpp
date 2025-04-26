@@ -1373,7 +1373,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
 
 
     // Create model
-    std::shared_ptr<en::resource::Model> model = std::make_shared<en::resource::Model>();
+    std::shared_ptr<en::resource::Model> model = nullptr; // TODO: Refactor this code: std::make_shared<en::resource::Model>();
 
     // TODO: Refactor to new Model description
     // model->name = std::string(fbxScene->GetName());

@@ -294,16 +294,20 @@ struct Material
 { 
     std::string name;                       // Material name
 
-    std::shared_ptr<en::gpu::Texture> albedo;       // Leaving irradiance coefficients for each point of surface 
-    std::shared_ptr<en::gpu::Texture> metallic;     // 
-    std::shared_ptr<en::gpu::Texture> cavity;       // 
-    std::shared_ptr<en::gpu::Texture> roughness;    // 
-    std::shared_ptr<en::gpu::Texture> AO;           // 
-    std::shared_ptr<en::gpu::Texture> normal;       // 
-    std::shared_ptr<en::gpu::Texture> displacement; // 
-    std::shared_ptr<en::gpu::Texture> vector;       // Vector displacement map
-    std::shared_ptr<en::gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
-    std::shared_ptr<en::gpu::Texture> opacity;      //
+    // TODO: Those are shared_ptrs bc they might get assigned default textures when given map is missing. So defaults can be shared by multiple Materials. 
+    //       But we want material to expose its maps as unique to whoever uses it (to prevent user from grabbing shared ownership of material resources). How to solve it?
+    //       Use streamer allocations instead?
+    //
+    std::shared_ptr<gpu::Texture> albedo;       // Leaving irradiance coefficients for each point of surface 
+    std::shared_ptr<gpu::Texture> metallic;     // 
+    std::shared_ptr<gpu::Texture> cavity;       // 
+    std::shared_ptr<gpu::Texture> roughness;    // 
+    std::shared_ptr<gpu::Texture> AO;           // 
+    std::shared_ptr<gpu::Texture> normal;       // 
+    std::shared_ptr<gpu::Texture> displacement; // 
+    std::shared_ptr<gpu::Texture> vector;       // Vector displacement map
+    std::shared_ptr<gpu::Texture> emmisive;     // Emited irradiance coefficients for each point of surface
+    std::shared_ptr<gpu::Texture> opacity;      //
    
     Material();                        // Inits material with default resources provided by engine
 };
@@ -548,7 +552,7 @@ struct Mesh
     Mesh& operator=(const Mesh& src); // Copy Assigment operator
 
     forceinline void init(const gpu::DrawableType primitiveType, 
-                          const uint8 controlPointsCount);
+                          const uint8 controlPointsCount = 0u);
 
     forceinline gpu::DrawableType primitiveType(void) const;
 
@@ -562,7 +566,6 @@ static_assert(sizeof(Mesh) == 32, "en::renderer::Mesh size mismatch.");
 forceinline void Mesh::init(const gpu::DrawableType primitiveType, const uint8 controlPointsCount) 
 {
     assert(primitiveType != gpu::DrawableType::DrawableTypesCount);
-    assert(controlPointsCount > 0 && controlPointsCount <= 32);
 
     if (primitiveType < gpu::DrawableType::Patches)
     {
@@ -570,6 +573,8 @@ forceinline void Mesh::init(const gpu::DrawableType primitiveType, const uint8 c
     }
     else
     {
+        assert(controlPointsCount > 0 && controlPointsCount <= 32);
+
         // This is equivalent to DrawableType::PatchesN where N is in [1..32] range.
         packedType = 4u + controlPointsCount;
     }
@@ -660,6 +665,7 @@ struct Model
                          // in Model global array of meshes (each LOD may have different mesh 
                          // count). Single LOD model is not using it.
                          // Maximum size: 16 x 4 = 64bytes
+                         // TODO: Could optimize by storing only first mesh indexz per LOD and size for last LOD. (34 bytes total). This pointer plus both paddings are 32 bytes. There are also 4 bytes free in mask above.
 
     // 32bytes
     float4x4* matrix;    // Pointer to optional array of Mesh transformation matrices (global)
@@ -677,6 +683,15 @@ struct Model
     
     // 128 bytes
  
+    Model(const std::string& name,
+          const uint32 meshesCount, 
+          const uint32 levelsOfDetail, 
+          const uint8 gpuIndex);
+
+    forceinline bool levelsODetailCount(const uint8 count);
+
+    forceinline uint8 levelsODetailCount(void) const;
+
     void drawLOD(CommandState& state,
                  const uint32 levelOfDetail,  
                        uint32 bufferMask    = 0xF, // All available buffers by default
@@ -685,6 +700,35 @@ struct Model
 };
 
 static_assert(sizeof(Model) == 128, "en::renderer::Model size mismatch.");
+
+forceinline bool Model::levelsODetailCount(const uint8 count)
+{
+    if (count < 1 || count > 16) // unlikely
+    {
+        return false;
+    }
+
+    levelCount = count - 1u;
+
+    return true;
+}
+
+forceinline uint8 Model::levelsODetailCount(void) const
+{
+    return static_cast<uint8>(levelCount + 1u);
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 //
 //      // Material - Pipeline object, has baked input state.

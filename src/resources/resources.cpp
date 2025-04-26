@@ -479,12 +479,29 @@ Mesh::Mesh()
 {
     memset(this, 0, sizeof(Mesh));
 }
-   
+
 Mesh& Mesh::operator=(const Mesh& src)
 {
     memcpy(this, &src, sizeof(Mesh));
     return *this;
 }
+
+/*
+InputLayout* Mesh::inputLayout(GpuDevice& gpu)
+{
+    /// Specialized function for creation of any type of InputLayout.
+    return gpu->createInputLayout(
+        const DrawableType primitiveType,
+        const bool primitiveRestart,
+        const uint32 controlPoints,
+        const uint32 usedAttributes,
+        const uint32 usedBuffers,
+        const AttributeDesc * attributes,
+        const BufferDesc * buffers) = 0;
+}
+//*/
+
+
 
 /*
 // It's easier to recompute below values at runtime each time they are needed, 
@@ -524,6 +541,26 @@ void updateModelLevel(Model& model, const uint32 level)
 
 
 
+Model::Model(const std::string& _name, const uint32 meshesCount, const uint32 levelsOfDetail, const uint8 gpuIndex)
+{
+    // TODO: Search by hash if model already exists, if so, load only if it is for GPU its not loaded for
+    name = hashString(_name);
+    meshCount = meshesCount;
+    levelsODetailCount(levelsOfDetail);
+    setBit(gpuMask, gpuIndex);
+    mesh = new resource::Mesh[meshesCount]; // TODO: Allocate from some global meshes array
+    meshRange = nullptr; // Threre is always only one LOD in one OBJ file.
+    matrix = nullptr; // OBJ file does not store animation, nor mesh-tree transforms
+    padding[0] = 0;
+    padding[1] = 0;
+
+    for (uint32 i = 0; i < MaxSupportedGPUCount; ++i)
+    {
+        backing[i] = nullptr;
+    }
+
+    padding2 = 0;
+}
 
 CommandState::CommandState(gpu::CommandBuffer& _command) :
     command(_command),
@@ -621,7 +658,9 @@ void Model::drawLOD(
         {
             // Calculate offset to first Vertex, for draws using only first input buffer
             // Shift by 4 is equal to division by 16. First buffer always has elementSize of 16bytes.
-//TODO: Why it always has this size?
+
+//TODO: This is not true. First buffer may or may not have UV attribute. So size is either 12 or 16 bytes.
+
             firstVertex = (levelBacking.gpuOffset + currentMesh.offset[0]) >> 4;
         }
         else
@@ -865,14 +904,14 @@ std::shared_ptr<Model> Interface::Load::model(const std::string& filename, const
     if (found != std::string::npos &&
         found == (length - 4))
     {
-        return obj::load(filename, name);
+        return nullptr; // TODO: obj::load(filename, name, streamer);
     }
 
     found = filename.rfind(".OBJ");
     if (found != std::string::npos &&
         found == (length - 4))
     {
-        return obj::load(filename, name);
+        return nullptr; // TODO: obj::load(filename, name, streamer);
     }
 
     found = filename.rfind(".fbx");
