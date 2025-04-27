@@ -187,13 +187,13 @@ bool Interface::create(void)
     //Log << "Starting module: Storage.\n";
 
 #if defined(EN_PLATFORM_ANDROID)
-    Storage = std::make_shared<AndInterface>();
+    Storage = std::make_unique<AndInterface>();
 #endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-    Storage = std::make_shared<OSXInterface>();
+    Storage = std::make_unique<OSXInterface>();
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
-    Storage = std::make_shared<WinInterface>();
+    Storage = std::make_unique<WinInterface>();
 #endif
 
     return (Storage == nullptr) ? false : true;
@@ -201,6 +201,6 @@ bool Interface::create(void)
 
 } // en::storage
    
-std::shared_ptr<storage::Interface> Storage = nullptr;
+std::unique_ptr<storage::Interface> Storage = nullptr;
 
 } // en

@@ -80,7 +80,7 @@ class Interface
 
 } // en::storage
 
-extern std::shared_ptr<storage::Interface> Storage;
+extern std::unique_ptr<storage::Interface> Storage;
 
 } // en
 

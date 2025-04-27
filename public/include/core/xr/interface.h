@@ -35,7 +35,7 @@ class Interface
 
 } // en::xr
 
-extern std::shared_ptr<xr::Interface> XR;
+extern std::unique_ptr<xr::Interface> XR;
 
 } // en
 

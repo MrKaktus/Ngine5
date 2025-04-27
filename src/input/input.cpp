@@ -155,16 +155,16 @@ ControllerEvent::ControllerEvent(EventType _type) :
 bool Interface::create(void)
 {
 #if defined(EN_PLATFORM_ANDROID)
-    Input = std::make_shared<AndInterface>();
+    Input = std::make_unique<AndInterface>();
     return true;
 #elif defined(EN_PLATFORM_IOS)
-    Input = std::make_shared<IOSInterface>();
+    Input = std::make_unique<IOSInterface>();
     return true;
 #elif defined(EN_PLATFORM_OSX)
-    Input = std::make_shared<macInput>();
+    Input = std::make_unique<macInput>();
     return true;
 #elif defined(EN_PLATFORM_WINDOWS)
-    Input = std::make_shared<WinInput>();
+    Input = std::make_unique<WinInput>();
    
     // TODO: Move it outside ifdef section as common call for all platforms once it is implemented everywhere
     reinterpret_cast<CommonInput*>(Input.get())->init();
@@ -172,7 +172,7 @@ bool Interface::create(void)
     return true;
 #else
     // How did we ended up here?
-    Input = std::make_shared<CommonInput>();
+    Input = std::make_unique<CommonInput>();
     return false;
 #endif
 }
@@ -977,11 +977,6 @@ bool CommonInput::pullEvent(Event*& event)
 
 } // en::input
 
-#if 1
-std::shared_ptr<input::Interface> Input;
-#else
-input::Context   InputContext;
-input::Interface Input;
-#endif
+std::unique_ptr<input::Interface> Input = nullptr;
 
 } // en

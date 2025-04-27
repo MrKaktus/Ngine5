@@ -47,7 +47,7 @@ bool Interface::create(void)
     //       runtime it wants to use.
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-    XR = std::make_shared<cxrInterface>("Ngine5.0");
+    XR = std::make_unique<cxrInterface>("Ngine5.0");
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
 
@@ -57,7 +57,7 @@ bool Interface::create(void)
         Log << "OpenVR: Present.";
         if (!XR)
         {
-            XR = std::make_shared<ovrInterface>("Ngine5.0");
+            XR = std::make_unique<ovrInterface>("Ngine5.0");
             if (XR)
             {
                 Log << " Initialized.\n";
@@ -79,7 +79,7 @@ bool Interface::create(void)
         Log << "OpenXR: Present.\n";
         if (!XR)
         {
-            XR = std::make_shared<oxrInterface>("Ngine5.0");
+            XR = std::make_unique<oxrInterface>("Ngine5.0");
             if (XR)
             {
                 Log << " Initialized.\n";
@@ -102,6 +102,6 @@ bool Interface::create(void)
 
 } // en::xr
 
-std::shared_ptr<xr::Interface> XR;
+std::unique_ptr<xr::Interface> XR = nullptr;
 
 } // en

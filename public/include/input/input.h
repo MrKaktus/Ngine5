@@ -618,11 +618,7 @@ struct Interface
 
 } // en::input
 
-extern std::shared_ptr<input::Interface> Input;   // New dynamic Interface allowing inherited implementation
-
-#if 0
-extern input::Interface Input;
-#endif
+extern std::unique_ptr<input::Interface> Input;
 
 } // en
 

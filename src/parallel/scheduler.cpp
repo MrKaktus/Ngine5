@@ -1047,7 +1047,7 @@ bool Interface::create(const uint32 workers, const uint32 workerFibers, const ui
 
 } // en::parallel
 
-std::unique_ptr<parallel::Interface> Scheduler;
+std::unique_ptr<parallel::Interface> Scheduler = nullptr;
 
 } // en
 
