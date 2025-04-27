@@ -38,7 +38,7 @@
 
 namespace en
 {
-namespace resource
+namespace resources
 {
 
 //struct MaterialParameter
@@ -219,7 +219,7 @@ struct Context
 
 } // en::resource
 
-extern resource::Context ResourcesContext;
+extern resources::Context ResourcesContext;
 
 } // en
 

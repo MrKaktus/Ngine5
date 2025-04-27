@@ -35,7 +35,7 @@
 
 namespace en
 {
-namespace resource
+namespace resources
 {
 
 // Phong Material

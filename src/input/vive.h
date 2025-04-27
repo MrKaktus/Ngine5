@@ -30,7 +30,7 @@ namespace en
       public:
       float3   position(void) const;                        // Controller position
       float4x4 orientation(void) const;                     // Controller orientation
-      std::shared_ptr<en::resource::Model> model(void) const;
+      std::shared_ptr<en::resources::Model> model(void) const;
       std::shared_ptr<en::gpu::Texture>    texture(void) const;
       Time     cooldown(void) const;                        // Returns controller cooldown time for Force Feedback
       Time     maxDuration(void) const;                     // Returns Force Feedback max duration time, or 0 if Force Feedback is not supported
@@ -44,7 +44,7 @@ namespace en
       ValveController(vr::IVRSystem* vrContext, 
                       vr::TrackedDevicePose_t* poseRender, 
                       vr::VRControllerState_t* state, 
-                      std::shared_ptr<en::resource::Model> model, 
+                      std::shared_ptr<en::resources::Model> model, 
                       std::shared_ptr<en::gpu::Texture> texture,
                       uint32 discoveredId);
      ~ValveController();
@@ -55,7 +55,7 @@ namespace en
       vr::TrackedDevicePose_t* poseState;       // Pointer to HMD array of controller poses
       vr::VRControllerState_t* state;
 
-      std::shared_ptr<en::resource::Model> controllerModel;
+      std::shared_ptr<en::resources::Model> controllerModel;
       std::shared_ptr<en::gpu::Texture> albedo;
 
       sint32 trackpadId;
@@ -110,7 +110,7 @@ namespace en
       
       ValveHMD(uint8 index);
       virtual void distortionModel(void);
-      virtual pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<en::gpu::Texture> > controllerModel(const std::string name);
+      virtual pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<en::gpu::Texture> > controllerModel(const std::string name);
       virtual void activateController(vr::TrackedDeviceIndex_t deviceId);
       virtual ~ValveHMD();
       
@@ -149,12 +149,12 @@ namespace en
       // Controlers handles
       std::shared_ptr<ValveController> handle[vr::k_unMaxTrackedDeviceCount];   // Pointers to detected controllers
 
-      map<string, pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<en::gpu::Texture> > > modelCache;
+      map<string, pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<en::gpu::Texture> > > modelCache;
 
  
       // Resources for rendering to Window
       uint32v2 window;                    // Resolution of window to mirror to
-      std::shared_ptr<en::resource::Model> model;     // Distortion lenses model
+      std::shared_ptr<en::resources::Model> model;     // Distortion lenses model
 // TODO:
 //      en::gpu::Program      distortion;   // Distortion rendering program
       uint32            samplerLocation;  // Sampler location

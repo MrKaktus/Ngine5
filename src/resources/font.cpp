@@ -19,7 +19,7 @@
 
 namespace en
 {
-namespace resource
+namespace resources
 {
 
 //# IMPLEMENTATION
@@ -163,7 +163,7 @@ std::shared_ptr<Mesh> FontImp::text(const std::string text, const bool screenspa
 // sint16 offsetY;
 // uint16 advance;
 
-std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
+std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
 {
     using namespace en::storage;
 
@@ -175,7 +175,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
         if (!file)
         {
             Log << std::string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
-            return std::shared_ptr<en::resource::Font>(nullptr);
+            return std::shared_ptr<en::resources::Font>(nullptr);
         }
     }
 
@@ -187,7 +187,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
     {
         Log << "ERROR: Not enough memory!\n";
         delete file;
-        return std::shared_ptr<en::resource::Font>(nullptr);
+        return std::shared_ptr<en::resources::Font>(nullptr);
     }
    
     // Read file to buffer and close file
@@ -195,7 +195,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
     {
         Log << "ERROR: Cannot read whole font file!\n";
         delete file;
-        return std::shared_ptr<en::resource::Font>(nullptr);
+        return std::shared_ptr<en::resources::Font>(nullptr);
     }    
     delete file;
 
@@ -410,7 +410,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    //if (line != "version 1.0")
    //   {
    //   Log << "ERROR: Font file corrupted!";
-   //   return std::shared_ptr<en::resource::Font>(nullptr);
+   //   return std::shared_ptr<en::resources::Font>(nullptr);
    //   }      
 
    //// Load texture used by font
@@ -419,7 +419,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    //if (!text.readLine(textureName))
    //   {
    //   Log << "ERROR: Font file corrupted!";
-   //   return std::shared_ptr<en::resource::Font>(nullptr);
+   //   return std::shared_ptr<en::resources::Font>(nullptr);
    //   }
 
    ////gpu::Texture texture = Resources.load.texture(string("resources/textures/" + textureName));
@@ -427,7 +427,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    //if (!font->texture)
    //   {
    //   Log << "ERROR: Font texture incorrect!";
-   //   return en::resource::Font();
+   //   return en::resources::Font();
    //   }
 
    //// Parse font height 
@@ -435,7 +435,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    //if (!text.readLine(line))
    //   {
    //   Log << "ERROR: Font file corrupted!";
-   //   return en::resource::Font();
+   //   return en::resources::Font();
    //   }
    //font->height = stringTo<float>(line);
    //text.skipToNextLine();
@@ -447,7 +447,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    //   if (!text.read(word, eol))
    //      {
    //      Log << "ERROR: Font file corrupted!";
-   //      return en::resource::Font();
+   //      return en::resources::Font();
    //      }
    //   font->table[i].pos.s = stringTo<float>(word);
 
@@ -455,7 +455,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    //   if (eol || !text.read(word, eol))
    //      {
    //      Log << "ERROR: Font file corrupted!";
-   //      return en::resource::Font();
+   //      return en::resources::Font();
    //      }
    //   font->table[i].pos.t = stringTo<float>(word);
 
@@ -463,7 +463,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    //   if (eol || !text.read(word, eol))
    //      {
    //      Log << "ERROR: Font file corrupted!";
-   //      return en::resource::Font();
+   //      return en::resources::Font();
    //      }
    //   font->table[i].width = stringTo<float>(word);
 
@@ -472,11 +472,11 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
    //   }
    
 //   // Try to add new buffer descriptor 
-//   en::resource::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
+//   en::resources::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
 //   if (!material)
 //      {
 //      Log << "ERROR: Cannot allocate new material!";
-//      return en::resource::Font();
+//      return en::resources::Font();
 //      }
 //
 //   // Create default font program
@@ -507,7 +507,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
 //   if (!material->parameters.buffer)
 //      {
 //      ResourcesContext.storage.materials.free(material);
-//      return en::resource::Font();
+//      return en::resources::Font();
 //      }
 //
 //   // Add all program parameters with default values to material
@@ -516,7 +516,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
 //   memset(material->parameters.buffer, 0, material->parameters.size);
 //   for(uint32 i=0; i<program.parameters(); ++i)
 //      {
-//      en::resource::MaterialParameter& parameter = material->parameters.list[i];
+//      en::resources::MaterialParameter& parameter = material->parameters.list[i];
 //      parameter.handle = program.parameter(i);
 //      parameter.value  = (void*)((uint8*)(material->parameters.buffer) + offset);
 //      parameter.name   = parameter.handle.name();
@@ -525,7 +525,7 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
 //      }  
 //
 //   // Attach texture to material
-//   resource::MaterialSampler parameter;
+//   resources::MaterialSampler parameter;
 //   parameter.handle = material->program.sampler(string("enDiffuseMap"));
 //   if (parameter.handle)
 //      {
@@ -536,13 +536,13 @@ std::shared_ptr<en::resource::Font> loadFont(const std::string& filename)
 //      }  
 //
 //   // Assign material to font
-//   font->material = en::resource::Material(material);
+//   font->material = en::resources::Material(material);
 
    //// Update list of loaded fonts
-   //ResourcesContext.fonts.insert(pair<string, en::resource::Font>(filename, font));
+   //ResourcesContext.fonts.insert(pair<string, en::resources::Font>(filename, font));
 
    //// Return font interface
-   //return en::resource::Font(font);
+   //return en::resources::Font(font);
 }
 
 std::shared_ptr<Font> Interface::Load::font(const std::string& filename)

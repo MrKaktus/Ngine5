@@ -21,7 +21,7 @@ namespace en
 namespace material
 {
 
-en::resource::Material load(const std::string& filename)
+en::resources::Material load(const std::string& filename)
 {
     using namespace en::storage;
 
@@ -40,7 +40,7 @@ en::resource::Material load(const std::string& filename)
         {
             Log << en::ResourcesContext.path.materials + filename << std::endl;
             Log << "ERROR: There is no such file!\n";
-            return en::resource::Material();
+            return en::resources::Material();
         }
     }
 
@@ -52,7 +52,7 @@ en::resource::Material load(const std::string& filename)
     {
         Log << "ERROR: Not enough memory!\n";
         delete file;
-        return en::resource::Material();
+        return en::resources::Material();
     }
    
     // Read file to buffer and close file
@@ -60,7 +60,7 @@ en::resource::Material load(const std::string& filename)
     {
         Log << "ERROR: Cannot read whole material file!\n";
         delete file;
-        return en::resource::Material();
+        return en::resources::Material();
     }    
     delete file;
    
@@ -69,15 +69,15 @@ en::resource::Material load(const std::string& filename)
 
     // Try to add new material descriptor 
     // TODO: Refactor to new Model description
-    //en::resource::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
+    //en::resources::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
     //if (!material)
     //   {
     //   Log << "ERROR: Cannot allocate new material!";
-    //   return en::resource::Material();
+    //   return en::resources::Material();
     //   }
 
     // TODO: Finish this !!!!
-    return en::resource::Material();
+    return en::resources::Material();
 
 
     //// Check material file version
@@ -88,7 +88,7 @@ en::resource::Material load(const std::string& filename)
     //if (line != "version 1.0")
     //   {
     //   Log << "ERROR: Font file corrupted!";
-    //   return en::resource::Font();
+    //   return en::resources::Font();
     //   }      
 
     //// MTL files doesn't contain shaders so attach default shader to it
@@ -97,7 +97,7 @@ en::resource::Material load(const std::string& filename)
     //   {
     //   Log << "ERROR: Cannot attach default shader to material!";
     //   ResourcesContext.storage.materials.free(material);
-    //   return en::resource::Material();
+    //   return en::resources::Material();
     //   }
 
     //// Calculate space required for program parameter values
@@ -111,7 +111,7 @@ en::resource::Material load(const std::string& filename)
     //if (!material->parameters.buffer)
     //   {
     //   ResourcesContext.storage.materials.free(material);
-    //   return en::resource::Material();
+    //   return en::resources::Material();
     //   }
 
     //// Add all program parameters with default values to material
@@ -120,7 +120,7 @@ en::resource::Material load(const std::string& filename)
     //memset(material->parameters.buffer, 0, material->parameters.size);
     //for(uint32 i=0; i<program.parameters(); ++i)
     //   {
-    //   en::resource::MaterialParameter& parameter = material->parameters.list[i];
+    //   en::resources::MaterialParameter& parameter = material->parameters.list[i];
     //   parameter.handle = program.parameter(i);
     //   parameter.value  = (void*)((uint8*)(material->parameters.buffer) + offset);
     //   parameter.name   = parameter.handle.name();
@@ -158,7 +158,7 @@ en::resource::Material load(const std::string& filename)
     //           while(!eol)
     //                text.read(word, eol);
     //     
-    //           resource::MaterialSampler parameter;
+    //           resources::MaterialSampler parameter;
     //           parameter.handle = material->program.sampler(string("enDiffuseMap"));
     //           if (parameter.handle)
     //              {

@@ -21,7 +21,7 @@ namespace en
 namespace mtl
 {
 
-bool load(const std::string& filename, const std::string& name, en::resource::Material& material)
+bool load(const std::string& filename, const std::string& name, en::resources::Material& material)
 {
     using namespace en::storage;
 
@@ -38,7 +38,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
         {
             Log << en::ResourcesContext.path.materials + filename << std::endl;
             Log << "ERROR: There is no such file!\n";
-            return false; //en::resource::Material();
+            return false; //en::resources::Material();
         }
     }
 
@@ -50,7 +50,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
     {
         Log << "ERROR: Not enough memory!\n";
         delete file;
-        return false; //en::resource::Material();
+        return false; //en::resources::Material();
     }
    
     // Read file to buffer and close file
@@ -58,7 +58,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
     {
         Log << "ERROR: Cannot read whole mtl file!\n";
         delete file;
-        return false; //en::resource::Material();
+        return false; //en::resources::Material();
     }    
     delete file;
    
@@ -66,11 +66,11 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
     Parser text(buffer, size);
 
       // Try to add new buffer descriptor 
-//    en::resource::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
+//    en::resources::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
 //    if (!material)
 //    {
 //        Log << "ERROR: Cannot allocate new material!";
-//        return en::resource::Material();
+//        return en::resources::Material();
 //    }
 
 //    // MTL files doesn't contain shaders so attach default shader to it
@@ -79,7 +79,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 //    {
 //        Log << "ERROR: Cannot attach default shader to material!";
 //        ResourcesContext.storage.materials.free(material);
-//        return en::resource::Material();
+//        return en::resources::Material();
 //    }
 
 //    // Calculate space required for program parameter values
@@ -95,7 +95,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 //    if (!material->parameters.buffer)
 //    {
 //        ResourcesContext.storage.materials.free(material);
-//        return en::resource::Material();
+//        return en::resources::Material();
 //    }
 
 //    // Add all program parameters with default values to material
@@ -104,7 +104,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 //    memset(material->parameters.buffer, 0, material->parameters.size);
 //    for(uint32 i=0; i<program.parameters(); ++i)
 //    {
-//        en::resource::MaterialParameter& parameter = material->parameters.list[i];
+//        en::resources::MaterialParameter& parameter = material->parameters.list[i];
 //        parameter.handle = program.parameter(i);
 //        parameter.value  = (void*)((uint8*)(material->parameters.buffer) + offset);
 //        parameter.name   = parameter.handle.name();
@@ -173,7 +173,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
                         AmbientMapName = word;
                     }
 
-                    //resource::MaterialSampler parameter;
+                    //resources::MaterialSampler parameter;
                     //parameter.handle = material->program.sampler(string("enAmbientMap"));
                     //if (parameter.handle)
                     //{
@@ -215,7 +215,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 
                     material.albedo = en::Resources.load.texture(word);
 
-                    //resource::MaterialSampler parameter;
+                    //resources::MaterialSampler parameter;
                     //parameter.handle = material->program.sampler(string("enDiffuseMap"));
                     //if (parameter.handle)
                     //   {
@@ -251,7 +251,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
             // 
             //       material.specular = en::Resources.load.texture(word);
             // 
-/*          //         resource::MaterialSampler parameter;
+/*          //         resources::MaterialSampler parameter;
             //       parameter.handle = material->program.sampler(string("enSpecularMap"));
             //       if (parameter.handle)
             //          {
@@ -279,7 +279,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 
                     material.normal = en::Resources.load.texture(word);
 
-/*                  resource::MaterialSampler parameter;
+/*                  resources::MaterialSampler parameter;
                     parameter.handle = material->program.sampler(string("enNormalMap"));
                     if (parameter.handle)
                     {
@@ -308,7 +308,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 
                     material.displacement = en::Resources.load.texture(word);
 
-/*                  resource::MaterialSampler parameter;
+/*                  resources::MaterialSampler parameter;
                     parameter.handle = material->program.sampler(string("enDisplacementMap"));
                     if (parameter.handle)
                     {
@@ -336,7 +336,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 
                     material.opacity = en::Resources.load.texture(word);
 
-/*                  resource::MaterialSampler parameter;
+/*                  resources::MaterialSampler parameter;
                     parameter.handle = material->program.sampler(string("enAlphaMap"));
                     if (parameter.handle)
                     {
@@ -368,7 +368,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
             //       //// Overload with value from material file
             //       //for(uint32 i=0; i<material->program.parameters(); ++i)
             //       //   {
-            //       //   en::resource::MaterialParameter& parameter = material->parameters.list[i];
+            //       //   en::resources::MaterialParameter& parameter = material->parameters.list[i];
             //       //   if (strcmp(parameter.name, "enKe") == 0)
             //       //      *((float3*)parameter.value) = coefficient;
             //       //   }
@@ -389,7 +389,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
             //       //// Overload with value from material file
             //       //for(uint32 i=0; i<material->program.parameters(); ++i)
             //       //   {
-            //       //   en::resource::MaterialParameter& parameter = material->parameters.list[i];
+            //       //   en::resources::MaterialParameter& parameter = material->parameters.list[i];
             //       //   if (strcmp(parameter.name, "enKa") == 0)
             //       //      *((float3*)parameter.value) = coefficient;
             //       //   }       
@@ -410,7 +410,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
             //       //// Overload with value from material file
             //       //for(uint32 i=0; i<material->program.parameters(); ++i)
             //       //   {
-            //       //   en::resource::MaterialParameter& parameter = material->parameters.list[i];
+            //       //   en::resources::MaterialParameter& parameter = material->parameters.list[i];
             //       //   if (strcmp(parameter.name, "enKd") == 0)
             //       //      *((float3*)parameter.value) = coefficient;
             //       //   }        
@@ -431,7 +431,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
             //       //// Overload with value from material file
             //       //for(uint32 i=0; i<material->program.parameters(); ++i)
             //       //   {
-            //       //   en::resource::MaterialParameter& parameter = material->parameters.list[i];
+            //       //   en::resources::MaterialParameter& parameter = material->parameters.list[i];
             //       //   if (strcmp(parameter.name, "enKs") == 0)
             //       //      *((float3*)parameter.value) = coefficient;
             //       //   }        
@@ -446,7 +446,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
             //       //// Overload with value from material file
             //       //for(uint32 i=0; i<material->program.parameters(); ++i)
             //       //   {
-            //       //   en::resource::MaterialParameter& parameter = material->parameters.list[i];
+            //       //   en::resources::MaterialParameter& parameter = material->parameters.list[i];
             //       //   if (strcmp(parameter.name, "enShininess") == 0)
             //       //      *((float*)parameter.value) = stringTo<float>(word);
             //       //   }        
@@ -474,7 +474,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
     // TODO: Finish!!!
     //if (!material->state.texture.specular)
     //   {
-    //   resource::MaterialSampler parameter;
+    //   resources::MaterialSampler parameter;
     //   parameter.handle = material->program.sampler(string("enSpecularMap"));
     //   if (parameter.handle)
     //      {
@@ -489,7 +489,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
     //   }
     //if (!material->state.texture.normal)
     //   {
-    //   resource::MaterialSampler parameter;
+    //   resources::MaterialSampler parameter;
     //   parameter.handle = material->program.sampler(string("enNormalMap"));
     //   if (parameter.handle)
     //      {
@@ -507,7 +507,7 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
 
     //if (!material->state.texture.alpha)
     //   {
-    //   resource::MaterialSampler parameter;
+    //   resources::MaterialSampler parameter;
     //   parameter.handle = material->program.sampler(string("enAlphaMap"));
     //   if (parameter.handle)
     //      {
@@ -526,14 +526,14 @@ bool load(const std::string& filename, const std::string& name, en::resource::Ma
     {
         Log << "Error! Material \"" << name << "\" was not found in file: " << filename << " !\n";
         //ResourcesContext.storage.materials.free(material);
-        return false; //en::resource::Material();
+        return false; //en::resources::Material();
     }
 
     //// Update list of loaded materials
-    //ResourcesContext.materials.insert(pair<string, en::resource::Material>(name, material));
+    //ResourcesContext.materials.insert(pair<string, en::resources::Material>(name, material));
 
     // Return material interface
-    return true; //en::resource::Material(material);
+    return true; //en::resources::Material(material);
 }
 
 } // en::mtl

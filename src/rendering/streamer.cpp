@@ -871,7 +871,7 @@ static_assert(sizeof(region3D) == 24, "en::region3D size mismatch!");
 region3D::region3D()
 {
 }
-   
+
 TransferResource::TransferResource(void)
 {
     buffer.offset     = 0;

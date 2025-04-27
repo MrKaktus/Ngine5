@@ -53,7 +53,7 @@ struct Face
 //struct Material
 //{
 //    std::string                 name;   // Material name
-//    en::resource::Material handle; // Material handle
+//    en::resources::Material handle; // Material handle
 //};
 
 // Internal, custom OBJ mesh representation.
@@ -86,7 +86,7 @@ struct Model
     std::vector<float3> coordinates;               // Texture coordinates (uncompressed)
     std::vector<std::string> libraries;            // Material libraries
     std::vector<en::obj::Mesh> meshes;             // Meshes
-    std::vector<en::resource::Material> materials; // Materials <- TODO: This should be OBJ internal temp material? OR reference to final material stored in some global arrray
+    std::vector<en::resources::Material> materials; // Materials <- TODO: This should be OBJ internal temp material? OR reference to final material stored in some global arrray
 
     Model();
 
@@ -776,7 +776,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
                 if (!found)
                 {
                     //obj::Material material;
-                    en::resource::Material enMaterial;
+                    en::resources::Material enMaterial;
                     enMaterial.name = material;
                     //material.handle = NULL;
 
@@ -1146,7 +1146,7 @@ sint16v2 encode_oct32P(const float3 vector)
 // - reduces identical vertices inside mesh
 // - reduces index buffer size
 // - optimizes indices order
-std::shared_ptr<en::resource::Model> load(
+std::shared_ptr<en::resources::Model> load(
     const std::string& filename,
     const std::string& name,
           en::Streamer& streamer,
@@ -1172,7 +1172,7 @@ std::shared_ptr<en::resource::Model> load(
         {
             Log << en::ResourcesContext.path.models + filename << std::endl;
             Log << "ERROR: There is no such file!\n";
-            return std::shared_ptr<en::resource::Model>(nullptr);
+            return std::shared_ptr<en::resources::Model>(nullptr);
         }
     }
    
@@ -1181,7 +1181,7 @@ std::shared_ptr<en::resource::Model> load(
     if (size > 0xFFFFFFFF)
     {
         Log << "ERROR: Maximum supported size of imported OBJ file is 4GB!\n";
-        return std::shared_ptr<en::resource::Model>(nullptr);
+        return std::shared_ptr<en::resources::Model>(nullptr);
     }
 
     uint8* buffer = nullptr;
@@ -1190,7 +1190,7 @@ std::shared_ptr<en::resource::Model> load(
     {
         Log << "ERROR: Not enough memory!\n";
         delete file;
-        return std::shared_ptr<en::resource::Model>(nullptr);
+        return std::shared_ptr<en::resources::Model>(nullptr);
     }
    
     // Read file to buffer and close file
@@ -1198,7 +1198,7 @@ std::shared_ptr<en::resource::Model> load(
     {
         Log << "ERROR: Cannot read whole obj file!\n";
         delete file;
-        return std::shared_ptr<en::resource::Model>(nullptr);
+        return std::shared_ptr<en::resources::Model>(nullptr);
     }    
     delete file;
 
@@ -1258,7 +1258,7 @@ std::shared_ptr<en::resource::Model> load(
         obj::Mesh& srcMesh = srcModel->meshes[i];
 
         // Search source mesh and material
-        en::resource::Material srcMaterial;
+        en::resources::Material srcMaterial;
         for(uint8 j=0; j<srcModel->materials.size(); ++j)
         {
             if (srcMesh.material == srcModel->materials[j].name)
@@ -1302,15 +1302,15 @@ std::shared_ptr<en::resource::Model> load(
 
     // TODO: Allocate model from global models array (scene independent or scene dependent?)
     //// Create model
-    //en::resource::ModelDescriptor* model = ResourcesContext.storage.models.allocate();
+    //en::resources::ModelDescriptor* model = ResourcesContext.storage.models.allocate();
     //if (model == NULL)
     //{
     //    Log << "ERROR: Models pool is full!\n";
-    //    return std::shared_ptr<en::resource::Model>(NULL);
+    //    return std::shared_ptr<en::resources::Model>(NULL);
     //} 
     //
     // TODO: Search by hash if model already exists, if so, load only if it is for GPU its not loaded for
-    std::shared_ptr<resource::Model> model = std::make_shared<resource::Model>(name.c_str(), srcModel->meshes.size(), 1, gpuIndex);
+    std::shared_ptr<resources::Model> model = std::make_shared<resources::Model>(name.c_str(), srcModel->meshes.size(), 1, gpuIndex);
     if (!model)
     {
         assert(0);
@@ -1329,7 +1329,7 @@ std::shared_ptr<en::resource::Model> load(
     for(uint32 i=0; i<srcModel->meshes.size(); ++i)
     {
         obj::Mesh&      srcMesh = srcModel->meshes[i];
-        resource::Mesh& dstMesh = model->mesh[i];
+        resources::Mesh& dstMesh = model->mesh[i];
 
         const uint32 vertexCount = static_cast<uint32>(srcMesh.vertices.size());
         const uint32 indexCount  = static_cast<uint32>(srcMesh.indexes.size());
@@ -1404,7 +1404,7 @@ std::shared_ptr<en::resource::Model> load(
     for(uint32 i=0; i<srcModel->meshes.size(); ++i)
     {
         obj::Mesh&      srcMesh = srcModel->meshes[i];
-        resource::Mesh& dstMesh = model->mesh[i];
+        resources::Mesh& dstMesh = model->mesh[i];
 
         // Compose geometry buffer
         uint8* buffer = (uint8*)(backing) + dstMesh.offset[0];
@@ -1518,7 +1518,7 @@ std::shared_ptr<en::resource::Model> load(
     assert(result);
     
     // Update list of loaded models
-    ResourcesContext.models.insert(std::pair<std::string, std::shared_ptr<resource::Model> >(name, model));
+    ResourcesContext.models.insert(std::pair<std::string, std::shared_ptr<resources::Model> >(name, model));
  
     // Return model instance
     return model;

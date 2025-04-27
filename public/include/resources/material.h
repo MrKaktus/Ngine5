@@ -20,7 +20,7 @@ namespace en
 namespace material
 {
 
-en::resource::Material load(const std::string& filename);
+en::resources::Material load(const std::string& filename);
 
 } // en::material
 } // en
