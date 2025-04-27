@@ -142,7 +142,7 @@ class Controller
     public:
     virtual float3   position(void) const = 0;                                    // Controller position
     virtual float4x4 orientation(void) const = 0;                                 // Controller orientation
-    virtual std::shared_ptr<en::resource::Model> model(void) const = 0;                       // Model of controller that can be used to show it in VR
+    virtual std::shared_ptr<en::resources::Model> model(void) const = 0;                      // Model of controller that can be used to show it in VR
     virtual std::shared_ptr<en::gpu::Texture>    texture(void) const = 0;                     // Texture that can be used with controllers model
     virtual Time     cooldown(void) const = 0;                                    // Returns controller cooldown time for Force Feedback
     virtual Time     maxDuration(void) const = 0;                                 // Returns Force Feedback max duration time, or 0 if Force Feedback is not supported

@@ -470,7 +470,7 @@ namespace en
 
    assert( model == nullptr );
 
-   model = std::make_shared<en::resource::Model>();
+   model = std::make_shared<en::resources::Model>();
    model->name = std::string("OpenVR Distortion Mesh");
    model->mesh.resize(2);
 
@@ -641,13 +641,13 @@ namespace en
 // };
 
 
-   pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<Texture> > ValveHMD::controllerModel(const std::string name)
+   pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<Texture> > ValveHMD::controllerModel(const std::string name)
    {
-   std::shared_ptr<en::resource::Model> model = nullptr;
+   std::shared_ptr<en::resources::Model> model = nullptr;
    std::shared_ptr<Texture> texture = nullptr;
 
    // Check if needed model is not already in the cache
-   map<string, pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<en::gpu::Texture> > >::iterator it = modelCache.find(name);
+   map<string, pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<en::gpu::Texture> > >::iterator it = modelCache.find(name);
    if (it != modelCache.end())
       return it->second;
 
@@ -655,11 +655,11 @@ namespace en
    if (!renderModels->LoadRenderModel_Async(name.c_str(), &tempModel))
       {
       Log << "Unable to load render model " << name << std::endl;
-      return pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<en::gpu::Texture> >(model, texture);
+      return pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<en::gpu::Texture> >(model, texture);
       }
 
    // Create model for rendering
-   model = std::make_shared<en::resource::Model>();
+   model = std::make_shared<en::resources::Model>();
    model->name = std::string("OpenVR Controller Mesh - " + name);
    model->mesh.resize(1);
    
@@ -779,9 +779,9 @@ namespace en
    renderModels->FreeRenderModel(tempModel);
    
    // Add new model-texture pair to the cache
-   modelCache.insert(pair<string, pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<Texture> > >(name, pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<Texture> >(model, texture) ));
+   modelCache.insert(pair<string, pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<Texture> > >(name, pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<Texture> >(model, texture) ));
  
-   return pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<Texture> >(model, texture);
+   return pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<Texture> >(model, texture);
    }
 
    void ValveHMD::activateController(vr::TrackedDeviceIndex_t deviceId)
@@ -790,7 +790,7 @@ namespace en
 
    // Acquire pointers to controller representation
    std::string name = deviceString(context, deviceId, vr::Prop_RenderModelName_String);
-   pair< std::shared_ptr<en::resource::Model>, std::shared_ptr<en::gpu::Texture> > assets = controllerModel(name);
+   pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<en::gpu::Texture> > assets = controllerModel(name);
    
    // Create interface for detected controller
    handle[deviceId] = std::make_shared<ValveController>(context,
@@ -1618,7 +1618,7 @@ namespace en
    ValveController::ValveController(vr::IVRSystem* vrContext, 
                                     vr::TrackedDevicePose_t* poseRender, 
                                     vr::VRControllerState_t* state, 
-                                    std::shared_ptr<en::resource::Model> model, 
+                                    std::shared_ptr<en::resources::Model> model, 
                                     std::shared_ptr<en::gpu::Texture> texture, 
                                     uint32 discoveredId) :
       context(vrContext),
@@ -1744,7 +1744,7 @@ namespace en
    return float4x4();
    }
 
-   std::shared_ptr<en::resource::Model> ValveController::model(void) const
+   std::shared_ptr<en::resources::Model> ValveController::model(void) const
    {
    return controllerModel;
    }

@@ -24,7 +24,7 @@ namespace obj
 extern bool optimizeIndexSize;   // Reduces index size UInt -> UShort -> UByte
 extern bool optimizeIndexOrder;  // Optimizes indexes order for Post-Transform Vertex Cache Size
 
-std::shared_ptr<en::resource::Model> load(const std::string& filename, const std::string& name);
+std::shared_ptr<en::resources::Model> load(const std::string& filename, const std::string& name);
 
 } // en::obj
 } // en

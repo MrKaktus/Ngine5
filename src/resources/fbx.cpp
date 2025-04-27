@@ -337,12 +337,12 @@ struct Vertex
 struct UnpackedMesh
 {
     std::string   name;       // Name
-    en::resource::Material material;        // Material
+    en::resources::Material material;        // Material
     uint32   polygons;        // Polygons count
     std::vector<Vertex> vertices;  // Array of references describing geometry
     std::vector<uint32> indexes;   // Polygons references to vertices
     std::vector<uint32> optimized; // Optimized index array
-    en::resource::BoundingBox AABB;        
+    en::resources::BoundingBox AABB;        
 };
 
 bool Vertex::operator ==(const Vertex& b)
@@ -498,10 +498,10 @@ bool LoadMaterialPropertyMap(FbxSurfaceMaterial* material, const char* fbxProper
     return true;
 }
 
-en::resource::Material LoadMaterial(FbxSurfaceMaterial* fbxMaterial)
+en::resources::Material LoadMaterial(FbxSurfaceMaterial* fbxMaterial)
 {
     assert(fbxMaterial);
-    en::resource::Material material;
+    en::resources::Material material;
 
     // Check if material is not using shaders
     if (IsMaterialUsingShaders(fbxMaterial))
@@ -596,9 +596,9 @@ bool MaterialsShareMappingMode(FbxMesh* fbxMesh, FbxGeometryElement::EMappingMod
 
 
 
-std::vector<en::resource::Mesh> LoadMesh(FbxMesh* fbxMesh)
+std::vector<en::resources::Mesh> LoadMesh(FbxMesh* fbxMesh)
 {
-    std::vector<en::resource::Mesh> meshes;
+    std::vector<en::resources::Mesh> meshes;
 
     enum MeshMaterialType
     {
@@ -673,7 +673,7 @@ std::vector<en::resource::Mesh> LoadMesh(FbxMesh* fbxMesh)
     // Init meshes AABB's to invalid
     for(uint32 i=0; i<numMeshes; ++i)
     {
-        en::resource::BoundingBox& box = unpackedMesh[i].AABB;
+        en::resources::BoundingBox& box = unpackedMesh[i].AABB;
         box.axisX.minimum =  1000.0f;
         box.axisX.maximum = -1000.0f;
         box.axisY.minimum =  1000.0f;
@@ -691,7 +691,7 @@ std::vector<en::resource::Mesh> LoadMesh(FbxMesh* fbxMesh)
     // If mesh has no material, default one should be used.
     if (type == Default)
     {
-        unpackedMesh->material = en::resource::Material();
+        unpackedMesh->material = en::resources::Material();
     }
 
     // If mesh uses one or more materials, load them
@@ -901,7 +901,7 @@ std::vector<en::resource::Mesh> LoadMesh(FbxMesh* fbxMesh)
                 unpackedMesh[mesh].vertices.push_back(vertex);
 
                 // Update mesh AABB
-                en::resource::BoundingBox& box = unpackedMesh[mesh].AABB;
+                en::resources::BoundingBox& box = unpackedMesh[mesh].AABB;
 
                 float3 position;
                 position.x = static_cast<float>(fbxVertices[ vertex.position ][0]);
@@ -1262,7 +1262,7 @@ std::vector<en::resource::Mesh> LoadMesh(FbxMesh* fbxMesh)
     return meshes;
 }
 
-std::shared_ptr<en::resource::Model> load(const std::string& filename, const std::string& name)
+std::shared_ptr<en::resources::Model> load(const std::string& filename, const std::string& name)
 {
     using namespace en::storage;
 
@@ -1277,7 +1277,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     if (!fbxImporter) 
     {
         Log << "ERROR: Cannot create FBX importer!\n";
-        return std::shared_ptr<en::resource::Model>(NULL);
+        return std::shared_ptr<en::resources::Model>(NULL);
     }
 
     // Load FBX file to importer
@@ -1286,7 +1286,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         if (!fbxImporter->Initialize((ResourcesContext.path.models + filename).c_str(), -1, ResourcesContext.fbxManager->GetIOSettings())) 
         {
             Log << std::string("ERROR: FBX importer initialization failed with error: " + std::string(fbxImporter->GetStatus().GetErrorString()) + "\n");
-            return std::shared_ptr<en::resource::Model>(NULL);
+            return std::shared_ptr<en::resources::Model>(NULL);
         }
     }
       
@@ -1315,14 +1315,14 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         if (!fileTexture)
         {
             Log << std::string("ERROR: FBX file has corrupted texture description!\n");
-            return std::shared_ptr<en::resource::Model>(NULL);
+            return std::shared_ptr<en::resources::Model>(NULL);
         }
 
         // Check if texture is resident in FBX
         if (fileTexture->GetUserDataPtr())
         {
             Log << std::string("ERROR: Engine doesn't support import of textures resident in FBX files!\n");
-            return std::shared_ptr<en::resource::Model>(NULL);
+            return std::shared_ptr<en::resources::Model>(NULL);
         }
 
         // Load texture from file
@@ -1343,7 +1343,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
 
 
 
-    //vector<en::resource::Material> materials;
+    //vector<en::resources::Material> materials;
 
     //// Load scene materials
     //sint32 materialCount = fbxScene->GetMaterialCount();
@@ -1373,7 +1373,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
 
 
     // Create model
-    std::shared_ptr<en::resource::Model> model = std::make_shared<en::resource::Model>();
+    std::shared_ptr<en::resources::Model> model = std::make_shared<en::resources::Model>();
 
     // TODO: Refactor to new Model description
     // model->name = std::string(fbxScene->GetName());
@@ -1654,7 +1654,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
             }
 
             // Load mesh as set of submeshes
-            std::vector<en::resource::Mesh> submeshes = LoadMesh( fbxMesh );
+            std::vector<en::resources::Mesh> submeshes = LoadMesh( fbxMesh );
             
             // Each Node has additional Geometry offset that is local
             // and therefore need to be post-multiplied locally and

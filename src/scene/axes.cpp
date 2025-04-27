@@ -17,7 +17,7 @@
 #include "resources/effect.h"
 
 using namespace en::gpu;
-using namespace en::resource;
+using namespace en::resources;
 
 namespace en
 {

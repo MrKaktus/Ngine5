@@ -343,7 +343,7 @@ namespace en
                  info.DefaultEyeFov[i].RightTan ); 
    }
 
-   //std::shared_ptr<en::resource::Model> OculusDK2::distortionModel(DistortionSettings* settings)
+   //std::shared_ptr<en::resources::Model> OculusDK2::distortionModel(DistortionSettings* settings)
    //{
    //#if !OCULUS_SDK_RENDERING
    //using namespace en::gpu;
@@ -352,7 +352,7 @@ namespace en
    //if (!Gpu.screen.created())
    //   return std::shared_ptr<Model>(nullptr);
    //
-   //std::shared_ptr<en::resource::Model> model = new en::resource::Model();
+   //std::shared_ptr<en::resources::Model> model = new en::resources::Model();
    //model->name = std::string("Oculus Distortion Mesh");
    //model->mesh.resize(2);
    //
@@ -420,7 +420,7 @@ namespace en
    //
    //return model;
    //#endif
-   //return std::shared_ptr<en::resource::Model>(nullptr);
+   //return std::shared_ptr<en::resources::Model>(nullptr);
    //}
    //
    //void OculusDK2::distortionUVScaleOffset(DistortionSettings* settings)

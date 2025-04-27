@@ -38,7 +38,7 @@ using namespace en::gpu;
 
 namespace en
 {
-namespace resource
+namespace resources
 {
 
 // Coordinate system
@@ -942,7 +942,7 @@ void Interface::Free::model(const std::string& name)
     // by other part of code. If it isn't it can be
     // safely deleted (assigment operator will perform
     // automatic resource deletion).
-    std::map<std::string, std::shared_ptr<en::resource::Model> >::iterator it = ResourcesContext.models.find(name);
+    std::map<std::string, std::shared_ptr<en::resources::Model> >::iterator it = ResourcesContext.models.find(name);
     if (it != ResourcesContext.models.end())
     {
         if (it->second.unique())
@@ -1274,11 +1274,11 @@ void Interface::Free::texture(const std::string& filename)
 
 } // en::resource
 
-resource::Context   ResourcesContext;
-resource::Interface Resources;
+resources::Context   ResourcesContext;
+resources::Interface Resources;
 
 } // en
 
-//template<> bool (*ProxyInterface<en::resource::FontDescriptor>::destroy)(en::resource::FontDescriptor* const)         = en::resource::FontDestroy;
-//template<> bool (*ProxyInterface<en::resource::MaterialDescriptor>::destroy)(en::resource::MaterialDescriptor* const) = en::resource::MaterialDestroy;
-template<> bool (*ProxyInterface<en::resource::ModelDescriptor>::destroy)(en::resource::ModelDescriptor* const)       = en::resource::ModelDestroy;
+//template<> bool (*ProxyInterface<en::resources::FontDescriptor>::destroy)(en::resources::FontDescriptor* const)         = en::resources::FontDestroy;
+//template<> bool (*ProxyInterface<en::resources::MaterialDescriptor>::destroy)(en::resources::MaterialDescriptor* const) = en::resources::MaterialDestroy;
+template<> bool (*ProxyInterface<en::resources::ModelDescriptor>::destroy)(en::resources::ModelDescriptor* const)       = en::resources::ModelDestroy;

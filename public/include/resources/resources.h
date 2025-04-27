@@ -34,7 +34,7 @@
 
 namespace en
 {
-namespace resource
+namespace resources
 {
 
 // Phong Material
@@ -758,7 +758,7 @@ struct Interface
 
 } // en::resource
 
-extern resource::Interface Resources;
+extern resources::Interface Resources;
 
 } // en
 

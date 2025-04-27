@@ -47,7 +47,7 @@ struct Face
 //struct Material
 //{
 //    std::string                 name;   // Material name
-//    en::resource::Material handle; // Material handle
+//    en::resources::Material handle; // Material handle
 //};
 
 struct Mesh
@@ -120,7 +120,7 @@ Vertex parseVertex(std::string& word)
 // - reduces identical vertices inside mesh
 // - reduces index buffer size
 // - optimizes indices order
-std::shared_ptr<en::resource::Model> load(const std::string& filename, const std::string& name)
+std::shared_ptr<en::resources::Model> load(const std::string& filename, const std::string& name)
 {
     using namespace en::storage;
 
@@ -139,7 +139,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         {
             Log << en::ResourcesContext.path.models + filename << std::endl;
             Log << "ERROR: There is no such file!\n";
-            return std::shared_ptr<en::resource::Model>(nullptr);
+            return std::shared_ptr<en::resources::Model>(nullptr);
         }
     }
    
@@ -151,7 +151,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     {
         Log << "ERROR: Not enough memory!\n";
         delete file;
-        return std::shared_ptr<en::resource::Model>(nullptr);
+        return std::shared_ptr<en::resources::Model>(nullptr);
     }
    
     // Read file to buffer and close file
@@ -159,7 +159,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     {
         Log << "ERROR: Cannot read whole obj file!\n";
         delete file;
-        return std::shared_ptr<en::resource::Model>(nullptr);
+        return std::shared_ptr<en::resources::Model>(nullptr);
     }    
     delete file;
 
@@ -176,7 +176,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     std::vector<float3> coordinates;          // Texture coordinates
     std::vector<std::string> libraries;       // Material libraries
     std::vector<en::obj::Mesh> meshes;        // Meshes
-    std::vector<en::resource::Material> materials; // Materials
+    std::vector<en::resources::Material> materials; // Materials
 
     // Reserve memory for incoming data, to minimise
     // occurences of possible relocations during 
@@ -365,7 +365,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
                 if (!found)
                 {
                     //obj::Material material;
-                    en::resource::Material material;
+                    en::resources::Material material;
                     material.name   = word;
                     //material.handle = NULL;
                     materials.push_back(material);
@@ -478,26 +478,26 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     }  
 
     //// Create model
-    //en::resource::ModelDescriptor* model = ResourcesContext.storage.models.allocate();
+    //en::resources::ModelDescriptor* model = ResourcesContext.storage.models.allocate();
     //if (model == NULL)
     //{
     //    Log << "ERROR: Models pool is full!\n";
-    //    return std::shared_ptr<en::resource::Model>(NULL);
+    //    return std::shared_ptr<en::resources::Model>(NULL);
     //} 
-    //model->mesh   = new en::resource::Mesh*[meshes.size()];
+    //model->mesh   = new en::resources::Mesh*[meshes.size()];
     //model->meshes = meshes.size();
     
-    std::shared_ptr<en::resource::Model> model = std::make_shared<en::resource::Model>();
+    std::shared_ptr<en::resources::Model> model = std::make_shared<en::resources::Model>();
     assert(model);
 
     // Generate meshes
     for(uint8 i=0; i<meshes.size(); ++i)
     {
-        using namespace en::resource;
+        using namespace en::resources;
 
         // Search source mesh and material
         en::obj::Mesh& srcMesh = meshes[i];
-        en::resource::Material srcMaterial;
+        en::resources::Material srcMaterial;
 
         for(uint8 j=0; j<materials.size(); ++j)
         {
@@ -687,7 +687,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         if (!staging)
         {
             Log << "ERROR: Cannot create staging buffer!\n";
-            return std::shared_ptr<en::resource::Model>(nullptr);
+            return std::shared_ptr<en::resources::Model>(nullptr);
         }
 
         // Read texture to temporary buffer
@@ -781,7 +781,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         if (!staging)
         {
             Log << "ERROR: Cannot create staging buffer!\n";
-            return std::shared_ptr<en::resource::Model>(nullptr);
+            return std::shared_ptr<en::resources::Model>(nullptr);
         }
 
         // Read buffer to temporary buffer
@@ -812,7 +812,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
         }
 
         // Create mesh
-        en::resource::Mesh mesh;
+        en::resources::Mesh mesh;
 
         // TODO: Refactor to new Model description
         //mesh.name              = srcMesh.name;
@@ -829,7 +829,7 @@ std::shared_ptr<en::resource::Model> load(const std::string& filename, const std
     }
     
     // Update list of loaded models
-    ResourcesContext.models.insert(std::pair<std::string, std::shared_ptr<en::resource::Model> >(name, model));
+    ResourcesContext.models.insert(std::pair<std::string, std::shared_ptr<en::resources::Model> >(name, model));
  
     // Return model interface
     return model;
