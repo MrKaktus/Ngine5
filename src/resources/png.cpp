@@ -125,36 +125,36 @@ bool CheckError(sint32 code)
 
     if (code == Z_ERRNO)
     {
-        Log << "Error: Zlib cannot read chunk!\n";
+        enLog << "Error: Zlib cannot read chunk!\n";
     }
     else
     if (code == Z_STREAM_ERROR)
     {
-        Log << "Error: Zlib invalid compression level!\n";
+        enLog << "Error: Zlib invalid compression level!\n";
     }
     else
     if (code == Z_DATA_ERROR)
     {
-        Log << "Error: Zlib invalid or incomplete chunk!\n";
+        enLog << "Error: Zlib invalid or incomplete chunk!\n";
     }
     else
     if (code == Z_MEM_ERROR)
     {
-        Log << "Error: Zlib reports out of memory!\n";
+        enLog << "Error: Zlib reports out of memory!\n";
     }
     else
     if (code == Z_BUF_ERROR)
     {
-        Log << "Error: Zlib output buffer is to small!\n";
+        enLog << "Error: Zlib output buffer is to small!\n";
     }
     else
     if (code == Z_VERSION_ERROR)
     {
-        Log << "Error: Zlib version mismatch!\n";
+        enLog << "Error: Zlib version mismatch!\n";
     }
     else
     {
-        Log << "Error: Zlib unknown error code " << code << "!\n";
+        enLog << "Error: Zlib unknown error code " << code << "!\n";
     }
 
     return true;
@@ -437,7 +437,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     uint32 minimumFileSize = sizeof(Header) + sizeof(IHDR);
     if (readSize < minimumFileSize)
     {
-        Log << "ERROR: PNG file size too small!\n";
+        enLog << "ERROR: PNG file size too small!\n";
         return false;
     }
 
@@ -446,7 +446,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     if ( signature.signature != 0x474E5089 ||
          signature.eof       != 0x0A1A0A0D )
     {
-        Log << "ERROR: PNG file header signature is incorrect!\n";
+        enLog << "ERROR: PNG file header signature is incorrect!\n";
         return false;
     }
 
@@ -455,28 +455,28 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     if ( header.length != endiannes(uint32(13)) ||
          header.signature != 0x52444849 )
     {
-        Log << "ERROR: PNG file IHDR signature is incorrect!\n";
+        enLog << "ERROR: PNG file IHDR signature is incorrect!\n";
         return false;
     }
 
     // Check compression
     if (header.compression != 0)
     {
-        Log << "ERROR: This PNG compression method is not supported!\n";
+        enLog << "ERROR: This PNG compression method is not supported!\n";
         return false;
     }
 
     // Check filtering before compression
     if (header.filter != 0)
     {
-        Log << "ERROR: This PNG filtering method is not supported!\n";
+        enLog << "ERROR: This PNG filtering method is not supported!\n";
         return false;
     }
 
     // Check if image is not interlaced
     if (header.interlace != 0)
     {
-        Log << "ERROR: Interlaced PNG files are not supported!\n";
+        enLog << "ERROR: Interlaced PNG files are not supported!\n";
         return false;
     }
 
@@ -529,7 +529,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
   //}
     else
     {
-        Log << "ERROR: Unsupported texture format!\n";
+        enLog << "ERROR: Unsupported texture format!\n";
         return false;
     }
 
@@ -638,8 +638,8 @@ bool load(const std::string& filename,
         file = Storage->open(en::ResourcesContext.path.textures + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.textures + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.textures + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return false;
         }
     }
@@ -687,7 +687,7 @@ bool load(const std::string& filename,
     uint8* content = allocate<uint8>(roundedSize, PageSize);
     if (!file->read(content))
     {
-        Log << "ERROR: Couldn't read file to memory.\n";
+        enLog << "ERROR: Couldn't read file to memory.\n";
         delete file;
         return false;
     }
@@ -760,7 +760,7 @@ bool load(const std::string& filename,
                     firstDataChunk = false;
                     if (CheckError(inflateInit(&stream)))
                     {
-                        Log << "Error: Cannot initialize Zlib decompressor!\n";
+                        enLog << "Error: Cannot initialize Zlib decompressor!\n";
                         deallocate<uint8>(content);
                         deallocate<uint8>(inflated);
                         return false;
@@ -774,7 +774,7 @@ bool load(const std::string& filename,
                     ret != Z_STREAM_END)
                 {
                     CheckError(ret);
-                    Log << "Error: Cannot decompress using ZLIB!\n";
+                    enLog << "Error: Cannot decompress using ZLIB!\n";
                     deallocate<uint8>(content);
                     deallocate<uint8>(inflated);
                     return false;
@@ -800,8 +800,8 @@ bool load(const std::string& filename,
                     }
                 }
 
-                Log << "iCCP chunk info:\n";
-                Log << "Profile name: " << profile << std::endl;
+                enLog << "iCCP chunk info:\n";
+                enLog << "Profile name: " << profile << std::endl;
 
                 break;
             }
@@ -833,11 +833,11 @@ bool load(const std::string& filename,
                 colorSpaceInfo.primaries.blue.y = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
             
-                Log << "cHRM chunk info:\n";
-                Log << "Chrominance white x=" << colorSpaceInfo.primaries.whitePoint.x << " y=" << colorSpaceInfo.primaries.whitePoint.y << std::endl;
-                Log << "Chrominance red   x=" << colorSpaceInfo.primaries.red.x        << " y=" << colorSpaceInfo.primaries.red.y        << std::endl;
-                Log << "Chrominance green x=" << colorSpaceInfo.primaries.green.x      << " y=" << colorSpaceInfo.primaries.green.y      << std::endl;
-                Log << "Chrominance blue  x=" << colorSpaceInfo.primaries.blue.x       << " y=" << colorSpaceInfo.primaries.blue.y       << std::endl;
+                enLog << "cHRM chunk info:\n";
+                enLog << "Chrominance white x=" << colorSpaceInfo.primaries.whitePoint.x << " y=" << colorSpaceInfo.primaries.whitePoint.y << std::endl;
+                enLog << "Chrominance red   x=" << colorSpaceInfo.primaries.red.x        << " y=" << colorSpaceInfo.primaries.red.y        << std::endl;
+                enLog << "Chrominance green x=" << colorSpaceInfo.primaries.green.x      << " y=" << colorSpaceInfo.primaries.green.y      << std::endl;
+                enLog << "Chrominance blue  x=" << colorSpaceInfo.primaries.blue.x       << " y=" << colorSpaceInfo.primaries.blue.y       << std::endl;
 
                 break;
             }
@@ -848,8 +848,8 @@ bool load(const std::string& filename,
                 colorSpaceInfo.gamma = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
                 offset += 4;
 
-                Log << "gAMA chunk info:\n";
-                Log << "Gamma =" << colorSpaceInfo.gamma << std::endl;
+                enLog << "gAMA chunk info:\n";
+                enLog << "Gamma =" << colorSpaceInfo.gamma << std::endl;
 
                 break;
             }

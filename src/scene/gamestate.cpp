@@ -40,13 +40,13 @@ Context::~Context()
 
 void Context::create(void)
 {
-    Log << "Starting module: State Manager.\n";
+    enLog << "Starting module: State Manager.\n";
     states.clear();
 }
 
 void Context::destroy(void)
 {
-    Log << "Closing module: State Manager.\n";
+    enLog << "Closing module: State Manager.\n";
 }
 
 void Interface::change(State* state) 

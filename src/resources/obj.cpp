@@ -137,8 +137,8 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
         file = Storage->open(en::ResourcesContext.path.models + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.models + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.models + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return std::shared_ptr<en::resources::Model>(nullptr);
         }
     }
@@ -149,7 +149,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
     buffer = new uint8[static_cast<uint32>(size)];
     if (!buffer)
     {
-        Log << "ERROR: Not enough memory!\n";
+        enLog << "ERROR: Not enough memory!\n";
         delete file;
         return std::shared_ptr<en::resources::Model>(nullptr);
     }
@@ -157,7 +157,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
     // Read file to buffer and close file
     if (!file->read(buffer))
     {
-        Log << "ERROR: Cannot read whole obj file!\n";
+        enLog << "ERROR: Cannot read whole obj file!\n";
         delete file;
         return std::shared_ptr<en::resources::Model>(nullptr);
     }    
@@ -473,7 +473,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
         // Check if material was found and properly loaded
         if (!loaded)
         {
-            Log << "ERROR! Cannot find material: " << materials[i].name.c_str() << " !\n";
+            enLog << "ERROR! Cannot find material: " << materials[i].name.c_str() << " !\n";
         }
     }  
 
@@ -481,7 +481,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
     //en::resources::ModelDescriptor* model = ResourcesContext.storage.models.allocate();
     //if (model == NULL)
     //{
-    //    Log << "ERROR: Models pool is full!\n";
+    //    enLog << "ERROR: Models pool is full!\n";
     //    return std::shared_ptr<en::resources::Model>(NULL);
     //} 
     //model->mesh   = new en::resources::Mesh*[meshes.size()];
@@ -686,7 +686,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
         std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize));
         if (!staging)
         {
-            Log << "ERROR: Cannot create staging buffer!\n";
+            enLog << "ERROR: Cannot create staging buffer!\n";
             return std::shared_ptr<en::resources::Model>(nullptr);
         }
 
@@ -780,7 +780,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
         staging.swap(std::unique_ptr<gpu::Buffer>(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize)));
         if (!staging)
         {
-            Log << "ERROR: Cannot create staging buffer!\n";
+            enLog << "ERROR: Cannot create staging buffer!\n";
             return std::shared_ptr<en::resources::Model>(nullptr);
         }
 

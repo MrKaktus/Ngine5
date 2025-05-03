@@ -322,7 +322,7 @@ Window* Direct3D12Device::createWindow(const WindowSettings& settings, const std
 
             if (!validResolution)
             {
-                Log << "Error! Requested window size for Fullscreen mode is not supported by selected display.\n";
+                enLog << "Error! Requested window size for Fullscreen mode is not supported by selected display.\n";
                 return result;
             }
         }
@@ -331,7 +331,7 @@ Window* Direct3D12Device::createWindow(const WindowSettings& settings, const std
         if (settings.resolution.x != 0 ||
             settings.resolution.y != 0)
         {
-            Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead.\n";
+            enLog << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead.\n";
             return result;
         }
     }
@@ -343,7 +343,7 @@ Window* Direct3D12Device::createWindow(const WindowSettings& settings, const std
         if ((selectedResolution.width  + borders.left + borders.rigth) > display->_resolution.width ||
             (selectedResolution.height + borders.top + borders.bottom) > display->_resolution.height)
         {
-            Log << "Error! In Windowed mode, final window size (requested size plus borders) is greater than selected display native resolution.\n";
+            enLog << "Error! In Windowed mode, final window size (requested size plus borders) is greater than selected display native resolution.\n";
             return result;
         }
     }

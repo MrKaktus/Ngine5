@@ -24,7 +24,7 @@ namespace xr
     if (function == nullptr)                                                \
     {                                                                       \
         function = (PFN_##function) &unbindedOpenXRFunctionHandler;         \
-        Log << "Error: Cannot bind function " << #function << std::endl;    \
+        enLog << "Error: Cannot bind function " << #function << std::endl;    \
     }                                                                       \
 }
 
@@ -42,7 +42,7 @@ namespace xr
     if (function == nullptr)                                                                  \
     {                                                                                         \
         function = (PFN_##function)&unbindedOpenXRFunctionHandler;                            \
-        Log << "Error: Cannot bind global function " << #function << std::endl;               \
+        enLog << "Error: Cannot bind global function " << #function << std::endl;               \
     }                                                                                         \
 }
 
@@ -61,7 +61,7 @@ namespace xr
     if (function == nullptr)                                                                  \
     {                                                                                         \
         function = (PFN_##function)&unbindedOpenXRFunctionHandler;                            \
-        Log << "Error: Cannot bind instance function " << #function << std::endl;             \
+        enLog << "Error: Cannot bind instance function " << #function << std::endl;             \
     }                                                                                         \
 }
 

@@ -120,7 +120,7 @@ Pipeline* MetalDevice::createPipeline(const PipelineState& pipelineState)
     id<MTLFunction> functionVertex = [vertexShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
     if (error)
     {
-        Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
+        enLog << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
         return std::shared_ptr<Pipeline>(nullptr);
     }
       
@@ -132,7 +132,7 @@ Pipeline* MetalDevice::createPipeline(const PipelineState& pipelineState)
         functionFragment = [fragmentShader->library newFunctionWithName:stringTo_NSString(entrypoint)];
         if (error)
         {
-            Log << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
+            enLog << "Error! Failed to find shader entry point \"" << entrypoint << "\" in library created from source.\n";
          
             deallocateObjectiveC(functionVertex);
             
@@ -204,8 +204,8 @@ Pipeline* MetalDevice::createPipeline(const PipelineState& pipelineState)
 
     if (error)
     {
-        Log << "Error! Failed to create pipeline. Error code %u\n" << [error code];
-        Log << [[error description] UTF8String] << std::endl;
+        enLog << "Error! Failed to create pipeline. Error code %u\n" << [error code];
+        enLog << [[error description] UTF8String] << std::endl;
         return std::shared_ptr<Pipeline>(nullptr);
     }
     else // Populate Pipeline with Metal dynamic states

@@ -98,7 +98,7 @@ namespace en
    if (res != vr::VRInitError_None)
       {
       context = nullptr;
-      Log << "ERROR OpenVR Init Failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << std::endl;
+      enLog << "ERROR OpenVR Init Failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << std::endl;
       return;
       }
 
@@ -108,7 +108,7 @@ namespace en
       {
       context = nullptr;
       vr::VR_Shutdown();
-      Log << "ERROR OpenVR Init Failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << std::endl;
+      enLog << "ERROR OpenVR Init Failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << std::endl;
       return;
       }
 
@@ -138,7 +138,7 @@ namespace en
    //VR_INTERFACE vr::IVRTrackedCamera *VR_CALLTYPE VRTrackedCamera();
 
    // Print out device info
-   Log << "Detected HMD system:\n";
+   enLog << "Detected HMD system:\n";
    for(vr::TrackedDeviceIndex_t i=0; i<vr::k_unMaxTrackedDeviceCount; ++i)
       {
 	  // Prop_TrackingSystemName_String
@@ -153,7 +153,7 @@ namespace en
       if (!deviceName.empty() && !serialNumber.empty())
          {
          std::string strWindowTitle = "  - device: " + deviceName + " \t" + serialNumber + "\n";
-         Log << strWindowTitle.c_str();
+         enLog << strWindowTitle.c_str();
          }
       }
 
@@ -223,7 +223,7 @@ namespace en
    if (!compositor || res != vr::VRInitError_None)
       {
       compositor = nullptr;
-      Log << "ERROR OpenVR Compositor initialization failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << std::endl;
+      enLog << "ERROR OpenVR Compositor initialization failed: " << vr::VR_GetVRInitErrorAsEnglishDescription(res) << std::endl;
       return false;
       }
 
@@ -284,7 +284,7 @@ namespace en
 #endif
          if (!swap[i][j])
             {
-            Log << "ERROR: Cannot create OpenVR Swap-Chain texture!\n";
+            enLog << "ERROR: Cannot create OpenVR Swap-Chain texture!\n";
             assert( 0 );
             }
          }
@@ -509,7 +509,7 @@ namespace en
       std::unique_ptr<gpu::Buffer> stagingVertex(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize));
       if (!stagingVertex)
          {
-         Log << "ERROR: Cannot create staging buffer!\n";
+         enLog << "ERROR: Cannot create staging buffer!\n";
          assert( 0 );
          }
 
@@ -567,7 +567,7 @@ namespace en
       std::shared_ptr<gpu::Buffer> stagingIndex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, indices * 2u);
       if (!stagingIndex)
          {
-         Log << "ERROR: Cannot create staging buffer!\n";
+         enLog << "ERROR: Cannot create staging buffer!\n";
          assert( 0 );
          }
          
@@ -654,7 +654,7 @@ namespace en
    vr::RenderModel_t* tempModel = nullptr;
    if (!renderModels->LoadRenderModel_Async(name.c_str(), &tempModel))
       {
-      Log << "Unable to load render model " << name << std::endl;
+      enLog << "Unable to load render model " << name << std::endl;
       return pair< std::shared_ptr<en::resources::Model>, std::shared_ptr<en::gpu::Texture> >(model, texture);
       }
 
@@ -679,7 +679,7 @@ namespace en
    std::shared_ptr<gpu::Buffer> stagingVertex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
    if (!stagingVertex)
       {
-      Log << "ERROR: Cannot create staging buffer!\n";
+      enLog << "ERROR: Cannot create staging buffer!\n";
       assert( 0 );
       }
   
@@ -699,7 +699,7 @@ namespace en
    std::shared_ptr<gpu::Buffer> stagingIndex = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, indices * 2u);
    if (!stagingIndex)
       {
-      Log << "ERROR: Cannot create staging buffer!\n";
+      enLog << "ERROR: Cannot create staging buffer!\n";
       assert( 0 );
       }
    
@@ -754,7 +754,7 @@ namespace en
       std::shared_ptr<gpu::Buffer> stagingTexture = en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize);
       if (!stagingTexture)
          {
-         Log << "ERROR: Cannot create staging buffer!\n";
+         enLog << "ERROR: Cannot create staging buffer!\n";
          assert( 0 );
          }
       
@@ -845,7 +845,7 @@ namespace en
       {
       if (!context->CaptureInputFocus())
          {
-         Log << " I have no controll over controllers, and cannot take it back!\n";
+         enLog << " I have no controll over controllers, and cannot take it back!\n";
          }
       }
 
@@ -881,7 +881,7 @@ namespace en
             outEvent.pointer = std::dynamic_pointer_cast<Controller>(handle[deviceId]);
             interface->task[outEvent.type]( reinterpret_cast<Event&>(outEvent) );
    
-            Log << "Device " << deviceId << " attached.\n";
+            enLog << "Device " << deviceId << " attached.\n";
             }
             break;
 
@@ -900,12 +900,12 @@ namespace en
             // Remove controller
             handle[deviceId] = nullptr;
 
-            Log << "Device " << deviceId << " detached.\n";
+            enLog << "Device " << deviceId << " detached.\n";
             }
             break;
             
          case vr::VREvent_TrackedDeviceUpdated:
-            Log << "Device " << vrevent.trackedDeviceIndex << " updated.\n";
+            enLog << "Device " << vrevent.trackedDeviceIndex << " updated.\n";
             break;
             
          case vr::VREvent_TrackedDeviceUserInteractionStarted:
@@ -924,7 +924,7 @@ namespace en
             // We care only about controllers here
             vr::TrackedDeviceIndex_t deviceId = vrevent.trackedDeviceIndex;
             if (context->GetTrackedDeviceClass(deviceId) != vr::TrackedDeviceClass_Controller)
-               Log << "PRESSED non CONTROLLER button ???? " << deviceId << "\n";
+               enLog << "PRESSED non CONTROLLER button ???? " << deviceId << "\n";
 
             // Activate controller if it wasn't activated yet
             if (handle[deviceId] == nullptr)
@@ -1177,9 +1177,9 @@ namespace en
       context->GetControllerState(i, &controller[i]);
 
       //if (controller[i].ulButtonPressed != 0)
-      //   Log << "Controller " << i << " button " << controller[i].ulButtonPressed << " pressed.\n";
+      //   enLog << "Controller " << i << " button " << controller[i].ulButtonPressed << " pressed.\n";
       //if (controller[i].ulButtonTouched != 0)
-      //   Log << "Controller " << i << " button " << controller[i].ulButtonTouched << " touched.\n";
+      //   enLog << "Controller " << i << " button " << controller[i].ulButtonTouched << " touched.\n";
       }
    }
 
@@ -1426,7 +1426,7 @@ namespace en
       //                                  matPose.m[2][0], matPose.m[2][1], -matPose.m[2][2]));
       //float3 rotation;
       //GetEulerAngles<Axis_X, Axis_Y, Axis_Z, Rotate_CCW, Handed_R>(quat, &rotation.x, &rotation.y, &rotation.z);
-      //Log << " PITCH: " << degrees(rotation.x) << " TURN-YAW: " << degrees(rotation.y) << " ROLL: " << degrees(rotation.z) << std::endl;
+      //enLog << " PITCH: " << degrees(rotation.x) << " TURN-YAW: " << degrees(rotation.y) << " ROLL: " << degrees(rotation.z) << std::endl;
 
 
       //return mul(float4x4::rotationY(-degrees(rotation.y)), 
@@ -1462,8 +1462,8 @@ namespace en
       //return mul(camOrientation, parentPivot); //float4x4::rotationY(degrees(180.0)) 
 
       //float4 look = mul(camOrientation, float4(0.0f, 0.0f, -1.0f, 1.0f));
-      //Log << look.x << " " << look.y << " " << look.z << " " << look.w << std::endl;
-      //Log << -matPose.m[0][2] << " " << -matPose.m[1][2] << " " << -matPose.m[2][2] << std::endl;
+      //enLog << look.x << " " << look.y << " " << look.z << " " << look.w << std::endl;
+      //enLog << -matPose.m[0][2] << " " << -matPose.m[1][2] << " " << -matPose.m[2][2] << std::endl;
 
       //return mul(float4x4::rotationY(degrees(180.0)), mul(camOrientation, float4x4::rotationY(degrees(180.0))) );
 
@@ -1655,47 +1655,47 @@ namespace en
    #define k_unTrackingStringSize 256
    char text[k_unTrackingStringSize];
 
-   Log << "   Controller " << controllerId << " properties: \n\n";
+   enLog << "   Controller " << controllerId << " properties: \n\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_TrackingSystemName_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_TrackingSystemName_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_TrackingSystemName_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_ModelNumber_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_ModelNumber_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_ModelNumber_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_SerialNumber_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_SerialNumber_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_SerialNumber_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_RenderModelName_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_RenderModelName_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_RenderModelName_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_ManufacturerName_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_ManufacturerName_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_ManufacturerName_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_TrackingFirmwareVersion_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_TrackingFirmwareVersion_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_TrackingFirmwareVersion_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_HardwareRevision_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_HardwareRevision_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_HardwareRevision_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_AllWirelessDongleDescriptions_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_AllWirelessDongleDescriptions_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_AllWirelessDongleDescriptions_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_ConnectedWirelessDongle_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_ConnectedWirelessDongle_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_ConnectedWirelessDongle_String\" :" << text << "\n";
 
    if (context->GetStringTrackedDeviceProperty(controllerId, vr::Prop_AttachedDeviceId_String, text, k_unTrackingStringSize) > k_unTrackingStringSize)
-      Log << "ERROR: Too long string!\n";
-   Log << "   Property \"Prop_AttachedDeviceId_String\" :" << text << "\n";
+      enLog << "ERROR: Too long string!\n";
+   enLog << "   Property \"Prop_AttachedDeviceId_String\" :" << text << "\n";
 #endif
 
 

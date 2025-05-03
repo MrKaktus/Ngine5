@@ -27,7 +27,10 @@
     <ClCompile Include="..\src\core\input\winEvents.cpp" />
     <ClCompile Include="..\src\core\input\winInput.cpp" />
     <ClCompile Include="..\src\core\input\winJoystick.cpp" />
+    <ClCompile Include="..\src\core\log\andLog.cpp" />
     <ClCompile Include="..\src\core\log\log.cpp" />
+    <ClCompile Include="..\src\core\log\PrintLog.cpp" />
+    <ClCompile Include="..\src\core\log\StreamLog.cpp" />
     <ClCompile Include="..\src\core\memory\pageAllocator.cpp" />
     <ClCompile Include="..\src\core\parallel\parallel.cpp" />
     <ClCompile Include="..\src\core\parallel\psxFiber.cpp" />
@@ -298,7 +301,10 @@
     <ClInclude Include="..\src\core\config\context.h" />
     <ClInclude Include="..\src\core\input\winInput.h" />
     <ClInclude Include="..\src\core\input\winJoystick.h" />
+    <ClInclude Include="..\src\core\log\andLog.h" />
     <ClInclude Include="..\src\core\log\context.h" />
+    <ClInclude Include="..\src\core\log\PrintLog.h" />
+    <ClInclude Include="..\src\core\log\StreamLog.h" />
     <ClInclude Include="..\src\core\parallel\fiber.h" />
     <ClInclude Include="..\src\core\parallel\parallel.h" />
     <ClInclude Include="..\src\core\parallel\psxFiber.h" />

@@ -91,12 +91,12 @@ void* MainThread(void* in)
 
 static void onStart(ANativeActivity* activity)
 {
-    Log << "Callback: Start.\n";
+    enLog << "Callback: Start.\n";
 }
 
 static void onResume(ANativeActivity* activity)
 {
-    Log << "Callback: Resume.\n";
+    enLog << "Callback: Resume.\n";
 
     // Create application main thread
     pthread_attr_t attr; 
@@ -107,7 +107,7 @@ static void onResume(ANativeActivity* activity)
 
 static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) 
 {
-    Log << "Callback: Input Queue Created.\n";
+    enLog << "Callback: Input Queue Created.\n";
 
     // Wait until main threads input subsystem is ready.
     while(!InputContext.allowCallback);
@@ -134,12 +134,12 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
 {
     if (GpuContext.device.window == NULL)
     {
-        Log << "Callback: Native Window Created.\n";
+        enLog << "Callback: Native Window Created.\n";
     }
     else
     if (GpuContext.device.window != window)
     {
-        Log << "Callback: Native Window has Changed.\n";
+        enLog << "Callback: Native Window has Changed.\n";
 
         // TODO: You should rebind window here ?
     }
@@ -147,7 +147,7 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
 
 static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) 
 {
-    Log << "Callback: Native Window Resized.\n";
+    enLog << "Callback: Native Window Resized.\n";
     GpuContext.device.window = window;
     GpuContext.device.width  = ANativeWindow_getWidth(window);
     GpuContext.device.height = ANativeWindow_getHeight(window);
@@ -155,7 +155,7 @@ static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* wind
 
 static void onConfigurationChanged(ANativeActivity* activity) 
 {
-    Log << "Callback: Configuration Changed.\n";
+    enLog << "Callback: Configuration Changed.\n";
 
     // TODO: AConfiguration_fromAssetManager(android_app->config, activity->assetManager);
 }
@@ -165,7 +165,7 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused)
     // App gains focus, init everything
     if (focused)
     {
-        Log << "Callback: Appliocation gains focus.\n";
+        enLog << "Callback: Appliocation gains focus.\n";
 
         // When app gains focus, start monitoring sensors.
         if (InputContext.accelerometer.available && 
@@ -287,22 +287,22 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused)
 
 static void onNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window) 
 {
-    Log << "Callback: Native Window Redraw Needed.\n";
+    enLog << "Callback: Native Window Redraw Needed.\n";
 }
 
 static void onPause(ANativeActivity* activity)
 {
-    Log << "Callback: Pause.\n";
+    enLog << "Callback: Pause.\n";
 }
 
 static void onStop(ANativeActivity* activity)
 {
-    Log << "Callback: Stop.\n";
+    enLog << "Callback: Stop.\n";
 }
 
 static void onDestroy(ANativeActivity* activity)
 {
-    Log << "Callback: Destroy.\n";
+    enLog << "Callback: Destroy.\n";
 
 
     // Close modules in order
@@ -319,30 +319,30 @@ static void onDestroy(ANativeActivity* activity)
 
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) 
 {
-    Log << "Callback: Native Window Destroyed.\n";
+    enLog << "Callback: Native Window Destroyed.\n";
     GpuContext.device.window = NULL;
 }
 
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) 
 {
-    Log << "Callback: Input Queue Destroyed.\n";
+    enLog << "Callback: Input Queue Destroyed.\n";
     AInputQueue_detachLooper(en::InputContext.inputQueue);
     en::InputContext.inputQueue = NULL;
 }
 
 static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) 
 {
-    Log << "Callback: Configuration Changed.\n";
+    enLog << "Callback: Configuration Changed.\n";
 }
 
 static void onLowMemory(ANativeActivity* activity)
 {
-    Log << "Callback: Low Memory.\n";
+    enLog << "Callback: Low Memory.\n";
 }
 
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outSize)
 {
-    Log << "Callback: Save Instance State.\n";
+    enLog << "Callback: Save Instance State.\n";
 }
 
 } // en::android
@@ -358,7 +358,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     // memory for other one. Create and init all subsystems
     // from scratch.
 
-    Log << "Ngine4\n";
+    enLog << "Ngine4\n";
 
     // Application states
     activity->callbacks->onStart                    = en::android::onStart;
@@ -419,10 +419,10 @@ void dummy(void)
 //en::StorageContext.create(state->activity->assetManager);
 //en::ConfigContext.create();
 //en::LogContext.create();
-//en::Log << "Ngine4\n";
-//en::Log << "Starting module: Storage.\n";
-//en::Log << "Starting module: Config.\n";
-//en::Log << "Starting module: Log.\n";
+//enLog << "Ngine4\n";
+//enLog << "Starting module: Storage.\n";
+//enLog << "Starting module: Config.\n";
+//enLog << "Starting module: Log.\n";
 //
 ////en::SystemContext.create(state);
 //    NSchedulerContext::create();

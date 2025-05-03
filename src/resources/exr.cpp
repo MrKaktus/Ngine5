@@ -158,36 +158,36 @@ bool CheckError(sint32 code)
 
     if (code == Z_ERRNO)
     {
-        Log << "Error: Zlib cannot read chunk!\n";
+        enLog << "Error: Zlib cannot read chunk!\n";
     }
     else
     if (code == Z_STREAM_ERROR)
     {
-        Log << "Error: Zlib invalid compression level!\n";
+        enLog << "Error: Zlib invalid compression level!\n";
     }
     else
     if (code == Z_DATA_ERROR)
     {
-        Log << "Error: Zlib invalid or incomplete chunk!\n";
+        enLog << "Error: Zlib invalid or incomplete chunk!\n";
     }
     else
     if (code == Z_MEM_ERROR)
     {
-        Log << "Error: Zlib reports out of memory!\n";
+        enLog << "Error: Zlib reports out of memory!\n";
     }
     else
     if (code == Z_BUF_ERROR)
     {
-        Log << "Error: Zlib output buffer is to small!\n";
+        enLog << "Error: Zlib output buffer is to small!\n";
     }
     else
     if (code == Z_VERSION_ERROR)
     {
-        Log << "Error: Zlib version mismatch!\n";
+        enLog << "Error: Zlib version mismatch!\n";
     }
     else
     {
-        Log << "Error: Zlib unknown error code " << code << "!\n";
+        enLog << "Error: Zlib unknown error code " << code << "!\n";
     }
 
     return true;
@@ -204,8 +204,8 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         file = Storage->open(en::ResourcesContext.path.textures + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.textures + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.textures + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return std::shared_ptr<gpu::Texture>();
         }
     }
@@ -215,7 +215,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     file->read(0, sizeof(Header), &header);
     if (header.signature != 0x01312F76)
     {
-        Log << "ERROR: EXR file header signature incorrect!\n";
+        enLog << "ERROR: EXR file header signature incorrect!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>();
     }
@@ -223,7 +223,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     // TODO: Support multi-part types
     if (header.multiPart)
     {
-        Log << "ERROR: EXR multi-part files are not supported!\n";
+        enLog << "ERROR: EXR multi-part files are not supported!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>();
     }
@@ -253,7 +253,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     // TODO: Support non scan line types
     if (singlePartType != ScanLineImage)
     {
-        Log << "ERROR: Engine supports only scan lined EXR images!\n";
+        enLog << "ERROR: Engine supports only scan lined EXR images!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>();
     }
@@ -435,13 +435,13 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         if ( headers[part].compression != None &&
              headers[part].compression != ZIP )
         {
-            if (headers[part].compression == RLE)   Log << "ERROR: Engine doesn't supports EXR images with RLE compression!\n";
-            if (headers[part].compression == ZIPS)  Log << "ERROR: Engine doesn't supports EXR images with ZIPS compression!\n";
-            if (headers[part].compression == PIZ)   Log << "ERROR: Engine doesn't supports EXR images with PIZ compression!\n";
-            if (headers[part].compression == PXR24) Log << "ERROR: Engine doesn't supports EXR images with PXR24 compression!\n";
-            if (headers[part].compression == B44)   Log << "ERROR: Engine doesn't supports EXR images with B44 compression!\n";
-            if (headers[part].compression == B44A)  Log << "ERROR: Engine doesn't supports EXR images with B44A compression!\n";
-            Log << "       Can't load part " << part << " from file.\n";
+            if (headers[part].compression == RLE)   enLog << "ERROR: Engine doesn't supports EXR images with RLE compression!\n";
+            if (headers[part].compression == ZIPS)  enLog << "ERROR: Engine doesn't supports EXR images with ZIPS compression!\n";
+            if (headers[part].compression == PIZ)   enLog << "ERROR: Engine doesn't supports EXR images with PIZ compression!\n";
+            if (headers[part].compression == PXR24) enLog << "ERROR: Engine doesn't supports EXR images with PXR24 compression!\n";
+            if (headers[part].compression == B44)   enLog << "ERROR: Engine doesn't supports EXR images with B44 compression!\n";
+            if (headers[part].compression == B44A)  enLog << "ERROR: Engine doesn't supports EXR images with B44A compression!\n";
+            enLog << "       Can't load part " << part << " from file.\n";
             continue;
         }
 
@@ -451,8 +451,8 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
              headers[part].dataWindow.width  != headers[part].displayWindow.width  ||
              headers[part].dataWindow.height != headers[part].displayWindow.height )
         {
-            Log << "ERROR: Engine doesn't supports clipping data window to display window!\n";
-            Log << "       Can't load part " << part << " from file.\n";
+            enLog << "ERROR: Engine doesn't supports clipping data window to display window!\n";
+            enLog << "       Can't load part " << part << " from file.\n";
             continue;
         }
 
@@ -523,8 +523,8 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         // Unsupported mixed channel formats
         if (!correct)
         {
-            Log << "ERROR: Engine doesn't supports EXR images with mixed channel format!\n";
-            Log << "       Can't load part " << part << " from file.\n";
+            enLog << "ERROR: Engine doesn't supports EXR images with mixed channel format!\n";
+            enLog << "       Can't load part " << part << " from file.\n";
             continue;
         }
 
@@ -543,8 +543,8 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         // Unsupported data layout
         if (!correct)
         {
-            Log << "ERROR: Engine supports only contiguous data layout for channes!\n";
-            Log << "       Can't load part " << part << " from file.\n";
+            enLog << "ERROR: Engine supports only contiguous data layout for channes!\n";
+            enLog << "       Can't load part " << part << " from file.\n";
             continue;
         }
    
@@ -552,7 +552,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         std::unique_ptr<gpu::Texture> texture(en::ResourcesContext.defaults.enHeapTextures->createTexture(settings));
         if (!texture)
         {
-            Log << "ERROR: Cannot create texture in GPU!\n";
+            enLog << "ERROR: Cannot create texture in GPU!\n";
             continue;
         }
       
@@ -674,7 +674,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
                 // Decompress data from IDAT chunks to 'inflated' buffer
                 if (CheckError(inflateInit(&stream)))
                 {
-                    Log << "Error: Cannot initialize Zlib decompressor!\n";
+                    enLog << "Error: Cannot initialize Zlib decompressor!\n";
                     delete file;
                     delete [] input;
                     delete [] output;
@@ -686,7 +686,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
                 if (ret != Z_STREAM_END)
                 {
                     CheckError(ret);
-                    Log << "Error: Cannot decompress using ZLIB!\n";
+                    enLog << "Error: Cannot decompress using ZLIB!\n";
                     delete file;
                     delete [] input;
                     delete [] output;
@@ -726,7 +726,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, texture->size()));
         if (!staging)
         {
-            Log << "ERROR: Cannot create staging buffer!\n";
+            enLog << "ERROR: Cannot create staging buffer!\n";
             delete file;
             return texture;
         }

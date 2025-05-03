@@ -19,7 +19,7 @@
 
 #include "core/storage/storage.h"   // Core - Storage
 #include "core/config/context.h"    // Core - Config
-#include "core/log/context.h"       // Core - Log
+#include "core/log/log.h"           // Core - Log
 #include "platform/context.h"       // Core - System
 #include "core/parallel/parallel.h" // Core - Parallel
 
@@ -62,7 +62,7 @@ void init(int argc, const char **argv)
    
     en::storage::Interface::create();
     en::ConfigContext.create(argc,argv);
-    en::LogContext.create();
+    en::log::Interface::create();
     en::SystemContext.create();
 
     uint32 workers;
@@ -100,7 +100,7 @@ void destroy(void)
     en::Graphics  = nullptr;
     en::Scheduler = nullptr;
     en::SystemContext.destroy();
-    en::LogContext.destroy();
+    en::Log       = nullptr;
     en::ConfigContext.destroy();
     en::Storage   = nullptr;
 }

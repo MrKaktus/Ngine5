@@ -38,8 +38,8 @@ en::resources::Material load(const std::string& filename)
         file = Storage->open(en::ResourcesContext.path.materials + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.materials + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.materials + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return en::resources::Material();
         }
     }
@@ -50,7 +50,7 @@ en::resources::Material load(const std::string& filename)
     buffer = new uint8[static_cast<uint32>(size)];
     if (!buffer)
     {
-        Log << "ERROR: Not enough memory!\n";
+        enLog << "ERROR: Not enough memory!\n";
         delete file;
         return en::resources::Material();
     }
@@ -58,7 +58,7 @@ en::resources::Material load(const std::string& filename)
     // Read file to buffer and close file
     if (!file->read(buffer))
     {
-        Log << "ERROR: Cannot read whole material file!\n";
+        enLog << "ERROR: Cannot read whole material file!\n";
         delete file;
         return en::resources::Material();
     }    
@@ -72,7 +72,7 @@ en::resources::Material load(const std::string& filename)
     //en::resources::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
     //if (!material)
     //   {
-    //   Log << "ERROR: Cannot allocate new material!";
+    //   enLog << "ERROR: Cannot allocate new material!";
     //   return en::resources::Material();
     //   }
 
@@ -87,7 +87,7 @@ en::resources::Material load(const std::string& filename)
     //text.readLine(line);
     //if (line != "version 1.0")
     //   {
-    //   Log << "ERROR: Font file corrupted!";
+    //   enLog << "ERROR: Font file corrupted!";
     //   return en::resources::Font();
     //   }      
 
@@ -95,7 +95,7 @@ en::resources::Material load(const std::string& filename)
     //material->program = ResourcesContext.defaults.program;
     //if (!material->program)
     //   {
-    //   Log << "ERROR: Cannot attach default shader to material!";
+    //   enLog << "ERROR: Cannot attach default shader to material!";
     //   ResourcesContext.storage.materials.free(material);
     //   return en::resources::Material();
     //   }

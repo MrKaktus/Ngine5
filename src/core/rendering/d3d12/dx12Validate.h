@@ -55,44 +55,44 @@ extern bool IsWarning(const HRESULT result);
 
     #ifdef EN_PROFILER_TRACE_GRAPHICS_API
  
-    #define Validate( _gpu, command )                                                         \
-            {                                                                                 \
-            uint32 threadId = currentThreadId();                                              \
-            assert( threadId < MaxSupportedThreads );                                         \
-            Log << "[" << std::setw(2) << threadId << "] ";                                   \
-            Log << "D3D12 GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
-            _gpu->lastResult[threadId] = _gpu->device->command;                               \
-            if (en::gpu::IsError(_gpu->lastResult[threadId]))                                 \
-               assert( 0 );                                                                   \
-            en::gpu::IsWarning(_gpu->lastResult[threadId]);                                   \
+    #define Validate( _gpu, command )                                                           \
+            {                                                                                   \
+            uint32 threadId = currentThreadId();                                                \
+            assert( threadId < MaxSupportedThreads );                                           \
+            enLog << "[" << std::setw(2) << threadId << "] ";                                   \
+            enLog << "D3D12 GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
+            _gpu->lastResult[threadId] = _gpu->device->command;                                 \
+            if (en::gpu::IsError(_gpu->lastResult[threadId]))                                   \
+               assert( 0 );                                                                     \
+            en::gpu::IsWarning(_gpu->lastResult[threadId]);                                     \
             }
  
-    #define ValidateCom( command )                                                            \
-            {                                                                                 \
-            uint32 threadId = currentThreadId();                                              \
-            assert( threadId < MaxSupportedThreads );                                         \
-            Log << "[" << std::setw(2) << threadId << "] ";                                   \
-            Log << "D3D12 GPU 0xXXXXXXXX: " << #command << std::endl;                         \
-            HRESULT hr = command;                                                             \
-            assert( SUCCEEDED(hr) );                                                          \
+    #define ValidateCom( command )                                                              \
+            {                                                                                   \
+            uint32 threadId = currentThreadId();                                                \
+            assert( threadId < MaxSupportedThreads );                                           \
+            enLog << "[" << std::setw(2) << threadId << "] ";                                   \
+            enLog << "D3D12 GPU 0xXXXXXXXX: " << #command << std::endl;                         \
+            HRESULT hr = command;                                                               \
+            assert( SUCCEEDED(hr) );                                                            \
             }
  
-    #define ValidateNoRet( _gpu, command )                                                    \
-            {                                                                                 \
-            uint32 threadId = currentThreadId();                                              \
-            assert( threadId < MaxSupportedThreads );                                         \
-            Log << "[" << std::setw(2) << threadId << "] ";                                   \
-            Log << "D3D12 GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
-            _gpu->device->command;                                                            \
+    #define ValidateNoRet( _gpu, command )                                                      \
+            {                                                                                   \ 
+            uint32 threadId = currentThreadId();                                                \
+            assert( threadId < MaxSupportedThreads );                                           \
+            enLog << "[" << std::setw(2) << threadId << "] ";                                   \
+            enLog << "D3D12 GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
+            _gpu->device->command;                                                              \
             }
  
-    #define ValidateComNoRet( command )                                                       \
-            {                                                                                 \
-            uint32 threadId = currentThreadId();                                              \
-            assert( threadId < MaxSupportedThreads );                                         \
-            Log << "[" << std::setw(2) << threadId << "] ";                                   \
-            Log << "D3D12 GPU 0xXXXXXXXX: " << #command << std::endl;                         \
-            command;                                                                          \
+    #define ValidateComNoRet( command )                                                         \
+            {                                                                                   \
+            uint32 threadId = currentThreadId();                                                \
+            assert( threadId < MaxSupportedThreads );                                           \
+            enLog << "[" << std::setw(2) << threadId << "] ";                                   \
+            enLog << "D3D12 GPU 0xXXXXXXXX: " << #command << std::endl;                         \
+            command;                                                                            \
             }
     #else 
  

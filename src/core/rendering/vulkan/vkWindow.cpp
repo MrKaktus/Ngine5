@@ -89,7 +89,7 @@ WindowVK::WindowVK(
         info += "ERROR: Vulkan error:\n";
         info += "       Cannot query Swap-Chain surface capabilities.\n";
         info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
-        Log << info.c_str();
+        enLog << info.c_str();
         assert( 0 );
     }
 
@@ -101,7 +101,7 @@ WindowVK::WindowVK(
         std::string info;
         info += "ERROR: Vulkan error:\n";
         info += "       Queue Family supporting Present is different than queue family handling Universal queue type!\n";
-        Log << info.c_str();
+        enLog << info.c_str();
         assert( 0 );
     }
 
@@ -140,7 +140,7 @@ WindowVK::WindowVK(
         info += "ERROR: Vulkan error:\n";
         info += "       Cannot query Swap-Chain surface Pixel Formats count.\n";
         info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
-        Log << info.c_str();
+        enLog << info.c_str();
         assert( 0 );
     }
 
@@ -155,7 +155,7 @@ WindowVK::WindowVK(
         info += "ERROR: Vulkan error:\n";
         info += "       Cannot query list of Swap-Chain surface supported Pixel Formats.\n";
         info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
-        Log << info.c_str();
+        enLog << info.c_str();
         assert( 0 );
     }
    
@@ -185,7 +185,7 @@ WindowVK::WindowVK(
     {
         std::string info;
         info += "ERROR: Requested Pixel Format is not supported by this device.\n";
-        Log << info.c_str();
+        enLog << info.c_str();
         return;
     }
 
@@ -219,7 +219,7 @@ WindowVK::WindowVK(
         // Report warning if couldn't set requested Swap-Chain resolution
         if (swapChainResolution == selectedResolution)
         {
-            Log << "Warning: Requested Swap-Chain resolution is unsupported. Using window resolution instead.\n";
+            enLog << "Warning: Requested Swap-Chain resolution is unsupported. Using window resolution instead.\n";
         }
     }
 
@@ -242,7 +242,7 @@ WindowVK::WindowVK(
              (selectedResolution.height < swapChainCapabilities.minImageExtent.height) ||
              (selectedResolution.height > swapChainCapabilities.maxImageExtent.height))
         {
-            Log << "Warning: Requested Swap-Chain resolution is unsupported by Vulkan for final Window size.\n";
+            enLog << "Warning: Requested Swap-Chain resolution is unsupported by Vulkan for final Window size.\n";
             return;
         }
     }
@@ -255,7 +255,7 @@ WindowVK::WindowVK(
     VkImageUsageFlags swapChainUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     if (!checkBitmask(swapChainCapabilities.supportedUsageFlags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
     {
-        Log << "ERROR: Swap-Chain is not supporting mandatory color attachment usage!\n";
+        enLog << "ERROR: Swap-Chain is not supporting mandatory color attachment usage!\n";
         assert( 0 );
     }
       
@@ -289,7 +289,7 @@ WindowVK::WindowVK(
         info += "ERROR: Vulkan error:\n";
         info += "       Cannot query device Presentation Modes count.\n";
         info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
-        Log << info.c_str();
+        enLog << info.c_str();
         assert( 0 );
     }
 
@@ -304,7 +304,7 @@ WindowVK::WindowVK(
         info += "ERROR: Vulkan error:\n";
         info += "       Cannot query list of device Presentation Modes.\n";
         info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
-        Log << info.c_str();
+        enLog << info.c_str();
         assert( 0 );
     }
 
@@ -354,7 +354,7 @@ WindowVK::WindowVK(
 
         if (!selectedMode)
         {
-            Log << "ERROR: Cannot specify Swap-Chain presentation method!\n";
+            enLog << "ERROR: Cannot specify Swap-Chain presentation method!\n";
             assert( 0 );
         }
     }
@@ -737,7 +737,7 @@ Window* VulkanDevice::createWindow(const WindowSettings& settings, const std::st
 
             if (!validResolution)
             {
-                Log << "Error! Requested window size for Fullscreen mode is not supported by selected display.\n";
+                enLog << "Error! Requested window size for Fullscreen mode is not supported by selected display.\n";
                 return result;
             }
         }
@@ -746,7 +746,7 @@ Window* VulkanDevice::createWindow(const WindowSettings& settings, const std::st
         if (settings.resolution.x != 0 ||
             settings.resolution.y != 0)
         {
-            Log << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead.\n";
+            enLog << "Error! In Fullscreen mode resolution shouldn't be used, use size setting instead.\n";
             return result;
         }
     }
@@ -758,7 +758,7 @@ Window* VulkanDevice::createWindow(const WindowSettings& settings, const std::st
         if ( (selectedResolution.width  + borders.left + borders.rigth)  > display->_resolution.width ||
              (selectedResolution.height + borders.top  + borders.bottom) > display->_resolution.height)
         {
-            Log << "Error! In Windowed mode, final window size (requested size plus borders) is greater than selected display native resolution.\n";
+            enLog << "Error! In Windowed mode, final window size (requested size plus borders) is greater than selected display native resolution.\n";
             return result;
         }
     }

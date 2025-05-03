@@ -691,7 +691,7 @@ Event* oxrPresentationSession::queryNextEvent(void)
                 const XrEventDataEventsLost& xrEvent = *reinterpret_cast<XrEventDataEventsLost*>(&eventBase);
 
                 // There is nothing that can be done about it so log warning message
-                Log << "WARNING!: XR Events queue overflowed! Lost " << xrEvent.lostEventCount << "events!\n";
+                enLog << "WARNING!: XR Events queue overflowed! Lost " << xrEvent.lostEventCount << "events!\n";
                 break;
             }
 

@@ -96,7 +96,7 @@ Context::Context() :
             hyperthreading = true;
 
             string info = ""
-            Log << info;
+            enLog << info;
             }
          }
       };
@@ -232,13 +232,13 @@ Context::~Context()
 
 bool Context::create(void)
 {
-    Log << "Starting module: System.\n";
+    enLog << "Starting module: System.\n";
     return true;
 }
 
 void Context::destroy(void)
 {
-    Log << "Closing module: System.\n";
+    enLog << "Closing module: System.\n";
 }
 
 uint32 Interface::physicalCores(void)

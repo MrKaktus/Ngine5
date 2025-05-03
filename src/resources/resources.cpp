@@ -134,7 +134,7 @@ void Context::create(void)
 {
     using namespace en::gpu;
 
-    Log << "Starting module: Resources.\n";
+    enLog << "Starting module: Resources.\n";
 
     models.clear();
     materials.clear();
@@ -237,7 +237,7 @@ void Context::create(void)
 
 void Context::destroy(void)
 {
-    Log << "Closing module: Resources.\n";
+    enLog << "Closing module: Resources.\n";
 
     //defaults.program                 = nullptr;
                                     
@@ -1102,7 +1102,7 @@ std::shared_ptr<en::gpu::Texture> Interface::Load::texture(const std::string& fi
     };
 
 #ifdef EN_PROFILE
-    Log << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - " << filename << std::endl;
+    enLog << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - " << filename << std::endl;
 #endif
 
     return texture;
@@ -1210,7 +1210,7 @@ bool Interface::Load::texture(
 
 
 #ifdef EN_PROFILE
-    Log << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - " << filename << std::endl;
+    enLog << "Profiler: Resource load time: " << std::setw(6) << timer.elapsed().miliseconds() << std::setw(1) << "ms - " << filename << std::endl;
 #endif
 
     return result;

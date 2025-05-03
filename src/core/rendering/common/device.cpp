@@ -431,7 +431,7 @@ bool GraphicAPI::create(void)
         return true;
     }
 
-    Log << "Starting module: Rendering.\n";
+    enLog << "Starting module: Rendering.\n";
 
     // Load from config file desired Rendering API and Shading Language Version
     // Load choosed API for Android & Windows

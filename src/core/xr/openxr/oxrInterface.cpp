@@ -19,7 +19,7 @@ namespace xr
 
 void unbindedOpenXRFunctionHandler(...)
 {
-    Log << "ERROR: Called unbinded OpenXR function.\n";
+    enLog << "ERROR: Called unbinded OpenXR function.\n";
     assert( 0 );
 }
 
@@ -102,7 +102,7 @@ bool IsError(const XrResult result)
     };
 
     info += "\n";
-    Log << info.c_str();
+    enLog << info.c_str();
     return true;
 }
 
@@ -134,7 +134,7 @@ bool IsWarning(const XrResult result)
     };
 
     info += "\n";
-    Log << info.c_str();
+    enLog << info.c_str();
     return true;
 }
 
@@ -309,11 +309,11 @@ oxrInterface::oxrInterface(std::string appName) :
 
         if (!found)
         {
-            Log << "ERROR: Requested OpenXR extension " << extensionPtrs[i] << " is not supported on this system!\n";
-            Log << "       Supported extensions:\n";
+            enLog << "ERROR: Requested OpenXR extension " << extensionPtrs[i] << " is not supported on this system!\n";
+            enLog << "       Supported extensions:\n";
             for(uint32 j=0; j<globalExtensionsCount; ++j)
             {
-                Log << "       - " << globalExtension[j].extensionName << std::endl;
+                enLog << "       - " << globalExtension[j].extensionName << std::endl;
             }
 
             assert( 0 );
@@ -329,10 +329,10 @@ oxrInterface::oxrInterface(std::string appName) :
 #if defined(EN_DEBUG)
     if (layersCount > 0)
     {
-        Log << "Available OpenXR Layers:\n";
+        enLog << "Available OpenXR Layers:\n";
         for (uint32 i = 0; i < layersCount; ++i)
         {
-            Log << "  " << layer[i].properties.layerName << std::endl;
+            enLog << "  " << layer[i].properties.layerName << std::endl;
         }
     }
 
@@ -440,7 +440,7 @@ oxrInterface::oxrInterface(std::string appName) :
     runtimeInfo += "       ";
     runtimeInfo += properties.runtimeName[XR_MAX_RUNTIME_NAME_SIZE];
 
-    Log << runtimeInfo;
+    enLog << runtimeInfo;
 }
 
 oxrInterface::~oxrInterface()

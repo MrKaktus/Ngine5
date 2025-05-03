@@ -38,7 +38,7 @@ bool Interface::create(void)
         return true;
     }
 
-    Log << "Starting module: XR.\n";
+    enLog << "Starting module: XR.\n";
 
     // TODO: Application should receive Hint if it was launched from one of the 
     //       vendor stores, tying it to that vendor headset. For e.g. if it was
@@ -54,45 +54,45 @@ bool Interface::create(void)
     // OpenVR
     if (ovrInterface::isPresent())
     {
-        Log << "OpenVR: Present.";
+        enLog << "OpenVR: Present.";
         if (!XR)
         {
             XR = std::make_unique<ovrInterface>("Ngine5.0");
             if (XR)
             {
-                Log << " Initialized.\n";
+                enLog << " Initialized.\n";
             }
             else
             {
-                Log << " Failed to init.\n";
+                enLog << " Failed to init.\n";
             }
         }
     }
     else
     {
-        Log << "OpenVR: Runtime is missing.\n";
+        enLog << "OpenVR: Runtime is missing.\n";
     }
 
     // OpenXR
     if (oxrInterface::isPresent())
     {
-        Log << "OpenXR: Present.\n";
+        enLog << "OpenXR: Present.\n";
         if (!XR)
         {
             XR = std::make_unique<oxrInterface>("Ngine5.0");
             if (XR)
             {
-                Log << " Initialized.\n";
+                enLog << " Initialized.\n";
             }
             else
             {
-                Log << " Failed to init.\n";
+                enLog << " Failed to init.\n";
             }
         }
     }
     else
     {
-        Log << "OpenXR: Runtime is missing.\n";
+        enLog << "OpenXR: Runtime is missing.\n";
     }
 
 #endif

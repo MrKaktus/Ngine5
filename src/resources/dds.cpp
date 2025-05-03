@@ -607,8 +607,8 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
         file = Storage->open(en::ResourcesContext.path.textures + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.textures + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.textures + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return std::shared_ptr<gpu::Texture>(nullptr);
         }
     }
@@ -616,7 +616,7 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
     // Verify minimum file size
     if (file->size() < 128)
     {
-        Log << "ERROR: DDS file size is incorrect, file corrupted!\n";
+        enLog << "ERROR: DDS file size is incorrect, file corrupted!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>(nullptr);
     }
@@ -626,7 +626,7 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
     file->read(offset, 4, &signature);
     if (signature != 0x20534444)
     {
-        Log << "ERROR: DDS file header signature is incorrect!\n";
+        enLog << "ERROR: DDS file header signature is incorrect!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>(nullptr);
     }   
@@ -637,7 +637,7 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
     file->read(offset, 4, &headerSize);
     if (headerSize != 124)
     {
-        Log << "ERROR: DDS file header size is incorrect!\n";
+        enLog << "ERROR: DDS file header size is incorrect!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>(nullptr);
     }
@@ -656,7 +656,7 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
             // Verify minimum file size to store both headers
             if (file->size() < 148)
             {
-                Log << "ERROR: DDS file size is incorrect, file corrupted!\n";
+                enLog << "ERROR: DDS file size is incorrect, file corrupted!\n";
                 delete file;
                 return std::shared_ptr<gpu::Texture>(nullptr);
             }
@@ -671,7 +671,7 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
     TextureType type;
     if (!DetermineTextureType(header, (supportArrays ? &header10 : nullptr), type))
     {
-        Log << "ERROR: DDS texture type unsupported!\n";
+        enLog << "ERROR: DDS texture type unsupported!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>(nullptr);
     }
@@ -680,7 +680,7 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
     Format format;
     if (!DetectTextureFormat(header, (supportArrays ? &header10 : nullptr), format))
     {
-        Log << "ERROR: DDS texture format unsupported!\n";
+        enLog << "ERROR: DDS texture format unsupported!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>(nullptr);
     }
@@ -724,7 +724,7 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
     std::unique_ptr<gpu::Texture> texture(en::ResourcesContext.defaults.enHeapTextures->createTexture(settings));
     if (!texture)
     {
-        Log << "ERROR: Cannot create texture in GPU!\n";
+        enLog << "ERROR: Cannot create texture in GPU!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>(nullptr);
     }
@@ -744,7 +744,7 @@ std::shared_ptr<gpu::Texture> load(const std::string& filename)
                 std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, static_cast<uint32>(surfaceSize)));
                 if (!staging)
                 {
-                    Log << "ERROR: Cannot create staging buffer!\n";
+                    enLog << "ERROR: Cannot create staging buffer!\n";
                     delete file;
                     return texture;
                 }

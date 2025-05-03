@@ -84,7 +84,7 @@ Context::Context(void)
 
 bool Context::create(void)
 {
-    Log << "Starting module: Input.\n";
+    enLog << "Starting module: Input.\n";
 
     // Clear callbacks array
     events.callback = &en::state::HandleEventByState;
@@ -98,7 +98,7 @@ bool Context::create(void)
 
 void Context::destroy(void)
 {
-    Log << "Closing module: Input.\n";
+    enLog << "Closing module: Input.\n";
 
     //joystick.destroy();
     camera.destroy();
@@ -282,7 +282,7 @@ void CommonInput::init(void)
 
 CommonInput::~CommonInput()
 {
-    Log << "Closing module: Input.\n";
+    enLog << "Closing module: Input.\n";
 
 #if defined(EN_MODULE_OCULUS)
     CloseOculusSDK();

@@ -97,7 +97,7 @@ AndInterface::AndInterface() :
     manager(nullptr),
     CommonStorage()
 {
-    Log << "Starting module: Storage.\n";
+    enLog << "Starting module: Storage.\n";
    
     AAssetManager* assetManager; // TODO: Acquire it!
 
@@ -124,7 +124,7 @@ File* AndInterface::open(const std::string& filename, const FileAccess mode)
     }
     else
     {
-        Log << std::string("Couldn't open file " + filename + "!"); 
+        enLog << std::string("Couldn't open file " + filename + "!"); 
     }
 
     return result;

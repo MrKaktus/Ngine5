@@ -67,7 +67,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     uint32 minimumFileSize = sizeof(Header);
     if (readSize < minimumFileSize)
     {
-        Log << "ERROR: TGA file size too small!\n";
+        enLog << "ERROR: TGA file size too small!\n";
         return false;
     }
 
@@ -78,14 +78,14 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     if (header.format != RGB &&
         header.format != RGB_RLE)
     {
-        Log << "ERROR: Unsupported texture format!\n";
+        enLog << "ERROR: Unsupported texture format!\n";
         return false;
     }
 
     // Check if not paletted
     if (header.palette != 0)
     {
-        Log << "ERROR: Paletted TGA files are not supported!\n";
+        enLog << "ERROR: Paletted TGA files are not supported!\n";
         return false;
     }
 
@@ -114,7 +114,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     }
     else
     {
-        Log << "ERROR:  Unsupported texture format!\n";
+        enLog << "ERROR:  Unsupported texture format!\n";
         return false;
     }
 
@@ -140,8 +140,8 @@ bool load(
         file = Storage->open(en::ResourcesContext.path.textures + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.textures + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.textures + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return false;
         }
     }
@@ -189,7 +189,7 @@ bool load(
     uint8* content = allocate<uint8>(roundedSize, PageSize);
     if (!file->read(content))
     {
-        Log << "ERROR: Couldn't read file to memory.\n";
+        enLog << "ERROR: Couldn't read file to memory.\n";
         deallocate<uint8>(content);
         delete file;
         return false;

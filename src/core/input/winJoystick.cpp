@@ -200,7 +200,7 @@ void WinJoystick::update(void)
         }
         else
         {
-            Log << "WARNING! Cannot acquire joystick for update!\n";
+            enLog << "WARNING! Cannot acquire joystick for update!\n";
             return;
         }
     }
@@ -208,7 +208,7 @@ void WinJoystick::update(void)
     // Check if buffer for joystick events isn't too small
     if (hr == DI_BUFFEROVERFLOW)
     {
-        Log << "WARNING! Joystick event buffer too small!\n";
+        enLog << "WARNING! Joystick event buffer too small!\n";
     }
 
     WinInput* input = reinterpret_cast<WinInput*>(en::Input.get());

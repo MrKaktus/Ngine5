@@ -174,7 +174,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
         file = Storage->open(en::ResourcesContext.path.fonts + filename);
         if (!file)
         {
-            Log << std::string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
+            enLog << std::string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
             return std::shared_ptr<en::resources::Font>(nullptr);
         }
     }
@@ -185,7 +185,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
     buffer = new uint8[static_cast<uint32>(size)];
     if (!buffer)
     {
-        Log << "ERROR: Not enough memory!\n";
+        enLog << "ERROR: Not enough memory!\n";
         delete file;
         return std::shared_ptr<en::resources::Font>(nullptr);
     }
@@ -193,7 +193,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
     // Read file to buffer and close file
     if (!file->read(buffer))
     {
-        Log << "ERROR: Cannot read whole font file!\n";
+        enLog << "ERROR: Cannot read whole font file!\n";
         delete file;
         return std::shared_ptr<en::resources::Font>(nullptr);
     }    
@@ -292,7 +292,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
                         if (!font->resource)
                         {
                             font = nullptr;
-                            Log << "ERROR: Cannot load Font texture!\n";
+                            enLog << "ERROR: Cannot load Font texture!\n";
                             return std::shared_ptr<Font>(nullptr);
                         }
                     }
@@ -409,7 +409,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
    //text.readLine(line);
    //if (line != "version 1.0")
    //   {
-   //   Log << "ERROR: Font file corrupted!";
+   //   enLog << "ERROR: Font file corrupted!";
    //   return std::shared_ptr<en::resources::Font>(nullptr);
    //   }      
 
@@ -418,7 +418,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
    //text.skipToNextLine();
    //if (!text.readLine(textureName))
    //   {
-   //   Log << "ERROR: Font file corrupted!";
+   //   enLog << "ERROR: Font file corrupted!";
    //   return std::shared_ptr<en::resources::Font>(nullptr);
    //   }
 
@@ -426,7 +426,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
    //font->texture = Resources.load.texture(string("resources/textures/" + textureName));
    //if (!font->texture)
    //   {
-   //   Log << "ERROR: Font texture incorrect!";
+   //   enLog << "ERROR: Font texture incorrect!";
    //   return en::resources::Font();
    //   }
 
@@ -434,7 +434,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
    //text.skipToNextLine();
    //if (!text.readLine(line))
    //   {
-   //   Log << "ERROR: Font file corrupted!";
+   //   enLog << "ERROR: Font file corrupted!";
    //   return en::resources::Font();
    //   }
    //font->height = stringTo<float>(line);
@@ -446,7 +446,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
    //   // Parse font texcoord S
    //   if (!text.read(word, eol))
    //      {
-   //      Log << "ERROR: Font file corrupted!";
+   //      enLog << "ERROR: Font file corrupted!";
    //      return en::resources::Font();
    //      }
    //   font->table[i].pos.s = stringTo<float>(word);
@@ -454,7 +454,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
    //   // Parse font texcoord T
    //   if (eol || !text.read(word, eol))
    //      {
-   //      Log << "ERROR: Font file corrupted!";
+   //      enLog << "ERROR: Font file corrupted!";
    //      return en::resources::Font();
    //      }
    //   font->table[i].pos.t = stringTo<float>(word);
@@ -462,7 +462,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
    //   // Parse font width
    //   if (eol || !text.read(word, eol))
    //      {
-   //      Log << "ERROR: Font file corrupted!";
+   //      enLog << "ERROR: Font file corrupted!";
    //      return en::resources::Font();
    //      }
    //   font->table[i].width = stringTo<float>(word);
@@ -475,7 +475,7 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
 //   en::resources::MaterialDescriptor* material = ResourcesContext.storage.materials.allocate();
 //   if (!material)
 //      {
-//      Log << "ERROR: Cannot allocate new material!";
+//      enLog << "ERROR: Cannot allocate new material!";
 //      return en::resources::Font();
 //      }
 //

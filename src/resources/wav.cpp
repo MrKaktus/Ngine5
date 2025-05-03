@@ -66,8 +66,8 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
         file = Storage->open(en::ResourcesContext.path.sounds + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.sounds + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.sounds + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return std::shared_ptr<audio::Sample>(NULL);
         }
     }
@@ -79,7 +79,7 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
          (header.size != (file->size() - 8)) ||
          (header.format != 0x45564157) )        // 'WAVE' in Big Endian
     {
-        Log << "ERROR: Incorrect WAV file header!\n";
+        enLog << "ERROR: Incorrect WAV file header!\n";
         delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }
@@ -90,14 +90,14 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
     if ( (fmt.id != 0x20746d66) ||              // 'fmt ' in Big Endian
          (fmt.byteRate != (fmt.sampleRate * fmt.channels * fmt.bps/8)) )
     {
-        Log << "ERROR: WAV file has corrupted FMT chunk!\n";
+        enLog << "ERROR: WAV file has corrupted FMT chunk!\n";
         delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }  
     if ( (fmt.size != 16) ||
          (fmt.format != 1) )
     {
-        Log << "ERROR: Not supported WAV compression format!\n";
+        enLog << "ERROR: Not supported WAV compression format!\n";
         delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }
@@ -106,13 +106,13 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
     if ( (fmt.bps != 8) &&
          (fmt.bps != 16) )
     {
-        Log << "ERROR: Unsupported Bits Per Sample ratio!\n";
+        enLog << "ERROR: Unsupported Bits Per Sample ratio!\n";
         delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }
     if (fmt.channels > 2)
     {
-        Log << "ERROR: Unsupported audio channells count!\n";
+        enLog << "ERROR: Unsupported audio channells count!\n";
         delete file;
         return std::shared_ptr<audio::Sample>(NULL);
     }
@@ -142,7 +142,7 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
     }
     else
     {
-        Log << "ERROR: Cannot create sample in SoundCard!\n";
+        enLog << "ERROR: Cannot create sample in SoundCard!\n";
     }
 
     delete [] buffer;
