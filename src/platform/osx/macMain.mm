@@ -132,8 +132,8 @@ int ConsoleMain(int argc, const char* argv[])
     }
     @catch(NSException* exception)
     {
-        en::Log << "Application crashed with exception:\n";
-        en::Log << exception.reason << std::endl;
+        enLog << "Application crashed with exception:\n";
+        enLog << exception.reason << std::endl;
     }
     [pool release];
 

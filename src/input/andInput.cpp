@@ -36,7 +36,7 @@ AndInterface::AndInterface() :
     accelerometer.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER);
     if (accelerometer.sensor)
     {
-        Log << "                 Accelerometer available.\n";
+        enLog << "                 Accelerometer available.\n";
         accelerometer.available = true;
     }
 
@@ -44,7 +44,7 @@ AndInterface::AndInterface() :
     compass.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
     if (compass.sensor)
     {
-        Log << "                 Compass available.\n";
+        enLog << "                 Compass available.\n";
         compass.available = true;
     }
 
@@ -52,7 +52,7 @@ AndInterface::AndInterface() :
     gyroscope.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_GYROSCOPE);
     if (gyroscope.sensor)
     {
-        Log << "                 Gyroscope available.\n";
+        enLog << "                 Gyroscope available.\n";
         gyroscope.available = true;
     }
 
@@ -60,7 +60,7 @@ AndInterface::AndInterface() :
     light.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_LIGHT);
     if (light.sensor)
     {
-        Log << "                 Light sensor available.\n";
+        enLog << "                 Light sensor available.\n";
         light.available = true;
     }
 
@@ -68,7 +68,7 @@ AndInterface::AndInterface() :
     proximity.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_PROXIMITY);
     if (proximity.sensor)
     {
-        Log << "                 Proximity sensor available.\n";
+        enLog << "                 Proximity sensor available.\n";
         proximity.available = true;
     }
 
@@ -76,7 +76,7 @@ AndInterface::AndInterface() :
     temperature.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_AMBIENT_TEMPERATURE);
     if (temperature.sensor)
     {
-        Log << "                 Ambient Temperature sensor available.\n";
+        enLog << "                 Ambient Temperature sensor available.\n";
         temperature.available = true;
     }
     else 
@@ -84,7 +84,7 @@ AndInterface::AndInterface() :
         temperature.sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_TEMPERATURE);
         if (temperature.sensor)
         {
-            Log << "                 Temperature sensor available.\n";
+            enLog << "                 Temperature sensor available.\n";
             temperature.available = true;
         }
     }
@@ -345,7 +345,7 @@ void AndInterface::update()
    
 void AndInterface::update(struct android_app* app, struct android_poll_source* source)
 {
-    Log << "Touchscreen update called!";
+    enLog << "Touchscreen update called!";
  
     // TODO: Finish
 }

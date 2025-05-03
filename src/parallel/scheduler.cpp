@@ -1031,7 +1031,7 @@ bool Interface::create(const uint32 workers, const uint32 workerFibers, const ui
         return true;
     }
 
-    Log << "Starting module: Thread-Pool Scheduler.\n";
+    enLog << "Starting module: Thread-Pool Scheduler.\n";
 
     TaskScheduler* scheduler = new TaskScheduler(workers, workerFibers);
     std::unique_ptr<parallel::Interface> ptr(scheduler);

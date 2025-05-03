@@ -73,24 +73,24 @@ std::shared_ptr<Shader> MetalDevice::createShader(const ShaderStage stage, const
     {
         if ([error code] == MTLLibraryErrorCompileWarning)
         {
-            Log << "Warning! Shader compiled with warnings:\n";
-            Log << [[error description] UTF8String] << std::endl;
+            enLog << "Warning! Shader compiled with warnings:\n";
+            enLog << [[error description] UTF8String] << std::endl;
         }
         else
         {
             if ([error code] == MTLLibraryErrorUnsupported)
             {
-                Log << "Error! Compilation failed due to unsupported functionality.\n";
+                enLog << "Error! Compilation failed due to unsupported functionality.\n";
             }
             if ([error code] == MTLLibraryErrorInternal)
             {
-                Log << "Error! Internal Metal shader compiler error..\n";
+                enLog << "Error! Internal Metal shader compiler error..\n";
             }
             if ([error code] == MTLLibraryErrorCompileFailure)
             {
-                Log << "Error! Failed to compile shader library from source.\n";
+                enLog << "Error! Failed to compile shader library from source.\n";
             }
-            Log << [[error description] UTF8String] << std::endl;
+            enLog << [[error description] UTF8String] << std::endl;
          
             deallocateObjectiveC(options);
 

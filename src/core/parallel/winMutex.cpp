@@ -60,7 +60,7 @@ bool Mutex::lock(void)
     }
 
     assert(result == WAIT_FAILED);
-    Log << "Mutex::lock() failed with error code: "<< GetLastError() << std::endl;
+    enLog << "Mutex::lock() failed with error code: "<< GetLastError() << std::endl;
     return false;
 }
 
@@ -85,7 +85,7 @@ bool Mutex::tryLock(void)
     }
 
     assert(result == WAIT_FAILED);
-    Log << "Mutex::tryLock() failed with error code: " << GetLastError() << std::endl;
+    enLog << "Mutex::tryLock() failed with error code: " << GetLastError() << std::endl;
     return false;
 }
 
@@ -112,7 +112,7 @@ bool Mutex::isLocked(void)
     if (result == WAIT_FAILED)
     {
         // We assume its locked.
-        Log << "Mutex::isLocked() failed with error code: " << GetLastError() << std::endl;
+        enLog << "Mutex::isLocked() failed with error code: " << GetLastError() << std::endl;
     }
 
     return true;
@@ -122,7 +122,7 @@ void Mutex::unlock(void)
 {
     if (!ReleaseMutex(handle))
     {
-        Log << "This thread does not own this mutex. Error code: " << GetLastError() << std::endl;
+        enLog << "This thread does not own this mutex. Error code: " << GetLastError() << std::endl;
     }
 }
 

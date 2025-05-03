@@ -119,7 +119,7 @@ bool IsError(ID3D12Device* device, const HRESULT result)
         info += " \n";
     }
 
-    Log << info.c_str();
+    enLog << info.c_str();
     return true; 
 }
 
@@ -487,14 +487,14 @@ void Direct3D12Device::init()
                                     &featureGeneralOptions,
                                     sizeof(featureGeneralOptions)) == E_INVALIDARG)
     {
-        Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_D3D12_OPTIONS query.\n";
+        enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_D3D12_OPTIONS query.\n";
     }
 
     if (device->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE, 
                                     &featureArchitecture,
                                     sizeof(featureArchitecture)) == E_INVALIDARG)
     {
-        Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_ARCHITECTURE query.\n";
+        enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_ARCHITECTURE query.\n";
     }
 
     // if (device->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE1, 
@@ -505,14 +505,14 @@ void Direct3D12Device::init()
                                     &featureLevels,
                                     sizeof(featureLevels)) == E_INVALIDARG)
     {
-        Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FEATURE_LEVELS query.\n";
+        enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FEATURE_LEVELS query.\n";
     }
 
     if (device->CheckFeatureSupport(D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT, 
                                     &featureMemory,
                                     sizeof(featureMemory)) == E_INVALIDARG)
     {
-        Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT query.\n";
+        enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT query.\n";
     }
 
     // WA: Unrecognized
@@ -520,14 +520,14 @@ void Direct3D12Device::init()
                                     &featureShaderModel,
                                     sizeof(featureShaderModel)) == E_INVALIDARG)
     {
-        Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_SHADER_MODEL query.\n";
+        enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_SHADER_MODEL query.\n";
     }
 
     if (device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS1, 
                                     &featureGeneralOptionsB,
                                     sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS1)) == E_INVALIDARG)
     {
-        Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_D3D12_OPTIONS1 query.\n";
+        enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_D3D12_OPTIONS1 query.\n";
     }
 
     // WA: Unrecognized
@@ -535,7 +535,7 @@ void Direct3D12Device::init()
                                     &featureRootSignature,
                                     sizeof(featureRootSignature)) == E_INVALIDARG)
     {
-        Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_ROOT_SIGNATURE query.\n";
+        enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_ROOT_SIGNATURE query.\n";
     }
 
     // TODO: Future Queries, not exposed in current SDK:
@@ -598,7 +598,7 @@ void Direct3D12Device::init()
                                         &featureFormatSupport,
                                         sizeof(featureFormatSupport)) == E_INVALIDARG)
         {
-            Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FORMAT_SUPPORT query.\n";
+            enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FORMAT_SUPPORT query.\n";
             break;
         }
     }
@@ -621,7 +621,7 @@ void Direct3D12Device::init()
                                         &formatMultisampling,
                                         sizeof(formatMultisampling)) == E_INVALIDARG)
         {
-            Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS query.\n";
+            enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS query.\n";
             break;
         }
     }
@@ -639,7 +639,7 @@ void Direct3D12Device::init()
                                         &formatInfo,
                                         sizeof(formatInfo)) == E_INVALIDARG)
         {
-            Log << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FORMAT_INFO query.\n";
+            enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_FORMAT_INFO query.\n";
             break;
         }
     }
@@ -659,22 +659,22 @@ void Direct3D12Device::init()
                                   DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
                                   &memoryInfo);
 
-    Log << "Local\n\n";
-    Log << "Budget   : " << memoryInfo.Budget << std::endl;
-    Log << "Usage    : " << memoryInfo.CurrentUsage << std::endl;
-    Log << "Available: " << memoryInfo.AvailableForReservation << std::endl;
-    Log << "Reserved : " << memoryInfo.CurrentReservation << std::endl;
+    enLog << "Local\n\n";
+    enLog << "Budget   : " << memoryInfo.Budget << std::endl;
+    enLog << "Usage    : " << memoryInfo.CurrentUsage << std::endl;
+    enLog << "Available: " << memoryInfo.AvailableForReservation << std::endl;
+    enLog << "Reserved : " << memoryInfo.CurrentReservation << std::endl;
   
     // Shared system memory available
     adapter->QueryVideoMemoryInfo(0, // Multi-GPU index
                                   DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
                                   &memoryInfo);
 
-    Log << "\nShared\n\n";
-    Log << "Budget   : " << memoryInfo.Budget << std::endl;
-    Log << "Usage    : " << memoryInfo.CurrentUsage << std::endl;
-    Log << "Available: " << memoryInfo.AvailableForReservation << std::endl;
-    Log << "Reserved : " << memoryInfo.CurrentReservation << std::endl;
+    enLog << "\nShared\n\n";
+    enLog << "Budget   : " << memoryInfo.Budget << std::endl;
+    enLog << "Usage    : " << memoryInfo.CurrentUsage << std::endl;
+    enLog << "Available: " << memoryInfo.AvailableForReservation << std::endl;
+    enLog << "Reserved : " << memoryInfo.CurrentReservation << std::endl;
  */
 
     support.videoMemorySize  = adapterDescription.DedicatedVideoMemory;

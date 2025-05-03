@@ -49,25 +49,25 @@ extern bool IsWarning(const VkResult result);
 #ifdef EN_DEBUG
    #ifdef EN_PROFILER_TRACE_GRAPHICS_API
 
-   #define Validate( _gpu, command )                                                          \
-           {                                                                                  \
-           uint32 threadId = currentThreadId();                                               \
-           assert( threadId < MaxSupportedThreads );                                          \
-           Log << "[" << std::setw(2) << threadId << "] ";                                    \
-           Log << "Vulkan GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
-           _gpu->lastResult[threadId] = _gpu->command;                                        \
-           if (en::gpu::IsError(_gpu->lastResult[threadId]))                                  \
-              { assert( 0 ); }                                                                \
-           en::gpu::IsWarning(_gpu->lastResult[threadId]);                                    \
+   #define Validate( _gpu, command )                                                            \
+           {                                                                                    \
+           uint32 threadId = currentThreadId();                                                 \
+           assert( threadId < MaxSupportedThreads );                                            \
+           enLog << "[" << std::setw(2) << threadId << "] ";                                    \
+           enLog << "Vulkan GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
+           _gpu->lastResult[threadId] = _gpu->command;                                          \
+           if (en::gpu::IsError(_gpu->lastResult[threadId]))                                    \
+              { assert( 0 ); }                                                                  \
+           en::gpu::IsWarning(_gpu->lastResult[threadId]);                                      \
            }
 
-   #define ValidateNoRet( _gpu, command )                                                     \
-           {                                                                                  \
-           uint32 threadId = currentThreadId();                                               \
-           assert( threadId < MaxSupportedThreads );                                          \
-           Log << "[" << std::setw(2) << threadId << "] ";                                    \
-           Log << "Vulkan GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
-           _gpu->command;                                                                     \
+   #define ValidateNoRet( _gpu, command )                                                       \
+           {                                                                                    \
+           uint32 threadId = currentThreadId();                                                 \
+           assert( threadId < MaxSupportedThreads );                                            \
+           enLog << "[" << std::setw(2) << threadId << "] ";                                    \
+           enLog << "Vulkan GPU " << std::setbase(16) << _gpu << ": " << #command << std::endl; \
+           _gpu->command;                                                                       \
            }
 
    #else 

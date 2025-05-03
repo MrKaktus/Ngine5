@@ -130,7 +130,7 @@ Context::~Context()
 
 bool Context::create(void)
 {
-    Log << "Starting module: Audio.\n";
+    enLog << "Starting module: Audio.\n";
 
 #ifdef EN_PLATFORM_ANDROID
     SLresult result;
@@ -187,7 +187,7 @@ bool Context::create(void)
 
 void Context::destroy(void)
 {
-    Log << "Closing module: Audio.\n";
+    enLog << "Closing module: Audio.\n";
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
     if (!context)
     {
@@ -215,7 +215,7 @@ void Context::destroy(void)
 //   SampleDescriptor* sample = AudioContext.samples.allocate();
 //   if (sample == NULL)
 //      {
-//      Log << "ERROR: Samples pool is full!\n";
+//      enLog << "ERROR: Samples pool is full!\n";
 //      return NULL;
 //      } 
 //
@@ -226,8 +226,8 @@ void Context::destroy(void)
 //   alGenBuffers(1, &sample->id);
 //   if ((error = alGetError()) != AL_NO_ERROR)
 //      {
-//      Log << setprecision(2);
-//      Log << "Error: Can't create audio sample: " << error << std::endl;
+//      enLog << setprecision(2);
+//      enLog << "Error: Can't create audio sample: " << error << std::endl;
 //      AudioContext.samples.free(sample);
 //      return NULL;
 //      } 
@@ -250,7 +250,7 @@ void Context::destroy(void)
 //   alBufferData(sample->id, format, data, size, freq);     
 //   if ((error = alGetError()) != AL_NO_ERROR)
 //      {
-//      Log << "ERROR: Cannot create sample in device!\n";
+//      enLog << "ERROR: Cannot create sample in device!\n";
 //      AudioContext.samples.free(sample);
 //      return NULL;
 //      }
@@ -270,13 +270,13 @@ std::shared_ptr<audio::Sample> Interface::Sample::create(
     if (channels != 1 &&
         channels != 2)
     {
-        Log << "ERROR: Unsupported audio channells count!\n";
+        enLog << "ERROR: Unsupported audio channells count!\n";
         return std::shared_ptr<audio::Sample>(nullptr);
     }
     if (bps != 8 &&
         bps != 16)
     {
-        Log << "ERROR: Unsupported Bits Per Sample ratio!\n";
+        enLog << "ERROR: Unsupported Bits Per Sample ratio!\n";
         return std::shared_ptr<audio::Sample>(nullptr);
     }
 
@@ -288,8 +288,8 @@ std::shared_ptr<audio::Sample> Interface::Sample::create(
     alGenBuffers(1, &id);
     if ((error = alGetError()) != AL_NO_ERROR)
     {
-        Log << std::setprecision(2);
-        Log << "Error: Can't create audio sample: " << error << std::endl;
+        enLog << std::setprecision(2);
+        enLog << "Error: Can't create audio sample: " << error << std::endl;
         return std::shared_ptr<audio::Sample>(nullptr);
     } 
       
@@ -319,7 +319,7 @@ std::shared_ptr<audio::Sample> Interface::Sample::create(
     alBufferData(id, format, data, size, freq);     
     if ((error = alGetError()) != AL_NO_ERROR)
     {
-        Log << "ERROR: Cannot create sample in device!\n";
+        enLog << "ERROR: Cannot create sample in device!\n";
         return std::shared_ptr<audio::Sample>(nullptr);
     }
 
@@ -353,7 +353,7 @@ std::shared_ptr<audio::Source> Interface::Source::create(void)
 //alGenSources(1, &id);
 //if ((error = alGetError()) != AL_NO_ERROR)
 //   {
-//   Log << "Error: Can't create audio source." << error << std::endl;
+//   enLog << "Error: Can't create audio source." << error << std::endl;
 //   return en::audio::Source(NULL);
 //   }
 

@@ -19,6 +19,9 @@
 
 #include "core/log/log.h"
 
+// TODO: REMOVE THIS WHOLE FILE
+
+/*
 #include <iostream>
 #include <fstream>
 
@@ -118,5 +121,6 @@ struct Context
 extern log::Context LogContext;
 
 } // en
+//*/
 
 #endif

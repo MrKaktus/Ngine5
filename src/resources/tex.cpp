@@ -91,8 +91,8 @@ std::unique_ptr<gpu::Texture>* load(const std::string& filename)
         file = Storage->open(en::ResourcesContext.path.textures + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.textures + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.textures + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return nullptr;
         }
     }
@@ -102,19 +102,19 @@ std::unique_ptr<gpu::Texture>* load(const std::string& filename)
     file->read(0, 20, &header);
     if ( header.signature != 0x58455445 )
     {
-        Log << "ERROR: TEX file header signature is incorrect!\n";
+        enLog << "ERROR: TEX file header signature is incorrect!\n";
         delete file;
         return nullptr;
     }
     if ( header.version != 1 )
     {
-        Log << "ERROR: TEX file header version is not supported!\n";
+        enLog << "ERROR: TEX file header version is not supported!\n";
         delete file;
         return nullptr;
     }
     if ( header.filesize != file->size() )
     {
-        Log << "ERROR: TEX file size mismatch!\n";
+        enLog << "ERROR: TEX file size mismatch!\n";
         delete file;
         return nullptr;
     }
@@ -159,7 +159,7 @@ std::unique_ptr<gpu::Texture>* load(const std::string& filename)
             std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, (uint32)surfaces[j].size));
             if (!staging)
             {
-                Log << "ERROR: Cannot create staging buffer!\n";
+                enLog << "ERROR: Cannot create staging buffer!\n";
                 delete file;
                 return nullptr;
             }

@@ -108,12 +108,12 @@ namespace en
    //   
    //           // Compare name and resolution to find matching Display number
    //           std::string name = stringFromWchar(Device.DeviceName, 32);
-   //           Log << "Display " << displayNumber << " : " << name << std::endl;
+   //           enLog << "Display " << displayNumber << " : " << name << std::endl;
    //           if ( name.compare(0, 12, std::string(hmd->DisplayDeviceName)) && 
    //                hmd->Resolution.w == DispMode.dmPelsWidth &&
    //                hmd->Resolution.h == DispMode.dmPelsHeight )
    //              {
-   //              Log << "Oculus found on " << displayNumber << " : " << name << std::endl;
+   //              enLog << "Oculus found on " << displayNumber << " : " << name << std::endl;
    //              displayId = displayNumber;
    //              break;
    //              }
@@ -695,23 +695,23 @@ namespace en
       ovrErrorInfo* info = nullptr;
       ovr_GetLastErrorInfo(info);
       if (info->Result == ovrError_Initialize) 
-         Log << "ERROR Oculus Init Failed: Generic initialization error.\n";
+         enLog << "ERROR Oculus Init Failed: Generic initialization error.\n";
       if (info->Result == ovrError_LibLoad) 
-         Log << "ERROR Oculus Init Failed: Couldn't load LibOVRRT.\n";
+         enLog << "ERROR Oculus Init Failed: Couldn't load LibOVRRT.\n";
       if (info->Result == ovrError_LibVersion) 
-         Log << "ERROR Oculus Init Failed: LibOVRRT version incompatibility.\n";
+         enLog << "ERROR Oculus Init Failed: LibOVRRT version incompatibility.\n";
       if (info->Result == ovrError_ServiceConnection) 
-         Log << "ERROR Oculus Init Failed: Couldn't connect to the OVR Service.\n";
+         enLog << "ERROR Oculus Init Failed: Couldn't connect to the OVR Service.\n";
       if (info->Result == ovrError_ServiceVersion) 
-         Log << "ERROR Oculus Init Failed: OVR Service version incompatibility.\n";
+         enLog << "ERROR Oculus Init Failed: OVR Service version incompatibility.\n";
       if (info->Result == ovrError_IncompatibleOS) 
-         Log << "ERROR Oculus Init Failed: The operating system version is incompatible.\n";
+         enLog << "ERROR Oculus Init Failed: The operating system version is incompatible.\n";
       if (info->Result == ovrError_DisplayInit) 
-         Log << "ERROR Oculus Init Failed: Unable to initialize the HMD display.\n";
+         enLog << "ERROR Oculus Init Failed: Unable to initialize the HMD display.\n";
       if (info->Result == ovrError_ServerStart) 
-         Log << "ERROR Oculus Init Failed: Unable to start the server. Is it already running?\n";
+         enLog << "ERROR Oculus Init Failed: Unable to start the server. Is it already running?\n";
       if (info->Result == ovrError_Reinitialization) 
-         Log << "ERROR Oculus Init Failed: Attempting to re-initialize with a different version.\n";
+         enLog << "ERROR Oculus Init Failed: Attempting to re-initialize with a different version.\n";
       return;
       }
 

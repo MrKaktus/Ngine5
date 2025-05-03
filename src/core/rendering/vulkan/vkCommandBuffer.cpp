@@ -687,8 +687,8 @@ bool CommandBufferVK::isCompleted(void)
     uint32 thread = currentThreadId();
 #ifdef EN_DEBUG
     #ifdef EN_PROFILER_TRACE_GRAPHICS_API
-    Log << "[" << setw(2) << thread << "] ";
-    Log << "Vulkan GPU " << setbase(16) << gpu << ": vkGetFenceStatus(gpu->device, &fence)\n";
+    enLog << "[" << setw(2) << thread << "] ";
+    enLog << "Vulkan GPU " << setbase(16) << gpu << ": vkGetFenceStatus(gpu->device, &fence)\n";
     #endif
     gpu->lastResult[thread] = gpu->vkGetFenceStatus(gpu->device, fence);
     if (en::gpu::IsError(gpu->lastResult[thread]))
@@ -717,7 +717,7 @@ void CommandBufferVK::waitUntilCompleted(void)
     Validate( gpu, vkWaitForFences(gpu->device, 1, &fence, VK_TRUE, gpuWatchDog) )
     if (gpu->lastResult[currentThreadId()] == VK_TIMEOUT)  // TODO: This assumes this method is called from Worker Thread and not IO thread!
     {
-        Log << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << std::endl;   // TODO: File / line doesn't make sense as it will always point this method!
+        enLog << "GPU Hang! Engine file: " << __FILE__ << " line: " << __LINE__ << std::endl;   // TODO: File / line doesn't make sense as it will always point this method!
     }
 
     // TODO:

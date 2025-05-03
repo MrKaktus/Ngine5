@@ -158,7 +158,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     uint32 minimumFileSize = sizeof(Header) + sizeof(DIBHeaderV2Win);
     if (readSize < minimumFileSize)
     {
-        Log << "ERROR: BMP file size too small!\n";
+        enLog << "ERROR: BMP file size too small!\n";
         return false;
     }
 
@@ -166,12 +166,12 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     Header& header = *reinterpret_cast<Header*>(buffer);
     if (header.signature != 0x4D42)
     {
-        Log << "ERROR: BMP file header signature is incorrect!\n";
+        enLog << "ERROR: BMP file header signature is incorrect!\n";
         return false;
     }
     if (header.size < minimumFileSize)
     {
-        Log << "ERROR: BMP file header is incorrect!\n";
+        enLog << "ERROR: BMP file header is incorrect!\n";
         return false;
     }
 
@@ -184,7 +184,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
         DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(buffer + sizeof(Header));
         if (DIBHeader.compression != None)
         {
-            Log << "ERROR: Compressed BMP files are not supported!\n";
+            enLog << "ERROR: Compressed BMP files are not supported!\n";
             return false;
         }
     }
@@ -231,7 +231,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
         else
         {
             // 1, 4, 8 bpp formats are not supported
-            Log << "ERROR: Unsupported BMP bits per pixel:" << DIBHeader.bpp  << "!\n";
+            enLog << "ERROR: Unsupported BMP bits per pixel:" << DIBHeader.bpp  << "!\n";
             return false;
         }
     }
@@ -246,14 +246,14 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
         else
         {
             // 16bpp formats are not supported
-            Log << "ERROR: Unsupported BMP bits per pixel:" << DIBHeader.bpp << "!\n";
+            enLog << "ERROR: Unsupported BMP bits per pixel:" << DIBHeader.bpp << "!\n";
             return false;
         }
     }
 
     if (settings.format == gpu::Format::Unsupported)
     {
-        Log << "ERROR: Unsupported texture format!\n";
+        enLog << "ERROR: Unsupported texture format!\n";
         return false;
     }
 
@@ -279,8 +279,8 @@ bool load(
         file = Storage->open(en::ResourcesContext.path.textures + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.textures + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.textures + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return false;
         }
     }
@@ -328,7 +328,7 @@ bool load(
     uint8* content = allocate<uint8>(roundedSize, PageSize);
     if (!file->read(content))
     {
-        Log << "ERROR: Couldn't read file to memory.\n";
+        enLog << "ERROR: Couldn't read file to memory.\n";
         deallocate<uint8>(content);
         delete file;
         return false;
@@ -359,13 +359,13 @@ bool load(
     if ( (header.size != fileSize) ||
          (header.dataOffset + dataSize > header.size) )
     {
-        Log << "ERROR: File or its header is corrupted.\n";
+        enLog << "ERROR: File or its header is corrupted.\n";
         deallocate<uint8>(content);
         return false;
     }
     if (dataSize != alignment.surfaceSize(settings.width, settings.height))
     {
-        Log << "ERROR: Data layout in memory is not matching expected layout in destination.\n";
+        enLog << "ERROR: Data layout in memory is not matching expected layout in destination.\n";
         deallocate<uint8>(content);
         return false;
     }
@@ -397,8 +397,8 @@ bool save(
         file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
         if (!file)
         {
-            Log << en::ResourcesContext.path.screenshots + filename << std::endl;
-            Log << "ERROR: Cannot create such file!\n";
+            enLog << en::ResourcesContext.path.screenshots + filename << std::endl;
+            enLog << "ERROR: Cannot create such file!\n";
             return false;
         }
     }

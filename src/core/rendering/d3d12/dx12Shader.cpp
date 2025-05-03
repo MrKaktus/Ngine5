@@ -130,7 +130,7 @@ std::shared_ptr<Shader> Direct3D12Device::createShader(const ShaderStage stage, 
         std::string errorLog("Error: D3D12 HLSL compilation error:\n");
         errorLog += std::string(reinterpret_cast<char*>(errors->GetBufferPointer()), errors->GetBufferSize());
         errorLog += "\n\n";
-        Log << errorLog;
+        enLog << errorLog;
     }
     else
     if (binary)

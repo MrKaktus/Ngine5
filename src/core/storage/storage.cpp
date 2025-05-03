@@ -154,7 +154,7 @@ uint64 CommonStorage::read(const std::string& filename, std::string& dst)
     uint64 sizeToRead = file->size();
     if (sizeToRead == 0)
     {
-        Log << std::string("File " + filename + " is empty!");
+        enLog << std::string("File " + filename + " is empty!");
         dst.clear();
         delete file;
         return 0;
@@ -165,7 +165,7 @@ uint64 CommonStorage::read(const std::string& filename, std::string& dst)
     uint64 readSize;
     if (!file->read(0u, sizeToRead, buffer, &readSize))
     {
-        Log << std::string("Error when reading file, read " + stringFrom(readSize) + " from " + stringFrom(sizeToRead) + " bytes!");
+        enLog << std::string("Error when reading file, read " + stringFrom(readSize) + " from " + stringFrom(sizeToRead) + " bytes!");
         dst.clear();
         delete file;
         return 0;
@@ -184,7 +184,7 @@ uint64 CommonStorage::read(const std::string& filename, std::string& dst)
 // This static function should be in .mm file if we include iOS/OSX headers !!!
 bool Interface::create(void)
 {
-    //Log << "Starting module: Storage.\n";
+    //enLog << "Starting module: Storage.\n";
 
 #if defined(EN_PLATFORM_ANDROID)
     Storage = std::make_unique<AndInterface>();

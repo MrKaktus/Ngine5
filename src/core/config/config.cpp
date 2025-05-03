@@ -38,7 +38,7 @@ bool Context::create(int argc, const char **argv)
     using namespace en::storage;
 
 #ifdef EN_PLATFORM_ANDROID
-    Log << "Starting module: Config.\n";
+    enLog << "Starting module: Config.\n";
 #endif
 
     // Finish default initialization

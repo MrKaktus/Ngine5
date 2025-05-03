@@ -120,7 +120,7 @@ CreativeDepthCamera::CreativeDepthCamera(uint32 _id, PXCCapture::Device* ptr, PX
     {
         settings.type = Default;
         currentState  = Disconnected;
-        Log << "Error: Device type unknown!\n"; 
+        enLog << "Error: Device type unknown!\n"; 
         return;
     }
 
@@ -277,11 +277,11 @@ CreativeDepthCamera::~CreativeDepthCamera()
 
                    #ifdef EN_DEBUG
                    // Debug log profile information
-                   Log << "Stream[" << i << "-" << name << "] Profile[" << p << "]:\n";
-                   Log << " - Format: " << stringFromWchar( reinterpret_cast<const wchar_t*>(PXCImage::PixelFormatToString(profile.imageInfo.format)), 256) << " " << 
+                   enLog << "Stream[" << i << "-" << name << "] Profile[" << p << "]:\n";
+                   enLog << " - Format: " << stringFromWchar( reinterpret_cast<const wchar_t*>(PXCImage::PixelFormatToString(profile.imageInfo.format)), 256) << " " << 
                                            static_cast<float>(profile.frameRate.min) << "Hz - " << static_cast<float>(profile.frameRate.max) << "Hz\n";
-                   Log << " - Width : " << (sint32)profile.imageInfo.width << std::endl;
-                   Log << " - Height: " << (sint32)profile.imageInfo.height << std::endl;
+                   enLog << " - Width : " << (sint32)profile.imageInfo.width << std::endl;
+                   enLog << " - Height: " << (sint32)profile.imageInfo.height << std::endl;
                    #endif
                    }
 
@@ -297,11 +297,11 @@ CreativeDepthCamera::~CreativeDepthCamera()
 
                    #ifdef EN_DEBUG
                    // Debug log profile information
-                   Log << "Stream[" << i << "-" << name << "] Profile[" << p << "]:\n";
-                   Log << " - Format: " << stringFromWchar( reinterpret_cast<const wchar_t*>(PXCImage::PixelFormatToString(profile.imageInfo.format)), 256) << " " << 
+                   enLog << "Stream[" << i << "-" << name << "] Profile[" << p << "]:\n";
+                   enLog << " - Format: " << stringFromWchar( reinterpret_cast<const wchar_t*>(PXCImage::PixelFormatToString(profile.imageInfo.format)), 256) << " " << 
                                            static_cast<float>(profile.frameRate.min) << "Hz - " << static_cast<float>(profile.frameRate.max) << "Hz\n";
-                   Log << " - Width : " << (sint32)profile.imageInfo.width << std::endl;
-                   Log << " - Height: " << (sint32)profile.imageInfo.height << std::endl;
+                   enLog << " - Width : " << (sint32)profile.imageInfo.width << std::endl;
+                   enLog << " - Height: " << (sint32)profile.imageInfo.height << std::endl;
                    #endif
                    }
           }
@@ -806,7 +806,7 @@ CreativeDepthCamera::~CreativeDepthCamera()
       {
       // SDK Version
       PXCSession::ImplVersion ver = session->QueryVersion();
-      Log << "Perceptual Computing SDK Version " << (uint16)(ver.major) << "." << (uint16)(ver.minor) << std::endl;
+      enLog << "Perceptual Computing SDK Version " << (uint16)(ver.major) << "." << (uint16)(ver.minor) << std::endl;
 
       // Enumerate through available SDK modules
       PXCSession::ImplDesc desc;
@@ -829,7 +829,7 @@ CreativeDepthCamera::~CreativeDepthCamera()
             continue;
 
 		 std::string nameModule = stringFromWchar((wchar_t*)&result.friendlyName, 256);
-         Log << "Module[" << module << "]: " << nameModule << "\n";
+         enLog << "Module[" << module << "]: " << nameModule << "\n";
 
          // Iterate over devices in module
          for(uint32 deviceId=0; ; ++deviceId) 
@@ -849,7 +849,7 @@ CreativeDepthCamera::~CreativeDepthCamera()
             CreativeDepthCamera* dev = new CreativeDepthCamera(device.size(), ptr, info);
             device.push_back(std::shared_ptr<input::Camera>(dev));
 
-            Log << "    Device[" << deviceId << "]: " << stringFromWchar((wchar_t*)&info.name, 1024) << "\n"; 
+            enLog << "    Device[" << deviceId << "]: " << stringFromWchar((wchar_t*)&info.name, 1024) << "\n"; 
             }
          capture->Release();  
          }
@@ -884,7 +884,7 @@ CreativeDepthCamera::~CreativeDepthCamera()
       input::Kinect* dev = new input::Kinect(device.size(), sensor);
       device.push_back(std::shared_ptr<input::Camera>(dev));
 
-      Log << "    Device[" << i << "]: KinectForXbox360\n"; 
+      enLog << "    Device[" << i << "]: KinectForXbox360\n"; 
       }
 #endif
 #endif
@@ -952,14 +952,14 @@ CreativeDepthCamera::~CreativeDepthCamera()
 //               if (vstream->QueryValidate(p, &profile) != PXC_STATUS_NO_ERROR) 
 //                  break;
 //
-//               Log << "Stream[" << i << "] Profile[" << p << "]:\n";
-//               Log << " - Format: " << (uint32)(profile.imageInfo.format - 0x00010000) << std::endl;
-//               Log << " - Width : " << (uint32)profile.imageInfo.width << std::endl;
-//               Log << " - Height: " << (uint32)profile.imageInfo.height << std::endl;
-//               Log << " - FPS min: " << (uint32)profile.frameRateMin.numerator << std::endl;
-//               Log << " - FPS max: " << (uint32)profile.frameRateMax.numerator << std::endl;
-//               if ( profile.imageOptions == 1) Log << " - No UV MAP!\n";
-//               if ( profile.imageOptions == 2) Log << " - No IR MAP!\n";
+//               enLog << "Stream[" << i << "] Profile[" << p << "]:\n";
+//               enLog << " - Format: " << (uint32)(profile.imageInfo.format - 0x00010000) << std::endl;
+//               enLog << " - Width : " << (uint32)profile.imageInfo.width << std::endl;
+//               enLog << " - Height: " << (uint32)profile.imageInfo.height << std::endl;
+//               enLog << " - FPS min: " << (uint32)profile.frameRateMin.numerator << std::endl;
+//               enLog << " - FPS max: " << (uint32)profile.frameRateMax.numerator << std::endl;
+//               if ( profile.imageOptions == 1) enLog << " - No UV MAP!\n";
+//               if ( profile.imageOptions == 2) enLog << " - No IR MAP!\n";
 //               }
 //
 //            for(uint32 p=0; p<256; ++p) 
@@ -992,7 +992,7 @@ CreativeDepthCamera::~CreativeDepthCamera()
 //                              if (timer.elapsed().seconds() > 1.0)
 //                                 break;
 //
-//                           Log << "COLOR: Stream[" << i << "] Profile[" << p << "]\n";
+//                           enLog << "COLOR: Stream[" << i << "] Profile[" << p << "]\n";
 //
 //                           dev->color = vstream;
 //                           color = true;
@@ -1016,7 +1016,7 @@ CreativeDepthCamera::~CreativeDepthCamera()
 //                              if (timer.elapsed().miliseconds() > 1.0)
 //                                 break;
 //
-//                           Log << "DEPTH: Stream[" << i << "] Profile[" << p << "]\n";
+//                           enLog << "DEPTH: Stream[" << i << "] Profile[" << p << "]\n";
 //
 //                           dev->device->SetProperty(PXCCapture::Device::PROPERTY_DEPTH_SMOOTHING, 1.0f);
 //                           dev->depth = vstream;

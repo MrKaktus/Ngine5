@@ -39,8 +39,8 @@ extern bool IsWarning(const XrResult result);
            {                                                          \
            uint32 threadId = currentThreadId();                       \
            assert( threadId < MaxSupportedThreads );                  \
-           Log << "[" << std::setw(2) << threadId << "] ";            \
-           Log << "OpenXR: " << #command << std::endl;                \
+           enLog << "[" << std::setw(2) << threadId << "] ";          \
+           enLog << "OpenXR: " << #command << std::endl;              \
            instance->lastResult[threadId] = command;                  \
            if (en::xr::IsError(instance->lastResult[threadId]))       \
               { assert( 0 ); }                                        \
@@ -51,8 +51,8 @@ extern bool IsWarning(const XrResult result);
            {                                                          \
            uint32 threadId = currentThreadId();                       \
            assert( threadId < MaxSupportedThreads );                  \
-           Log << "[" << std::setw(2) << threadId << "] ";            \
-           Log << "OpenXR: " << #command << std::endl;                \
+           enLog << "[" << std::setw(2) << threadId << "] ";          \
+           enLog << "OpenXR: " << #command << std::endl;              \
            command;                                                   \
            }
 

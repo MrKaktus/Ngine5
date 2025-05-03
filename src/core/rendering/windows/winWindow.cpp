@@ -82,7 +82,7 @@ winWindow::winWindow(const std::shared_ptr<winDisplay> selectedDisplay,
         // Registering Window Class
         if (!RegisterClass(&WindowClass))	
         {					
-            Log << "Error! Cannot register window class.\n";
+            enLog << "Error! Cannot register window class.\n";
             assert( 0 );
         }
     }
@@ -124,7 +124,7 @@ winWindow::winWindow(const std::shared_ptr<winDisplay> selectedDisplay,
         // Changing Display settings
         if (ChangeDisplaySettingsEx(Device.DeviceName, &DispDevice, nullptr, CDS_FULLSCREEN, nullptr) != DISP_CHANGE_SUCCESSFUL)
         {					
-            Log << "Error! Cannot change display settings for fullscreen.\n";
+            enLog << "Error! Cannot change display settings for fullscreen.\n";
             assert( 0 );
         }
  
@@ -175,7 +175,7 @@ winWindow::winWindow(const std::shared_ptr<winDisplay> selectedDisplay,
     // Check if window was created
     if (hWnd == nullptr)
     {
-        Log << "Error! Cannot create window.\n";
+        enLog << "Error! Cannot create window.\n";
         assert( 0 );
     }
    

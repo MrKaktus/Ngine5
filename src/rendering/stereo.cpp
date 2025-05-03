@@ -233,7 +233,7 @@ namespace en
 //      // Debug
 //      //char tempString[100];
 //      //sprintf_s(tempString,"Frame time = %0.2f ms\tsync time = %0.4f ms\n", timerR.elapsed().seconds() * 1000.0, syncing.seconds() * 1000.0 ); 
-//      //Log << tempString;
+//      //enLog << tempString;
 //      }
 // 
 //   return true;

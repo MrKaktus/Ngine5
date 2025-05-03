@@ -65,8 +65,8 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
         file = Storage->open(en::ResourcesContext.path.textures + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.textures + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.textures + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return std::shared_ptr<gpu::Texture>();
         }
     }
@@ -77,13 +77,13 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     const char radiance[] = "#?RADIANCE";
     if (!file->read(0, 10, &header))
     {
-        Log << "ERROR: Not HDR file!\n";
+        enLog << "ERROR: Not HDR file!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>();
     }
     if (strcmp(radiance, header) != 0)
     {
-        Log << "ERROR: HDR file header signature incorrect!\n";
+        enLog << "ERROR: HDR file header signature incorrect!\n";
         delete file;
         return std::shared_ptr<gpu::Texture>();
     }
@@ -190,7 +190,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     uint8* raw = allocate<uint8>(static_cast<uint32>(rawSize), cacheline);
     if (!file->read(offset, static_cast<uint32>(rawSize), raw))
     {
-        Log << "ERROR: Cannot read HDR file to memory!\n";
+        enLog << "ERROR: Cannot read HDR file to memory!\n";
         deallocate<uint8>(raw);
         delete file;
         return std::shared_ptr<gpu::Texture>();
@@ -370,7 +370,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     std::unique_ptr<Texture> texture(en::ResourcesContext.defaults.enHeapTextures->createTexture(settings));
     if (!texture)
     {
-        Log << "ERROR: Cannot create texture in GPU!\n";
+        enLog << "ERROR: Cannot create texture in GPU!\n";
         delete file;
         return std::shared_ptr<Texture>(nullptr);
     }
@@ -380,7 +380,7 @@ std::shared_ptr<en::gpu::Texture> load(const std::string& filename)
     std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(gpu::BufferType::Transfer, stagingSize));
     if (!staging)
     {
-        Log << "ERROR: Cannot create staging buffer!\n";
+        enLog << "ERROR: Cannot create staging buffer!\n";
         delete file;
         return std::shared_ptr<Texture>(nullptr);
     }

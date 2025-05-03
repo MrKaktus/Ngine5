@@ -841,7 +841,7 @@ void CommandBufferD3D12::waitUntilCompleted(void)
 
         if (result == WAIT_TIMEOUT)
         {
-            Log << "GPU Hang!\n\n";
+            enLog << "GPU Hang!\n\n";
         }
       
         // Destroy signaling Event

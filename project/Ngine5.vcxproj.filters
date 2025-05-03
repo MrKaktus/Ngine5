@@ -639,6 +639,15 @@
     <ClCompile Include="..\src\core\parallel\psxMutex.cpp">
       <Filter>Source Files\core\parallel</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\log\StreamLog.cpp">
+      <Filter>Source Files\core\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\log\andLog.cpp">
+      <Filter>Source Files\core\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\log\PrintLog.cpp">
+      <Filter>Source Files\core\log</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1360,6 +1369,15 @@
     </ClInclude>
     <ClInclude Include="..\public\include\core\xr\event.h">
       <Filter>Header Files\core\xr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\log\StreamLog.h">
+      <Filter>Source Files\core\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\log\andLog.h">
+      <Filter>Source Files\core\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\log\PrintLog.h">
+      <Filter>Source Files\core\log</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

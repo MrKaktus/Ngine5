@@ -850,7 +850,7 @@ struct Interface
 
 } // en::resource
 
-extern resource::Interface Resources;
+extern resources::Interface Resources;
 
 } // en
 

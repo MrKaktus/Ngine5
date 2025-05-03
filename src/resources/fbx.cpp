@@ -373,25 +373,25 @@ bool IsMaterialUsingShaders(FbxSurfaceMaterial* fbxMaterial)
     fbxImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_MENTALRAY);
     if (fbxImplementation)
     {
-        Log << "ERROR: Engine is not supporting MentalRay shaders in FBX materials!\n";
+        enLog << "ERROR: Engine is not supporting MentalRay shaders in FBX materials!\n";
         return true;
     }
     fbxImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_CGFX);
     if (fbxImplementation)
     {
-        Log << "ERROR: Engine is not supporting CgFX shaders in FBX materials!\n";
+        enLog << "ERROR: Engine is not supporting CgFX shaders in FBX materials!\n";
         return true;
     }
     fbxImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_HLSL);
     if (fbxImplementation)
     {
-        Log << "ERROR: Engine is not supporting HLSL shaders in FBX materials!\n";
+        enLog << "ERROR: Engine is not supporting HLSL shaders in FBX materials!\n";
         return true;
     }
     fbxImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_OGS);
     if (fbxImplementation)
     {
-        Log << "ERROR: Engine is not supporting OGS shaders in FBX materials!\n";
+        enLog << "ERROR: Engine is not supporting OGS shaders in FBX materials!\n";
         return true;
     }
 
@@ -654,7 +654,7 @@ std::vector<en::resources::Mesh> LoadMesh(FbxMesh* fbxMesh)
     if (type == Unsupported)
     {
         // TODO: Create proper return !
-        Log << "WARNING! Unsupported mode of mapping materials onto mesh in FBX file!\n";
+        enLog << "WARNING! Unsupported mode of mapping materials onto mesh in FBX file!\n";
         return meshes;
     }
 
@@ -1087,7 +1087,7 @@ std::vector<en::resources::Mesh> LoadMesh(FbxMesh* fbxMesh)
     std::unique_ptr<gpu::Buffer> staging(en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize));
     if (!staging)
     {
-        Log << "ERROR: Cannot create staging buffer!\n";
+        enLog << "ERROR: Cannot create staging buffer!\n";
         return meshes;
     }
 
@@ -1188,7 +1188,7 @@ std::vector<en::resources::Mesh> LoadMesh(FbxMesh* fbxMesh)
     staging.swap(std::unique_ptr<gpu::Buffer>(en::ResourcesContext.defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize)));
     if (!staging)
     {
-        Log << "ERROR: Cannot create staging buffer!\n";
+        enLog << "ERROR: Cannot create staging buffer!\n";
         return meshes;
     }
 
@@ -1276,7 +1276,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
     FbxImporter* fbxImporter = FbxImporter::Create(ResourcesContext.fbxManager, "");
     if (!fbxImporter) 
     {
-        Log << "ERROR: Cannot create FBX importer!\n";
+        enLog << "ERROR: Cannot create FBX importer!\n";
         return std::shared_ptr<en::resources::Model>(NULL);
     }
 
@@ -1285,7 +1285,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
     {
         if (!fbxImporter->Initialize((ResourcesContext.path.models + filename).c_str(), -1, ResourcesContext.fbxManager->GetIOSettings())) 
         {
-            Log << std::string("ERROR: FBX importer initialization failed with error: " + std::string(fbxImporter->GetStatus().GetErrorString()) + "\n");
+            enLog << std::string("ERROR: FBX importer initialization failed with error: " + std::string(fbxImporter->GetStatus().GetErrorString()) + "\n");
             return std::shared_ptr<en::resources::Model>(NULL);
         }
     }
@@ -1304,7 +1304,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
 
     // (1) Load textures used in scene
 #ifdef EN_DEBUG
-    Log << std::string("FBX uses " + stringFrom(fbxScene->GetTextureCount()) + " textures:\n");
+    enLog << std::string("FBX uses " + stringFrom(fbxScene->GetTextureCount()) + " textures:\n");
 #endif
     for(sint32 i=0; i<fbxScene->GetTextureCount(); ++i)
     {
@@ -1314,14 +1314,14 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
         // Check importer consistency
         if (!fileTexture)
         {
-            Log << std::string("ERROR: FBX file has corrupted texture description!\n");
+            enLog << std::string("ERROR: FBX file has corrupted texture description!\n");
             return std::shared_ptr<en::resources::Model>(NULL);
         }
 
         // Check if texture is resident in FBX
         if (fileTexture->GetUserDataPtr())
         {
-            Log << std::string("ERROR: Engine doesn't support import of textures resident in FBX files!\n");
+            enLog << std::string("ERROR: Engine doesn't support import of textures resident in FBX files!\n");
             return std::shared_ptr<en::resources::Model>(NULL);
         }
 
@@ -1335,7 +1335,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
             filename.erase(0, nameStart + 1);
         }
 #ifdef EN_DEBUG
-        Log << filename << std::endl;
+        enLog << filename << std::endl;
 #endif
 
         Resources.load.texture(filename);
@@ -1757,7 +1757,7 @@ std::shared_ptr<en::resources::Model> load(const std::string& filename, const st
    //      case FbxNodeAttribute::eCachedEffect: 
    //      case FbxNodeAttribute::eLine:         
    //      default: 
-   //           Log << "WARNING! Unsupported FBX element!\n";
+   //           enLog << "WARNING! Unsupported FBX element!\n";
    //           break;
    //      }
 

@@ -72,7 +72,7 @@ oxrHeadsetVK::oxrHeadsetVK(oxrInterface& _session) :
         vulkanVersionInfo += stringFrom(XR_VERSION_MINOR(requirements.maxApiVersionSupported));
         vulkanVersionInfo += "\n";
     }
-    Log << vulkanVersionInfo;
+    enLog << vulkanVersionInfo;
 
     // TODO: After Vulkan GPU subsystem is created call:
 

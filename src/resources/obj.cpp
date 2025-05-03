@@ -1170,8 +1170,8 @@ std::shared_ptr<en::resources::Model> load(
         file = Storage->open(en::ResourcesContext.path.models + filename);
         if (!file)
         {
-            Log << en::ResourcesContext.path.models + filename << std::endl;
-            Log << "ERROR: There is no such file!\n";
+            enLog << en::ResourcesContext.path.models + filename << std::endl;
+            enLog << "ERROR: There is no such file!\n";
             return std::shared_ptr<en::resources::Model>(nullptr);
         }
     }
@@ -1180,7 +1180,7 @@ std::shared_ptr<en::resources::Model> load(
     uint64 size = file->size();
     if (size > 0xFFFFFFFF)
     {
-        Log << "ERROR: Maximum supported size of imported OBJ file is 4GB!\n";
+        enLog << "ERROR: Maximum supported size of imported OBJ file is 4GB!\n";
         return std::shared_ptr<en::resources::Model>(nullptr);
     }
 
@@ -1188,7 +1188,7 @@ std::shared_ptr<en::resources::Model> load(
     buffer = new uint8[static_cast<uint32>(size)];
     if (!buffer)
     {
-        Log << "ERROR: Not enough memory!\n";
+        enLog << "ERROR: Not enough memory!\n";
         delete file;
         return std::shared_ptr<en::resources::Model>(nullptr);
     }
@@ -1196,7 +1196,7 @@ std::shared_ptr<en::resources::Model> load(
     // Read file to buffer and close file
     if (!file->read(buffer))
     {
-        Log << "ERROR: Cannot read whole obj file!\n";
+        enLog << "ERROR: Cannot read whole obj file!\n";
         delete file;
         return std::shared_ptr<en::resources::Model>(nullptr);
     }    
@@ -1240,7 +1240,7 @@ std::shared_ptr<en::resources::Model> load(
         // Check if material was found and properly loaded
         if (!loaded)
         {
-            Log << "ERROR! Cannot find material: " << srcModel->materials[i].name.c_str() << " !\n";
+            enLog << "ERROR! Cannot find material: " << srcModel->materials[i].name.c_str() << " !\n";
         }
     }  
 
@@ -1305,7 +1305,7 @@ std::shared_ptr<en::resources::Model> load(
     //en::resources::ModelDescriptor* model = ResourcesContext.storage.models.allocate();
     //if (model == NULL)
     //{
-    //    Log << "ERROR: Models pool is full!\n";
+    //    enLog << "ERROR: Models pool is full!\n";
     //    return std::shared_ptr<en::resources::Model>(NULL);
     //} 
     //

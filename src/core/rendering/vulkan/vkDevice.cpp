@@ -36,7 +36,7 @@ namespace gpu
 
 void unbindedVulkanFunctionHandler(...)
 {
-    Log << "ERROR: Called unbinded Vulkan function.\n";
+    enLog << "ERROR: Called unbinded Vulkan function.\n";
     assert( 0 );
 }
 
@@ -60,7 +60,7 @@ PFN_##function function;
     if (function == nullptr)                                                       \
     {                                                                              \
         function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
-        Log << "Error: Cannot bind function " << #function << std::endl;           \
+        enLog << "Error: Cannot bind function " << #function << std::endl;           \
     }                                                                              \
 }
 
@@ -70,7 +70,7 @@ PFN_##function function;
     if (function == nullptr)                                                       \
     {                                                                              \
         function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
-        Log << "Error: Cannot bind global function " << #function << std::endl;    \
+        enLog << "Error: Cannot bind global function " << #function << std::endl;    \
     }                                                                              \
 }
    
@@ -80,7 +80,7 @@ PFN_##function function;
     if (function == nullptr)                                                       \
     {                                                                              \
         function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
-        Log << "Error: Cannot bind instance function " << #function << std::endl;  \
+        enLog << "Error: Cannot bind instance function " << #function << std::endl;  \
     }                                                                              \
 }
 
@@ -92,7 +92,7 @@ PFN_##function function;
     if (function == nullptr)                                                       \
     {                                                                              \
         function = (PFN_##function) &unbindedVulkanFunctionHandler;                \
-        Log << "Error: Cannot bind device function " << #function << std::endl;    \
+        enLog << "Error: Cannot bind device function " << #function << std::endl;    \
     }                                                                              \
 }
 
@@ -152,7 +152,7 @@ bool IsError(const VkResult result)
         info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
     }
 
-    Log << info.c_str();
+    enLog << info.c_str();
     return true; 
 }
 
@@ -193,7 +193,7 @@ bool IsWarning(const VkResult result)
         info += "VK_INCOMPLETE.\n";
     }
 
-    Log << info.c_str();
+    enLog << info.c_str();
     return true; 
 }
 
@@ -357,7 +357,7 @@ void taskDestroyCommandPools(void* data)
     workerIndex.append(stringFrom(previousValue + 1));
     workerIndex.append("\n");
 
-    Log << workerIndex;
+    enLog << workerIndex;
 #endif
 }
 
@@ -399,42 +399,42 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
 
     for(uint32_t i=0; i<memory.memoryHeapCount; ++i)
     {
-        Log << "Memory range " << stringFrom(i) << ":\n\n";
-        Log << "    Size          : "  << stringFrom(memory.memoryHeaps[i].size) << "\n";
-        Log << "    Backing memory: ";
+        enLog << "Memory range " << stringFrom(i) << ":\n\n";
+        enLog << "    Size          : "  << stringFrom(memory.memoryHeaps[i].size) << "\n";
+        enLog << "    Backing memory: ";
         if (memory.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
         {
-            Log << "VRAM\n";
+            enLog << "VRAM\n";
         }
         else
         { 
-            Log << "RAM\n";
+            enLog << "RAM\n";
         }
-        Log << "    Memory types  :\n";
+        enLog << "    Memory types  :\n";
         for(uint32_t j=0; j<memory.memoryTypeCount; ++j)
         {
             if (memory.memoryTypes[j].heapIndex == i)
             {
-                Log << "    Type: "  << stringFrom(j) << "\n";
+                enLog << "    Type: "  << stringFrom(j) << "\n";
                 if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
                 {
-                    Log << "        Supports: VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT\n";
+                    enLog << "        Supports: VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT\n";
                 }
                 if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
                 {
-                    Log << "        Supports: VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT\n";
+                    enLog << "        Supports: VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT\n";
                 }
                 if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
                 {
-                    Log << "        Supports: VK_MEMORY_PROPERTY_HOST_COHERENT_BIT\n";
+                    enLog << "        Supports: VK_MEMORY_PROPERTY_HOST_COHERENT_BIT\n";
                 }
                 if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
                 {
-                    Log << "        Supports: VK_MEMORY_PROPERTY_HOST_CACHED_BIT\n\n\n"; 
+                    enLog << "        Supports: VK_MEMORY_PROPERTY_HOST_CACHED_BIT\n\n\n"; 
                 }
                 if (memory.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
                 {
-                    Log << "        Supports: VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT\n\n\n"; 
+                    enLog << "        Supports: VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT\n\n\n"; 
                 }
             }
         }
@@ -562,41 +562,41 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
             // It's another combination of Queue Family flags that we don't support.
             // This shouldn't happen but if it will we will report it without asserting.
          
-            Log << "Unsupported type of Queue Family\n";
-            Log << "    Flags:" << flags << std::endl;
-            Log << "    Queues in Family: " << queueFamily[family].queueCount << std::endl;
-            Log << "    Queue Min Transfer Width : " << queueFamily[family].minImageTransferGranularity.width << std::endl;
-            Log << "    Queue Min Transfer Height: " << queueFamily[family].minImageTransferGranularity.height << std::endl;
-            Log << "    Queue Min Transfer Depth : " << queueFamily[family].minImageTransferGranularity.depth << std::endl;
+            enLog << "Unsupported type of Queue Family\n";
+            enLog << "    Flags:" << flags << std::endl;
+            enLog << "    Queues in Family: " << queueFamily[family].queueCount << std::endl;
+            enLog << "    Queue Min Transfer Width : " << queueFamily[family].minImageTransferGranularity.width << std::endl;
+            enLog << "    Queue Min Transfer Height: " << queueFamily[family].minImageTransferGranularity.height << std::endl;
+            enLog << "    Queue Min Transfer Depth : " << queueFamily[family].minImageTransferGranularity.depth << std::endl;
             if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
-                Log << "    Queue supports: GRAPHICS\n";
+                enLog << "    Queue supports: GRAPHICS\n";
             }
             if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
             {
-                Log << "    Queue supports: COMPUTE\n";
+                enLog << "    Queue supports: COMPUTE\n";
             }
             if (queueFamily[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
             {
-                Log << "    Queue supports: TRANSFER\n";
+                enLog << "    Queue supports: TRANSFER\n";
             }
             if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
             {
-                Log << "    Queue supports: SPARSE_BINDING\n";
+                enLog << "    Queue supports: SPARSE_BINDING\n";
             }
             if (queueFamily[family].queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
             {
-                Log << "    Queue supports: VIDEO_ENCODE\n";
+                enLog << "    Queue supports: VIDEO_ENCODE\n";
             }
             if (queueFamily[family].queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
             {
-                Log << "    Queue supports: VIDEO_DECODE\n";
+                enLog << "    Queue supports: VIDEO_DECODE\n";
             }
             if (queueFamily[family].queueFlags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
             {
-                Log << "    Queue supports: OPTICAL_FLOW\n";
+                enLog << "    Queue supports: OPTICAL_FLOW\n";
             }
-            Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << std::endl << std::endl;
+            enLog << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << std::endl << std::endl;
         }
     }
    
@@ -604,41 +604,41 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
     // Debug log Queue Families
     for(uint32_t family=0; family<queueFamiliesCount; ++family)
     {
-        Log << "Queue Family: " << family << std::endl;
+        enLog << "Queue Family: " << family << std::endl;
 
-        Log << "    Queues: " << queueFamily[family].queueCount << std::endl;
-        Log << "    Queue Min Transfer W: " << queueFamily[family].minImageTransferGranularity.width << std::endl;
-        Log << "    Queue Min Transfer H: " << queueFamily[family].minImageTransferGranularity.height << std::endl;
-        Log << "    Queue Min Transfer D: " << queueFamily[family].minImageTransferGranularity.depth << std::endl;
+        enLog << "    Queues: " << queueFamily[family].queueCount << std::endl;
+        enLog << "    Queue Min Transfer W: " << queueFamily[family].minImageTransferGranularity.width << std::endl;
+        enLog << "    Queue Min Transfer H: " << queueFamily[family].minImageTransferGranularity.height << std::endl;
+        enLog << "    Queue Min Transfer D: " << queueFamily[family].minImageTransferGranularity.depth << std::endl;
         if (queueFamily[family].queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
-            Log << "    Family supports: GRAPHICS\n";
+            enLog << "    Family supports: GRAPHICS\n";
         }
         if (queueFamily[family].queueFlags & VK_QUEUE_COMPUTE_BIT)
         {
-            Log << "    Family supports: COMPUTE\n";
+            enLog << "    Family supports: COMPUTE\n";
         }
         if (queueFamily[family].queueFlags & VK_QUEUE_TRANSFER_BIT)
         {
-            Log << "    Family supports: TRANSFER\n";
+            enLog << "    Family supports: TRANSFER\n";
         }
         if (queueFamily[family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
         {
-            Log << "    Family supports: SPARSE_BINDING\n";
+            enLog << "    Family supports: SPARSE_BINDING\n";
         }
         if (queueFamily[family].queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
         {
-            Log << "    Family supports: VIDEO_ENCODE\n";
+            enLog << "    Family supports: VIDEO_ENCODE\n";
         }
         if (queueFamily[family].queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
         {
-            Log << "    Family supports: VIDEO_DECODE\n";
+            enLog << "    Family supports: VIDEO_DECODE\n";
         }
         if (queueFamily[family].queueFlags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
         {
-            Log << "    Family supports: OPTICAL_FLOW\n";
+            enLog << "    Family supports: OPTICAL_FLOW\n";
         }
-        Log << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << std::endl << std::endl;
+        enLog << "    Queues Time Stamp: " << queueFamily[family].timestampValidBits << std::endl << std::endl;
     }
 #endif
 
@@ -713,11 +713,11 @@ VulkanDevice::VulkanDevice(VulkanAPI* _api, const uint32 _index, const VkPhysica
 
         if (!found)
         {
-            Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!\n";
-            Log << "       Supported extensions:\n";
+            enLog << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!\n";
+            enLog << "       Supported extensions:\n";
             for(uint32 j=0; j<globalExtensionsCount; ++j)
             {
-                Log << "       - " << globalExtension[j].extensionName << std::endl;
+                enLog << "       - " << globalExtension[j].extensionName << std::endl;
             }
 
             assert( 0 );
@@ -1619,7 +1619,7 @@ VkBool32 vulkanDebugCallbackLogger(
     info += std::string(pMessage);
     info += "\n\n";
     
-    Log << info.c_str();
+    enLog << info.c_str();
     
     // Don't abort this function call (to maintain consistency with Release behavior)
     return VK_FALSE;
@@ -1651,7 +1651,7 @@ VulkanAPI::VulkanAPI(std::string appName) :
         info += "ERROR: Vulkan error:\n";
         info += "       Cannot find Vulkan dynamic library.\n";
         info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
-        Log << info.c_str();
+        enLog << info.c_str();
         assert( 0 );
 
         // TODO: Terminate application in Release build
@@ -1767,11 +1767,11 @@ VulkanAPI::VulkanAPI(std::string appName) :
          
         if (!found)
         {
-            Log << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!\n";
-            Log << "       Supported extensions:\n";
+            enLog << "ERROR: Requested Vulkan extension " << extensionPtrs[i] << " is not supported on this system!\n";
+            enLog << "       Supported extensions:\n";
             for(uint32 j=0; j<globalExtensionsCount; ++j)
             {
-                Log << "       - " << globalExtension[j].extensionName << std::endl;
+                enLog << "       - " << globalExtension[j].extensionName << std::endl;
             }
 
             assert( 0 );
@@ -1787,10 +1787,10 @@ VulkanAPI::VulkanAPI(std::string appName) :
 #if defined(EN_DEBUG)
     if (layersCount > 0)
     {
-        Log << "Available Vulkan Layers:\n";
+        enLog << "Available Vulkan Layers:\n";
         for(uint32 i=0; i<layersCount; ++i)  
         {
-            Log << "  " << layer[i].properties.layerName << std::endl;
+            enLog << "  " << layer[i].properties.layerName << std::endl;
         }
     }
 
@@ -2129,7 +2129,7 @@ std::shared_ptr<Display> VulkanAPI::display(const uint32 index) const
 //      info += "ERROR: Vulkan error: ";
 //      info += "       Cannot find a compatible Vulkan installable client driver (ICD).\n";
 //      info += "       Please check that your graphic card support Vulkan API and that you have latest graphic drivers installed.\n";
-//      Log << info.c_str();
+//      enLog << info.c_str();
 //      exit(0);
 //      }
 //   
