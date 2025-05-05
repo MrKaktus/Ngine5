@@ -141,12 +141,20 @@ extern std::unique_ptr<log::Interface> Log;
 
 #define enLog (*en::Log)
 
+#define logInfo(format, ...) enLog(format, __VA_ARGS__)
+
 #ifdef EN_DEBUG
-#define logDebug( x ) enLog << x;
+// Debug log is always pruned from Release builds and there is no way of enabling it through config.
+#define logDebug(format, ...) enLog(format, __VA_ARGS__)
 #else
-#define logDebug( x ) false /* Nothing in Release */
+#define logDebug(format, ...) false /* Nothing in Release */
 #endif
 
+// TODO: Warning should go to error stream with [WARNING] prefix but not impact execution.
+#define logWarning(format, ...) enLog(format, __VA_ARGS__)
+
+// TODO: Error should log callstack and terminate?
+#define logError(format, ...) enLog.error(format, __VA_ARGS__)
 
 #include "core/log/log.inl"
 

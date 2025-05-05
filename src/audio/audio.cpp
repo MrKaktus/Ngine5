@@ -130,7 +130,7 @@ Context::~Context()
 
 bool Context::create(void)
 {
-    enLog << "Starting module: Audio.\n";
+    logInfo("Starting module: Audio.\n");
 
 #ifdef EN_PLATFORM_ANDROID
     SLresult result;
@@ -187,7 +187,7 @@ bool Context::create(void)
 
 void Context::destroy(void)
 {
-    enLog << "Closing module: Audio.\n";
+    logInfo("Closing module: Audio.\n");
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
     if (!context)
     {
@@ -215,7 +215,7 @@ void Context::destroy(void)
 //   SampleDescriptor* sample = AudioContext.samples.allocate();
 //   if (sample == NULL)
 //      {
-//      enLog << "ERROR: Samples pool is full!\n";
+//      logError("Samples pool is full!\n");
 //      return NULL;
 //      } 
 //
@@ -270,13 +270,13 @@ std::shared_ptr<audio::Sample> Interface::Sample::create(
     if (channels != 1 &&
         channels != 2)
     {
-        enLog << "ERROR: Unsupported audio channells count!\n";
+        logError("Unsupported audio channells count!\n");
         return std::shared_ptr<audio::Sample>(nullptr);
     }
     if (bps != 8 &&
         bps != 16)
     {
-        enLog << "ERROR: Unsupported Bits Per Sample ratio!\n";
+        logError("Unsupported Bits Per Sample ratio!\n");
         return std::shared_ptr<audio::Sample>(nullptr);
     }
 
@@ -319,7 +319,7 @@ std::shared_ptr<audio::Sample> Interface::Sample::create(
     alBufferData(id, format, data, size, freq);     
     if ((error = alGetError()) != AL_NO_ERROR)
     {
-        enLog << "ERROR: Cannot create sample in device!\n";
+        logError("Cannot create sample in device!\n");
         return std::shared_ptr<audio::Sample>(nullptr);
     }
 
@@ -353,7 +353,7 @@ std::shared_ptr<audio::Source> Interface::Source::create(void)
 //alGenSources(1, &id);
 //if ((error = alGetError()) != AL_NO_ERROR)
 //   {
-//   enLog << "Error: Can't create audio source." << error << std::endl;
+//   logError("Can't create audio source: %u.\n", error);
 //   return en::audio::Source(NULL);
 //   }
 
@@ -417,7 +417,7 @@ audio::Interface Audio;
 // alGenSources(1, &id);
 // if ((error = alGetError()) != AL_NO_ERROR)
 //    {
-//    enLog << "Error: Can't create audio source." << error << std::endl;
+//    logError("Error: Can't create audio source: %u.\n", error);
 //    return 0;
 //    }
 //
