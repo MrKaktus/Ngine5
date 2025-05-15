@@ -1370,6 +1370,12 @@
     <ClInclude Include="..\public\include\core\xr\event.h">
       <Filter>Header Files\core\xr</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\resources\common.h">
+      <Filter>Source Files\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\resources\interface.h">
+      <Filter>Header Files\resources</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\core\log\StreamLog.h">
       <Filter>Source Files\core\log</Filter>
     </ClInclude>

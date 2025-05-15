@@ -268,6 +268,7 @@
     <ClInclude Include="..\public\include\resources\font.h" />
     <ClInclude Include="..\public\include\resources\forsyth.h" />
     <ClInclude Include="..\public\include\resources\hdr.h" />
+    <ClInclude Include="..\public\include\resources\interface.h" />
     <ClInclude Include="..\public\include\resources\material.h" />
     <ClInclude Include="..\public\include\resources\mtl.h" />
     <ClInclude Include="..\public\include\resources\obj.h" />
@@ -413,6 +414,7 @@
     <ClInclude Include="..\src\platform\comMain.h" />
     <ClInclude Include="..\src\platform\context.h" />
     <ClInclude Include="..\src\platform\osx\AppDelegate.h" />
+    <ClInclude Include="..\src\resources\common.h" />
     <ClInclude Include="..\src\resources\context.h" />
     <ClInclude Include="..\src\scene\context.h" />
   </ItemGroup>
