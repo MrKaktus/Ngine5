@@ -15,9 +15,18 @@
 #include "core/rendering/device.h"
 #include "utilities/strings.h"
 #include "utilities/gpcpu/gpcpu.h"
-#include "resources/context.h" 
+#include "resources/interface.h" 
 #include "resources/forsyth.h" 
 #include "resources/fbx.h"     
+
+#pragma push_macro("aligned")
+#undef aligned
+
+#define FBXSDK_SHARED
+#define FBXSDK_NEW_API
+#include "fbxsdk.h"
+
+#pragma pop_macro("aligned")
 
 namespace en
 {

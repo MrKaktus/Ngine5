@@ -109,13 +109,13 @@ BlendStateVK::BlendStateVK(const BlendStateInfo& desc,
         // Translate Color Write Mask
         blendInfo[i].colorWriteMask      = underlyingType(color[i].writeMask);
         // Optimisation:
-        //if (color[i].writeMask & ColorMaskRed)           
+        //if (color[i].writeMask & ChannelMask::Red)           
         //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_R_BIT;
-        //if (color[i].writeMask & ColorMaskGreen)
+        //if (color[i].writeMask & ChannelMask::Green)
         //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_G_BIT;
-        //if (color[i].writeMask & ColorMaskBlue)
+        //if (color[i].writeMask & ChannelMask::Blue)
         //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_B_BIT;
-        //if (color[i].writeMask & ColorMaskAlpha)
+        //if (color[i].writeMask & ChannelMask::Alpha)
         //   blendInfo[i].colorWriteMask  |= VK_COLOR_COMPONENT_A_BIT;
     }
 }

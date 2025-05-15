@@ -13,7 +13,7 @@
 #include "core/storage.h"
 #include "core/log/log.h"
 #include "utilities/utilities.h"
-#include "resources/context.h"
+#include "resources/interface.h"
 
 #include "core/rendering/device.h"
 
@@ -88,11 +88,11 @@ std::unique_ptr<gpu::Texture>* load(const std::string& filename)
     File* file = Storage->open(filename);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        std::string fullPath = Resources->assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.textures + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
+            logError("There is no such file!\n%s\n", fullPath.c_str());
             return nullptr;
         }
     }

@@ -113,6 +113,11 @@ ParserType Parser::findNextElement(void)
     return ParserType::None;
 }
 
+ParserType Parser::currentElement(void) const
+{
+    return type;
+}
+
 bool Parser::isFloat(const uint64 startOffset, sint32& length)
 {
     // Floating point notation:

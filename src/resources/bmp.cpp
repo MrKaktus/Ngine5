@@ -12,7 +12,7 @@
 #include "core/storage.h"
 #include "core/log/log.h"
 #include "utilities/utilities.h"
-#include "resources/context.h"
+#include "resources/interface.h"
 #include "resources/bmp.h"
 
 #include "core/rendering/device.h"
@@ -276,11 +276,11 @@ bool load(
     File* file = Storage->open(filename);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        std::string fullPath = Resources->assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.textures + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
+            logError("There is no such file!\n%s\n", fullPath.c_str());
             return false;
         }
     }
@@ -394,11 +394,11 @@ bool save(
     File* file = Storage->open(filename, en::storage::Write);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
+        std::string fullPath = Resources->screenshotsPath() + filename;
+        file = Storage->open(fullPath, en::storage::Write);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.screenshots + filename << std::endl;
-            enLog << "ERROR: Cannot create such file!\n";
+            logError("Cannot create such file!\n%s\n", fullPath.c_str());
             return false;
         }
     }

@@ -22,6 +22,8 @@
 // can also update used seed to maintain perfect hash.
 #define PerfectHashSeed 0xC438F289 
 
+#define InvalidHash 0
+
 namespace en
 {
 

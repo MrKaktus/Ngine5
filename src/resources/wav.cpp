@@ -13,7 +13,7 @@
 #include "core/log/log.h"
 #include "utilities/utilities.h"
 
-#include "resources/context.h"
+#include "resources/interface.h"
 #include "resources/wav.h"    
 #include "audio/audio.h"
 
@@ -63,12 +63,12 @@ std::shared_ptr<audio::Sample> load(const std::string& filename)
     File* file = Storage->open(filename);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.sounds + filename);
+        std::string fullPath = Resources->assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.sounds + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
-            return std::shared_ptr<audio::Sample>(NULL);
+            logError("There is no such file!\n%s\n", fullPath.c_str());
+            return nullptr;
         }
     }
    

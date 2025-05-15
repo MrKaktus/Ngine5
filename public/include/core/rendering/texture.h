@@ -409,6 +409,8 @@ struct TextureState
 
 static_assert(sizeof(TextureState) == 16, "en::gpu::TextureState size mismatch!");
 
+extern uint32 calculateMipMapsCount(const TextureState& state);
+
 class Heap;
 class TextureView;
 

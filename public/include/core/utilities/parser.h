@@ -53,6 +53,9 @@ class Parser
     // opposed to well defined formats like JSON).
     virtual ParserType findNextElement(void);
 
+    // Returns type of currently detected element
+    ParserType currentElement(void) const;
+
     // If characters sequence at specified offset location 
     // is representing float value, returns length of that
     // string representation.

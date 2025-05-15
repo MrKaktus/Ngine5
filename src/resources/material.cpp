@@ -13,7 +13,7 @@
 #include "core/log/log.h"
 #include "core/utilities/parser.h"
 #include "utilities/strings.h"
-#include "resources/context.h" 
+#include "resources/interface.h" 
 #include "resources/material.h"    
 
 namespace en
@@ -35,12 +35,12 @@ en::resources::Material load(const std::string& filename)
     File* file = Storage->open(filename);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.materials + filename);
+        std::string fullPath = Resources->assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.materials + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
-            return en::resources::Material();
+            logError("There is no such file!\n%s\n", fullPath.c_str());
+            return nullptr;
         }
     }
 

@@ -26,7 +26,7 @@ namespace gpu
 {
 
 class CommonTextureView;
-   
+
 class CommonTexture : public Texture
 {
     public:
@@ -97,8 +97,6 @@ struct TextureInfo
 
 extern TextureInfo TextureCapabilities[underlyingType(Format::Count)];
 #endif
-
-extern uint32 TextureMipMapCount(const TextureState& state);
 
 } // en::gpu
 } // en

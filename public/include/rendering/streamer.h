@@ -524,8 +524,8 @@ struct StreamerSettings
 class Streamer
 {
     public:
-    std::shared_ptr<gpu::GpuDevice> gpu;
-    gpu::QueueType queueForTransfers;
+    gpu::GpuDevice& gpu;
+    gpu::QueueType  queueForTransfers;
 
     uint64 dedicatedMemorySize;    // Total size of GPU dedicated memory
     uint64 systemMemorySize;       // Total size of system memory GPU can access
@@ -607,7 +607,7 @@ class Streamer
                         const TransferDirection direction);
 
     public:
-    Streamer(std::shared_ptr<gpu::GpuDevice> gpu, const StreamerSettings* settings = nullptr);
+    Streamer(gpu::GpuDevice& gpu, const StreamerSettings* settings = nullptr);
    ~Streamer();
  
     bool allocateMemory(BufferAllocation*& desc, const uint32 size);

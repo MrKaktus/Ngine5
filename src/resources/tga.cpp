@@ -13,7 +13,7 @@
 #include "core/log/log.h"
 #include "core/rendering/device.h"
 #include "utilities/utilities.h"
-#include "resources/context.h"
+#include "resources/interface.h"
 #include "resources/tga.h"    
 
 #define PageSize 4096
@@ -137,12 +137,12 @@ bool load(
     File* file = Storage->open(filename);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        std::string fullPath = Resources->assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.textures + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
-            return false;
+            logError("There is no such file!\n%s\n", fullPath.c_str());
+            return nullptr;
         }
     }
 

@@ -15,7 +15,7 @@
 #include "core/utilities/parser.h"
 #include "utilities/strings.h"
 #include "utilities/gpcpu/gpcpu.h"
-#include "resources/context.h" 
+#include "resources/interface.h" 
 #include "resources/forsyth.h" 
 #include "resources/obj.h"     
 #include "resources/mtl.h"     
@@ -33,12 +33,17 @@ bool optimizeIndexOrder = true;   // Optimizes indexes order for Post-Transform 
 // TODO: Unify as "UnpackedVertex"
 struct Vertex
 {
-    // Index 0 means that given component is not used by vertex.
+    // OBJ:
+    // - Index 0 means that given component is not used by vertex 
+    //   (thus can use unsigned ints, as valid indexing starts at 1).
+    // - Only one texture coordinates set is supported.
 
-    uint32 position; // Position
-    uint32 uv;       // Texture Coordinate
-    uint32 normal;   // Normal vector
-    
+    uint32 positionId;     // Position Id
+    uint32 normalId;       // Normal vector Id
+  //sint32 tangent;        // Tangent vector Id
+  //sint32 bitangent;      // Bitangent vector Id
+    uint32 texCoordsId[4]; // Texture Coordinate set Ids
+
     bool operator ==(const Vertex& b);
 };
 
@@ -62,7 +67,7 @@ struct Face
 struct Mesh
 {
     std::string         name;             // Mesh name
-    std::string         material;         // Material name (only one per group allowed)
+    uint32              materialId;       // Material index in model (only one per group allowed)
     std::vector<Vertex> vertices;         // Array of vertices composition data
     std::vector<float3> tangents;         // Tangents (uncompressed, generated from UVs)
     std::vector<float3> bitangents;       // BiTangents (uncompressed, generated from UVs)
@@ -84,9 +89,9 @@ struct Model
     std::vector<float3> vertices;                  // Vertices (uncompressed)
     std::vector<float3> normals;                   // Normals (uncompressed)
     std::vector<float3> coordinates;               // Texture coordinates (uncompressed)
-    std::vector<std::string> libraries;            // Material libraries
-    std::vector<en::obj::Mesh> meshes;             // Meshes
-    std::vector<en::resources::Material> materials; // Materials <- TODO: This should be OBJ internal temp material? OR reference to final material stored in some global arrray
+    std::vector<std::string> materialLibraryNames; // Material libraries (to load)
+    std::vector<obj::Mesh> meshes;                 // Meshes
+    std::vector<std::string> materialNames;        // Materials (to load from above libraries)
 
     Model();
 
@@ -96,7 +101,7 @@ struct Model
 
 bool Vertex::operator ==(const Vertex& b)
 {
-    return !memcmp(this, &b, 12); // 12 = sizeof(obj::Vertex)
+    return !memcmp(this, &b, sizeof(obj::Vertex));
 }
 
 Mesh::Mesh() :
@@ -115,16 +120,16 @@ Model::Model()
     vertices.reserve(16384);
     normals.reserve(16384);
     coordinates.reserve(16384);
-    libraries.reserve(16);
+    materialLibraryNames.reserve(16);
     meshes.reserve(16);
-    materials.reserve(32);
+    materialNames.reserve(32);
 
     // Model always has minimum one mesh
     obj::Mesh* mesh = addMesh();
 
     // Fill first mesh descriptor with default data
     mesh->name = "default";
-    mesh->material = "default";
+    mesh->materialId = -1;
     mesh->vertices.reserve(8192);
     mesh->indexes.reserve(8192);
     mesh->optimized.reserve(8192);
@@ -182,7 +187,7 @@ bool ParserOBJ::readVector3f(float(&vector)[3])
         {
             if (!readF32(vector[i]))
             {
-                // TODO: logError("Vector parsing failed. Failed to read float value for %i component.", i);
+                logError("Vector parsing failed. Failed to read float value for %i component.\n", i);
                 return false;
             }
         }
@@ -192,7 +197,7 @@ bool ParserOBJ::readVector3f(float(&vector)[3])
             sint64 temp = 0;
             if (!readS64(temp))
             {
-                // TODO: logError("Vector parsing failed. Failed to read integer value for %i component.", i);
+                logError("Vector parsing failed. Failed to read integer value for %i component.\n", i);
                 return false;
             }
 
@@ -200,7 +205,7 @@ bool ParserOBJ::readVector3f(float(&vector)[3])
         }
         else
         {
-            // TODO: logError("Vector parsing failed. Expected float value for %i component.", i);
+            logError("Vector parsing failed. Expected float value for %i component.\n", i);
             return false;
         }
     }
@@ -353,9 +358,9 @@ bool ParserOBJ::parseMaterialLibraryNames(obj::Model& model)
 
             // Prevent from adding the same library more than once
             bool found = false;
-            for (uint32 i = 0; i < model.libraries.size(); ++i)
+            for(uint32 i=0; i<model.materialLibraryNames.size(); ++i)
             {
-                if (model.libraries[i] == libraryName)
+                if (model.materialLibraryNames[i] == libraryName)
                 {
                     found = true;
                     break;
@@ -365,7 +370,7 @@ bool ParserOBJ::parseMaterialLibraryNames(obj::Model& model)
             // Add new library to the list
             if (!found)
             {
-                model.libraries.push_back(libraryName);
+                model.materialLibraryNames.push_back(libraryName);
             }
 
             namesCount++;
@@ -375,7 +380,7 @@ bool ParserOBJ::parseMaterialLibraryNames(obj::Model& model)
 
     if (namesCount == 0)
     {
-        // logError("OBJ file corrupted. Library name not found.");
+        logError("OBJ file corrupted. Library name not found.\n");
         return false;
     }
 
@@ -409,7 +414,7 @@ bool ParserOBJ::parseVertex(obj::Vertex& vertex, bool& hasTextureCoords, bool& h
         return false;
     }
 
-    vertex.position = (uint32)temp;
+    vertex.positionId = (uint32)temp;
 
     if (buffer[offset] != '/')
     {
@@ -458,7 +463,7 @@ bool ParserOBJ::parseVertex(obj::Vertex& vertex, bool& hasTextureCoords, bool& h
             return false;
         }
 
-        vertex.uv = (uint32)temp;
+        vertex.texCoordsId[0] = (uint32)temp;
         hasTextureCoords = true;
     }
     else 
@@ -503,7 +508,7 @@ bool ParserOBJ::parseVertex(obj::Vertex& vertex, bool& hasTextureCoords, bool& h
             return false;
         }
 
-        vertex.normal = (uint32)temp;
+        vertex.normalId = (uint32)temp;
         hasNormals = true;
         return true;
     }
@@ -624,7 +629,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
 
     // Current mesh and material handles
     obj::Mesh* mesh = result->currentMesh();
-    std::string material = "default";
+    sint32 materialId = -1; // Indicates "default" material provided by resources manager (no material specified in file).
 
     // Collects geometry primitives data that will
     // be used to generate final meshes and perform
@@ -648,7 +653,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
                 float3 vertex(0.0f, 0.0f, 0.0f);
                 if (!parser.readVector3f(vertex.value))
                 {
-                    // TODO: logError("OBJ file corrupted. Failed to parse vertex vector.");
+                    logError("OBJ file corrupted. Failed to parse vertex vector.");
                     delete result;
                     return nullptr;
                 }
@@ -662,7 +667,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
                 float3 normal(0.0f, 0.0f, 0.0f);
                 if (!parser.readVector3f(normal.value))
                 {
-                    // TODO: logError("OBJ file corrupted. Failed to parse normal vector.");
+                    logError("OBJ file corrupted. Failed to parse normal vector.\n");
                     delete result;
                     return nullptr;
                 }
@@ -676,7 +681,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
                 float3 coord(0.0f, NAN, NAN);
                 if (!parser.readTextureCoordinates(coord.value))
                 {
-                    // TODO: logError("OBJ file corrupted. Failed to parse texture coordinates.");
+                    logError("OBJ file corrupted. Failed to parse texture coordinates.\n");
                     delete result;
                     return nullptr;
                 }
@@ -728,7 +733,7 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
                     {
                         mesh->name = std::string(groupName, groupLength);
                     }
-                    mesh->material = material;
+                    mesh->materialId = materialId;
                     mesh->vertices.reserve(8192);
                     mesh->indexes.reserve(8192);
                     mesh->optimized.reserve(8192);
@@ -754,18 +759,19 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
                 ParserType type = parser.findNextElement();
                 if (type != ParserType::String)
                 {
-                    // logError("OBJ file corrupted. Expected name of material to use.");
+                    logError("OBJ file corrupted. Expected name of material to use.\n");
                     delete result;
                     return nullptr;
                 }
                 
-                material = std::string(parser.string(), parser.stringLength());
+                std::string materialName = std::string(parser.string(), parser.stringLength());
 
                 // Prevent from adding the same material more than once
                 bool found = false;
-                for(uint32 i=0; i<result->materials.size(); ++i)
+                sint32 materialId = 0;
+                for(; materialId<result->materialNames.size(); ++materialId)
                 {
-                    if (result->materials[i].name == material)
+                    if (result->materialNames[materialId] == materialName)
                     {
                         found = true;
                         break;
@@ -775,12 +781,8 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
                 // Add new material to the list
                 if (!found)
                 {
-                    //obj::Material material;
-                    en::resources::Material enMaterial;
-                    enMaterial.name = material;
-                    //material.handle = NULL;
-
-                    result->materials.push_back(enMaterial);
+                    materialId = static_cast<sint32>(result->materialNames.size());
+                    result->materialNames.push_back(materialName);
                 }
 
                 // Mesh should specify material before any 
@@ -788,9 +790,8 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
                 // for whole mesh.
                 if (mesh->indexes.size() == 0)
                 {
-                    mesh->material = material;
+                    mesh->materialId = materialId;
                 }
-
             }
             else // Primitive Assembly (faces)
             if (parser.isStringMatching("f"))
@@ -831,12 +832,12 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
 
         // First vertex in the mesh, determines components that all
         // following vertices in that mesh should have set up.
-        uint32 coordsId = mesh.vertices[0].uv - 1;
-        if (!isnan(result->coordinates[coordsId].v))
+        uint32 texCoordsId = mesh.vertices[0].texCoordsId[0] - 1;
+        if (!isnan(result->coordinates[texCoordsId].v))
         {
             mesh.hasTextureCoordV = true;
         }
-        if (!isnan(result->coordinates[coordsId].w))
+        if (!isnan(result->coordinates[texCoordsId].w))
         {
             mesh.hasTextureCoordW = true;
         }
@@ -844,14 +845,14 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
         for(uint32 j=0; j<mesh.vertices.size(); ++j)
         {
             // Position is mandatory
-            if (mesh.vertices[j].position == 0)
+            if (mesh.vertices[j].positionId == 0)
             {
                 // logDebug("OBJ file corrupted. Parsed mesh %i vertice %i doesn't have position specified. Position is mandatory.", i, j);
                 delete result;
                 return nullptr;
             }
 
-            uint32 vertexId = mesh.vertices[j].position - 1;
+            uint32 vertexId = mesh.vertices[j].positionId - 1;
             if (isnan(result->vertices[vertexId].x) ||
                 isnan(result->vertices[vertexId].y) ||
                 isnan(result->vertices[vertexId].z))
@@ -863,25 +864,25 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
 
             if (mesh.hasTextureCoords)
             {
-                if (mesh.vertices[j].uv == 0)
+                if (mesh.vertices[j].texCoordsId[0] == 0)
                 {
                     // logDebug("OBJ file corrupted. Parsed mesh %i vertice %i doesn't have texture coordinates specified. This is inconsistent with other vertices.", i, j);
                     delete result;
                     return nullptr;
                 }
 
-                uint32 coordsId = mesh.vertices[j].uv - 1;
+                uint32 texCoordsId = mesh.vertices[j].texCoordsId[0] - 1;
                 if (mesh.hasTextureCoordV &&
-                    isnan(result->coordinates[coordsId].v))
+                    isnan(result->coordinates[texCoordsId].v))
                 {
-                    // logDebug("OBJ file corrupted. Parsed mesh %i vertice %i points to model texture coordinates %i which has missing V component. This is inconsistent with other vertices.", i, j, coordsId);
+                    // logDebug("OBJ file corrupted. Parsed mesh %i vertice %i points to model texture coordinates %i which has missing V component. This is inconsistent with other vertices.", i, j, texCoordsId);
                     delete result;
                     return nullptr;
                 }
                 if (mesh.hasTextureCoordW &&
-                    isnan(result->coordinates[coordsId].w))
+                    isnan(result->coordinates[texCoordsId].w))
                 {
-                    // logDebug("OBJ file corrupted. Parsed mesh %i vertice %i points to model texture coordinates %i which has missing W component. This is inconsistent with other vertices.", i, j, coordsId);
+                    // logDebug("OBJ file corrupted. Parsed mesh %i vertice %i points to model texture coordinates %i which has missing W component. This is inconsistent with other vertices.", i, j, texCoordsId);
                     delete result;
                     return nullptr;
                 }
@@ -889,14 +890,14 @@ obj::Model* parseOBJ(const uint8* buffer, const uint64 size)
 
             if (mesh.hasNormals)
             {
-                if (mesh.vertices[j].normal == 0)
+                if (mesh.vertices[j].normalId == 0)
                 {
                     // logDebug("OBJ file corrupted. Parsed mesh %i vertice %i doesn't have normal specified. This is inconsistent with other vertices.", i, j);
                     delete result;
                     return nullptr;
                 }
 
-                uint32 normalId = mesh.vertices[j].normal - 1;
+                uint32 normalId = mesh.vertices[j].normalId - 1;
                 if (isnan(result->normals[normalId].x) ||
                     isnan(result->normals[normalId].y) ||
                     isnan(result->normals[normalId].z))
@@ -980,13 +981,13 @@ bool generateTangentsAndBiTangents(obj::Model& srcModel, const uint32 meshIndex)
         const obj::Vertex& v1ids = srcMesh.vertices[srcMesh.indexes[j + 1]];
         const obj::Vertex& v2ids = srcMesh.vertices[srcMesh.indexes[j + 2]];
 
-        const float3& v0 = srcModel.vertices[v0ids.position];
-        const float3& v1 = srcModel.vertices[v1ids.position];
-        const float3& v2 = srcModel.vertices[v2ids.position];
+        const float3& v0 = srcModel.vertices[v0ids.positionId];
+        const float3& v1 = srcModel.vertices[v1ids.positionId];
+        const float3& v2 = srcModel.vertices[v2ids.positionId];
 
-        const float3& c0 = srcModel.coordinates[v0ids.uv];
-        const float3& c1 = srcModel.coordinates[v1ids.uv];
-        const float3& c2 = srcModel.coordinates[v2ids.uv];
+        const float3& c0 = srcModel.coordinates[v0ids.texCoordsId[0]];
+        const float3& c1 = srcModel.coordinates[v1ids.texCoordsId[0]];
+        const float3& c2 = srcModel.coordinates[v2ids.texCoordsId[0]];
 
         float3 vec0 = v1 - v0;
         float3 vec1 = v2 - v0;
@@ -1016,9 +1017,9 @@ bool generateTangentsAndBiTangents(obj::Model& srcModel, const uint32 meshIndex)
         const obj::Vertex& v0ids = srcMesh.vertices[j];
 
         // Orthogonalize with preserving normal direction
-        float3 t = normalize(srcMesh.tangents[j]);            // T - normalized tangent
-        float3 b = normalize(srcMesh.bitangents[j]);          // B - normalized bitangent
-        float3 n = normalize(srcModel.normals[v0ids.normal]); // N - normalized normal
+        float3 t = normalize(srcMesh.tangents[j]);              // T - normalized tangent
+        float3 b = normalize(srcMesh.bitangents[j]);            // B - normalized bitangent
+        float3 n = normalize(srcModel.normals[v0ids.normalId]); // N - normalized normal
 
         // Gram-Schmidt orthogonalize
         float3 tangent   = normalize(t - n * dot(n, t));   // Tangent in normal plane
@@ -1137,9 +1138,6 @@ sint16v2 encode_oct32P(const float3 vector)
 
 
 
-
-
-
 // Creates scene model
 // - support for multile MTL files
 // - automatic polygon tesselation using triangle fan
@@ -1149,7 +1147,7 @@ sint16v2 encode_oct32P(const float3 vector)
 std::shared_ptr<en::resources::Model> load(
     const std::string& filename,
     const std::string& name,
-          en::Streamer& streamer,
+          Streamer& streamer,
     const uint8 gpuIndex)
 {
     using namespace en::storage;
@@ -1176,7 +1174,7 @@ std::shared_ptr<en::resources::Model> load(
         }
     }
    
-    // Allocate temporary buffer for file content ( 4GB max size! )
+    // Allocate temporary buffer for file content
     uint64 size = file->size();
     if (size > 0xFFFFFFFF)
     {
@@ -1222,15 +1220,27 @@ std::shared_ptr<en::resources::Model> load(
     // Step 2 - Loading materials
 
 
+    // Load all materials, from all referenced libraries
+    for(uint8 i=0; i<srcModel->materialLibraryNames.size(); ++i)
+    {
+        std::vector<mtl::Material*>* materials = mtl::load(srcModel->materialLibraryNames[i]);
+
+        // convert to renderer materials
+        resources::Material* dstMaterial;
+    }
+
     // Load materials used by model
-    for(uint8 i=0; i< srcModel->materials.size(); ++i)
+    for(uint8 i=0; i<srcModel->materialNames.size(); ++i)
     {
         bool loaded = false;
 
         // Search for material in used MTL files and load it
-        for(uint8 j=0; j< srcModel->libraries.size(); ++j)
+        for(uint8 j=0; j<srcModel->materialLibraryNames.size(); ++j)
         {
-            loaded = mtl::load(srcModel->libraries[j], srcModel->materials[i].name, srcModel->materials[i]);
+            // TODO: Load all materials from all libraries, convert them to renderer materials and add to global array in Resources manager.
+            //       Then patch references to them in destination model optimized for rendering.
+
+            loaded = mtl::load(srcModel->materialLibraryNames[j], srcModel->materialNames[i], srcModel->materials[i]);
             if (loaded)
             {
                 break;
@@ -1258,7 +1268,7 @@ std::shared_ptr<en::resources::Model> load(
         obj::Mesh& srcMesh = srcModel->meshes[i];
 
         // Search source mesh and material
-        en::resources::Material srcMaterial;
+        resources::Material srcMaterial;
         for(uint8 j=0; j<srcModel->materials.size(); ++j)
         {
             if (srcMesh.material == srcModel->materials[j].name)
@@ -1412,7 +1422,7 @@ std::shared_ptr<en::resources::Model> load(
         for(uint32 j=0; j<srcMesh.vertices.size(); ++j)
         {
             obj::Vertex& vertex = srcMesh.vertices[j];
-            uint32 vertexId   = vertex.position - 1;
+            uint32 vertexId   = vertex.positionId - 1u;
             
             // Position
             *((float3*)(buffer + offset)) = srcModel->vertices[vertexId];
@@ -1421,16 +1431,16 @@ std::shared_ptr<en::resources::Model> load(
             // UV (optional)
             if (srcMesh.hasTextureCoords)
             {
-                uint32 texCoordId = vertex.uv - 1;
+                uint32 texCoordsId = vertex.texCoordsId[0] - 1u;
 
-                half compressedU(srcModel->coordinates[texCoordId].u);
+                half compressedU(srcModel->coordinates[texCoordsId].u);
 
                 *((half*)(buffer + offset)) = compressedU;
                 offset += sizeof(half);
 
                 if (srcMesh.hasTextureCoordV)
                 {
-                    half compressedV(srcModel->coordinates[texCoordId].v);
+                    half compressedV(srcModel->coordinates[texCoordsId].v);
 
                     *((half*)(buffer + offset)) = compressedV;
                 }
@@ -1452,7 +1462,7 @@ std::shared_ptr<en::resources::Model> load(
             for(uint32 j=0; j<srcMesh.vertices.size(); ++j)
             {
                 obj::Vertex& vertex = srcMesh.vertices[j];
-                uint32 normalId = vertex.normal - 1;
+                uint32 normalId = vertex.normalId - 1u;
             
                 float3 normal = srcModel->normals[normalId];
                 sint16v2 compressedNormal = encode_oct32P(normal);

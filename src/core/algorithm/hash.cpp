@@ -8,6 +8,8 @@
 
 */
 
+#include <assert.h>
+
 #include "core/algorithm/hash.h"
 
 // TODO: Consider switching to xxHash in the future. Find perf comparison and document it here.
@@ -19,7 +21,7 @@ namespace en
 
 hash hashData(const void* data, const uint32 size, const uint32 seed)
 {
-    hash result = 0;
+    hash result = InvalidHash;
 
 #if UseBigHash
     MurmurHash3_x64_128(data, size, seed, &result);
@@ -27,18 +29,30 @@ hash hashData(const void* data, const uint32 size, const uint32 seed)
     result = MurmurHash64A(data, size, seed);
 #endif
 
+    if (result == InvalidHash)
+    {
+        // Hash function collides with predefined Invalid value!
+        assert(0);
+    }
+
     return result;
 }
 
 hash hashString(const std::string& name, const uint32 seed)
 {
-    hash result = 0;
+    hash result = InvalidHash;
 
 #if UseBigHash
     MurmurHash3_x64_128((const void *)name.c_str(), static_cast<sint32>(name.length()), seed, &result);
 #else
     result = MurmurHash64A((const void *)name.c_str(), static_cast<sint32>(name.length()), seed);
 #endif
+
+    if (result == InvalidHash)
+    {
+        // Hash function collides with predefined Invalid value!
+        assert(0);
+    }
 
     return result;
 }

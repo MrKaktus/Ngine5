@@ -778,7 +778,7 @@ Direct3DAPI::Direct3DAPI(std::string appName) :
 #if defined(EN_DEBUG)
     // Name Factory for debugging
     std::string name("Factory");
-    factory->SetPrivateData( WKPDID_D3DDebugObjectName, name.length(), name.c_str() );
+    factory->SetPrivateData( WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()), name.c_str() );
 #endif
 
     // Create Direct3D12 Devices

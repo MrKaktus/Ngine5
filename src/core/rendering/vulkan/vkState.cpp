@@ -298,13 +298,13 @@
 //      vkState->blendInfo[i].blendFuncAlpha   = TranslateBlendFunc[color[i].alphaFunc];
 //      // Translate Color Write Mask
 //      vkState->blendInfo[i].channelWriteMask = 0;
-//      if (color[i].writeMask & ColorMaskRed)           // https://cvs.khronos.org/bugzilla/show_bug.cgi?id=13632
+//      if (color[i].writeMask & ChannelMask::Red)           // https://cvs.khronos.org/bugzilla/show_bug.cgi?id=13632
 //         vkState->blendInfo[i].channelWriteMask |= VK_CHANNEL_R_BIT;
-//      if (color[i].writeMask & ColorMaskGreen)
+//      if (color[i].writeMask & ChannelMask::Green)
 //         vkState->blendInfo[i].channelWriteMask |= VK_CHANNEL_G_BIT;
-//      if (color[i].writeMask & ColorMaskBlue)
+//      if (color[i].writeMask & ChannelMask::Blue)
 //         vkState->blendInfo[i].channelWriteMask |= VK_CHANNEL_B_BIT;
-//      if (color[i].writeMask & ColorMaskAlpha)
+//      if (color[i].writeMask & ChannelMask::Alpha)
 //         vkState->blendInfo[i].channelWriteMask |= VK_CHANNEL_A_BIT;
 //      }
 //

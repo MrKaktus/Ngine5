@@ -14,7 +14,8 @@
 #include "core/storage.h"
 #include "core/log/log.h"
 #include "core/rendering/device.h"
-#include "resources/context.h" 
+#include "core/rendering/texture.h" // calculateMipMapsCount()
+#include "resources/common.h" 
 #include "resources/font.h" 
 #include "resources/bmp.h"  
 #include "resources/tga.h"
@@ -64,77 +65,1006 @@ float axes[] =
     0.0f,   0.0f,   0.5f,   0.0f, 0.0f, 1.0f
 };
 
+enum class FileExtension : uint8
+{
+    Unknown = 0,
+    BMP        ,
+    PNG        ,
+    MTL        ,
+    Material   ,
+};
+
+bool isBMP(const std::string& filename)
+{
+    uint32 length = filename.length();
+
+    uint32 found = filename.rfind(".bmp");
+    if (found == std::string::npos)
+    {
+        found = filename.rfind(".BMP");
+    }
+    if (found != std::string::npos &&
+        found == (length - 4))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool isPNG(const std::string& filename)
+{
+    uint32 length = filename.length();
+
+    uint32 found = filename.rfind(".png");
+    if (found == std::string::npos)
+    {
+        found = filename.rfind(".PNG");
+    }
+    if (found != std::string::npos &&
+        found == (length - 4))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool isMTL(const std::string& filename)
+{
+    uint32 length = filename.length();
+
+    uint32 found = filename.rfind(".mtl");
+    if (found == std::string::npos)
+    {
+        found = filename.rfind(".MTL");
+    }
+    if (found != std::string::npos &&
+        found == (length - 4))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool isMATERIAL(const std::string& filename)
+{
+    uint32 length = filename.length();
+
+    uint32 found = filename.rfind(".material");
+    if (found == std::string::npos)
+    {
+        found = filename.rfind(".MATERIAL");
+    }
+    if (found != std::string::npos &&
+        found == (length - 9))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+FileExtension fileExtension(const std::string& filename)
+{
+    // Images
+
+    if (isBMP(filename))
+    {
+        return FileExtension::BMP;
+    }
+    if (isPNG(filename))
+    {
+        return FileExtension::PNG;
+    }
+
+    // Materials
+
+    if (isMTL(filename))
+    {
+        return FileExtension::BMP;
+    }
+    if (isMATERIAL(filename))
+    {
+        return FileExtension::PNG;
+    }
+
+    return FileExtension::Unknown;
+}
+
+bool isImageFileExtension(const FileExtension& extension)
+{
+    if (extension == FileExtension::BMP ||
+        extension == FileExtension::PNG)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool isMaterialFileExtension(const FileExtension& extension)
+{
+    if (extension == FileExtension::MTL ||
+        extension == FileExtension::Material)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+ResourcesManager::ResourcesManager(gpu::GpuDevice& _gpu) :
+    gpu(_gpu),
+    gpuStreamer(gpu),
+    gpuIndex(0),  // TODO: Query index from GPU!
+    enAlbedoMap(InvalidHash),
+    enMetallicMap(InvalidHash),
+    enCavityMap(InvalidHash),
+    enRoughnessMap(InvalidHash),
+    enAmbientOcclusionMap(InvalidHash),
+    enNormalMap(InvalidHash),
+    enHeightMap(InvalidHash),
+    enDisplacementMap(InvalidHash),
+    enEmmisiveMap(InvalidHash),
+    enOpacityMap(InvalidHash),
+    enReflectionMap(InvalidHash),
+    enAmbientMap(InvalidHash),
+    enBumpMap(InvalidHash),
+    enSpecularExponentMap(InvalidHash),
+    enDecalMap(InvalidHash)
+    // TODO: Should be EN_SUPPORTS_FBX (and best solution would be plugin system for different formats support through DLLs).
+#if defined(EN_PLATFORM_WINDOWS)
+    ,
+    fbxManager(nullptr),
+    fbxFilter(nullptr),
+    fbxGeometryConverter(nullptr)
+#endif
+{
+    logInfo("Starting module: Resources.\n");
+
+    path.assets      = std::string("assets/");
+    path.fonts       = path.assets + std::string("fonts/");
+    path.models      = path.assets + std::string("models/");
+    path.materials   = path.assets + std::string("materials/");
+    path.shaders     = path.assets + std::string("shaders/");
+    path.textures    = path.assets + std::string("textures/");
+    path.sounds      = path.assets + std::string("sounds/"); 
+    path.screenshots = std::string("screenshots/");
+
+    // Creates textures for default material
+    // When selected texture/material/model is missing, it is substituted with default one (and error is logged).
+    // See UV Checker Map Maker: https://uvchecker.vinzi.xyz/
+    createTexture(path.textures + "enDefaultAlbedoMap.png",        enAlbedoMap);
+    createTexture(path.textures + "enDefaultMetallicMap.png",      enMetallicMap);
+    createTexture(path.textures + "enDefaultCavityMap.png",        enCavityMap);
+    createTexture(path.textures + "enDefaultRoughness.png",        enRoughnessMap);
+    createTexture(path.textures + "enDefaultAmbientOcclusion.png", enAmbientOcclusionMap);
+    createTexture(path.textures + "enDefaultNormal.png",           enNormalMap);
+    createTexture(path.textures + "enDefaultHeight.png",           enHeightMap);
+    createTexture(path.textures + "enDefaultDisplacement.png",     enDisplacementMap);
+    createTexture(path.textures + "enDefaultEmmisive.png",         enEmmisiveMap);
+    createTexture(path.textures + "enDefaultOpacity.png",          enOpacityMap);
+  //createTexture(path.textures + "enReflection.png",       enReflectionMap);
+  //createTexture(path.textures + "enAmbient.png",          enAmbientMap);
+  //createTexture(path.textures + "enBump.png",             enBumpMap);
+  //createTexture(path.textures + "enSpecularExponent.png", enSpecularExponentMap);
+  //createTexture(path.textures + "enDecal.png",            enDecalMap);
+
+    // TODO: Load/create default material/model!
+
+#if defined(EN_PLATFORM_WINDOWS)
+    fbxManager = FbxManager::Create();
+    fbxFilter  = FbxIOSettings::Create(fbxManager, IOSROOT);
+    fbxManager->SetIOSettings(fbxFilter);
+    fbxGeometryConverter = new FbxGeometryConverter(fbxManager);
+#endif
+}
+
+ResourcesManager::~ResourcesManager()
+{
+    logInfo("Closing module: Resources.\n");
+
+#if defined(EN_PLATFORM_WINDOWS)
+    if (fbxManager)
+    {
+        fbxManager->Destroy();
+        delete fbxGeometryConverter;
+    }
+#endif
+
+    freeTexture(enAlbedoMap);
+    freeTexture(enMetallicMap);
+    freeTexture(enCavityMap);
+    freeTexture(enRoughnessMap);
+    freeTexture(enAmbientOcclusionMap);
+    freeTexture(enNormalMap);
+    freeTexture(enHeightMap);
+    freeTexture(enDisplacementMap);
+    freeTexture(enEmmisiveMap);
+    freeTexture(enOpacityMap);
+  //freeTexture(enReflectionMap);
+  //freeTexture(enAmbientMap);
+  //freeTexture(enBumpMap);
+  //freeTexture(enSpecularExponentMap);
+  //freeTexture(enDecalMap);
+}
+
+void ResourcesManager::init(void)
+{
+}
+
+std::string& ResourcesManager::assetsPath(void) const
+{
+}
+
+std::string& ResourcesManager::screenshotsPath(void) const
+{
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool ResourcesManager::createTexture(const std::string& filename, hash& handle, const bool withMipMaps)
+{
+    // TODO: Resources Manager is loading textures in a way that is optimal for renderer 
+    //       (so creates assets in predefined way, for e..g packing them into texture atlasses?)
+
+    if (filename.empty())
+    {
+        logError("Cannot load texture because file name is empty!\n");
+        assert(0);
+
+        return false;
+    }
+
+    TextureAllocation* textureAllocation = findTexture(filename);
+    if (textureAllocation)
+    {
+        handle = hashString(filename);
+        return true;
+    }
+
+    FileExtension extension = fileExtension(filename);
+    if (!isImageFileExtension(extension))
+    {
+        logError("File format is not recognized as image:\n%s\n", filename.c_str());
+        return false;
+    }
+
+    // Automatically creates texture state based on information from loaded file
+    gpu::TextureState textureState;
+
+    if (extension == FileExtension::PNG)
+    {
+        gpu::ColorSpace colorSpace = gpu::ColorSpaceSRGB;
+        if (!png::loadMetadata(filename, textureState, colorSpace))
+        {
+            logError("Could not parse PNG metadata!\n");
+            return false;
+        }
+    }
+    else
+    {
+        // TODO: Add support for other recognized image file extensions
+        assert(0);
+        return false;
+    }
+
+    if (withMipMaps)
+    {
+        textureState.mipmaps = gpu::calculateMipMapsCount(textureState);
+    }
+
+    // Allocate resource
+    // TODO: Based on passed TextureUsage in TextureState, Streamer detects if
+    //       texture should be partially backed in VRAM (Sparse), or fully.
+    //       This will also dicta
+    bool result = gpuStreamer.allocateMemory(textureAllocation, textureState);
+    assert(result);
+
+    // TODO: Notify Streamer, that app wants to update given portion of resource.
+    //       This portion can be one surface (layer of mipmap), or tile.
+    //       Streamer decides, if it will make temporary allocation for that
+    //       upload, or if it will cache given slice in CPU RAM for faster
+    //       future uploads (in case of eviction).
+    // TODO: Or maybe this decision should be made by higher level?
+    //       Whoever decides what should be cached in CPU RAM or not, will be
+    //       responsible for making sure that it's reuploaded to that RAM,
+    //       when needed (VRAM eviction, and missing in RAM -> HDD upload needed).
+
+
+    // Populate resource with data
+
+    // Retrieve system memory adress for given texture surface
+    // (mipmap, layer, plane are optional parameters).
+    uint8* address = reinterpret_cast<uint8*>(gpuStreamer.systemMemory(*textureAllocation));
+
+    // Decompress texture directly to staging buffer, taking into notice padding
+    if (extension == FileExtension::PNG)
+    {
+        result = png::load(filename,
+                           address,
+                           textureAllocation->state.mipWidth(0),
+                           textureAllocation->state.mipHeight(0),
+                           textureAllocation->state.format,
+                           gpu.textureMemoryAlignment(textureAllocation->state, 0, 0),
+                           false);
+        assert(result);
+    }
+    else
+    {
+        // TODO: Add support for other recognized image file extensions
+        assert(0);
+        return false;
+    }
+
+    // Allocate copy in VRAM
+    result = gpuStreamer.makeResident(*textureAllocation, true);
+    assert(result);
+
+    // Update copy in VRAM (async from this thread)
+    result = gpuStreamer.transferSurface(*textureAllocation, 0, 0, 0, TransferDirection::DeviceUpload);
+    assert(result);
+
+    // Adds texture allocation to namespace
+    hash handle = hashString(filename);
+    textures[handle] = textureAllocation;
+
+    return true;
+}
+
+bool ResourcesManager::createCubeMap(const std::string& filename, hash& handle, const bool withMipMaps)
+{
+    if (filename.empty())
+    {
+        logError("Cannot load texture because file name is empty!\n");
+        assert(0);
+
+        return false;
+    }
+
+    TextureAllocation* textureAllocation = findTexture(filename);
+    if (textureAllocation)
+    {
+        if (textureAllocation->state.type != TextureType::TextureCubeMap)
+        {
+            logError("There is already texture of different type than CubeMap, stored under this filename!\n");
+            assert(0);
+
+            return false;
+        }
+
+        handle = hashString(filename);
+        return true;
+    }
+
+    FileExtension extension = fileExtension(filename);
+    if (!isImageFileExtension(extension))
+    {
+        logError("File format is not recognized as image:\n%s\n", filename.c_str());
+        return false;
+    }
+
+    // Automatically creates texture state based on information from loaded file
+    gpu::TextureState textureState;
+
+    if (extension == FileExtension::PNG)
+    {
+        gpu::ColorSpace colorSpace = gpu::ColorSpaceSRGB;
+        if (!png::loadMetadata(filename, textureState, colorSpace))
+        {
+            logError("Could not parse PNG metadata!\n");
+            return false;
+        }
+    }
+    else
+    {
+        // TODO: Add support for other recognized image file extensions
+        assert(0);
+        return false;
+    }
+
+    // Verify given image file can be loaded as cube map face
+    if (textureState.width != textureState.height)
+    {
+        logError("Specified image file is not square!\n");
+        return false;
+    }
+
+    textureState.type = TextureType::TextureCubeMap;
+    if (withMipMaps)
+    {
+        textureState.mipmaps = gpu::calculateMipMapsCount(textureState);
+    }
+
+    // Allocate resource
+    // TODO: Based on passed TextureUsage in TextureState, Streamer detects if
+    //       texture should be partially backed in VRAM (Sparse), or fully.
+    //       This will also dicta
+    bool result = gpuStreamer.allocateMemory(textureAllocation, textureState);
+    assert(result);
+
+    // TODO: Notify Streamer, that app wants to update given portion of resource.
+    //       This portion can be one surface (layer of mipmap), or tile.
+    //       Streamer decides, if it will make temporary allocation for that
+    //       upload, or if it will cache given slice in CPU RAM for faster
+    //       future uploads (in case of eviction).
+    // TODO: Or maybe this decision should be made by higher level?
+    //       Whoever decides what should be cached in CPU RAM or not, will be
+    //       responsible for making sure that it's reuploaded to that RAM,
+    //       when needed (VRAM eviction, and missing in RAM -> HDD upload needed).
+
+
+    // Populate resource with data
+
+    // Retrieve system memory adress for given texture surface
+    // (mipmap, layer, plane are optional parameters).
+    uint8* address = reinterpret_cast<uint8*>(gpuStreamer.systemMemory(*textureAllocation));
+
+    // Decompress texture directly to staging buffer, taking into notice padding
+    if (extension == FileExtension::PNG)
+    {
+        result = png::load(filename,
+            address,
+            textureAllocation->state.mipWidth(0),
+            textureAllocation->state.mipHeight(0),
+            textureAllocation->state.format,
+            gpu.textureMemoryAlignment(textureAllocation->state, 0, 0),
+            false);
+        assert(result);
+    }
+    else
+    {
+        // TODO: Add support for other recognized image file extensions
+        assert(0);
+        return false;
+    }
+
+    // Allocate copy in VRAM
+    result = gpuStreamer.makeResident(*textureAllocation, true);
+    assert(result);
+
+    // Update copy in VRAM (async from this thread)
+    result = gpuStreamer.transferSurface(*textureAllocation, 0, 0, 0, TransferDirection::DeviceUpload);
+    assert(result);
+
+    // Adds texture allocation to namespace
+    hash handle = hashString(filename);
+    textures[handle] = textureAllocation;
+
+    return true;
+}
+
+bool ResourcesManager::loadTexture(
+    const std::string& filename, 
+    const hash handle, 
+    const uint8 mipMapLevel,
+    const uint16 layer)
+{
+    if (filename.empty())
+    {
+        logError("Cannot load texture because file name is empty!\n");
+        assert(0);
+
+        return false;
+    }
+
+    std::unordered_map<hash, TextureAllocation*>::iterator it = textures.find(handle);
+    if (it == textures.end())
+    {
+        logError("Cannot find texture for hash: %llu\n", handle);
+        return false;
+    }
+
+    TextureAllocation* textureAllocation = it->second;
+
+    FileExtension extension = fileExtension(filename);
+    if (!isImageFileExtension(extension))
+    {
+        logError("File format is not recognized as image:\n%s\n", filename.c_str());
+        return false;
+    }
+
+    // Automatically creates texture state based on information from loaded file
+    gpu::TextureState textureState;
+
+    if (extension == FileExtension::PNG)
+    {
+        gpu::ColorSpace colorSpace = gpu::ColorSpaceSRGB;
+        if (!png::loadMetadata(filename, textureState, colorSpace))
+        {
+            logError("Could not parse PNG metadata!\n");
+            return false;
+        }
+    }
+    else
+    {
+        // TODO: Add support for other recognized image file extensions
+        assert(0);
+        return false;
+    }
+
+    // TODO: Notify Streamer, that app wants to update given portion of resource.
+    //       This portion can be one surface (layer of mipmap), or tile.
+    //       Streamer decides, if it will make temporary allocation for that
+    //       upload, or if it will cache given slice in CPU RAM for faster
+    //       future uploads (in case of eviction).
+    // TODO: Or maybe this decision should be made by higher level?
+    //       Whoever decides what should be cached in CPU RAM or not, will be
+    //       responsible for making sure that it's reuploaded to that RAM,
+    //       when needed (VRAM eviction, and missing in RAM -> HDD upload needed).
+
+
+    // Populate resource with data
+
+    // Retrieve system memory adress for given texture surface
+    // (mipmap, layer, plane are optional parameters).
+    uint8* address = reinterpret_cast<uint8*>(gpuStreamer.systemMemory(*textureAllocation));
+
+    // Decompress texture directly to staging buffer, taking into notice padding
+    bool result = false;
+    if (extension == FileExtension::PNG)
+    {
+        result = png::load(filename,
+                           address,
+                           textureAllocation->state.mipWidth(mipMapLevel),
+                           textureAllocation->state.mipHeight(mipMapLevel),
+                           textureAllocation->state.format,
+                           gpu.textureMemoryAlignment(textureAllocation->state, mipMapLevel, layer),
+                           false);
+        assert(result);
+    }
+    else
+    {
+        // TODO: Add support for other recognized image file extensions
+        assert(0);
+        return false;
+    }
+
+    // Allocate copy in VRAM
+    result = gpuStreamer.makeResident(*textureAllocation, true);
+    assert(result);
+
+    // Update copy in VRAM (async from this thread)
+    result = gpuStreamer.transferSurface(*textureAllocation, mipMapLevel, layer, 0, TransferDirection::DeviceUpload);
+    assert(result);
+
+    // Adds texture allocation to namespace
+    hash handle = hashString(filename);
+    textures[handle] = textureAllocation;
+
+    return true;
+}
+
+TextureAllocation* ResourcesManager::findTexture(const std::string& filename)
+{
+    return findTexture(hashString(filename));
+}
+
+TextureAllocation* ResourcesManager::findTexture(const hash handle)
+{
+    std::unordered_map<hash, TextureAllocation*>::iterator it = textures.find(handle);
+    if (it != textures.end())
+    {
+        return it->second;
+    }
+
+    return nullptr;
+}
+
+bool ResourcesManager::freeTexture(const hash handle)
+{
+    std::unordered_map<hash, TextureAllocation*>::iterator it = textures.find(handle);
+    if (it != textures.end())
+    {
+        gpuStreamer.deallocateMemory(*it->second);
+        textures.erase(it);
+
+        return true;
+    }
+
+    return false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool ResourcesManager::createMaterialFromMTL(mtl::Material& srcMaterial, hash& handle)
+{
+    resources::Material* dstMaterial = findMaterial(srcMaterial.name);
+    if (dstMaterial)
+    {
+        handle = hashString(srcMaterial.name);
+        return true;
+    }
+
+    // Verify source material
+    if (srcMaterial.shadingModel == ShadingModel::PBR)
+    {
+        // TODO: Error message, release temp resources
+        return false;
+    }
+
+    // TODO: Allocate new material in some global (or Scene) pool?
+    // Material -> component (filename) -> parse file -> extract texture state + data -> create GPU Texture -> create TextureAllocation -> stream data in.
+    dstMaterial = new resources::Material();
+    if (!dstMaterial)
+    {
+        logError("Out of memory.\n");
+        return false;
+    }
+
+    hash handle = hashString(srcMaterial.name);
+
+    // MTL does not have ability to describe those properties of PBR
+    dstMaterial->components[underlyingType(MaterialComponent::Metallic)]         = InvalidHash;
+    dstMaterial->components[underlyingType(MaterialComponent::Roughness)]        = InvalidHash;
+    dstMaterial->components[underlyingType(MaterialComponent::AmbientOcclusion)] = InvalidHash;
+    dstMaterial->components[underlyingType(MaterialComponent::Emissive)]         = InvalidHash;
+
+    // Optional: Ambient map
+    if (!srcMaterial.ambient.map.filename.empty())
+    {
+        if (!createTexture(srcMaterial.ambient.map.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Ambient)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+    else
+    {
+        if (srcMaterial.ambient.color.r != 0.0f &&
+            srcMaterial.ambient.color.g != 0.0f &&
+            srcMaterial.ambient.color.b != 0.0f)
+        {
+            // TODO: Generate 4x4 ambient map from constant color (to unify binding model)
+            //       Alternative is to put this value into Constant Buffer.
+            //       Renderer material needs to be composed from two parts:
+            //       a) Array of texture views (descriptors) pointing at different material components
+            //       b) Struct with constants
+            //       c) Sampler states to use for textures from (a) ?
+            //       Both are sub-allocated frm some big materials array in materials descriptors set and materials storage buffer
+        }
+    }
+
+    // Mandatory: Diffuse map
+    if (!srcMaterial.diffuse.map.filename.empty())
+    {
+        // TODO: Error message, release temp resources
+        return false;
+    }
+
+    if (!createTexture(srcMaterial.diffuse.map.filename,
+                       dstMaterial->components[underlyingType(MaterialComponent::Albedo)]))
+    {
+        // TODO: Error message, release temp resources
+        return false;
+    }
+
+    // Optional: Specular map
+    if (!srcMaterial.specular.map.filename.empty())
+    {
+        if (!createTexture(srcMaterial.specular.map.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Cavity)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+    // TODO: Else default specular map 4x4 with no specular reflection (default, only diffuse term)
+
+    // Optional: Specular exponent map
+    dstMaterial->components[underlyingType(MaterialComponent::SpecularExponent)] = InvalidHash;
+    if (!srcMaterial.specular.exponentMap.filename.empty())
+    {
+        if (!createTexture(srcMaterial.specular.exponentMap.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::SpecularExponent)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+
+    // Optional: Opacity map
+    dstMaterial->components[underlyingType(MaterialComponent::Opacity)] = InvalidHash;
+    if (!srcMaterial.opacity.map.filename.empty())
+    {
+        if (!createTexture(srcMaterial.opacity.map.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Opacity)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+
+    // Optional: Bump map
+    dstMaterial->components[underlyingType(MaterialComponent::Bump)] = InvalidHash;
+    if (!srcMaterial.bump.map.filename.empty())
+    {
+        if (!createTexture(srcMaterial.bump.map.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Bump)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+
+    // Optional: Normal map
+    dstMaterial->components[underlyingType(MaterialComponent::Normal)] = InvalidHash;
+    if (!srcMaterial.normal.map.filename.empty())
+    {
+        if (!createTexture(srcMaterial.normal.map.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Normal)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+    // TODO: Else default normal map 4x4 with normal vector pointing straight up (so no effect)
+
+    // Optional: Height map
+    dstMaterial->components[underlyingType(MaterialComponent::Height)] = InvalidHash;
+    if (!srcMaterial.height.map.filename.empty())
+    {
+        if (!createTexture(srcMaterial.height.map.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Height)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+
+    // Optional: Vector displacement map
+    dstMaterial->components[underlyingType(MaterialComponent::Displacement)] = InvalidHash;
+    if (!srcMaterial.displacement.map.filename.empty())
+    {
+        if (!createTexture(srcMaterial.displacement.map.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Displacement)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+
+    // Optional: Decal map
+    dstMaterial->components[underlyingType(MaterialComponent::Decal)] = InvalidHash;
+    if (!srcMaterial.decal.map.filename.empty())
+    {
+        if (!createTexture(srcMaterial.decal.map.filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Decal)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+
+    // Optional: Local reflection map
+    dstMaterial->components[underlyingType(MaterialComponent::Reflection)] = InvalidHash;
+    if (srcMaterial.reflection.projection == mtl::ProjectionType::Cube)
+    {
+        // 6 reflection source textures (composing one reflection cube-map)
+        if (!createCubeMap(srcMaterial.reflection.map[0].filename,
+                          dstMaterial->components[underlyingType(MaterialComponent::Reflection)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+
+        for(uint32 i=1; i<6; ++i)
+        {
+            if (!loadTexture(srcMaterial.reflection.map[i].filename,
+                             dstMaterial->components[underlyingType(MaterialComponent::Reflection)], 
+                             i, 0))
+            {
+                // TODO: Error message, release temp resources
+                return false;
+            }
+        }
+    }
+    else
+    if (srcMaterial.reflection.projection == mtl::ProjectionType::Equirectangular)
+    {
+        if (!createTexture(srcMaterial.reflection.map[0].filename,
+                           dstMaterial->components[underlyingType(MaterialComponent::Reflection)]))
+        {
+            // TODO: Error message, release temp resources
+            return false;
+        }
+    }
+    else
+    {
+        // TODO: Error message, release temp resources
+        assert(0);
+
+        return false;
+    }
+
+    // TODO: consider carrying over other properties of srcMaterial
+
+    if (materials.find(handle) != materials.end())
+    {
+        // Entry was not found at the start of the method, so this should not happen unless we have mutli-threaded collision and we need lock on resource manager
+        assert(0);
+
+        logError("Out of memory.\n");
+        return false;
+    }
+
+    materials[handle] = dstMaterial;
+    return true;
+}
+
+bool ResourcesManager::loadMaterials(const std::string& filename)
+{
+    if (filename.empty())
+    {
+        logError("Cannot load materials because file name is empty!\n");
+        assert(0);
+
+        return false;
+    }
+
+    FileExtension extension = fileExtension(filename);
+    if (!isMaterialFileExtension(extension))
+    {
+        logError("File format is not recognized as material:\n%s\n", filename.c_str());
+        return false;
+    }
+
+    if (extension == FileExtension::MTL)
+    {
+        std::vector<mtl::Material*>* srcMaterials = mtl::load(filename);
+        if (!srcMaterials)
+        {
+            return false;
+        }
+
+        for(uint32 i=0; i<srcMaterials->size(); ++i)
+        {
+            mtl::Material* srcMaterial = (*srcMaterials)[i];
+            if (!srcMaterial)
+            {
+                // TODO: this should never happen
+                assert(0);
+                continue;
+            }
+
+            hash handle = InvalidHash;
+            if (!createMaterialFromMTL(*srcMaterial, handle))
+            {
+                // TODO: Whats the best behavior in such case?
+                continue;
+            }
+        }
+    }
+    else
+    if (extension == FileExtension::Material)
+    {
+        // material::load(filename);
+    }
+    else
+    {
+        // TODO: Add support for other recognized material file extensions
+        assert(0);
+        return false;
+    }
+}
+
+Material* ResourcesManager::findMaterial(const std::string& filename)
+{
+    return findMaterial(hashString(filename));
+}
+
+Material* ResourcesManager::findMaterial(const hash handle)
+{
+    std::unordered_map<hash, Material*>::iterator it = materials.find(handle);
+    if (it != materials.end())
+    {
+        return it->second;
+    }
+
+    return nullptr;
+}
+
+bool ResourcesManager::freeMaterial(const hash handle)
+{
+    std::unordered_map<hash, Material*>::iterator it = materials.find(handle);
+    if (it != materials.end())
+    {
+        // TODO: release backing textures: gpuStreamer.deallocateMemory(*it->second);
+        materials.erase(it);
+
+        return true;
+    }
+
+    return false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+//Material Interface::Load::material(const std::string& filename, const std::string& name)
+//{
+//uint32 found;
+//uint32 length = filename.length();
+
+//// Try to reuse already loaded material
+//if (ResourcesContext.materials.find(name) != ResourcesContext.materials.end())
+//   return ResourcesContext.materials[name];
+
+//found = 
+
+//return Material();
+//}
+
+//Material Interface::Load::material(const std::string& filename)
+//{
+//uint32 found;
+//uint32 length = filename.length();
+
+//// Try to reuse already loaded material
+//if (ResourcesContext.materials.find(filename) != ResourcesContext.materials.end())
+//   return ResourcesContext.materials[filename];
+
+
+
+//return Material();
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Context::Defaults::Defaults() :
     //program(nullptr),
     enHeapBuffers(nullptr),
     enHeapTextures(nullptr),
     enStagingHeap(nullptr),
-    enAlbedoMap(nullptr),
-    enMetallicMap(nullptr),
-    enCavityMap(nullptr),
-    enRoughnessMap(nullptr),
-    enAOMap(nullptr),
-    enNormalMap(nullptr),
-    enDisplacementMap(nullptr),
-    enVectorDisplacementMap(nullptr),
-    enEmmisiveMap(nullptr),
-    enOpacityMap(nullptr),
-    //enEmmisiveMap(nullptr),
-    //enAmbientMap(nullptr),
-    //enDiffuseMap(nullptr),
-    //enSpecularMap(nullptr),
-    //enTransparencyMap(nullptr),
-    //enNormalMap(nullptr),
-    //enDisplacementMap(nullptr),
-    //enVectorsMap(nullptr),
+
     enAxes(nullptr)
 {
 }
 
-Context::Defaults::~Defaults()
-{
-}
 
-// TODO: Should be EN_SUPPORTS_FBX (and best solution would be plugin system for different formats support through DLLs).
-#if defined(EN_PLATFORM_WINDOWS)
-Context::Context() :
-    fbxManager(nullptr),
-    fbxFilter(nullptr),
-    fbxGeometryConverter(nullptr)
-#else
-Context::Context()
-#endif
-{
-/*
-    storage.fonts.create(128);
-    storage.models.create(4096);
-    storage.materials.create(4096);
 
-    fonts.clear();
-    models.clear();
-    materials.clear();
-//*/
 
-    textures.clear();
-
-    path.fonts       = std::string("resources/fonts/");
-    path.models      = std::string("resources/models/");
-    path.materials   = std::string("resources/materials/");
-    path.shaders     = std::string("resources/shaders/");
-    path.textures    = std::string("resources/textures/");
-    path.sounds      = std::string("resources/sounds/"); 
-    path.screenshots = std::string("screenshots/");
-}
-
-Context::~Context()
-{
-}
 
 void Context::create(void)
 {
     using namespace en::gpu;
 
-    enLog << "Starting module: Resources.\n";
+    
 
     models.clear();
     materials.clear();
@@ -156,122 +1086,19 @@ void Context::create(void)
     //shaders[0] = Gpu.shader.create(Vertex, vsCode);
     //shaders[1] = Gpu.shader.create(Fragment, fsCode);
     //defaults.program     = Gpu.program.create(shaders);
-
-    // Create GPU Heap used as backing store for all resources (for now 256MB)
-    defaults.enHeapBuffers  = Graphics->primaryDevice()->createHeap(MemoryUsage::Linear, 64*1024*1024);
-    defaults.enHeapTextures = Graphics->primaryDevice()->createHeap(MemoryUsage::Tiled, 256*1024*1024);
-
-    // Create Heap as temporary location for resources upload
-    defaults.enStagingHeap = Graphics->primaryDevice()->createHeap(MemoryUsage::Upload, 64*1024*1024);
-
-    // TODO: This is temporary solution. Resources should be dynamically streamed in,
-    //       from storage to RAM and then VRAM. Also different Heaps should be used
-    //       for different kinds of resources / gpu's.
-   
-    // Create default textures for materials
-    //defaults.enAlbedoMap             = png::load(string("./resources/engine/textures/enDefaultAlbedoMap.png"));   
-    //defaults.enMetallicMap           = png::load(string("./resources/engine/textures/enDefaultMetallicMap.png"));
-    //defaults.enCavityMap             = png::load(string("./resources/engine/textures/enDefaultCavityMap.png"));
-    //defaults.enRoughnessMap          = png::load(string("./resources/engine/textures/enDefaultRoughnessMap.png"));
-    //defaults.enAOMap                 = png::load(string("./resources/engine/textures/enDefaultAOMap.png"));
-    //defaults.enNormalMap             = png::load(string("./resources/engine/textures/enDefaultNormalMap.png"));
-    //defaults.enDisplacementMap       = png::load(string("./resources/engine/textures/enDefaultDisplacementMap.png"));
-    //defaults.enVectorDisplacementMap = png::load(string("./resources/engine/textures/enDefaultVectorDisplacementMap.png"));
-    //defaults.enEmmisiveMap           = png::load(string("./resources/engine/textures/enDefaultEmmisiveMap.png"));
-    //defaults.enOpacityMap            = png::load(string("./resources/engine/textures/enDefaultOpacityMap.png"));
-
-    //defaults.enEmmisiveMap     = png::load(string("./resources/engine/textures/enDefaultEmmisiveMap.png"));
-    //defaults.enAmbientMap      = png::load(string("./resources/engine/textures/enDefaultAmbientMap.png"));       
-    //defaults.enDiffuseMap      = png::load(string("./resources/engine/textures/enDefaultDiffuseMap.png"));       
-    //defaults.enSpecularMap     = png::load(string("./resources/engine/textures/enDefaultSpecularMap.png"));   
-    //defaults.enTransparencyMap = png::load(string("./resources/engine/textures/enDefaultAlphaMap.png"));     
-    //defaults.enNormalMap       = png::load(string("./resources/engine/textures/enDefaultNormalMap.png")); 
-    //defaults.enDisplacementMap = png::load(string("./resources/engine/textures/enDefaultDisplacementMap.png"));
-    //defaults.enVectorsMap      = png::load(string("./resources/engine/textures/enDefaultVectorMap.png")); 
-
-    // Create default mesh for corrdinate system axes
-    Formatting formatting(Attribute::v3f32, Attribute::v3f32); // inPosition, inColor
-    defaults.enAxes = std::unique_ptr<Buffer>(defaults.enHeapBuffers->createBuffer(14u, formatting, 0u));
-
-    // Create staging buffer
-    uint32 stagingSize = 14u;
-    std::unique_ptr<gpu::Buffer> staging(defaults.enStagingHeap->createBuffer(BufferType::Transfer, stagingSize));
-    assert( staging );
-
-    // Read texture to temporary buffer
-    volatile void* dst = staging->map();
-    memcpy((void*)dst, &axes, stagingSize);
-    staging->unmap();
-    
-    // TODO: In future distribute transfers to different queues in the same queue type family
-    gpu::QueueType queueType = gpu::QueueType::Universal;
-    if (Graphics->primaryDevice()->queues(gpu::QueueType::Transfer) > 0u)
-    {
-        queueType = gpu::QueueType::Transfer;
-    }
-
-    // Copy data from staging buffer to final texture
-    std::shared_ptr<gpu::CommandBuffer> command = Graphics->primaryDevice()->createCommandBuffer(queueType);
-    command->start();
-    command->copy(*staging,*defaults.enAxes);
-    command->commit();
-   
-    // TODO:
-    // here return completion handler callback !!! (no waiting for completion)
-    // - this callback destroys CommandBuffer object
-    // - destroys staging buffer
-    //
-    // Till it's done, wait for completion:
-   
-    command->waitUntilCompleted();
-    command = nullptr;
-    staging = nullptr;
-
-#if defined(EN_PLATFORM_WINDOWS)
-    fbxManager = FbxManager::Create();
-    fbxFilter  = FbxIOSettings::Create(fbxManager, IOSROOT);
-    fbxManager->SetIOSettings(fbxFilter);
-    fbxGeometryConverter = new FbxGeometryConverter(fbxManager);
-#endif
 }
 
 void Context::destroy(void)
 {
-    enLog << "Closing module: Resources.\n";
-
     //defaults.program                 = nullptr;
-                                    
-    defaults.enAlbedoMap             = nullptr;
-    defaults.enMetallicMap           = nullptr;
-    defaults.enCavityMap             = nullptr;
-    defaults.enRoughnessMap          = nullptr;
-    defaults.enAOMap                 = nullptr;
-    defaults.enNormalMap             = nullptr;
-    defaults.enDisplacementMap       = nullptr;
-    defaults.enVectorDisplacementMap = nullptr;
-    defaults.enEmmisiveMap           = nullptr;
-    defaults.enOpacityMap            = nullptr;
-    //defaults.enEmmisiveMap     = nullptr;
-    //defaults.enAmbientMap      = nullptr;
-    //defaults.enDiffuseMap      = nullptr;
-    //defaults.enSpecularMap     = nullptr;
-    //defaults.enTransparencyMap = nullptr;
-    //defaults.enNormalMap       = nullptr;
-    //defaults.enDisplacementMap = nullptr;
-    //defaults.enVectorsMap      = nullptr;
+ 
     defaults.enAxes            = nullptr;
 
     models.clear();
     materials.clear();
     textures.clear();
 
-#if defined(EN_PLATFORM_WINDOWS)
-    if (fbxManager)
-    {
-        fbxManager->Destroy();
-        delete fbxGeometryConverter;
-    }
-#endif
+
 }
 
  //MaterialParameter::MaterialParameter() :
@@ -455,6 +1282,7 @@ bool MaterialDestroy(MaterialDescriptor* const material)
 Material::Material() :
     name("default")
 {
+/*
     //assert(Gpu.screen.created());
     albedo       = ResourcesContext.defaults.enAlbedoMap;
     metallic     = ResourcesContext.defaults.enMetallicMap;
@@ -466,6 +1294,7 @@ Material::Material() :
     vector       = ResourcesContext.defaults.enVectorDisplacementMap;
     emmisive     = ResourcesContext.defaults.enEmmisiveMap;
     opacity      = ResourcesContext.defaults.enOpacityMap;
+//*/
 };
 
 
@@ -931,49 +1760,6 @@ std::shared_ptr<Model> Interface::Load::model(const std::string& filename, const
     return std::shared_ptr<Model>(NULL);
 }
 
-//Material Interface::Load::material(const std::string& filename, const std::string& name)
-//{
-//uint32 found;
-//uint32 length = filename.length();
-
-//// Try to reuse already loaded material
-//if (ResourcesContext.materials.find(name) != ResourcesContext.materials.end())
-//   return ResourcesContext.materials[name];
-
-//found = filename.rfind(".mtl");
-//if ( found != std::string::npos &&
-//     found == (length - 4) )
-//   return mtl::load(filename, name);
-
-//found = filename.rfind(".MTL");
-//if ( found != std::string::npos &&
-//     found == (length - 4) )
-//   return mtl::load(filename, name);
-
-//return Material();
-//}
-
-//Material Interface::Load::material(const std::string& filename)
-//{
-//uint32 found;
-//uint32 length = filename.length();
-
-//// Try to reuse already loaded material
-//if (ResourcesContext.materials.find(filename) != ResourcesContext.materials.end())
-//   return ResourcesContext.materials[filename];
-
-//found = filename.rfind(".material");
-//if ( found != std::string::npos &&
-//     found == (length - 9) )
-//   return material::load(filename);
-
-//found = filename.rfind(".MATERIAL");
-//if ( found != std::string::npos &&
-//     found == (length - 9) )
-//   return material::load(filename);
-
-//return Material();
-//}
 
 void Interface::Free::model(const std::string& name)
 {
@@ -1312,9 +2098,6 @@ void Interface::Free::texture(const std::string& filename)
 }
 
 } // en::resource
-
-resources::Context   ResourcesContext;
-resources::Interface Resources;
 
 } // en
 

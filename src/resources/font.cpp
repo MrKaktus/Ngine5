@@ -13,7 +13,7 @@
 #include "core/log/log.h"
 #include "core/utilities/parser.h"
 #include "utilities/strings.h"
-#include "resources/context.h" 
+#include "resources/interface.h" 
   
 #include "core/rendering/device.h"
 
@@ -171,11 +171,12 @@ std::shared_ptr<en::resources::Font> loadFont(const std::string& filename)
     File* file = Storage->open(filename);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.fonts + filename);
+        std::string fullPath = Resources->assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << std::string("ERROR: There is no such file " + en::ResourcesContext.path.fonts + filename + " !\n");
-            return std::shared_ptr<en::resources::Font>(nullptr);
+            logError("There is no such file!\n%s\n", fullPath.c_str());
+            return nullptr;
         }
     }
 

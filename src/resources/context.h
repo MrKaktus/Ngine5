@@ -22,17 +22,7 @@
 #include "audio/audio.h"
 #include "resources/resources.h"
 
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
 
-#pragma push_macro("aligned")
-#undef aligned
-
-#define FBXSDK_SHARED
-#define FBXSDK_NEW_API
-#include "fbxsdk.h"
-#endif
-
-#pragma pop_macro("aligned")
 
 #include <map>
 
@@ -40,6 +30,8 @@ namespace en
 {
 namespace resources
 {
+
+/*
 
 //struct MaterialParameter
 //{
@@ -155,44 +147,13 @@ struct Context
         //TarrayAdvanced<MaterialDescriptor, EN_MAX_ARRAY_SIZE> materials;
     } storage;
 
-    struct Paths
-    {
-        std::string fonts;
-        std::string models;
-        std::string materials;
-        std::string shaders;
-        std::string textures;
-        std::string sounds;
-        std::string screenshots;
-    } path;                   // Default paths to resources of specified type
 
     struct Defaults
     {
-//      std::shared_ptr<gpu::Pipeline> pipeline;            // Default program for materials
-//      std::shared_ptr<gpu::Shader>   vertex;
-//      std::shared_ptr<gpu
+
         gpu::Heap*    enHeapBuffers;
         gpu::Heap*    enHeapTextures;
         gpu::Heap*    enStagingHeap;
-        std::shared_ptr<gpu::Texture> enAlbedoMap;
-        std::shared_ptr<gpu::Texture> enMetallicMap;
-        std::shared_ptr<gpu::Texture> enCavityMap;
-        std::shared_ptr<gpu::Texture> enRoughnessMap;
-        std::shared_ptr<gpu::Texture> enAOMap;
-        std::shared_ptr<gpu::Texture> enNormalMap;
-        std::shared_ptr<gpu::Texture> enDisplacementMap;
-        std::shared_ptr<gpu::Texture> enVectorDisplacementMap;
-        std::shared_ptr<gpu::Texture> enEmmisiveMap;
-        std::shared_ptr<gpu::Texture> enOpacityMap;
-        // std::shared_ptr<gpu::Texture> enEmmisiveMap;
-        // std::shared_ptr<gpu::Texture> enAmbientMap;
-        // std::shared_ptr<gpu::Texture> enDiffuseMap;
-        // std::shared_ptr<gpu::Texture> enSpecularMap;
-        // std::shared_ptr<gpu::Texture> enTransparencyMap;
-        // std::shared_ptr<gpu::Texture> enNormalMap;
-        // std::shared_ptr<gpu::Texture> enDisplacementMap;
-        // std::shared_ptr<gpu::Texture> enVectorsMap;
-        std::unique_ptr<gpu::Buffer> enAxes;             // Default axes buffer
 
         Defaults();
        ~Defaults();
@@ -204,11 +165,7 @@ struct Context
     std::map<std::string, std::unique_ptr<gpu::Texture> >  textures;
     std::map<std::string, std::shared_ptr<audio::Sample> > sounds;
 
-#if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
-    FbxManager*           fbxManager;           // FBX Memory Manager
-    FbxIOSettings*        fbxFilter;            // Filters content read from FBX
-    FbxGeometryConverter* fbxGeometryConverter; // Geometry Converter responsible for triangulation
-#endif
+
 
     Context();
     ~Context();
@@ -216,10 +173,11 @@ struct Context
     void create(void);
     void destroy(void);
 };
+//*/
 
 } // en::resource
 
-extern resources::Context ResourcesContext;
+//extern resources::Context ResourcesContext;
 
 } // en
 

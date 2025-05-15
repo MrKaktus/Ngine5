@@ -188,6 +188,7 @@ bool Context::create(void)
 void Context::destroy(void)
 {
     logInfo("Closing module: Audio.\n");
+
 #if defined(EN_PLATFORM_OSX) || defined(EN_PLATFORM_WINDOWS)
     if (!context)
     {

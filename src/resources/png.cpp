@@ -11,7 +11,7 @@
 #include "core/storage.h"
 #include "core/log/log.h"
 #include "utilities/utilities.h"
-#include "resources/context.h"
+#include "resources/interface.h"
 #include "resources/png.h"
 
 #include "core/rendering/device.h"
@@ -620,6 +620,48 @@ void decode(DecodeState& decoder)
 }
 */
 
+
+bool loadMetadata(
+    const std::string& filename,
+    gpu::TextureState& state,
+    gpu::ColorSpace& colorSpace)
+{
+    using namespace en::storage;
+    using namespace en::gpu;
+
+    // Open file 
+    File* file = Storage->open(filename);
+    if (!file)
+    {
+        std::string fullPath = Resources->assetsPath() + filename;
+        file = Storage->open(fullPath);
+        if (!file)
+        {
+            logError("There is no such file!\n%s\n", fullPath.c_str());
+            return false;
+        }
+    }
+
+
+    // ### Read file metadata
+
+
+    // Read file first 4KB into single 4KB memory page
+    uint32 readSize = min(file->size(), PageSize);
+    uint8* buffer = allocate<uint8>(readSize, PageSize);
+    file->read(0, readSize, buffer);
+    delete file;
+
+    // Read file properties
+    // TODO: Determine file Color Space and compare with expected
+    bool success = readMetadata(buffer, readSize, state, colorSpace);
+
+    // Free temporary 4KB memory page
+    deallocate<uint8>(buffer);
+
+    return success;
+}
+
 bool load(const std::string& filename, 
           uint8* const destination, 
           const uint32 width, 
@@ -635,11 +677,11 @@ bool load(const std::string& filename,
     File* file = Storage->open(filename);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        std::string fullPath = Resources->assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.textures + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
+            logError("There is no such file!\n%s\n", fullPath.c_str());
             return false;
         }
     }

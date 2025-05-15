@@ -21,6 +21,10 @@ namespace en
 namespace png
 {
 
+bool loadMetadata(const std::string& filename,
+                  gpu::TextureState& state,
+                  gpu::ColorSpace& colorSpace); // In/Out: Provide expected ColorSpace on input, receive determined one on output.
+
 bool load(const std::string& filename, 
           uint8* const destination,                  ///< Pointer to buffer where image should be decompressed and decoded
           const uint32 width,                        ///< Expected width of surface

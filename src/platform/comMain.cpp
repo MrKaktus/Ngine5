@@ -28,7 +28,7 @@
 #include "core/xr/interface.h"      // Core - XR
 #include "audio/context.h"          // Audio
 #include "input/input.h"            // Input
-//#include "resources/context.h"    // Resources
+#include "resources/interface.h"    // Resources
 #include "scene/context.h"          // Scene
 
 #include "platform/comMain.h"
@@ -76,7 +76,7 @@ void init(int argc, const char **argv)
   //en::xr::Interface::create();    <-- TODO: Disabled until rest of engine is cleaned up, brought back to function and this component is completed.
     en::AudioContext.create();
     en::input::Interface::create();
-  //en::ResourcesContext.create();  <-- TODO: FIXME: Creation before Window causes Vulkan to crash on NV :/
+    en::resources::Interface::create(); // TODO: FIXME: Creation before Window causes Vulkan to crash on NV :/
     en::StateContext.create();
 
     // Enqueue main task (application main function) for execution
