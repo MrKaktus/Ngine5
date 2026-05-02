@@ -111,6 +111,7 @@
     <ClCompile Include="..\src\core\types\uint32v2.cpp" />
     <ClCompile Include="..\src\core\types\uint32v3.cpp" />
     <ClCompile Include="..\src\core\types\uint32v4.cpp" />
+    <ClCompile Include="..\src\core\types\uuid.cpp" />
     <ClCompile Include="..\src\core\utilities\basicAllocator.cpp" />
     <ClCompile Include="..\src\core\utilities\parser.cpp" />
     <ClCompile Include="..\src\core\xr\common\xrInterface.cpp" />
@@ -389,6 +390,7 @@
     <ClInclude Include="..\src\core\storage\osxStorage.h" />
     <ClInclude Include="..\src\core\storage\storage.h" />
     <ClInclude Include="..\src\core\storage\winStorage.h" />
+    <ClInclude Include="..\src\core\types\uuid.h" />
     <ClInclude Include="..\src\core\utilities\basicAllocator.h" />
     <ClInclude Include="..\src\core\xr\openvr\ovrInterface.h" />
     <ClInclude Include="..\src\core\xr\openxr\d3d12\oxrdx12Headset.h" />
@@ -550,6 +552,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);_ENABLE_EXTENDED_ALIGNED_STORAGE </PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./../public/include/;./../src/;./../middleware/zlib-1.2.10/;./../middleware/;C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/include/;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

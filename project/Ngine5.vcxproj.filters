@@ -648,6 +648,9 @@
     <ClCompile Include="..\src\core\log\PrintLog.cpp">
       <Filter>Source Files\core\log</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\types\uuid.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1378,6 +1381,9 @@
     </ClInclude>
     <ClInclude Include="..\src\core\log\PrintLog.h">
       <Filter>Source Files\core\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\types\uuid.h">
+      <Filter>Header Files\core\types</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
