@@ -84,7 +84,7 @@ float3::operator double3() const
 
 void float3::normalize(void)
 {
-    float tmp = sqrt(x*x + y*y + z*z);
+    float tmp = sqrtf(x*x + y*y + z*z);
     if (tmp) 
     {			
         x /= tmp;
@@ -95,7 +95,7 @@ void float3::normalize(void)
    
 float float3::length(void) const
 {
-    return sqrt(x*x + y*y + z*z);
+    return sqrtf(x*x + y*y + z*z);
 }
 
 } // en

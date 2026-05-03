@@ -40,6 +40,8 @@ class float3
     float  length(void) const;
 };
 
+static_assert(sizeof(float3) == 12, "en::float3 size mismatch.");
+
 } // en
 
 #endif

@@ -15,19 +15,21 @@
 
 namespace en
 {
-   class sint16v2
-      {
-      public:
-      sint16 x;
-      sint16 y;
-      
-      sint16v2(void);
-      sint16v2(const sint16 x, const sint16 y);
 
-      bool operator== (const sint16v2 b) const;
-      };
+class sint16v2
+{
+public:
+    sint16 x;
+    sint16 y;
    
-   static_assert(sizeof(sint16v2) == 4, "en::sint16v2 size mismatch!");
-}
+    sint16v2(void);
+    sint16v2(const sint16 x, const sint16 y);
+
+    bool operator== (const sint16v2 b) const;
+};
+
+static_assert(sizeof(sint16v2) == 4, "en::sint16v2 size mismatch!");
+
+} // en
 
 #endif
