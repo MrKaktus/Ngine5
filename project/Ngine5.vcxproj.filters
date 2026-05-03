@@ -648,6 +648,12 @@
     <ClCompile Include="..\src\core\log\PrintLog.cpp">
       <Filter>Source Files\core\log</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\types\sint32v2.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\types\sint32v4.cpp">
+      <Filter>Source Files\core\types</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\core\types\uuid.cpp">
       <Filter>Source Files\core\types</Filter>
     </ClCompile>
@@ -1387,6 +1393,18 @@
     </ClInclude>
     <ClInclude Include="..\src\core\log\PrintLog.h">
       <Filter>Source Files\core\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\sint16v2.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\sint32v4.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\uint16v4.h">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\types\sint32v2.h">
+      <Filter>Header Files\core\types</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\types\uuid.h">
       <Filter>Header Files\core\types</Filter>

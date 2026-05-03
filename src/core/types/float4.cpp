@@ -85,7 +85,7 @@ float3 float4::xyz(void) const
    
 void float4::normalize(void)
 {
-    float tmp = sqrt(x*x + y*y + z*z);
+    float tmp = sqrtf(x*x + y*y + z*z);
     if (tmp) 
     {			
         x /= tmp;
