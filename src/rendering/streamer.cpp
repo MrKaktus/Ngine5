@@ -249,7 +249,7 @@ void uploadBuffer(Streamer* streamer, const TransferResource transfer, QueueType
     //   - Batch transfers into once CB until some data amount per frame (transfer rate)
     //   - Encode always few CBs upfront?
 
-    std::shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
+    std::shared_ptr<CommandBuffer> command = streamer->gpu.createCommandBuffer(queueForTransfers);
 
     // TODO: Upload data in batches, taking into notice available bandwidth.
     //       Time budget of N miliseconds for data upload should be specified.
@@ -278,7 +278,7 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
 
     BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
 
-    std::shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
+    std::shared_ptr<CommandBuffer> command = streamer->gpu.createCommandBuffer(queueForTransfers);
 
     command->start();
 
@@ -471,7 +471,7 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
 
     BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
 
-    std::shared_ptr<CommandBuffer> command = streamer->gpu->createCommandBuffer(queueForTransfers);
+    std::shared_ptr<CommandBuffer> command = streamer->gpu.createCommandBuffer(queueForTransfers);
 
     command->start();
 
@@ -706,7 +706,7 @@ void uploadResource(Streamer* streamer, const TransferResource transfer)
     // Determine upload queue
     // TODO: This should be done once, on Streamer start
     QueueType queueForTransfers = QueueType::Universal;
-    if (streamer->gpu->queues(gpu::QueueType::Transfer) > 0u)
+    if (streamer->gpu.queues(gpu::QueueType::Transfer) > 0u)
     {
         queueForTransfers = QueueType::Transfer;
     }
@@ -1246,7 +1246,7 @@ void* threadAsyncStreaming(Thread* thread)
     return nullptr;
 }
 
-Streamer::Streamer(std::shared_ptr<GpuDevice> _gpu, const StreamerSettings* settings) :
+Streamer::Streamer(gpu::GpuDevice& _gpu, const StreamerSettings* settings) :
     gpu(_gpu),
     queueForTransfers(QueueType::Universal),
     downloadAllocationSize(DownloadAllocationSize*MB),
@@ -1286,8 +1286,8 @@ Streamer::Streamer(std::shared_ptr<GpuDevice> _gpu, const StreamerSettings* sett
     } 
    
     // Available memory
-    dedicatedMemorySize = gpu->dedicatedMemorySize();
-    systemMemorySize    = gpu->systemMemorySize();
+    dedicatedMemorySize = gpu.dedicatedMemorySize();
+    systemMemorySize    = gpu.systemMemorySize();
    
     // Bandwidth
     // TODO: Determine maxBandwithPerSecond in bytes.
@@ -1345,7 +1345,7 @@ Streamer::Streamer(std::shared_ptr<GpuDevice> _gpu, const StreamerSettings* sett
     textureResourcesInternalPool = new PoolAllocator<TextureAllocationInternal>(DefaultResourcesCount, MaximumResourcesCount);
 
     // Determine which GPU queue is best for data transfers
-    if (gpu->queues(gpu::QueueType::Transfer) > 0u)
+    if (gpu.queues(gpu::QueueType::Transfer) > 0u)
     {
         queueForTransfers = QueueType::Transfer;
     }
@@ -1354,7 +1354,7 @@ Streamer::Streamer(std::shared_ptr<GpuDevice> _gpu, const StreamerSettings* sett
     if (downloadAllocationSize)
     {
         // Create staging Heap, that can be accessed through linear Buffer.
-        std::unique_ptr<Heap> heap(gpu->createHeap(MemoryUsage::Download, downloadAllocationSize));
+        std::unique_ptr<Heap> heap(gpu.createHeap(MemoryUsage::Download, downloadAllocationSize));
         assert( heap );
 
         std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Transfer, downloadAllocationSize));
@@ -1433,7 +1433,7 @@ bool Streamer::initSystemHeap(BufferCache& systemCache)
     //       new backing Heap allocation is spawned in the background.
    
     // Create staging Heap, that can be accessed through linear Buffer.
-    std::unique_ptr<Heap> heap(gpu->createHeap(MemoryUsage::Upload, systemAllocationSize));
+    std::unique_ptr<Heap> heap(gpu.createHeap(MemoryUsage::Upload, systemAllocationSize));
     assert( heap );
     std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Transfer, systemAllocationSize));
     assert( buffer );
@@ -1450,7 +1450,7 @@ bool Streamer::initSystemHeap(BufferCache& systemCache)
 bool Streamer::initBufferHeap(BufferCache& bufferCache)
 {
     // Create linear Heap, that can be accessed through linear Buffer.
-    std::unique_ptr<Heap> heap(gpu->createHeap(MemoryUsage::Linear, residentAllocationSize));
+    std::unique_ptr<Heap> heap(gpu.createHeap(MemoryUsage::Linear, residentAllocationSize));
     assert( heap );
     std::unique_ptr<Buffer> buffer(heap->createBuffer(gpu::BufferType::Vertex, residentAllocationSize));   // TODO: Buffer bitmask! Buffer for everything!
     assert( buffer );
@@ -1467,7 +1467,7 @@ bool Streamer::initBufferHeap(BufferCache& bufferCache)
 bool Streamer::initTextureHeap(TextureCache& textureCache)
 {
     textureCache.next = nullptr;
-    textureCache.heap = gpu->createHeap(MemoryUsage::Tiled, residentAllocationSize);
+    textureCache.heap = gpu.createHeap(MemoryUsage::Tiled, residentAllocationSize);
     assert( textureCache.heap );
    
     return true;
@@ -2045,7 +2045,7 @@ MipMemoryLayout* generateTextureMemoryLayout(const gpu::TextureState& state, con
 bool Streamer::allocateMemory(TextureAllocation*& desc, const gpu::TextureState& state)
 {
     // Calculate texture layout in system memory
-    MipMemoryLayout* mipLayout = generateTextureMemoryLayout(state, gpu.get());
+    MipMemoryLayout* mipLayout = generateTextureMemoryLayout(state, &gpu);
    
     // Calculate total amount of memory needed to store texture in CPU RAM, taking
     // into account GPU specific padding per "surface", "line", "texel" or "block".

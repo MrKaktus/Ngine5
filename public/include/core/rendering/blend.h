@@ -94,16 +94,6 @@ enum class LogicOperation : uint32
     Count
 };
 
-/// Color channels mask
-enum class ColorMask : uint32
-{
-    Red                       = 0x1,
-    Green                     = 0x2,
-    Blue                      = 0x4,
-    Alpha                     = 0x8,
-    All                       = 0xF
-};
-
 /// Default state:
 ///
 /// - blendColor     = float4(0.0f, 0.0f, 0.0f, 0.0f)
@@ -127,7 +117,7 @@ struct BlendStateInfo
 /// - dstAlpha       = BlendFactor::Zero
 /// - alphaFunc      = BlendOperation::Add
 /// - logic          = LogicOperation::NoOperation (ignored, unsupported)
-/// - writeMask      = ColorMask::All
+/// - writeMask      = ChannelMask::All
 ///
 struct BlendAttachmentInfo
 {
@@ -139,7 +129,7 @@ struct BlendAttachmentInfo
     BlendFactor    dstAlpha;
     BlendOperation alpha;
     LogicOperation logic;          // Logic operation
-    ColorMask      writeMask;
+    ChannelMask    writeMask;
 
     BlendAttachmentInfo();
 };

@@ -23,6 +23,16 @@ namespace en
 namespace gpu
 {
 
+/// Color channels mask
+enum class ChannelMask : uint32
+{
+    Red   = 0x1,
+    Green = 0x2,
+    Blue  = 0x4,
+    Alpha = 0x8,
+    All   = 0xF
+};
+
 /// Types of primitives to draw
 ///
 /// LineLoops    - are unsupported by all modern API's (D3D12, Vulkan, Metal)

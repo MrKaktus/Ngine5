@@ -1052,7 +1052,7 @@ bool isDepthStencil(const Format format)
 }
 
 // Calculate texture mipmaps count
-uint32 TextureMipMapCount(const TextureState& state)
+uint32 calculateMipMapsCount(const TextureState& state)
 {
     if (state.type == TextureType::Texture2DMultisample      ||
         state.type == TextureType::Texture2DMultisampleArray )   // also Rectangle & Buffer

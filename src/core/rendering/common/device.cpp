@@ -437,10 +437,10 @@ bool GraphicAPI::create(void)
     // Load choosed API for Android & Windows
    
 #if defined(EN_PLATFORM_ANDROID)
-    Graphics = std::make_shared<VulkanAPI>();
+    Graphics = std::make_unique<VulkanAPI>();
 #endif
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
-    Graphics = std::make_shared<MetalAPI>();
+    Graphics = std::make_unique<MetalAPI>();
 #endif
 #if defined(EN_PLATFORM_WINDOWS)
     // API Selection based on config file / terminal parameters
@@ -449,12 +449,12 @@ bool GraphicAPI::create(void)
         apiType == std::string("d3d12"))
     {
         // Direct3D12 is secondary graphics API (only if explicitly selected)
-        Graphics = std::make_shared<Direct3DAPI>("Ngine5.0");
+        Graphics = std::make_unique<Direct3DAPI>("Ngine5.0");
     }
     else
     {
         // Vulkan is primary graphics API
-        Graphics = std::make_shared<VulkanAPI>("Ngine5.0");      // TODO: Propagate application name !
+        Graphics = std::make_unique<VulkanAPI>("Ngine5.0");      // TODO: Propagate application name !
     }
 #endif
 
@@ -463,7 +463,7 @@ bool GraphicAPI::create(void)
    
 } // en::gpu
    
-    std::shared_ptr<gpu::GraphicAPI> Graphics;
+std::unique_ptr<gpu::GraphicAPI> Graphics;
 
 } // en
 

@@ -110,13 +110,13 @@ BlendStateD3D12::BlendStateD3D12(const BlendStateInfo& state,
         // Translate Color Write Mask
         desc.RenderTarget[i].RenderTargetWriteMask = static_cast<UINT8>(underlyingType(color[i].writeMask));
         // Optimisation of:
-        //if (color[i].writeMask & ColorMaskRed)
+        //if (color[i].writeMask & ChannelMask::Red)
         //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_RED;
-        //if (color[i].writeMask & ColorMaskGreen)
+        //if (color[i].writeMask & ChannelMask::Green)
         //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_GREEN;
-        //if (color[i].writeMask & ColorMaskBlue)
+        //if (color[i].writeMask & ChannelMask::Blue)
         //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_BLUE;
-        //if (color[i].writeMask & ColorMaskAlpha)
+        //if (color[i].writeMask & ChannelMask::Alpha)
         //   desc.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
         //
         // or for all: 

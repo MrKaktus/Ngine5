@@ -35,7 +35,7 @@
 //    dstAlpha       - Zero
 //    alphaFunc      - Add
 //    logic          - NoOperation
-//    writeMask      - ColorMaskAll
+//    writeMask      - ChannelMask::All
 //
 //
 // Metal default state:
@@ -74,7 +74,7 @@ BlendAttachmentInfo::BlendAttachmentInfo() :
     dstAlpha(BlendFactor::Zero),
     alpha(BlendOperation::Add),
     logic(LogicOperation::NoOperation),
-    writeMask(ColorMask::All)
+    writeMask(ChannelMask::All)
 {
 }
 
