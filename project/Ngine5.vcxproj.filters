@@ -1400,7 +1400,7 @@
     <ClInclude Include="..\public\include\core\types\sint32v2.h">
       <Filter>Header Files\core\types</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\core\types\uuid.h">
+    <ClInclude Include="..\public\include\core\types\uuid.h">
       <Filter>Header Files\core\types</Filter>
     </ClInclude>
   </ItemGroup>

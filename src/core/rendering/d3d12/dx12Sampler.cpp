@@ -147,12 +147,12 @@ Sampler* Direct3D12Device::createSampler(const SamplerState& state)
     //
     D3D12_SAMPLER_DESC samplerInfo;
     samplerInfo.Filter         = static_cast<D3D12_FILTER>(filterMask);
-    samplerInfo.AddressU       = static_cast<D3D12_TEXTURE_ADDRESS_MODE>(underlyingType(state.coordU) + 1);  // Optimisation: TranslateSamplerAdressing[underlyingType(state.coordU)];
-    samplerInfo.AddressV       = static_cast<D3D12_TEXTURE_ADDRESS_MODE>(underlyingType(state.coordV) + 1);  // Optimisation: TranslateSamplerAdressing[underlyingType(state.coordV)];
-    samplerInfo.AddressW       = static_cast<D3D12_TEXTURE_ADDRESS_MODE>(underlyingType(state.coordW) + 1);  // Optimisation: TranslateSamplerAdressing[underlyingType(state.coordW)];
+    samplerInfo.AddressU       = static_cast<D3D12_TEXTURE_ADDRESS_MODE>(underlyingType(state.coordU) + 1);  // Optimisation of: TranslateSamplerAdressing[underlyingType(state.coordU)];
+    samplerInfo.AddressV       = static_cast<D3D12_TEXTURE_ADDRESS_MODE>(underlyingType(state.coordV) + 1);  // Optimisation of: TranslateSamplerAdressing[underlyingType(state.coordV)];
+    samplerInfo.AddressW       = static_cast<D3D12_TEXTURE_ADDRESS_MODE>(underlyingType(state.coordW) + 1);  // Optimisation of: TranslateSamplerAdressing[underlyingType(state.coordW)];
     samplerInfo.MipLODBias     = state.LodBias;
     samplerInfo.MaxAnisotropy  = static_cast<UINT>(max(1.0f, min(state.anisotropy, support.maxAnisotropy))); // 1 .. 16
-    samplerInfo.ComparisonFunc = static_cast<D3D12_COMPARISON_FUNC>(underlyingType(state.compare) + 1);      // Optimisation: TranslateCompareOperation[underlyingType(state.compare)];
+    samplerInfo.ComparisonFunc = static_cast<D3D12_COMPARISON_FUNC>(underlyingType(state.compare) + 1);      // Optimisation of: TranslateCompareOperation[underlyingType(state.compare)];
     samplerInfo.BorderColor[0] = TranslateSamplerBorder[underlyingType(state.borderColor)].r;
     samplerInfo.BorderColor[1] = TranslateSamplerBorder[underlyingType(state.borderColor)].g;
     samplerInfo.BorderColor[2] = TranslateSamplerBorder[underlyingType(state.borderColor)].b;
