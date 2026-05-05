@@ -15,7 +15,7 @@
 #ifndef ENG_CORE_XR_OPENXR_HEADSET
 #define ENG_CORE_XR_OPENXR_HEADSET
 
-#include "OpenXR/openxr.h"
+#include "openxr.h"
 
 #include "core/rendering/device.h"
 #include "core/xr/headset.h"

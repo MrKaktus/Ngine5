@@ -18,7 +18,7 @@
 
 #include "core/defines.h"
 
-#include "OpenXR/openxr.h"
+#include "openxr.h"
 
 namespace en
 {

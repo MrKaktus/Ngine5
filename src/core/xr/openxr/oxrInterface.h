@@ -35,8 +35,8 @@
 #define XR_USE_GRAPHICS_API_VULKAN
 #endif
 
-#include "OpenXR/openxr.h"
-#include "OpenXR/openxr_platform.h"
+#include "openxr.h"
+#include "openxr_platform.h"
 
 #include "core/types.h"
 #include "core/xr/interface.h"

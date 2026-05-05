@@ -11,9 +11,9 @@
 #endif
 #define XR_USE_GRAPHICS_API_VULKAN
 
-#include "OpenXR/openxr.h"
-#include "OpenXR/openxr_platform.h"
-#include "OpenXR/openxr_platform_defines.h"
+#include "openxr.h"
+#include "openxr_platform.h"
+#include "openxr_platform_defines.h"
 
 #include "core/rendering/vulkan/vkTexture.h"
 

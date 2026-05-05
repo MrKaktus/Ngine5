@@ -19,7 +19,7 @@
 #include "core/xr/openxr/oxrFrame.h"
 #include "core/xr/openxr/oxrHeadset.h"
 
-#include "OpenXR/openxr.h"
+#include "openxr.h"
 
 // Maximum count of textures needed to compose single frame (2 for Dedicated layout)
 #define MaxTexturesPerFrame 2
