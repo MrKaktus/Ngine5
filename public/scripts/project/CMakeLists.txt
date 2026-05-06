@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 4.0)
 
 # Automatic generator of IDE projects for macOS and Windows
 # TODO: Add iOS, tvOS targets.
@@ -14,11 +14,20 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 # MacOS
 if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
 
-   FILE(GLOB_RECURSE SourceFiles
+   file(GLOB_RECURSE SourceFiles
       "./src/*.cpp"
       "./src/*.mm")
 
-   add_executable(ENGINE_PROJECT_NAME EXCLUDE_FROM_ALL ${SourceFiles})
+   file(GLOB_RECURSE AssetFiles
+      "./resources/*.*")
+
+   add_executable(ENGINE_PROJECT_NAME MACOSX_BUNDLE EXCLUDE_FROM_ALL ${SourceFiles} ${AssetFiles}) 
+
+   SET_SOURCE_FILES_PROPERTIES(
+      ${AssetFiles}
+      PROPERTIES
+      MACOSX_PACKAGE_LOCATION Resources
+      )
 
    #include_directories(../../Engine/bin/macOS/$<CONFIG>/usr/local/include/Ngine/)
    include_directories(../../Engine/public/include/)
@@ -29,8 +38,16 @@ if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
    # https://cmake.org/Wiki/CMake/Tutorials/Exporting_and_Importing_Targets
    #
    add_library(Ngine STATIC IMPORTED)
-   set_property(TARGET Ngine PROPERTY IMPORTED_LOCATION_RELEASE /Volumes/FAT32_SHARE/Engine/bin/macOS/Release/libNgine.a)
-   set_property(TARGET Ngine PROPERTY IMPORTED_LOCATION_DEBUG   /Volumes/FAT32_SHARE/Engine/bin/macOS/Debug/libNgine.a)
+   set_property(TARGET Ngine PROPERTY IMPORTED_LOCATION_RELEASE ./../../Engine/bin/macOS/Release/libNgine.a)
+   set_property(TARGET Ngine PROPERTY IMPORTED_LOCATION_DEBUG   ./../../Engine/bin/macOS/Debug/libNgine.a)
+
+   # Alternative way of setting target properties:
+   #
+   # set_target_properties(Ngine PROPERTIES 
+   #
+
+   # TODO: Set custom Info.plist file location to support Retina (or patch it somehow after the fact)
+   # set_property(TARGET Ngine PROPERTY MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Info.plist.in)
 
    find_package(ZLIB REQUIRED)
    if (NOT ZLIB_FOUND)
@@ -126,7 +143,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Windows)
 
    # Visual Studio: Properties->C/C++->General->Additional Include Directories
    # TODO: This should be shared path with MacOS
-   include_directories(../../Engine/public/include/)
+   include_directories(../Engine/public/include/)
 
 
 
@@ -136,14 +153,14 @@ if (CMAKE_SYSTEM_NAME STREQUAL Windows)
 
    find_library(LIBRARY_ENGINE_X64_DEBUG
                 NAMES Ngine5dbg
-                PATHS "../../Engine/bin/win64/Debug/")
+                PATHS "../Engine/bin/win64/Debug/")
    if (NOT LIBRARY_ENGINE_X64_DEBUG)
       message(FATAL_ERROR "Could not find Engine x64 Debug library")
    endif()
 
    find_library(LIBRARY_ENGINE_X64_RELEASE
                 NAMES Ngine5
-                PATHS "../../Engine/bin/win64/Release/")
+                PATHS "../Engine/bin/win64/Release/")
    if (NOT LIBRARY_ENGINE_X64_RELEASE)
       message(FATAL_ERROR "Could not find Engine x64 Release library")
    endif()

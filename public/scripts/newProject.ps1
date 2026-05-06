@@ -43,43 +43,43 @@ function createMakefile
 # `$ - Windows escape characters
 # \$ - macOS escape characters
 #
-(Get-Content '.\..\..\Engine\public\scripts\project\CMakeLists.txt') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'CMakeLists.txt'
+# Executed from $projectName directory
+(Get-Content '.\..\Engine\public\scripts\project\CMakeLists.txt') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'CMakeLists.txt'
 }
 
+# Executed from $projectName directory
 function createGitIgnore
 {
-(Get-Content '.\..\..\Engine\public\scripts\project\.gitignore') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content '.gitignore'
+(Get-Content '.\..\Engine\public\scripts\project\.gitignore') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content '.gitignore'
 }
 
+# Executed from $projectName\project\ directory
 function createXcodeGenerator
 {
-Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForXcode.command' -destination .
+Copy-Item '.\..\..\Engine\public\scripts\project\generateProjectForXcode.command' -destination .
 }
 
-function createVS2015Generator
+# Executed from $projectName\project\ directory
+function createVSGenerators
 {
-Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2015.bat' -destination .
+Copy-Item '.\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2015.bat' -destination .
+Copy-Item '.\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2017.bat' -destination .
+Copy-Item '.\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2019.bat' -destination .
+Copy-Item '.\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2022.bat' -destination .
+Copy-Item '.\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2026.bat' -destination .
 }
 
-function createVS2017Generator
-{
-Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2017.bat' -destination .
-}
-
-function createVS2019Generator
-{
-Copy-Item '.\..\..\..\Engine\public\scripts\project\generateProjectForVisualStudio2019.bat' -destination .
-}
-
+# Executed from $projectName\project\ directory
 function createSharedScripts
 {
-(Get-Content '.\..\..\..\Engine\public\scripts\project\postBuild.bat') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'postBuild.bat'
-(Get-Content '.\..\..\..\Engine\public\scripts\project\patchProject.ps1') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'patchProject.ps1'
+(Get-Content '.\..\..\Engine\public\scripts\project\postBuild.bat') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'postBuild.bat'
+(Get-Content '.\..\..\Engine\public\scripts\project\patchProject.ps1') -replace 'ENGINE_PROJECT_NAME', "$projectName" | Set-Content 'patchProject.ps1'
 }
 
+# Executed from $projectName\project\ directory
 function createSourceFiles
 {
-Copy-Item '.\..\..\..\Engine\public\scripts\project\main.cpp' -destination .
+Copy-Item '.\..\..\Engine\public\scripts\project\main.cpp' -destination .
 }
 
 Push-Location
@@ -95,7 +95,8 @@ If (!$projectName)
 # Determine project destination 
 If (!$projectsPath)
 {
-   $projectsPath=".\..\..\..\Projects\"
+   # By default new projects will be located in the same parent directory as Engine directory
+   $projectsPath=".\..\..\..\"
 }
 else
 {
@@ -136,9 +137,7 @@ createGitIgnore
 
 Set-Location -Path project
 createXcodeGenerator
-createVS2015Generator
-createVS2017Generator
-createVS2019Generator
+createVSGenerators
 createSharedScripts
 Set-Location -Path ..
 

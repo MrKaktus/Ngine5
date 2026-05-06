@@ -11,38 +11,43 @@ function createMakefile
 # `$ - Windows escape characters
 # \$ - macOS escape characters
 #
-sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../Engine/public/scripts/project/CMakeLists.txt > ./CMakeLists.txt
+# Executed from $projectName directory
+sed s/ENGINE_PROJECT_NAME/$projectName/g ./../Engine/public/scripts/project/CMakeLists.txt > ./CMakeLists.txt
 }
 
+# Executed from $projectName directory
 function createGitIgnore
 {
-sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../Engine/public/scripts/project/.gitignore > ./.gitignore
+sed s/ENGINE_PROJECT_NAME/$projectName/g ./../Engine/public/scripts/project/.gitignore > ./.gitignore
 }
 
+# Executed from $projectName\project\ directory
 function createXcodeGenerator
 {
-cp ./../../../Engine/public/scripts/project/generateProjectForXcode.command ./
+cp ./../../Engine/public/scripts/project/generateProjectForXcode.command ./
 }
 
-function createVS2015Generator
+# Executed from $projectName\project\ directory
+function createVSGenerator
 {
-cp ./../../../Engine/public/scripts/project/generateProjectForVisualStudio2015.bat ./
+cp ./../../Engine/public/scripts/project/generateProjectForVisualStudio2015.bat ./
+cp ./../../Engine/public/scripts/project/generateProjectForVisualStudio2017.bat ./
+cp ./../../Engine/public/scripts/project/generateProjectForVisualStudio2019.bat ./
+cp ./../../Engine/public/scripts/project/generateProjectForVisualStudio2022.bat ./
+cp ./../../Engine/public/scripts/project/generateProjectForVisualStudio2026.bat ./
 }
 
-function createVS2017Generator
-{
-cp ./../../../Engine/public/scripts/project/generateProjectForVisualStudio2017.bat ./
-}
-
+# Executed from $projectName\project\ directory
 function createSharedScripts
 {
-sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../../Engine/public/scripts/project/postBuild.bat > ./postBuild.bat
-sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../../Engine/public/scripts/project/patchProject.ps1 > ./patchProject.ps1
+sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../Engine/public/scripts/project/postBuild.bat > ./postBuild.bat
+sed s/ENGINE_PROJECT_NAME/$projectName/g ./../../Engine/public/scripts/project/patchProject.ps1 > ./patchProject.ps1
 }
 
+# Executed from $projectName\project\ directory
 function createSourceFiles
 {
-cp ./../../../Engine/public/scripts/project/main.cpp ./
+cp ./../../Engine/public/scripts/project/main.cpp ./
 }
 
 # Verify that project name was specified
@@ -71,8 +76,9 @@ if [ -z "$1" ]; then
     exit
 fi
 
-# Determine project destination 
-PROJECTS_PATH="./../../../Projects/"
+# Determine project destination
+# By default new projects will be located in the same parent directory as Engine directory
+PROJECTS_PATH="./../../../"
 if [ $2 ]; then
 PROJECTS_PATH=$2
 # TODO: Calculate relative path from project custom path to the Engine directory and take it into notice when generating CMake and other scripts !!!
@@ -115,8 +121,7 @@ createGitIgnore
 
 cd project
 createXcodeGenerator
-createVS2015Generator
-createVS2017Generator
+createVSGenerator
 createSharedScripts
 cd ./../
 

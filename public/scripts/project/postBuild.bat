@@ -1,19 +1,5 @@
-
-set PATH_ENGINE=".\..\..\..\..\Engine\"
-
-REM Win32 Debug
-REM ###########
-
-if exist ".\..\..\bin\win32\Debug\ENGINE_PROJECT_NAME.exe" (
-   copy %PATH_ENGINE%\public\bin\win32\Debug\*.* .\..\..\bin\win32\Debug\ 
-   )
-
-REM Win32 Release
-REM #############
-
-if exist ".\..\..\bin\win32\Release\ENGINE_PROJECT_NAME.exe" (
-   copy %PATH_ENGINE%\public\bin\win32\Release\*.* .\..\..\bin\win32\Release\ 
-   )
+REM Engine is expected to be located in the same parent directory as app
+set PATH_ENGINE=".\..\..\..\Engine\"
 
 REM Win64 Debug
 REM ###########

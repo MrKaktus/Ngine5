@@ -26,6 +26,17 @@ Set-Location -Path $projectDirectory
 # - remove this line and next four
 # - remove all lines with this GUID
 
+# REMOVE CMakePredefinedTargets
+#
+$content = Get-Content '.\ENGINE_PROJECT_NAME.sln' -Raw
+$content = [regex]::Replace(
+    $content,
+    'Project\(.*?\)\s*=\s*"CMakePredefinedTargets".*?EndProject\r?\n?',
+    '',
+    [System.Text.RegularExpressions.RegexOptions]::Singleline
+)
+Set-Content '.\ENGINE_PROJECT_NAME.sln' $content
+
 # REMOVE PROJECT ALL_BUILD
 #
 $projectLineNumber = ( Get-Content '.\ENGINE_PROJECT_NAME.sln' | Select-String -pattern "ALL_BUILD" -simplematch | Select-Object -ExpandProperty LineNumber )
@@ -147,6 +158,57 @@ $beforeImportRelease="project/vs2019/Release/ENGINE_PROJECT_NAME.lib</ImportLibr
 $afterImportRelease="build/win64/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
 (Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportRelease", "$afterImportRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
 
+# VS 2022
+
+$beforeBuildDebug="ENGINE_PROJECT_NAME\\project\\vs2022\\Debug\\</OutDir>"
+$afterBuildDebug="ENGINE_PROJECT_NAME\bin\win64\Debug\</OutDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildDebug", "$afterBuildDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeBuildRelease="ENGINE_PROJECT_NAME\\project\\vs2022\\Release\\</OutDir>"
+$afterBuildRelease="ENGINE_PROJECT_NAME\bin\win64\Release\</OutDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildRelease", "$afterBuildRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeDatabaseDebug="project/vs2022/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+$afterDatabaseDebug="bin/win64/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeDatabaseDebug", "$afterDatabaseDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeDatabaseRelease="project/vs2022/Release/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+$afterDatabaseRelease="bin/win64/Release/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeDatabaseRelease", "$afterDatabaseRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeImportDebug="project/vs2022/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+$afterImportDebug="build/win64/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportDebug", "$afterImportDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeImportRelease="project/vs2022/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+$afterImportRelease="build/win64/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportRelease", "$afterImportRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+# VS 2026
+
+$beforeBuildDebug="ENGINE_PROJECT_NAME\\project\\vs2026\\Debug\\</OutDir>"
+$afterBuildDebug="ENGINE_PROJECT_NAME\bin\win64\Debug\</OutDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildDebug", "$afterBuildDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeBuildRelease="ENGINE_PROJECT_NAME\\project\\vs2026\\Release\\</OutDir>"
+$afterBuildRelease="ENGINE_PROJECT_NAME\bin\win64\Release\</OutDir>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeBuildRelease", "$afterBuildRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeDatabaseDebug="project/vs2026/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+$afterDatabaseDebug="bin/win64/Debug/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeDatabaseDebug", "$afterDatabaseDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeDatabaseRelease="project/vs2026/Release/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+$afterDatabaseRelease="bin/win64/Release/ENGINE_PROJECT_NAME.pdb</ProgramDataBaseFile>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeDatabaseRelease", "$afterDatabaseRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeImportDebug="project/vs2026/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+$afterImportDebug="build/win64/Debug/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportDebug", "$afterImportDebug" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
+
+$beforeImportRelease="project/vs2026/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+$afterImportRelease="build/win64/Release/ENGINE_PROJECT_NAME.lib</ImportLibrary>"
+(Get-Content '.\ENGINE_PROJECT_NAME.vcxproj') -replace "$beforeImportRelease", "$afterImportRelease" | Set-Content '.\ENGINE_PROJECT_NAME.vcxproj'
 
 # Common
 
@@ -177,15 +239,6 @@ $beforeCMakeReleaseSec="CMAKE_INTDIR=\\`"Release\\`";"
 $user_settings=@"
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
-    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerEnvironment>VK_LAYER_PATH=%VULKAN_SDK%\Source\lib32</LocalDebuggerEnvironment>
-  </PropertyGroup>
-  <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Release|Win32'">
-    <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
-    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-  </PropertyGroup>
   <PropertyGroup Condition="'`$(Configuration)|`$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>`$(ProjectDir)..\..\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
