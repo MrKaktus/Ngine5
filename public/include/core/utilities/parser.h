@@ -18,6 +18,14 @@
 namespace en
 {
 
+enum class ParsingResult : uint8
+{
+    Success        = 0,
+    IncompleteData = 1, // Provided buffer was not big enough to finish parsing
+    InvalidFormat  = 2, // Buffer contents are not following expected parsing rules
+    Unsupported    = 3, // Result of parsing points at unsupported configuration
+};
+
 enum ParserType
 {
     None     = 0,
@@ -28,22 +36,53 @@ enum ParserType
   //EndOfFile   ,          
 };
 
-class Parser
+class ParserState
 {
-    protected:
+protected:
     const uint8* buffer; // Pointer to text that need to be parsed
     uint64 offset;       // Current offset in text
     const uint64 size;   // Text size
-    
-    ParserType type;     // Last found type
 
+    // When String element is detected, it's length is calculated,
+    // and offset is moved to first character after that string.
+    // This allows easy operations like comparison on detected string.
     uint64 foundStringOffset;
     sint32 foundStringLength;
 
-    uint64 numberOffset;
-    sint32 numberLength;
+    // When Number is detected, its parsed in advance, calculating 
+    // it's length in characters, and detecting it's type. Offset is 
+    // moved to first character after that number. Then based on 
+    // it's type, final value can be extracted (if needed).
+    uint64 foundNumberOffset;
+    uint64 foundNumberLength;
 
-    public:
+public:
+    // Passes ownership of buffer to parser
+    ParserState(const uint8* buffer, const uint64 size);
+   ~ParserState();
+};
+
+class Parser : public ParserState
+{
+protected:
+    ParserType type;     // Last found type
+
+    // If characters sequence at specified offset location 
+    // is representing float value, returns length of that
+    // string representation.
+    bool isFloat(const uint64 startOffset, uint64& length);
+
+    // If characters sequence at specified offset location 
+    // is representing integer value, returns length of that
+    // string representation. This check should be done
+    // after isFloat one.
+    bool isInteger(const uint64 startOffset, uint64& length);
+
+    // Returns true if there is characters sequence at
+    // specified offset location.
+    bool isString(const uint64 startOffset, sint32& length);
+
+public:
     // Passes ownership of buffer to parser
     Parser(const uint8* buffer, const uint64 size); 
    ~Parser();
@@ -55,21 +94,6 @@ class Parser
 
     // Returns type of currently detected element
     ParserType currentElement(void) const;
-
-    // If characters sequence at specified offset location 
-    // is representing float value, returns length of that
-    // string representation.
-    bool isFloat(const uint64 startOffset, sint32& length);
-
-    // If characters sequence at specified offset location 
-    // is representing integer value, returns length of that
-    // string representation. This check should be done
-    // after isFloat one.
-    bool isInteger(const uint64 startOffset, sint32& length);
-
-    // Returns true if there is characters sequence at
-    // specified offset location.
-    bool isString(const uint64 startOffset, sint32& length);
 
     // If isInteger() returned true, below methods convert
     // string representation into integer value. False is
@@ -96,17 +120,55 @@ class Parser
     bool end(void);                          // Returns true if offset reached end of buffer
 };
 
-bool isCypher(uint8 input);
-bool isUpperCaseLetter(uint8 input);
-bool isLowerCaseLetter(uint8 input);
-bool isLetter(uint8 input);
-bool isCharacter(uint8 input);
-bool isWhitespace(uint8 input);
-bool isEol(uint8 input);
+// [0..9]
+bool isCypher(const uint8 input);
+
+// [0..9][A..F][a..f]
+bool isHexCypher(const uint8 input);
+
+// [A..Z]
+bool isUpperCaseLetter(const uint8 input);
+
+// [a..z]
+bool isLowerCaseLetter(const uint8 input);
+
+// [A..Z][a..z]
+bool isLetter(const uint8 input);
+
+// All printable characters [!..~]
+bool isCharacter(const uint8 input);
+
+// Space & horizontal tabulator
+bool isWhitespace(const uint8 input);
+
+// Carriage return (CR), line feed (LF), vertical tab, form feed
+bool isEol(const uint8 input);
+
+// TODO: Below should all return ParsingResult if they parse provided buffer
+
 // Length is expected length of provided integer string representation
 bool isInteger(const char* text, const uint32 length);
 // Length is expected length of provided float string representation
 bool isFloat(const char* text, const uint32 length);
+
+// Returns length of detected string with terminating zero.
+// For empty string will return Success and length of 1.
+ParsingResult parseString(const uint8* buffer, const uint64 size, uint64& length);
+
+// Returns success if buffer content is byte sequence ending with EOL (LF or CRLF).
+// In such case returned length is length of line without EOL bytes, while offset
+// points to what would be next byte after EOL signature (so line length plus size 
+// of EOL bytes).
+ParsingResult isLine(const uint8* buffer, const uint64 size, uint64& length, uint64& offset);
+
+// Returns success if buffer content is string followed by EOL (LF or CRLF) 
+// and its matching input string (which is null terminated but that null is 
+// not taken into notice during comparison). In such case returned length is 
+// offset to what would be next byte after EOL signature (so string length 
+// plus size of EOL bytes).
+ParsingResult isLineMatching(const uint8* buffer, const uint64 size, const char* string, uint64& length);
+
+bool nextWord(const std::string_view& line, uint64& lineOffset, std::string_view& word);
 
 } // en
 
