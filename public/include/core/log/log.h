@@ -156,7 +156,8 @@ extern std::unique_ptr<log::Interface> Log;
 // TODO: Error should log callstack and terminate?
 #define logError(format, ...) enLog.error(format, __VA_ARGS__)
 
-// TODO: Should logCritical() terminate application? (for e.g. out of memory critical error, from which there is no recovery).
+// TODO: Critical errors should terminate application (for e.g. out of memory critical error, from which there is no recovery).
+#define logCritical(format, ...) enLog.error(format, __VA_ARGS__)
 
 #include "core/log/log.inl"
 

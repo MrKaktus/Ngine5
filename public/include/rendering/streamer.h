@@ -610,7 +610,7 @@ class Streamer
     Streamer(gpu::GpuDevice& gpu, const StreamerSettings* settings = nullptr);
    ~Streamer();
  
-    bool allocateMemory(BufferAllocation*& desc, const uint32 size);
+    bool allocateMemory(const uint32 size, BufferAllocation*& desc);
     bool makeResident(BufferAllocation& desc, const bool lock = false);
     bool lockMemory(BufferAllocation& desc);
     void unlockMemory(BufferAllocation& desc);
@@ -619,8 +619,7 @@ class Streamer
    
     // Creation and destruction:
    
-    bool allocateMemory(TextureAllocation*& desc,
-                        const gpu::TextureState& state);
+    bool allocateMemory(const gpu::TextureState& state, TextureAllocation*& desc);
     void deallocateMemory(TextureAllocation& desc);
    
     // Residency:

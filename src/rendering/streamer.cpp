@@ -491,12 +491,12 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
     assert(desc->state.planes() == 1);
 
     // Decode transferred volume mipmap level
-    uint8 mipmap = (transfer.volume.mipmap2 << 4) | transfer.volume.mipmap;
+    uint8 mipmap = (uint8(transfer.volume.mipmap2) << 4) | uint8(transfer.volume.mipmap);
 
     // Decode transferred volume size in tiles
-    uint16 tilesWidth  = transfer.volume.width  + 1;
-    uint16 tilesHeight = transfer.volume.height + 1;
-    uint16 tilesDepth  = transfer.volume.depth  + 1;
+    uint16 tilesWidth  = uint16(transfer.volume.width)  + 1;
+    uint16 tilesHeight = uint16(transfer.volume.height) + 1;
+    uint16 tilesDepth  = uint16(transfer.volume.depth)  + 1;
 
     uint32v3 mipVolume       = desc->state.mipVolume(mipmap);
     uint16v4 tileResolution  = tileResolution3D(desc->state.format);
@@ -520,7 +520,7 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
 
     // Transferred volume depth range in texels
     uint32v2 depthRange;
-    depthRange.base  = transfer.volume.z * tileResolution.depth;
+    depthRange.base  = uint32(transfer.volume.z) * tileResolution.depth;
     depthRange.count = tilesDepth * tileResolution.depth;
 
     // Clamp tile-based depth granularity to volume depth (Linear & Tiled2D)
@@ -535,8 +535,8 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
     if (mipLayout->layout == underlyingType(SurfaceLayout::Linear))
     {
         uint32v2 texelOrigin;
-        texelOrigin.x = transfer.volume.x * tileResolution.width;
-        texelOrigin.y = transfer.volume.y * tileResolution.height;
+        texelOrigin.x = uint32(transfer.volume.x) * tileResolution.width;
+        texelOrigin.y = uint32(transfer.volume.y) * tileResolution.height;
 
         uint32v2 texelRegion;
         texelRegion.width  = tilesWidth  * tileResolution.width;
@@ -629,9 +629,9 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
                 {
                     // Calculate offset in source buffer
                     uint32v3 tileOrigin;
-                    tileOrigin.x = transfer.volume.x + k;
-                    tileOrigin.y = transfer.volume.y + j;
-                    tileOrigin.z = transfer.volume.z + i;
+                    tileOrigin.x = uint32(transfer.volume.x) + k;
+                    tileOrigin.y = uint32(transfer.volume.y) + j;
+                    tileOrigin.z = uint32(transfer.volume.z) + i;
 
                     uint32 tileIndex = (mipSizeInTiles  * tileOrigin.z) +
                                        (mipWidthInTiles * tileOrigin.y) +
@@ -722,9 +722,9 @@ void uploadResource(Streamer* streamer, const TransferResource transfer)
     }
     if (transfer.type == underlyingType(TransferType::Volume))
     {
-        transferSize = transfer.volume.width  *
-                       transfer.volume.height *
-                       transfer.volume.depth  * 64 * KB;
+        transferSize = uint32(transfer.volume.width)  *
+                       uint32(transfer.volume.height) *
+                       uint32(transfer.volume.depth)  * 64 * KB;
     }
 
     // TODO: Handle splitting workload?
@@ -1479,7 +1479,7 @@ bool Streamer::initTextureHeap(TextureCache& textureCache)
 // (and quickly blittable without format conversion). As this is currently not
 // implemented textures share system memory with buffers and are uploaded from
 // there to resident memory. 
-bool Streamer::allocateMemory(BufferAllocation*& desc, const uint32 size)
+bool Streamer::allocateMemory(const uint32 size, BufferAllocation*& desc)
 {
     // Early return if no memory left
     if (availableSystemMemory < size)
@@ -2036,13 +2036,13 @@ MipMemoryLayout* generateTextureMemoryLayout(const gpu::TextureState& state, con
 //                             // specifying each surface offset from given mip adress in container.
 
 // Intel - tiles based on byte size
-// AMD   - tiles based on texel size (co different tile layouts based on bpp)
+// AMD   - tiles based on texel size (so different tile layouts based on bpp)
 //         can cast textures with the same bpp only?
 // NV    - stores texture format info in Page Table Entries, so cannot cast easily
 
 
 
-bool Streamer::allocateMemory(TextureAllocation*& desc, const gpu::TextureState& state)
+bool Streamer::allocateMemory(const gpu::TextureState& state, TextureAllocation*& desc)
 {
     // Calculate texture layout in system memory
     MipMemoryLayout* mipLayout = generateTextureMemoryLayout(state, &gpu);

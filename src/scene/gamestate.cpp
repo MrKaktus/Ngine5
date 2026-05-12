@@ -95,7 +95,7 @@ bool Interface::close()
 // event as well.
 void HandleEventByState(en::input::Event& event)
 {
-    for(sint8 i=(StateContext.states.size() - 1); i>=0; --i)
+    for(sint8 i=(sint8(StateContext.states.size()) - 1); i>=0; --i)
     {
         if (!StateContext.states[i]->input(event))
         {
@@ -175,7 +175,7 @@ bool Interface::update(Time dt)
 
     Input->update();
 
-    for(sint8 i=(StateContext.states.size() - 1); i>=0; --i)
+    for(sint8 i=(sint8(StateContext.states.size()) - 1); i>=0; --i)
     {
         if (!StateContext.states[i]->update(dt))
         {
