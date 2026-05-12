@@ -156,7 +156,7 @@ uint32 TextureState::rowSize(const uint8 mipmap, const uint8 plane) const
 
     if (block.compressed)
     {
-        return ((mipWidth  + (block.width - 1)) / block.width) * block.blockSize;
+        return intDivUp(mipWidth, block.width) * block.blockSize;
     }
 
     if (plane == 1)
@@ -180,7 +180,7 @@ uint32 TextureState::rowsCount(const uint8 mipmap) const
 
     if (block.compressed)
     {
-        return ((mipHeight + (block.height - 1)) / block.height);
+        return intDivUp(mipHeight, block.height);
     }
 
     return mipHeight;
@@ -201,8 +201,8 @@ uint32 TextureState::surfaceSize(const uint8 mipmap,
     // TODO: Can MSAA textures be compressed?
     if (block.compressed)
     {
-        return ((mipWidth  + (block.width - 1)) / block.width) *
-               ((mipHeight + (block.height - 1)) / block.height) *
+        return intDivUp(mipWidth,  block.width)  *
+               intDivUp(mipHeight, block.height) *
                block.blockSize;
     }
 
