@@ -116,6 +116,7 @@
     <ClCompile Include="..\src\core\types\uuid.cpp" />
     <ClCompile Include="..\src\core\utilities\basicAllocator.cpp" />
     <ClCompile Include="..\src\core\utilities\parser.cpp" />
+    <ClCompile Include="..\src\core\utilities\parserJSON.cpp" />
     <ClCompile Include="..\src\core\xr\common\xrInterface.cpp" />
     <ClCompile Include="..\src\core\xr\openvr\ovrInterface.cpp" />
     <ClCompile Include="..\src\core\xr\openxr\d3d12\oxrdx12Headset.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="..\public\include\core\utilities\array.h" />
     <ClInclude Include="..\public\include\core\utilities\NonCopyable.h" />
     <ClInclude Include="..\public\include\core\utilities\parser.h" />
+    <ClInclude Include="..\public\include\core\utilities\parserJSON.h" />
     <ClInclude Include="..\public\include\core\utilities\poolAllocator.h" />
     <ClInclude Include="..\public\include\core\utilities\TintrusivePointer.h" />
     <ClInclude Include="..\public\include\core\utilities\Tproxy.h" />

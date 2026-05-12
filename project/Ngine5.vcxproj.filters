@@ -657,6 +657,9 @@
     <ClCompile Include="..\src\core\types\uuid.cpp">
       <Filter>Source Files\core\types</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\utilities\parserJSON.cpp">
+      <Filter>Source Files\core\utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1402,6 +1405,9 @@
     </ClInclude>
     <ClInclude Include="..\public\include\core\types\uuid.h">
       <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\parserJSON.h">
+      <Filter>Header Files\core\utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
