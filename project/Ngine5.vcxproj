@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\assets\assets.cpp" />
     <ClCompile Include="..\src\audio\audio.cpp" />
     <ClCompile Include="..\src\core\algorithm\hash.cpp" />
     <ClCompile Include="..\src\core\algorithm\MurmurHash2.cpp" />
@@ -176,6 +177,7 @@
     <ClCompile Include="..\src\utilities\utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\public\include\assets\assets.h" />
     <ClInclude Include="..\public\include\audio\audio.h" />
     <ClInclude Include="..\public\include\core\algorithm\allocator.h" />
     <ClInclude Include="..\public\include\core\algorithm\hash.h" />
@@ -304,6 +306,7 @@
     <ClInclude Include="..\public\include\utilities\Tcontainer.h" />
     <ClInclude Include="..\public\include\utilities\timer.h" />
     <ClInclude Include="..\public\include\utilities\utilities.h" />
+    <ClInclude Include="..\src\assets\interface.h" />
     <ClInclude Include="..\src\audio\context.h" />
     <ClInclude Include="..\src\core\algorithm\MurmurHash2.h" />
     <ClInclude Include="..\src\core\algorithm\MurmurHash3.h" />

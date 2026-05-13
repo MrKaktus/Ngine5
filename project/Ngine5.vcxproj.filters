@@ -193,6 +193,12 @@
     <Filter Include="Source Files\core\xr\oculus">
       <UniqueIdentifier>{d60fb9a7-3707-4ebb-9daf-5cd68d550dd8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\assets">
+      <UniqueIdentifier>{105379f1-ff04-4517-861d-27c9c22993f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\assets">
+      <UniqueIdentifier>{c27a4ae5-8bfd-4268-8907-87ea4be7705a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio\audio.cpp">
@@ -659,6 +665,9 @@
     </ClCompile>
     <ClCompile Include="..\src\core\utilities\parserJSON.cpp">
       <Filter>Source Files\core\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\assets\assets.cpp">
+      <Filter>Source Files\assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1408,6 +1417,12 @@
     </ClInclude>
     <ClInclude Include="..\public\include\core\utilities\parserJSON.h">
       <Filter>Header Files\core\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\assets\assets.h">
+      <Filter>Header Files\assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\assets\interface.h">
+      <Filter>Source Files\assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
