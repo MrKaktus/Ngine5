@@ -739,11 +739,11 @@ struct Interface
       //Material material(const std::string& filename);                     // For single-material files like *.material
         std::shared_ptr<en::audio::Sample> sound(const std::string& filename);
         std::shared_ptr<en::gpu::Texture>  texture(const std::string& filename, 
-                                 const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear);
+                                 const gpu::ColorSpace colorSpace = gpu::ColorSpace::Linear);
         bool texture(std::shared_ptr<gpu::Texture> dst, 
                      const uint16 layer, 
                      const std::string& filename, 
-                     const gpu::ColorSpace colorSpace = gpu::ColorSpaceLinear); // Load image to given texture layer
+                     const gpu::ColorSpace colorSpace = gpu::ColorSpace::Linear); // Load image to given texture layer
     } load;
 
     struct Free

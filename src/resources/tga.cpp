@@ -100,7 +100,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     settings.samples = 1;
 
     // There is no way to determine if TGA is storing data using sRGB transfer function
-    colorSpace = gpu::ColorSpace::ColorSpaceLinear;
+    colorSpace = gpu::ColorSpace::Linear;
 
     // Determine stored texel format
     if (header.bpp == 24)

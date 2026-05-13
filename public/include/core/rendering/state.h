@@ -86,11 +86,56 @@ enum NormalCalculationMethod
     NormalCalculationMethodsCount
 };
 
-/// Color space used
-enum ColorSpace
+struct ColorSpacePrimaries
 {
-      ColorSpaceLinear            = 0,
-      ColorSpaceSRGB        
+    float2 red;
+    float2 green;
+    float2 blue;
+    float2 whitePoint;
+};
+
+/// Color space used
+//
+// TODO: Introduce proper concept of ColorSpace as complex descriptor struct.
+// Color space is:
+// - primaries (coordinates)
+// - white point (coordinates)
+// - transfer function with for e.g. "gamma" value (compression)
+// Above can be specified directly through values, or throught enum. For e.g.:
+// - sRGB transfer function enum implicitly specifies gamma value
+// - raw gamma value explicitly specifies applied compression (its still sub-group of "sRGB" one)
+//
+// struct ColorSpace
+// {
+//     ColorSpacePrimaries primaries;
+//     ColorSpaceType type;
+//     float gamma;
+//     . . .
+// };
+//
+// Below would be ColorSpaceType. primaries and other properties would need to be accessed only if ColorSpaceType::Custom would be selected.
+enum class ColorSpace : uint8
+{      
+    Unknown = 0,
+    Linear     ,
+    SRGB       , // May also be linear, depending on format in which color components are stored.
+    CIE_XYZ    ,
+    Count
+};
+
+enum class TransferFunction : uint8
+{
+    Unknown = 0,
+    Linear     ,
+    sRGB       ,
+    Gamma2     ,
+    Pow2       ,
+};
+
+enum class ColorGamut : uint8
+{
+    Rec709 = 0,
+    P3        ,  
 };
 
 } // en::gpu

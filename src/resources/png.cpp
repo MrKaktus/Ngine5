@@ -10,8 +10,10 @@
 
 #include "core/storage.h"
 #include "core/log/log.h"
+#include "core/memory/alignedAllocator.h"
+#include "core/utilities/parser.h"
 #include "utilities/utilities.h"
-#include "resources/context.h"
+#include "assets/assets.h"
 #include "resources/png.h"
 
 #include "core/rendering/device.h"
@@ -374,7 +376,7 @@ void taskDecodePNG(void* taskData)
     delete (DecodeState*)(taskData);
 }
 
-#define PageSize 4096
+#define PageSize 4096ull
 
 struct ColorSpacePrimaries
 {
@@ -427,18 +429,15 @@ ColorSpaceInfo::ColorSpaceInfo() :
 // unpack to heap
 
 
-
-// Reads first 4KB page of PNG file, and decodes it's header to TextureState and ColorSpace.
-// If operation is successfull, returns handle to that file, so that engine can continue with
-// it's decompression.
-bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& settings, gpu::ColorSpace& colorSpace)
+// Parses buffer storing metadata of PNG file, and decodes it's header to TextureState
+ParsingResult parseMetadata(uint8* buffer, const uint32 size, gpu::TextureState& storedTextureState)
 {
     // Check if file has minimum required size
     uint32 minimumFileSize = sizeof(Header) + sizeof(IHDR);
-    if (readSize < minimumFileSize)
+    if (size < minimumFileSize)
     {
-        enLog << "ERROR: PNG file size too small!\n";
-        return false;
+        logError("PNG file size too small!\n");
+        return ParsingResult::IncompleteData;
     }
 
     // Read file signature
@@ -446,8 +445,8 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     if ( signature.signature != 0x474E5089 ||
          signature.eof       != 0x0A1A0A0D )
     {
-        enLog << "ERROR: PNG file header signature is incorrect!\n";
-        return false;
+        logError("PNG file header signature is incorrect!\n");
+        return ParsingResult::InvalidFormat;
     }
 
     // Read file header
@@ -455,97 +454,97 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     if ( header.length != endiannes(uint32(13)) ||
          header.signature != 0x52444849 )
     {
-        enLog << "ERROR: PNG file IHDR signature is incorrect!\n";
-        return false;
+        logError("PNG file IHDR signature is incorrect!\n");
+        return ParsingResult::InvalidFormat;
     }
 
     // Check compression
     if (header.compression != 0)
     {
-        enLog << "ERROR: This PNG compression method is not supported!\n";
-        return false;
+        logError("This PNG compression method is not supported!\n");
+        return ParsingResult::Unsupported;
     }
 
     // Check filtering before compression
     if (header.filter != 0)
     {
-        enLog << "ERROR: This PNG filtering method is not supported!\n";
-        return false;
+        logError("This PNG filtering method is not supported!\n");
+        return ParsingResult::Unsupported;
     }
 
     // Check if image is not interlaced
     if (header.interlace != 0)
     {
-        enLog << "ERROR: Interlaced PNG files are not supported!\n";
-        return false;
+        logError("Interlaced PNG files are not supported!\n");
+        return ParsingResult::Unsupported;
     }
 
+    // Color space is unknown at the time of parsing PNG header
+    // (chunks like iCCP, sRGB, gAMA, cHRM need to be parsed to determine it)
+ 
     // Determine texture parameters
-    settings.width  = endiannes(header.width);
-    settings.height = endiannes(header.height);
+    storedTextureState.width  = endiannes(header.width);
+    storedTextureState.height = endiannes(header.height);
     if (header.type == 0 && header.bps == 8)
     {
-        settings.format = Format::R_8;
+        storedTextureState.format = Format::R_8;
     }
     else
     if (header.type == 0 && header.bps == 16)
     {
-        settings.format = Format::R_16;
+        storedTextureState.format = Format::R_16;
     }
     else
     if (header.type == 2 && header.bps == 8)
     {
         // Should be RGB_8/RGB_8_sRGB but Windows software saves PNG's in BGR_8 (LO->HI)
-        settings.format = Format::BGR_8;         
-        if (colorSpace == ColorSpaceSRGB)
-        {
-            settings.format = Format::BGR_8_sRGB;
-        }
+        // (it is unknown if authoring software stored data in linear or sRGB color space)
+        storedTextureState.format = Format::BGR_8;
     }
     else
     if (header.type == 2 && header.bps == 16)
     {
-        settings.format = Format::RGB_16;
+        storedTextureState.format = Format::RGB_16;
     }
     else
     if (header.type == 4 && header.bps == 8)
     {
-        settings.format = Format::RG_8;   
+        storedTextureState.format = Format::RG_8;
     }   
     else
     if (header.type == 4 && header.bps == 16)
     {
-        settings.format = Format::RG_16;
+        storedTextureState.format = Format::RG_16;
     }
     else
     if (header.type == 6 && header.bps == 8)
     {
-        settings.format = Format::RGBA_8;    // RGB / RGBA according to http://www.w3.org/TR/PNG/#4Concepts.PNGImage
+        storedTextureState.format = Format::RGBA_8;    // RGB / RGBA according to http://www.w3.org/TR/PNG/#4Concepts.PNGImage
     }
   //else
   //if (header.type == 6 && header.bps == 16)
   //{
-  //    settings.format = Format::RGBA_16;
+  //    storedTextureState.format = Format::RGBA_16;
   //}
     else
     {
-        enLog << "ERROR: Unsupported texture format!\n";
-        return false;
+        logError("Unsupported texture format!\n");
+        return ParsingResult::Unsupported;
     }
 
     // Determine texture type
-    settings.type    = TextureType::Texture2D;
-    if (settings.height == 1)
+    storedTextureState.type = TextureType::Texture2D;
+    if (storedTextureState.height == 1)
     {
-        settings.type = TextureType::Texture1D;
+        storedTextureState.type = TextureType::Texture1D;
     }
   //if (!powerOfTwo(settings.width) ||
   //    !powerOfTwo(settings.height) )
   //{
-  //    settings.type = Texture2DRectangle;
+  //    storedTextureState.type = Texture2DRectangle;
   //}
 
-    return true;
+    return ParsingResult::Success;
 }
 
 /*
@@ -620,6 +619,67 @@ void decode(DecodeState& decoder)
 }
 */
 
+bool loadMetadata(
+    const std::string& filename,
+    gpu::TextureState& storedTextureState,
+    gpu::ColorSpace& storedColorSpace)
+{
+    using namespace en::storage;
+    using namespace en::gpu;
+
+    // Open file 
+    std::string fullPath = filename;
+    File* file = Storage->open(fullPath);
+    if (!file)
+    {
+        fullPath = Assets().assetsPath() + filename;
+        file = Storage->open(fullPath);
+        if (!file)
+        {
+            logError("There is no such file!\nFile: %s\n", fullPath.c_str());
+            return false;
+        }
+    }
+
+
+    // ### Read file metadata
+
+
+    // Read file first 4KB into single 4KB memory page
+    uint64 fileSize = file->size();
+    uint64 readSize = min(fileSize, PageSize);
+    uint8* buffer = allocate<uint8>(static_cast<uint32>(readSize), PageSize);
+    if (!buffer)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+    if (!file->read(0, readSize, buffer, &readSize))
+    {
+        logError("Couldn't read file metadata to memory!\nFile: %s\n", fullPath.c_str());
+        deallocate<uint8>(buffer);
+        delete file;
+        return false;
+    }
+    delete file;
+
+    // Read file properties
+    ParsingResult result = parseMetadata(buffer, static_cast<uint32>(readSize), storedTextureState);
+
+    // TODO: Parse other PNG chunks to determine color space:
+    // - iCCP(ICC profile) -> highest priority
+    // - sRGB -> overrides gAMA / cHRM
+    // - gAMA + cHRM -> define custom space
+    // - nothing present -> fallback assumption is sRGB
+    storedColorSpace = ColorSpace::Unknown;
+
+    // Free temporary 4KB memory page
+    deallocate<uint8>(buffer);
+
+    return (result == ParsingResult::Success);
+}
+
 bool load(const std::string& filename, 
           uint8* const destination, 
           const uint32 width, 
@@ -632,14 +692,15 @@ bool load(const std::string& filename,
     using namespace en::gpu;
 
     // Open file 
-    File* file = Storage->open(filename);
+    std::string fullPath = filename;
+    File* file = Storage->open(fullPath);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        fullPath = Assets().assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.textures + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
+            logError("There is no such file!\nFile: %s\n", fullPath.c_str());
             return false;
         }
     }
@@ -649,28 +710,47 @@ bool load(const std::string& filename,
 
 
     // Read file first 4KB into single 4KB memory page
-    uint32 readSize = min(file->size(), PageSize);
-    uint8* buffer = allocate<uint8>(readSize, PageSize);
-    file->read(0, readSize, buffer);
+    uint64 fileSize = file->size();
+    uint64 readSize = min(fileSize, PageSize);
+    uint8* buffer = allocate<uint8>(static_cast<uint32>(readSize), PageSize);
+    if (!buffer)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+    if (!file->read(0, readSize, buffer, &readSize))
+    {
+        logError("Couldn't read file metadata to memory!\nFile: %s\n", fullPath.c_str());
+        deallocate<uint8>(buffer);
+        delete file;
+        return false;
+    }
 
     // Read file properties
-    TextureState settings;
-    ColorSpace colorSpace; // TODO: Determine file Color Space and compare with expected
-    bool success = readMetadata(buffer, readSize, settings, colorSpace);
+    TextureState storedTextureState;
+    ParsingResult result = parseMetadata(buffer, static_cast<uint32>(readSize), storedTextureState);
+
+    // TODO: Parse other PNG chunks to determine color space:
+    // - iCCP(ICC profile) -> highest priority
+    // - sRGB -> overrides gAMA / cHRM
+    // - gAMA + cHRM -> define custom space
+    // - nothing present -> fallback assumption is sRGB
+    ColorSpace storedColorSpace = ColorSpace::Unknown; // TODO: Determine file Color Space and compare with expected
 
     // Free temporary 4KB memory page
     deallocate<uint8>(buffer);
 
-    if (!success)
+    if (result != ParsingResult::Success)
     {
         delete file;
         return false;
     }
 
     // Verify that file matches expected properties
-    if ( (settings.width != width) ||
-         (settings.height != height) ||
-         (settings.format != format) )
+    if ( (storedTextureState.width != width) ||
+         (storedTextureState.height != height) ||
+         (storedTextureState.format != format) )
     {
         delete file;
         return false;
@@ -682,12 +762,26 @@ bool load(const std::string& filename,
 
     // Read whole file at once to memory. 
     // Size aligned to multiple of 4KB Page Size, and allocated at such boundary (can be memory mapped).
-    uint64 fileSize = file->size();
     uint64 roundedSize = roundUp(fileSize, PageSize);
-    uint8* content = allocate<uint8>(roundedSize, PageSize);
+    if (roundedSize > 0xFFFFFFFF)
+    {
+        logError("PNG file size exceeds 4GB limit!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+
+    uint8* content = allocate<uint8>(static_cast<uint32>(roundedSize), PageSize);
+    if (!content)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+
     if (!file->read(content))
     {
-        enLog << "ERROR: Couldn't read file to memory.\n";
+        logError("Couldn't read file to memory!\nFile: %s\n", fullPath.c_str());
+        deallocate<uint8>(content);
         delete file;
         return false;
     }
@@ -702,8 +796,9 @@ bool load(const std::string& filename,
     // Allocate buffer for content of decompressed IDAT chunks
     // Size of decompressed chunks may equal in worst case scenario to (Width x Height x BPP) + extra Height bytes.
     // Extra Height bytes comes from the fact that each line starts with extra Byte specifying filter type applied for that line.
-    uint64 inflateBufferSize = roundUp(alignment.surfaceSize(width, height) + settings.height, PageSize);
-    uint8* inflated = allocate<uint8>(inflateBufferSize, PageSize);
+    uint64 decompressedSize = alignment.surfaceSize(width, height) + height;
+    uint64 inflateBufferSize = roundUp(decompressedSize, PageSize);
+    uint8* inflated = allocate<uint8>(static_cast<uint32>(inflateBufferSize), PageSize);
 
     ColorSpaceInfo colorSpaceInfo;
 
@@ -768,13 +863,12 @@ bool load(const std::string& filename,
                 }
 
                 // Decompress data from IDAT chunk to 'inflated' buffer
-                sint32 ret = 0;
-                ret = inflate(&stream, Z_NO_FLUSH);
-                if (ret != Z_OK &&
-                    ret != Z_STREAM_END)
+                sint32 result = inflate(&stream, Z_NO_FLUSH);
+                if (result != Z_OK &&
+                    result != Z_STREAM_END)
                 {
-                    CheckError(ret);
-                    enLog << "Error: Cannot decompress using ZLIB!\n";
+                    CheckError(result);
+                    logError("Cannot decompress using ZLIB!\n");
                     deallocate<uint8>(content);
                     deallocate<uint8>(inflated);
                     return false;
@@ -845,7 +939,7 @@ bool load(const std::string& filename,
             // Read gamma chunk
             case Signature::gAMA:
             {
-                colorSpaceInfo.gamma = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0;
+                colorSpaceInfo.gamma = (float)*reinterpret_cast<uint32*>(content + offset) / 100000.0f;
                 offset += 4;
 
                 enLog << "gAMA chunk info:\n";
@@ -904,9 +998,9 @@ bool load(const std::string& filename,
     DecodeState* state = new DecodeState;
     state->startLine        = 0;
     state->lines            = 0;  // Will be populated in loop below
-    state->texelSize        = gpu::texelSize(settings.format);
-    state->width            = settings.width;
-    state->height           = settings.height;
+    state->texelSize        = gpu::texelSize(storedTextureState.format);
+    state->width            = storedTextureState.width;
+    state->height           = storedTextureState.height;
     state->linePadding      = alignment.rowPitch(width) - alignment.rowSize(width);
     state->input            = inflated;
     state->output           = destination;

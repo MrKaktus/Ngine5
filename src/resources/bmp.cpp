@@ -200,7 +200,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     settings.samples = 1;
 
     // There is no way to determine if BMP is storing data using sRGB transfer function
-    colorSpace = gpu::ColorSpace::ColorSpaceLinear;
+    colorSpace = gpu::ColorSpace::Linear;
 
     // Determine texture resolution
     if (headerSize == sizeof(DIBHeaderV2Win))
