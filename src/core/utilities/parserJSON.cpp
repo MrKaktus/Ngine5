@@ -96,8 +96,8 @@ ParsingResult stringLengthJSON(const uint8* buffer, const uint64 size, uint64& l
     return ParsingResult::Success;
 }
 
-ParserJSON::ParserJSON(const uint8* _buffer, const uint64 _size) :
-    ParserState(_buffer, _size),
+ParserJSON::ParserJSON(const uint8* _buffer, const uint64 _size, const bool takeOwnership) :
+    ParserState(_buffer, _size, takeOwnership),
     type(JSONType::None),
     parseDepth(0)
 {

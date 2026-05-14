@@ -40,8 +40,9 @@ class ParserState
 {
 protected:
     const uint8* buffer; // Pointer to text that need to be parsed
-    uint64 offset;       // Current offset in text
     const uint64 size;   // Text size
+    uint64 offset;       // Current offset in text
+    bool ownsBuffer;     // True of parser owns passed in buffer and should release it when done
 
     // When String element is detected, it's length is calculated,
     // and offset is moved to first character after that string.
@@ -58,8 +59,8 @@ protected:
 
 public:
     // Passes ownership of buffer to parser
-    ParserState(const uint8* buffer, const uint64 size);
-   ~ParserState();
+    ParserState(const uint8* buffer, const uint64 size, const bool takeOwnership);
+    virtual ~ParserState();
 };
 
 class Parser : public ParserState
@@ -84,7 +85,7 @@ protected:
 
 public:
     // Passes ownership of buffer to parser
-    Parser(const uint8* buffer, const uint64 size); 
+    Parser(const uint8* buffer, const uint64 size, const bool takeOwnership = true); 
    ~Parser();
 
     // Progresses in parsed buffer to next parsable element

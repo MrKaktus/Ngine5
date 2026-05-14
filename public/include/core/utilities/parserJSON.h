@@ -55,7 +55,7 @@ private:
 
 public:
     // Passes ownership of buffer to parser
-    ParserJSON(const uint8* buffer, const uint64 size);
+    ParserJSON(const uint8* buffer, const uint64 size, const bool takeOwnership = true);
    ~ParserJSON();
 
     // Progresses in parsed buffer to next parsable element.

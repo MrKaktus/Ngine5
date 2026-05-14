@@ -18,10 +18,11 @@
 namespace en
 {
 
-ParserState::ParserState(const uint8* _buffer, const uint64 _size) :
+ParserState::ParserState(const uint8* _buffer, const uint64 _size, const bool takeOwnership) :
     buffer(_buffer),
-    offset(0),
     size(_size),
+    offset(0),
+    ownsBuffer(takeOwnership),
     foundStringOffset(0),
     foundStringLength(-1),
     foundNumberOffset(0),
@@ -33,11 +34,18 @@ ParserState::ParserState(const uint8* _buffer, const uint64 _size) :
 
 ParserState::~ParserState()
 {
-    delete [] buffer;
+    if (ownsBuffer)
+    {
+        // We would want to move towards unified, aligned allocations 
+        // across the board, but this approach is more flexible. In 
+        // case of aligned allocations, those can opt out and release 
+        // themselves, but it wouldn't work other way around.
+        delete [] buffer;
+    }
 }
 
-Parser::Parser(const uint8* _buffer, const uint64 _size) :
-    ParserState(_buffer, _size),
+Parser::Parser(const uint8* _buffer, const uint64 _size, const bool takeOwnership) :
+    ParserState(_buffer, _size, takeOwnership),
     type(ParserType::None)
 {
 }
@@ -459,7 +467,6 @@ uint32 Parser::stringLength(void)
 
     return foundStringLength;
 }
-
 
 bool Parser::isStringMatching(const char* string)
 {
