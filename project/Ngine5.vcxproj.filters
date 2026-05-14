@@ -669,6 +669,9 @@
     <ClCompile Include="..\src\assets\assets.cpp">
       <Filter>Source Files\assets</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\utilities\writerJSON.cpp">
+      <Filter>Source Files\core\utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\audio\audio.h">
@@ -1423,6 +1426,9 @@
     </ClInclude>
     <ClInclude Include="..\src\assets\interface.h">
       <Filter>Source Files\assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\core\utilities\writerJSON.h">
+      <Filter>Header Files\core\utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

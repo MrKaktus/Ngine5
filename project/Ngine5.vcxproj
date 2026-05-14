@@ -118,6 +118,7 @@
     <ClCompile Include="..\src\core\utilities\basicAllocator.cpp" />
     <ClCompile Include="..\src\core\utilities\parser.cpp" />
     <ClCompile Include="..\src\core\utilities\parserJSON.cpp" />
+    <ClCompile Include="..\src\core\utilities\writerJSON.cpp" />
     <ClCompile Include="..\src\core\xr\common\xrInterface.cpp" />
     <ClCompile Include="..\src\core\xr\openvr\ovrInterface.cpp" />
     <ClCompile Include="..\src\core\xr\openxr\d3d12\oxrdx12Headset.cpp" />
@@ -242,6 +243,7 @@
     <ClInclude Include="..\public\include\core\utilities\TintrusivePointer.h" />
     <ClInclude Include="..\public\include\core\utilities\Tproxy.h" />
     <ClInclude Include="..\public\include\core\utilities\Tsingleton.h" />
+    <ClInclude Include="..\public\include\core\utilities\writerJSON.h" />
     <ClInclude Include="..\public\include\core\xr\event.h" />
     <ClInclude Include="..\public\include\core\xr\frame.h" />
     <ClInclude Include="..\public\include\core\xr\frameState.h" />
