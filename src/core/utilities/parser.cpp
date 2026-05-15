@@ -843,6 +843,27 @@ bool isFloat(const char* text, const uint32 length)
     return false;
 }
 
+bool convertHex(const char character, uint8& value)
+{
+    if ((character > 47) && (character < 58))  // [0,9]
+    {
+        value = character - 48;
+        return true;
+    }
+    if ((character > 64) && (character < 71))  // [A,F]
+    {
+        value = character - 55; // - 65 + 10
+        return true;
+    }
+    if ((character > 96) && (character < 103)) // [a,f]
+    {
+        value = character - 87; // - 97 + 10
+        return true;
+    }
+
+    return false;
+}
+
 ParsingResult parseString(const uint8* buffer, const uint64 size, uint64& length)
 {
     if (!buffer || size == 0)

@@ -14,6 +14,7 @@
 #include <cassert>
 #include <stdlib.h> // atoi(), atof(), strtoul()
 #include <charconv> // std::from_chars()
+#include <vector>
 
 namespace en
 {
@@ -666,6 +667,320 @@ bool ParserJSON::readDouble(double& value) const
     }
 
     return false;
+}
+
+bool ParserJSON::isStringMatching(const char* string) const
+{
+    // Last found type is not string
+    if (foundStringLength <= 0 ||
+        type != JSONType::String)
+    {
+        return false;
+    }
+
+    // Verifies that both strings have the same length
+    const size_t inLength = strlen(string);
+    if (foundStringLength != inLength)
+    {
+        return false;
+    }
+
+    // Compare both strings, but also ensure that the one in parsed buffer is terminated with "
+    int result = strncmp((const char*)&buffer[foundStringOffset], string, foundStringLength);
+    const char* bufferStringEnd = (const char*)(buffer + foundStringOffset + foundStringLength);
+    if (result == 0 && bufferStringEnd && *bufferStringEnd == '"')
+    {
+        return true;
+    }
+
+    return false;
+}
+
+const char* ParserJSON::string(void)
+{
+    if (foundStringOffset == 0)
+    {
+        return nullptr;
+    }
+
+    return (const char*)&buffer[foundStringOffset];
+}
+
+uint32 ParserJSON::stringLength(void) const
+{
+    if (type != JSONType::String)
+    {
+        return 0;
+    }
+
+    return foundStringLength;
+}
+
+ParsingResult ParserJSON::parseKeyU64(uint64& value)
+{
+    JSONType type = JSONType::None;
+
+    // Key is followed by separator
+    ParsingResult result = findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+    if (type != JSONType::Separator)
+    {
+        return ParsingResult::InvalidFormat;
+    }
+
+    // Separator is followed by value
+    result = findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+    if (type != JSONType::UnsignedInteger)
+    {
+        return ParsingResult::InvalidFormat;
+    }
+
+    readU64(value);
+    return ParsingResult::Success;
+}
+
+ParsingResult ParserJSON::parseKeyString(std::string& value)
+{
+    JSONType type = JSONType::None;
+
+    // Key is followed by separator
+    ParsingResult result = findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+    if (type != JSONType::Separator)
+    {
+        return ParsingResult::InvalidFormat;
+    }
+
+    // Separator is followed by value
+    result = findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+    if (type != JSONType::String)
+    {
+        return ParsingResult::InvalidFormat;
+    }
+
+    value = string();
+    return ParsingResult::Success;
+}
+
+ParsingResult ParserJSON::skipKeyValuePair(void)
+{
+    // Expected separator before value
+    JSONType type = JSONType::None;
+    ParsingResult result = findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+
+    // Keeps track of nested Objects and Arrays were currently in, 
+    // and current indentation depth (through vector size).
+    std::vector<JSONType> nesting;
+    bool parsingValue = true;
+
+    for(;;)
+    {
+        result = findNextElement(type);
+        if (result != ParsingResult::Success)
+        {
+            return result;
+        }
+
+        if (type == JSONType::Object || 
+            type == JSONType::Array)
+        {
+            if (nesting.size() > 0)
+            {
+                // Sub-object or array can be entered only as value of key in parent object
+                if (nesting.back() == JSONType::Object && 
+                    parsingValue == false)
+                {
+                    return ParsingResult::InvalidFormat;
+                }
+            }
+
+            // Enter object or array
+            nesting.push_back(type);
+            if (type == JSONType::Object)
+            {
+                // Object requires Key:Value pairs, but in Array everything is an value
+                parsingValue = false;
+            }
+
+            // Continue parsing one level deeper to skip nested object/array contents.
+        }
+        else
+        if (type == JSONType::ObjectTerminator)
+        {
+            if (nesting.empty())
+            {
+                // Unexpected object termination 
+                return ParsingResult::InvalidFormat;
+            }
+
+            // Checks type of complex element being terminated (either Object or Array)
+            JSONType previous = nesting.back();
+            nesting.pop_back();
+            if (previous == JSONType::Array)
+            {
+                // Array was closed with Object terminator
+                return ParsingResult::InvalidFormat;
+            }
+
+            if (nesting.empty())
+            {
+                // Just reached end of object, which was a value in Key:Value
+                // pair being skipped. This marks end of processing ignored
+                // part of JSON file.
+                return ParsingResult::Success;
+            }
+
+            if (nesting.back() == JSONType::Object)
+            {
+                // Leaving object into scope of other object means that this
+                // object was Value part of the Key:Value pair. Thus clearing:
+                parsingValue = false;
+            }
+
+            // Continue parsing and skipping nested object/array contents one level up.
+        }
+        else
+        if (type == JSONType::ArrayTerminator)
+        {
+            if (nesting.empty())
+            {
+                // Unexpected array termination 
+                return ParsingResult::InvalidFormat;
+            }
+
+            // Checks type of complex element being terminated (either Object or Array)
+            JSONType previous = nesting.back();
+            nesting.pop_back();
+            if (previous == JSONType::Object)
+            {
+                // Object was closed with Array terminator
+                return ParsingResult::InvalidFormat;
+            }
+
+            if (nesting.empty())
+            {
+                // Just reached end of array, which was a value in Key:Value
+                // pair being skipped. This marks end of processing ignored
+                // part of JSON file.
+                return ParsingResult::Success;
+            }
+
+            if (nesting.back() == JSONType::Object)
+            {
+                // Leaving array into scope of object means that this array
+                // was Value part of the Key:Value pair. Thus clearing:
+                parsingValue = false;
+            }
+
+            // Continue parsing and skipping nested object/array contents one level up.
+        }
+        else
+        if (type == JSONType::String)
+        {
+            if (nesting.empty())
+            {
+                // String was a value in Key:Value pair being skipped. 
+                // This marks end of processing ignored part of JSON file.
+                return ParsingResult::Success;
+            }
+
+            if (nesting.back() == JSONType::Object)
+            {
+                // This string defines Key name
+                if (!parsingValue)
+                {
+                    // it should be followed by Separator
+                    result = findNextElement(type);
+                    if (result != ParsingResult::Success)
+                    {
+                        return result;
+                    }
+                    if (type != JSONType::Separator)
+                    {
+                        // Key name should be followed by Separator
+                        return ParsingResult::InvalidFormat;
+                    }
+
+                    // This is valid key, proceed to parsing its value
+                    parsingValue = true;
+                }
+                else // This string is Value of Key:Value pair
+                {
+                    parsingValue = false;
+                }
+            }
+            // else: This string is element of Array (nothing to do)
+        }
+        else
+        if (type == JSONType::UnsignedInteger ||
+            type == JSONType::Integer         ||
+            type == JSONType::Float           ||
+            type == JSONType::True            ||
+            type == JSONType::False)
+        {
+            if (nesting.empty())
+            {
+                // This was a value in Key:Value pair being skipped. 
+                // This marks end of processing ignored part of JSON file.
+                return ParsingResult::Success;
+            }
+
+            if (nesting.back() == JSONType::Object)
+            {
+                if (!parsingValue)
+                {
+                    // Those elements cannot live standalone in Object.
+                    // They can only be values of defined keys.
+                    return ParsingResult::InvalidFormat;
+                }
+
+                // This element is Value of Key:Value pair
+                parsingValue = false;
+            }
+            // else: This element is part of Array (nothing to do)
+        } 
+        else
+        if (type == JSONType::Separator)
+        {
+            // Separator cannot exist standalone on its own, 
+            // it needs to be part of Key:Value pair (and is handled there).
+            return ParsingResult::InvalidFormat;
+        }
+        else
+        if (type == JSONType::Comma)
+        {
+            // Comma separates Key:Value pairs in Object, and Values in Array.
+            // Otherwise its not allowed. Validation here is relaxed, and 
+            // doesn't check comma after comma condition.
+            if (nesting.back() == JSONType::Object && parsingValue)
+            {
+                // Key:Value pair Value is missing
+                return ParsingResult::InvalidFormat; 
+            }
+
+            // Skip comma and continue parsing
+        }
+    }
+
+    return ParsingResult::IncompleteData;
 }
 
 }

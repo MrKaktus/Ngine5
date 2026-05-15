@@ -33,7 +33,6 @@ enum class JSONType : uint8
     True                   ,  // Found: true
     False                  ,  // Found: false
     Null                   ,  // Found: null
-    Boolean                ,
     Count                  ,
 };
 
@@ -79,6 +78,25 @@ public:
     // otherwise returns false.
     bool readFloat(float& value) const;
     bool readDouble(double& value) const;
+
+    // Returns true if currently detected String element
+    // is matching provided one. Its useful for detecting
+    // particular keys of interest.
+    bool isStringMatching(const char* string) const;
+
+    const char* string(void);
+
+    uint32 stringLength(void) const;
+
+    // Proceeds from Key name to its value and extracts it as a uint64.
+    ParsingResult parseKeyU64(uint64& value);
+
+    // Proceeds from Key name to its value and extracts it as a string.
+    ParsingResult parseKeyString(std::string& value);
+
+    // Assumes parser is at the beginning of key string, 
+    // and moves forward in parsing after that keys value.
+    ParsingResult skipKeyValuePair(void);
 };
 
 } // en

@@ -152,6 +152,9 @@ bool isInteger(const char* text, const uint32 length);
 // Length is expected length of provided float string representation
 bool isFloat(const char* text, const uint32 length);
 
+// Converts hex cypher [0..9][A..F][a..f] into corresponding value
+bool convertHex(const char character, uint8& value);
+
 // Returns length of detected string with terminating zero.
 // For empty string will return Success and length of 1.
 ParsingResult parseString(const uint8* buffer, const uint64 size, uint64& length);
