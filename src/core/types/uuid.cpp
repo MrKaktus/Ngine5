@@ -72,6 +72,7 @@ bool UUID::init(std::string& description)
 
     // Modifies UUID only when whole string is known to be valid
     uint32 offset = 0;
+    uint8 valueCharacter = 0;
     for (uint32 i = 0; i < 36; ++i)
     {
         if (i == 8 || i == 13 || i == 18 || i == 23)
@@ -79,8 +80,24 @@ bool UUID::init(std::string& description)
             continue;
         }
 
-        convertHex(description[i], *((uint8*)(&qword[0]) + offset) );
-        ++offset;
+        uint8 value = 0;
+        convertHex(description[i], value);
+
+        // High nibble
+        if (valueCharacter % 2 == 0)
+        {
+            *((uint8*)(&qword[0]) + offset) = value << 4;
+        }
+        else // Low nibble
+        {
+            *((uint8*)(&qword[0]) + offset) += value;
+        }
+
+        ++valueCharacter;
+        if (valueCharacter % 2 == 0)
+        {
+            ++offset;
+        }
     }
 
     return true;

@@ -14,6 +14,9 @@
 #include "assert.h"
 #include "core/storage.h"
 #include "core/log/log.h"
+#include "core/memory/alignedAllocator.h"
+#include "core/utilities/parserJSON.h"
+#include "core/utilities/writerJSON.h"
 #include "assets/interface.h"
 
 namespace en
@@ -253,6 +256,13 @@ bool AssetManager::findResourcePathByUUID(const UUID& uuid, std::string& filePat
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// .metadata format v1:
+//
+// {
+//     "version" : 1,
+//     "uuid" : "f0593503-3168-4904-91b1-a5c9d09ae57b"
+// }
+// 
 bool AssetManager::storeMetadata(const std::filesystem::path& metadataPath, const std::filesystem::path& filePath)
 {
     // Creates .metadata file for storing UUID of matching resource
@@ -267,8 +277,13 @@ bool AssetManager::storeMetadata(const std::filesystem::path& metadataPath, cons
     UUID uuid;
     uuid.init();
 
-    // Stores UUID in binary form (currently for simplicity .metadata files are binary)
-    file->write(sizeof(UUID), &uuid);
+    // File will be stored on exit of scope
+    {
+        WriterJSON writer(*file);
+        writer.addKeyU64("version", 1);
+        writer.addKeyString("uuid", uuid.description());
+    }
+
     delete file;
 
     std::string resourcePath = filePath.string();
@@ -282,6 +297,85 @@ bool AssetManager::storeMetadata(const std::filesystem::path& metadataPath, cons
     return true;
 }
 
+ParsingResult parseMetadataV1(const uint8* buffer, const uint64 size, uint64& version, UUID& uuid)
+{
+    // Don't pass buffer ownership
+    ParserJSON parser(buffer, size, false);
+
+    // Metadata needs to start with root object
+    JSONType type = JSONType::None;
+    ParsingResult result = parser.findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+    if (type != JSONType::Object)
+    {
+        return ParsingResult::InvalidFormat;
+    }
+
+    version = 0;
+
+    do
+    {
+        result = parser.findNextElement(type);
+        if (result != ParsingResult::Success)
+        {
+            break;
+        }
+
+        if (type == JSONType::Comma)
+        {
+            continue;
+        }
+        if (type == JSONType::ObjectTerminator)
+        {
+            // Root object ended
+            break;
+        }
+
+        if (type != JSONType::String)
+        {
+            logError("Invalid JSON syntax when parsing .metadata file: Encountered String when was expecting Key!\n");
+            return ParsingResult::InvalidFormat;
+        }
+
+        if (parser.isStringMatching("version"))
+        {
+            result = parser.parseKeyU64(version);
+            if (result != ParsingResult::Success)
+            {
+                break;
+            }
+        }
+        else
+        if (parser.isStringMatching("uuid"))
+        {
+            std::string uuidString;
+            result = parser.parseKeyString(uuidString);
+            if (result != ParsingResult::Success)
+            {
+                break;
+            }
+
+            // Convert string into actual UUID
+            uuid.init(uuidString);
+        }
+        else
+        {
+            // Ignoring unrecognized keys
+            result = parser.skipKeyValuePair();
+            if (result != ParsingResult::Success)
+            {
+                break;
+            }
+        }
+
+    } while (result == ParsingResult::Success);
+
+    return result;
+}
+
 bool AssetManager::loadMetadata(const std::filesystem::path& metadataPath, const std::filesystem::path& filePath)
 {
     en::storage::File* file = Storage->open(metadataPath.string());
@@ -291,27 +385,61 @@ bool AssetManager::loadMetadata(const std::filesystem::path& metadataPath, const
         return false;
     }
 
-    // Verifies file size is what is expected (currently for simplicity .metadata files are binary).
+    // Verifies file has content
     uint64 size = file->size();
-    uint64 expectedSize = sizeof(UUID);
-    if (size != expectedSize)
+    if (!size) // unlikely
     {
-        logError("Metadata file corrupted (size: %u expected: %u)!\n%s\n", size, expectedSize, metadataPath.c_str());
+        logError("Metadata file is empty:\n%s\n", filePath.c_str());
         return false;
     }
 
-    // Read existing UUID from file
-    UUID uuid;
-    uint64 readSize = 0;
-    if (!file->read(0, expectedSize, &uuid, &readSize))
+    // Allocates temporary buffer for parsing purposes
+    uint8* buffer = allocate<uint8>(size);
+    if (!buffer) // unlikely
     {
-        logError("Failed to read %s file!\n", metadataPath.c_str());
+        logCritical("Run out of memory while trying to allocate buffer for parsing metadata file:\n%s\n", filePath.c_str());
+        return false;
+    }
 
-        if (readSize != expectedSize)
+    // Read metadata file content to buffer
+    uint64 readSize = 0;
+    if (!file->read(0, size, buffer, &readSize))
+    {
+        logError("Failed to read file:\n%s\n", filePath.c_str());
+
+        if (readSize != size)
         {
-            logError("Expected to read %u bytes, but read %u.\n", expectedSize, readSize);
+            logError("Expected to read %u bytes, but read %u.\n", size, readSize);
         }
 
+        deallocate<uint8>(buffer);
+        return false;
+    }
+
+    uint64 version = 0;
+    UUID uuid;
+
+    // Read .metadata file state
+    ParsingResult result = parseMetadataV1(buffer, size, version, uuid);
+    deallocate<uint8>(buffer);
+    if (result != ParsingResult::Success)
+    {
+        if (result == ParsingResult::InvalidFormat)
+        {
+            logError("Invalid JSON syntax when parsing .metadata file!\n");
+        }
+        else
+        if (result == ParsingResult::IncompleteData)
+        {
+            logError("Buffer storing .metadata file content is incomplete!\n");
+        }
+       
+        return false;
+    }
+
+    if (version != 1)
+    {
+        logError("Unsupported version of .metadata file!\n%s\n", metadataPath.string());
         return false;
     }
 

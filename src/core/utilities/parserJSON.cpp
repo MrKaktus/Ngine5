@@ -392,6 +392,11 @@ ParsingResult ParserJSON::findNextElement(JSONType& _type)
             if (result == ParsingResult::Success)
             {
                 foundStringLength = (sint32)temp;
+
+                // Move offset past detected string. 
+                // (+1 to move to next char after closing ")
+                offset += foundStringLength + 1; 
+
                 type = _type = JSONType::String;
             }
 
@@ -772,7 +777,7 @@ ParsingResult ParserJSON::parseKeyString(std::string& value)
         return ParsingResult::InvalidFormat;
     }
 
-    value = string();
+    value = std::string(string(), stringLength());
     return ParsingResult::Success;
 }
 
