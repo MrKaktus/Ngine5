@@ -10,7 +10,9 @@
 
 #include <random>
 
+#include "core/log/log.h"
 #include "core/types/uuid.h"
+#include "core/utilities/parser.h"
 
 namespace en
 {
@@ -36,6 +38,52 @@ void UUID::init(void)
     // Set variant (10xx) -> bits 6-7 of clock_seq_hi_and_reserved
     uint8& byte8 = *((uint8*)&qword[1]); 
     byte8 = (byte8 & 0x3F) | 0x80;
+}
+
+bool UUID::init(std::string& description)
+{
+    if (description.length() != 36)
+    {
+        logError("Invalid string length to generate UUID:\n%s\n", description.c_str());
+        return false;
+    }
+
+    // Verifies string format
+    // XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+    for(uint32 i=0; i<36; ++i)
+    {
+        if (i == 8 || i == 13 || i == 18 || i == 23)
+        {
+            if (description[i] != '-')
+            {
+                logError("Invalid string format to generate UUID (at %u):\n%s\n", i, description.c_str());
+                return false;
+            }
+
+            continue;
+        }
+
+        if (!isHexCypher(description[i]))
+        {
+            logError("Invalid string format to generate UUID (at %u):\n%s\n", i, description.c_str());
+            return false;
+        }
+    }
+
+    // Modifies UUID only when whole string is known to be valid
+    uint32 offset = 0;
+    for (uint32 i = 0; i < 36; ++i)
+    {
+        if (i == 8 || i == 13 || i == 18 || i == 23)
+        {
+            continue;
+        }
+
+        convertHex(description[i], *((uint8*)(&qword[0]) + offset) );
+        ++offset;
+    }
+
+    return true;
 }
 
 std::string UUID::description(void)

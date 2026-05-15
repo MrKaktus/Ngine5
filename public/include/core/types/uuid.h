@@ -33,6 +33,12 @@ public:
     // Auto-generates new UUID
     void init(void);
 
+    // Initializes UUID from its text description in format:
+    // XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+    // Both lowercase and uppercase letters are allowed in any combination.
+    // Returns false if provided string is incorrectly formatted.
+    bool init(std::string& description);
+
     std::string description(void);
 };
 
