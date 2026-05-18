@@ -849,7 +849,7 @@ bool load(const std::string& filename,
                     stream.zalloc    = Z_NULL;
                     stream.zfree     = Z_NULL;
                     stream.opaque    = Z_NULL;
-                    stream.avail_out = inflateBufferSize;             // Available space for uncompressed data
+                    stream.avail_out = (uint32)inflateBufferSize;     // Available space for uncompressed data
                     stream.next_out  = static_cast<uint8*>(inflated); // Store uncompressed data together with previous IDAT chunks
             
                     firstDataChunk = false;

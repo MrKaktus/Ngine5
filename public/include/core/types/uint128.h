@@ -11,6 +11,8 @@
 #ifndef ENG_CORE_TYPES_UINT128
 #define ENG_CORE_TYPES_UINT128
 
+#include <string> // description
+
 #include "core/types/basic.h"
 
 namespace en
@@ -46,7 +48,15 @@ class uint128
     //void    operator/= (const uint128 b);
     //void    operator*= (const uint128 b);
     //bool    operator!= (const uint128 b) const;
-    //uint128 operator-  () const;      
+    //uint128 operator-  () const;
+
+    // Initializes uint128 from its text description in format:
+    // 0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // Both lowercase and uppercase letters are allowed in any combination.
+    // Returns false if provided string is incorrectly formatted.
+    bool init(std::string& description);
+
+    std::string description(void);
 };
    
 static_assert(sizeof(uint128) == 16, "en::uint128 size mismatch!");
