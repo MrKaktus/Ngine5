@@ -318,7 +318,7 @@ float4x4 mul(float4x4 a, float4x4 b)
 float2 normalize(float2& a)
 {
     float2 o;
-    float tmp = sqrt(a.x*a.x + a.y*a.y);
+    float tmp = sqrtf(a.x*a.x + a.y*a.y);
     if (tmp) 
     {
         o.x = a.x / tmp;
@@ -331,7 +331,7 @@ float2 normalize(float2& a)
 float2 normalize(float2 a)
 {
     float2 o;
-    float tmp = sqrt(a.x*a.x + a.y*a.y);
+    float tmp = sqrtf(a.x*a.x + a.y*a.y);
     if (tmp) 
     {			
         o.x = a.x /= tmp;
@@ -344,7 +344,7 @@ float2 normalize(float2 a)
 float3 normalize(float3 a)
 {
     float3 o;
-    float tmp = sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+    float tmp = sqrtf(a.x*a.x + a.y*a.y + a.z*a.z);
     if (tmp) 
     {
         o.x = a.x / tmp;
@@ -372,7 +372,7 @@ double3 normalize(double3 a)
 float4 normalize(float4& a)
 {
     float4 o;
-    float tmp = sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+    float tmp = sqrtf(a.x*a.x + a.y*a.y + a.z*a.z);
     if (tmp) 
     {
         o.x = a.x / tmp;
@@ -386,7 +386,7 @@ float4 normalize(float4& a)
 // Length of vector
 float length(float3& v)
 {
-    return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+    return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);
 }
  
 double length(double3& v)

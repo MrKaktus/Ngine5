@@ -44,12 +44,23 @@ public:
     // Returns false if we're currently not inside of an object (if its a JSON syntax breaking operation)
     bool leaveObject(void);  // }
 
+    // Return false if code isn't currently expected to receive value
+    bool enterArray(void);   // [
+
+    bool leaveArray(void);   // ]
+
     // Simple keys:
 
     // Returns false if its a JSON syntax breaking operation
     // (for example we've already defined key name and now should provide its value)
-    bool addKeyU64(const std::string& name, const uint64 value);
-    bool addKeyString(const std::string& name, const std::string& value);
+    bool addKey(const std::string& name, const uint64 value);
+    bool addKey(const std::string& name, const std::string& value);
+
+    // Complex keys (objects and arrays):
+
+    bool addKeyArray(const std::string& name);
+    bool addArrayValue(const std::string& value);
+    bool leaveKeyArray(void);
 
 /*
     bool enterArray(void);   // [

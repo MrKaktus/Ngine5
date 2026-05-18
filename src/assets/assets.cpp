@@ -280,8 +280,8 @@ bool AssetManager::storeMetadata(const std::filesystem::path& metadataPath, cons
     // File will be stored on exit of scope
     {
         WriterJSON writer(*file);
-        writer.addKeyU64("version", 1);
-        writer.addKeyString("uuid", uuid.description());
+        writer.addKey("version", 1);
+        writer.addKey("uuid", uuid.description());
     }
 
     delete file;
