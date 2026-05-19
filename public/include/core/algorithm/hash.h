@@ -15,7 +15,7 @@
 
 #include "core/types.h"
 
-#define UseBigHash 0
+#define UseBigHash 1
 
 // Tweak hash seed until finding perfect hash for given set of assets. Hash seed
 // should be stored together with assets in the package, so patching asset set 

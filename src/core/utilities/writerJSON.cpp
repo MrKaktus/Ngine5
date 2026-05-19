@@ -268,7 +268,7 @@ bool WriterJSON::addKeyArray(const std::string& name)
     return true;
 }
 
-bool WriterJSON::addArrayValue(const std::string& value)
+bool WriterJSON::addValue(const std::string& value)
 {
     if (nesting.back() != JSONType::Array)
     {

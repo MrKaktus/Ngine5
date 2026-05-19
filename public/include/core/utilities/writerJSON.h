@@ -32,13 +32,6 @@ private:
 
     void indent(void);
 
-public:
-
-    // Automatically creates main object.
-    // Tracks indentation in automatic way.
-    WriterJSON(storage::File& file);
-   ~WriterJSON();
-
     bool enterObject(void);  // {
 
     // Returns false if we're currently not inside of an object (if its a JSON syntax breaking operation)
@@ -49,6 +42,13 @@ public:
 
     bool leaveArray(void);   // ]
 
+public:
+
+    // Automatically creates main object.
+    // Tracks indentation in automatic way.
+    WriterJSON(storage::File& file);
+   ~WriterJSON();
+
     // Simple keys:
 
     // Returns false if its a JSON syntax breaking operation
@@ -58,8 +58,12 @@ public:
 
     // Complex keys (objects and arrays):
 
+    // Adds Key which value is an Array, and enters its scope.
     bool addKeyArray(const std::string& name);
-    bool addArrayValue(const std::string& value);
+
+    // Adds string value to current array
+    bool addValue(const std::string& value);
+
     bool leaveKeyArray(void);
 
 /*
