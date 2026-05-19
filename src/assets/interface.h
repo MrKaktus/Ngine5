@@ -161,6 +161,8 @@ private:
     // - parses .metadata files and builds relations between current resource file paths and their UUIDs
     bool buildResourcesCatalog(void);
 
+    bool buildAssetsCatalog(void);
+
 public:
     static bool create(void);                      // Creates instance of this class (implementation specific) and assigns it to "en::Assets".
     static void destroy(void);                     // Destroys instance of this class

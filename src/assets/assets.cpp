@@ -212,7 +212,21 @@ AssetManager::AssetManager() :
     pathAssets = "./assets/";
     pathScreenshots = "./screenshots/";
 
-    buildResourcesCatalog();
+    // (1) First pass - build resources catalog
+    if (!buildResourcesCatalog())
+    {
+        // TODO: Critical engine error. Terminate application!
+        return;
+    }
+
+    // (2) TODO: Second pass - Import phase (parsing complex resources and generating assets from them)
+
+    // (3) Final pass - loading all asset descriptors, building final asset catalog
+    if (!buildAssetsCatalog())
+    {
+        // TODO: Critical engine error. Terminate application!
+        return;
+    }
 }
 
 AssetManager::~AssetManager()
@@ -269,7 +283,7 @@ bool AssetManager::storeMetadata(const std::filesystem::path& metadataPath, cons
     en::storage::File* file = Storage->open(metadataPath.string(), en::storage::FileAccess::Write);
     if (!file) // unlikely
     {
-        logError("Failed to create metadata file:\n%s\n", metadataPath.c_str());
+        logError("Failed to create metadata file:\n%s\n", metadataPath.string().c_str());
         return false;
     }
 
@@ -381,7 +395,7 @@ bool AssetManager::loadMetadata(const std::filesystem::path& metadataPath, const
     en::storage::File* file = Storage->open(metadataPath.string());
     if (!file)
     {
-        logError("Failed to open metadata file:\n%s\n", metadataPath.c_str());
+        logError("Failed to open metadata file:\n%s\n", metadataPath.string().c_str());
         return false;
     }
 
@@ -389,7 +403,7 @@ bool AssetManager::loadMetadata(const std::filesystem::path& metadataPath, const
     uint64 size = file->size();
     if (!size) // unlikely
     {
-        logError("Metadata file is empty:\n%s\n", filePath.c_str());
+        logError("Metadata file is empty:\n%s\n", filePath.string().c_str());
         return false;
     }
 
@@ -397,7 +411,7 @@ bool AssetManager::loadMetadata(const std::filesystem::path& metadataPath, const
     uint8* buffer = allocate<uint8>(size);
     if (!buffer) // unlikely
     {
-        logCritical("Run out of memory while trying to allocate buffer for parsing metadata file:\n%s\n", filePath.c_str());
+        logCritical("Run out of memory while trying to allocate buffer for parsing metadata file:\n%s\n", filePath.string().c_str());
         return false;
     }
 
@@ -405,7 +419,7 @@ bool AssetManager::loadMetadata(const std::filesystem::path& metadataPath, const
     uint64 readSize = 0;
     if (!file->read(0, size, buffer, &readSize))
     {
-        logError("Failed to read file:\n%s\n", filePath.c_str());
+        logError("Failed to read file:\n%s\n", filePath.string().c_str());
 
         if (readSize != size)
         {
@@ -439,7 +453,7 @@ bool AssetManager::loadMetadata(const std::filesystem::path& metadataPath, const
 
     if (version != 1)
     {
-        logError("Unsupported version of .metadata file!\n%s\n", metadataPath.string());
+        logError("Unsupported version of .metadata file!\n%s\n", metadataPath.string().c_str());
         return false;
     }
 
@@ -470,7 +484,7 @@ bool AssetManager::buildResourcesCatalog(void)
     // Sanity check, making sure assets directory exists
     if (!std::filesystem::exists(assetsRoot) || !std::filesystem::is_directory(assetsRoot))
     {
-        logError("Assets directory not found!\n%s\n", assetsRoot.c_str());
+        logError("Assets directory not found!\n%s\n", assetsRoot.string().c_str());
         return false;
     }
 
@@ -546,7 +560,7 @@ bool AssetManager::buildResourcesCatalog(void)
             }
             else
             {
-                logError("Orphaned metadata file detected!\n%s\n", metadataPath.c_str());
+                logError("Orphaned metadata file detected!\n%s\n", metadataPath.string().c_str());
             }
         }
     }
@@ -605,7 +619,7 @@ bool AssetManager::storeAssetDescriptor(AssetDescriptor& descriptor, const std::
     en::storage::File* file = Storage->open(assetPath.string(), en::storage::FileAccess::Write);
     if (!file) // unlikely
     {
-        logError("Failed to create asset file:\n%s\n", assetPath.c_str());
+        logError("Failed to create asset file:\n%s\n", assetPath.string().c_str());
         return false;
     }
 
@@ -634,7 +648,7 @@ bool AssetManager::storeAssetDescriptor(AssetDescriptor& descriptor, const std::
 
     delete file;
 
-    logDebug("C %s - %s\n", id.description().c_str(), assetPath.c_str());
+    logDebug("C %s - %s\n", id.description().c_str(), assetPath.string().c_str());
 
     // Builds relationship between asset ID and its descriptor
     assetDescriptors[id] = &descriptor;
@@ -850,7 +864,7 @@ bool AssetManager::loadAssetDescriptor(const std::filesystem::path& assetPath)
     en::storage::File* file = Storage->open(assetPath.string());
     if (!file) // unlikely
     {
-        logError("Failed to open asset file:\n%s\n", assetPath.c_str());
+        logError("Failed to open asset file:\n%s\n", assetPath.string().c_str());
         return false;
     }
 
@@ -858,7 +872,7 @@ bool AssetManager::loadAssetDescriptor(const std::filesystem::path& assetPath)
     uint64 size = file->size();
     if (!size) // unlikely
     {
-        logError("Asset file is empty:\n%s\n", assetPath.c_str());
+        logError("Asset file is empty:\n%s\n", assetPath.string().c_str());
         return false;
     }
 
@@ -866,7 +880,7 @@ bool AssetManager::loadAssetDescriptor(const std::filesystem::path& assetPath)
     uint8* buffer = allocate<uint8>(size);
     if (!buffer) // unlikely
     {
-        logCritical("Run out of memory while trying to allocate buffer for parsing asset file:\n%s\n", assetPath.c_str());
+        logCritical("Run out of memory while trying to allocate buffer for parsing asset file:\n%s\n", assetPath.string().c_str());
         return false;
     }
 
@@ -874,7 +888,7 @@ bool AssetManager::loadAssetDescriptor(const std::filesystem::path& assetPath)
     uint64 readSize = 0;
     if (!file->read(0, size, buffer, &readSize))
     {
-        logError("Failed to read file:\n%s\n", assetPath.c_str());
+        logError("Failed to read file:\n%s\n", assetPath.string().c_str());
 
         if (readSize != size)
         {
@@ -893,12 +907,12 @@ bool AssetManager::loadAssetDescriptor(const std::filesystem::path& assetPath)
     {
         if (result == ParsingResult::InvalidFormat)
         {
-            logError("Invalid JSON syntax when parsing .asset file:\n%s\n", assetPath.c_str());
+            logError("Invalid JSON syntax when parsing .asset file:\n%s\n", assetPath.string().c_str());
         }
         else
         if (result == ParsingResult::IncompleteData)
         {
-            logError("Buffer storing .asset file content is incomplete!\n%s\n", assetPath.c_str());
+            logError("Buffer storing .asset file content is incomplete!\n%s\n", assetPath.string().c_str());
         }
         else
         if (result == ParsingResult::Unsupported)
@@ -907,7 +921,7 @@ bool AssetManager::loadAssetDescriptor(const std::filesystem::path& assetPath)
             // Presence of referenced resources, nor their properties are validated
             // until asset is actually created (all referenced resourcs loaded and
             // asset constructed in RAM and VRAM).
-            logError("Unsupported asset description in file:\n%s\n", assetPath.c_str());
+            logError("Unsupported asset description in file:\n%s\n", assetPath.string().c_str());
         }
 
         return false;
@@ -927,11 +941,49 @@ bool AssetManager::loadAssetDescriptor(const std::filesystem::path& assetPath)
         return true;
     }
 
-    logDebug("L %s - %s\n", descriptor->getID().description().c_str(), assetPath.c_str());
+    logDebug("L %s - %s\n", descriptor->getID().description().c_str(), assetPath.string().c_str());
 
     // Populates assets catalog with asset descriptor
     // (builds relationship between asset ID and descriptor)
     assetDescriptors[descriptor->getID()] = descriptor;
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool AssetManager::buildAssetsCatalog(void)
+{
+    // Ensures assets catalog root path is already resolved and absolute
+    std::filesystem::path assetsRoot = std::filesystem::weakly_canonical(assetsPath());
+
+    // Sanity check, making sure assets directory exists
+    if (!std::filesystem::exists(assetsRoot) || !std::filesystem::is_directory(assetsRoot))
+    {
+        logError("Assets directory not found!\n%s\n", assetsRoot.string().c_str());
+        return false;
+    }
+
+    // Recursively iterates over every sub-directory, and every file in it.
+    // Order of iteration is not deterministic, symbolic links are not followed.
+    for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(assetsRoot))
+    {
+        if (!entry.is_regular_file())
+        {
+            continue;
+        }
+
+        // Full paths are used by the engine for any type of tracking or comparison
+        // (will generate absolute, resolved path to the file, even if the path itself doesn't exist yet)
+        std::filesystem::path filePath = std::filesystem::weakly_canonical(entry.path());
+
+        std::filesystem::path extension = filePath.extension();
+        FileExtension extensionType = fileExtension(extension.string());
+        if (extensionType == FileExtension::Asset)
+        {
+            loadAssetDescriptor(filePath);
+        }
+    }
 
     return true;
 }
