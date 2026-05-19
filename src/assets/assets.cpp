@@ -336,7 +336,7 @@ ParsingResult parseMetadataV1(const uint8* buffer, const uint64 size, uint64& ve
 
         if (type != JSONType::String)
         {
-            logError("Invalid JSON syntax when parsing .metadata file: Encountered String when was expecting Key!\n");
+            logError("Invalid JSON syntax when parsing .metadata file: Was expecting Key name!\n");
             return ParsingResult::InvalidFormat;
         }
 
@@ -550,6 +550,388 @@ bool AssetManager::buildResourcesCatalog(void)
             }
         }
     }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+AssetDescriptor::AssetDescriptor(const AssetType _type) :
+    assetID(),
+    type(_type)
+{
+}
+
+AssetDescriptor::AssetDescriptor(const AssetID id, const AssetType _type) :
+    assetID(id),
+    type(_type)
+{
+}
+
+ImageAssetDescriptor::ImageAssetDescriptor(const UUID& uuid) :
+    AssetDescriptor(AssetType::Image)
+{
+    // Source:
+
+    // If there is only one source element in the vector, 
+    // it implicitly identifies this surface as not having 
+    // any existing mip maps stored in separate files on disk.
+    sourceFile.push_back(uuid);
+
+    // TODO: Verify descriptor on creation time?
+}
+
+ImageAssetDescriptor::ImageAssetDescriptor(const std::vector<UUID>& uuids) :
+    AssetDescriptor(AssetType::Image)
+{
+    sourceFile = uuids;
+}
+
+// .asset format v1:
+//
+// {
+//     "version" : 1,
+//     "id" : 0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,
+//     "type" : "image",
+//     "resources" : 
+//     [ 
+//         "f0593503-3168-4904-91b1-a5c9d09ae57b" 
+//     ]
+// }
+//
+bool AssetManager::storeAssetDescriptor(AssetDescriptor& descriptor, const std::filesystem::path& assetPath)
+{
+    // Creates .asset file
+    en::storage::File* file = Storage->open(assetPath.string(), en::storage::FileAccess::Write);
+    if (!file) // unlikely
+    {
+        logError("Failed to create asset file:\n%s\n", assetPath.c_str());
+        return false;
+    }
+
+    AssetID id = descriptor.getID();
+
+    // File will be stored on exit of scope
+    {
+        WriterJSON writer(*file);
+        writer.addKey("version", 1);
+        writer.addKey("id", id.description());
+
+        if (descriptor.getType() == AssetType::Image)
+        {
+            ImageAssetDescriptor& imageDescriptor = *((ImageAssetDescriptor*)&descriptor);
+
+            writer.addKey("type", "image");
+            writer.addKeyArray("resources");
+            for(uint32 i=0; i<imageDescriptor.sourceFilesCount(); ++i)
+            {
+                UUID uuid = imageDescriptor.sourceFileUUID(i);
+                writer.addValue(uuid.description());
+            }
+            writer.leaveKeyArray();
+        }
+    }
+
+    delete file;
+
+    logDebug("C %s - %s\n", id.description().c_str(), assetPath.c_str());
+
+    // Builds relationship between asset ID and its descriptor
+    assetDescriptors[id] = &descriptor;
+
+    return true;
+}
+
+ParsingResult parseKeyArrayOfUUIDs(ParserJSON& parser, std::vector<UUID>& uuids)
+{
+    // Array value needs to start with key separator
+    JSONType type = JSONType::None;
+    ParsingResult result = parser.findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+    if (type != JSONType::Separator)
+    {
+        return ParsingResult::InvalidFormat;
+    }
+
+    // Value is array
+    result = parser.findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+    if (type != JSONType::Array)
+    {
+        return ParsingResult::InvalidFormat;
+    }
+
+    do
+    {
+        result = parser.findNextElement(type);
+        if (result != ParsingResult::Success)
+        {
+            return result;
+        }
+
+        if (type == JSONType::Comma)
+        {
+            continue;
+        }
+        if (type == JSONType::ArrayTerminator)
+        {
+            // Value array ended
+            break;
+        }
+
+        if (type != JSONType::String)
+        {
+            logError("Invalid JSON syntax when parsing .asset file: Was expecting Value name!\n");
+            return ParsingResult::InvalidFormat;
+        }
+
+        std::string uuidString(parser.string(), parser.stringLength());
+
+        // Convert string into actual UUID
+        UUID uuid;
+        if (!uuid.init(uuidString))
+        {
+            logError("Failed to parse UUID value!\n");
+            return ParsingResult::InvalidFormat;
+        }
+
+        uuids.push_back(uuid);
+        
+    } 
+    while (result == ParsingResult::Success);
+
+    return result;
+}
+
+ParsingResult parseAssetV1(const uint8* buffer, const uint64 size, AssetDescriptor*& descriptor)
+{
+    // Don't pass buffer ownership
+    ParserJSON parser(buffer, size, false);
+
+    // Metadata needs to start with root object
+    JSONType type = JSONType::None;
+    ParsingResult result = parser.findNextElement(type);
+    if (result != ParsingResult::Success)
+    {
+        return result;
+    }
+    if (type != JSONType::Object)
+    {
+        return ParsingResult::InvalidFormat;
+    }
+
+    // Parsed state
+    uint64 version = 0;
+    AssetID id;
+    AssetType assetType = AssetType::Unknown;
+    std::vector<UUID> resources;
+
+    do
+    {
+        result = parser.findNextElement(type);
+        if (result != ParsingResult::Success)
+        {
+            return result;
+        }
+
+        if (type == JSONType::Comma)
+        {
+            continue;
+        }
+        if (type == JSONType::ObjectTerminator)
+        {
+            // Root object ended
+            break;
+        }
+
+        if (type != JSONType::String)
+        {
+            logError("Invalid JSON syntax when parsing .asset file: Was expecting Key name!\n");
+            return ParsingResult::InvalidFormat;
+        }
+
+        if (parser.isStringMatching("version"))
+        {
+            result = parser.parseKeyU64(version);
+            if (result != ParsingResult::Success)
+            {
+                return result;
+            }
+        }
+        else
+        if (parser.isStringMatching("id"))
+        {
+            std::string idString;
+            result = parser.parseKeyString(idString);
+            if (result != ParsingResult::Success)
+            {
+                return result;
+            }
+
+            // Convert string into actual asset ID
+            if (!id.init(idString))
+            {
+                logError("Failed to parse asset ID value!\n");
+                return ParsingResult::InvalidFormat;
+            }
+        }
+        else
+        if (parser.isStringMatching("type"))
+        {
+            std::string typeString;
+            result = parser.parseKeyString(typeString);
+            if (result != ParsingResult::Success)
+            {
+                return result;
+            }
+
+            // Convert string into AssetType
+            if (typeString == "image")
+            {
+                assetType = AssetType::Image;
+            }
+            else
+            {
+                logError("Failed to parse asset type!\n");
+                return ParsingResult::InvalidFormat;
+            }
+        }
+        else
+        if (parser.isStringMatching("resources"))
+        {
+            result = parseKeyArrayOfUUIDs(parser, resources);
+            if (result != ParsingResult::Success)
+            {
+                return result;
+            }
+        }
+        else
+        {
+            // Ignoring unrecognized keys
+            result = parser.skipKeyValuePair();
+            if (result != ParsingResult::Success)
+            {
+                break;
+            }
+        }
+    } while (result == ParsingResult::Success);
+
+    if (result == ParsingResult::Success)
+    {
+        if (version != 1)
+        {
+            logError("Unsupported version of .asset file!\n");
+            return ParsingResult::Unsupported;
+        }
+
+        if (assetType == AssetType::Image)
+        {
+            descriptor = new ImageAssetDescriptor(resources);
+            descriptor->setID(id);
+        }
+        else
+        {
+            logError("Unsupported asset type!\n");
+            return ParsingResult::Unsupported;
+        }
+    }
+
+    return result;
+}
+
+bool AssetManager::loadAssetDescriptor(const std::filesystem::path& assetPath)
+{
+    en::storage::File* file = Storage->open(assetPath.string());
+    if (!file) // unlikely
+    {
+        logError("Failed to open asset file:\n%s\n", assetPath.c_str());
+        return false;
+    }
+
+    // Verifies file has content
+    uint64 size = file->size();
+    if (!size) // unlikely
+    {
+        logError("Asset file is empty:\n%s\n", assetPath.c_str());
+        return false;
+    }
+
+    // Allocates temporary buffer for parsing purposes
+    uint8* buffer = allocate<uint8>(size);
+    if (!buffer) // unlikely
+    {
+        logCritical("Run out of memory while trying to allocate buffer for parsing asset file:\n%s\n", assetPath.c_str());
+        return false;
+    }
+
+    // Read asset file content to buffer
+    uint64 readSize = 0;
+    if (!file->read(0, size, buffer, &readSize))
+    {
+        logError("Failed to read file:\n%s\n", assetPath.c_str());
+
+        if (readSize != size)
+        {
+            logError("Expected to read %u bytes, but read %u.\n", size, readSize);
+        }
+
+        deallocate<uint8>(buffer);
+        return false;
+    }
+
+    // Read .asset file state and create asset descriptor out of it
+    AssetDescriptor* descriptor = nullptr;
+    ParsingResult result = parseAssetV1(buffer, size, descriptor);
+    deallocate<uint8>(buffer);
+    if (result != ParsingResult::Success)
+    {
+        if (result == ParsingResult::InvalidFormat)
+        {
+            logError("Invalid JSON syntax when parsing .asset file:\n%s\n", assetPath.c_str());
+        }
+        else
+        if (result == ParsingResult::IncompleteData)
+        {
+            logError("Buffer storing .asset file content is incomplete!\n%s\n", assetPath.c_str());
+        }
+        else
+        if (result == ParsingResult::Unsupported)
+        {
+            // Only asset file syntax get validated during load. 
+            // Presence of referenced resources, nor their properties are validated
+            // until asset is actually created (all referenced resourcs loaded and
+            // asset constructed in RAM and VRAM).
+            logError("Unsupported asset description in file:\n%s\n", assetPath.c_str());
+        }
+
+        return false;
+    }
+
+    if (!descriptor) // unlikely
+    {
+        logCritical("Asset parser code is corrupted!\n");
+        return false;
+    }
+
+    // If this .asset file was already loaded and added to assets catalog,
+    // no additional action is needed (currently parsed descriptor can be released).
+    if (assetDescriptors[descriptor->getID()])
+    {
+        delete descriptor;
+        return true;
+    }
+
+    logDebug("L %s - %s\n", descriptor->getID().description().c_str(), assetPath.c_str());
+
+    // Populates assets catalog with asset descriptor
+    // (builds relationship between asset ID and descriptor)
+    assetDescriptors[descriptor->getID()] = descriptor;
 
     return true;
 }

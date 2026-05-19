@@ -17,6 +17,19 @@
 namespace en
 {
 
+hash64 hashData64(const void* data, const uint32 size, const uint32 seed)
+{
+    return MurmurHash64A(data, size, seed);
+}
+
+hash128 hashData128(const void* data, const uint32 size, const uint32 seed)
+{
+    hash128 result = 0;
+    MurmurHash3_x64_128(data, size, seed, &result);
+
+    return result;
+}
+
 hash hashData(const void* data, const uint32 size, const uint32 seed)
 {
     hash result = 0;
@@ -26,6 +39,19 @@ hash hashData(const void* data, const uint32 size, const uint32 seed)
 #else
     result = MurmurHash64A(data, size, seed);
 #endif
+
+    return result;
+}
+
+hash64 hashString64(const std::string& name, const uint32 seed)
+{
+    return MurmurHash64A((const void*)name.c_str(), static_cast<sint32>(name.length()), seed);
+}
+
+hash128 hashString128(const std::string& name, const uint32 seed)
+{
+    hash result = 0;
+    MurmurHash3_x64_128((const void*)name.c_str(), static_cast<sint32>(name.length()), seed, &result);
 
     return result;
 }

@@ -589,7 +589,7 @@ struct Skeleton
 
 struct Model
 {
-    hash   name;            // Name
+    hash64 name;            // Name
 
     uint64 meshCount  : 16; // Total count of meshes this model has (max 64K meshes for all LOD's).
 

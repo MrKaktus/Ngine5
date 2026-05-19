@@ -21,7 +21,7 @@ namespace en
 {
 
 template <typename T>
-T* allocate(uint32 count = 1)
+T* allocate(uint64 count = 1)
 {
     T* temp = nullptr;
 #if defined(EN_PLATFORM_WINDOWS)
@@ -42,10 +42,10 @@ T* allocate(uint32 count = 1)
 }
 
 template <typename T>
-T* allocate(const uint32 count, const uint32 alignment)
+T* allocate(const uint64 count, const uint32 alignment)
 {
     T* temp = nullptr;
-    uint32 size = count * sizeof(T);
+    uint64 size = count * sizeof(T);
 #if defined(EN_PLATFORM_WINDOWS)
     temp = static_cast<T*>(_aligned_malloc(size, alignment));
 #else
@@ -78,7 +78,7 @@ void deallocate(T* ptr)
 /// Alignment needs to be the same, as for originally allocated memory block.
 /// Try to avoid this function, and use page allocator instead.
 template <typename T>
-T* reallocate(T* memory, const uint32 alignment, const uint32 oldCount, const uint32 newCount)
+T* reallocate(T* memory, const uint32 alignment, const uint64 oldCount, const uint64 newCount)
 {
     T* temp = nullptr;
 #if defined(EN_PLATFORM_WINDOWS)
