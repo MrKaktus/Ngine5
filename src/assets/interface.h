@@ -22,8 +22,17 @@ namespace en
 {
 namespace assets
 {
-    // Deterministic imported asset identity (128-bit hash)
+    // Deterministic imported asset identity, used to track 
+    // assets across multiple application runs. Answers 
+    // question: which asset is that?
     typedef hash128 AssetID;
+
+    // Defines runtime asset descriptors equivalence. Answers
+    // question: are two asset descriptors semantically identical? 
+    // This is used for runtime descriptor reuse, and to
+    // avoid duplicate asset catalog entries when creating
+    // assets in programmable way.
+    typedef hash128 AssetSignature;
 
 } // en::assets
 
@@ -39,6 +48,17 @@ namespace std
         {
             // AssetID is already unique and result of hashing itself,
             // thus it can be passed as is, as a hash of itself.
+            return static_cast<size_t>(id.qword[0]);
+        }
+    };
+
+    template<>
+    struct hash<en::assets::AssetSignature>
+    {
+        size_t operator()(const en::assets::AssetSignature& id) const noexcept
+        {
+            // AssetSignature is already hash itself, 
+            // thus it can be used as its own hash.
             return static_cast<size_t>(id.qword[0]);
         }
     };
@@ -88,6 +108,8 @@ public:
     forceinline void setID(AssetID id) { assetID = id; }; 
     forceinline AssetID getID(void) const { return assetID; };
     forceinline AssetType getType(void) const { return type; };
+
+    virtual AssetSignature getSignature(void) const = 0;
 };
 
 class ImageAssetDescriptor : public AssetDescriptor
@@ -115,6 +137,8 @@ public:
 
     forceinline uint32 sourceFilesCount(void) const { return (uint32)sourceFile.size(); };
     forceinline UUID sourceFileUUID(const uint8 mipLevel) const { if (mipLevel >= sourceFilesCount()) { return UUID(); } return sourceFile[mipLevel]; };
+
+    virtual AssetSignature getSignature(void) const;
 };
 
 class AssetManager : public Interface
@@ -131,6 +155,8 @@ class AssetManager : public Interface
 
     std::unordered_map<AssetID, AssetDescriptor*> assetDescriptors; // Asset description pointed at by AssetID
                                                                     // Either created at runtime, or loaded from disk.
+
+    std::unordered_map<AssetSignature, AssetID> assetSignatureToID; // Used only to avoid duplicate asset descriptors in asset catalog.
 
 private:
 
@@ -150,6 +176,8 @@ private:
     // Loads UUID from .metadata file, and creates relation between it and resource file path
     bool loadMetadata(const std::filesystem::path& metadataPath, const std::filesystem::path& filePath);
 
+    // Assets:
+
     // Stores contents of AssetDescriptor object in specified .asset file
     bool storeAssetDescriptor(AssetDescriptor& descriptor, const std::filesystem::path& assetPath);
 
@@ -162,6 +190,9 @@ private:
     bool buildResourcesCatalog(void);
 
     bool buildAssetsCatalog(void);
+
+    bool findAssetIDBySignature(const AssetSignature& signature, AssetID& id) const;
+    bool findAssetDescriptorByID(const AssetID id, AssetDescriptor& descriptor) const;
 
 public:
     static bool create(void);                      // Creates instance of this class (implementation specific) and assigns it to "en::Assets".

@@ -988,6 +988,42 @@ bool AssetManager::buildAssetsCatalog(void)
     return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+AssetSignature ImageAssetDescriptor::getSignature(void) const
+{
+    // Hashes asset descriptor object treating it as binary blob, but skipping first member 
+    // variable (AssetID). This provides us guarantee that if different assets have the same 
+    // descriptors, they will produce the same signatures.
+    //
+    uint64 idSize = offsetof(ImageAssetDescriptor, type);
+    return hashData128((uint8*)this + idSize, sizeof(ImageAssetDescriptor) - idSize);
+}
+
+bool AssetManager::findAssetIDBySignature(const AssetSignature& signature, AssetID& id) const
+{
+    std::unordered_map<AssetSignature, AssetID>::const_iterator it = assetSignatureToID.find(signature);
+    if (it != assetSignatureToID.end())
+    {
+        id = it->second;
+        return true;
+    }
+
+    return false;
+}
+
+bool AssetManager::findAssetDescriptorByID(const AssetID id, AssetDescriptor& descriptor) const
+{
+    std::unordered_map<AssetID, AssetDescriptor*>::const_iterator it = assetDescriptors.find(id);
+    if (it != assetDescriptors.end())
+    {
+        descriptor = *it->second;
+        return true;
+    }
+
+    return false;
+}
+
 } // en::assets
 
 } // en
