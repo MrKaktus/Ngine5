@@ -476,6 +476,96 @@ bool AssetManager::loadMetadata(const std::filesystem::path& metadataPath, const
     return true;
 }
 
+bool AssetManager::addResource(const std::filesystem::path& filePath, const bool knownType)
+{
+    if (!std::filesystem::exists(filePath)) // unlikely
+    {
+        logError("Specified file cannot be added to resource catalog because it does not exist!\n%s\n", filePath.string().c_str());
+        return false;
+    }
+
+    // TODO: Add in .metadata file, aside from UUID,
+    //       last file modification date. This way we can auto
+    //       detect if file was modified since last time application
+    //       was executiong, and import that file/asset only in
+    //       such case, instead of importing everything from 
+    //       scratch every time. This will also allow in the 
+    //       future hot reloading of assets while application
+    //       is running. If date read from .metadata file is
+    //       older than reported by file system (file was modified).
+    //       This will require updating .metadata file with new
+    //       date once its re-imported.
+    //       Alternative to "last modified date" could be "content
+    //       hash" which is bulletproff (resistent to FS issues).
+    //       We also need to add "produced assets" list, which
+    //       stores those assets UUIDs. When resource file changes
+    //       that list tells us which assets need to get re-imported.
+
+    // If currently examined file is resource of supported type,
+    // its .metadata file is created (when missing) or loaded to
+    // build relation between current file path and its UUID.
+    std::filesystem::path extension = filePath.extension();
+    FileExtension extensionType = fileExtension(extension.string());
+    if (isSupportedResourceFileExtension(extensionType))
+    {
+        // Expected accompanying it .metadata file
+        std::filesystem::path metadataPath = filePath;
+        metadataPath += ".metadata";
+
+        // Both load and store operations also populate resources catalog in RAM
+        if (std::filesystem::exists(metadataPath))
+        {
+            if (!loadMetadata(metadataPath, filePath))
+            {
+                // Try to fix .metadata file by re-generating it
+                return storeMetadata(metadataPath, filePath);
+            }
+        }
+        else
+        {
+            // Try to create .metadata file when missing
+            return storeMetadata(metadataPath, filePath);
+        }
+    }
+    else // If it isn't supported resource type, but was expected to be, log error
+    if (knownType)
+    {
+        logError("File type unrecognized as resource. It won't be added to resource catalog!\n%s\n", filePath.string().c_str());
+        return false;
+    }
+    else
+    // This method is called to first detect if given file is resource or not.
+    // In such case, even if its not supported resource type, it might still be
+    // supported metadata one.
+    if (extensionType == FileExtension::Metadata)
+    {
+        // If its .metadata file, find its matching resource file
+        // and build relation between current file path and its UUID.
+        std::filesystem::path metadataPath = filePath;
+        std::filesystem::path filePath     = removeSuffix(metadataPath, ".metadata");
+
+        if (std::filesystem::exists(filePath))
+        {
+            // Both load and store operations also populate resources catalog in RAM
+            if (!loadMetadata(metadataPath, filePath))
+            {
+                // Try to fix .metadata file by re-generating it
+                return storeMetadata(metadataPath, filePath);
+            }
+        }
+        else
+        {
+            // Orphaned metadata files will not be loaded into resource catalog
+            logError("Orphaned metadata file detected. It won't be added to resource catalog!\n%s\n", metadataPath.string().c_str());
+            return false;
+        }
+    }
+
+    // When file type is not known upfront, and it got skipped as unsupported
+    // that file is silently ignored.
+    return true;
+}
+
 bool AssetManager::buildResourcesCatalog(void)
 {
     // Ensures assets catalog root path is already resolved and absolute
@@ -501,68 +591,8 @@ bool AssetManager::buildResourcesCatalog(void)
         // (will generate absolute, resolved path to the file, even if the path itself doesn't exist yet)
         std::filesystem::path filePath = std::filesystem::weakly_canonical(entry.path());
 
-        // TODO: Make metadata file JSON. Add in it aside from UUID,
-        //       last file modification date. This way we can auto
-        //       detect if file was modified since last time application
-        //       was executiong, and import that file/asset only in
-        //       such case, instead of importing everything from 
-        //       scratch every time. This will also allow in the 
-        //       future hot reloading of assets while application
-        //       is running. If date read from .metadata file is
-        //       older than reported by file system (file was modified).
-        //       This will require updating .metadata file with new
-        //       date once its re-imported.
-        //       Alternative to "last modified date" could be "content
-        //       hash" which is bulletproff (resistent to FS issues).
-        //       We also need to add "produced assets" list, which
-        //       stores those assets UUIDs. When resource file changes
-        //       that list tells us which assets need to get re-imported.
-
-        // If currently examined file is resource of supported type,
-        // its .metadata file is created (when missing) or loaded to
-        // build relation between current file path and its UUID.
-        std::filesystem::path extension = filePath.extension();
-        FileExtension extensionType = fileExtension(extension.string());
-        if (isSupportedResourceFileExtension(extensionType))
-        {
-            // Expected accompanying it .metadata file
-            std::filesystem::path metadataPath = filePath;
-            metadataPath += ".metadata";
-
-            if (std::filesystem::exists(metadataPath))
-            {
-                if (!loadMetadata(metadataPath, filePath))
-                {
-                    // Try to fix .metadata file by re-generating it
-                    storeMetadata(metadataPath, filePath);
-                }
-            }
-            else
-            {
-                storeMetadata(metadataPath, filePath);
-            }
-        }
-        else 
-        if (extensionType == FileExtension::Metadata)
-        {
-            // If its .metadata file, find its matching resource file
-            // and build relation between current file path and its UUID.
-            std::filesystem::path metadataPath = filePath;
-            std::filesystem::path filePath     = removeSuffix(metadataPath, ".metadata");
-
-            if (std::filesystem::exists(filePath))
-            {
-                if (!loadMetadata(metadataPath, filePath))
-                {
-                    // Try to fix .metadata file by re-generating it
-                    storeMetadata(metadataPath, filePath);
-                }
-            }
-            else
-            {
-                logError("Orphaned metadata file detected!\n%s\n", metadataPath.string().c_str());
-            }
-        }
+        // Blindly tries to catalog all files in asset directory.
+        addResource(filePath, false);
     }
 
     return true;

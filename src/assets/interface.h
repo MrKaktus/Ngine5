@@ -52,6 +52,7 @@ namespace std
         }
     };
 
+/*
     template<>
     struct hash<en::assets::AssetSignature>
     {
@@ -62,6 +63,7 @@ namespace std
             return static_cast<size_t>(id.qword[0]);
         }
     };
+//*/
 }
 
 namespace en
@@ -175,6 +177,9 @@ private:
 
     // Loads UUID from .metadata file, and creates relation between it and resource file path
     bool loadMetadata(const std::filesystem::path& metadataPath, const std::filesystem::path& filePath);
+
+    // Adds given file to resources catalog (if it is of recognized file format)
+    bool addResource(const std::filesystem::path& absolutePath, const bool knownType);
 
     // Assets:
 
