@@ -635,7 +635,13 @@ ImageAssetDescriptor::ImageAssetDescriptor(const std::vector<UUID>& uuids) :
 //
 // {
 //     "version" : 1,
+// 
+// When asset ID is hash128:
 //     "id" : 0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,
+// 
+// When asset ID is UUID:
+//     "id" : XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX,
+// 
 //     "type" : "image",
 //     "resources" : 
 //     [ 

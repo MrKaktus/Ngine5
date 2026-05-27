@@ -18,14 +18,22 @@
 #include "core/algorithm/hash.h"
 #include "assets/assets.h"
 
+// Comment out to use deterministic hash128 instead of UUID
+#define EN_ASSET_ID_IS_UUID 
+
 namespace en
 {
 namespace assets
 {
+#if defined(EN_ASSET_ID_IS_UUID)
+    // Unique identifier
+    typedef UUID AssetID;
+#else
     // Deterministic imported asset identity, used to track 
     // assets across multiple application runs. Answers 
     // question: which asset is that?
     typedef hash128 AssetID;
+#endif
 
     // Defines runtime asset descriptors equivalence. Answers
     // question: are two asset descriptors semantically identical? 
@@ -41,30 +49,32 @@ namespace assets
 // Declaring and defining hash operator for AssetID so that it can be used with std::unordered_map
 namespace std
 {
-    template<>
-    struct hash<en::assets::AssetID>
-    {
-        size_t operator()(const en::assets::AssetID& id) const noexcept
-        {
-            // AssetID is already unique and result of hashing itself,
-            // thus it can be passed as is, as a hash of itself.
-            return static_cast<size_t>(id.qword[0]);
-        }
-    };
 
-/*
-    template<>
-    struct hash<en::assets::AssetSignature>
+#if !defined(EN_ASSET_ID_IS_UUID)
+template<>
+struct hash<en::assets::AssetID>
+{
+    size_t operator()(const en::assets::AssetID& id) const noexcept
     {
-        size_t operator()(const en::assets::AssetSignature& id) const noexcept
-        {
-            // AssetSignature is already hash itself, 
-            // thus it can be used as its own hash.
-            return static_cast<size_t>(id.qword[0]);
-        }
-    };
-//*/
-}
+        // AssetID is already unique and result of hashing itself,
+        // thus it can be passed as is, as a hash of itself.
+        return static_cast<size_t>(id.qword[0]);
+    }
+};
+#else
+template<>
+struct hash<en::assets::AssetSignature>
+{
+    size_t operator()(const en::assets::AssetSignature& id) const noexcept
+    {
+        // AssetSignature is already hash itself, 
+        // thus it can be used as its own hash.
+        return static_cast<size_t>(id.qword[0]);
+    }
+};
+#endif
+
+} // std
 
 namespace en
 {
@@ -87,6 +97,16 @@ enum class FileExtension : uint8
 
 namespace assets
 {
+
+// Invalid AssetID is 0
+#if defined(EN_ASSET_ID_IS_UUID)
+#define InvalidAssetID UUID()
+#else
+#define InvalidAssetID hash128(0, 0)
+#endif
+
+// Invalid AssetSignature is 0
+#define InvalidAssetSignature hash128(0, 0)
 
 enum class AssetType : uint32
 {

@@ -25,7 +25,7 @@ class uint128
 
     inline uint128() { qword[0] = 0; qword[1] = 0; }
     uint128(const void* src);
-    inline uint128(uint64 hi, uint64 lo) { qword[0] = lo; qword[1] = hi; }
+    inline uint128(const uint64 hi, const uint64 lo) { qword[0] = lo; qword[1] = hi; }
 
     // copy assignment
     inline void operator=(const uint8& b)  { qword[1] = 0; qword[0] = b; };
