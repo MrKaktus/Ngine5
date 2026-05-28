@@ -219,6 +219,8 @@ private:
     bool findAssetIDBySignature(const AssetSignature& signature, AssetID& id) const;
     bool findAssetDescriptorByID(const AssetID id, AssetDescriptor& descriptor) const;
 
+    bool addAssetDescriptor(AssetDescriptor& descriptor);
+
 public:
     static bool create(void);                      // Creates instance of this class (implementation specific) and assigns it to "en::Assets".
     static void destroy(void);                     // Destroys instance of this class

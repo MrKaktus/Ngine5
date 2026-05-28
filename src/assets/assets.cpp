@@ -1060,6 +1060,26 @@ bool AssetManager::findAssetDescriptorByID(const AssetID id, AssetDescriptor& de
     return false;
 }
 
+bool AssetManager::addAssetDescriptor(AssetDescriptor& descriptor)
+{
+    AssetID id = descriptor.getID();
+    if (id == InvalidAssetID) // unlikely
+    {
+        return false;
+    }
+
+    AssetSignature signature = descriptor.getSignature();
+    if (signature == InvalidAssetSignature) // unlikely
+    {
+        return false;
+    }
+
+    assetDescriptors[id] = &descriptor;
+    assetSignatureToID[signature] = id;
+
+    return true;
+}
+
 } // en::assets
 
 } // en
