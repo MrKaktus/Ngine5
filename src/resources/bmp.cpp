@@ -11,15 +11,18 @@
 
 #include "core/storage.h"
 #include "core/log/log.h"
+#include "core/memory/alignedAllocator.h"
+#include "core/utilities/parser.h"
 #include "utilities/utilities.h"
-#include "resources/context.h"
+#include "assets/assets.h"
 #include "resources/bmp.h"
 
 #include "core/rendering/device.h"
 
+#include <assert.h>
 #include <string>
 
-#define PageSize 4096
+#define PageSize 4096ull
 
 namespace en
 {
@@ -151,41 +154,41 @@ static_assert(sizeof(DIBHeaderV5) == 124, "en::bmp::DIBHeaderV5 size mismatch!")
 
 alignToDefault
 
-// Reads first 4KB page of BMP file, and decodes it's header to TextureState and ColorSpace.
-bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& settings, gpu::ColorSpace& colorSpace)
+// Parses buffer storing metadata of BMP file, and decodes it's header to TextureState
+ParsingResult parseMetadata(const uint8* buffer, const uint32 size, gpu::TextureState& settings)
 {
     // Check if file has minimum required size
     uint32 minimumFileSize = sizeof(Header) + sizeof(DIBHeaderV2Win);
-    if (readSize < minimumFileSize)
+    if (size < minimumFileSize)
     {
-        enLog << "ERROR: BMP file size too small!\n";
-        return false;
+        logError("BMP file size too small!\n");
+        return ParsingResult::IncompleteData;
     }
 
     // Read file header
-    Header& header = *reinterpret_cast<Header*>(buffer);
+    const Header& header = *reinterpret_cast<const Header*>(buffer);
     if (header.signature != 0x4D42)
     {
-        enLog << "ERROR: BMP file header signature is incorrect!\n";
-        return false;
+        logError("BMP file header signature is incorrect!\n");
+        return ParsingResult::InvalidFormat;
     }
     if (header.size < minimumFileSize)
     {
-        enLog << "ERROR: BMP file header is incorrect!\n";
-        return false;
+        logError("BMP file header is incorrect!\n");
+        return ParsingResult::InvalidFormat;
     }
 
     // Detect present DIB header version based on it's size
-    uint32 headerSize = *reinterpret_cast<uint32*>(buffer + sizeof(Header));
+    const uint32 headerSize = *reinterpret_cast<const uint32*>(buffer + sizeof(Header));
 
     // Check if image is not compressed
     if (headerSize >= sizeof(DIBHeaderV3))
     {
-        DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(buffer + sizeof(Header));
+        const DIBHeaderV3& DIBHeader = *reinterpret_cast<const DIBHeaderV3*>(buffer + sizeof(Header));
         if (DIBHeader.compression != None)
         {
-            enLog << "ERROR: Compressed BMP files are not supported!\n";
-            return false;
+            logError("Compressed BMP files are not supported!\n");
+            return ParsingResult::Unsupported;
         }
     }
 
@@ -199,13 +202,10 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     settings.mipmaps = 1;
     settings.samples = 1;
 
-    // There is no way to determine if BMP is storing data using sRGB transfer function
-    colorSpace = gpu::ColorSpace::Linear;
-
     // Determine texture resolution
     if (headerSize == sizeof(DIBHeaderV2Win))
     {
-        DIBHeaderV2Win& DIBHeader = *reinterpret_cast<DIBHeaderV2Win*>(buffer + sizeof(Header));
+        const DIBHeaderV2Win& DIBHeader = *reinterpret_cast<const DIBHeaderV2Win*>(buffer + sizeof(Header));
 
         settings.width  = DIBHeader.width;
         settings.height = DIBHeader.height < 0 ? -DIBHeader.height : DIBHeader.height;
@@ -213,7 +213,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     else
     if (headerSize >= sizeof(DIBHeaderV3))
     {
-        DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(buffer + sizeof(Header));
+        const DIBHeaderV3& DIBHeader = *reinterpret_cast<const DIBHeaderV3*>(buffer + sizeof(Header));
 
         settings.width  = DIBHeader.width;
         settings.height = DIBHeader.height < 0 ? -DIBHeader.height : DIBHeader.height;
@@ -222,7 +222,7 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     // Determine stored texel format
     if (headerSize >= sizeof(DIBHeaderV2Win))
     {
-        DIBHeaderV2Win& DIBHeader = *reinterpret_cast<DIBHeaderV2Win*>(buffer + sizeof(Header));
+        const DIBHeaderV2Win& DIBHeader = *reinterpret_cast<const DIBHeaderV2Win*>(buffer + sizeof(Header));
 
         if (DIBHeader.bpp == 24)
         {
@@ -231,13 +231,13 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
         else
         {
             // 1, 4, 8 bpp formats are not supported
-            enLog << "ERROR: Unsupported BMP bits per pixel:" << DIBHeader.bpp  << "!\n";
-            return false;
+            logError("Unsupported BMP bits per pixel %ubpp!\n", DIBHeader.bpp);
+            return ParsingResult::Unsupported;
         }
     }
     if (headerSize >= sizeof(DIBHeaderV3))
     {
-        DIBHeaderV3& DIBHeader = *reinterpret_cast<DIBHeaderV3*>(buffer + sizeof(Header));
+        const DIBHeaderV3& DIBHeader = *reinterpret_cast<const DIBHeaderV3*>(buffer + sizeof(Header));
 
         if (DIBHeader.bpp == 32)
         {
@@ -246,18 +246,76 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
         else
         {
             // 16bpp formats are not supported
-            enLog << "ERROR: Unsupported BMP bits per pixel:" << DIBHeader.bpp << "!\n";
-            return false;
+            logError("Unsupported BMP bits per pixel: %ubpp!\n", DIBHeader.bpp);
+            return ParsingResult::Unsupported;
         }
     }
 
     if (settings.format == gpu::Format::Unsupported)
     {
-        enLog << "ERROR: Unsupported texture format!\n";
-        return false;
+        logError("Unsupported texture format!\n");
+        return ParsingResult::Unsupported;
     }
 
-    return true;
+    return ParsingResult::Success;
+}
+
+bool loadMetadata(
+    const std::string& filename,
+    gpu::TextureState& storedTextureState,
+    gpu::ColorSpace& storedColorSpace)
+{
+    using namespace en::storage;
+    using namespace en::gpu;
+
+    // Open file 
+    std::string fullPath = filename;
+    File* file = Storage->open(fullPath);
+    if (!file)
+    {
+        fullPath = Assets().assetsPath() + filename;
+        file = Storage->open(fullPath);
+        if (!file)
+        {
+            logError("There is no such file!\nFile: %s\n", fullPath.c_str());
+            return false;
+        }
+    }
+
+
+    // ### Read file metadata
+
+
+    // Read file first 4KB into single 4KB memory page
+    uint64 fileSize = file->size();
+    uint64 readSize = min(fileSize, PageSize);
+    uint8* buffer = allocate<uint8>(static_cast<uint32>(readSize), PageSize);
+    if (!buffer)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+    if (!file->read(0, readSize, buffer, &readSize))
+    {
+        logError("Couldn't read file metadata to memory!\nFile: %s\n", fullPath.c_str());
+        deallocate<uint8>(buffer);
+        delete file;
+        return false;
+    }
+    delete file;
+
+    // Read file properties
+    ParsingResult result = parseMetadata(buffer, static_cast<uint32>(readSize), storedTextureState);
+
+    // There is no way to determine if BMP is storing data using linear or sRGB transfer function
+    // TODO: Determine based on DIBHeaderV4
+    storedColorSpace = ColorSpace::Unknown;
+
+    // Free temporary 4KB memory page
+    deallocate<uint8>(buffer);
+
+    return (result == ParsingResult::Success);
 }
 
 bool load(
@@ -273,14 +331,15 @@ bool load(
     using namespace en::gpu;
 
     // Open file 
-    File* file = Storage->open(filename);
+    std::string fullPath = filename;
+    File* file = Storage->open(fullPath);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        fullPath = Assets().assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.textures + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
+            logError("There is no such file!\nFile: %s\n", fullPath.c_str());
             return false;
         }
     }
@@ -290,28 +349,40 @@ bool load(
 
 
     // Read file first 4KB into single 4KB memory page
-    uint32 readSize = min(file->size(), PageSize);
-    uint8* buffer = allocate<uint8>(readSize, PageSize);
-    file->read(0, readSize, buffer);
+    uint64 fileSize = file->size();
+    uint64 readSize = min(fileSize, PageSize);
+    uint8* buffer = allocate<uint8>(static_cast<uint32>(readSize), PageSize);
+    if (!buffer)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+    if (!file->read(0, readSize, buffer, &readSize))
+    {
+        logError("Couldn't read file metadata to memory!\nFile: %s\n", fullPath.c_str());
+        deallocate<uint8>(buffer);
+        delete file;
+        return false;
+    }
 
     // Read file properties
-    TextureState settings;
-    ColorSpace colorSpace; // TODO: Determine file Color Space and compare with expected
-    bool success = readMetadata(buffer, readSize, settings, colorSpace);
+    TextureState storedTextureState;
+    ParsingResult result = parseMetadata(buffer, static_cast<uint32>(readSize), storedTextureState);
 
     // Free temporary 4KB memory page
     deallocate<uint8>(buffer);
 
-    if (!success)
+    if (result != ParsingResult::Success)
     {
         delete file;
         return false;
     }
 
     // Verify that file matches expected properties
-    if ((settings.width  != width)  ||
-        (settings.height != height) ||
-        (settings.format != format))
+    if ((storedTextureState.width  != width)  ||
+        (storedTextureState.height != height) ||
+        (storedTextureState.format != format))
     {
         delete file;
         return false;
@@ -323,12 +394,25 @@ bool load(
 
     // Read whole file at once to memory. 
     // Size aligned to multiple of 4KB Page Size, and allocated at such boundary (can be memory mapped).
-    uint64 fileSize = file->size();
     uint64 roundedSize = roundUp(fileSize, PageSize);
-    uint8* content = allocate<uint8>(roundedSize, PageSize);
+    if (roundedSize > 0xFFFFFFFF)
+    {
+        logError("BMP file size exceeds 4GB limit!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+
+    uint8* content = allocate<uint8>(static_cast<uint32>(roundedSize), PageSize);
+    if (!content)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+
     if (!file->read(content))
     {
-        enLog << "ERROR: Couldn't read file to memory.\n";
+        logError("Couldn't read file to memory!\nFile: %s\n", fullPath.c_str());
         deallocate<uint8>(content);
         delete file;
         return false;
@@ -341,7 +425,7 @@ bool load(
     // ### Parse and decompress file 
 
 
-    // Calculate size of raw data to read
+    // Calculates size of raw data to read
     uint32 dataSize = 0;
     uint32 headerSize = *reinterpret_cast<uint32*>(content + sizeof(Header));
     if (headerSize >= sizeof(DIBHeaderV3))
@@ -351,7 +435,7 @@ bool load(
     }
     else
     {
-        dataSize = settings.surfaceSize(0);
+        dataSize = storedTextureState.surfaceSize(0);
     }
 
     // Verify that data is correct
@@ -359,13 +443,13 @@ bool load(
     if ( (header.size != fileSize) ||
          (header.dataOffset + dataSize > header.size) )
     {
-        enLog << "ERROR: File or its header is corrupted.\n";
+        logError("File or its header is corrupted!\nFile: %s\n", fullPath.c_str());
         deallocate<uint8>(content);
         return false;
     }
-    if (dataSize != alignment.surfaceSize(settings.width, settings.height))
+    if (dataSize != alignment.surfaceSize(storedTextureState.width, storedTextureState.height))
     {
-        enLog << "ERROR: Data layout in memory is not matching expected layout in destination.\n";
+        logError("Data layout in memory is not matching expected layout in destination.\nFile: %s\n", fullPath.c_str());
         deallocate<uint8>(content);
         return false;
     }
@@ -391,14 +475,15 @@ bool save(
     assert( source != nullptr );
 
     // Open image file 
-    File* file = Storage->open(filename, en::storage::Write);
+    std::string fullPath = filename;
+    File* file = Storage->open(fullPath, en::storage::Write);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.screenshots + filename, en::storage::Write);
+        fullPath = Assets().screenshotsPath() + filename;
+        file = Storage->open(fullPath, en::storage::Write);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.screenshots + filename << std::endl;
-            enLog << "ERROR: Cannot create such file!\n";
+            logError("Cannot create such file!\nFile: %s\n", fullPath.c_str());
             return false;
         }
     }

@@ -14,11 +14,16 @@
 #include "core/defines.h"
 #include "core/types.h"
 #include "core/rendering/texture.h"
+#include "core/rendering/state.h"
 
 namespace en
 {
 namespace bmp
 {
+
+bool loadMetadata(const std::string& filename,
+                  gpu::TextureState& storedTextureState,
+                  gpu::ColorSpace& storedColorSpace);
 
 bool load(const std::string& filename,
           uint8* const destination,                  ///< Pointer to buffer where image should be decompressed and decoded
