@@ -11,12 +11,14 @@
 
 #include "core/storage.h"
 #include "core/log/log.h"
+#include "core/memory/alignedAllocator.h"
+#include "core/utilities/parser.h"
 #include "core/rendering/device.h"
 #include "utilities/utilities.h"
-#include "resources/context.h"
+#include "assets/assets.h"
 #include "resources/tga.h"    
 
-#define PageSize 4096
+#define PageSize 4096ull
 
 namespace en
 {
@@ -60,15 +62,15 @@ struct Header
 };
 alignToDefault
 
-// Reads first 4KB page of TGA file, and decodes it's header to TextureState and ColorSpace.
-bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& settings, gpu::ColorSpace& colorSpace)
+// Parses buffer storing metadata of TGA file, and decodes it's header to TextureState
+ParsingResult parseMetadata(uint8* buffer, const uint32 size, gpu::TextureState& settings)
 {
     // Check if file has minimum required size
     uint32 minimumFileSize = sizeof(Header);
-    if (readSize < minimumFileSize)
+    if (size < minimumFileSize)
     {
-        enLog << "ERROR: TGA file size too small!\n";
-        return false;
+        logError("TGA file size too small!\n");
+        return ParsingResult::IncompleteData;
     }
 
     // Read file header
@@ -78,15 +80,15 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     if (header.format != RGB &&
         header.format != RGB_RLE)
     {
-        enLog << "ERROR: Unsupported texture format!\n";
-        return false;
+        logError("Unsupported texture format!\n");
+        return ParsingResult::Unsupported;
     }
 
     // Check if not paletted
     if (header.palette != 0)
     {
-        enLog << "ERROR: Paletted TGA files are not supported!\n";
-        return false;
+        logError("Paletted TGA files are not supported!\n");
+        return ParsingResult::Unsupported;
     }
 
     // Set texture state
@@ -98,9 +100,6 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     settings.layers  = 1;
     settings.mipmaps = 1;
     settings.samples = 1;
-
-    // There is no way to determine if TGA is storing data using sRGB transfer function
-    colorSpace = gpu::ColorSpace::Linear;
 
     // Determine stored texel format
     if (header.bpp == 24)
@@ -114,11 +113,70 @@ bool readMetadata(uint8* buffer, const uint32 readSize, gpu::TextureState& setti
     }
     else
     {
-        enLog << "ERROR:  Unsupported texture format!\n";
-        return false;
+        logError("Unsupported texture format!\n");
+        return ParsingResult::Unsupported;
     }
 
-    return true;
+    return ParsingResult::Success;
+}
+
+bool loadMetadata(
+    const std::string& filename,
+    gpu::TextureState& storedTextureState,
+    gpu::ColorSpace& storedColorSpace)
+{
+    using namespace en::storage;
+    using namespace en::gpu;
+
+    // Open file 
+    std::string fullPath = filename;
+    File* file = Storage->open(fullPath);
+    if (!file)
+    {
+        fullPath = Assets().assetsPath() + filename;
+        file = Storage->open(fullPath);
+        if (!file)
+        {
+            logError("There is no such file!\nFile: %s\n", fullPath.c_str());
+            return false;
+        }
+    }
+
+
+    // ### Read file metadata
+
+
+    // Read file first 4KB into single 4KB memory page
+    uint64 fileSize = file->size();
+    uint64 readSize = min(fileSize, PageSize);
+    uint8* buffer = allocate<uint8>(static_cast<uint32>(readSize), PageSize);
+    if (!buffer)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+    if (!file->read(0, readSize, buffer, &readSize))
+    {
+        logError("Couldn't read file metadata to memory!\nFile: %s\n", fullPath.c_str());
+        deallocate<uint8>(buffer);
+        delete file;
+        return false;
+    }
+    delete file;
+
+    // Read file properties
+    ParsingResult result = parseMetadata(buffer, static_cast<uint32>(readSize), storedTextureState);
+
+    // There is no way to determine if TGA is storing data using sRGB transfer function.
+    // It depends purely on context (normal maps linear, color sRGB, etc.).
+    // TODO: Take that into notice while comparing stored format with expected one.
+    storedColorSpace = ColorSpace::Unknown;
+
+    // Free temporary 4KB memory page
+    deallocate<uint8>(buffer);
+
+    return (result == ParsingResult::Success);
 }
 
 bool load(
@@ -134,14 +192,15 @@ bool load(
     using namespace en::gpu;
 
     // Open file 
-    File* file = Storage->open(filename);
+    std::string fullPath = filename;
+    File* file = Storage->open(fullPath);
     if (!file)
     {
-        file = Storage->open(en::ResourcesContext.path.textures + filename);
+        fullPath = Assets().assetsPath() + filename;
+        file = Storage->open(fullPath);
         if (!file)
         {
-            enLog << en::ResourcesContext.path.textures + filename << std::endl;
-            enLog << "ERROR: There is no such file!\n";
+            logError("There is no such file!\nFile: %s\n", fullPath.c_str());
             return false;
         }
     }
@@ -153,26 +212,35 @@ bool load(
     // Read file first 4KB into single 4KB memory page
     uint32 readSize = min(file->size(), PageSize);
     uint8* buffer = allocate<uint8>(readSize, PageSize);
+    if (!buffer)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
     file->read(0, readSize, buffer);
 
     // Read file properties
-    TextureState settings;
-    ColorSpace colorSpace; // TODO: Determine file Color Space and compare with expected
-    bool success = readMetadata(buffer, readSize, settings, colorSpace);
+    TextureState storedTextureState;
+    ParsingResult result = parseMetadata(buffer, static_cast<uint32>(readSize), storedTextureState);
+
+    // There is no way to determine if TGA is storing data using sRGB transfer function.
+    // It depends purely on context (normal maps linear, color sRGB, etc.).
+    // TODO: Take that into notice while comparing stored format with expected one.
 
     // Free temporary 4KB memory page
     deallocate<uint8>(buffer);
 
-    if (!success)
+    if (result != ParsingResult::Success)
     {
         delete file;
         return false;
     }
 
     // Verify that file matches expected properties
-    if ((settings.width  != width) ||
-        (settings.height != height) ||
-        (settings.format != format))
+    if ((storedTextureState.width  != width) ||
+        (storedTextureState.height != height) ||
+        (storedTextureState.format != format))
     {
         delete file;
         return false;
@@ -186,10 +254,24 @@ bool load(
     // Size aligned to multiple of 4KB Page Size, and allocated at such boundary (can be memory mapped).
     uint64 fileSize = file->size();
     uint64 roundedSize = roundUp(fileSize, PageSize);
-    uint8* content = allocate<uint8>(roundedSize, PageSize);
+    if (roundedSize > 0xFFFFFFFF)
+    {
+        logError("TGA file size exceeds 4GB limit!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+
+    uint8* content = allocate<uint8>(static_cast<uint32>(roundedSize), PageSize);
+    if (!content)
+    {
+        logCritical("Run out of memory!\nFile: %s\n", fullPath.c_str());
+        delete file;
+        return false;
+    }
+
     if (!file->read(content))
     {
-        enLog << "ERROR: Couldn't read file to memory.\n";
+        logError("Couldn't read file to memory!\nFile: %s\n", fullPath.c_str());
         deallocate<uint8>(content);
         delete file;
         return false;
@@ -205,7 +287,7 @@ bool load(
     // Calculate size of raw data to read
     Header& header = *reinterpret_cast<Header*>(content);
     uint32 srcOffset = sizeof(Header) + header.idSize;
-    uint32 dataSize  = settings.surfaceSize(0);
+    uint32 dataSize  = storedTextureState.surfaceSize(0);
 
     // Copy data
     if (header.format == RGB)
