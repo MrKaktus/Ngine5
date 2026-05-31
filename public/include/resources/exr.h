@@ -14,13 +14,23 @@
 #include "core/defines.h"
 #include "core/types.h"
 #include "core/rendering/texture.h"
+#include "core/rendering/state.h"
 
 namespace en
 {
 namespace exr
 {
 
-std::shared_ptr<en::gpu::Texture> load(const std::string& filename);
+bool loadMetadata(const std::string& filename,
+                  gpu::TextureState& storedTextureState,
+                  gpu::ColorSpace& storedColorSpace);
+
+bool load(const std::string& filename,
+          uint8* const destination,
+          const gpu::TextureState expectedState,
+          const gpu::ImageMemoryAlignment alignment,
+          const uint16 selectedMipmap,
+          const uint16 selectedLayer);
 
 } // en::exr
 } // en

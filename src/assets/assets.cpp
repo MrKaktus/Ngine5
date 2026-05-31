@@ -152,7 +152,7 @@ bool isMaterialFileExtension(const FileExtension& extension)
 
 bool isSupportedResourceFileExtension(const FileExtension extension)
 {
-    // Images
+        // Images
     if (extension == FileExtension::BMP ||
         extension == FileExtension::DDS ||
         extension == FileExtension::EXR ||
