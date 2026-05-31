@@ -1073,11 +1073,13 @@ std::shared_ptr<en::gpu::Texture> Interface::Load::texture(const std::string& fi
             break;
         }
       
+/*
         case ExtensionHDR:
         {
             texture = hdr::load(filename);
             break;
         }
+//*/
 
         case ExtensionPNG:
         {

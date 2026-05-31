@@ -17,7 +17,11 @@
 #include "core/defines.h"
 #include "core/types.h"
 
+#include <string>
+#include <string_view>
+
 #include <sstream>
+#include <charconv>
 
 namespace en
 {
@@ -66,14 +70,43 @@ type stringTo(const std::string& in)
 #else
 
 // Extracts variable from string
-template <class type>
-type stringTo(const std::string& in)
+template <class T>
+T stringTo(const std::string& in)
 {
+    std::istringstream parser(in);
+    T out;
+    parser >> out;
+    return out;
+}
+
+/*
+// Extracts variable from string
+template <class type>
+type stringTo(const std::string_view& in)
+{
+    // Requires C++23
     std::istringstream parser(in);
     type out;
     parser >> out;
     return out;
 }
+//*/
+
+template <class T>
+T stringTo(const std::string_view& in)
+{
+    T value{};
+    std::from_chars_result result = std::from_chars(in.data(), in.data() + in.size(), value);
+
+    if (result.ec != std::errc())
+    { 
+        // TODO: Handle parsing error
+        return value;
+    }
+
+    return value;
+}
+
 
 #endif
 
