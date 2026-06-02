@@ -18,6 +18,11 @@
 #include "core/utilities/parserJSON.h"
 #include "core/utilities/writerJSON.h"
 #include "assets/interface.h"
+#include "resources/bmp.h"
+#include "resources/exr.h"
+#include "resources/hdr.h"
+#include "resources/png.h"
+#include "resources/tga.h"
 
 namespace en
 {
@@ -1032,6 +1037,13 @@ AssetSignature ImageAssetDescriptor::getSignature(void) const
     // variable (AssetID). This provides us guarantee that if different assets have the same 
     // descriptors, they will produce the same signatures.
     //
+    uint64 idSize = offsetof(ImageAssetDescriptor, type);
+    return hashData128((uint8*)this + idSize, sizeof(ImageAssetDescriptor) - idSize);
+}
+
+AssetKey ImageAssetDescriptor::getKey(void) const
+{
+    // Currently there is no difference between Asset Signature and Key for Image assets.
     uint64 idSize = offsetof(ImageAssetDescriptor, type);
     return hashData128((uint8*)this + idSize, sizeof(ImageAssetDescriptor) - idSize);
 }

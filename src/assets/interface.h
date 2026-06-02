@@ -42,6 +42,35 @@ namespace assets
     // assets in programmable way.
     typedef hash128 AssetSignature;
 
+    // Determines compiled/runtime data equivalence. Would given 
+    // two assets generate the same runtime data? (the same texture
+    // data, the same buffer etc.).
+    typedef hash128 AssetKey;
+
+    // Signature is created by hashing contents of asset descriptor 
+    // that define its semantic identity. This include for example:
+    // - resources UUIDs
+    // - transfer function (linear vs sRGB)
+    // - mipmaps generation
+    // - compression mode
+    // - wrap / filter modes
+    // - name
+    //
+    // Properties that are not defining descriptor semantic identity 
+    // are extra/internal metadata needed to process them themselves
+    // or adnotate them. For e.g.:
+    // - AssetID
+    // - editor metadata
+    // - comments
+    // - timestamps
+    //
+    // Key is created by hashing contents of asset descriptor that 
+    // define its runtime identity, meaning properties defining final 
+    // runtime data generated. As opposed to Signature, it may thus 
+    // ignore some descriptor properties that signature takes into 
+    // notice. In example above AssetKey will ignore asset "name" 
+    // property as it has no impact on final runtime data.
+
 } // en::assets
 
 } // en
@@ -132,6 +161,7 @@ public:
     forceinline AssetType getType(void) const { return type; };
 
     virtual AssetSignature getSignature(void) const = 0;
+    virtual AssetKey getKey(void) const = 0;
 };
 
 class ImageAssetDescriptor : public AssetDescriptor
@@ -161,6 +191,7 @@ public:
     forceinline UUID sourceFileUUID(const uint8 mipLevel) const { if (mipLevel >= sourceFilesCount()) { return UUID(); } return sourceFile[mipLevel]; };
 
     virtual AssetSignature getSignature(void) const;
+    virtual AssetKey getKey(void) const;
 };
 
 class AssetManager : public Interface
