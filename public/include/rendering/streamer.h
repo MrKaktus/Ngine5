@@ -12,6 +12,8 @@
 #ifndef ENG_RENDERING_STREAMER
 #define ENG_RENDERING_STREAMER
 
+#include <atomic>
+
 #include "core/algorithm/allocator.h"
 #include "core/utilities/poolAllocator.h"
 #include "core/parallel/thread.h"
