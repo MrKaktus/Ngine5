@@ -139,7 +139,7 @@ extern std::unique_ptr<log::Interface> Log;
 
 } // en
 
-#define enLog (*en::Log)
+#define enLog (*Log)
 
 #define logInfo(format, ...) enLog(format, __VA_ARGS__)
 

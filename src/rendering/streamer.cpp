@@ -9,6 +9,7 @@
 
 */
 
+#include "core/log/log.h"
 #include "rendering/streamer.h"
 #include "core/utilities/basicAllocator.h" // TODO: This should be moved out of core as is platform independent
 #include "utilities/timer.h"
@@ -219,17 +220,17 @@ void releaseTextureCacheList(TextureCache* cache)
 // this way transfer reads from consecutive adress range in RAM, and writes
 // to consecutive adress range in VRAM. (VRAM swizzling may still occur).
 
-void uploadBuffer(Streamer* streamer, const TransferResource transfer, QueueType queueForTransfers)
+void uploadBuffer(Streamer& streamer, const TransferResource transfer, QueueType queueForTransfers)
 {
-    BufferAllocation* desc = streamer->bufferResourcesPool->entry(transfer.resourceId);
-    BufferAllocationInternal* descInternal = streamer->bufferResourcesInternalPool->entry(transfer.resourceId);
+    BufferAllocation* desc = streamer.bufferResourcesPool->entry(transfer.resourceId);
+    BufferAllocationInternal* descInternal = streamer.bufferResourcesInternalPool->entry(transfer.resourceId);
 
     // TODO: When pushing resource for upload, verify it's uploading flag,
     //       to ensure it wasn't already pushed, then set it.
     assert(descInternal->uploading);
 
-    BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
-    BufferCache* gpuCache = streamer->gpuBufferHeap->entry(descInternal->gpuHeapIndex);
+    BufferCache* sysCache = streamer.cpuHeap->entry(descInternal->sysHeapIndex);
+    BufferCache* gpuCache = streamer.gpuBufferHeap->entry(descInternal->gpuHeapIndex);
 
     // TODO: FIXME!!! GPU Device is accessed from thread that is not part of Thread Pool and thus, it's index is not pointing at proper Command Buffer allocator !!!
 
@@ -249,7 +250,7 @@ void uploadBuffer(Streamer* streamer, const TransferResource transfer, QueueType
     //   - Batch transfers into once CB until some data amount per frame (transfer rate)
     //   - Encode always few CBs upfront?
 
-    std::shared_ptr<CommandBuffer> command = streamer->gpu.createCommandBuffer(queueForTransfers);
+    std::shared_ptr<CommandBuffer> command = streamer.gpu.createCommandBuffer(queueForTransfers);
 
     // TODO: Upload data in batches, taking into notice available bandwidth.
     //       Time budget of N miliseconds for data upload should be specified.
@@ -271,40 +272,54 @@ void uploadBuffer(Streamer* streamer, const TransferResource transfer, QueueType
     descInternal->uploading = false;
 }
 
-void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueType queueForTransfers)
+void uploadSurface(Streamer& streamer, const TransferResource transfer, QueueType queueForTransfers)
 {
-    TextureAllocation*         desc         = streamer->textureResourcesPool->entry(transfer.resourceId);
-    TextureAllocationInternal* descInternal = streamer->textureResourcesInternalPool->entry(transfer.resourceId);
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = streamer.textureResourcesPool->entry(transfer.resourceId);
+    if (!temp) // unlikely
+    {
+        logError("Referenced textureId is out of range!\n");
+        return;
+    }
+    TextureAllocation& descriptor = *temp;
 
-    BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
+    BufferCache* sysCache = streamer.cpuHeap->entry(descriptor.sysHeapIndex);
+    if (!sysCache) // unlikely
+    {
+        return;
+    }
 
-    std::shared_ptr<CommandBuffer> command = streamer->gpu.createCommandBuffer(queueForTransfers);
+    std::shared_ptr<CommandBuffer> command = streamer.gpu.createCommandBuffer(queueForTransfers);
+    if (!command) // unlikely
+    {
+        return;
+    }
 
     command->start();
 
     // Init resource in VRAM
-    if (!desc->resident)
+    if (!descriptor.resident)
     {
         // TODO: Separate init from uploadResource, move to make Resident
 
         // Transition all surfaces in texture
-        command->barrier(*desc->gpuTexture, TextureAccess::TransferDestination);
+        command->barrier(*descriptor.gpuTexture, TextureAccess::TransferDestination);
     }
 
-    uint32v2 mipResolution   = desc->state.mipResolution(transfer.surface.mipmap);
-    uint16v2 tileResolution  = tileResolution2D(desc->state.format, desc->state.samples);
-    uint16v2 blockResolution = texelBlockResolution(desc->state.format);
+    uint32v2 mipResolution   = descriptor.state.mipResolution(transfer.surface.mipmap);
+    uint16v2 tileResolution  = tileResolution2D(descriptor.state.format, descriptor.state.samples);
+    uint16v2 blockResolution = texelBlockResolution(descriptor.state.format);
 
     // Determine memory layout in which surface is stored in system memory
-    uint32 surfaceGroup = transfer.surface.mipmap * desc->state.planes() + 
+    uint32 surfaceGroup = transfer.surface.mipmap * descriptor.state.planes() + 
                           transfer.surface.plane;
 
-    MipMemoryLayout* mipLayout = &descInternal->mipLayout[surfaceGroup];
+    const MipMemoryLayout& mipLayout = descriptor.mipLayout[surfaceGroup];
 
     // Multi-plane surfaces can only be stored in Linear layout
-    assert( !(mipLayout->layout != underlyingType(SurfaceLayout::Linear) && (transfer.surface.plane > 0)) );
+    assert( !(mipLayout.layout != underlyingType(SurfaceLayout::Linear) && (transfer.surface.plane > 0)) );
 
-    if (mipLayout->layout == underlyingType(SurfaceLayout::Linear))
+    if (mipLayout.layout == underlyingType(SurfaceLayout::Linear))
     {
         // (A) Linear layout - Surface region is transfered at once
         //                     (Surface is tightly packed, without padding
@@ -312,8 +327,8 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
         //                      tiled layout).
 
         // Offset to surface in system memory allocation
-        uint64 surfaceOffset = mipLayout->offset +
-                               transfer.surface.layer * mipLayout->size;
+        uint64 surfaceOffset = mipLayout.offset +
+                               transfer.surface.layer * mipLayout.size;
 
         uint32v2 texelOrigin;
         texelOrigin.x = transfer.surface.region.origin.x * tileResolution.width;
@@ -340,14 +355,14 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
             texelRegion.height == mipResolution.height)
         {
             command->copy(*sysCache->buffer,
-                          descInternal->sysOffset + surfaceOffset,
-                          mipLayout->alignment.rowPitch(texelRegion.width),
-                          *desc->gpuTexture,
+                          descriptor.sysHeapOffset + surfaceOffset,
+                          mipLayout.alignment.rowPitch(texelRegion.width),
+                          *descriptor.gpuTexture,
                           transfer.surface.mipmap,
                           transfer.surface.layer);
 
             // Transition selected surface to readable state
-            command->barrier(*desc->gpuTexture,
+            command->barrier(*descriptor.gpuTexture,
                              uint32v2(transfer.surface.mipmap, 1),
                              uint32v2(transfer.surface.layer, 1),
                              TextureAccess::TransferDestination, 
@@ -363,13 +378,13 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
             uint16 mipWidthInBlocks = intDivUp(mipResolution.width, blockResolution.width);
 
             // Surface is stored in Linear layout, so passed row pitch is for whole surface
-            uint32 srcRowPitch = mipLayout->alignment.rowPitch(mipWidthInBlocks);
+            uint32 srcRowPitch = mipLayout.alignment.rowPitch(mipWidthInBlocks);
 
             // Calculates offset in surface, taking into notice block compression
             uint32 blockX = texelOrigin.x / blockResolution.width;
             uint32 blockY = texelOrigin.y / blockResolution.height;
             uint32 offset = (blockY * srcRowPitch) +
-                            (blockX * mipLayout->alignment.texelPitch());
+                            (blockX * mipLayout.alignment.texelPitch());
 
             // Clamp region back to block granularity (if stored as compressed)
             texelRegion.width  = roundUp(texelRegion.width,  blockResolution.width);
@@ -377,9 +392,9 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
 
             // Transfer region of given surface
             command->copyRegion2D(*sysCache->buffer,
-                                  descInternal->sysOffset + surfaceOffset + offset,
+                                  descriptor.sysHeapOffset + surfaceOffset + offset,
                                   srcRowPitch,
-                                  *desc->gpuTexture,
+                                  *descriptor.gpuTexture,
                                   transfer.surface.mipmap,
                                   transfer.surface.layer,
                                   texelOrigin,
@@ -387,7 +402,7 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
                                   transfer.surface.plane);
 
             // Transition selected surface to readable state
-            command->barrier(*desc->gpuTexture,
+            command->barrier(*descriptor.gpuTexture,
                              uint32v2(transfer.surface.mipmap, 1),
                              uint32v2(transfer.surface.layer, 1),
                              TextureAccess::TransferDestination,
@@ -395,13 +410,13 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
         }
     }
     else
-    if (mipLayout->layout == underlyingType(SurfaceLayout::Tiled2D))
+    if (mipLayout.layout == underlyingType(SurfaceLayout::Tiled2D))
     {
         // (B) Tiled layout - Source surface region is transferred in tiles
         
         // Offset to surface in system memory allocation
-        uint64 surfaceOffset = mipLayout->offset +
-                               transfer.surface.layer * (mipLayout->size * 64 * KB);
+        uint64 surfaceOffset = mipLayout.offset +
+                               uint64(transfer.surface.layer) * (uint64(mipLayout.size) * 64 * KB);
         
         uint16 mipWidthInTiles = intDivUp(mipResolution.width, tileResolution.width);
         
@@ -409,7 +424,7 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
         uint16 tileWidthInBlocks = intDivUp(tileResolution.width, blockResolution.width);
         
         // Surface is stored in Tiled2D layout, so passed row pitch is for tile
-        uint32 srcRowPitch = mipLayout->alignment.rowPitch(tileWidthInBlocks);
+        uint32 srcRowPitch = mipLayout.alignment.rowPitch(tileWidthInBlocks);
         
         // Row after row, tile after tile in each row
         for(uint32 i=0; i<transfer.surface.region.count.height; ++i)
@@ -420,7 +435,7 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
                 tileOrigin.x = transfer.surface.region.origin.x + j;
                 tileOrigin.y = transfer.surface.region.origin.y + i;
                 
-                uint32 tileIndex = (mipWidthInTiles * tileOrigin.y) + tileOrigin.x;
+                uint64 tileIndex = (uint64(mipWidthInTiles) * tileOrigin.y) + tileOrigin.x;
                 uint64 tileOffset = tileIndex * 64 * KB;
                 
                 uint32v2 texelOrigin;
@@ -431,9 +446,9 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
                 
                 // Copy one tile at a time
                 command->copyRegion2D(*sysCache->buffer,
-                                      descInternal->sysOffset + surfaceOffset + tileOffset,
+                                      descriptor.sysHeapOffset + surfaceOffset + tileOffset,
                                       srcRowPitch,
-                                      *desc->gpuTexture,
+                                      *descriptor.gpuTexture,
                                       transfer.surface.mipmap,
                                       transfer.surface.layer,
                                       texelOrigin,
@@ -443,7 +458,7 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
         }
 
         // Transition selected surface to readable state
-        command->barrier(*desc->gpuTexture,
+        command->barrier(*descriptor.gpuTexture,
                          uint32v2(transfer.surface.mipmap, 1),
                          uint32v2(transfer.surface.layer, 1),
                          TextureAccess::TransferDestination,
@@ -460,35 +475,49 @@ void uploadSurface(Streamer* streamer, const TransferResource transfer, QueueTyp
     // Sleep until transfer is done
     command->waitUntilCompleted();
 
-    desc->resident = true;
-    descInternal->uploading--; // TODO: Atomic
+    descriptor.resident = true;
+    descriptor.uploading--; // TODO: Atomic
 }
 
-void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType queueForTransfers)
+void uploadVolume(Streamer& streamer, const TransferResource transfer, QueueType queueForTransfers)
 {
-    TextureAllocation* desc = streamer->textureResourcesPool->entry(transfer.resourceId);
-    TextureAllocationInternal* descInternal = streamer->textureResourcesInternalPool->entry(transfer.resourceId);
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = streamer.textureResourcesPool->entry(transfer.resourceId);
+    if (!temp) // unlikely
+    {
+        logError("Referenced textureId is out of range!\n");
+        return;
+    }
+    TextureAllocation& descriptor = *temp;
 
-    BufferCache* sysCache = streamer->cpuHeap->entry(descInternal->sysHeapIndex);
+    BufferCache* sysCache = streamer.cpuHeap->entry(descriptor.sysHeapIndex);
+    if (!sysCache) // unlikely
+    {
+        return;
+    }
 
-    std::shared_ptr<CommandBuffer> command = streamer->gpu.createCommandBuffer(queueForTransfers);
+    std::shared_ptr<CommandBuffer> command = streamer.gpu.createCommandBuffer(queueForTransfers);
+    if (!command) // unlikely
+    {
+        return;
+    }
 
     command->start();
 
     // Init resource in VRAM
-    if (!desc->resident)
+    if (!descriptor.resident)
     {
         // TODO: Separate init from uploadResource, move to make Resident
 
         // Transition all surfaces in texture
-        command->barrier(*desc->gpuTexture, TextureAccess::CopyDestination | TextureAccess::Read);
+        command->barrier(*descriptor.gpuTexture, TextureAccess::CopyDestination | TextureAccess::Read);
     }
 
     // 3D MSAA textures are currently not supported
-    assert(desc->state.samples == 1);
+    assert(descriptor.state.samples == 1);
 
     // 3D Multi-Plane Volumes are currently not supported
-    assert(desc->state.planes() == 1);
+    assert(descriptor.state.planes() == 1);
 
     // Decode transferred volume mipmap level
     uint8 mipmap = (uint8(transfer.volume.mipmap2) << 4) | uint8(transfer.volume.mipmap);
@@ -498,9 +527,9 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
     uint16 tilesHeight = uint16(transfer.volume.height) + 1;
     uint16 tilesDepth  = uint16(transfer.volume.depth)  + 1;
 
-    uint32v3 mipVolume       = desc->state.mipVolume(mipmap);
-    uint16v4 tileResolution  = tileResolution3D(desc->state.format);
-    uint16v2 blockResolution = texelBlockResolution(desc->state.format);
+    uint32v3 mipVolume       = descriptor.state.mipVolume(mipmap);
+    uint16v4 tileResolution  = tileResolution3D(descriptor.state.format);
+    uint16v2 blockResolution = texelBlockResolution(descriptor.state.format);
 
     // Tiles are always composed of blocks and thus have multiple
     // of block resolution. Area origin is always aligned to tile
@@ -513,10 +542,10 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
     uint16 tileWidthInBlocks = tileResolution.width / blockResolution.width;
 
     // Determine memory layout in which surface/volume is stored in system memory
-    MipMemoryLayout* mipLayout = &descInternal->mipLayout[mipmap];
+    const MipMemoryLayout& mipLayout = descriptor.mipLayout[mipmap];
 
     // Offset to volume in system memory allocation
-    uint64 volumeOffset = mipLayout->offset;
+    uint64 volumeOffset = mipLayout.offset;
 
     // Transferred volume depth range in texels
     uint32v2 depthRange;
@@ -532,7 +561,7 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
     // TODO: Transfer Volume (Linear and Tiled2D, Tiled3D?)
 
     // Volume is stored line after line, depth plane after depth plane
-    if (mipLayout->layout == underlyingType(SurfaceLayout::Linear))
+    if (mipLayout.layout == underlyingType(SurfaceLayout::Linear))
     {
         uint32v2 texelOrigin;
         texelOrigin.x = uint32(transfer.volume.x) * tileResolution.width;
@@ -565,12 +594,12 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
             for(uint32 i=0; i<depthRange.count; ++i)
             {
                 uint32 depthPlane  = depthRange.base + i;
-                uint64 planeOffset = depthPlane * mipLayout->alignment.surfacePitch(mipVolume.width, mipVolume.height);
+                uint64 planeOffset = depthPlane * mipLayout.alignment.surfacePitch(mipVolume.width, mipVolume.height);
 
                 command->copy(*sysCache->buffer,
-                              descInternal->sysOffset + volumeOffset + planeOffset,
-                              mipLayout->alignment.rowPitch(texelRegion.width),
-                              *desc->gpuTexture,
+                              descriptor.sysHeapOffset + volumeOffset + planeOffset,
+                              mipLayout.alignment.rowPitch(texelRegion.width),
+                              *descriptor.gpuTexture,
                               mipmap,
                               depthPlane);
             }
@@ -578,13 +607,13 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
         else // Transfer sub-volume
         {
             // Volume is stored in Linear layout, so passed row pitch is for depth plane
-            uint32 srcRowPitch = mipLayout->alignment.rowPitch(mipWidthInBlocks);
+            uint32 srcRowPitch = mipLayout.alignment.rowPitch(mipWidthInBlocks);
 
             // Calculates offset in depth plane, taking into notice block compression
             uint32 blockX = texelOrigin.x / blockResolution.width;
             uint32 blockY = texelOrigin.y / blockResolution.height;
             uint32 offset = (blockY * srcRowPitch) +
-                            (blockX * mipLayout->alignment.texelPitch());
+                            (blockX * mipLayout.alignment.texelPitch());
 
             // Clamp region back to block granularity (if stored as compressed)
             texelRegion.width  = roundUp(texelRegion.width,  blockResolution.width);
@@ -593,14 +622,14 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
             for(uint32 i=0; i<depthRange.count; ++i)
             {
                 uint32 depthPlane  = depthRange.base + i;
-                uint64 planeOffset = depthPlane * mipLayout->alignment.surfacePitch(mipVolume.width, mipVolume.height);
+                uint64 planeOffset = depthPlane * mipLayout.alignment.surfacePitch(mipVolume.width, mipVolume.height);
 
                 // Transfer region of given depth plane surface
                 command->copyRegion2D(
                     *sysCache->buffer,
-                    descInternal->sysOffset + volumeOffset + planeOffset + offset,
+                    descriptor.sysHeapOffset + volumeOffset + planeOffset + offset,
                     srcRowPitch,
-                    *desc->gpuTexture,
+                    *descriptor.gpuTexture,
                     mipmap,
                     depthPlane,
                     texelOrigin,
@@ -610,11 +639,11 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
         }
     }
     else
-    if (mipLayout->layout == underlyingType(SurfaceLayout::Tiled2D))
+    if (mipLayout.layout == underlyingType(SurfaceLayout::Tiled2D))
     {
         // (B) Tiled layout - Source surface region is transferred in tiles
 
-        uint16v2 tileSize = tileSize2D(desc->state.format, desc->state.samples);
+        uint16v2 tileSize = tileSize2D(descriptor.state.format, descriptor.state.samples);
 
         uint16 mipWidthInTiles  = intDivUp(mipVolume.width,  tileResolution.width);
         uint16 mipHeightInTiles = intDivUp(mipVolume.height, tileResolution.height);
@@ -637,10 +666,10 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
                                        (mipWidthInTiles * tileOrigin.y) +
                                        tileOrigin.x;
 
-                    uint64 tileOffset = tileIndex * 64 * KB;
+                    uint64 tileOffset = uint64(tileIndex) * 64 * KB;
 
                     // Volume is stored in Tiled2D layout, so passed row pitch is for tile
-                    uint32 srcRowPitch = mipLayout->alignment.rowPitch(tileWidthInBlocks);
+                    uint32 srcRowPitch = mipLayout.alignment.rowPitch(tileWidthInBlocks);
 
                     uint16 depthPlane = depthRange.base + i;
 
@@ -668,9 +697,9 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
                     // Copy one tile at a time
                     command->copyRegion2D(
                         *sysCache->buffer,
-                        descInternal->sysOffset + volumeOffset + tileOffset,
+                        descriptor.sysHeapOffset + volumeOffset + tileOffset,
                         srcRowPitch,
-                        *desc->gpuTexture,
+                        *descriptor.gpuTexture,
                         mipmap,
                         depthPlane,
                         texelOrigin,
@@ -681,7 +710,7 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
         }
     }
     else
-    if (mipLayout->layout == underlyingType(SurfaceLayout::Tiled3D))
+    if (mipLayout.layout == underlyingType(SurfaceLayout::Tiled3D))
     {
         // TODO!
     }
@@ -696,17 +725,17 @@ void uploadVolume(Streamer* streamer, const TransferResource transfer, QueueType
     // Sleep until transfer is done
     command->waitUntilCompleted();
 
-    desc->resident = true; // TODO: Now resident doesn't mean up-to-date, uploading == 0 is equal to up to date state.
-    descInternal->uploading--; // TODO: Atomic
+    descriptor.resident = true; // TODO: Now resident doesn't mean up-to-date, uploading == 0 is equal to up to date state.
+    descriptor.uploading--; // TODO: Atomic
 }
 
 // Uploads single allocation from system to GPU dedicated memory
-void uploadResource(Streamer* streamer, const TransferResource transfer)
+void uploadResource(Streamer& streamer, const TransferResource transfer)
 {
     // Determine upload queue
     // TODO: This should be done once, on Streamer start
     QueueType queueForTransfers = QueueType::Universal;
-    if (streamer->gpu.queues(gpu::QueueType::Transfer) > 0u)
+    if (streamer.gpu.queues(gpu::QueueType::Transfer) > 0u)
     {
         queueForTransfers = QueueType::Transfer;
     }
@@ -801,7 +830,7 @@ void taskStreamerUploadResources(void* data)
 {
     taskStreamerUploadResourcesState* state = (taskStreamerUploadResourcesState*)(data);
 
-    uploadResource(&state->streamer, state->transfer);
+    uploadResource(state->streamer, state->transfer);
 
     delete state;
 }
@@ -1341,8 +1370,7 @@ Streamer::Streamer(gpu::GpuDevice& _gpu, const StreamerSettings* settings) :
     bufferResourcesInternalPool = new PoolAllocator<BufferAllocationInternal>(DefaultResourcesCount, MaximumResourcesCount);
    
     // Pre-allocate pool of texture resource descriptors
-    textureResourcesPool         = new PoolAllocator<TextureAllocation>(DefaultResourcesCount, MaximumResourcesCount);
-    textureResourcesInternalPool = new PoolAllocator<TextureAllocationInternal>(DefaultResourcesCount, MaximumResourcesCount);
+    textureResourcesPool = new PoolAllocator<TextureAllocation>(DefaultResourcesCount, MaximumResourcesCount);
 
     // Determine which GPU queue is best for data transfers
     if (gpu.queues(gpu::QueueType::Transfer) > 0u)
@@ -1388,7 +1416,6 @@ Streamer::~Streamer()
     // TODO: Release all resource handles
    
     delete textureResourcesPool;
-    delete textureResourcesInternalPool;
     delete bufferResourcesPool;
     delete bufferResourcesInternalPool;
    
@@ -1495,7 +1522,7 @@ bool Streamer::allocateMemory(const uint32 size, BufferAllocation*& desc)
     }
 
     BufferCache** cache = &cpuHeapList;
-   
+
     bool   allocated = false;
     uint64 sysOffset = 0;
     uint32 alignment = 256; // TODO: Platform specific Buffer/Texture alignment!
@@ -2042,7 +2069,53 @@ MipMemoryLayout* generateTextureMemoryLayout(const gpu::TextureState& state, con
 
 
 
-bool Streamer::allocateMemory(const gpu::TextureState& state, TextureAllocation*& desc)
+bool Streamer::initAllocation(BufferCache& cache, const uint64 sysOffset, const uint64 size, const gpu::TextureState& state, const MipMemoryLayout* mipLayout, uint32& textureId)
+{
+    // Allocate resource descriptor
+    TextureAllocation* temp = textureResourcesPool->allocate();
+    if (!temp)
+    {
+        return false;
+    }
+    TextureAllocation& descriptor = *temp;
+
+    // Acquire resource ID
+    // Matching slot in GPU texture descriptors wil be referenced with the same textureId.
+    if (!textureResourcesPool->index(descriptor, textureId)) // unlikely
+    {
+        // This should never happen once its allocated
+        textureResourcesPool->deallocate(descriptor);
+        return false;
+    }
+
+    // Resource Streamer state of texture allocation (sub-allocated from Heap)
+    descriptor.state          = state;
+    descriptor.mipLayout      = (MipMemoryLayout*)mipLayout;
+
+    descriptor.gpuTexture     = nullptr;
+    descriptor.gpuTextureView = nullptr;
+    descriptor.gpuHeapIndex   = 0;  // TODO: Distinguish index 0 from unused index!
+
+    descriptor.uploading      = 0;
+
+    bool result = cpuHeap->index(cache, descriptor.sysHeapIndex);
+    if (!result) // unlikely
+    {
+        // Executing this path would mean BufferCache is not member of system heaps pool.
+        logCritical("Suspected meory corruption!\nEntry: %ull, not part of system heaps pool: %ull!\n", &cache, cpuHeap);
+        return false;
+    }
+
+    descriptor.sysHeapOffset = static_cast<uint32>(sysOffset);
+    descriptor.sysSize       = size;
+
+    descriptor.locked        = false;
+    descriptor.resident      = false;
+
+    availableSystemMemory -= size;
+}
+
+bool Streamer::allocateMemory(const gpu::TextureState& state, uint32& textureId)
 {
     // Calculate texture layout in system memory
     MipMemoryLayout* mipLayout = generateTextureMemoryLayout(state, &gpu);
@@ -2051,22 +2124,22 @@ bool Streamer::allocateMemory(const gpu::TextureState& state, TextureAllocation*
     // into account GPU specific padding per "surface", "line", "texel" or "block".
     uint32 surfaceGroups = state.mipmaps * state.planes();
     uint32 lastGroup = surfaceGroups - 1;
-    uint64 size = mipLayout[lastGroup].offset +
-                  mipLayout[lastGroup].layers * roundUp(mipLayout[lastGroup].size, mipLayout[lastGroup].alignment.surfaceAlignment());
+    uint64 sysSize = mipLayout[lastGroup].offset +
+                     mipLayout[lastGroup].layers * roundUp(mipLayout[lastGroup].size, mipLayout[lastGroup].alignment.surfaceAlignment());
    
     // Early return if no memory left
-    if (availableSystemMemory < size)
+    if (availableSystemMemory < sysSize)
     {
         return false;
     }
    
     // Early return if requested size is bigger than max size of single allocation
-    if (systemAllocationSize < size ||
-        residentAllocationSize < size)
+    if (systemAllocationSize < sysSize ||
+        residentAllocationSize < sysSize)
     {
         return false;
     }
-   
+
     BufferCache** cache = &cpuHeapList;
    
     bool   allocated = false;
@@ -2082,34 +2155,22 @@ bool Streamer::allocateMemory(const gpu::TextureState& state, TextureAllocation*
     while(*cache)
     {
         // Try to allocate memory from current Heap
-        allocated = (*cache)->allocator->allocate(size, mipLayout[0].alignment.surfaceAlignment(), sysOffset);
+        allocated = (*cache)->allocator->allocate(sysSize, mipLayout[0].alignment.surfaceAlignment(), sysOffset);
         if (!allocated)
         {
             *cache = reinterpret_cast<BufferCache*>(&((*cache)->next));
             continue;
         }
-   
-        // Allocate resource
-        desc = textureResourcesPool->allocate();
-        TextureAllocationInternal* descInternal = textureResourcesInternalPool->allocate();
-   
-        // Resource Streamer state of texture allocation (sub-allocated from Heap)
-        desc->gpuTexture = nullptr;
-        desc->state      = state;
-        desc->size       = size;
-        desc->resident   = false;
-   
-        // Resource Streamer internal state of buffer allocation
-        descInternal->mipLayout    = mipLayout;
-        descInternal->pointer      = reinterpret_cast<volatile void*>(reinterpret_cast<volatile uint8*>((*cache)->sysAddress) + sysOffset);
-        bool result = cpuHeap->index(**cache, descInternal->sysHeapIndex);
-        assert( result );
-        descInternal->sysOffset    = static_cast<uint32>(sysOffset);
-        descInternal->gpuHeapIndex = 0;  // TODO: Distinguish index 0 from unused index!
-        descInternal->uploading    = 0;
-        descInternal->locked       = false;
 
-        availableSystemMemory -= size;
+        if (!initAllocation(**cache, sysOffset, sysSize, state, mipLayout, textureId)) // unlikely
+        {
+            // Its possible that in case of allocating massive amounts of small
+            // resources we run out of GPU descriptors faster than out of memory.
+            (*cache)->allocator->deallocate(sysOffset, sysSize);
+
+            return false;
+        }
+
         break;
     }
    
@@ -2124,101 +2185,86 @@ bool Streamer::allocateMemory(const gpu::TextureState& state, TextureAllocation*
             cpuHeapCount++;
    
             // Allocate memory from new Heap
-            allocated = (*cache)->allocator->allocate(size, mipLayout[0].alignment.surfaceAlignment(), sysOffset);
+            allocated = (*cache)->allocator->allocate(sysSize, mipLayout[0].alignment.surfaceAlignment(), sysOffset);
    
             // This is new empty Heap so allocation should always succeed
             assert( allocated );
    
-            // Allocate resource
-            desc = textureResourcesPool->allocate();
-            TextureAllocationInternal* descInternal = textureResourcesInternalPool->allocate();
-   
-#ifdef EN_DEBUG
-            // Both allocators need to remain in sync
-            uint32 resourceA = 0;
-            uint32 resourceB = 0;
-            textureResourcesPool->index(*desc, resourceA);
-            textureResourcesInternalPool->index(*descInternal, resourceA);
-            assert( resourceA == resourceB );
-#endif
+            if (!initAllocation(**cache, sysOffset, sysSize, state, mipLayout, textureId)) // unlikely
+            {
+                // Its possible that in case of allocating massive amounts of small
+                // resources we run out of GPU descriptors faster than out of memory.
+                (*cache)->allocator->deallocate(sysOffset, sysSize);
 
-            // Resource Streamer state of texture allocation (sub-allocated from Heap)
-            desc->gpuTexture = nullptr;
-            desc->state      = state;
-            desc->size       = size;
-            desc->resident   = false;
-   
-            // Resource Streamer internal state of buffer allocation
-            descInternal->mipLayout    = mipLayout;
-            descInternal->pointer      = reinterpret_cast<volatile void*>(reinterpret_cast<volatile uint8*>((*cache)->sysAddress) + sysOffset);
-            bool result = cpuHeap->index(**cache, descInternal->sysHeapIndex);
-            assert( result );
-            descInternal->sysOffset    = static_cast<uint32>(sysOffset);
-            descInternal->gpuHeapIndex = 0;  // TODO: Distinguish index 0 from unused index!
-            descInternal->uploading    = 0;
-            descInternal->locked       = false;
-      
-            availableSystemMemory -= size;
+                return false;
+            }
         }
     }
    
     return allocated;
 }
    
-void Streamer::deallocateMemory(TextureAllocation& desc)
+void Streamer::deallocateMemory(const uint32 textureId)
 {
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
     {
+        logError("textureId is out of range!\n");
         return;
     }
+    TextureAllocation& descriptor = *temp;
 
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
-   
     // Evict from dedicated memory if resident
-    if (desc.resident)
+    if (descriptor.resident)
     {
-        evictTexture(desc, *descInternal);
+        evictTexture(descriptor);
     }
 
-    BufferCache* sysHeap = cpuHeap->entry(descInternal->sysHeapIndex);
-    sysHeap->allocator->deallocate(descInternal->sysOffset, desc.size);
-   
-    availableSystemMemory += desc.size;
-   
+    BufferCache* sysHeap = cpuHeap->entry(descriptor.sysHeapIndex);
+    sysHeap->allocator->deallocate(descriptor.sysHeapOffset, descriptor.sysSize);
+
+    availableSystemMemory += descriptor.sysSize;
+
     // Release resource descriptor
-    textureResourcesPool->deallocate(desc);
-    textureResourcesInternalPool->deallocate(*descInternal);
+    textureResourcesPool->deallocate(descriptor);
 }
 
 // Returns pointer to system memory backing this texture resource specific surface
-void* Streamer::systemMemory(const TextureAllocation& desc,
+void* Streamer::systemMemory(const uint32 textureId,
                              const uint8 mipmap,
                              const uint16 layer,  // Layer of Array resource
                              const uint8 plane)   // Plane of multi-plane surface
 {
-    assert( mipmap < desc.state.mipmaps );
-    assert( layer < desc.state.layers );
-    assert( plane < desc.state.planes() );
-   
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
     {
+        logError("textureId is out of range!\n");
         return nullptr;
     }
+    TextureAllocation& descriptor = *temp;
 
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
-   
-    MipMemoryLayout* layout = &descInternal->mipLayout[mipmap * desc.state.planes() + plane];
-   
+    assert( mipmap < descriptor.state.mipmaps );
+    assert( layer < descriptor.state.layers );
+    assert( plane < descriptor.state.planes() );
+
+    const MipMemoryLayout& layout = descriptor.mipLayout[mipmap * descriptor.state.planes() + plane];
+
+    // Calculates address in system memory at which texture resource is stored
+    BufferCache* sysHeap = cpuHeap->entry(descriptor.sysHeapIndex);
+    if (!temp) // unlikely
+    {
+        logCritical("Suspected memory corruption while accessing address of system heap %u backing texture: %u!\n", descriptor.sysHeapIndex, textureId);
+        return nullptr;
+    }
+    uint8* sysAddress = (uint8*)(sysHeap->sysAddress) + descriptor.sysHeapOffset;
+
     // Streamer may use different layouts in the future. Thus direct pointer to
     // system memory backing this texture cannot be returned.
-    uint64 offset = layout->offset + layer * roundUp(layout->size, layout->alignment.surfaceAlignment());
-    return reinterpret_cast<void*>((uint8*)(descInternal->pointer) + offset);
+    uint64 offset = layout.offset + layer * roundUp(layout.size, layout.alignment.surfaceAlignment());
+    return reinterpret_cast<void*>(sysAddress + offset);
 }
-   
 
    
    
@@ -2368,38 +2414,32 @@ void* Streamer::systemMemory(const TextureAllocation& desc,
 // Below that size, it's mip levels are stored in linear way with given padding.
 
 
-   
-
-
-
-   
-   
-   
-bool Streamer::makeResident(TextureAllocation& desc, const bool lock)
+  
+bool Streamer::makeResident(const uint32 textureId, const bool lock)
 {
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
+    {
+        logError("textureId is out of range!\n");
+        return false;
+    }
+    TextureAllocation& descriptor = *temp;
+
     // Requested size need to be smaller than max size of single allocation,
     // and that should be already verified during memory allocation.
-    assert( desc.size <= residentAllocationSize );
+    assert( descriptor.sysSize <= residentAllocationSize );
 
     // TODO: Lock critical section here
    
     // If resource is already resident quit
-    if (desc.resident)
+    if (descriptor.resident)
     {
         return true;
     }
 
-    // Verify if descriptor is valid
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
-    {
-        return false;
-    }
-
     // Verify if this resource is not already marked for upload
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
-    if (descInternal->uploading)
+    if (descriptor.uploading)
     {
         return true;
     }
@@ -2407,7 +2447,7 @@ bool Streamer::makeResident(TextureAllocation& desc, const bool lock)
     // (A) Allocate destination in dedicated memory
    
     // If not enoough dedicated memory, evict least used one
-    while(availableBufferMemory < desc.size)
+    while(availableBufferMemory < descriptor.sysSize)
     {
         // TODO: Evict old allocations until enough memory is freed
         assert( 0 );
@@ -2425,24 +2465,16 @@ bool Streamer::makeResident(TextureAllocation& desc, const bool lock)
     while(*cache)
     {
         // Try to allocate memory from current Heap
-        texture = (*cache)->heap->createTexture(desc.state);
-        if (texture == nullptr)
+        texture = (*cache)->heap->createTexture(descriptor.state);
+        if (!texture)
         {
             *cache = reinterpret_cast<TextureCache*>(&((*cache)->next));
             continue;
         }
-   
-        // Resource Streamer state of texture allocation (sub-allocated from Heap)
-        desc.gpuTexture = texture;
 
-        // Resource Streamer internal state of buffer allocation
-        bool result = gpuTextureHeap->index(**cache, descInternal->gpuHeapIndex);
-        assert( result );
-
-        availableTextureMemory -= desc.size;
         break;
     }
-   
+
     // If reached end of list, allocate new Heap
     if (!texture && !*cache)
     {
@@ -2454,34 +2486,34 @@ bool Streamer::makeResident(TextureAllocation& desc, const bool lock)
             gpuHeapCount[1]++;
    
             // Allocate memory from new Heap
-            texture = (*cache)->heap->createTexture(desc.state);
-
-            // This is new empty Heap so allocation should always succeed
-            assert( texture );
-
-            // Resource Streamer state of texture allocation (sub-allocated from Heap)
-            desc.gpuTexture = texture;
-
-            // Resource Streamer internal state of buffer allocation
-            bool result = gpuTextureHeap->index(**cache, descInternal->gpuHeapIndex);
-            assert( result );
-
-            availableTextureMemory -= desc.size;
+            texture = (*cache)->heap->createTexture(descriptor.state);
         }
     }
-   
+
     // If after all couldn't allocate dedicated memory for resource, it looks like
     // we're in bad place (VRAM is fragmented?).
     if (!texture)
     {
         return false;
     }
+
+    // Resource Streamer state of texture allocation (sub-allocated from Heap)
+    descriptor.gpuTexture     = texture;
+    descriptor.gpuTextureView = texture->view();
+
+    // Resource Streamer internal state of buffer allocation
+    if (!gpuTextureHeap->index(**cache, descriptor.gpuHeapIndex))
+    {
+        assert(0);
+    }
+
+    availableTextureMemory -= descriptor.sysSize;
       
-    descInternal->locked = lock;
+    descriptor.locked = lock;
     return true;
 }
 
-bool Streamer::makeResidentSurface(const TextureAllocation& desc,
+bool Streamer::makeResidentSurface(const uint32 textureId,
                                    const uint8 mipmap,
                                    const uint16 layer,
                                    const uint8 plane)
@@ -2491,7 +2523,7 @@ bool Streamer::makeResidentSurface(const TextureAllocation& desc,
     return false;
 }
 
-bool Streamer::makeResidentVolume(const TextureAllocation& desc,
+bool Streamer::makeResidentVolume(const uint32 textureId,
                                   const uint8 mipmap)
 {
     // TODO: Finish, consider what level of interface is really needed.
@@ -2499,7 +2531,7 @@ bool Streamer::makeResidentVolume(const TextureAllocation& desc,
     return false;
 }
 
-bool Streamer::makeResidentRegion2D(const TextureAllocation& desc,
+bool Streamer::makeResidentRegion2D(const uint32 textureId,
                                     const tileRegion2D region,
                                     const uint8 mipmap,
                                     const uint16 layer)
@@ -2509,7 +2541,7 @@ bool Streamer::makeResidentRegion2D(const TextureAllocation& desc,
     return false;
 }
 
-bool Streamer::makeResidentRegion3D(const TextureAllocation& desc,
+bool Streamer::makeResidentRegion3D(const uint32 textureId,
                                     const tileRegion3D region,
                                     const uint8 mipmap)
 {
@@ -2518,39 +2550,40 @@ bool Streamer::makeResidentRegion3D(const TextureAllocation& desc,
     return false;
 }
 
-void Streamer::evictTexture(TextureAllocation& desc, TextureAllocationInternal& descInternal)
+void Streamer::evictTexture(TextureAllocation& desc)
 {
     // TODO: Make it thread safe
     // assert( !descInternal.locked );
    
     desc.gpuTexture = nullptr;
-    desc.size       = 0;
     desc.resident   = false;
    
-    availableTextureMemory += desc.size;
+    availableTextureMemory += desc.sysSize;
+
+    desc.sysSize    = 0;
 }
 
-bool Streamer::evict(TextureAllocation& desc)
+bool Streamer::evict(const uint32 textureId)
 {
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
     {
+        logError("textureId is out of range!\n");
         return false;
     }
-   
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
-   
+    TextureAllocation& descriptor = *temp;
+
     // Evict from dedicated memory if resident
-    if (desc.resident)
+    if (descriptor.resident)
     {
-        evictTexture(desc, *descInternal);
+        evictTexture(descriptor);
     }
 
     return true;
 }
 
-bool Streamer::evictSurface(const TextureAllocation& desc,
+bool Streamer::evictSurface(const uint32 textureId,
                             const uint8 mipmap,
                             const uint16 layer,
                             const uint8 plane)
@@ -2560,7 +2593,7 @@ bool Streamer::evictSurface(const TextureAllocation& desc,
     return false;
 }
 
-bool Streamer::evictVolume(const TextureAllocation& desc,
+bool Streamer::evictVolume(const uint32 textureId,
                            const uint8 mipmap)
 {
     // TODO: Finish, consider what level of interface is really needed.
@@ -2568,7 +2601,7 @@ bool Streamer::evictVolume(const TextureAllocation& desc,
     return false;
 }
 
-bool Streamer::evictRegion2D(const TextureAllocation& desc,
+bool Streamer::evictRegion2D(const uint32 textureId,
                              const tileRegion2D region,
                              const uint8 mipmap,
                              const uint16 layer)
@@ -2578,7 +2611,7 @@ bool Streamer::evictRegion2D(const TextureAllocation& desc,
     return false;
 }
 
-bool Streamer::evictRegion3D(const TextureAllocation& desc,
+bool Streamer::evictRegion3D(const uint32 textureId,
                              const tileRegion3D region,
                              const uint8 mipmap)
 {
@@ -2587,24 +2620,24 @@ bool Streamer::evictRegion3D(const TextureAllocation& desc,
     return false;
 }
 
-bool Streamer::transferSurface(const TextureAllocation& desc,
-                               const uint32 resourceId,
+bool Streamer::transferSurface(const TextureAllocation& descriptor,
+                               const uint32 textureId,
                                const uint8 mipmap,
                                const uint16 layer,
                                const uint8 plane,
                                const TransferDirection direction)
 {
-    assert( desc.state.type != TextureType::Texture3D );
-    assert( desc.state.mipmaps > mipmap );
-    assert( desc.state.layers > layer );
-    assert( desc.state.planes() > plane );
+    assert( descriptor.state.type != TextureType::Texture3D );
+    assert( descriptor.state.mipmaps > mipmap );
+    assert( descriptor.state.layers > layer );
+    assert( descriptor.state.planes() > plane );
 
-    uint16v2 tileResolution = tileResolution2D(desc.state.format, desc.state.samples, plane);
-    uint32v2 mipResolution  = desc.state.mipResolution(mipmap); // plane
+    uint16v2 tileResolution = tileResolution2D(descriptor.state.format, descriptor.state.samples, plane);
+    uint32v2 mipResolution  = descriptor.state.mipResolution(mipmap); // plane
     uint16v2 tilesCount     = tilesCount2D(tileResolution, mipResolution);
 
     TransferResource transfer;
-    transfer.resourceId                  = resourceId;
+    transfer.resourceId                  = textureId;
     transfer.direction                   = underlyingType(direction);
     transfer.type                        = underlyingType(TransferType::Surface);
     transfer.surface.mipmap              = mipmap;
@@ -2614,7 +2647,7 @@ bool Streamer::transferSurface(const TextureAllocation& desc,
     transfer.surface.region.count.height = tilesCount.height;
     transfer.surface.layer               = layer;
     transfer.surface.plane               = plane;
-            
+
     // Push transfer of single surface on a queue
     if (!transferQueue->push(transfer))
     {
@@ -2624,21 +2657,21 @@ bool Streamer::transferSurface(const TextureAllocation& desc,
     return true;
 }
    
-bool Streamer::transferSurface(const TextureAllocation& desc,
-                               const uint32 resourceId,
+bool Streamer::transferSurface(const TextureAllocation& descriptor, 
+                               const uint32 textureId,
                                const tileRegion2D region,
                                const uint8 mipmap,
                                const uint16 layer,
                                const uint8 plane,
                                const TransferDirection direction)
 {
-    assert( desc.state.type != TextureType::Texture3D );
-    assert( desc.state.mipmaps > mipmap );
-    assert( desc.state.layers > layer );
-    assert( desc.state.planes() > plane );
+    assert( descriptor.state.type != TextureType::Texture3D );
+    assert( descriptor.state.mipmaps > mipmap );
+    assert( descriptor.state.layers > layer );
+    assert( descriptor.state.planes() > plane );
 
     TransferResource transfer;
-    transfer.resourceId                  = resourceId;
+    transfer.resourceId                  = textureId;
     transfer.direction                   = underlyingType(direction);
     transfer.type                        = underlyingType(TransferType::Surface);
     transfer.surface.mipmap              = mipmap;
@@ -2658,22 +2691,22 @@ bool Streamer::transferSurface(const TextureAllocation& desc,
     return true;
 }
    
-bool Streamer::transferVolume(const TextureAllocation& desc,
-                              const uint32 resourceId,
+bool Streamer::transferVolume(const TextureAllocation& descriptor,
+                              const uint32 textureId,
                               const uint8 mipmap,
                               const TransferDirection direction)
 {
-    assert( desc.state.type == TextureType::Texture3D );
-    assert( desc.state.planes() == 1 );
-    assert( desc.state.mipmaps > mipmap );
+    assert( descriptor.state.type == TextureType::Texture3D );
+    assert( descriptor.state.planes() == 1 );
+    assert( descriptor.state.mipmaps > mipmap );
 
-    uint16v4 tileResolution = tileResolution3D(desc.state.format);
-    uint32v3 mipVolume      = desc.state.mipVolume(mipmap);
+    uint16v4 tileResolution = tileResolution3D(descriptor.state.format);
+    uint32v3 mipVolume      = descriptor.state.mipVolume(mipmap);
     uint16v4 tilesVolume    = tilesCount3D(tileResolution, mipVolume);
    
     // Transfer whole texture to VRAM
     TransferResource transfer;
-    transfer.resourceId     = resourceId;
+    transfer.resourceId     = textureId;
     transfer.direction      = underlyingType(direction);
     transfer.type           = underlyingType(TransferType::Volume);
     transfer.volume.mipmap  = mipmap;
@@ -2695,19 +2728,19 @@ bool Streamer::transferVolume(const TextureAllocation& desc,
     return true;
 }
 
-bool Streamer::transferVolume(const TextureAllocation& desc,
-                              const uint32 resourceId,
+bool Streamer::transferVolume(const TextureAllocation& descriptor,
+                              const uint32 textureId,
                               const tileRegion3D region,
                               const uint8 mipmap,
                               const TransferDirection direction)
 {
-    assert( desc.state.type == TextureType::Texture3D );
-    assert( desc.state.planes() == 1 );
-    assert( desc.state.mipmaps > mipmap );
+    assert( descriptor.state.type == TextureType::Texture3D );
+    assert( descriptor.state.planes() == 1 );
+    assert( descriptor.state.mipmaps > mipmap );
 
     // Transfer whole texture to VRAM
     TransferResource transfer;
-    transfer.resourceId     = resourceId;
+    transfer.resourceId     = textureId;
     transfer.direction      = underlyingType(direction);
     transfer.type           = underlyingType(TransferType::Volume);
     transfer.volume.mipmap  = mipmap;
@@ -2729,50 +2762,49 @@ bool Streamer::transferVolume(const TextureAllocation& desc,
     return true;
 }
    
-bool Streamer::transfer(const TextureAllocation& desc,
+bool Streamer::transfer(const uint32 textureId,
                         const TransferDirection direction)
 {
-    // Verify descriptor
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
     {
+        logError("textureId is out of range!\n");
         return false;
     }
+    TextureAllocation& descriptor = *temp;
 
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
- 
     bool result = true;
-    if (desc.state.type == TextureType::Texture3D)
+    if (descriptor.state.type == TextureType::Texture3D)
     {
         // Upload from smallest mipmap to most detailed one
-        for(sint32 i=(desc.state.mipmaps-1); i>=0; --i)
+        for(sint32 i=(descriptor.state.mipmaps-1); i>=0; --i)
         {
-            if (!transferVolume(desc, i, direction))
+            if (!transferVolume(descriptor, textureId, i, direction))
             {
                 result = false;
                 break;
             }
             
-            descInternal->uploading++;  // TODO: Atomic
+            descriptor.uploading++;  // TODO: Atomic
         }
     }
     else // Transfer textures composed from surfaces, one surface at a time
     {
         // Upload from smallest mipmap to most detailed one
-        for(sint32 i=(desc.state.mipmaps-1); i>=0; --i)
+        for(sint32 i=(descriptor.state.mipmaps-1); i>=0; --i)
         {
-            for(uint32 j=0; j<desc.state.layers; ++j)
+            for(uint32 j=0; j<descriptor.state.layers; ++j)
             {
-                for(uint32 k=0; k<desc.state.planes(); ++k)
+                for(uint32 k=0; k<descriptor.state.planes(); ++k)
                 {
-                    if (!transferSurface(desc, i, j, k, direction))
+                    if (!transferSurface(descriptor, textureId, i, j, k, direction))
                     {
                         result = false;
                         break;
                     }
                    
-                    descInternal->uploading++;  // TODO: Atomic
+                    descriptor.uploading++;  // TODO: Atomic
                 }
             }
         }
@@ -2787,28 +2819,27 @@ bool Streamer::transfer(const TextureAllocation& desc,
     return result;
 }
    
-bool Streamer::transferSurface(const TextureAllocation& desc,
+bool Streamer::transferSurface(const uint32 textureId,
                                const uint8 mipmap,
                                const uint16 layer,
                                const uint8 plane,
                                const TransferDirection direction)
 {
-    // Verify descriptor
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
     {
+        logError("textureId is out of range!\n");
         return false;
     }
-      
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
- 
-    if (!transferSurface(desc, resourceId, mipmap, layer, plane, direction))
+    TextureAllocation& descriptor = *temp;
+
+    if (!transferSurface(descriptor, textureId, mipmap, layer, plane, direction))
     {
         return false;
     }
 
-    descInternal->uploading++;  // TODO: Atomic
+    descriptor.uploading++;  // TODO: Atomic
    
     // If streaming thread was idle, it is sleeping, so wake it up
     streamingThread->wakeUp();
@@ -2816,85 +2847,82 @@ bool Streamer::transferSurface(const TextureAllocation& desc,
     return true;
 }
 
-bool Streamer::transferVolume(const TextureAllocation& desc,
+bool Streamer::transferVolume(const uint32 textureId,
                               const uint8 mipmap,
                               const TransferDirection direction)
 {
-    // Verify descriptor
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
+    {
+        logError("textureId is out of range!\n");
+        return false;
+    }
+    TextureAllocation& descriptor = *temp;
+
+    if (!transferVolume(descriptor, textureId, mipmap, direction))
     {
         return false;
     }
 
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
- 
-    if (!transferVolume(desc, resourceId, mipmap, direction))
-    {
-        return false;
-    }
+    descriptor.uploading++;  // TODO: Atomic
 
-    descInternal->uploading++;  // TODO: Atomic
-   
     // If streaming thread was idle, it is sleeping, so wake it up
     streamingThread->wakeUp();
 
     return true;
 }
    
-bool Streamer::transferRegion2D(const TextureAllocation& desc,
+bool Streamer::transferRegion2D(const uint32 textureId,
                                 const tileRegion2D region,
                                 const uint8 mipmap,
                                 const uint16 layer,
                                 const uint8 plane,
                                 const TransferDirection direction)
 {
-    // Verify descriptor
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
     {
+        logError("textureId is out of range!\n");
         return false;
     }
-      
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
- 
-    if (!transferSurface(desc, resourceId, region, mipmap, layer, plane, direction))
+    TextureAllocation& descriptor = *temp;
+
+    if (!transferSurface(descriptor, textureId, region, mipmap, layer, plane, direction))
     {
         return false;
     }
 
-    descInternal->uploading++;  // TODO: Atomic
-   
+    descriptor.uploading++;  // TODO: Atomic
+
     // If streaming thread was idle, it is sleeping, so wake it up
     streamingThread->wakeUp();
 
     return true;
 }
 
-bool Streamer::transferRegion3D(const TextureAllocation& desc,
+bool Streamer::transferRegion3D(const uint32 textureId,
                                 const tileRegion3D region,
                                 const uint8 mipmap,
                                 const TransferDirection direction)
 {
-    // Verify descriptor
-    uint32 resourceId = 0;
-    if (!textureResourcesPool->index(desc, resourceId))
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
     {
+        logError("textureId is out of range!\n");
         return false;
     }
-
-    TextureAllocationInternal* descInternal = textureResourcesInternalPool->entry(resourceId);
-    assert( descInternal );
+    TextureAllocation& descriptor = *temp;
  
-    if (!transferVolume(desc, resourceId, region, mipmap, direction))
+    if (!transferVolume(descriptor, textureId, region, mipmap, direction))
     {
         return false;
     }
 
-    descInternal->uploading++;  // TODO: Atomic
-   
+    descriptor.uploading++;  // TODO: Atomic
+
     // If streaming thread was idle, it is sleeping, so wake it up
     streamingThread->wakeUp();
 
@@ -2905,75 +2933,76 @@ bool Streamer::transferRegion3D(const TextureAllocation& desc,
    
    
 // Do we really need those?
+// Move everything below to .inl file as forceinline methods.
 
-bool Streamer::upload(const TextureAllocation& desc)
+bool Streamer::upload(const uint32 textureId)
 {
-    return transfer(desc, TransferDirection::DeviceUpload);
+    return transfer(textureId, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::uploadSurface(const TextureAllocation& desc,
+bool Streamer::uploadSurface(const uint32 textureId,
                              const uint8 mipmap,
                              const uint16 layer,
                              const uint8 plane)
 {
-    return transferSurface(desc, mipmap, layer, plane, TransferDirection::DeviceUpload);
+    return transferSurface(textureId, mipmap, layer, plane, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::uploadVolume(const TextureAllocation& desc,
+bool Streamer::uploadVolume(const uint32 textureId,
                             const uint8 mipmap)
 {
-    return transferVolume(desc, mipmap, TransferDirection::DeviceUpload);
+    return transferVolume(textureId, mipmap, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::uploadRegion2D(const TextureAllocation& desc,
+bool Streamer::uploadRegion2D(const uint32 textureId,
                               const tileRegion2D region,
                               const uint8 mipmap,
                               const uint16 layer,
                               const uint8 plane)
 {
-    return transferRegion2D(desc, region, mipmap, layer, plane, TransferDirection::DeviceUpload);
+    return transferRegion2D(textureId, region, mipmap, layer, plane, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::uploadRegion3D(const TextureAllocation& desc,
+bool Streamer::uploadRegion3D(const uint32 textureId,
                               const tileRegion3D region,
                               const uint8 mipmap)
 {
-    return transferRegion3D(desc, region, mipmap, TransferDirection::DeviceUpload);
+    return transferRegion3D(textureId, region, mipmap, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::download(const TextureAllocation& desc)
+bool Streamer::download(const uint32 textureId)
 {
-    return transfer(desc, TransferDirection::DeviceDownload);
+    return transfer(textureId, TransferDirection::DeviceDownload);
 }
 
-bool Streamer::downloadSurface(const TextureAllocation& desc,
+bool Streamer::downloadSurface(const uint32 textureId,
                                const uint8 mipmap,
                                const uint16 layer,
                                const uint8 plane)
 {
-    return transferSurface(desc, mipmap, layer, plane, TransferDirection::DeviceDownload);
+    return transferSurface(textureId, mipmap, layer, plane, TransferDirection::DeviceDownload);
 }
 
-bool Streamer::downloadVolume(const TextureAllocation& desc,
+bool Streamer::downloadVolume(const uint32 textureId,
                               const uint8 mipmap)
 {
-    return transferVolume(desc, mipmap, TransferDirection::DeviceDownload);
+    return transferVolume(textureId, mipmap, TransferDirection::DeviceDownload);
 }
 
-bool Streamer::downloadRegion2D(const TextureAllocation& desc,
+bool Streamer::downloadRegion2D(const uint32 textureId,
                                 const tileRegion2D region,
                                 const uint8 mipmap,
                                 const uint16 layer,
                                 const uint8 plane)
 {
-    return transferRegion2D(desc, region, mipmap, layer, plane, TransferDirection::DeviceDownload);
+    return transferRegion2D(textureId, region, mipmap, layer, plane, TransferDirection::DeviceDownload);
 }
 
-bool Streamer::downloadRegion3D(const TextureAllocation& desc,
+bool Streamer::downloadRegion3D(const uint32 textureId,
                                 const tileRegion3D region,
                                 const uint8 mipmap)
 {
-    return transferRegion3D(desc, region, mipmap, TransferDirection::DeviceDownload);
+    return transferRegion3D(textureId, region, mipmap, TransferDirection::DeviceDownload);
 }
 
 } // en

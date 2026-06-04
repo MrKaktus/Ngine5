@@ -366,31 +366,6 @@ struct BufferAllocationInternal
 static_assert(sizeof(BufferAllocationInternal) == 16, "BufferAllocationInternal size mismatch!");
 
 
-// Textures should allow sparse storage on both ends.
-// Generic buffer suballocation is used in RAM, as multiple of tile size.
-// From it tiles are streamed to VRAM, which also has Heap/Pool of tiles to use.
-// Then those tiles are bound to texture object used during rendering.
-// This may not be supported for all texture types, thus both modes should be
-// handled: fully resident textures, and sparsely resident textures.
-// From CPU side, it shouldn't matter, and should always be handled as
-// Pool of tiles (that may back whole texture if it's small).
-// Mipmaps are assumed to be generated offline, or provided by CPU.
-struct TextureAllocation
-{
-    gpu::Texture*     gpuTexture; // Updated when made resident
-    gpu::TextureState state;      // Texture state (should be read only)
-    uint64 size     : 63;         // Max supported size of single GPU allocation
-    uint64 resident : 1;          // Set by Streamer when resource is resident in GPU dedicated memory
-};
-
-// TODO: Above struct should be Resource Manager / Streamer interface.
-//       Correct way would be to hide it's properties behind inlined getters.
-//       MipLayout / Alignments should be exposed as well.
-//       Texture state is duplicated, as texture object can be evicted/destroyed and only RAM copy being available.
-//
-// Asset -> (placed in) -> TextureAllocation -> (streamed to) -> Texture
-
-static_assert(sizeof(TextureAllocation) == 32, "TextureAllocation size mismatch!");
 
 enum class SurfaceLayout : uint8
 {
@@ -470,23 +445,48 @@ struct MipMemoryLayout
 
 static_assert(sizeof(MipMemoryLayout) == 16, "MipMemoryLayout size mismatch!");
 
-struct TextureAllocationInternal
+
+
+// Textures should allow sparse storage on both ends.
+// Generic buffer suballocation is used in RAM, as multiple of tile size.
+// From it tiles are streamed to VRAM, which also has Heap/Pool of tiles to use.
+// Then those tiles are bound to texture object used during rendering.
+// This may not be supported for all texture types, thus both modes should be
+// handled: fully resident textures, and sparsely resident textures.
+// From CPU side, it shouldn't matter, and should always be handled as
+// Pool of tiles (that may back whole texture if it's small).
+// Mipmaps are assumed to be generated offline, or provided by CPU.
+//
+// Asset -> (placed in) -> TextureAllocation -> (streamed to) -> Texture
+//
+struct TextureAllocation
 {
+    gpu::TextureState state;    // Texture state is cached, as GPU texture object can be dynamically created and destroyed (eviction).
     MipMemoryLayout* mipLayout; // Memory layout in which surfaces of all mipmaps are stored in system Heap (starting from allocation offset in Heap)
-    volatile void* pointer;     // Pointer to data in system memory (global system pointer)
 
-    // Pointers to descriptors in Pool Allocator are calculate on the fly as its rare operation.
-    uint32 sysHeapIndex;        // Index to system Heap descriptor
+    // Memory allocation and object storing this resource in GPU dedicated memory (VRAM or RAM in UMA)
+    gpu::Texture* gpuTexture;         // Valid when resident
+    gpu::TextureView* gpuTextureView; // Valid when resident
+
     uint32 gpuHeapIndex;        // Index to dedicated Heap descriptor
-    uint32 sysOffset;           // Allocation offset in system Heap
 
-    // Should be accessed as atomic (as it's modified async by different threads)
-    uint32 uploading : 31;      // Semaphore set before sending for upload each surface region, cleared when that upload is complete.
-                                // Allows verifying if there are queued upload/download operations on this texture.
-    uint32 locked    : 1;       // Cannot be evicted when locked (lock is set on resident call)
+    std::atomic<uint32> uploading; // Semaphore set before sending for upload each surface region, cleared when that upload is complete.
+                                   // Allows verifying if there are queued upload/download operations on this texture.
+
+    // Memory allocation backing this resource in system memory (RAM)
+    uint32 sysHeapIndex;          // Index to system Heap descriptor
+    uint32 sysHeapOffset;         // Allocation offset in system Heap
+    uint64 sysSize  : 62;         // Max supported size of single GPU allocation
+                                  // TODO: This field needs to be adjusted!
+                                  // TODO: Currently it stores sysSize !
+
+    uint64 locked   : 1;          // Cannot be evicted when locked (lock is set on resident call)
+    uint64 resident : 1;          // Set by Streamer when resource is resident in GPU dedicated memory
 };
 
-static_assert(sizeof(TextureAllocationInternal) == 32, "TextureAllocationInternal size mismatch!");
+// TODO: MipLayout / Alignments should be exposed as well.
+
+static_assert(sizeof(TextureAllocation) == 64, "TextureAllocation size mismatch!");
 
 // Upload and download allocation sizes need to be power of two (download allocation
 // can be set to 0, if there will be no transfers from GPU to CPU memory). 
@@ -558,7 +558,6 @@ class Streamer
     PoolAllocator<BufferAllocationInternal>* bufferResourcesInternalPool;
 
     PoolAllocator<TextureAllocation>* textureResourcesPool;
-    PoolAllocator<TextureAllocationInternal>* textureResourcesInternalPool;
 
     // Dedicated Heap for downloading results of GPU operations from dedicated to system memory
     std::unique_ptr<gpu::Heap>   downloadHeap;
@@ -577,36 +576,44 @@ class Streamer
     bool initBufferHeap(BufferCache& bufferCache);
     bool initTextureHeap(TextureCache& textureCache);
     void evictBuffer(BufferAllocation& desc, BufferAllocationInternal& descInternal);
-    void evictTexture(TextureAllocation& desc, TextureAllocationInternal& descInternal);
+    void evictTexture(TextureAllocation& descriptor);
+
+    bool initAllocation(BufferCache& cache, 
+                        const uint64 sysOffset,
+                        const uint64 size, 
+                        const gpu::TextureState& state, 
+                        const MipMemoryLayout* mipLayout, 
+                        uint32& textureId);
 
     // Helper methods encoding surface/volume transfers
-    bool transferSurface(const TextureAllocation& desc,
-                         const uint32 resourceId,
+    bool transferSurface(const TextureAllocation& descriptor,
+                         const uint32 textureId,
                          const uint8 mipmap,
                          const uint16 layer,
                          const uint8 plane,
                          const TransferDirection direction);
       
-    bool transferSurface(const TextureAllocation& desc,
-                         const uint32 resourceId,
+    bool transferSurface(const TextureAllocation& descriptor,
+                         const uint32 textureId,
                          const tileRegion2D region,
                          const uint8 mipmap,
                          const uint16 layer,
                          const uint8 plane,
                          const TransferDirection direction);
 
-    bool transferVolume(const TextureAllocation& desc,
-                        const uint32 resourceId,
+    bool transferVolume(const TextureAllocation& descriptor,
+                        const uint32 textureId,
                         const uint8 mipmap,
                         const TransferDirection direction);
 
-    bool transferVolume(const TextureAllocation& desc,
-                        const uint32 resourceId,
+    bool transferVolume(const TextureAllocation& descriptor,
+                        const uint32 textureId,
                         const tileRegion3D region,
                         const uint8 mipmap,
                         const TransferDirection direction);
 
-    public:
+public:
+
     Streamer(gpu::GpuDevice& gpu, const StreamerSettings* settings = nullptr);
    ~Streamer();
  
@@ -619,60 +626,60 @@ class Streamer
    
     // Creation and destruction:
    
-    bool allocateMemory(const gpu::TextureState& state, TextureAllocation*& desc);
-    void deallocateMemory(TextureAllocation& desc);
+    bool allocateMemory(const gpu::TextureState& state, uint32& textureId);
+    void deallocateMemory(const uint32 textureId);
    
     // Residency:
 
     // Only Sparse, single-plane resources can be partially resident or evicted.
 
     // Make given texture fully resident in GPU dedicated memory
-    bool makeResident(TextureAllocation& desc, const bool lock);  // TODO: Remove lock
+    bool makeResident(const uint32 textureId, const bool lock);  // TODO: Remove lock
 
     // Make given surface resident in GPU dedicated memory
-    bool makeResidentSurface(const TextureAllocation& desc,
+    bool makeResidentSurface(const uint32 textureId,
                              const uint8 mipmap = 0,
                              const uint16 layer = 0,
                              const uint8 plane = 0);
 
     // Make given volume resident in GPU dedicated memory
-    bool makeResidentVolume(const TextureAllocation& desc,
+    bool makeResidentVolume(const uint32 textureId,
                             const uint8 mipmap = 0);
       
     // Make given surface 2D region resident in GPU dedicated memory
-    bool makeResidentRegion2D(const TextureAllocation& desc,
+    bool makeResidentRegion2D(const uint32 textureId,
                               const tileRegion2D region,
                               const uint8 mipmap = 0,
                               const uint16 layer = 0);
 
     // Make given volume 3D region resident in GPU dedicated memory
-    bool makeResidentRegion3D(const TextureAllocation& desc,
+    bool makeResidentRegion3D(const uint32 textureId,
                               const tileRegion3D region,
                               const uint8 mipmap = 0);
 
     // Eviction:
 
     // Evict given texture from GPU dedicated memory
-    bool evict(TextureAllocation& desc);
+    bool evict(const uint32 textureId);
 
     // Evict given surface from GPU dedicated memory
-    bool evictSurface(const TextureAllocation& desc,
+    bool evictSurface(const uint32 textureId,
                       const uint8 mipmap = 0,
                       const uint16 layer = 0,
                       const uint8 plane = 0);
 
     // Evict given volume from GPU dedicated memory
-    bool evictVolume(const TextureAllocation& desc,
+    bool evictVolume(const uint32 textureId,
                      const uint8 mipmap = 0);
       
     // Evict given surface 2D region from GPU dedicated memory
-    bool evictRegion2D(const TextureAllocation& desc,
+    bool evictRegion2D(const uint32 textureId,
                        const tileRegion2D region,
                        const uint8 mipmap = 0,
                        const uint16 layer = 0);
 
     // Evict given volume 3D region from GPU dedicated memory
-    bool evictRegion3D(const TextureAllocation& desc,
+    bool evictRegion3D(const uint32 textureId,
                        const tileRegion3D region,
                        const uint8 mipmap = 0);
 
@@ -693,7 +700,7 @@ class Streamer
     // - for Array it represents "layer" surface
     // - for CubeMap it represents "face" surface
     // - for CubeMapArray it represents "layer-face" surface
-    void* systemMemory(const TextureAllocation& desc,
+    void* systemMemory(const uint32 textureId,
                        const uint8 mipmap = 0,
                        const uint16 layer = 0,
                        const uint8 plane = 0);  // Plane of multi-plane surface
@@ -706,24 +713,24 @@ class Streamer
     // Submitting data transfer requests:
 
     // Transfer whole texture between system and GPU dedicated memory
-    bool transfer(const TextureAllocation& desc,
+    bool transfer(const uint32 textureId,
                   const TransferDirection direction = TransferDirection::DeviceUpload);
       
     // Transfer surface data between system and GPU dedicated memory
-    bool transferSurface(const TextureAllocation& desc,
+    bool transferSurface(const uint32 textureId,
                          const uint8 mipmap = 0,
                          const uint16 layer = 0,
                          const uint8 plane = 0,
                          const TransferDirection direction = TransferDirection::DeviceUpload);
       
     // Transfer volume data between system and GPU dedicated memory
-    bool transferVolume(const TextureAllocation& desc,
+    bool transferVolume(const uint32 textureId,
                         const uint8 mipmap = 0,
                         const TransferDirection direction = TransferDirection::DeviceUpload);
       
     // Transfer 2D region data between system and GPU dedicated memory
     // (at tile granularity, even if stored in Linear layout)
-    bool transferRegion2D(const TextureAllocation& desc,
+    bool transferRegion2D(const uint32 textureId,
                           const tileRegion2D region,
                           const uint8 mipmap = 0,
                           const uint16 layer = 0,
@@ -732,7 +739,7 @@ class Streamer
 
     // Transfer 3D region data between system and GPU dedicated memory
     // (at tile granularity, even if stored in Linear layout)
-    bool transferRegion3D(const TextureAllocation& desc,
+    bool transferRegion3D(const uint32 textureId,
                           const tileRegion3D region,
                           const uint8 mipmap = 0,
                           const TransferDirection direction = TransferDirection::DeviceUpload);
@@ -742,54 +749,54 @@ class Streamer
     // Uploads to GPU dedicated memory:
    
     // Update texture in dedicated memory
-    bool upload(const TextureAllocation& desc);
+    bool upload(const uint32 textureId);
 
     // Update surface in GPU dedicated memory
-    bool uploadSurface(const TextureAllocation& desc,
+    bool uploadSurface(const uint32 textureId,
                        const uint8 mipmap = 0,
                        const uint16 layer = 0,
                        const uint8 plane = 0);
     
     // Update volume in GPU dedicated memory
-    bool uploadVolume(const TextureAllocation& desc,
+    bool uploadVolume(const uint32 textureId,
                       const uint8 mipmap = 0);
       
     // Update surface 2D region in GPU dedicated memory (at tile granularity)
-    bool uploadRegion2D(const TextureAllocation& desc,
+    bool uploadRegion2D(const uint32 textureId,
                         const tileRegion2D region,
                         const uint8 mipmap = 0,
                         const uint16 layer = 0,
                         const uint8 plane = 0);
     
     // Update volume 3D region in GPU dedicated memory (at tile granularity)
-    bool uploadRegion3D(const TextureAllocation& desc,
+    bool uploadRegion3D(const uint32 textureId,
                         const tileRegion3D region,
                         const uint8 mipmap = 0);
 
     // Downloads from GPU dedicated memory to System memory:
 
     // Download texture to system memory
-    bool download(const TextureAllocation& desc);
+    bool download(const uint32 textureId);
 
     // Download surface to system memory
-    bool downloadSurface(const TextureAllocation& desc,
+    bool downloadSurface(const uint32 textureId,
                          const uint8 mipmap = 0,
                          const uint16 layer = 0,
                          const uint8 plane = 0);
     
     // Download volume to system memory
-    bool downloadVolume(const TextureAllocation& desc,
+    bool downloadVolume(const uint32 textureId,
                         const uint8 mipmap = 0);
       
     // Download surface 2D region to system memory (at tile granularity)
-    bool downloadRegion2D(const TextureAllocation& desc,
+    bool downloadRegion2D(const uint32 textureId,
                           const tileRegion2D region,
                           const uint8 mipmap = 0,
                           const uint16 layer = 0,
                           const uint8 plane = 0);
 
     // Download volume 3D region to system memory (at tile granularity)
-    bool downloadRegion3D(const TextureAllocation& desc,
+    bool downloadRegion3D(const uint32 textureId,
                           const tileRegion3D region,
                           const uint8 mipmap = 0);
 };
