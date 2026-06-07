@@ -278,7 +278,7 @@ void uploadSurface(Streamer& streamer, const TransferResource transfer, QueueTyp
     TextureAllocation* temp = streamer.textureResourcesPool->entry(transfer.resourceId);
     if (!temp) // unlikely
     {
-        logError("Referenced textureId is out of range!\n");
+        logError("Suspected memory corruption! Referenced textureId %u is out of range!\n", transfer.resourceId);
         return;
     }
     TextureAllocation& descriptor = *temp;
@@ -286,12 +286,14 @@ void uploadSurface(Streamer& streamer, const TransferResource transfer, QueueTyp
     BufferCache* sysCache = streamer.cpuHeap->entry(descriptor.sysHeapIndex);
     if (!sysCache) // unlikely
     {
+        logCritical("Suspected memory corruption! System memory heap index %u is out of range!\n", descriptor.sysHeapIndex);
         return;
     }
 
     std::shared_ptr<CommandBuffer> command = streamer.gpu.createCommandBuffer(queueForTransfers);
     if (!command) // unlikely
     {
+        logError("System under heavy load! Dropping surface transfer due to failed Command Buffer allocation!\n");
         return;
     }
 
@@ -485,7 +487,7 @@ void uploadVolume(Streamer& streamer, const TransferResource transfer, QueueType
     TextureAllocation* temp = streamer.textureResourcesPool->entry(transfer.resourceId);
     if (!temp) // unlikely
     {
-        logError("Referenced textureId is out of range!\n");
+        logError("Suspected memory corruption! Referenced textureId %u is out of range!\n", transfer.resourceId);
         return;
     }
     TextureAllocation& descriptor = *temp;
@@ -493,12 +495,14 @@ void uploadVolume(Streamer& streamer, const TransferResource transfer, QueueType
     BufferCache* sysCache = streamer.cpuHeap->entry(descriptor.sysHeapIndex);
     if (!sysCache) // unlikely
     {
+        logCritical("Suspected memory corruption! System memory heap index %u is out of range!\n", descriptor.sysHeapIndex);
         return;
     }
 
     std::shared_ptr<CommandBuffer> command = streamer.gpu.createCommandBuffer(queueForTransfers);
     if (!command) // unlikely
     {
+        logError("System under heavy load! Dropping volume transfer due to failed Command Buffer allocation!\n");
         return;
     }
 
@@ -1275,8 +1279,10 @@ void* threadAsyncStreaming(Thread* thread)
     return nullptr;
 }
 
-Streamer::Streamer(gpu::GpuDevice& _gpu, const StreamerSettings* settings) :
+Streamer::Streamer(gpu::GpuDevice& _gpu, gpu::Descriptors& _descriptorsPool, const StreamerSettings* settings) :
     gpu(_gpu),
+    descriptorsPool(_descriptorsPool),
+    descriptorsSet(nullptr),
     queueForTransfers(QueueType::Universal),
     downloadAllocationSize(DownloadAllocationSize*MB),
     systemAllocationSize(SystemAllocationSize*MB),
@@ -1395,10 +1401,20 @@ Streamer::Streamer(gpu::GpuDevice& _gpu, const StreamerSettings* settings) :
     }
       
     transferQueue = new CircularQueue<TransferResource>(1024, 4);
-   
+
+    // Layout that should be covering all texture descriptors in the pool
+    ResourceGroup group[1] = { {ResourceType::Texture, MaxTexturesCount} };
+    const SetLayout* layout = gpu.createSetLayout(1, group);
+
+    // Allocate backing descriptors from the pool
+    descriptorsSet = descriptorsPool.allocate(*layout);
+
     // Spawn thread handling asynchronous data transfers
     // (TODO: in future get back to Task-Pool)
     streamingThread = startThread(threadAsyncStreaming, this);
+
+    // Ensure streaming thread started executing
+    while(!streamingThread->working()) {};
 }
    
 Streamer::~Streamer()
@@ -1407,7 +1423,9 @@ Streamer::~Streamer()
     terminating = true;
     streamingThread->wakeUp();
     streamingThread->waitUntilCompleted();
-   
+
+    delete descriptorsSet;
+
     delete transferQueue;
    
     downloadBuffer->unmap();
@@ -2507,6 +2525,9 @@ bool Streamer::makeResident(const uint32 textureId, const bool lock)
         assert(0);
     }
 
+    // Bind view of diffuse texture in GPU descriptors set.
+    descriptorsSet->setTextureView(textureId, *descriptor.gpuTextureView);
+
     availableTextureMemory -= descriptor.sysSize;
       
     descriptor.locked = lock;
@@ -2550,17 +2571,16 @@ bool Streamer::makeResidentRegion3D(const uint32 textureId,
     return false;
 }
 
-void Streamer::evictTexture(TextureAllocation& desc)
+void Streamer::evictTexture(TextureAllocation& descriptor)
 {
     // TODO: Make it thread safe
     // assert( !descInternal.locked );
    
-    desc.gpuTexture = nullptr;
-    desc.resident   = false;
+    descriptor.gpuTextureView = nullptr;
+    descriptor.gpuTexture     = nullptr;
+    descriptor.resident       = false;
    
-    availableTextureMemory += desc.sysSize;
-
-    desc.sysSize    = 0;
+    availableTextureMemory += descriptor.sysSize;
 }
 
 bool Streamer::evict(const uint32 textureId)

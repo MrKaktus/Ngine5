@@ -217,6 +217,13 @@ AssetManager::AssetManager() :
     pathAssets = "./assets/";
     pathScreenshots = "./screenshots/";
 
+    // (0) Inits resource streamer
+    if (!initResourceStreamer())
+    {
+        // TODO: Critical engine error. Terminate application!
+        return;
+    }
+
     // (1) First pass - build resources catalog
     if (!buildResourcesCatalog())
     {
@@ -237,6 +244,51 @@ AssetManager::AssetManager() :
 AssetManager::~AssetManager()
 {
     enLog("Closing module: Assets.\n");
+
+    delete streamer;
+    delete descriptorsPool;
+    gpu = nullptr;
+}
+
+bool AssetManager::initResourceStreamer(void)
+{
+    gpu = Graphics->device(0);
+    if (!gpu) // unlikely
+    {
+        // TODO: Critical engine error. Terminate application!
+        return false;
+    }
+
+    // TODO: Problematic part is that we now allocate all GPU resources from the same 
+    //       pool that is internal property of AssetManager. We shouldn't need to touch 
+    //       AssetManager if we want to create Sampler, Image, Uniform or Storage buffers
+    //       (or some specialized textures like rendertargets).
+    // TODO: Need to get rid of descriptor pool and sets abstraction in favor of argument 
+    //       buffers or descriptor buffers.
+    // TODO: Need to expose Streamer object up, so Renderer can use it directly (as well as pool).
+    //
+    // Pool of resource descriptors with maximum available descriptors per resource type
+    uint32 countPerSet[5];
+    countPerSet[underlyingType(gpu::ResourceType::Sampler)] = 256;
+    countPerSet[underlyingType(gpu::ResourceType::Texture)] = MaxTexturesCount; // TODO: Figure out what to do with other types.
+    countPerSet[underlyingType(gpu::ResourceType::Image)]   = 256;
+    countPerSet[underlyingType(gpu::ResourceType::Uniform)] = 256; 
+    countPerSet[underlyingType(gpu::ResourceType::Storage)] = 256;
+    uint32 totalCount = 0;
+    for (uint32 i = 0; i < 5; ++i)
+    {
+        totalCount += countPerSet[i];
+    }
+    descriptorsPool = gpu->createDescriptorsPool(totalCount, countPerSet);
+
+    streamer = new Streamer(*gpu, *descriptorsPool);
+    if (!streamer) // unlikely
+    {
+        // TODO: Critical engine error. Terminate application!
+        return false;
+    }
+
+    return true;
 }
 
 const std::string& AssetManager::assetsPath(void) const

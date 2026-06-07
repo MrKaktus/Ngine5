@@ -890,6 +890,20 @@ void VulkanDevice::init()
             support.systemMemorySize += memory.memoryHeaps[i].size;  
         } 
     }
+    // TODO: Vulkan does not expose equivalent of DXGI_ADAPTER_DESC1::SharedSystemMemory
+    //       Use VK_EXT_memory_budget extension, to query per memory heap sizes:
+    // 
+    // VkPhysicalDeviceMemoryBudgetPropertiesEXT
+    // {
+    //     VkDeviceSize heapBudget[VK_MAX_MEMORY_HEAPS];
+    //     VkDeviceSize heapUsage[VK_MAX_MEMORY_HEAPS];
+    // }
+    //
+    // Current WA:
+    if (support.systemMemorySize == 0)
+    {
+        support.systemMemorySize = support.videoMemorySize;
+    }
 
     // Input Assembler
     support.maxInputLayoutBuffersCount    = properties.limits.maxVertexInputBindings;

@@ -358,7 +358,7 @@ struct TextureState
                             ///< Array:        layers
                             ///< 3D:           depth planes (in mip 0)
                             ///< CubeMap:      6 faces
-                            ///< CubeMapArray: layers * 6 faces (for each cube)
+                            ///< CubeMapArray: layers * 6 faces (of each cube)
     uint8         mipmaps;  ///< Mip maps count from mip0 (texture may be missing mip-tail)
     uint8         samples;
 

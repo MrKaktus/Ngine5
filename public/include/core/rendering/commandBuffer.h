@@ -37,22 +37,22 @@ namespace en
 namespace gpu
 {
 
-typedef struct
+struct IndirectDrawArgument
 {
-    uint32 elements;
-    uint32 instances;
-    uint32 firstElement;
-    uint32 firstInstance;
-} IndirectDrawArgument;
+    uint32 vertexCount;     // Vertices in Vertex Buffer describing drawn mesh.
+    uint32 instancesCount;  // Instances to process
+    uint32 firstVertex;     // Vertex to start from in shared Vertex Buffer (or zero).
+    uint32 firstInstance;   // Starting InstanceID (can be used as a offset in shared Instance Buffer)
+};
 
-typedef struct
+struct IndirectIndexedDrawArgument
 {
-    uint32 elements;        // Elements to process (indexes in Index buffer)
-    uint32 instances;       // Instances to process
-    uint32 firstElement;    // Element to start from (index in Index buffer)
+    uint32 indexCount;      // Elements to process (indexes in Index buffer)
+    uint32 instancesCount;  // Instances to process
+    uint32 firstIndex;      // Element to start from (index in shared Index buffer)
     sint32 firstVertex;     // Starting VertexID (can be negative)
     uint32 firstInstance;   // Starting InstanceID
-} IndirectIndexedDrawArgument;
+};
 
 // Try to limit amount of Command Buffers to 15-30 per frame, and submit
 // them in batches, to limit submissions to ~5 per queue per frame (engine

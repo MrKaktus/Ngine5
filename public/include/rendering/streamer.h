@@ -23,6 +23,9 @@
 
 #include "memory/circularQueue.h"
 
+// Maximum allowed count of GPU textures
+#define MaxTexturesCount 1024
+
 namespace en
 {
 
@@ -526,8 +529,10 @@ struct StreamerSettings
 class Streamer
 {
     public:
-    gpu::GpuDevice& gpu;
-    gpu::QueueType  queueForTransfers;
+    gpu::GpuDevice&     gpu;
+    gpu::Descriptors&   descriptorsPool;
+    gpu::DescriptorSet* descriptorsSet;
+    gpu::QueueType      queueForTransfers;
 
     uint64 dedicatedMemorySize;    // Total size of GPU dedicated memory
     uint64 systemMemorySize;       // Total size of system memory GPU can access
@@ -616,7 +621,7 @@ class Streamer
 
 public:
 
-    Streamer(gpu::GpuDevice& gpu, const StreamerSettings* settings = nullptr);
+    Streamer(gpu::GpuDevice& gpu, gpu::Descriptors& descriptorsPool, const StreamerSettings* settings = nullptr);
    ~Streamer();
  
     bool allocateMemory(const uint32 size, BufferAllocation*& desc);

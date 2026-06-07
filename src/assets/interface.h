@@ -17,6 +17,7 @@
 #include "core/types/uuid.h"
 #include "core/algorithm/hash.h"
 #include "assets/assets.h"
+#include "rendering/streamer.h"  // TODO: Consider moving to "assets/streamer.h" and renaming to AssetStreamer to better reflect it handles assets steaming to GPU rather than being GPU extension?
 
 // Comment out to use deterministic hash128 instead of UUID
 #define EN_ASSET_ID_IS_UUID 
@@ -211,7 +212,15 @@ class AssetManager : public Interface
 
     std::unordered_map<AssetSignature, AssetID> assetSignatureToID; // Used only to avoid duplicate asset descriptors in asset catalog.
 
+    // Resource streamer
+
+    std::shared_ptr<gpu::GpuDevice> gpu;
+    gpu::Descriptors* descriptorsPool;
+    Streamer* streamer;
+
 private:
+
+    bool initResourceStreamer(void);
 
     // Resources:
 
@@ -259,8 +268,8 @@ public:
     AssetManager();
    ~AssetManager();
 
-   virtual const std::string& assetsPath(void) const;
-   virtual const std::string& screenshotsPath(void) const;
+    virtual const std::string& assetsPath(void) const;
+    virtual const std::string& screenshotsPath(void) const;
 };
 
 } // en::assets
