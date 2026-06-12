@@ -171,9 +171,6 @@ namespace en
 
 
 
-
-
-
 BufferCache* releaseCache(BufferCache* cache)
 {
     delete cache->allocator;
@@ -1377,6 +1374,7 @@ Streamer::Streamer(gpu::GpuDevice& _gpu, gpu::Descriptors& _descriptorsPool, con
    
     // Pre-allocate pool of texture resource descriptors
     textureResourcesPool = new PoolAllocator<TextureAllocation>(DefaultResourcesCount, MaximumResourcesCount);
+    texturesGeneration.store(0, std::memory_order_release);
 
     // Determine which GPU queue is best for data transfers
     if (gpu.queues(gpu::QueueType::Transfer) > 0u)
@@ -1517,7 +1515,7 @@ bool Streamer::initTextureHeap(TextureCache& textureCache)
    
     return true;
 }
-   
+
 // Buffers are kept in both system memory and resident memory, and are accessible
 // by GPU from both locations. Load balancing textures residency will require
 // storing them in system memory but already in tiled form accessible by GPU
@@ -2085,9 +2083,33 @@ MipMemoryLayout* generateTextureMemoryLayout(const gpu::TextureState& state, con
 //         can cast textures with the same bpp only?
 // NV    - stores texture format info in Page Table Entries, so cannot cast easily
 
+TextureAllocation* Streamer::acquireTextureDescriptor(const assets::AssetHandle handle) const
+{
+    if (handle.type != assets::AssetType::Surface) // unlikely
+    {
+        logError("Expected texture asset handle! Received: %u.\n", underlyingType(handle.type));
+        return nullptr;
+    }
+ 
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(handle.index);
+    if (!temp) // unlikely
+    {
+        logError("Texture asset index %u is out of range!\n", handle.index);
+        return nullptr;
+    }
+    TextureAllocation& descriptor = *temp;
 
+    if (descriptor.valid && descriptor.generation == handle.generation)
+    {
+        return temp;
+    }
 
-bool Streamer::initAllocation(BufferCache& cache, const uint64 sysOffset, const uint64 size, const gpu::TextureState& state, const MipMemoryLayout* mipLayout, uint32& textureId)
+    logError("Texture asset handle is invalid!\nHandle (index: %u, generation: %u) vs descriptor (valid: %u, generation %u).\n", handle.index, handle.generation, descriptor.valid, descriptor.generation);
+    return nullptr;
+}
+
+bool Streamer::initAllocation(BufferCache& cache, const uint64 sysOffset, const uint64 size, const gpu::TextureState& state, const MipMemoryLayout* mipLayout, assets::AssetHandle& handle)
 {
     // Allocate resource descriptor
     TextureAllocation* temp = textureResourcesPool->allocate();
@@ -2099,6 +2121,7 @@ bool Streamer::initAllocation(BufferCache& cache, const uint64 sysOffset, const 
 
     // Acquire resource ID
     // Matching slot in GPU texture descriptors wil be referenced with the same textureId.
+    uint32 textureId = 0;
     if (!textureResourcesPool->index(descriptor, textureId)) // unlikely
     {
         // This should never happen once its allocated
@@ -2126,14 +2149,35 @@ bool Streamer::initAllocation(BufferCache& cache, const uint64 sysOffset, const 
 
     descriptor.sysHeapOffset = static_cast<uint32>(sysOffset);
     descriptor.sysSize       = size;
-
+    descriptor.reserved0     = 0;
     descriptor.locked        = false;
     descriptor.resident      = false;
+
+    // TODO: We need pool allocator to track per-slot generation ?
+    //
+    // TextureAllocations are always allocated from the pool. 
+    // This means its backing memory is always expected to be
+    // modified and corrupted after previous allocation, and
+    // thus its expected to always be initialized from scratch
+    // (like we do it here). Thus generation will always reset
+    // (there is no way to maintain it across allocations for
+    // given slot in the pool). As a WA we use global generation
+    // number generator. This way wile entries still keep it
+    // while they are valid, they don't need to keep it while
+    // invalid (for increase purpose). Source of generation is
+    // external.
+    descriptor.valid         = true;
+    descriptor.generation    = texturesGeneration.fetch_add(1);
+
+    // Creates asset handle
+    handle.type       = assets::AssetType::Surface;
+    handle.index      = textureId;
+    handle.generation = descriptor.generation;
 
     availableSystemMemory -= size;
 }
 
-bool Streamer::allocateMemory(const gpu::TextureState& state, uint32& textureId)
+bool Streamer::allocateMemory(const gpu::TextureState& state, assets::AssetHandle& handle)
 {
     // Calculate texture layout in system memory
     MipMemoryLayout* mipLayout = generateTextureMemoryLayout(state, &gpu);
@@ -2180,7 +2224,7 @@ bool Streamer::allocateMemory(const gpu::TextureState& state, uint32& textureId)
             continue;
         }
 
-        if (!initAllocation(**cache, sysOffset, sysSize, state, mipLayout, textureId)) // unlikely
+        if (!initAllocation(**cache, sysOffset, sysSize, state, mipLayout, handle)) // unlikely
         {
             // Its possible that in case of allocating massive amounts of small
             // resources we run out of GPU descriptors faster than out of memory.
@@ -2208,7 +2252,7 @@ bool Streamer::allocateMemory(const gpu::TextureState& state, uint32& textureId)
             // This is new empty Heap so allocation should always succeed
             assert( allocated );
    
-            if (!initAllocation(**cache, sysOffset, sysSize, state, mipLayout, textureId)) // unlikely
+            if (!initAllocation(**cache, sysOffset, sysSize, state, mipLayout, handle)) // unlikely
             {
                 // Its possible that in case of allocating massive amounts of small
                 // resources we run out of GPU descriptors faster than out of memory.
@@ -2222,13 +2266,12 @@ bool Streamer::allocateMemory(const gpu::TextureState& state, uint32& textureId)
     return allocated;
 }
    
-void Streamer::deallocateMemory(const uint32 textureId)
+void Streamer::deallocateMemory(const assets::AssetHandle handle)
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return;
     }
     TextureAllocation& descriptor = *temp;
@@ -2248,13 +2291,12 @@ void Streamer::deallocateMemory(const uint32 textureId)
     textureResourcesPool->deallocate(descriptor);
 }
 
-const gpu::TextureState* Streamer::textureState(const uint32 textureId) const
+const gpu::TextureState* Streamer::textureState(const assets::AssetHandle handle) const
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return nullptr;
     }
     TextureAllocation& descriptor = *temp;
@@ -2263,16 +2305,15 @@ const gpu::TextureState* Streamer::textureState(const uint32 textureId) const
 }
 
 // Returns pointer to system memory backing this texture resource specific surface
-void* Streamer::systemMemory(const uint32 textureId,
+void* Streamer::systemMemory(const assets::AssetHandle handle,
                              const uint8 mipmap,
                              const uint16 layer,  // Layer of Array resource
                              const uint8 plane)   // Plane of multi-plane surface
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return nullptr;
     }
     TextureAllocation& descriptor = *temp;
@@ -2287,7 +2328,7 @@ void* Streamer::systemMemory(const uint32 textureId,
     BufferCache* sysHeap = cpuHeap->entry(descriptor.sysHeapIndex);
     if (!temp) // unlikely
     {
-        logCritical("Suspected memory corruption while accessing address of system heap %u backing texture: %u!\n", descriptor.sysHeapIndex, textureId);
+        logCritical("Suspected memory corruption while accessing address of system heap %u backing texture: %u!\n", descriptor.sysHeapIndex, handle.index);
         return nullptr;
     }
     uint8* sysAddress = (uint8*)(sysHeap->sysAddress) + descriptor.sysHeapOffset;
@@ -2447,13 +2488,12 @@ void* Streamer::systemMemory(const uint32 textureId,
 
 
   
-bool Streamer::makeResident(const uint32 textureId, const bool lock)
+bool Streamer::makeResident(const assets::AssetHandle handle, const bool lock)
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return false;
     }
     TextureAllocation& descriptor = *temp;
@@ -2540,7 +2580,7 @@ bool Streamer::makeResident(const uint32 textureId, const bool lock)
     }
 
     // Bind view of diffuse texture in GPU descriptors set.
-    descriptorsSet->setTextureView(textureId, *descriptor.gpuTextureView);
+    descriptorsSet->setTextureView(handle.index, *descriptor.gpuTextureView);
 
     availableTextureMemory -= descriptor.sysSize;
       
@@ -2548,7 +2588,7 @@ bool Streamer::makeResident(const uint32 textureId, const bool lock)
     return true;
 }
 
-bool Streamer::makeResidentSurface(const uint32 textureId,
+bool Streamer::makeResidentSurface(const assets::AssetHandle handle,
                                    const uint8 mipmap,
                                    const uint16 layer,
                                    const uint8 plane)
@@ -2558,7 +2598,7 @@ bool Streamer::makeResidentSurface(const uint32 textureId,
     return false;
 }
 
-bool Streamer::makeResidentVolume(const uint32 textureId,
+bool Streamer::makeResidentVolume(const assets::AssetHandle handle,
                                   const uint8 mipmap)
 {
     // TODO: Finish, consider what level of interface is really needed.
@@ -2566,7 +2606,7 @@ bool Streamer::makeResidentVolume(const uint32 textureId,
     return false;
 }
 
-bool Streamer::makeResidentRegion2D(const uint32 textureId,
+bool Streamer::makeResidentRegion2D(const assets::AssetHandle handle,
                                     const tileRegion2D region,
                                     const uint8 mipmap,
                                     const uint16 layer)
@@ -2576,7 +2616,7 @@ bool Streamer::makeResidentRegion2D(const uint32 textureId,
     return false;
 }
 
-bool Streamer::makeResidentRegion3D(const uint32 textureId,
+bool Streamer::makeResidentRegion3D(const assets::AssetHandle handle,
                                     const tileRegion3D region,
                                     const uint8 mipmap)
 {
@@ -2597,13 +2637,12 @@ void Streamer::evictTexture(TextureAllocation& descriptor)
     availableTextureMemory += descriptor.sysSize;
 }
 
-bool Streamer::evict(const uint32 textureId)
+bool Streamer::evict(const assets::AssetHandle handle)
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return false;
     }
     TextureAllocation& descriptor = *temp;
@@ -2617,7 +2656,7 @@ bool Streamer::evict(const uint32 textureId)
     return true;
 }
 
-bool Streamer::evictSurface(const uint32 textureId,
+bool Streamer::evictSurface(const assets::AssetHandle handle,
                             const uint8 mipmap,
                             const uint16 layer,
                             const uint8 plane)
@@ -2627,7 +2666,7 @@ bool Streamer::evictSurface(const uint32 textureId,
     return false;
 }
 
-bool Streamer::evictVolume(const uint32 textureId,
+bool Streamer::evictVolume(const assets::AssetHandle handle,
                            const uint8 mipmap)
 {
     // TODO: Finish, consider what level of interface is really needed.
@@ -2635,7 +2674,7 @@ bool Streamer::evictVolume(const uint32 textureId,
     return false;
 }
 
-bool Streamer::evictRegion2D(const uint32 textureId,
+bool Streamer::evictRegion2D(const assets::AssetHandle handle,
                              const tileRegion2D region,
                              const uint8 mipmap,
                              const uint16 layer)
@@ -2645,7 +2684,7 @@ bool Streamer::evictRegion2D(const uint32 textureId,
     return false;
 }
 
-bool Streamer::evictRegion3D(const uint32 textureId,
+bool Streamer::evictRegion3D(const assets::AssetHandle handle,
                              const tileRegion3D region,
                              const uint8 mipmap)
 {
@@ -2796,14 +2835,13 @@ bool Streamer::transferVolume(const TextureAllocation& descriptor,
     return true;
 }
    
-bool Streamer::transfer(const uint32 textureId,
+bool Streamer::transfer(const assets::AssetHandle handle,
                         const TransferDirection direction)
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return false;
     }
     TextureAllocation& descriptor = *temp;
@@ -2814,7 +2852,7 @@ bool Streamer::transfer(const uint32 textureId,
         // Upload from smallest mipmap to most detailed one
         for(sint32 i=(descriptor.state.mipmaps-1); i>=0; --i)
         {
-            if (!transferVolume(descriptor, textureId, i, direction))
+            if (!transferVolume(descriptor, handle.index, i, direction))
             {
                 result = false;
                 break;
@@ -2832,7 +2870,7 @@ bool Streamer::transfer(const uint32 textureId,
             {
                 for(uint32 k=0; k<descriptor.state.planes(); ++k)
                 {
-                    if (!transferSurface(descriptor, textureId, i, j, k, direction))
+                    if (!transferSurface(descriptor, handle.index, i, j, k, direction))
                     {
                         result = false;
                         break;
@@ -2853,22 +2891,21 @@ bool Streamer::transfer(const uint32 textureId,
     return result;
 }
    
-bool Streamer::transferSurface(const uint32 textureId,
+bool Streamer::transferSurface(const assets::AssetHandle handle,
                                const uint8 mipmap,
                                const uint16 layer,
                                const uint8 plane,
                                const TransferDirection direction)
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return false;
     }
     TextureAllocation& descriptor = *temp;
 
-    if (!transferSurface(descriptor, textureId, mipmap, layer, plane, direction))
+    if (!transferSurface(descriptor, handle.index, mipmap, layer, plane, direction))
     {
         return false;
     }
@@ -2881,20 +2918,19 @@ bool Streamer::transferSurface(const uint32 textureId,
     return true;
 }
 
-bool Streamer::transferVolume(const uint32 textureId,
+bool Streamer::transferVolume(const assets::AssetHandle handle,
                               const uint8 mipmap,
                               const TransferDirection direction)
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return false;
     }
     TextureAllocation& descriptor = *temp;
 
-    if (!transferVolume(descriptor, textureId, mipmap, direction))
+    if (!transferVolume(descriptor, handle.index, mipmap, direction))
     {
         return false;
     }
@@ -2907,7 +2943,7 @@ bool Streamer::transferVolume(const uint32 textureId,
     return true;
 }
    
-bool Streamer::transferRegion2D(const uint32 textureId,
+bool Streamer::transferRegion2D(const assets::AssetHandle handle,
                                 const tileRegion2D region,
                                 const uint8 mipmap,
                                 const uint16 layer,
@@ -2915,15 +2951,14 @@ bool Streamer::transferRegion2D(const uint32 textureId,
                                 const TransferDirection direction)
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return false;
     }
     TextureAllocation& descriptor = *temp;
 
-    if (!transferSurface(descriptor, textureId, region, mipmap, layer, plane, direction))
+    if (!transferSurface(descriptor, handle.index, region, mipmap, layer, plane, direction))
     {
         return false;
     }
@@ -2936,21 +2971,20 @@ bool Streamer::transferRegion2D(const uint32 textureId,
     return true;
 }
 
-bool Streamer::transferRegion3D(const uint32 textureId,
+bool Streamer::transferRegion3D(const assets::AssetHandle handle,
                                 const tileRegion3D region,
                                 const uint8 mipmap,
                                 const TransferDirection direction)
 {
     // Acquire referenced texture descriptor
-    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    TextureAllocation* temp = acquireTextureDescriptor(handle);
     if (!temp) // unlikely
     {
-        logError("textureId is out of range!\n");
         return false;
     }
     TextureAllocation& descriptor = *temp;
  
-    if (!transferVolume(descriptor, textureId, region, mipmap, direction))
+    if (!transferVolume(descriptor, handle.index, region, mipmap, direction))
     {
         return false;
     }
@@ -2969,74 +3003,74 @@ bool Streamer::transferRegion3D(const uint32 textureId,
 // Do we really need those?
 // Move everything below to .inl file as forceinline methods.
 
-bool Streamer::upload(const uint32 textureId)
+bool Streamer::upload(const assets::AssetHandle handle)
 {
-    return transfer(textureId, TransferDirection::DeviceUpload);
+    return transfer(handle, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::uploadSurface(const uint32 textureId,
+bool Streamer::uploadSurface(const assets::AssetHandle handle,
                              const uint8 mipmap,
                              const uint16 layer,
                              const uint8 plane)
 {
-    return transferSurface(textureId, mipmap, layer, plane, TransferDirection::DeviceUpload);
+    return transferSurface(handle, mipmap, layer, plane, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::uploadVolume(const uint32 textureId,
+bool Streamer::uploadVolume(const assets::AssetHandle handle,
                             const uint8 mipmap)
 {
-    return transferVolume(textureId, mipmap, TransferDirection::DeviceUpload);
+    return transferVolume(handle, mipmap, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::uploadRegion2D(const uint32 textureId,
+bool Streamer::uploadRegion2D(const assets::AssetHandle handle,
                               const tileRegion2D region,
                               const uint8 mipmap,
                               const uint16 layer,
                               const uint8 plane)
 {
-    return transferRegion2D(textureId, region, mipmap, layer, plane, TransferDirection::DeviceUpload);
+    return transferRegion2D(handle, region, mipmap, layer, plane, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::uploadRegion3D(const uint32 textureId,
+bool Streamer::uploadRegion3D(const assets::AssetHandle handle,
                               const tileRegion3D region,
                               const uint8 mipmap)
 {
-    return transferRegion3D(textureId, region, mipmap, TransferDirection::DeviceUpload);
+    return transferRegion3D(handle, region, mipmap, TransferDirection::DeviceUpload);
 }
 
-bool Streamer::download(const uint32 textureId)
+bool Streamer::download(const assets::AssetHandle handle)
 {
-    return transfer(textureId, TransferDirection::DeviceDownload);
+    return transfer(handle, TransferDirection::DeviceDownload);
 }
 
-bool Streamer::downloadSurface(const uint32 textureId,
+bool Streamer::downloadSurface(const assets::AssetHandle handle,
                                const uint8 mipmap,
                                const uint16 layer,
                                const uint8 plane)
 {
-    return transferSurface(textureId, mipmap, layer, plane, TransferDirection::DeviceDownload);
+    return transferSurface(handle, mipmap, layer, plane, TransferDirection::DeviceDownload);
 }
 
-bool Streamer::downloadVolume(const uint32 textureId,
+bool Streamer::downloadVolume(const assets::AssetHandle handle,
                               const uint8 mipmap)
 {
-    return transferVolume(textureId, mipmap, TransferDirection::DeviceDownload);
+    return transferVolume(handle, mipmap, TransferDirection::DeviceDownload);
 }
 
-bool Streamer::downloadRegion2D(const uint32 textureId,
+bool Streamer::downloadRegion2D(const assets::AssetHandle handle,
                                 const tileRegion2D region,
                                 const uint8 mipmap,
                                 const uint16 layer,
                                 const uint8 plane)
 {
-    return transferRegion2D(textureId, region, mipmap, layer, plane, TransferDirection::DeviceDownload);
+    return transferRegion2D(handle, region, mipmap, layer, plane, TransferDirection::DeviceDownload);
 }
 
-bool Streamer::downloadRegion3D(const uint32 textureId,
+bool Streamer::downloadRegion3D(const assets::AssetHandle handle,
                                 const tileRegion3D region,
                                 const uint8 mipmap)
 {
-    return transferRegion3D(textureId, region, mipmap, TransferDirection::DeviceDownload);
+    return transferRegion3D(handle, region, mipmap, TransferDirection::DeviceDownload);
 }
 
 } // en

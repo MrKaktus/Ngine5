@@ -138,13 +138,6 @@ namespace assets
 // Invalid AssetSignature is 0
 #define InvalidAssetSignature hash128(0, 0)
 
-enum class AssetType : uint32
-{
-    Unknown              = 0,
-    Image                   ,
-    Count                   ,
-};
-
 class AssetDescriptor
 {
 protected:
