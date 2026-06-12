@@ -27,7 +27,7 @@ namespace en
 
 class IndexAllocator
 {
-    uint32 capacity; 
+    uint32 size; 
 
     std::atomic<uint32> next{0};
 
@@ -43,6 +43,8 @@ public:
 
     bool allocate(uint32& index);
     void free(const uint32 index);
+
+    forceinline uint32 capacity(void) const { return size; }
 };
 
 } // en

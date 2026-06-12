@@ -37,6 +37,12 @@ assets::Interface& Assets()
 
 namespace assets
 {
+
+AssetHandle::AssetHandle() :
+    value(0xFFFFFFFFFFFFFFFF)
+{
+}
+
 forceinline bool getExtensionPosition(const std::string& filename, uint64& extensionPosition)
 {
     uint64 position = filename.rfind(".");
@@ -836,7 +842,7 @@ ParsingResult parseAssetV1(const uint8* buffer, const uint64 size, AssetDescript
     // Parsed state
     uint64 version = 0;
     AssetID id;
-    AssetType assetType = AssetType::Unknown;
+    AssetType assetType = AssetType::Invalid;
     std::vector<UUID> resources;
 
     do

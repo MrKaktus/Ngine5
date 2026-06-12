@@ -19,7 +19,7 @@ namespace en
 {
 
 IndexAllocator::IndexAllocator(const uint32 _capacity) :
-    capacity(_capacity)
+    size(_capacity)
 {
 }
 
@@ -27,7 +27,7 @@ bool IndexAllocator::tryAllocateFresh(uint32& index)
 {
     uint32 current = next.load(std::memory_order_relaxed);
 
-    while (current < capacity)
+    while (current < size)
     {
         // current gets updated automatically on failure
         if (next.compare_exchange_weak(current, current + 1, std::memory_order_relaxed))
