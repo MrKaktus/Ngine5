@@ -636,6 +636,10 @@ public:
     bool allocateMemory(const gpu::TextureState& state, uint32& textureId);
     void deallocateMemory(const uint32 textureId);
    
+    // Properties:
+
+    const gpu::TextureState* textureState(const uint32 textureId) const;
+
     // Residency:
 
     // Only Sparse, single-plane resources can be partially resident or evicted.

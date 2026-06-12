@@ -2248,6 +2248,20 @@ void Streamer::deallocateMemory(const uint32 textureId)
     textureResourcesPool->deallocate(descriptor);
 }
 
+const gpu::TextureState* Streamer::textureState(const uint32 textureId) const
+{
+    // Acquire referenced texture descriptor
+    TextureAllocation* temp = textureResourcesPool->entry(textureId);
+    if (!temp) // unlikely
+    {
+        logError("textureId is out of range!\n");
+        return nullptr;
+    }
+    TextureAllocation& descriptor = *temp;
+
+    return &descriptor.state;
+}
+
 // Returns pointer to system memory backing this texture resource specific surface
 void* Streamer::systemMemory(const uint32 textureId,
                              const uint8 mipmap,
