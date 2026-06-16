@@ -1130,6 +1130,18 @@ bool AssetManager::findAssetDescriptorByID(const AssetID id, AssetDescriptor& de
     return false;
 }
 
+bool AssetManager::findAssetHandleByKey(const AssetKey& key, AssetHandle& handle) const
+{
+    std::unordered_map<AssetKey, AssetHandle>::const_iterator it = assetKeyToHandle.find(key);
+    if (it != assetKeyToHandle.end())
+    {
+        handle = it->second;
+        return true;
+    }
+
+    return false;
+}
+
 bool AssetManager::addAssetDescriptor(AssetDescriptor& descriptor)
 {
     AssetID id = descriptor.getID();

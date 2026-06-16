@@ -176,6 +176,7 @@ class AssetManager : public Interface
                                                                     // Either created at runtime, or loaded from disk.
 
     std::unordered_map<AssetSignature, AssetID> assetSignatureToID; // Used only to avoid duplicate asset descriptors in asset catalog.
+    std::unordered_map<AssetKey, AssetHandle> assetKeyToHandle;     // Used to avoid duplicating identical resource data in memory.
 
     // Resource streamer
 
@@ -223,6 +224,11 @@ private:
 
     bool findAssetIDBySignature(const AssetSignature& signature, AssetID& id) const;
     bool findAssetDescriptorByID(const AssetID id, AssetDescriptor& descriptor) const;
+
+    // Searches for runtime Asset Handle, based on Key calculated from Descriptor.
+    // This allows for runtime resources reuse if different descriptors generate
+    // identical key.
+    bool findAssetHandleByKey(const AssetKey& key, AssetHandle& handle) const;
 
     bool addAssetDescriptor(AssetDescriptor& descriptor);
 
