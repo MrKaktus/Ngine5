@@ -2085,7 +2085,7 @@ MipMemoryLayout* generateTextureMemoryLayout(const gpu::TextureState& state, con
 
 TextureAllocation* Streamer::acquireTextureDescriptor(const assets::AssetHandle handle) const
 {
-    if (handle.type != assets::AssetType::Surface) // unlikely
+    if (handle.type != assets::AssetType::Texture) // unlikely
     {
         logError("Expected texture asset handle! Received: %u.\n", underlyingType(handle.type));
         return nullptr;
@@ -2170,7 +2170,7 @@ bool Streamer::initAllocation(BufferCache& cache, const uint64 sysOffset, const 
     descriptor.generation    = texturesGeneration.fetch_add(1);
 
     // Creates asset handle
-    handle.type       = assets::AssetType::Surface;
+    handle.type       = assets::AssetType::Texture;
     handle.index      = textureId;
     handle.generation = descriptor.generation;
 

@@ -51,7 +51,7 @@ BufferD3D12::BufferD3D12(
 
         // Signature for Indirect Indexed Draws
         {
-            MaxCommandCount = size / sizeof(IndirectIndexedDrawArgument);
+            MaxCommandCount = UINT(size / sizeof(IndirectIndexedDrawArgument));
       
             argDescs = new D3D12_INDIRECT_ARGUMENT_DESC[MaxCommandCount];
             for(uint32 i=0; i<MaxCommandCount; ++i)
@@ -75,7 +75,7 @@ BufferD3D12::BufferD3D12(
 
         // Signature for Indirect draws
         {
-            MaxCommandCount = size / sizeof(IndirectDrawArgument);
+            MaxCommandCount = UINT(size / sizeof(IndirectDrawArgument));
       
             argDescs = new D3D12_INDIRECT_ARGUMENT_DESC[MaxCommandCount];
             for(uint32 i=0; i<MaxCommandCount; ++i)

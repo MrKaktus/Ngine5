@@ -22,17 +22,11 @@ namespace assets
 enum class AssetType : uint16
 {
     Buffer               = 0,
-    Surface                 ,
-    SurfaceArray            ,
-    Cube                    ,
-    CubeArray               ,
-    Volume                  ,
+    Texture                 ,
   //Material                ,
   //Model                   ,
   //SoundSample             ,
     Count                   ,
-
-    Image = Surface,  // TODO: Determine which naming to use!
 
     Invalid         = 0xFFFF,
 };

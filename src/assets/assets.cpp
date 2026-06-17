@@ -676,7 +676,7 @@ AssetDescriptor::AssetDescriptor(const AssetID id, const AssetType _type) :
 }
 
 ImageAssetDescriptor::ImageAssetDescriptor(const UUID& uuid) :
-    AssetDescriptor(AssetType::Image)
+    AssetDescriptor(AssetType::Texture)
 {
     // Source:
 
@@ -689,7 +689,7 @@ ImageAssetDescriptor::ImageAssetDescriptor(const UUID& uuid) :
 }
 
 ImageAssetDescriptor::ImageAssetDescriptor(const std::vector<UUID>& uuids) :
-    AssetDescriptor(AssetType::Image)
+    AssetDescriptor(AssetType::Texture)
 {
     sourceFile = uuids;
 }
@@ -698,13 +698,7 @@ ImageAssetDescriptor::ImageAssetDescriptor(const std::vector<UUID>& uuids) :
 //
 // {
 //     "version" : 1,
-// 
-// When asset ID is hash128:
-//     "id" : 0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,
-// 
-// When asset ID is UUID:
 //     "id" : XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX,
-// 
 //     "type" : "image",
 //     "resources" : 
 //     [ 
@@ -730,7 +724,7 @@ bool AssetManager::storeAssetDescriptor(AssetDescriptor& descriptor, const std::
         writer.addKey("version", 1);
         writer.addKey("id", id.description());
 
-        if (descriptor.getType() == AssetType::Image)
+        if (descriptor.getType() == AssetType::Texture)
         {
             ImageAssetDescriptor& imageDescriptor = *((ImageAssetDescriptor*)&descriptor);
 
@@ -907,7 +901,7 @@ ParsingResult parseAssetV1(const uint8* buffer, const uint64 size, AssetDescript
             // Convert string into AssetType
             if (typeString == "image")
             {
-                assetType = AssetType::Image;
+                assetType = AssetType::Texture;
             }
             else
             {
@@ -943,7 +937,7 @@ ParsingResult parseAssetV1(const uint8* buffer, const uint64 size, AssetDescript
             return ParsingResult::Unsupported;
         }
 
-        if (assetType == AssetType::Image)
+        if (assetType == AssetType::Texture)
         {
             descriptor = new ImageAssetDescriptor(resources);
             descriptor->setID(id);
@@ -1158,6 +1152,102 @@ bool AssetManager::addAssetDescriptor(AssetDescriptor& descriptor)
 
     assetDescriptors[id] = &descriptor;
     assetSignatureToID[signature] = id;
+
+    return true;
+}
+
+bool AssetManager::loadImage(const std::string& filename, const assets::AssetHandle handle, const uint8 mipmap, const uint16 layer, const uint8 plane)
+{
+    // Acquire texture state
+    const gpu::TextureState* temp = streamer->textureState(handle);
+    if (!temp) // unlikely
+    {
+        return false;
+    }
+    const gpu::TextureState& textureState = *temp;
+
+    // Populate resource with data
+
+    // Retrieve system memory adress for given texture surface
+    // (mipmap, layer, plane are optional parameters).
+    uint8* address = reinterpret_cast<uint8*>(streamer->systemMemory(handle, mipmap, layer, plane));
+    gpu::ImageMemoryAlignment alignment = gpu->textureMemoryAlignment(textureState, mipmap, layer);  // TODO: Pass in: plane!
+
+    // Decompress texture directly to staging buffer, taking into notice padding
+    bool result = false;
+    const FileExtension extension = fileExtension(filename);
+    if (extension == FileExtension::BMP)
+    {
+        result = bmp::load(filename,
+                           address,
+                           textureState.mipWidth(mipmap),
+                           textureState.mipHeight(mipmap),
+                           textureState.format,
+                           alignment,
+                           false); // TODO: invertHorizontally (currently ignored)
+        assert(result);
+    }
+    else
+    if (extension == FileExtension::EXR)
+    {
+        result = exr::load(filename,
+                           address,
+                           textureState,
+                           alignment,
+                           mipmap,  // TODO: Selected mipmap to load (currently ignored). Distinguish asset destination mipmap vs resource source mipmap!
+                           layer);  // TODO: Selected layer to load (currently ignored). Distinguish asset destination layer vs resource source layer!
+        assert(result);
+    }
+    else
+    if (extension == FileExtension::HDR)
+    {
+        result = hdr::load(filename,
+                           address,
+                           textureState.mipWidth(mipmap),
+                           textureState.mipHeight(mipmap),
+                           textureState.format,
+                           alignment,
+                           false); // TODO: invertHorizontally (currently ignored)
+        assert(result);
+    }
+    else
+    if (extension == FileExtension::PNG)
+    {
+        result = png::load(filename,
+                           address,
+                           textureState.mipWidth(mipmap),
+                           textureState.mipHeight(mipmap),
+                           textureState.format,
+                           alignment,
+                           false);
+        assert(result);
+    }
+    else
+    if (extension == FileExtension::TGA)
+    {
+        result = tga::load(filename,
+                           address,
+                           textureState.mipWidth(0),
+                           textureState.mipHeight(0),
+                           textureState.format,
+                           alignment,
+                           false); // TODO: invertHorizontally (currently ignored)
+        assert(result);
+    }
+    else
+    {
+        // TODO: Add support for other recognized image file extensions
+        //       At this point this should be known image texture file
+        //       (extension verified as supported on earlier stage).
+        assert(0);
+        return false;
+    }
+
+    if (!result)
+    {
+        logError("Failed to load data to texture %u mipmap %u from file:\n%s\n", handle.index, mipmap, filename.c_str());
+        return false;
+    }
 
     return true;
 }

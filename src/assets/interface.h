@@ -232,6 +232,10 @@ private:
 
     bool addAssetDescriptor(AssetDescriptor& descriptor);
 
+    // Loads content of specified image file, into destination asset of type texture.
+    // Optionally destination mipmap, layer and plane of that asset can be specified.
+    bool loadImage(const std::string& filename, const assets::AssetHandle handle, const uint8 mipmap = 0U, const uint16 layer = 0U, const uint8 plane = 0U);
+
 public:
     static bool create(void);                      // Creates instance of this class (implementation specific) and assigns it to "en::Assets".
     static void destroy(void);                     // Destroys instance of this class
