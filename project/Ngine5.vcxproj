@@ -179,6 +179,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\include\assets\assets.h" />
+    <ClInclude Include="..\public\include\assets\handle.h" />
     <ClInclude Include="..\public\include\audio\audio.h" />
     <ClInclude Include="..\public\include\core\algorithm\allocator.h" />
     <ClInclude Include="..\public\include\core\algorithm\hash.h" />
