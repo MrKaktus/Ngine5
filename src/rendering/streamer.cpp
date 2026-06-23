@@ -1276,10 +1276,9 @@ void* threadAsyncStreaming(Thread* thread)
     return nullptr;
 }
 
-Streamer::Streamer(gpu::GpuDevice& _gpu, gpu::Descriptors& _descriptorsPool, const StreamerSettings* settings) :
+Streamer::Streamer(gpu::GpuDevice& _gpu, gpu::DescriptorSet& _descriptors, const StreamerSettings* settings) :
     gpu(_gpu),
-    descriptorsPool(_descriptorsPool),
-    descriptorsSet(nullptr),
+    descriptors(_descriptors),
     queueForTransfers(QueueType::Universal),
     downloadAllocationSize(DownloadAllocationSize*MB),
     systemAllocationSize(SystemAllocationSize*MB),
@@ -1373,7 +1372,7 @@ Streamer::Streamer(gpu::GpuDevice& _gpu, gpu::Descriptors& _descriptorsPool, con
     bufferResourcesInternalPool = new PoolAllocator<BufferAllocationInternal>(DefaultResourcesCount, MaximumResourcesCount);
    
     // Pre-allocate pool of texture resource descriptors
-    textureResourcesPool = new PoolAllocator<TextureAllocation>(DefaultResourcesCount, MaximumResourcesCount);
+    textureResourcesPool = new PoolAllocator<TextureAllocation>(DefaultResourcesCount, MaxTexturesCount);
     texturesGeneration.store(0, std::memory_order_release);
 
     // Determine which GPU queue is best for data transfers
@@ -1399,13 +1398,11 @@ Streamer::Streamer(gpu::GpuDevice& _gpu, gpu::Descriptors& _descriptorsPool, con
     }
       
     transferQueue = new CircularQueue<TransferResource>(1024, 4);
-
-    // Layout that should be covering all texture descriptors in the pool
-    ResourceGroup group[1] = { {ResourceType::Texture, MaxTexturesCount} };
-    const SetLayout* layout = gpu.createSetLayout(1, group);
-
-    // Allocate backing descriptors from the pool
-    descriptorsSet = descriptorsPool.allocate(*layout);
+    if (!transferQueue) // unlikely
+    {
+        logCritical("Could not init GPU streamer! Unable to allocate transfer queue!\n");
+        return;
+    }
 
     // Spawn thread handling asynchronous data transfers
     // (TODO: in future get back to Task-Pool)
@@ -1421,8 +1418,7 @@ Streamer::~Streamer()
     terminating = true;
     streamingThread->wakeUp();
     streamingThread->waitUntilCompleted();
-
-    delete descriptorsSet;
+    streamingThread = nullptr;
 
     delete transferQueue;
    
@@ -2580,7 +2576,7 @@ bool Streamer::makeResident(const assets::AssetHandle handle, const bool lock)
     }
 
     // Bind view of diffuse texture in GPU descriptors set.
-    descriptorsSet->setTextureView(handle.index, *descriptor.gpuTextureView);
+    descriptors.setTextureView(handle.index, *descriptor.gpuTextureView);
 
     availableTextureMemory -= descriptor.sysSize;
       

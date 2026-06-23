@@ -181,7 +181,9 @@ class AssetManager : public Interface
     // Resource streamer
 
     std::shared_ptr<gpu::GpuDevice> gpu;
-    gpu::Descriptors* descriptorsPool;
+    gpu::Descriptors*   descriptorsPool;
+    gpu::SetLayout*     descriptorsLayout;
+    gpu::DescriptorSet* descriptorsSet;
     Streamer* streamer;
 
 private:
@@ -245,6 +247,11 @@ public:
 
     virtual const std::string& assetsPath(void) const;
     virtual const std::string& screenshotsPath(void) const;
+
+    virtual gpu::SetLayout& getDescriptorsLayout(void) const;
+    virtual gpu::DescriptorSet& getDescriptors(void) const;
+    virtual uint32 getSamplerDescriptorsBaseIndex(void) const;
+    virtual uint32 getUniformDescriptorsBaseIndex(void) const;
 };
 
 } // en::assets

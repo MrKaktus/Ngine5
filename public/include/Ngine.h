@@ -55,6 +55,7 @@
 #include "audio/audio.h"         // Public interface - TODO: Finish!
 
 #include "core/rendering/device.h" // Public interface
+#include "assets/assets.h"
 #include "resources/resources.h"   // Public interface
 #include "resources/forsyth.h"     // Public interface
 #include "resources/bmp.h"         // Public interface

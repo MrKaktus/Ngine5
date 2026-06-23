@@ -24,8 +24,10 @@
 #include "memory/circularQueue.h"
 #include "assets/handle.h"
 
-// Maximum allowed count of GPU textures
+// Maximum allowed count of GPU resources of given type
 #define MaxTexturesCount 1024
+#define MaxUniformsCount 1024
+#define MaxSamplersCount 1024
 
 namespace en
 {
@@ -418,8 +420,7 @@ class Streamer
 {
     public:
     gpu::GpuDevice&     gpu;
-    gpu::Descriptors&   descriptorsPool;
-    gpu::DescriptorSet* descriptorsSet;
+    gpu::DescriptorSet& descriptors;
     gpu::QueueType      queueForTransfers;
 
     uint64 dedicatedMemorySize;    // Total size of GPU dedicated memory
@@ -512,7 +513,10 @@ class Streamer
 
 public:
 
-    Streamer(gpu::GpuDevice& gpu, gpu::Descriptors& descriptorsPool, const StreamerSettings* settings = nullptr);
+    // Streamer will be setting texture views in passed in descriptors buffer
+    // at indexes matching those texture object allocations in internal pool
+    // (and thus matching their AssetHandle index).
+    Streamer(gpu::GpuDevice& gpu, gpu::DescriptorSet& descriptors, const StreamerSettings* settings = nullptr);
    ~Streamer();
  
     bool allocateMemory(const uint32 size, BufferAllocation*& desc);

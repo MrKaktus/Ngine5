@@ -252,6 +252,8 @@ AssetManager::~AssetManager()
     enLog("Closing module: Assets.\n");
 
     delete streamer;
+    delete descriptorsSet;
+    delete descriptorsLayout;
     delete descriptorsPool;
     gpu = nullptr;
 }
@@ -275,10 +277,10 @@ bool AssetManager::initResourceStreamer(void)
     //
     // Pool of resource descriptors with maximum available descriptors per resource type
     uint32 countPerSet[5];
-    countPerSet[underlyingType(gpu::ResourceType::Sampler)] = 256;
+    countPerSet[underlyingType(gpu::ResourceType::Sampler)] = MaxSamplersCount;
     countPerSet[underlyingType(gpu::ResourceType::Texture)] = MaxTexturesCount; // TODO: Figure out what to do with other types.
     countPerSet[underlyingType(gpu::ResourceType::Image)]   = 256;
-    countPerSet[underlyingType(gpu::ResourceType::Uniform)] = 256; 
+    countPerSet[underlyingType(gpu::ResourceType::Uniform)] = MaxUniformsCount; 
     countPerSet[underlyingType(gpu::ResourceType::Storage)] = 256;
     uint32 totalCount = 0;
     for (uint32 i = 0; i < 5; ++i)
@@ -287,10 +289,35 @@ bool AssetManager::initResourceStreamer(void)
     }
     descriptorsPool = gpu->createDescriptorsPool(totalCount, countPerSet);
 
-    streamer = new Streamer(*gpu, *descriptorsPool);
+    // Layout that should be covering all descriptors in the pool
+    //
+    // WARNING! It is important for texture descriptors to be first in the set,
+    //          so that texture descriptor indexes, can be determined when allocating
+    //          Streamer texture states from the pool (the same index is referencing
+    //          both!).
+    //
+    gpu::ResourceGroup group[] = { {gpu::ResourceType::Texture, MaxTexturesCount},
+                                   {gpu::ResourceType::Sampler, MaxUniformsCount},
+                                   {gpu::ResourceType::Uniform, MaxSamplersCount}, };
+    descriptorsLayout = gpu->createSetLayout(1, group);
+    if (!descriptorsLayout) // unlikely
+    {
+        logCritical("Could not init Asset Manager! Unable to allocate GPU descriptors layout!\n");
+        return false;
+    }
+
+    // Allocate backing descriptors from the pool
+    descriptorsSet = descriptorsPool->allocate(*descriptorsLayout);
+    if (!descriptorsSet) // unlikely
+    {
+        logCritical("Could not init Asset Manager! Unable to allocate GPU descriptors set!\n");
+        return false;
+    }
+
+    streamer = new Streamer(*gpu, *descriptorsSet);
     if (!streamer) // unlikely
     {
-        // TODO: Critical engine error. Terminate application!
+        logCritical("Could not init Asset Manager! Unable to allocate GPU streamer!\n");
         return false;
     }
 
@@ -1250,6 +1277,30 @@ bool AssetManager::loadImage(const std::string& filename, const assets::AssetHan
     }
 
     return true;
+}
+
+gpu::SetLayout& AssetManager::getDescriptorsLayout(void) const
+{
+    assert( descriptorsLayout );
+    return *descriptorsLayout;
+}
+
+gpu::DescriptorSet& AssetManager::getDescriptors(void) const
+{
+    assert( descriptorsSet );
+    return *descriptorsSet;
+}
+
+uint32 AssetManager::getSamplerDescriptorsBaseIndex(void) const
+{
+    // Sampler descriptors are following directly after Texture ones.
+    return MaxTexturesCount;
+}
+
+uint32 AssetManager::getUniformDescriptorsBaseIndex(void) const
+{
+    // Uniform descriptors are following directly after Texture and Sampler ones.
+    return MaxTexturesCount + MaxSamplersCount;
 }
 
 } // en::assets
