@@ -17,6 +17,7 @@
 
 #if defined(EN_MODULE_RENDERER_VULKAN)
 
+#include "core/log/log.h"
 #include "core/rendering/vulkan/vkValidate.h"
 #include "core/rendering/vulkan/vkDevice.h"
 #include "core/rendering/vulkan/vkCommandBuffer.h"
@@ -446,15 +447,125 @@ void CommandBufferVK::setDescriptors(
 // DEVICE
 //////////////////////////////////////////////////////////////////////////
 
-      
+bool VulkanDevice::validateLayoutIsSupported(const uint32 count, const ResourceGroup* group)
+{
+    if (count == 0)
+    {
+        logError("Invalid parameter passed in: count!\n");
+        assert(count);
+
+        return false;
+    }
+
+    if (!group)
+    {
+        logError("Invalid parameter passed in: group!\n");
+        assert(group);
+
+        return false;
+    }
+
+    uint32 descriptorsCount = 0;
+    for (uint32 i = 0; i < count; ++i)
+    {
+        descriptorsCount += group[i].count;
+    }
+
+    if (descriptorsCount > properties.limits.maxPerStageResources)
+    {
+        logError("Requested layout with too many descriptors: %u total per-stage supported: %u!\n", descriptorsCount, properties.limits.maxPerStageResources);
+        return false;
+    }
+
+    for (uint32 i = 0; i < count; ++i)
+    {
+        // Check if requested descriptors count is supported by HW
+        if (group[i].type == ResourceType::Texture &&
+            group[i].count > properties.limits.maxDescriptorSetSampledImages)
+        {
+            logError("Requested layout with too many texture descriptors: %u supported: %u!\n", group[i].count, properties.limits.maxDescriptorSetSamplers);
+            return false;
+        }
+
+        if (group[i].type == ResourceType::Sampler &&
+            group[i].count > properties.limits.maxDescriptorSetSamplers)
+        {
+            logError("Requested layout with too many sampler descriptors: %u supported: %u!\n", group[i].count, properties.limits.maxDescriptorSetSamplers);
+            return false;
+        }
+
+        if (group[i].type == ResourceType::Uniform &&
+            group[i].count > properties.limits.maxDescriptorSetUniformBuffers)
+        {
+            logError("Requested layout with too many uniform descriptors: %u supported: %u!", group[i].count, properties.limits.maxDescriptorSetUniformBuffers);
+            return false;
+        }
+
+        if (group[i].type == ResourceType::Image &&
+            group[i].count > properties.limits.maxDescriptorSetStorageImages)
+        {
+            logError("Requested layout with too many image descriptors: %u supported: %u!", group[i].count, properties.limits.maxDescriptorSetStorageImages);
+            return false;
+        }
+
+        if (group[i].type == ResourceType::Storage &&
+            group[i].count > properties.limits.maxDescriptorSetStorageBuffers)
+        {
+            logError("Requested layout with too many storage descriptors: %u supported: %u!", group[i].count, properties.limits.maxDescriptorSetStorageBuffers);
+            return false;
+        }
+
+        // Check if requested descriptors count is supported by pipeline stages (if only this set is bound)
+        if (group[i].type == ResourceType::Texture &&
+            group[i].count > properties.limits.maxPerStageDescriptorSampledImages)
+        {
+            logError("Requested layout with too many texture descriptors: %u per-stage supported: %u!\n", group[i].count, properties.limits.maxPerStageDescriptorSampledImages);
+            return false;
+        }
+
+        if (group[i].type == ResourceType::Sampler &&
+            group[i].count > properties.limits.maxPerStageDescriptorSamplers)
+        {
+            logError("Requested layout with too many sampler descriptors: %u per-stage supported: %u!\n", group[i].count, properties.limits.maxPerStageDescriptorSamplers);
+            return false;
+        }
+
+        if (group[i].type == ResourceType::Uniform &&
+            group[i].count > properties.limits.maxPerStageDescriptorUniformBuffers)
+        {
+            logError("Requested layout with too many uniform descriptors: %u per-stage supported: %u!\n", group[i].count, properties.limits.maxPerStageDescriptorUniformBuffers);
+            return false;
+        }
+
+        if (group[i].type == ResourceType::Image &&
+            group[i].count > properties.limits.maxPerStageDescriptorStorageImages)
+        {
+            logError("Requested layout with too many image descriptors: %u per-stage supported: %u!\n", group[i].count, properties.limits.maxPerStageDescriptorStorageImages);
+            return false;
+        }
+
+        if (group[i].type == ResourceType::Storage &&
+            group[i].count > properties.limits.maxPerStageDescriptorStorageBuffers)
+        {
+            logError("Requested layout with too many storage descriptors: %u per-stage supported: %u!\n", group[i].count, properties.limits.maxPerStageDescriptorStorageBuffers);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 SetLayout* VulkanDevice::createSetLayout(
     const uint32 count, 
     const ResourceGroup* group,
     const ShaderStages stageMask)
 {
-    assert( count );
-    assert( group );
-   
+    // Check if requested descriptors count is supported by HW
+    if (!validateLayoutIsSupported(count, group))
+    {
+        return nullptr;
+    }
+
     SetLayoutVK* result = nullptr;
 
     // TODO: Those slots are numerated separately per each resource type in D3D12, but have shared binding pool in Vulkan.

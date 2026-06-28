@@ -187,6 +187,11 @@ class VulkanDevice : public CommonDevice
         const AttributeDesc* attributes,
         const BufferDesc* buffers);
 
+    // Internal
+    bool validateLayoutIsSupported(
+        const uint32 count, 
+        const ResourceGroup* group);
+
     virtual SetLayout* createSetLayout(
         const uint32 count, 
         const ResourceGroup* group,
