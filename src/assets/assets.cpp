@@ -297,8 +297,8 @@ bool AssetManager::initResourceStreamer(void)
     //          both!).
     //
     gpu::ResourceGroup group[] = { {gpu::ResourceType::Texture, MaxTexturesCount},
-                                   {gpu::ResourceType::Sampler, MaxUniformsCount},
-                                   {gpu::ResourceType::Uniform, MaxSamplersCount}, };
+                                   {gpu::ResourceType::Sampler, MaxSamplersCount},
+                                   {gpu::ResourceType::Uniform, MaxUniformsCount}, };
     descriptorsLayout = gpu->createSetLayout(1, group);
     if (!descriptorsLayout) // unlikely
     {
