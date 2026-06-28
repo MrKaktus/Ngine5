@@ -262,9 +262,9 @@ bool WriterJSON::addKeyArray(const std::string& name)
     file.write(offset, 4, "\" :\n");
     offset += 4;
 
+    waitingForValue = true;
     enterArray();
 
-    waitingForValue = true;
     return true;
 }
 
