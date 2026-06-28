@@ -1372,7 +1372,13 @@ Streamer::Streamer(gpu::GpuDevice& _gpu, gpu::DescriptorSet& _descriptors, const
     bufferResourcesInternalPool = new PoolAllocator<BufferAllocationInternal>(DefaultResourcesCount, MaximumResourcesCount);
    
     // Pre-allocate pool of texture resource descriptors
-    textureResourcesPool = new PoolAllocator<TextureAllocation>(DefaultResourcesCount, MaxTexturesCount);
+    uint32 minTextures = DefaultResourcesCount;
+    uint32 maxTextures = MaxTexturesCount;
+    if (minTextures > maxTextures)
+    {
+        minTextures = maxTextures;
+    }
+    textureResourcesPool = new PoolAllocator<TextureAllocation>(minTextures, maxTextures);
     texturesGeneration.store(0, std::memory_order_release);
 
     // Determine which GPU queue is best for data transfers
@@ -2171,6 +2177,8 @@ bool Streamer::initAllocation(BufferCache& cache, const uint64 sysOffset, const 
     handle.generation = descriptor.generation;
 
     availableSystemMemory -= size;
+
+    return true;
 }
 
 bool Streamer::allocateMemory(const gpu::TextureState& state, assets::AssetHandle& handle)
