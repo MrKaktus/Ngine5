@@ -11,6 +11,7 @@
 
 #include "assert.h"
 
+#include "core/log/log.h"
 #include "core/memory/pageAllocator.h"
 
 #if defined(EN_PLATFORM_IOS) || defined(EN_PLATFORM_OSX)
@@ -33,6 +34,13 @@ void* virtualAllocate(const uint64 size, const uint64 maximumSize)
     // Size and maximum size needs to be explicitly multiple of 4KB
     assert( size % 4096 == 0 );
     assert( maximumSize % 4096 == 0 );
+
+    if (maximumSize < size) // unlikely
+    {
+        logError("Invalid parameter: virtualAllocate(): size: %u > maximumSize: %u!\n", size, maximumSize);
+        assert(0);
+        return nullptr;
+    }
 
     void* temp = nullptr;
    
