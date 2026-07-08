@@ -22,7 +22,7 @@
 #define SystemAllocationSize   128
 
 // Size of single allocation in dedicated memory in MB
-#define ResidentAllocationSize 128
+#define ResidentAllocationSize 32
 
 // Should be enough to alow 4K 32bpp screenshot transfer
 #define DownloadAllocationSize 32

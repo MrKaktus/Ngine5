@@ -57,7 +57,7 @@ class Direct3DAPI;
 
 class Direct3D12Device : public CommonDevice
 {
-    public:
+public:
     Direct3DAPI*            api;      // Direct3D API 
     uint32                  index;    // This device number on the list
     IDXGIAdapter3*          adapter;  // HW Adapter, physical GPU from which this D3D12 GPU was created
@@ -76,6 +76,17 @@ class Direct3D12Device : public CommonDevice
                                                                             // using pool of allocators. This allows them to be reset without CPU-GPU synchronization.
     HRESULT                 lastResult[MaxSupportedThreads];   // Result of last D3D12 call on each thread (not only worker thread)
 
+    D3D12_FEATURE_DATA_ARCHITECTURE featureArchitecture;
+    // BOOL                                  TileBasedRenderer;
+    // BOOL                                  UMA;
+    // BOOL                                  CacheCoherentUMA;
+
+    // TODO: Future Queries, not exposed in current SDK:
+    // D3D12_FEATURE_DATA_ARCHITECTURE1 featureArchitecture;
+    // BOOL TileBasedRenderer;
+    // BOOL UMA;
+    // BOOL CacheCoherentUMA;
+    // BOOL IsolatedMMU;
 
 
     // Command Buffers Management

@@ -63,11 +63,15 @@ Heap* Direct3D12Device::createHeap(const MemoryUsage usage, const uint32 size)
     desc.SizeInBytes                     = static_cast<UINT64>(roundedSize);
     desc.Properties.Type                 = D3D12_HEAP_TYPE_CUSTOM;
     desc.Properties.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
-    desc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_L1;
-    desc.Properties.CreationNodeMask     = 0u;  // TODO: Set bit equivalent to GPU index !
-    desc.Properties.VisibleNodeMask      = 0u;  // TODO: Set all bits to make it visible everywhere.
-                                                // Multi-GPU is currently not supported.
-    desc.Alignment                       = 0;   // Will automatically choose between 4KB and 64K
+    desc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_L1; // Dedicated GPU memory (VRAM).
+    if (featureArchitecture.UMA)
+    {
+        // Intel/UMA architecture has only L0 memory pool - GPU visible system memory.
+        desc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0; 
+    }
+    desc.Properties.CreationNodeMask     = 1 << index;  // Bit equivalent to this GPU NodeIndex
+    desc.Properties.VisibleNodeMask      = 1 << index;  // TODO: Set all bits to make it visible everywhere. Multi-GPU is currently not supported.
+    desc.Alignment                       = 0;   // Will automatically choose between 64KB (regular buffers) and 4MB (MSAA) alignment.
     desc.Flags                           = D3D12_HEAP_FLAG_NONE;
 
     // For default Heap:
@@ -75,9 +79,6 @@ Heap* Direct3D12Device::createHeap(const MemoryUsage usage, const uint32 size)
     // desc.Properties.Type                 = D3D12_HEAP_TYPE_DEFAULT;
     // desc.Properties.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     // desc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-
-    // TODO: Consider Intel/UMA architecture
-    //       To differentiate NUMA from UMA adapters, see D3D12_FEATURE_ARCHITECTURE and D3D12_FEATURE_DATA_ARCHITECTURE.
 
     if (usage == MemoryUsage::Linear)
     {

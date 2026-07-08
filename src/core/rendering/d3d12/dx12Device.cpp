@@ -428,20 +428,6 @@ void Direct3D12Device::init()
     // BOOL                                  VPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation;
     // D3D12_RESOURCE_HEAP_TIER              ResourceHeapTier;
 
-    D3D12_FEATURE_DATA_ARCHITECTURE featureArchitecture;
-    featureArchitecture.NodeIndex = 0;
-    // BOOL                                  TileBasedRenderer;
-    // BOOL                                  UMA;
-    // BOOL                                  CacheCoherentUMA;
-
-    // TODO: Future Queries, not exposed in current SDK:
-    // D3D12_FEATURE_DATA_ARCHITECTURE1 featureArchitecture;
-    // featureArchitecture.NodeIndex = 0;
-    // BOOL TileBasedRenderer;
-    // BOOL UMA;
-    // BOOL CacheCoherentUMA;
-    // BOOL IsolatedMMU;
-
     const D3D_FEATURE_LEVEL levelsArray[] = { D3D_FEATURE_LEVEL_12_0, D3D_FEATURE_LEVEL_12_1 };
 
     D3D12_FEATURE_DATA_FEATURE_LEVELS featureLevels;
@@ -490,6 +476,7 @@ void Direct3D12Device::init()
         enLog << "WARNING: Direct3D12 Driver doesn't recognize D3D12_FEATURE_D3D12_OPTIONS query.\n";
     }
 
+    featureArchitecture.NodeIndex = index;
     if (device->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE, 
                                     &featureArchitecture,
                                     sizeof(featureArchitecture)) == E_INVALIDARG)
