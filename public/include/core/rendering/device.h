@@ -260,8 +260,8 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
         const ShaderStages stagesMask = ShaderStages::All) = 0;
 
     virtual Descriptors* createDescriptorsPool(
-        const uint32 maxSets,
-        const uint32 (&count)[underlyingType(ResourceType::Count)]) = 0;
+        const uint32 count,
+        const ResourceGroup* group) = 0;
 
 
     // TODO: Those methods should be reworked to accept TextureView,

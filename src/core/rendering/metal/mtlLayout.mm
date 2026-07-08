@@ -482,8 +482,9 @@ PipelineLayout* MetalDevice::createPipelineLayout(
     return result;
 }
    
-std::shared_ptr<Descriptors> MetalDevice::createDescriptorsPool(const uint32 maxSets,
-                                                    const uint32 (&count)[underlyingType(ResourceType::Count)])
+std::shared_ptr<Descriptors> MetalDevice::createDescriptorsPool(
+    const uint32 count,
+    const ResourceGroup* group)
 {
     // TODO: In Metal, we allocate DescriptorSets directly from Device memory,
     //       thus Descriptors container is not needed. Consider hiding this

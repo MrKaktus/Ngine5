@@ -1322,16 +1322,18 @@ Streamer::Streamer(gpu::GpuDevice& _gpu, gpu::DescriptorSet& _descriptors, const
    
     // Bandwidth
     // TODO: Determine maxBandwithPerSecond in bytes.
-   
+
     // Verify memory budget
     uint64 totalRequiredSize = maxBufferResidentSize + maxTextureResidentSize;
     if (dedicatedMemorySize < totalRequiredSize)
     {
+        logCritical("Not enough dedicated GPU memory available!\nRequired: %u MB.\nAvailable: %u MB.\n", totalRequiredSize / MB, dedicatedMemorySize / MB);
+
         systemMemorySize       = 0;
         maxBufferResidentSize  = 0;
         maxTextureResidentSize = 0;
     }
-   
+
     availableSystemMemory  = systemMemorySize;
     availableBufferMemory  = maxBufferResidentSize;
     availableTextureMemory = maxTextureResidentSize;

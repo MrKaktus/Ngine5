@@ -112,8 +112,8 @@ class MetalDevice : public CommonDevice
         const ShaderStages stagesMask = ShaderStages::All);
 
     virtual Descriptors* createDescriptorsPool(
-        const uint32 maxSets,
-        const uint32 (&count)[underlyingType(ResourceType::Count)]);
+        const uint32 count,
+        const ResourceGroup* group);
         
 
 

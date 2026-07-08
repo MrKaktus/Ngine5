@@ -88,34 +88,56 @@ namespace gpu
 //   - Direct resources
 //   - Descriptor Sets
 //     - Sets are numerated from 0, in order in which they are declared in Layout
-//     - Descriptors inside given Set, are numerated from 0, per resource-type, in order in which they are bound
+//     - Each Set has its index visible and declared in shader: 
+//       layout(set = 0, binding = 17) uniform texture2D Textures[128];
+//     - Each group of resource descriptors of the same type receives some unique Binding X (is seen as Array of Descriptors).
+//     - Binding numbers are arbitrary (defined by app), but need to match between app and shader.
+//       - So binding 0th texture in set 0, means setting it at [binding=17, index=0] in example above
+//     - So descriptors inside given Set, are numerated from 0 per resource-type (binding N resource group), in order in which they are bound
 
-// TODO: "per resource-type" ? clarify 
 
-enum class ResourceType : uint32
+enum class ResourceType : uint8
 {
-    Sampler   = 0,
-    Texture      ,
-    Image        ,
-    Uniform      ,
-  //Formatted    ,   // Could be introduced to support Texel Buffers
-    Storage      ,
-    Count
+    Texture1D                 = 0,
+    Texture1DArray               ,
+    Texture2D                    ,
+    Texture2DArray               ,
+    Texture2DMultisample         ,
+    Texture2DMultisampleArray    ,
+    Texture3D                    ,
+    TextureCubeMap               ,
+    TextureCubeMapArray          ,
+
+    Sampler                      ,
+    UniformBuffer                , // TODO: We cannot have bindless arrays of those as they need to be typed in GLSL...
+    StorageBuffer                ,
+
+    Count                        ,
+    Invalid                      , // TODO: Specific value like uint8 max?
 };
 
+// When creating descriptor set layout, following restriction apply:
+// Each resource type can be used by only one group, unless its a
+// consecutive collection of groups, each having one descriptor.
+//
+// Either array of descriptors:
+// - ResourceGroup(ResourceType::Texture2D, 1000);
+//
+// or array of bindings:
+// - ResourceGroup(ResourceType::UniformBuffer, 1);
+// - ResourceGroup(ResourceType::UniformBuffer, 1);
+// - ResourceGroup(ResourceType::UniformBuffer, 1);
+//   
 struct ResourceGroup
 {
     ResourceType type;
     uint32       count;
-    TextureType  textureType; ///< If resource is Texture, it's type needs to be specified in Layout
-    
+
     ResourceGroup(
-            const ResourceType type,
-            const uint32 count,
-            const TextureType _textureType = TextureType::Texture2D) :
-        type(type),
-        count(count),
-        textureType(_textureType)
+            const ResourceType _type,
+            const uint32 _count) :
+        type(_type),
+        count(_count)
     {};
 };
 
@@ -137,14 +159,18 @@ class PipelineLayout
 class DescriptorSet
 {
     public:
+
+    // slot is local index in given resource type group
     virtual void setBuffer(
         const uint32 slot,
         const Buffer& buffer) = 0;
        
+    // slot is local index in given resource type group
     virtual void setSampler(
         const uint32 slot,
         const Sampler& sampler) = 0;
        
+    // slot is local index in given resource type group
     virtual void setTextureView(
         const uint32 slot,
         const TextureView& view) = 0;

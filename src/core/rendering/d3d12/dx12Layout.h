@@ -100,6 +100,11 @@ class DescriptorSetD3D12 : public DescriptorSet
     RangeMapping* const mappings;  // Mappings of Layout slots to backing Heap sub-allocations
     uint32              mappingsCount;
 
+    // For each resource group present in this set, stores address of its first
+    // descriptor in backing CPU visible D3D12 Heap. If group of given type is 
+    // not present, then nullptr is stored instead.
+    D3D12_CPU_DESCRIPTOR_HANDLE groupFirstDescriptorInHeap[underlyingType(ResourceType::Count)];
+
     DescriptorSetD3D12(Direct3D12Device* gpu, DescriptorsD3D12* parent, const uint64* offsets, const uint32* slots, RangeMapping* const mappings, uint32 mappingsCount);
     virtual ~DescriptorSetD3D12();
 

@@ -276,18 +276,10 @@ bool AssetManager::initResourceStreamer(void)
     // TODO: Need to expose Streamer object up, so Renderer can use it directly (as well as pool).
     //
     // Pool of resource descriptors with maximum available descriptors per resource type
-    uint32 countPerSet[5];
-    countPerSet[underlyingType(gpu::ResourceType::Sampler)] = MaxSamplersCount;
-    countPerSet[underlyingType(gpu::ResourceType::Texture)] = MaxTexturesCount; // TODO: Figure out what to do with other types.
-    countPerSet[underlyingType(gpu::ResourceType::Image)]   = 256;
-    countPerSet[underlyingType(gpu::ResourceType::Uniform)] = MaxUniformsCount; 
-    countPerSet[underlyingType(gpu::ResourceType::Storage)] = 256;
-    uint32 totalCount = 0;
-    for (uint32 i = 0; i < 5; ++i)
-    {
-        totalCount += countPerSet[i];
-    }
-    descriptorsPool = gpu->createDescriptorsPool(totalCount, countPerSet);
+    gpu::ResourceGroup poolLayout[] = { {gpu::ResourceType::Texture2D,     MaxTexturesCount},
+                                        {gpu::ResourceType::Sampler,       MaxSamplersCount},
+                                        {gpu::ResourceType::UniformBuffer, MaxUniformsCount}, };
+    descriptorsPool = gpu->createDescriptorsPool(3, poolLayout);
 
     // Layout that should be covering all descriptors in the pool
     //
@@ -296,10 +288,10 @@ bool AssetManager::initResourceStreamer(void)
     //          Streamer texture states from the pool (the same index is referencing
     //          both!).
     //
-    gpu::ResourceGroup group[] = { {gpu::ResourceType::Texture, MaxTexturesCount},
-                                   {gpu::ResourceType::Sampler, MaxSamplersCount},
-                                   {gpu::ResourceType::Uniform, MaxUniformsCount}, };
-    descriptorsLayout = gpu->createSetLayout(1, group);
+    gpu::ResourceGroup setLayout[] = { {gpu::ResourceType::Texture2D,     MaxTexturesCount},
+                                       {gpu::ResourceType::Sampler,       MaxSamplersCount},
+                                       {gpu::ResourceType::UniformBuffer, MaxUniformsCount}, };
+    descriptorsLayout = gpu->createSetLayout(3, setLayout);
     if (!descriptorsLayout) // unlikely
     {
         logCritical("Could not init Asset Manager! Unable to allocate GPU descriptors layout!\n");

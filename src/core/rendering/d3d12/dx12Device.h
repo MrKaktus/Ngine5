@@ -168,9 +168,9 @@ class Direct3D12Device : public CommonDevice
         const Sampler**   immutableSamplers = nullptr,
         const ShaderStages stagesMask = ShaderStages::All);
 
-    virtual Descriptors* createDescriptorsPool(
-        const uint32 maxSets, 
-        const uint32 (&count)[underlyingType(ResourceType::Count)]);
+    virtual Descriptors* createDescriptorsPool( 
+        const uint32 count,
+        const ResourceGroup* group);
 
 
     virtual RasterState* createRasterState(const RasterStateInfo& state);

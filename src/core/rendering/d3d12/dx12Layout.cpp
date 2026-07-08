@@ -17,6 +17,7 @@
 
 #if defined(EN_MODULE_RENDERER_DIRECT3D12)
 
+#include "core/log/log.h"
 #include "core/memory/alignedAllocator.h"
 #include "core/rendering/d3d12/dx12Validate.h"
 #include "core/rendering/d3d12/dx12Device.h"
@@ -31,14 +32,49 @@ namespace en
 namespace gpu
 { 
 
+// TODO: Those two tables are common across all backing APIs. Should be moved to comLayout.cpp
+
+// If not for Vulkan SPIR-V / GLSL limitation, this translation wouldn't be needed at all.
+static const ResourceType TranslateTextureType[underlyingType(TextureType::Count)] = 
+{
+    ResourceType::Texture1D                 , // TextureType::Texture1D
+    ResourceType::Texture1DArray            , // TextureType::Texture1DArray
+    ResourceType::Texture2D                 , // TextureType::Texture2D
+    ResourceType::Texture2DArray            , // TextureType::Texture2DArray
+    ResourceType::Texture2DMultisample      , // TextureType::Texture2DMultisample
+    ResourceType::Texture2DMultisampleArray , // TextureType::Texture2DMultisampleArray
+    ResourceType::Texture3D                 , // TextureType::Texture3D
+    ResourceType::TextureCubeMap            , // TextureType::TextureCubeMap
+    ResourceType::TextureCubeMapArray       , // TextureType::TextureCubeMapArray
+};
+
+static const ResourceType TranslateBufferType[underlyingType(BufferType::Count)] =
+{
+    ResourceType::Invalid       , // BufferType::Vertex
+    ResourceType::Invalid       , // BufferType::Index
+    ResourceType::UniformBuffer , // BufferType::Uniform
+    ResourceType::StorageBuffer , // BufferType::Storage
+    ResourceType::Invalid       , // BufferType::Indirect
+    ResourceType::Invalid       , // BufferType::Transfer
+};
+
 static const D3D12_DESCRIPTOR_RANGE_TYPE TranslateResourceType[underlyingType(ResourceType::Count)] =
 {
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture1D
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture1DArray
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture2D
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture2DArray
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture2DMultisample
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture2DMultisampleArray
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture3D
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // TextureCubeMap
+    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // TextureCubeMapArray
     D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, // Sampler
-    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,     // Texture
-    D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // Image
-    D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // Uniform
-    D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // Storage
+    D3D12_DESCRIPTOR_RANGE_TYPE_CBV,     // UniformBuffer
+    D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // StorageBuffer
 };
+
+//  D3D12_DESCRIPTOR_RANGE_TYPE_UAV,     // Image
 
 
 // SET LAYOUT
@@ -110,6 +146,9 @@ DescriptorSetD3D12::DescriptorSetD3D12(
         offset[i] = _offsets[i];
         slots[i]  = _slots[i];
     }
+
+    // All groups are init with nullptr
+    memset(&groupFirstDescriptorInHeap, 0, underlyingType(ResourceType::Count) * sizeof(D3D12_CPU_DESCRIPTOR_HANDLE));
 }
 
 DescriptorSetD3D12::~DescriptorSetD3D12()
@@ -127,71 +166,82 @@ DescriptorSetD3D12::~DescriptorSetD3D12()
     deallocate<RangeMapping>(mappings);
 }
 
-bool DescriptorSetD3D12::translateSlot(const uint32 slot, uint32& heapSlot)
-{
-    bool found = false;
-    for(uint32 i=0; i<mappingsCount; ++i)
-    {
-        if (mappings[i].layoutOffset <= slot &&
-            (mappings[i].layoutOffset + mappings[i].elements) > slot)
-        {
-            uint32 offset = slot - mappings[i].layoutOffset;
-            heapSlot = mappings[i].heapOffset + offset;
-            found = true;
-            break;
-        }
-    }
-
-    return found;
-}
-
 void DescriptorSetD3D12::setBuffer(const uint32 slot, const Buffer& _buffer)
 {
-    // Convert slot in DescriptorSet to slot in Heap
-    uint32 heapSlot = 0;
-    if (!translateSlot(slot, heapSlot))
+    const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
+
+    const uint32 bufferTypeIndex = underlyingType(buffer.type());
+
+    assert(bufferTypeIndex < underlyingType(BufferType::Count));
+    const ResourceType resourceType = TranslateBufferType[bufferTypeIndex];
+    if (resourceType == ResourceType::Invalid) // unlikely
     {
+        logError("Buffers of type %u are not supported for binding to descriptor set!\n", bufferTypeIndex);
+        return;
+    }
+    const uint32 resourceTypeIndex = underlyingType(resourceType);
+
+    assert(resourceTypeIndex < underlyingType(ResourceType::Count));
+    D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle = groupFirstDescriptorInHeap[resourceTypeIndex];
+    if (!descriptorHandle.ptr) // unlikely
+    {
+        logError("Buffers of type %u are not part of this descriptor set!\n", bufferTypeIndex);
         return;
     }
 
-    const BufferD3D12& buffer = reinterpret_cast<const BufferD3D12&>(_buffer);
+    // Calculates CPU address of descriptor in backing it generic Heap.
+    descriptorHandle.ptr += slot * parent->descriptorSize;
 
     // TODO: In future expose true BufferViews, allowing mapping ranges into descriptor
     D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
-    desc.BufferLocation = buffer.handle->GetGPUVirtualAddress();
+    desc.BufferLocation = buffer.handle->GetGPUVirtualAddress(); // TODO: To create a view, would add offset here
     desc.SizeInBytes    = static_cast<UINT>(buffer.size);
 
-    ValidateNoRet( gpu, CreateConstantBufferView(&desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
+    ValidateNoRet( gpu, CreateConstantBufferView(&desc, descriptorHandle) )
 }
 
 void DescriptorSetD3D12::setSampler(const uint32 slot, const Sampler& _sampler)
 {
-    // Convert slot in DescriptorSet to slot in Heap
-    uint32 heapSlot = 0;
-    if (!translateSlot(slot, heapSlot))
+    D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle = groupFirstDescriptorInHeap[underlyingType(ResourceType::Sampler)];
+    if (!descriptorHandle.ptr) // unlikely
     {
+        logError("Samplers are not part of this descriptor set!\n");
         return;
     }
+
+    // Calculates CPU address of descriptor in backing it samplers Heap.
+    descriptorHandle.ptr += slot * parent->samplerDescriptorSize;
 
     // Sampler objects are created in D3D12 by encoding their state directly 
     // into Descriptor in DescriptorSet's backing DescriptorPool (Heap)
     const SamplerD3D12& sampler = reinterpret_cast<const SamplerD3D12&>(_sampler);
-    ValidateNoRet( gpu, CreateSampler(&sampler.state, parent->pointerToSamplerDescriptorOnCPU(heapSlot)) )
+    ValidateNoRet( gpu, CreateSampler(&sampler.state, descriptorHandle) )
 }
 
 void DescriptorSetD3D12::setTextureView(const uint32 slot, const TextureView& _view)
 {
-    // Convert slot in DescriptorSet to slot in Heap
-    uint32 heapSlot = 0;
-    if (!translateSlot(slot, heapSlot))
+    const TextureViewD3D12& view = reinterpret_cast<const TextureViewD3D12&>(_view);
+
+    const uint32 textureTypeIndex = underlyingType(view.type());
+
+    assert(textureTypeIndex < underlyingType(TextureType::Count));
+    const ResourceType resourceType = TranslateTextureType[textureTypeIndex];
+    const uint32 resourceTypeIndex = underlyingType(resourceType);
+
+    assert(resourceTypeIndex < underlyingType(ResourceType::Count));
+    D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle = groupFirstDescriptorInHeap[resourceTypeIndex];
+    if (!descriptorHandle.ptr) // unlikely
     {
+        logError("Textures of type %u are not part of this descriptor set!\n", textureTypeIndex);
         return;
     }
 
+    // Calculates CPU address of descriptor in backing it generic Heap.
+    descriptorHandle.ptr += slot * parent->descriptorSize;
+
     // Views are created in D3D12 by encoding them directly into 
     // Descriptor in DescriptorSet's backing DescriptorPool (Heap)
-    const TextureViewD3D12& view = reinterpret_cast<const TextureViewD3D12&>(_view);
-    ValidateNoRet( gpu, CreateShaderResourceView(view.texture.handle, &view.desc, parent->pointerToDescriptorOnCPU(heapSlot)) )
+    ValidateNoRet( gpu, CreateShaderResourceView(view.texture.handle, &view.desc, descriptorHandle) )
 }
 
 
@@ -661,13 +711,13 @@ SetLayout* Direct3D12Device::createSetLayout(
         {
             generalRange[generalRangeIndex].RangeType          = TranslateResourceType[resourceType];
             generalRange[generalRangeIndex].NumDescriptors     = group[i].count;     // UINT - -1 or UINT_MAX to specify unbounded size (only last entry)
-
+/* TODO: Temp disable. Fix this method.
             // Storage buffers share local register space with Images (as UAV's, u(x))
-            if (group[i].type == ResourceType::Storage)
+            if (group[i].type == ResourceType::StorageBuffer)
             {
                 resourceType = underlyingType(ResourceType::Image);
             }
-
+//*/
             // Register Slots are assigned in order of Resource Group declarations.
             // Register Space is set during Root Signature creation, in order in
             // which Descriptor Sets are assigned to Pipeline Layout.
@@ -866,7 +916,7 @@ PipelineLayout* Direct3D12Device::createPipelineLayout(
         };
          
         samplers = allocate<D3D12_STATIC_SAMPLER_DESC>(immutableSamplersCount);
-        for(uint32 i=0; i< immutableSamplersCount; ++i)
+        for(uint32 i=0; i<immutableSamplersCount; ++i)
         {
             const SamplerD3D12* sampler = reinterpret_cast<const SamplerD3D12*>(immutableSamplers[i]);
 
@@ -895,7 +945,7 @@ PipelineLayout* Direct3D12Device::createPipelineLayout(
             samplers[i].ShaderVisibility = visibility;
         }
     }
-   
+
     // Gather Descriptor Tables
     uint32 tablesCount = 0;
     D3D12_ROOT_PARAMETER* tables = nullptr;
@@ -915,7 +965,7 @@ PipelineLayout* Direct3D12Device::createPipelineLayout(
         }
 
         // Count amount of backing Descriptor Tables
-        for(uint32 i=0; i< setsCount; ++i)
+        for(uint32 i=0; i<setsCount; ++i)
         {
             const SetLayoutD3D12* ptr = reinterpret_cast<const SetLayoutD3D12*>(sets[i]);
             tablesCount += ptr->tablesCount;
@@ -989,7 +1039,7 @@ PipelineLayout* Direct3D12Device::createPipelineLayout(
     desc.Desc_1_0.NumStaticSamplers = immutableSamplersCount;
     desc.Desc_1_0.pStaticSamplers   = samplers;
     desc.Desc_1_0.Flags             = D3D12_ROOT_SIGNATURE_FLAG_NONE;
-   
+
     // Don't use this flag, to get small optimization on Programmable Vertex Fetch shaders
     desc.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -1042,11 +1092,11 @@ PipelineLayout* Direct3D12Device::createPipelineLayout(
 }
 
 Descriptors* Direct3D12Device::createDescriptorsPool(
-    const uint32 maxSets, 
-    const uint32 (&count)[underlyingType(ResourceType::Count)])
+    const uint32 count,
+    const ResourceGroup* group)
 {
     DescriptorsD3D12* result = nullptr;
-   
+
     // All resources except of Samplers share the same heap in D3D12.
     // We set D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE to indicate that
     // Descriptors are not staged in CPU memory, but directly set in
@@ -1060,36 +1110,46 @@ Descriptors* Direct3D12Device::createDescriptorsPool(
    
     // Create Samplers Heap if requested
     ID3D12DescriptorHeap* samplersHandle = nullptr;
-    if (count[underlyingType(ResourceType::Sampler)] > 0)
+    uint32 samplerDescriptorsCount = 0;
+    for (uint32 i = 0; i < count; ++i)
     {
-        D3D12_DESCRIPTOR_HEAP_DESC desc;
-        desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-        desc.NumDescriptors = count[underlyingType(ResourceType::Sampler)];
-        desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        desc.NodeMask       = 0u; // TODO: Set bit to current GPU index in SLI
-   
-        Validate( this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&samplersHandle)) ) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handleSamplers)
-        if (!SUCCEEDED(lastResult[currentThreadId()]))
+        if (group[i].type == ResourceType::Sampler)
         {
-            return result;
+            samplerDescriptorsCount = group[i].count;
+
+            D3D12_DESCRIPTOR_HEAP_DESC desc;
+            desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+            desc.NumDescriptors = samplerDescriptorsCount;
+            desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            desc.NodeMask       = 0u; // TODO: Set bit to current GPU index in SLI
+
+            Validate(this, CreateDescriptorHeap(&desc, IID_PPV_ARGS(&samplersHandle))) // __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**>(&handleSamplers)
+            if (!SUCCEEDED(lastResult[currentThreadId()]))
+            {
+                return result;
+            }
+
+            // It is expected that there is only one group of samplers
+            break;
         }
     }
-      
-    constexpr uint32 resourceTypesCount = underlyingType(ResourceType::Count);
-   
+ 
     // Calculate amount of slots required for Textures, Images, Uniforms and Storage Buffers
-    uint32 slots = 0;
-    for(uint32 i=1; i<resourceTypesCount; ++i)
+    uint32 genericDescriptorsCount = 0;
+    for(uint32 i=0; i<count; ++i)
     {
-        slots += count[i];
+        if (group[i].type != ResourceType::Sampler)
+        {
+            genericDescriptorsCount += group[i].count;
+        }
     }
 
     ID3D12DescriptorHeap* handle = nullptr;
-    if (slots > 0)
+    if (genericDescriptorsCount > 0)
     {
         D3D12_DESCRIPTOR_HEAP_DESC desc;
         desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        desc.NumDescriptors = slots;
+        desc.NumDescriptors = genericDescriptorsCount;
         desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         desc.NodeMask       = 0u; // TODO: Set bit to current GPU index in SLI
    
@@ -1102,10 +1162,16 @@ Descriptors* Direct3D12Device::createDescriptorsPool(
 
     // D3D12 has no limit of Descriptor Sets that can be allocated from it.
     result = new DescriptorsD3D12(this);
-    result->handle[0]    = handle;
-    result->handle[1]    = samplersHandle;
-    result->allocator[0] = new BasicAllocator(slots);
-    result->allocator[1] = new BasicAllocator(count[underlyingType(ResourceType::Sampler)]);
+    if (genericDescriptorsCount)
+    {
+        result->handle[0]    = handle;
+        result->allocator[0] = new BasicAllocator(genericDescriptorsCount);
+    }
+    if (samplerDescriptorsCount)
+    {
+        result->handle[1]    = samplersHandle;    
+        result->allocator[1] = new BasicAllocator(samplerDescriptorsCount);
+    }
 
     return result;
 }

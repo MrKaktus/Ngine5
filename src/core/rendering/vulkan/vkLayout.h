@@ -35,7 +35,20 @@ class SetLayoutVK : public SetLayout
     VulkanDevice* gpu;
     VkDescriptorSetLayout handle;
 
-    SetLayoutVK(VulkanDevice* gpu, VkDescriptorSetLayout layout);
+    // Translates each resource group type into backing it first binding index.
+    uint32 bindingOfResourceType[underlyingType(ResourceType::Count)];
+
+    // If true, resource group of given type, is represented by unbound array
+    // of descriptors in the shader (array size is known on CPU side). If false
+    // that resource group is represented by array of bindings (for e.g. 5 
+    // bindings for 5 typed storage buffers).
+    bool resourceGroupIsDescriptorsArray[underlyingType(ResourceType::Count)];
+
+    SetLayoutVK(VulkanDevice* gpu, 
+                VkDescriptorSetLayout layout, 
+                const uint32 (&bindingOfResourceType)[underlyingType(ResourceType::Count)],
+                const bool   (&resourceGroupIsDescriptorsArray)[underlyingType(ResourceType::Count)]);
+
     virtual ~SetLayoutVK();
 };
 
@@ -54,7 +67,7 @@ class DescriptorsVK : public Descriptors
     public:
     VulkanDevice*    gpu;
     VkDescriptorPool handle;
-    
+
     virtual DescriptorSet* allocate(const SetLayout& layout);
     virtual bool allocate(const uint32 count,
                           const SetLayout*(&layouts)[],
@@ -71,8 +84,21 @@ class DescriptorSetVK : public DescriptorSet
     public:
     DescriptorsVK*  parent; // Reference to Descriptors Pool
     VkDescriptorSet handle;
-    
-    DescriptorSetVK(DescriptorsVK* parent, VkDescriptorSet handle);
+
+    // Translates each resource group type into backing it first binding index.
+    uint32 bindingOfResourceType[underlyingType(ResourceType::Count)];
+
+    // If true, resource group of given type, is represented by unbound array
+    // of descriptors in the shader (array size is known on CPU side). If false
+    // that resource group is represented by array of bindings (for e.g. 5 
+    // bindings for 5 typed storage buffers).
+    bool resourceGroupIsDescriptorsArray[underlyingType(ResourceType::Count)];
+
+    DescriptorSetVK(DescriptorsVK* parent, 
+                    VkDescriptorSet handle,
+                    const uint32(&bindingOfResourceType)[underlyingType(ResourceType::Count)],
+                    const bool(&resourceGroupIsDescriptorsArray)[underlyingType(ResourceType::Count)]);
+
     virtual ~DescriptorSetVK();
 
     virtual void setBuffer(const uint32 slot, const Buffer& buffer);

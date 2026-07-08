@@ -33,7 +33,7 @@ class CommonBuffer : public Buffer
     BufferType apiType;
     uint64     mappedOffset;
     uint64     mappedSize;
-      
+
     CommonBuffer(const BufferType type, uint64 length);
     virtual uint64 length(void) const;
     virtual BufferType type(void) const;

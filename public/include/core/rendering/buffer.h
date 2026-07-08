@@ -38,11 +38,13 @@ enum class BufferType : uint32
     Storage                , ///< Read-Write, Atomic, minimum 1MB, data buffer.
     Indirect               , ///< Store of Draw and Dispatch Indirect commands.
     Transfer               , ///< On Upload heaps - buffer used to transfer data
-};                           ///< from CPU RAM to Buffers and Textures in VRAM.
+                             ///< from CPU RAM to Buffers and Textures in VRAM.
                              ///< On Download heap - Buffer used to transfer
                              ///< data from Buffers and Textures in VRAM to
                              ///< CPU RAM. Upload buffers are used to populate
                              ///< all other resources with data.
+    Count                  ,
+};
 
 /// Format of attribute data
 enum class Attribute : uint32

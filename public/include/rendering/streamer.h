@@ -25,9 +25,10 @@
 #include "assets/handle.h"
 
 // Maximum allowed count of GPU resources of given type
-#define MaxTexturesCount 1024
-#define MaxUniformsCount 1024
-#define MaxSamplersCount 1024
+// TODO: Limits temporarilly reduced for Integrated Intel GPU
+#define MaxTexturesCount 128 // 1024
+#define MaxUniformsCount 32  // 1024
+#define MaxSamplersCount 32  // 1024
 
 namespace en
 {
