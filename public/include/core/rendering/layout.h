@@ -179,7 +179,7 @@ class DescriptorSet
 };
 
 // Range of Descriptors that can be used, to allocated from it set of Descriptors
-class Descriptors
+class DescriptorsPool
 {
     public:
     virtual DescriptorSet* allocate(
@@ -190,7 +190,7 @@ class Descriptors
         const SetLayout*(&layouts)[],
         DescriptorSet**& sets) = 0;
 
-    virtual ~Descriptors() {};
+    virtual ~DescriptorsPool() {};
 };
 
 } // en::gpu

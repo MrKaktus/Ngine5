@@ -181,7 +181,7 @@ class AssetManager : public Interface
     // Resource streamer
 
     std::shared_ptr<gpu::GpuDevice> gpu;
-    gpu::Descriptors*   descriptorsPool;
+    gpu::DescriptorsPool* descriptorsPool;
     gpu::SetLayout*     descriptorsLayout;
     gpu::DescriptorSet* descriptorsSet;
     Streamer* streamer;

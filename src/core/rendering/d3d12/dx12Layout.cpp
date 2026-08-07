@@ -1091,7 +1091,7 @@ PipelineLayout* Direct3D12Device::createPipelineLayout(
     return result;
 }
 
-Descriptors* Direct3D12Device::createDescriptorsPool(
+DescriptorsPool* Direct3D12Device::createDescriptorsPool(
     const uint32 count,
     const ResourceGroup* group)
 {

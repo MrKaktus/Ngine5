@@ -482,7 +482,7 @@ PipelineLayout* MetalDevice::createPipelineLayout(
     return result;
 }
    
-std::shared_ptr<Descriptors> MetalDevice::createDescriptorsPool(
+std::shared_ptr<DescriptorsPool> MetalDevice::createDescriptorsPool(
     const uint32 count,
     const ResourceGroup* group)
 {

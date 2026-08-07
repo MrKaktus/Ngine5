@@ -66,7 +66,7 @@ class PipelineLayoutD3D12 : public PipelineLayout
 
 class Direct3D12Device;
 
-class DescriptorsD3D12 : public Descriptors
+class DescriptorsD3D12 : public DescriptorsPool
 {
     public:
     Direct3D12Device*     gpu;

@@ -62,7 +62,7 @@ class PipelineLayoutVK : public PipelineLayout
     virtual ~PipelineLayoutVK();
 };
 
-class DescriptorsVK : public Descriptors
+class DescriptorsVK : public DescriptorsPool
 {
     public:
     VulkanDevice*    gpu;

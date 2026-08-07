@@ -259,7 +259,7 @@ class GpuDevice : public std::enable_shared_from_this<GpuDevice>
         const Sampler**   immutableSamplers      = nullptr,
         const ShaderStages stagesMask = ShaderStages::All) = 0;
 
-    virtual Descriptors* createDescriptorsPool(
+    virtual DescriptorsPool* createDescriptorsPool(
         const uint32 count,
         const ResourceGroup* group) = 0;
 

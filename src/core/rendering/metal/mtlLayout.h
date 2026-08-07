@@ -55,7 +55,7 @@ class PipelineLayoutMTL : public PipelineLayout
     virtual ~PipelineLayoutMTL();
 };
       
-class DescriptorsMTL : public Descriptors
+class DescriptorsMTL : public DescriptorsPool
 {
     public:
     MetalDevice* gpu;

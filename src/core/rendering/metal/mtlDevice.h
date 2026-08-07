@@ -111,7 +111,7 @@ class MetalDevice : public CommonDevice
         const Sampler**   immutableSamplers = nullptr,
         const ShaderStages stagesMask = ShaderStages::All);
 
-    virtual Descriptors* createDescriptorsPool(
+    virtual DescriptorsPool* createDescriptorsPool(
         const uint32 count,
         const ResourceGroup* group);
         

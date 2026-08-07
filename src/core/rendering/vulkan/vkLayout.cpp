@@ -836,7 +836,7 @@ PipelineLayout* VulkanDevice::createPipelineLayout(
     return result;
 }
 
-Descriptors* VulkanDevice::createDescriptorsPool(
+DescriptorsPool* VulkanDevice::createDescriptorsPool(
     const uint32 count,
     const ResourceGroup* group)
 {
